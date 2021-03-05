@@ -1,0 +1,27 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net45</TargetFrameworks>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.1.0</Version>
+    <Company>InspireFunction</Company>
+    <Authors>xsfhlzh;vicwjb</Authors>
+    <Description>基于.NET的Cad二次开发类库</Description>
+    <Copyright>InspireFunction</Copyright>
+    <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
+    <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>CAD;AutoCad;C#;NET</PackageTags>
+    <PackageReleaseNotes>基于NFOX类库的重构版本</PackageReleaseNotes>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="AutoCAD.NET" Version="20.0.1">
+      <ExcludeAssets>runtime</ExcludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+</Project>

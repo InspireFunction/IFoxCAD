@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "IFoxCAD.Cad": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\AutoCAD 2021\\acad.exe",
+      "commandLineArgs": "/nologo",
+      "nativeDebugging": true
+    }
+  }
+}
