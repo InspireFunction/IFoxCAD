@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFrameworks>net45</TargetFrameworks>
+        <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+        <Version>0.1.0</Version>
+        <Company>InspireFunction</Company>
+        <Authors>xsfhlzh;vicwjb</Authors>
+        <Description>基于.NET的Cad二次开发类库</Description>
+        <Copyright>InspireFunction</Copyright>
+        <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
+        <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
+        <PackageReleaseNotes>基于NFOX类库的重构版本</PackageReleaseNotes>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <LangVersion>preview</LangVersion>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
+      <OutputPath>bin\Debug\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
+      <OutputPath>bin\Release\</OutputPath>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="AutoCAD.NET" Version="20.0.1">
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Include="..\..\LICENSE">
+        <Pack>True</Pack>
+        <PackagePath>..\..\nupkg</PackagePath>
+      </None>
+    </ItemGroup>
+
+</Project>
