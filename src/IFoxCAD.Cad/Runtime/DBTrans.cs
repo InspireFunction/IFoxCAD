@@ -11,7 +11,7 @@ using Autodesk.AutoCAD.ApplicationServices;
 
 namespace IFoxCAD.Cad
 {
-
+    // TODO 9个符号表的属性
 
     public class DBTrans : IDisposable
     {
@@ -23,14 +23,31 @@ namespace IFoxCAD.Cad
 
         #endregion
 
+        #region 公开属性
+        /// <summary>
+        /// 数据库
+        /// </summary>
         public Database Database { get; private set; }
-
+        /// <summary>
+        /// 文档
+        /// </summary>
         public Document Document { get; private set; }
-
+        /// <summary>
+        /// 命令行
+        /// </summary>
         public Editor Editor { get; private set; }
-
+        /// <summary>
+        /// 事务管理器
+        /// </summary>
         public Transaction Trans { get; private set; }
 
+        #endregion
+
+        #region 构造函数
+        /// <summary>
+        /// 构造函数，默认事务退出时提交全部操作
+        /// </summary>
+        /// <param name="commit"></param>
         public DBTrans(bool commit = true)
         {
             Document = Application.DocumentManager.MdiActiveDocument;
@@ -40,10 +57,26 @@ namespace IFoxCAD.Cad
             _commit = commit;
         }
 
+        #endregion
+
+        #region 获取对象
+        /// <summary>
+        /// 根据对象id获取图元对象
+        /// </summary>
+        /// <typeparam name="T">要获取的图元对象的类型</typeparam>
+        /// <param name="id">对象id</param>
+        /// <param name="mode">打开模式，默认为只读</param>
+        /// <param name="openErased">是否打开已删除对象，默认为不打开</param>
+        /// <param name="forceOpenOnLockedLayer">是否打开锁定图层对象，默认为不打开</param>
+        /// <returns></returns>
         public T GetObject<T>(ObjectId id, OpenMode mode = OpenMode.ForRead, bool openErased = false, bool forceOpenOnLockedLayer = false) where T : DBObject
         {
             return Trans.GetObject(id, mode, openErased, forceOpenOnLockedLayer) as T;
         }
+
+        #endregion
+
+        #region idispose接口相关函数
 
         public void Abort()
         {
@@ -81,12 +114,12 @@ namespace IFoxCAD.Cad
             }
         }
 
-        // // TODO: 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器
-        // ~DBTrans()
-        // {
-        //     // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
-        //     Dispose(disposing: false);
-        // }
+        // TODO: 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器
+        ~DBTrans()
+        {
+            // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
+            Dispose(disposing: false);
+        }
 
         public void Dispose()
         {
@@ -94,5 +127,6 @@ namespace IFoxCAD.Cad
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
+        #endregion
     }
 }
