@@ -59,6 +59,53 @@ namespace IFoxCAD.Cad
 
         #endregion
 
+
+        #region 符号表
+
+        /// <summary>
+        /// 块表
+        /// </summary>
+        public SymbolTable<BlockTable, BlockTableRecord> BlockTable => new(this, Database.BlockTableId);
+        /// <summary>
+        /// 层表
+        /// </summary>
+        public SymbolTable<LayerTable, LayerTableRecord> LayerTable => new(this, Database.LayerTableId);
+        /// <summary>
+        /// 文字样式表
+        /// </summary>
+        public SymbolTable<TextStyleTable, TextStyleTableRecord> TextStyleTable => new(this, Database.TextStyleTableId);
+
+        /// <summary>
+        /// 注册应用程序表
+        /// </summary>
+        public SymbolTable<RegAppTable, RegAppTableRecord> RegAppTable => new(this, Database.RegAppTableId);
+
+        /// <summary>
+        /// 标注样式表
+        /// </summary>
+        public SymbolTable<DimStyleTable, DimStyleTableRecord> DimStyleTable => new(this, Database.DimStyleTableId);
+
+        /// <summary>
+        /// 线型表
+        /// </summary>
+        public SymbolTable<LinetypeTable, LinetypeTableRecord> LinetypeTable => new(this, Database.LinetypeTableId);
+
+        /// <summary>
+        /// 用户坐标系表
+        /// </summary>
+        public SymbolTable<UcsTable, UcsTableRecord> UcsTable => new(this, Database.UcsTableId);
+
+        /// <summary>
+        /// 视图表
+        /// </summary>
+        public SymbolTable<ViewTable, ViewTableRecord> ViewTable => new(this, Database.ViewTableId);
+
+        /// <summary>
+        /// 视口表
+        /// </summary>
+        public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => new(this, Database.ViewportTableId);
+        #endregion
+
         #region 获取对象
         /// <summary>
         /// 根据对象id获取图元对象

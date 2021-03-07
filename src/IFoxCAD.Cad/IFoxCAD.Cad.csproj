@@ -32,6 +32,7 @@
         <PackageReference Include="AutoCAD.NET" Version="20.0.1">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
+        <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
 
     <ItemGroup>

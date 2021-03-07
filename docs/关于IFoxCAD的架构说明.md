@@ -7,9 +7,24 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
 ## 一、组织结构图
 
 - IFoxCAD
+
   - IFoxCAD.Cad -- cad 相关的类库
   - IFoxCAD.WPF -- wpf的mvvm模式相关的类库
   - and so on....
+
+- 脑图
+
+  ```mermaid
+  flowchart LR
+  A[DBTrans]-->B[属性] & F[方法]
+  B --> C[Document] & D(Editor) & E[(Database)]
+  F --> g(getobject) & gg(addent)
+  
+  		
+  		
+  ```
+
+  
 
 ## 二、关于DBTrans类的说明
 
