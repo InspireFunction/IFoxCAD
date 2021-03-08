@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "DBTrans.test": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\AutoCAD 2021\\acad.exe",
+      "commandLineArgs": "/nologo",
+      "nativeDebugging": false
+    }
+  }
+}
