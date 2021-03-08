@@ -14,7 +14,7 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
 
   
 
-##　二、关于DBTrans类的说明
+## 二、关于DBTrans类的说明
 
 ### 2.1 为什么要构建DBTrans类？
 
