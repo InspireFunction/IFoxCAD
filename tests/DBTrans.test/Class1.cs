@@ -66,9 +66,8 @@ namespace test
             using var tr = new DBTrans();
             tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor,1));
         }
-        [CommandMethod("layerAdd2")]
         
-        //Todo：小山山还没块表
+        //Todo：小山山还没处理块表
         //[CommandMethod("linedemo1")]
         //public void addLine1()
         //{
