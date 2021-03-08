@@ -26,7 +26,6 @@ namespace IFoxCAD.Cad.ExtensionMethod
         {
             return table.Add(name, lt => lt.Color = color);
         }
-
         #endregion
     }
 }

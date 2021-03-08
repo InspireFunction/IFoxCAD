@@ -16,6 +16,7 @@ using Autodesk.AutoCAD.Internal;
 
 using IFoxCAD.Cad;
 using Autodesk.AutoCAD.Colors;
+using IFoxCAD.Cad.ExtensionMethod;
 
 namespace test
 {
@@ -38,7 +39,7 @@ namespace test
                 tr.Editor.WriteMessage("\ndatabase 正常");
             }
 
-            
+
 
         }
 
@@ -59,8 +60,35 @@ namespace test
                 lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 2);
             });
         }
+        [CommandMethod("layerAdd1")]
+        public void layertest1()
+        {
+            using var tr = new DBTrans();
+            tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor,1));
+        }
+        [CommandMethod("layerAdd2")]
+        
+        //Todo：小山山还没块表
+        //[CommandMethod("linedemo1")]
+        //public void addLine1()
+        //{
+        //    using var tr = new DBTrans();
+        //    tr.BlockTable.Add(new BlockTableRecord(), line =>
+        //    {
+        //        line.
+        //    });
+        //}
 
+        [CommandMethod("PrintLayerName")]
+        public void PrintLayerName()
+        {
+            using var tr = new DBTrans();
+            foreach (var layerRecord in tr.LayerTable.GetRecords())
+            {
+                tr.Editor.WriteMessage(layerRecord.Name);
+            }
 
+        }
 
         public Database getdb()
         {
