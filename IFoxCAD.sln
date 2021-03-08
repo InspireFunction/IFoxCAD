@@ -5,10 +5,6 @@ VisualStudioVersion = 16.0.31025.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Cad", "src\IFoxCAD.Cad\IFoxCAD.Cad.csproj", "{D5FAED7C-A99B-4BEE-A745-45442DC44971}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Services", "src\IFoxCAD.ServiceCollections\IFoxCAD.Services.csproj", "{548272DC-CC7E-4F87-A6C9-FCFB1631A294}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Test", "src\IFoxCAD.Test\IFoxCAD.Test.csproj", "{88ECC2ED-4810-4052-AEDA-070311DD5049}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -19,14 +15,6 @@ Global
 		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Release|Any CPU.Build.0 = Release|Any CPU
-		{548272DC-CC7E-4F87-A6C9-FCFB1631A294}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{548272DC-CC7E-4F87-A6C9-FCFB1631A294}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{548272DC-CC7E-4F87-A6C9-FCFB1631A294}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{548272DC-CC7E-4F87-A6C9-FCFB1631A294}.Release|Any CPU.Build.0 = Release|Any CPU
-		{88ECC2ED-4810-4052-AEDA-070311DD5049}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{88ECC2ED-4810-4052-AEDA-070311DD5049}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{88ECC2ED-4810-4052-AEDA-070311DD5049}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{88ECC2ED-4810-4052-AEDA-070311DD5049}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

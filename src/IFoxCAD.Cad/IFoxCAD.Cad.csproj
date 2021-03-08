@@ -18,14 +18,7 @@
         <LangVersion>preview</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
-      <OutputPath>bin\Debug\</OutputPath>
-    </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
-      <OutputPath>bin\Release\</OutputPath>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     </PropertyGroup>
 
     <ItemGroup>
@@ -38,7 +31,7 @@
     <ItemGroup>
       <None Include="..\..\LICENSE">
         <Pack>True</Pack>
-        <PackagePath>..\..\nupkg</PackagePath>
+        <PackagePath></PackagePath>
       </None>
     </ItemGroup>
 
