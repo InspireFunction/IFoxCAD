@@ -1,16 +1,15 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
+using System.Linq; 
 using Autodesk.AutoCAD.DatabaseServices;
 namespace IFoxCAD.Cad
 {
-    public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId> where TTable : SymbolTable where TRecord : SymbolTableRecord, new()
-    {
-
+    public class SymbolTable<TTable, TRecord> :
+        IEnumerable<ObjectId> where TTable : 
+        SymbolTable where TRecord : 
+        SymbolTableRecord, new()
+    { 
         #region 程序集内部属性
         /// <summary>
         /// 事务管理器
