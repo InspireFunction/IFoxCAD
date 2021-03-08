@@ -12,21 +12,9 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
   - IFoxCAD.WPF -- wpf的mvvm模式相关的类库
   - and so on....
 
-- 脑图
-
-  ```mermaid
-  flowchart LR
-  A[DBTrans]-->B[属性] & F[方法]
-  B --> C[Document] & D(Editor) & E[(Database)]
-  F --> g(getobject) & gg(addent)
-  
-  		
-  		
-  ```
-
   
 
-## 二、关于DBTrans类的说明
+##　二、关于DBTrans类的说明
 
 ### 2.1 为什么要构建DBTrans类？
 
@@ -50,7 +38,25 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 - 添加图元类方法
 - 。。。
 
+## 三、 关于SymbolTable类的说明
 
+### 3.1 为什么要构建SymbolTable类
+
+主要是为了统一处理9个符号表，具体原因如下：
+
+- 其实cad的api对于符号表都是继承自SymbolTable类，符号表记录都是继承自SymbolTableRecord类，所以其实这个自定义的类叫SymbolTable是和cad的内部api有命名上的冲突的，希望给我给个贴近自定义的理念的类名。
+- cad的默认api关于符号表和符号表记录是隔离关系的，就是说符号表和符号表记录在api上是没有关系的，只是数据库里每个符号都映射着相应的符号表记录，所以为了对应符号表和符号表记录，写了SymbolTable类。
+- 通过这个类，就可以统一的处理符号表和符号表记录了，比如层表的处理就从原来首先获取层表对象->新建层表记录对象->打开层表的写模式->添加层表记录，变成新建层表的关联类实例->添加层表记录。
+- 有了这个类，DBTrans类就可以直接通过属性获取符号表的关联关系，然后进行符号表的处理。
+
+### 3.2 SymbolTable类应该具有的成员
+
+- Add  ---添加符号表记录函数
+- Remove --- 删除符号表记录函数
+- Change --- 修改符号表记录函数
+- Has --- 判断符号表是否有符号表记录的函数
+- CurrentSymbolTable  ---当前的符号表对象
+- 。。。
 
 # 慢慢完善，想到哪写到哪。。。
 

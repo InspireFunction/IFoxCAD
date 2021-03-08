@@ -28,14 +28,10 @@ namespace IFoxCAD.Cad
             {
                 obj.UpgradeFromNotify();
             }
-
-            ///  obj.UpgradeOpen();源程序在这里出错了。需要判断一下；
-            if (_isWriteEnabled == false)
+            else if (!_isWriteEnabled)
             {
                 obj.UpgradeOpen();
             }
-
-
             action?.Invoke(obj as T);
             if (_isNotifyEnabled)
             {
@@ -45,8 +41,6 @@ namespace IFoxCAD.Cad
             {
                 obj.DowngradeOpen();
             }
-
-         
         }
 
 
@@ -76,8 +70,8 @@ namespace IFoxCAD.Cad
                 _isWriteEnabled = _obj.IsWriteEnabled;
                 if (_isNotifyEnabled)
                     _obj.UpgradeFromNotify();
-                //else if (!_isWriteEnabled)
-                _obj.UpgradeOpen();
+                else if (!_isWriteEnabled)
+                    _obj.UpgradeOpen();
             }
 
             #region IDisposable 成员

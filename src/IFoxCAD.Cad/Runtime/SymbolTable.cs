@@ -28,6 +28,8 @@ namespace IFoxCAD.Cad
         /// </summary>
         public TTable CurrentSymbolTable { get; private set; }
         #endregion
+
+        #region 构造函数
         /// <summary>
         /// 构造函数，初始化Trans和CurrentSymbolTable属性
         /// </summary>
@@ -38,6 +40,10 @@ namespace IFoxCAD.Cad
             DTrans = tr;
             CurrentSymbolTable = DTrans.GetObject<TTable>(tableId);
         }
+
+        #endregion
+
+        #region 索引器
         /// <summary>
         /// 索引器
         /// </summary>
@@ -82,7 +88,9 @@ namespace IFoxCAD.Cad
                 //TODO: 添加索引
             }
         }
+        #endregion
 
+        #region Has
         /// <summary>
         /// 判断是否存在符号表记录
         /// </summary>
@@ -101,6 +109,7 @@ namespace IFoxCAD.Cad
         {
             return CurrentSymbolTable.Has(objectId);
         }
+        #endregion
 
         #region 添加符号表记录
         /// <summary>
