@@ -153,7 +153,7 @@ namespace IFoxCAD.Cad
         /// 删除符号表记录
         /// </summary>
         /// <param name="record">符号表记录对象</param>
-        private void Remove(TRecord record)
+        private static void Remove(TRecord record)
         {
             using (record.ForWrite())
             {
@@ -195,7 +195,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="record">符号表记录</param>
         /// <param name="action">修改委托</param>
-        private void Change(TRecord record, Action<TRecord> action)
+        private static void Change(TRecord record, Action<TRecord> action)
         {
             using (record.ForWrite())
             {

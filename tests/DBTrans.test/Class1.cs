@@ -29,12 +29,12 @@ namespace test
             tr.Editor.WriteMessage("\n测试 Editor 属性是否工作！");
             tr.Editor.WriteMessage("\n----------开始测试--------------");
             tr.Editor.WriteMessage("\n测试document属性是否工作");
-            if (tr.Document == getdoc())
+            if (tr.Document == Getdoc())
             {
                 tr.Editor.WriteMessage("\ndocument 正常");
             }
             tr.Editor.WriteMessage("\n测试database属性是否工作");
-            if (tr.Database == getdb())
+            if (tr.Database == Getdb())
             {
                 tr.Editor.WriteMessage("\ndatabase 正常");
             }
@@ -44,7 +44,7 @@ namespace test
         }
 
         [CommandMethod("layertest")]
-        public void layertest()
+        public void Layertest()
         {
             using var tr = new DBTrans();
             tr.LayerTable.Add("1");
@@ -61,7 +61,7 @@ namespace test
             });
         }
         [CommandMethod("layerAdd1")]
-        public void layertest1()
+        public void Layertest1()
         {
             using var tr = new DBTrans();
             tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor,1));
@@ -89,14 +89,14 @@ namespace test
 
         }
 
-        public Database getdb()
+        public Database Getdb()
         {
             var db = Application.DocumentManager.MdiActiveDocument.Database;
             return db;
         }
 
 
-        public Document getdoc()
+        public Document Getdoc()
         {
             var doc = Application.DocumentManager.MdiActiveDocument;
             return doc;
