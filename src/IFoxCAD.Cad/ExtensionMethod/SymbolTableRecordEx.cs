@@ -28,5 +28,42 @@ namespace IFoxCAD.Cad.ExtensionMethod
         }
 
         #endregion
+
+        #region 块表
+
+        #endregion
+
+        #region 线型表
+
+        #endregion
+
+        #region 符号表
+
+        #endregion
+
+        #region 文字样式表
+
+        #endregion
+
+        #region 注册应用程序表
+
+        #endregion
+
+        #region 标注样式表
+
+        #endregion
+
+        #region 用户坐标系表
+
+        #endregion
+
+        #region 视图表
+
+        #endregion
+
+        #region 视口表
+
+        #endregion
+
     }
 }
