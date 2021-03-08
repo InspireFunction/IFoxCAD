@@ -249,6 +249,15 @@ namespace IFoxCAD.Cad
         public TRecord GetRecord(string name, OpenMode openMode = OpenMode.ForRead) => GetRecord(this[name], openMode);
 
         /// <summary>
+        /// 获取符号表记录
+        /// </summary>
+        /// <returns>符号表记录迭代器</returns>
+        public IEnumerable<TRecord> GetRecords()
+        {
+            return this.Select(id => GetRecord(id));
+        }
+
+        /// <summary>
         /// 从源数据库拷贝符号表记录
         /// </summary>
         /// <param name="table">符号表</param>
@@ -297,15 +306,7 @@ namespace IFoxCAD.Cad
         #endregion
 
         #region IEnumerable<ObjectId> 成员
-        /// <summary>
-        /// 获取符号表记录
-        /// </summary>
-        /// <returns>符号表记录迭代器</returns>
-        public IEnumerable<TRecord> GetRecords()
-        {
-            return this.Select(id => GetRecord(id));
-        }
-
+       
         public IEnumerator<ObjectId> GetEnumerator()
         {
 

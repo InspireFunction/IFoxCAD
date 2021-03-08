@@ -15,6 +15,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Internal;
 
 using IFoxCAD.Cad;
+using Autodesk.AutoCAD.Colors;
 
 namespace test
 {
@@ -37,9 +38,29 @@ namespace test
                 tr.Editor.WriteMessage("\ndatabase 正常");
             }
 
-
+            
 
         }
+
+        [CommandMethod("layertest")]
+        public void layertest()
+        {
+            using var tr = new DBTrans();
+            tr.LayerTable.Add("1");
+            tr.LayerTable.Add("2", lt =>
+            {
+                lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 1);
+                lt.LineWeight = LineWeight.LineWeight030;
+
+            });
+            tr.LayerTable.Remove("3");
+            tr.LayerTable.Change("4", lt =>
+            {
+                lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 2);
+            });
+        }
+
+
 
         public Database getdb()
         {

@@ -32,7 +32,7 @@ namespace IFoxCAD.Cad
             {
                 obj.UpgradeOpen();
             }
-            action?.Invoke(obj as T);
+            action?.Invoke(obj);
             if (_isNotifyEnabled)
             {
                 obj.DowngradeToNotify(_isWriteEnabled);
@@ -85,6 +85,7 @@ namespace IFoxCAD.Cad
                     _obj.DowngradeToNotify(_isWriteEnabled);
                 else if (!_isWriteEnabled)
                     _obj.DowngradeOpen();
+                GC.SuppressFinalize(this);
             }
 
             #endregion IDisposable 成员

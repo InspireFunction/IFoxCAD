@@ -11,7 +11,7 @@ using Autodesk.AutoCAD.ApplicationServices;
 
 namespace IFoxCAD.Cad
 {
-    // TODO 9个符号表的属性
+    // TODO 命名的属性
 
     public class DBTrans : IDisposable
     {
@@ -58,7 +58,6 @@ namespace IFoxCAD.Cad
         }
 
         #endregion
-
 
         #region 符号表
 
