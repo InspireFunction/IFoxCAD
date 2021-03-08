@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.MacroRecorder;
 
 namespace IFoxCAD.Cad
 {
@@ -19,7 +20,7 @@ namespace IFoxCAD.Cad
         /// <typeparam name="T">实体类型</typeparam>
         /// <param name="obj">实体对象</param>
         /// <param name="action">操作委托</param>
-        public static void ForWrite<T>(this DBObject obj, Action<T> action) where T : DBObject
+        public static void ForWrite<T>(this T obj, Action<T> action) where T : DBObject
         {
             var _isNotifyEnabled = obj.IsNotifyEnabled;
             var _isWriteEnabled = obj.IsWriteEnabled;
@@ -27,7 +28,14 @@ namespace IFoxCAD.Cad
             {
                 obj.UpgradeFromNotify();
             }
-            obj.UpgradeOpen();
+
+            ///  obj.UpgradeOpen();源程序在这里出错了。需要判断一下；
+            if (_isWriteEnabled == false)
+            {
+                obj.UpgradeOpen();
+            }
+
+
             action?.Invoke(obj as T);
             if (_isNotifyEnabled)
             {
@@ -37,7 +45,10 @@ namespace IFoxCAD.Cad
             {
                 obj.DowngradeOpen();
             }
+
+         
         }
+
 
         /// <summary>
         /// 打开模式提权

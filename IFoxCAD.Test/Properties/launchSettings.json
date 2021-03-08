@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "IFoxCAD.Test": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files\\Autodesk\\AutoCAD 2017\\acad.exe"
+    }
+  }
+}
