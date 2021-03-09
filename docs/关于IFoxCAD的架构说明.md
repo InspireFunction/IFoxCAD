@@ -30,12 +30,30 @@ DBTrans类里基本的封装就是Transaction，然后是Document、Database、E
 
 DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的相关类库，通过这些属性就可以对数据进行相应的操作。特别是符号表中最常用的就是块表，通过对块表的操作来实现添加图元等。
 
-### 2.3 DBTrans类应具有的方法
-
+### 2.3 DBTrans类应该具有的成员
 为了尽量少的封装方法，减少类的复杂度，目前计划的方法主要为：
+属性:
+- Database  ---数据库
+- Document  ---文档
+- Editor  ---命令行
+- Trans  ---事务管理器
 
-- 获取对象类方法
-- 添加图元类方法
+构造函数:
+- DBTrans(bool commit = true)
+
+符号表:
+- BlockTable 块表
+- LayerTable 层表
+- TextStyleTable 文字样式表
+- RegAppTable 注册应用程序表
+- DimStyleTable 标注样式表
+- LinetypeTable 线型表
+- UcsTable 用户坐标系表
+- ViewTable 视图表
+- ViewportTable 视口表
+
+方法:
+- GetObject  ---根据对象id获取图元对象
 - 。。。
 
 ## 三、 关于SymbolTable类的说明
@@ -50,14 +68,16 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 - 有了这个类，DBTrans类就可以直接通过属性获取符号表的关联关系，然后进行符号表的处理。
 
 ### 3.2 SymbolTable类应该具有的成员
+属性:
+- CurrentSymbolTable  ---当前的符号表对象
 
+方法:
 - this  ---索引器符号表记录函数
 - Add  ---添加符号表记录函数
 - Remove --- 删除符号表记录函数
 - Change --- 修改符号表记录函数
 - GetRecord --- 获取符号表记录
 - Has --- 判断符号表是否有符号表记录的函数
-- CurrentSymbolTable  ---当前的符号表对象
 - 。。。
 
 # 慢慢完善，想到哪写到哪。。。
