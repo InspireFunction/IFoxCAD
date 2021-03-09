@@ -51,9 +51,11 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 
 ### 3.2 SymbolTable类应该具有的成员
 
+- this  ---索引器符号表记录函数
 - Add  ---添加符号表记录函数
 - Remove --- 删除符号表记录函数
 - Change --- 修改符号表记录函数
+- GetRecord --- 获取符号表记录
 - Has --- 判断符号表是否有符号表记录的函数
 - CurrentSymbolTable  ---当前的符号表对象
 - 。。。
