@@ -19,7 +19,7 @@ namespace IFoxCAD.Cad
 
         private bool disposedValue;
 
-        private bool _commit;
+        private readonly bool _commit;
 
         #endregion
 

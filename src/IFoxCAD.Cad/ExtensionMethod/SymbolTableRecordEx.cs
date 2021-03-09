@@ -27,7 +27,25 @@ namespace IFoxCAD.Cad.ExtensionMethod
         {
             return table.Add(name, lt => lt.Color = color);
         }
-
+        /// <summary>
+        /// 添加图层
+        /// </summary>
+        /// <param name="table">图层符号表</param>
+        /// <param name="name">图层名</param>
+        /// <param name="colorIndex">图层颜色索引值</param>
+        /// <returns>图层id</returns>
+        public static ObjectId Add(this SymbolTable<LayerTable, LayerTableRecord> table, string name, int colorIndex)
+        {
+            if (colorIndex < 1)
+            {
+                colorIndex = 1;
+            }
+            else if (colorIndex >= 256)
+            {
+                colorIndex = 256;
+            }            
+            return table.Add(name, lt => lt.Color = Color.FromColorIndex(ColorMethod.ByColor, (short)colorIndex));
+        }
         #endregion
 
         #region 块表

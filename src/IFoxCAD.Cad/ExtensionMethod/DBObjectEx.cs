@@ -59,9 +59,9 @@ namespace IFoxCAD.Cad
         /// </summary>
         public class UpgradeOpenManager : IDisposable
         {
-            private DBObject _obj;
-            private bool _isNotifyEnabled;
-            private bool _isWriteEnabled;
+            private readonly DBObject _obj;
+            private readonly bool _isNotifyEnabled;
+            private readonly bool _isWriteEnabled;
 
             internal UpgradeOpenManager(DBObject obj)
             {
