@@ -58,11 +58,6 @@ namespace IFoxCAD.Cad
                 }
                 return ObjectId.Null;
             }
-            set 
-            {
-                /* set the specified index to value here */
-                //TODO: 添加索引
-            }
         }
         /// <summary>
         /// 索引器
@@ -80,11 +75,6 @@ namespace IFoxCAD.Cad
                     return id;
                 }
                 return ObjectId.Null;
-            }
-            set 
-            {
-                /* set the specified index to value here */
-                //TODO: 添加索引
             }
         }
         #endregion
@@ -304,8 +294,12 @@ namespace IFoxCAD.Cad
         //}
         #endregion
 
+        #region 添加图元
+        
+        #endregion
+
         #region IEnumerable<ObjectId> 成员
-       
+
         public IEnumerator<ObjectId> GetEnumerator()
         {
 

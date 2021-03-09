@@ -43,7 +43,6 @@ namespace IFoxCAD.Cad
             }
         }
 
-
         /// <summary>
         /// 打开模式提权
         /// </summary>

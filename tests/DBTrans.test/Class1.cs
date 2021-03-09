@@ -16,7 +16,7 @@ using Autodesk.AutoCAD.Internal;
 
 using IFoxCAD.Cad;
 using Autodesk.AutoCAD.Colors;
-using IFoxCAD.Cad.ExtensionMethod;
+
 
 namespace test
 {
@@ -71,18 +71,32 @@ namespace test
         {
             using var tr = new DBTrans();
             tr.LayerTable.Add("test2", 2);
+            //tr.LayerTable["3"] = new LayerTableRecord();
         }
 
         //Todo：小山山还没处理块表
-        //[CommandMethod("linedemo1")]
-        //public void addLine1()
-        //{
-        //    using var tr = new DBTrans();
-        //    tr.BlockTable.Add(new BlockTableRecord(), line =>
-        //    {
-        //        line.
-        //    });
-        //}
+        [CommandMethod("linedemo1")]
+        public void addLine1()
+        {
+            using var tr = new DBTrans();
+            //    tr.ModelSpace.AddEnt(line);
+            //    tr.ModelSpace.AddEnts(line,circle);
+
+            //    tr.PaperSpace.AddEnt(line);
+            //    tr.PaperSpace.AddEnts(line,circle);
+
+            // tr.addent(btr,line);
+            // tr.addents(btr,line,circle);
+
+
+
+            //    tr.BlockTable.Add(new BlockTableRecord(), line =>
+            //    {
+            //        line.
+            //    });
+            Line line = new(new Point3d(0,0,0),new Point3d(1,1,0));
+            tr.AddEntity(line);
+        }
 
         [CommandMethod("PrintLayerName")]
         public void PrintLayerName()

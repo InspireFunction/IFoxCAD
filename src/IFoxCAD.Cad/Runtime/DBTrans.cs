@@ -11,7 +11,7 @@ using Autodesk.AutoCAD.ApplicationServices;
 
 namespace IFoxCAD.Cad
 {
-    // TODO 命名的属性
+    // TODO 命名词典的属性
 
     public class DBTrans : IDisposable
     {
@@ -65,6 +65,8 @@ namespace IFoxCAD.Cad
         /// 块表
         /// </summary>
         public SymbolTable<BlockTable, BlockTableRecord> BlockTable => new(this, Database.BlockTableId);
+
+        public SymbolTable<BlockTable, BlockTableRecord> CurrentSpace => new(this, Database.CurrentSpaceId);
         /// <summary>
         /// 层表
         /// </summary>
@@ -120,6 +122,20 @@ namespace IFoxCAD.Cad
             return Trans.GetObject(id, mode, openErased, forceOpenOnLockedLayer) as T;
         }
 
+
+        #endregion
+
+        #region 添加图元
+        public ObjectId AddEntity(Entity entity, BlockTableRecord btr = null)
+        {
+            btr ??= BlockTable.GetRecord(Database.CurrentSpaceId);
+            return btr.AddEntity(Trans, entity);
+        }
+        public List<ObjectId> AddEntity<T>(IEnumerable<T> ents, BlockTableRecord btr = null) where T : Entity
+        {
+            btr ??= BlockTable.GetRecord(Database.CurrentSpaceId);
+            return btr.AddEntity(Trans, ents);
+        }
         #endregion
 
         #region idispose接口相关函数
