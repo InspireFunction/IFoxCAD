@@ -23,7 +23,7 @@ namespace IFoxCAD.Cad.ExtensionMethod
         /// <param name="name">图层名</param>
         /// <param name="color">图层颜色</param>
         /// <returns>图层id</returns>
-        public static ObjectId Add(this SymbolTable<LayerTable,LayerTableRecord> table, string name, Color color)
+        public static ObjectId Add(this SymbolTable<LayerTable, LayerTableRecord> table, string name, Color color)
         {
             return table.Add(name, lt => lt.Color = color);
         }
@@ -43,8 +43,30 @@ namespace IFoxCAD.Cad.ExtensionMethod
             else if (colorIndex >= 256)
             {
                 colorIndex = 256;
-            }            
+            }
             return table.Add(name, lt => lt.Color = Color.FromColorIndex(ColorMethod.ByColor, (short)colorIndex));
+        }
+        /// <summary>
+        /// 更改图层名
+        /// </summary>
+        /// <param name="table">图层符号表</param>
+        /// <param name="Oldname">旧图层名</param>
+        /// <param name="NewName">新图层名</param>
+        public static ObjectId Change(this SymbolTable<LayerTable, LayerTableRecord> table, string Oldname, string NewName)
+        {
+            if (table.Has(Oldname))
+            {
+                table.Change(Oldname, ly =>
+                {
+                    ly.Name = NewName;
+                }
+                );
+                return table[NewName];
+            }
+            else
+            {
+               return ObjectId.Null;
+            }
         }
         #endregion
 
