@@ -74,7 +74,7 @@ namespace test
             //tr.LayerTable["3"] = new LayerTableRecord();
         }
 
-        //Todo：小山山还没处理块表
+        
         [CommandMethod("linedemo1")]
         public void addLine1()
         {
@@ -109,6 +109,18 @@ namespace test
             });
         }
 
+        [CommandMethod("blockdefchange")]
+        public void BlockDefChange()
+        {
+            using var tr = new DBTrans();
+            //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+            tr.BlockTable.Change("test", btr =>
+            {
+                btr.Origin = new Point3d(5, 5, 0);
+                tr.AddEntity(new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 2), btr);
+            });
+        }
+
         [CommandMethod("PrintLayerName")]
         public void PrintLayerName()
         {
@@ -132,5 +144,6 @@ namespace test
             var doc = Application.DocumentManager.MdiActiveDocument;
             return doc;
         }
+
     }
 }

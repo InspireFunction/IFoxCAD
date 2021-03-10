@@ -125,12 +125,25 @@ namespace IFoxCAD.Cad
 
         #endregion
 
-        #region 添加图元
+        #region 添加实体
+        /// <summary>
+        /// 添加实体到块表记录
+        /// </summary>
+        /// <param name="entity">实体对象</param>
+        /// <param name="btr">块表记录， 默认为当前空间</param>
+        /// <returns>实体对象id</returns>
         public ObjectId AddEntity(Entity entity, BlockTableRecord btr = null)
         {
             btr ??= BlockTable.GetRecord(Database.CurrentSpaceId);
             return btr.AddEntity(Trans, entity);
         }
+        /// <summary>
+        /// 添加实体集合到块表记录
+        /// </summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="ents">实体集合</param>
+        /// <param name="btr">块表记录， 默认为当前空间</param>
+        /// <returns>实体对象id集合</returns>
         public List<ObjectId> AddEntity<T>(IEnumerable<T> ents, BlockTableRecord btr = null) where T : Entity
         {
             btr ??= BlockTable.GetRecord(Database.CurrentSpaceId);

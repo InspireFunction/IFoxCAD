@@ -79,14 +79,15 @@ namespace IFoxCAD.Cad
         /// <param name="ents">图元</param>
         /// <param name="attdef">属性定义</param>
         /// <returns>块定义id</returns>
-        public static ObjectId Add(this SymbolTable<BlockTable,BlockTableRecord> table, string name, Func<IEnumerable<Entity>> ents, IEnumerable<AttributeDefinition> attdef = null)
+        /// TODO: 需要测试匿名块等特殊的块是否能定义
+        public static ObjectId Add(this SymbolTable<BlockTable,BlockTableRecord> table, string name, Func<IEnumerable<Entity>> ents, Func<IEnumerable<AttributeDefinition>> attdef = null)
         {
             return table.Add(name, btr =>
             {
                 table.DTrans.AddEntity(ents?.Invoke(), btr);
                 if (attdef is not null)
                 {
-                    table.DTrans.AddEntity(attdef, btr);
+                    table.DTrans.AddEntity(attdef?.Invoke(), btr);
                 }
                 
             });

@@ -106,7 +106,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="record">符号表记录</param>
         /// <returns>对象id</returns>
-        private ObjectId Add([CallerMustClose] TRecord record)
+        private ObjectId Add(TRecord record)
         {
             ObjectId id;
             using (CurrentSymbolTable.ForWrite())
