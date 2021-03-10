@@ -52,7 +52,7 @@ namespace IFoxCAD.Cad
         /// <param name="table">图层符号表</param>
         /// <param name="Oldname">旧图层名</param>
         /// <param name="NewName">新图层名</param>
-        public static ObjectId Change(this SymbolTable<LayerTable, LayerTableRecord> table, string Oldname, string NewName)
+        public static ObjectId Rename(this SymbolTable<LayerTable, LayerTableRecord> table, string Oldname, string NewName)
         {
             if (table.Has(Oldname))
             {
@@ -71,6 +71,29 @@ namespace IFoxCAD.Cad
         #endregion
 
         #region 块表
+        /// <summary>
+        /// 添加块定义
+        /// </summary>
+        /// <param name="table">块表</param>
+        /// <param name="name">块名</param>
+        /// <param name="ents">图元</param>
+        /// <param name="attdef">属性定义</param>
+        /// <returns>块定义id</returns>
+        public static ObjectId Add(this SymbolTable<BlockTable,BlockTableRecord> table, string name, Func<IEnumerable<Entity>> ents, IEnumerable<AttributeDefinition> attdef = null)
+        {
+            return table.Add(name, btr =>
+            {
+                table.DTrans.AddEntity(ents?.Invoke(), btr);
+                if (attdef is not null)
+                {
+                    table.DTrans.AddEntity(attdef, btr);
+                }
+                
+            });
+        }
+
+
+
         /// <summary>
         /// 从文件中获取块定义
         /// </summary>

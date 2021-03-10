@@ -98,6 +98,17 @@ namespace test
             tr.AddEntity(line);
         }
 
+        [CommandMethod("blockdef")]
+        public void BlockDef()
+        {
+            using var tr = new DBTrans();
+            //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+            tr.BlockTable.Add("test", () =>
+            {
+                return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0))};
+            });
+        }
+
         [CommandMethod("PrintLayerName")]
         public void PrintLayerName()
         {
