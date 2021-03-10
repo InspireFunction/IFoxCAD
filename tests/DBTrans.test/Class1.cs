@@ -39,8 +39,15 @@ namespace test
                 tr.Editor.WriteMessage("\ndatabase 正常");
             }
 
-
-
+            Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+            Circle circle = new(new Point3d(0, 0, 0), Vector3d.ZAxis, 2);
+            var lienid = tr.AddEntity(line);
+            var cirid = tr.AddEntity(circle);
+            var linent = tr.GetObject<Line>(lienid); 
+            var lineent = tr.GetObject<Circle>(cirid);
+            var linee = tr.GetObject<Line>(cirid); //经测试，类型不匹配，返回null
+            var dd = tr.GetObject<Circle>(lienid);
+            List<DBObject> ds = new() { linee, dd };
         }
 
         [CommandMethod("layertest")]
@@ -98,6 +105,7 @@ namespace test
             tr.AddEntity(line);
         }
 
+        //块定义
         [CommandMethod("blockdef")]
         public void BlockDef()
         {
@@ -108,7 +116,7 @@ namespace test
                 return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0))};
             });
         }
-
+        //修改块定义
         [CommandMethod("blockdefchange")]
         public void BlockDefChange()
         {
@@ -118,6 +126,12 @@ namespace test
             {
                 btr.Origin = new Point3d(5, 5, 0);
                 tr.AddEntity(new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 2), btr);
+                btr.Cast<ObjectId>()
+                .Select(id => tr.GetObject<BlockReference>(id))
+                .OfType<BlockReference>()
+                .ToList()
+                .ForEach(e => tr.Flush(e)); //刷新块显示
+                
             });
         }
 

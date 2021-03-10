@@ -116,7 +116,7 @@ namespace IFoxCAD.Cad
         /// <param name="mode">打开模式，默认为只读</param>
         /// <param name="openErased">是否打开已删除对象，默认为不打开</param>
         /// <param name="forceOpenOnLockedLayer">是否打开锁定图层对象，默认为不打开</param>
-        /// <returns></returns>
+        /// <returns>图元对象，类型不匹配时返回 <see langword="null"/> </returns>
         public T GetObject<T>(ObjectId id, OpenMode mode = OpenMode.ForRead, bool openErased = false, bool forceOpenOnLockedLayer = false) where T : DBObject
         {
             return Trans.GetObject(id, mode, openErased, forceOpenOnLockedLayer) as T;
@@ -151,6 +151,33 @@ namespace IFoxCAD.Cad
         }
         #endregion
 
+
+
+        //TODO: 增加插入块参照的方法
+
+        #region 实体刷新
+        /// <summary>
+        /// 刷新实体显示
+        /// </summary>
+        /// <param name="entity">实体对象</param>
+        public void Flush(Entity entity)
+        {
+            if (entity is null)
+            {
+                throw new ArgumentNullException(nameof(entity));
+            }
+
+            entity.RecordGraphicsModified(true);
+            Trans.TransactionManager.QueueForGraphicsFlush();
+        }
+
+        /// <summary>
+        /// 刷新实体显示
+        /// </summary>
+        /// <param name="id">实体id</param>
+        public void Flush(ObjectId id) => Flush(GetObject<Entity>(id));
+        #endregion
+
         #region idispose接口相关函数
 
         public void Abort()
@@ -177,19 +204,19 @@ namespace IFoxCAD.Cad
             {
                 if (disposing)
                 {
-                    // TODO: 释放托管状态(托管对象)
+                    // 释放托管状态(托管对象)
                     Commit();
                     Trans.Dispose();
 
                 }
 
-                // TODO: 释放未托管的资源(未托管的对象)并替代终结器
-                // TODO: 将大型字段设置为 null
+                // 释放未托管的资源(未托管的对象)并替代终结器
+                // 将大型字段设置为 null
                 disposedValue = true;
             }
         }
 
-        // TODO: 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器
+        // 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器
         ~DBTrans()
         {
             // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
