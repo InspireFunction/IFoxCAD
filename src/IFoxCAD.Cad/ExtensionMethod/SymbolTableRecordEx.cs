@@ -55,6 +55,23 @@ namespace IFoxCAD.Cad
             }
         }
 
+
+        /// <summary>
+        /// 获取块表记录内的指定类型的实体
+        /// </summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="btr">块表记录</param>
+        /// <param name="tr">事务</param>
+        /// <param name="mode">打开模式</param>
+        /// <returns>实体集合</returns>
+        public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr, Transaction tr, OpenMode mode = OpenMode.ForRead) where T : Entity
+        {
+            return
+                btr
+                .Cast<ObjectId>()
+                .Select(id => tr.GetObject(id, mode))
+                .OfType<T>();
+        }
         #endregion
 
 

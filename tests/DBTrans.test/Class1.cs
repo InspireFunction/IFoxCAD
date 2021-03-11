@@ -111,10 +111,18 @@ namespace test
         {
             using var tr = new DBTrans();
             //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-            tr.BlockTable.Add("test", () =>
-            {
-                return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0))};
-            });
+            tr.BlockTable.Add("test", 
+                () => //图元
+                {
+                    return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0))};
+                },
+                () => //属性定义
+                {
+                    var id1 = new AttributeDefinition() { Position = new Point3d(0, 0, 0), Tag = "start", Height = 0.2 };
+                    var id2 = new AttributeDefinition() { Position = new Point3d(1, 1, 0), Tag = "end", Height = 0.2 };
+                    return new List<AttributeDefinition> { id1, id2 };
+                }
+            );
         }
         //修改块定义
         [CommandMethod("blockdefchange")]
@@ -126,13 +134,28 @@ namespace test
             {
                 btr.Origin = new Point3d(5, 5, 0);
                 tr.AddEntity(new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 2), btr);
-                btr.Cast<ObjectId>()
-                .Select(id => tr.GetObject<BlockReference>(id))
-                .OfType<BlockReference>()
-                .ToList()
-                .ForEach(e => tr.Flush(e)); //刷新块显示
+                btr.GetEntities<BlockReference>(tr.Trans)
+                    .ToList()
+                    .ForEach(e => tr.Flush(e)); //刷新块显示
                 
             });
+        }
+
+        [CommandMethod("insertblockdef")]
+        public void InsertBlockDef()
+        {
+            using var tr = new DBTrans();
+            //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+            tr.InsertBlock(new Point3d(4, 4, 0), "test1"); //测试插入不存在的块定义
+            tr.InsertBlock(new Point3d(4, 4, 0), "test"); // 测试默认
+            tr.InsertBlock(new Point3d(0, 0, 0),"test", new Scale3d(2)); // 测试放大2倍
+            tr.InsertBlock(new Point3d(4, 4, 0), "test", new Scale3d(2), Math.PI / 4); // 测试放大2倍,旋转45度
+            var def = new Dictionary<string, string>
+            {
+                { "start", "1" },
+                { "end", "2" }
+            };
+            tr.InsertBlock(new Point3d(4, 4, 0), "test", atts: def);
         }
 
         [CommandMethod("PrintLayerName")]

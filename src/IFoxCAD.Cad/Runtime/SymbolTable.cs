@@ -294,10 +294,6 @@ namespace IFoxCAD.Cad
         //}
         #endregion
 
-        #region 添加图元
-        
-        #endregion
-
         #region IEnumerable<ObjectId> 成员
 
         public IEnumerator<ObjectId> GetEnumerator()

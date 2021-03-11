@@ -8,6 +8,7 @@ using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.Geometry;
 
 namespace IFoxCAD.Cad
 {
@@ -117,7 +118,10 @@ namespace IFoxCAD.Cad
         /// <param name="openErased">是否打开已删除对象，默认为不打开</param>
         /// <param name="forceOpenOnLockedLayer">是否打开锁定图层对象，默认为不打开</param>
         /// <returns>图元对象，类型不匹配时返回 <see langword="null"/> </returns>
-        public T GetObject<T>(ObjectId id, OpenMode mode = OpenMode.ForRead, bool openErased = false, bool forceOpenOnLockedLayer = false) where T : DBObject
+        public T GetObject<T>(ObjectId id,
+                              OpenMode mode = OpenMode.ForRead,
+                              bool openErased = false,
+                              bool forceOpenOnLockedLayer = false) where T : DBObject
         {
             return Trans.GetObject(id, mode, openErased, forceOpenOnLockedLayer) as T;
         }
@@ -153,7 +157,85 @@ namespace IFoxCAD.Cad
 
 
 
-        //TODO: 增加插入块参照的方法
+        
+        #region 插入块参照
+     
+        /// <summary>
+        /// 插入块参照
+        /// </summary>
+        /// <param name="position">插入点</param>
+        /// <param name="blockName">块名</param>
+        /// <param name="scale">块插入比例，默认为0</param>
+        /// <param name="rotation">块插入旋转角(弧度)，默认为0</param>
+        /// <param name="atts">属性字典{Tag,Value}，默认为null</param>
+        /// <returns>块参照对象id</returns>
+        public ObjectId InsertBlock(Point3d position,
+                                    string blockName,
+                                    Scale3d scale = default,
+                                    double rotation = default,
+                                    Dictionary<string, string> atts = default)
+        {
+            if (!BlockTable.Has(blockName))
+            {
+                Editor.WriteMessage($"\n不存在名字为{blockName}的块定义。");
+                return ObjectId.Null;
+            }
+            return InsertBlock(position, BlockTable[blockName], scale, rotation, atts);
+        }
+        /// <summary>
+        /// 插入块参照
+        /// </summary>
+        /// <param name="position">插入点</param>
+        /// <param name="blockId">块定义id</param>
+        /// <param name="scale">块插入比例，默认为0</param>
+        /// <param name="rotation">块插入旋转角(弧度)，默认为0</param>
+        /// <param name="atts">属性字典{Tag,Value}，默认为null</param>
+        /// <returns>块参照对象id</returns>
+        public ObjectId InsertBlock(Point3d position,
+                                    ObjectId blockId,
+                                    Scale3d scale = default,
+                                    double rotation = default,
+                                    Dictionary<string, string> atts = default)
+        {
+            if (!BlockTable.Has(blockId))
+            {
+                Editor.WriteMessage($"\n不存在名字为{GetObject<BlockTableRecord>(blockId).Name}的块定义。");
+                return ObjectId.Null;
+            }
+            using var blockref = new BlockReference(position, blockId)
+            {
+                ScaleFactors = scale,
+                Rotation = rotation
+            };
+            var objid = AddEntity(blockref);
+            if (atts != default)
+            {
+                var btr = GetObject<BlockTableRecord>(blockref.BlockTableRecord);
+                if (btr.HasAttributeDefinitions)
+                {
+                    var attdefs = btr
+                        .GetEntities<AttributeDefinition>(Trans)
+                        .Where(attdef => !(attdef.Constant || attdef.Invisible));
+                    foreach (var attdef in attdefs)
+                    {
+                        using AttributeReference attref = new();
+                        attref.SetAttributeFromBlock(attdef, blockref.BlockTransform);
+                        attref.Position = attdef.Position.TransformBy(blockref.BlockTransform);
+                        attref.AdjustAlignment(Database);
+                        if (atts.ContainsKey(attdef.Tag))
+                        {
+                            attref.TextString = atts[attdef.Tag];
+                        }
+
+                        blockref.AttributeCollection.AppendAttribute(attref);
+                        Trans.AddNewlyCreatedDBObject(attref, true);
+                    }
+                }
+            }
+            return objid;
+        }
+
+        #endregion
 
         #region 实体刷新
         /// <summary>
