@@ -20,7 +20,7 @@ namespace IFoxCAD.Cad
         {
             if (code < 1000 || code > 1071)
             {
-                throw new System.Exception("传入的组码值不是xdata有效范围！");
+                throw new System.Exception("传入的组码值不是XData有效范围！");
             }
             Add(new TypedValue(code, obj));
         }
@@ -33,11 +33,7 @@ namespace IFoxCAD.Cad
         public void Add(DxfCode code, object obj)
         {
 
-            if ((int)code < 1000 || (int)code > 1071)
-            {
-                throw new System.Exception("传入的组码值不是xdata有效范围！");
-            }
-            Add(new TypedValue((int)code, obj));
+            Add((int)code, obj);
         }
 
         #endregion

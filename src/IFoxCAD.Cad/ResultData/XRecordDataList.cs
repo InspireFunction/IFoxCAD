@@ -29,12 +29,7 @@ namespace IFoxCAD.Cad
         /// <param name="obj">组码值</param>
         public void Add(DxfCode code, object obj)
         {
-
-            if ((int)code >= 1000)
-            {
-                throw new System.Exception("传入的组码值不是 XRecordData 有效范围！");
-            }
-            Add(new TypedValue((int)code, obj));
+            Add((int)code, obj);
         }
         #endregion
     }

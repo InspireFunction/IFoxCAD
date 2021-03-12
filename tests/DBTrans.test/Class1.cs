@@ -178,6 +178,32 @@ namespace test
             tr.InsertBlock(new Point3d(4, 4, 0), "test", atts: def);
         }
 
+        // 测试扩展数据
+        [CommandMethod("addxdata")]
+        public void AddXdata()
+        {
+            using var tr = new DBTrans();
+            var appname = "myapp";
+            
+            tr.RegAppTable.Add(appname); // add函数会默认的在存在这个名字的时候返回这个名字的regapp的id，不存在就新建
+            
+            var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+
+
+            line.XData = new XDataList() 
+            { 
+                { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码
+                { DxfCode.ExtendedDataAsciiString, "hahhahah" },
+                {1070, 12 }
+            };
+
+
+
+
+            tr.AddEntity(line);
+        }
+
+
         [CommandMethod("PrintLayerName")]
         public void PrintLayerName()
         {

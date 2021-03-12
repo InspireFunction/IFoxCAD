@@ -394,12 +394,7 @@ namespace IFoxCAD.Cad
         /// <param name="obj">组码值</param>
         public void Add(LispDataType code, object obj)
         {
-
-            if ((int)code < 5000)
-            {
-                throw new System.Exception("传入的组码值不是 lisp数据 有效范围！");
-            }
-            Add(new TypedValue((int)code, obj));
+            Add((int)code, obj);
         }
         /// <summary>
         /// 添加数据，参数为true时添加 lisp 中的 T，false时添加 lisp 中的 nil
