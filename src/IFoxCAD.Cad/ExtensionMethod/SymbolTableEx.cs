@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
 
 namespace IFoxCAD.Cad
 {
@@ -36,14 +37,8 @@ namespace IFoxCAD.Cad
         /// <returns>图层id</returns>
         public static ObjectId Add(this SymbolTable<LayerTable, LayerTableRecord> table, string name, int colorIndex)
         {
-            if (colorIndex < 1)
-            {
-                colorIndex = 1;
-            }
-            else if (colorIndex >= 256)
-            {
-                colorIndex = 256;
-            }
+            colorIndex %= 256;//防止输入的颜色超出256
+            colorIndex = Math.Abs(colorIndex);//防止负数
             return table.Add(name, lt => lt.Color = Color.FromColorIndex(ColorMethod.ByColor, (short)colorIndex));
         }
         /// <summary>
@@ -123,6 +118,7 @@ namespace IFoxCAD.Cad
             return id;
         }
         #endregion
+        
 
         #region 线型表
         /// <summary>

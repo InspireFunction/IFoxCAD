@@ -67,12 +67,16 @@ namespace test
                 lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 2);
             });
         }
+
+        //添加图层
         [CommandMethod("layerAdd1")]
         public void Layertest1()
         {
             using var tr = new DBTrans();
             tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor,1));
         }
+
+        //添加图层
         [CommandMethod("layerAdd2")]
         public void Layertest2()
         {
@@ -82,8 +86,9 @@ namespace test
         }
 
         
+        //添加直线
         [CommandMethod("linedemo1")]
-        public void addLine1()
+        public void AddLine1()
         {
             using var tr = new DBTrans();
             //    tr.ModelSpace.AddEnt(line);
@@ -96,13 +101,28 @@ namespace test
             // tr.addents(btr,line,circle);
 
 
-
             //    tr.BlockTable.Add(new BlockTableRecord(), line =>
             //    {
             //        line.
             //    });
             Line line = new(new Point3d(0,0,0),new Point3d(1,1,0));
             tr.AddEntity(line);
+        }
+
+        //增加多段线1
+        [CommandMethod("Pldemo1")]
+        public void AddPolyline1()
+        {
+            using var tr = new DBTrans();
+            Polyline pl = new Polyline();
+            pl.AddVertexAt(0, new Point2d(0,0), 0, 0, 0);
+            pl.AddVertexAt(1, new Point2d(10,10), 0, 0, 0);
+            pl.AddVertexAt(2, new Point2d(20,20), 0, 0, 0);
+            pl.AddVertexAt(3, new Point2d(30,30), 0, 0, 0);
+            pl.AddVertexAt(4, new Point2d(40,40), 0, 0, 0);
+            pl.Closed = true;
+            pl.Color = Color.FromColorIndex(ColorMethod.ByColor, 6);
+            tr.AddEntity(pl);
         }
 
         //块定义
