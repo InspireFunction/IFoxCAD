@@ -79,10 +79,10 @@ namespace IFoxCAD.Cad
         {
             return table.Add(name, btr =>
             {
-                table.DTrans.AddEntity(ents?.Invoke(), btr);
+                btr.AddEntity(ents?.Invoke());
                 if (attdef is not null)
                 {
-                    table.DTrans.AddEntity(attdef?.Invoke(), btr);
+                    btr.AddEntity(attdef?.Invoke());
                 }
                 
             });

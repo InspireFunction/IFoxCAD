@@ -41,13 +41,13 @@ namespace test
 
             Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
             Circle circle = new(new Point3d(0, 0, 0), Vector3d.ZAxis, 2);
-            var lienid = tr.AddEntity(line);
-            var cirid = tr.AddEntity(circle);
-            var linent = tr.GetObject<Line>(lienid); 
-            var lineent = tr.GetObject<Circle>(cirid);
-            var linee = tr.GetObject<Line>(cirid); //经测试，类型不匹配，返回null
-            var dd = tr.GetObject<Circle>(lienid);
-            List<DBObject> ds = new() { linee, dd };
+            //var lienid = tr.AddEntity(line);
+            //var cirid = tr.AddEntity(circle);
+            //var linent = tr.GetObject<Line>(lienid); 
+            //var lineent = tr.GetObject<Circle>(cirid);
+            //var linee = tr.GetObject<Line>(cirid); //经测试，类型不匹配，返回null
+            //var dd = tr.GetObject<Circle>(lienid);
+            //List<DBObject> ds = new() { linee, dd };
         }
 
         //add entity test
@@ -120,7 +120,7 @@ namespace test
             //        line.
             //    });
             Line line = new(new Point3d(0,0,0),new Point3d(1,1,0));
-            tr.AddEntity(line);
+            tr.CurrentSpace.AddEntity(line);
         }
 
         //增加多段线1
@@ -136,7 +136,7 @@ namespace test
             pl.AddVertexAt(4, new Point2d(40,40), 0, 0, 0);
             pl.Closed = true;
             pl.Color = Color.FromColorIndex(ColorMethod.ByColor, 6);
-            tr.AddEntity(pl);
+            tr.CurrentSpace.AddEntity(pl);
         }
 
         //块定义
@@ -170,7 +170,7 @@ namespace test
                 btr.AddEntity(new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 2));
                 btr.GetEntities<BlockReference>()
                     .ToList()
-                    .ForEach(e => tr.Flush(e)); //刷新块显示
+                    .ForEach(e => e.Flush()); //刷新块显示
                 
             });
             tr.Editor.Regen();
@@ -218,7 +218,7 @@ namespace test
                 {1070, 12 }
             };
 
-            tr.AddEntity(line);
+            tr.CurrentSpace.AddEntity(line);
         }
 
         [CommandMethod("getxdata")]
