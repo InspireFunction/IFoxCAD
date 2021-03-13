@@ -50,6 +50,20 @@ namespace test
             List<DBObject> ds = new() { linee, dd };
         }
 
+        //add entity test
+        [CommandMethod("addent")]
+        public void Addent()
+        {
+            using var tr = new DBTrans();
+            Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+            tr.CurrentSpace.AddEntity(line);
+            Line line1 = new(new Point3d(10, 10, 0), new Point3d(41, 1, 0));
+            tr.ModelSpace.AddEntity(line1);
+            Line line2 = new(new Point3d(-10, 10, 0), new Point3d(41, 1, 0));
+            tr.PaperSpace.AddEntity(line2);
+        }
+
+
         [CommandMethod("layertest")]
         public void Layertest()
         {
@@ -154,7 +168,7 @@ namespace test
             {
                 btr.Origin = new Point3d(5, 5, 0);
                 tr.AddEntity(new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 2), btr);
-                btr.GetEntities<BlockReference>(tr.Trans)
+                btr.GetEntities<BlockReference>()
                     .ToList()
                     .ForEach(e => tr.Flush(e)); //刷新块显示
                 

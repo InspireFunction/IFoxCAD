@@ -19,9 +19,13 @@ namespace IFoxCAD.Cad
 
         #region 块表记录
 
-        public static ObjectId AddEntity(this BlockTableRecord btr, Transaction trans, Entity entity)
+        public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity, Transaction trans = null)
         {
             ObjectId id;
+            if (trans is null)
+            {
+                trans = DBTrans.Top.Trans;
+            }
             
             using (btr.ForWrite())
             {
@@ -32,6 +36,9 @@ namespace IFoxCAD.Cad
             return id;
         }
 
+
+
+
         /// <summary>
         /// 添加实体集合
         /// </summary>
@@ -40,15 +47,19 @@ namespace IFoxCAD.Cad
         /// <param name="tr">事务</param>
         /// <param name="ents">实体集合</param>
         /// <returns>对象 id 列表</returns>
-        public static List<ObjectId> AddEntity<T>(this BlockTableRecord btr, Transaction tr, IEnumerable<T> ents) where T : Entity
+        public static List<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents, Transaction trans = null) where T : Entity
         {
+            if (trans is null)
+            {
+                trans = DBTrans.Top.Trans;
+            }
             using (btr.ForWrite())
             {
                 return ents
                     .Select(ent =>
                     {
                         ObjectId id = btr.AppendEntity(ent);
-                        tr.AddNewlyCreatedDBObject(ent, true);
+                        trans.AddNewlyCreatedDBObject(ent, true);
                         return id;
                     })
                     .ToList();
@@ -64,12 +75,16 @@ namespace IFoxCAD.Cad
         /// <param name="tr">事务</param>
         /// <param name="mode">打开模式</param>
         /// <returns>实体集合</returns>
-        public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr, Transaction tr, OpenMode mode = OpenMode.ForRead) where T : Entity
+        public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr, OpenMode mode = OpenMode.ForRead, Transaction trans = null) where T : Entity
         {
+            if (trans is null)
+            {
+                trans = DBTrans.Top.Trans;
+            }
             return
                 btr
                 .Cast<ObjectId>()
-                .Select(id => tr.GetObject(id, mode))
+                .Select(id => trans.GetObject(id, mode))
                 .OfType<T>();
         }
         #endregion

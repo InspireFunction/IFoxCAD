@@ -21,10 +21,17 @@ namespace IFoxCAD.Cad
         private bool disposedValue;
 
         private readonly bool _commit;
-
+        /// <summary>
+        /// 事务栈
+        /// </summary>
+        private static readonly Stack<DBTrans> dBTrans = new();
         #endregion
 
         #region 公开属性
+        /// <summary>
+        /// 返回当前事务
+        /// </summary>
+        public static DBTrans Top => dBTrans.Peek();
         /// <summary>
         /// 数据库
         /// </summary>
@@ -56,6 +63,7 @@ namespace IFoxCAD.Cad
             Editor = Document.Editor;
             Trans = Database.TransactionManager.StartTransaction();
             _commit = commit;
+            dBTrans.Push(this);
         }
 
         #endregion
@@ -66,8 +74,18 @@ namespace IFoxCAD.Cad
         /// 块表
         /// </summary>
         public SymbolTable<BlockTable, BlockTableRecord> BlockTable => new(this, Database.BlockTableId);
-
-        public SymbolTable<BlockTable, BlockTableRecord> CurrentSpace => new(this, Database.CurrentSpaceId);
+        /// <summary>
+        /// 当前绘图空间
+        /// </summary>
+        public BlockTableRecord CurrentSpace => BlockTable.GetRecord(Database.CurrentSpaceId);
+        /// <summary>
+        /// 模型空间
+        /// </summary>
+        public BlockTableRecord ModelSpace => BlockTable.GetRecord(BlockTable.CurrentSymbolTable[BlockTableRecord.ModelSpace]);
+        /// <summary>
+        /// 图纸空间
+        /// </summary>
+        public BlockTableRecord PaperSpace => BlockTable.GetRecord(BlockTable.CurrentSymbolTable[BlockTableRecord.PaperSpace]);
         /// <summary>
         /// 层表
         /// </summary>
@@ -139,7 +157,7 @@ namespace IFoxCAD.Cad
         public ObjectId AddEntity(Entity entity, BlockTableRecord btr = null)
         {
             btr ??= BlockTable.GetRecord(Database.CurrentSpaceId);
-            return btr.AddEntity(Trans, entity);
+            return btr.AddEntity(entity);
         }
         /// <summary>
         /// 添加实体集合到块表记录
@@ -151,7 +169,7 @@ namespace IFoxCAD.Cad
         public List<ObjectId> AddEntity<T>(IEnumerable<T> ents, BlockTableRecord btr = null) where T : Entity
         {
             btr ??= BlockTable.GetRecord(Database.CurrentSpaceId);
-            return btr.AddEntity(Trans, ents);
+            return btr.AddEntity(ents);
         }
         #endregion
 
@@ -214,7 +232,7 @@ namespace IFoxCAD.Cad
                 if (btr.HasAttributeDefinitions)
                 {
                     var attdefs = btr
-                        .GetEntities<AttributeDefinition>(Trans)
+                        .GetEntities<AttributeDefinition>()
                         .Where(attdef => !(attdef.Constant || attdef.Invisible));
                     foreach (var attdef in attdefs)
                     {
@@ -288,7 +306,9 @@ namespace IFoxCAD.Cad
                 {
                     // 释放托管状态(托管对象)
                     Commit();
+                    dBTrans.Pop();
                     Trans.Dispose();
+
 
                 }
 
