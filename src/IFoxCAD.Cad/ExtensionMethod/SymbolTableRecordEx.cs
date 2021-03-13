@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 
 using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.Geometry;
 
 namespace IFoxCAD.Cad
 {
@@ -87,6 +88,94 @@ namespace IFoxCAD.Cad
                 .Select(id => trans.GetObject(id, mode))
                 .OfType<T>();
         }
+
+
+        #region 插入块参照
+
+        /// <summary>
+        /// 插入块参照
+        /// </summary>
+        /// <param name="position">插入点</param>
+        /// <param name="blockName">块名</param>
+        /// <param name="scale">块插入比例，默认为0</param>
+        /// <param name="rotation">块插入旋转角(弧度)，默认为0</param>
+        /// <param name="atts">属性字典{Tag,Value}，默认为null</param>
+        /// <returns>块参照对象id</returns>
+        public static ObjectId InsertBlock(this BlockTableRecord blockTableRecord, Point3d position,
+                                    string blockName,
+                                    Scale3d scale = default,
+                                    double rotation = default,
+                                    Dictionary<string, string> atts = default, Transaction trans = null)
+        {
+            if (trans is null)
+            {
+                trans = DBTrans.Top.Trans;
+            }
+            if (!DBTrans.Top.BlockTable.Has(blockName))
+            {
+                DBTrans.Top.Editor.WriteMessage($"\n不存在名字为{blockName}的块定义。");
+                return ObjectId.Null;
+            }
+            return blockTableRecord.InsertBlock(position, DBTrans.Top.BlockTable[blockName], scale, rotation, atts, trans);
+        }
+        /// <summary>
+        /// 插入块参照
+        /// </summary>
+        /// <param name="position">插入点</param>
+        /// <param name="blockId">块定义id</param>
+        /// <param name="scale">块插入比例，默认为0</param>
+        /// <param name="rotation">块插入旋转角(弧度)，默认为0</param>
+        /// <param name="atts">属性字典{Tag,Value}，默认为null</param>
+        /// <returns>块参照对象id</returns>
+        public static ObjectId InsertBlock(this BlockTableRecord blockTableRecord, Point3d position,
+                                    ObjectId blockId,
+                                    Scale3d scale = default,
+                                    double rotation = default,
+                                    Dictionary<string, string> atts = default, Transaction trans = null)
+        {
+            if (trans is null)
+            {
+                trans = DBTrans.Top.Trans;
+            }
+            if (!DBTrans.Top.BlockTable.Has(blockId))
+            {
+                DBTrans.Top.Editor.WriteMessage($"\n不存在名字为{DBTrans.Top.GetObject<BlockTableRecord>(blockId).Name}的块定义。");
+                return ObjectId.Null;
+            }
+            using var blockref = new BlockReference(position, blockId)
+            {
+                ScaleFactors = scale,
+                Rotation = rotation
+            };
+            var objid = blockTableRecord.AddEntity(blockref);
+            if (atts != default)
+            {
+                var btr = DBTrans.Top.GetObject<BlockTableRecord>(blockref.BlockTableRecord);
+                if (btr.HasAttributeDefinitions)
+                {
+                    var attdefs = btr
+                        .GetEntities<AttributeDefinition>()
+                        .Where(attdef => !(attdef.Constant || attdef.Invisible));
+                    foreach (var attdef in attdefs)
+                    {
+                        using AttributeReference attref = new();
+                        attref.SetAttributeFromBlock(attdef, blockref.BlockTransform);
+                        attref.Position = attdef.Position.TransformBy(blockref.BlockTransform);
+                        attref.AdjustAlignment(DBTrans.Top.Database);
+                        if (atts.ContainsKey(attdef.Tag))
+                        {
+                            attref.TextString = atts[attdef.Tag];
+                        }
+
+                        blockref.AttributeCollection.AppendAttribute(attref);
+                        trans.AddNewlyCreatedDBObject(attref, true);
+                    }
+                }
+            }
+            return objid;
+        }
+
+        #endregion
         #endregion
 
 

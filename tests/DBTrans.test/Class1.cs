@@ -167,12 +167,13 @@ namespace test
             tr.BlockTable.Change("test", btr =>
             {
                 btr.Origin = new Point3d(5, 5, 0);
-                tr.AddEntity(new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 2), btr);
+                btr.AddEntity(new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 2));
                 btr.GetEntities<BlockReference>()
                     .ToList()
                     .ForEach(e => tr.Flush(e)); //刷新块显示
                 
             });
+            tr.Editor.Regen();
         }
 
         [CommandMethod("insertblockdef")]
@@ -180,16 +181,22 @@ namespace test
         {
             using var tr = new DBTrans();
             //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-            tr.InsertBlock(new Point3d(4, 4, 0), "test1"); //测试插入不存在的块定义
-            tr.InsertBlock(new Point3d(4, 4, 0), "test"); // 测试默认
-            tr.InsertBlock(new Point3d(0, 0, 0),"test", new Scale3d(2)); // 测试放大2倍
-            tr.InsertBlock(new Point3d(4, 4, 0), "test", new Scale3d(2), Math.PI / 4); // 测试放大2倍,旋转45度
+            //tr.InsertBlock(new Point3d(4, 4, 0), "test1"); //测试插入不存在的块定义
+            //tr.InsertBlock(new Point3d(4, 4, 0), "test"); // 测试默认
+            //tr.InsertBlock(new Point3d(0, 0, 0),"test", new Scale3d(2)); // 测试放大2倍
+            //tr.InsertBlock(new Point3d(4, 4, 0), "test", new Scale3d(2), Math.PI / 4); // 测试放大2倍,旋转45度
+
+            tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test1"); //测试插入不存在的块定义
+            tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test"); // 测试默认
+            tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test", new Scale3d(2)); // 测试放大2倍
+            tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test", new Scale3d(2), Math.PI / 4); // 测试放大2倍,旋转45度
+
             var def = new Dictionary<string, string>
             {
                 { "start", "1" },
                 { "end", "2" }
             };
-            tr.InsertBlock(new Point3d(4, 4, 0), "test", atts: def);
+            tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test", atts: def);
         }
 
         // 测试扩展数据
