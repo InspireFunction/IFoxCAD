@@ -14,6 +14,37 @@ namespace IFoxCAD.Cad
     /// </summary>
     public static class DBObjectEx
     {
+        #region Xdata扩展
+        // TODO: 补充关于扩展数据的函数
+        /// <summary>
+        /// 删除扩展数据
+        /// </summary>
+        /// <param name="obj">对象实例</param>
+        /// <param name="appName">应用程序名称</param>
+        /// <param name="dxfCode">要删除数据的组码</param>
+        public static void RemoveXData(this DBObject obj, string appName, DxfCode dxfCode)
+        {
+            // 填内容吧
+        }
+        /// <summary>
+        /// 修改扩展数据
+        /// </summary>
+        /// <param name="obj">对象实例</param>
+        /// <param name="appName">应用程序名称</param>
+        /// <param name="dxfCode">要修改数据的组码</param>
+        /// <param name="newvalue">新的数据</param>
+        public static void ChangeXData(this DBObject obj, string appName, DxfCode dxfCode, object newvalue)
+        {
+            // 填内容吧
+        }
+        #endregion
+
+
+
+
+
+        #region 读写模式切换
+
         /// <summary>
         /// 实体自动管理读写函数
         /// </summary>
@@ -89,6 +120,7 @@ namespace IFoxCAD.Cad
 
             #endregion IDisposable 成员
         }
+        #endregion
 
     }
 }

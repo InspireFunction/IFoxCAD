@@ -197,10 +197,50 @@ namespace test
                 {1070, 12 }
             };
 
-
-
-
             tr.AddEntity(line);
+        }
+
+        [CommandMethod("getxdata")]
+        public void GetXdata()
+        {
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            var ed = doc.Editor;
+
+            var res = ed.GetEntity("\n select the entity:");
+            if (res.Status == PromptStatus.OK)
+            {
+                using var tr = new DBTrans();
+                var data = tr.GetObject<Entity>(res.ObjectId).XData;
+                ed.WriteMessage(data.ToString());
+            }
+        }
+
+        [CommandMethod("changexdata")]
+        public void Changexdata()
+        {
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            var ed = doc.Editor;
+            var appname = "myapp";
+            var res = ed.GetEntity("\n select the entity:");
+            if (res.Status == PromptStatus.OK)
+            {
+                using var tr = new DBTrans();
+                var data = tr.GetObject<Entity>(res.ObjectId);
+                using (data.ForWrite())
+                {
+                    data.XData = new XDataList()
+                    {
+                        { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码
+                        { DxfCode.ExtendedDataAsciiString, "change" },
+                        { 1070, 20 },
+                        { DxfCode.ExtendedDataLayerName, "0"}
+                    };
+                }
+                
+                //tr.AddEntity(data);
+
+                ed.WriteMessage(data.XData.ToString());
+            }
         }
 
 
