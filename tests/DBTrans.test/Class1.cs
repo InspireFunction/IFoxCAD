@@ -20,7 +20,7 @@ using Autodesk.AutoCAD.Colors;
 
 namespace test
 {
-    public class Class1
+    public class Class1 : AutoRegAssem
     {
         [CommandMethod("dbtest")]
         public void Dbtest()
@@ -289,5 +289,14 @@ namespace test
             return doc;
         }
 
+        public override void Initialize()
+        {
+            Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nload....");
+        }
+
+        public override void Terminate()
+        {
+            Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nunload....");
+        }
     }
 }
