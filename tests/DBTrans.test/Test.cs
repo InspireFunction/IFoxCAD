@@ -16,7 +16,8 @@ using Autodesk.AutoCAD.Internal;
 
 using IFoxCAD.Cad;
 using Autodesk.AutoCAD.Colors;
-
+using IFoxCAD.WPF;
+using test.wpf;
 
 namespace test
 {
@@ -275,6 +276,17 @@ namespace test
             }
 
         }
+
+
+        [CommandMethod("testwpf")]
+        public void TestWPf()
+        {
+            var test = new TestView();
+            Application.ShowModalWindow(test);
+        }
+
+
+
 
         public Database Getdb()
         {

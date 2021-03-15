@@ -17,6 +17,7 @@
         <PackageTags>IFoxCAD;C#;NET;WPF;MVVM</PackageTags>
         <RepositoryType>git</RepositoryType>
         <PackageReleaseNotes>基于NFOX类库的重构版本</PackageReleaseNotes>
+        <LangVersion>preview</LangVersion>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
