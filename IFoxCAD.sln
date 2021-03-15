@@ -5,7 +5,9 @@ VisualStudioVersion = 16.0.31025.194
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Cad", "src\IFoxCAD.Cad\IFoxCAD.Cad.csproj", "{D5FAED7C-A99B-4BEE-A745-45442DC44971}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DBTrans.test", "tests\DBTrans.test\DBTrans.test.csproj", "{B1602568-F023-46C7-B635-3CB281F1EC00}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DBTrans.test", "tests\DBTrans.test\DBTrans.test.csproj", "{B1602568-F023-46C7-B635-3CB281F1EC00}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFoxCAD.WPF", "src\IFoxCAD.WPF\IFoxCAD.WPF.csproj", "{D820D629-1AB3-4BE3-A772-CB753D98CCB8}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +23,10 @@ Global
 		{B1602568-F023-46C7-B635-3CB281F1EC00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1602568-F023-46C7-B635-3CB281F1EC00}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B1602568-F023-46C7-B635-3CB281F1EC00}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D820D629-1AB3-4BE3-A772-CB753D98CCB8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D820D629-1AB3-4BE3-A772-CB753D98CCB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D820D629-1AB3-4BE3-A772-CB753D98CCB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D820D629-1AB3-4BE3-A772-CB753D98CCB8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

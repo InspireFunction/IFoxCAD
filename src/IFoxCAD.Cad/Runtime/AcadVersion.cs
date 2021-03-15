@@ -40,7 +40,7 @@ namespace IFoxCAD.Cad
         public string ProductRootKey
         { private set; get; }
 
-        private static string _pattern = @"Autodesk\\AutoCAD\\R(\d+)\.(\d+)\\.*?";
+        private static readonly string _pattern = @"Autodesk\\AutoCAD\\R(\d+)\.(\d+)\\.*?";
 
         private static List<AcadVersion> _versions;
 

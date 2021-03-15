@@ -99,7 +99,7 @@ namespace IFoxCAD.Cad
         /// <returns>块定义Id</returns>
         public static ObjectId GetBlockFrom(this SymbolTable<BlockTable, BlockTableRecord> table, string fileName, bool over)
         {
-            FileInfo fi = new FileInfo(fileName);
+            FileInfo fi = new(fileName);
             string blkdefname = fi.Name;
             if (blkdefname.Contains("."))
             {
@@ -110,7 +110,7 @@ namespace IFoxCAD.Cad
             bool has = id != ObjectId.Null;
             if ((has && over) || !has)
             {
-                Database db = new Database();
+                Database db = new();
                 db.ReadDwgFile(fileName, FileShare.Read, true, null);
                 id = table.Database.Insert(BlockTableRecord.ModelSpace, blkdefname, db, false);
             }

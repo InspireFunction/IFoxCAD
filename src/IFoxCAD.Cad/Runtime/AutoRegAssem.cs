@@ -34,12 +34,12 @@ namespace IFoxCAD.Cad
     /// </summary>
     public abstract class AutoRegAssem : CadRuntime.IExtensionApplication
     {
-        private AssemInfo _info = new AssemInfo();
+        private AssemInfo _info = new();
 
         /// <summary>
         /// 程序集的路径
         /// </summary>
-        public static FileInfo Location => new FileInfo(Assembly.GetCallingAssembly().Location);
+        public static FileInfo Location => new(Assembly.GetCallingAssembly().Location);
 
         /// <summary>
         /// 程序集的目录
@@ -55,7 +55,7 @@ namespace IFoxCAD.Cad
         {
             if (assem == null)
             {
-                throw new ArgumentNullException(nameof(assem));
+                throw new(nameof(assem));
             }
             return new FileInfo(assem.Location).Directory;
         }

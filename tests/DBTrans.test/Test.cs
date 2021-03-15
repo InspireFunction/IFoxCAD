@@ -20,7 +20,7 @@ using Autodesk.AutoCAD.Colors;
 
 namespace test
 {
-    public class Class1 : AutoRegAssem
+    public class Test : AutoRegAssem
     {
         [CommandMethod("dbtest")]
         public void Dbtest()
