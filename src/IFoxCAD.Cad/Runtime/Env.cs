@@ -377,16 +377,7 @@ namespace IFoxCAD.Cad
             }
         }
 
-        /// <summary>
-        /// 追加捕捉模式
-        /// </summary>
-        /// <param name="osm1">原系统变量</param>
-        /// <param name="osm2">要追加的模式</param>
-        public static void Append(this OSModeType osm1, OSModeType osm2)
-        {
-            osm1 |= osm2;
-        }
-
+       
         /// <summary>
         /// 检查系统变量的模式是否相同
         /// </summary>
@@ -396,16 +387,6 @@ namespace IFoxCAD.Cad
         public static bool Check(this OSModeType osm1, OSModeType osm2)
         {
             return (osm1 & osm2) == osm2;
-        }
-
-        /// <summary>
-        /// 取消捕捉模式
-        /// </summary>
-        /// <param name="osm1">原模式</param>
-        /// <param name="osm2">要取消的模式</param>
-        public static void Remove(this OSModeType osm1, OSModeType osm2)
-        {
-            osm1 ^= osm2;
         }
 
         #endregion OsMode
