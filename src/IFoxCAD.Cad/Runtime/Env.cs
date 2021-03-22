@@ -112,14 +112,8 @@ namespace IFoxCAD.Cad
         /// </summary>
         public static bool CmdEcho
         {
-            get
-            {
-                return (int)Application.GetSystemVariable("cmdecho") == 1;
-            }
-            set
-            {
-                Application.SetSystemVariable("cmdecho", Convert.ToInt16(value));
-            }
+            get => Convert.ToInt16(Application.GetSystemVariable("cmdecho")) == 1;
+            set => Application.SetSystemVariable("cmdecho", Convert.ToInt16(value));
         }
 
         #region Dimblk
