@@ -177,22 +177,22 @@ namespace IFoxCAD.Cad
 
         #region 转换器
         /// <summary>
-        /// ResultBuffer 隐式转换到 LispDataList
+        /// ResultBuffer 隐式转换到 LispList
         /// </summary>
         /// <param name="buffer">ResultBuffer 实例</param>
         public static implicit operator LispList(ResultBuffer buffer) => new(buffer.AsArray());
         /// <summary>
-        /// LispDataList 隐式转换到 TypedValue 数组
+        /// LispList 隐式转换到 TypedValue 数组
         /// </summary>
         /// <param name="values">TypedValueList 实例</param>
         public static implicit operator TypedValue[](LispList values) => values.Value.ToArray();
         /// <summary>
-        /// TypedValueList 隐式转换到 ResultBuffer
+        /// LispList 隐式转换到 ResultBuffer
         /// </summary>
         /// <param name="values">TypedValueList 实例</param>
         public static implicit operator ResultBuffer(LispList values) => new(values.Value.ToArray());
         /// <summary>
-        /// TypedValue 数组隐式转换到 TypedValueList
+        /// TypedValue 数组隐式转换到 LispList
         /// </summary>
         /// <param name="values">TypedValue 数组</param>
         public static implicit operator LispList(TypedValue[] values) => new(values);

@@ -32,15 +32,6 @@ namespace IFoxCAD.Cad
         {
             Add(new TypedValue(code, obj));
         }
-        ///// <summary>
-        ///// 添加数据
-        ///// </summary>
-        ///// <param name="code">组码</param>
-        ///// <param name="obj">组码值</param>
-        //public virtual void Add(DxfCode code, object obj)
-        //{
-        //    Add(new TypedValue((int)code, obj));
-        //}
 
         #endregion
 
@@ -49,7 +40,7 @@ namespace IFoxCAD.Cad
         /// ResultBuffer 隐式转换到 TypedValueList
         /// </summary>
         /// <param name="buffer">ResultBuffer 实例</param>
-        public static implicit operator TypedValueList(ResultBuffer buffer) => new TypedValueList(buffer.AsArray());
+        public static implicit operator TypedValueList(ResultBuffer buffer) => new(buffer.AsArray());
         /// <summary>
         /// TypedValueList 隐式转换到 TypedValue 数组
         /// </summary>
@@ -59,12 +50,12 @@ namespace IFoxCAD.Cad
         /// TypedValueList 隐式转换到 ResultBuffer
         /// </summary>
         /// <param name="values">TypedValueList 实例</param>
-        public static implicit operator ResultBuffer(TypedValueList values) => new ResultBuffer(values);
+        public static implicit operator ResultBuffer(TypedValueList values) => new(values);
         /// <summary>
         /// TypedValue 数组隐式转换到 TypedValueList
         /// </summary>
         /// <param name="values">TypedValue 数组</param>
-        public static implicit operator TypedValueList(TypedValue[] values) => new TypedValueList(values);
+        public static implicit operator TypedValueList(TypedValue[] values) => new(values);
         /// <summary>
         /// 转换为字符串
         /// </summary>

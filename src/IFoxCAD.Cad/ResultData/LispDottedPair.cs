@@ -16,13 +16,14 @@ namespace IFoxCAD.Cad
         public LispDottedPair()
         {
         }
-        ///// <summary>
-        ///// 构造函数
-        ///// </summary>
-        ///// <param name="values">TypedValue 迭代器</param>
-        //public LispDottedPair(IEnumerable<TypedValue> values) : base(values)
-        //{
-        //}
+
+        /// <summary>
+        /// 构造函数
+        /// </summary>
+        /// <param name="values">TypedValue 迭代器</param>
+        public LispDottedPair(IEnumerable<TypedValue> values) : base(values)
+        {
+        }
         /// <summary>
         /// 构造函数
         /// </summary>
@@ -49,5 +50,20 @@ namespace IFoxCAD.Cad
                 return value;
             }
         }
+
+        #region 转换器
+
+        /// <summary>
+        /// LispDottedPair 隐式转换到 TypedValue 数组
+        /// </summary>
+        /// <param name="values">TypedValueList 实例</param>
+        public static implicit operator TypedValue[](LispDottedPair values) => values.Value.ToArray();
+        /// <summary>
+        /// LispDottedPair 隐式转换到 ResultBuffer
+        /// </summary>
+        /// <param name="values">TypedValueList 实例</param>
+        public static implicit operator ResultBuffer(LispDottedPair values) => new(values.Value.ToArray());
+        
+        #endregion
     }
 }

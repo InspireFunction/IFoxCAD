@@ -1,5 +1,6 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 
+using System.Collections.Generic;
 using System.Linq;
 
 namespace IFoxCAD.Cad
@@ -10,6 +11,8 @@ namespace IFoxCAD.Cad
     /// </summary>
     public class XDataList : TypedValueList
     {
+        public XDataList(IEnumerable<TypedValue> values) : base(values) { }
+        
         #region 添加数据
         /// <summary>
         /// 添加数据
@@ -36,6 +39,29 @@ namespace IFoxCAD.Cad
             Add((int)code, obj);
         }
 
+        #endregion
+
+        #region 转换器
+        /// <summary>
+        /// ResultBuffer 隐式转换到 XDataList
+        /// </summary>
+        /// <param name="buffer">ResultBuffer 实例</param>
+        public static implicit operator XDataList(ResultBuffer buffer) => new(buffer.AsArray());
+        /// <summary>
+        /// XDataList 隐式转换到 TypedValue 数组
+        /// </summary>
+        /// <param name="values">TypedValueList 实例</param>
+        public static implicit operator TypedValue[](XDataList values) => values.ToArray();
+        /// <summary>
+        /// XDataList 隐式转换到 ResultBuffer
+        /// </summary>
+        /// <param name="values">TypedValueList 实例</param>
+        public static implicit operator ResultBuffer(XDataList values) => new(values);
+        /// <summary>
+        /// TypedValue 数组隐式转换到 XDataList
+        /// </summary>
+        /// <param name="values">TypedValue 数组</param>
+        public static implicit operator XDataList(TypedValue[] values) => new(values);
         #endregion
     }
 }
