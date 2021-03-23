@@ -9,6 +9,9 @@ namespace IFoxCAD.Cad
     /// </summary>
     public class XRecordDataList : TypedValueList
     {
+        public XRecordDataList()
+        {
+        }
         public XRecordDataList(IEnumerable<TypedValue> values) : base(values) { }
         #region 添加数据
         /// <summary>
