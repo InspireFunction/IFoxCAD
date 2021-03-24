@@ -35,5 +35,15 @@ namespace test
 
             Env.Editor.WriteMessage("");
         }
+
+        [CommandMethod("testselectanpoint")]
+        public void testselectanpoint()
+        {
+
+            
+            var sel2 = Env.Editor.SelectAtPoint(new Point3d(0, 0, 0));
+
+            Env.Editor.WriteMessage("");
+        }
     }
 }

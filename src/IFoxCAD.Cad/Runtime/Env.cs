@@ -402,5 +402,46 @@ namespace IFoxCAD.Cad
         }
 
         #endregion Enum
+
+        #region 环境变量
+        /// <summary>
+        /// 获取cad变量
+        /// </summary>
+        /// <param name="varName">变量名</param>
+        /// <returns>变量值</returns>
+        public static object GetVar(string varName)
+        {
+            return Application.GetSystemVariable(varName);
+        }
+        /// <summary>
+        /// 设置cad变量
+        /// </summary>
+        /// <param name="varName">变量名</param>
+        /// <param name="value">变量值</param>
+        public static void SetVar(string varName, object value)
+        {
+            Application.SetSystemVariable(varName, value);
+        }
+#nullable enable
+        /// <summary>
+        /// 获取系统环境变量
+        /// </summary>
+        /// <param name="var">变量名</param>
+        /// <returns>指定的环境变量的值；或者如果找不到环境变量，则返回 null</returns>
+        public static string? GetEnv(string var)
+        {
+            return Environment.GetEnvironmentVariable(var);
+        }
+        /// <summary>
+        /// 设置系统环境变量
+        /// </summary>
+        /// <param name="var">变量名</param>
+        /// <param name="value">变量值</param>
+        public static void SetEnv(string var, string? value)
+        {
+            Environment.SetEnvironmentVariable(var, value);
+        }
+#nullable disable
+        #endregion
     }
 }

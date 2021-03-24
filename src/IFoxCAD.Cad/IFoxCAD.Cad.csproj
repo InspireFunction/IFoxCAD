@@ -39,4 +39,8 @@
       <Folder Include="ResultData\" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Reference Include="System.Windows.Forms" />
+    </ItemGroup>
+
 </Project>
