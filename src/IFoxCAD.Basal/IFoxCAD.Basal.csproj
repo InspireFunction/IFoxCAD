@@ -6,12 +6,12 @@
         <Version>0.1.0</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
-        <Description>基于.NET的Cad二次开发类库</Description>
+        <Description>基于.NET的二次开发基本类库</Description>
         <Copyright>InspireFunction</Copyright>
         <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
+        <PackageTags>IFoxCAD;C#;NET;Common;Basal</PackageTags>
         <PackageReleaseNotes>基于NFOX类库的重构版本</PackageReleaseNotes>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
@@ -22,29 +22,15 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="AutoCAD.NET" Version="20.0.1">
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </PackageReference>
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="..\..\LICENSE">
-        <Pack>True</Pack>
-        <PackagePath></PackagePath>
-      </None>
+        <None Include="..\..\LICENSE">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
     </ItemGroup>
 
-    <ItemGroup>
-      <Folder Include="ResultData\" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <ProjectReference Include="..\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Reference Include="System.Windows.Forms" />
-    </ItemGroup>
 
 </Project>

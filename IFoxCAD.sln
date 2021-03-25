@@ -7,7 +7,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Cad", "src\IFoxCAD.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "DBTrans.test", "tests\DBTrans.test\DBTrans.test.csproj", "{B1602568-F023-46C7-B635-3CB281F1EC00}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFoxCAD.WPF", "src\IFoxCAD.WPF\IFoxCAD.WPF.csproj", "{D820D629-1AB3-4BE3-A772-CB753D98CCB8}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.WPF", "src\IFoxCAD.WPF\IFoxCAD.WPF.csproj", "{D820D629-1AB3-4BE3-A772-CB753D98CCB8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFoxCAD.Basal", "src\IFoxCAD.Basal\IFoxCAD.Basal.csproj", "{40BF07C4-100A-4810-A27B-4587CFB38E6E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -27,6 +29,10 @@ Global
 		{D820D629-1AB3-4BE3-A772-CB753D98CCB8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D820D629-1AB3-4BE3-A772-CB753D98CCB8}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D820D629-1AB3-4BE3-A772-CB753D98CCB8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40BF07C4-100A-4810-A27B-4587CFB38E6E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40BF07C4-100A-4810-A27B-4587CFB38E6E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40BF07C4-100A-4810-A27B-4587CFB38E6E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40BF07C4-100A-4810-A27B-4587CFB38E6E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

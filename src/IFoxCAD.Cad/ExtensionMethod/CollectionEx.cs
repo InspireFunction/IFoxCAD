@@ -29,7 +29,6 @@ namespace IFoxCAD.Cad
         /// <returns>实体集合</returns>
         public static DBObjectCollection ToCollection<T>(this IEnumerable<T> objs) where T : DBObject
         {
-           
             DBObjectCollection objCol = new();
             foreach (T obj in objs)
                 objCol.Add(obj);
