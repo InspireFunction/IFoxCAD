@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NFox.Cad
+namespace IFoxCAD.Cad
 {
     /// <summary>
     /// 集合扩展类
