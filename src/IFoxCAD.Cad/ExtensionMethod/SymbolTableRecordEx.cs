@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.Runtime;
 
 namespace IFoxCAD.Cad
 {
@@ -16,10 +17,11 @@ namespace IFoxCAD.Cad
     /// </summary>
     public static class SymbolTableRecordEx
     {
-        
+
 
         #region 块表记录
 
+        #region 添加实体
         public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity, Transaction trans = null)
         {
             ObjectId id;
@@ -31,9 +33,6 @@ namespace IFoxCAD.Cad
             }
             return id;
         }
-
-
-
 
         /// <summary>
         /// 添加实体集合
@@ -58,8 +57,9 @@ namespace IFoxCAD.Cad
                     .ToList();
             }
         }
+        #endregion
 
-
+        #region 获取实体/实体id
         /// <summary>
         /// 获取块表记录内的指定类型的实体
         /// </summary>
@@ -77,6 +77,46 @@ namespace IFoxCAD.Cad
                 .Select(id => trans.GetObject(id, mode))
                 .OfType<T>();
         }
+
+        /// <summary>
+        /// 按类型获取实体Id,AutoCad2010以上版本支持
+        /// </summary>
+        /// <typeparam name="T">实体类型</typeparam>
+        /// <param name="btr">块表记录</param>
+        /// <returns>实体Id集合</returns>
+        public static IEnumerable<ObjectId> GetObjectIds<T>(this BlockTableRecord btr) where T : Entity
+        {
+            string dxfName = RXClass.GetClass(typeof(T)).DxfName;
+            return btr.Cast<ObjectId>()
+                .Where(id => id.ObjectClass.DxfName == dxfName);
+        }
+
+        /// <summary>
+        /// 按类型获取实体Id的分组
+        /// </summary>
+        /// <param name="btr">块表记录</param>
+        /// <returns>实体Id分组</returns>
+        public static IEnumerable<IGrouping<string, ObjectId>> GetObjectIds(this BlockTableRecord btr)
+        {
+            return
+                btr
+                .Cast<ObjectId>()
+                .GroupBy(id => id.ObjectClass.DxfName);
+        }
+
+        /// <summary>
+        /// 获取绘制顺序表
+        /// </summary>
+        /// <param name="btr">块表</param>
+        /// <param name="tr">事务</param>
+        /// <returns>绘制顺序表</returns>
+        public static DrawOrderTable GetDrawOrderTable(this BlockTableRecord btr, Transaction tr = null)
+        {
+            tr ??= DBTrans.Top.Trans;
+            return tr.GetObject(btr.DrawOrderTableId, OpenMode.ForRead) as DrawOrderTable;
+        }
+
+        #endregion
 
 
         #region 插入块参照
