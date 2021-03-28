@@ -40,17 +40,6 @@ namespace IFoxCAD.Cad
     public static class GeometryEx
     {
 
-
-        /// <summary>
-        /// 判断点是否位于圆内及圆上
-        /// </summary>
-        /// <param name="ca2d">二维解析类圆弧对象</param>
-        /// <param name="pnt">二维点</param>
-        /// <returns>位于圆内及圆上返回 <see langword="true"/>,反之返回 <see langword="false"/></returns>
-        public static bool IsIn(this CircularArc2d ca2d, Point2d pnt)
-        {
-            return ca2d.IsOn(pnt) || ca2d.IsInside(pnt);
-        }
         #region Point&Circle
 
         /// <summary>

@@ -181,7 +181,7 @@ namespace IFoxCAD.Collections
         /// <returns></returns>
         public LoopListNode<T> AddFirst(T value)
         {
-            LoopListNode<T> node = new LoopListNode<T>(value)
+            LoopListNode<T> node = new(value)
             {
                 List = this
             };
@@ -209,7 +209,7 @@ namespace IFoxCAD.Collections
         /// <returns></returns>
         public LoopListNode<T> Add(T value)
         {
-            LoopListNode<T> node = new LoopListNode<T>(value);
+            LoopListNode<T> node = new(value);
             node.List = this;
             if (Count == 0)
             {
@@ -240,7 +240,7 @@ namespace IFoxCAD.Collections
             }
             else
             {
-                LoopListNode<T> tnode = new LoopListNode<T>(value);
+                LoopListNode<T> tnode = new(value);
                 node.Previous.Next = tnode;
                 tnode.Previous = node.Previous;
                 node.Previous = tnode;
@@ -257,7 +257,7 @@ namespace IFoxCAD.Collections
         /// <returns></returns>
         public LoopListNode<T> AddAfter(LoopListNode<T> node, T value)
         {
-            LoopListNode<T> tnode = new LoopListNode<T>(value);
+            LoopListNode<T> tnode = new(value);
             node.Next.Previous = tnode;
             tnode.Next = node.Next;
             node.Next = tnode;
