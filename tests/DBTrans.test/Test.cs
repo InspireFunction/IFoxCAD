@@ -18,6 +18,7 @@ using IFoxCAD.Cad;
 using Autodesk.AutoCAD.Colors;
 using IFoxCAD.WPF;
 using test.wpf;
+using System.IO;
 
 namespace test
 {
@@ -311,4 +312,150 @@ namespace test
             Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nunload....");
         }
     }
+
+    public class BlockImportClass
+    {
+
+        [CommandMethod("CBLL")]
+        public void cbll()
+        {
+            string filename = @"C:\Users\vic\Desktop\Drawing1.dwg";
+            using var tr = new DBTrans();
+            using var tr1 = new DBTrans(filename);
+            //tr.BlockTable.GetBlockFrom(filename, true);
+            string blkdefname = SymbolUtilityServices.RepairSymbolName(SymbolUtilityServices.GetSymbolNameFromPathName(filename, "dwg"), false);
+            tr.Database.Insert(blkdefname, tr1.Database, false); //插入了块定义，未插入块参照
+            
+        }
+
+
+        [CommandMethod("CBL")]
+        public void CombineBlocksIntoLibrary()
+        {
+            Document doc =
+                Application.DocumentManager.MdiActiveDocument;
+            Editor ed = doc.Editor;
+            Database destDb = doc.Database;
+
+            // Get name of folder from which to load and import blocks
+
+            PromptResult pr =
+              ed.GetString("\nEnter the folder of source drawings: ");
+
+            if (pr.Status != PromptStatus.OK)
+                return;
+            string pathName = pr.StringResult;
+
+            // Check the folder exists
+
+            if (!Directory.Exists(pathName))
+            {
+                ed.WriteMessage(
+                  "\nDirectory does not exist: {0}", pathName
+                );
+                return;
+            }
+
+            // Get the names of our DWG files in that folder
+
+            string[] fileNames = Directory.GetFiles(pathName, "*.dwg");
+
+            // A counter for the files we've imported
+
+            int imported = 0, failed = 0;
+
+            // For each file in our list
+
+            foreach (string fileName in fileNames)
+            {
+                // Double-check we have a DWG file (probably unnecessary)
+
+                if (fileName.EndsWith(
+                      ".dwg",
+                      StringComparison.InvariantCultureIgnoreCase
+                    )
+                )
+                {
+                    // Catch exceptions at the file level to allow skipping
+
+                    try
+                    {
+                        // Suggestion from Thorsten Meinecke...
+
+                        string destName =
+                          SymbolUtilityServices.GetSymbolNameFromPathName(
+                            fileName, "dwg"
+                          );
+
+                        // And from Dan Glassman...
+
+                        destName =
+                          SymbolUtilityServices.RepairSymbolName(
+                            destName, false
+                          );
+
+                        // Create a source database to load the DWG into
+
+                        using (Database db = new Database(false, true))
+                        {
+                            // Read the DWG into our side database
+
+                            db.ReadDwgFile(fileName, FileShare.Read, true, "");
+                            bool isAnno = db.AnnotativeDwg;
+
+                            // Insert it into the destination database as
+                            // a named block definition
+
+                            ObjectId btrId = destDb.Insert(
+                              destName,
+                              db,
+                              false
+                            );
+
+                            if (isAnno)
+                            {
+                                // If an annotative block, open the resultant BTR
+                                // and set its annotative definition status
+
+                                Transaction tr =
+                                  destDb.TransactionManager.StartTransaction();
+                                using (tr)
+                                {
+                                    BlockTableRecord btr =
+                                      (BlockTableRecord)tr.GetObject(
+                                        btrId,
+                                        OpenMode.ForWrite
+                                      );
+                                    btr.Annotative = AnnotativeStates.True;
+                                    tr.Commit();
+                                }
+                            }
+
+                            // Print message and increment imported block counter
+
+                            ed.WriteMessage("\nImported from \"{0}\".", fileName);
+                            imported++;
+                        }
+                    }
+                    catch (System.Exception ex)
+                    {
+                        ed.WriteMessage(
+                          "\nProblem importing \"{0}\": {1} - file skipped.",
+                          fileName, ex.Message
+                        );
+                        failed++;
+                    }
+                }
+            }
+
+            ed.WriteMessage(
+              "\nImported block definitions from {0} files{1} in " +
+              "\"{2}\" into the current drawing.",
+              imported,
+              failed > 0 ? " (" + failed + " failed)" : "",
+              pathName
+            );
+        }
+    }
+
 }

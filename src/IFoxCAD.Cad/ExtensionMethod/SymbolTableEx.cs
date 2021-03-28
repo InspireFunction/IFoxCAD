@@ -99,12 +99,14 @@ namespace IFoxCAD.Cad
         /// <returns>块定义Id</returns>
         public static ObjectId GetBlockFrom(this SymbolTable<BlockTable, BlockTableRecord> table, string fileName, bool over)
         {
-            FileInfo fi = new(fileName);
-            string blkdefname = fi.Name;
-            if (blkdefname.Contains("."))
-            {
-                blkdefname = blkdefname.Substring(0, blkdefname.LastIndexOf('.'));
-            }
+            //FileInfo fi = new(fileName);
+            //string blkdefname = fi.Name;
+            //if (blkdefname.Contains("."))
+            //{
+            //    blkdefname = blkdefname.Substring(0, blkdefname.LastIndexOf('.'));
+            //}
+
+            string blkdefname = SymbolUtilityServices.RepairSymbolName(SymbolUtilityServices.GetSymbolNameFromPathName(fileName, "dwg"), false);
 
             ObjectId id = table[blkdefname];
             bool has = id != ObjectId.Null;
@@ -117,8 +119,28 @@ namespace IFoxCAD.Cad
 
             return id;
         }
-        #endregion
+
         
+
+        /// <summary>
+        /// 从文件中获取块定义
+        /// </summary>
+        /// <param name="table">块表</param>
+        /// <param name="fileName">文件名</param>
+        /// <param name="blockName">块定义名</param>
+        /// <param name="over">是否覆盖</param>
+        /// <returns>块定义Id</returns>
+        public static ObjectId GetBlockFrom(this SymbolTable<BlockTable, BlockTableRecord> table, string fileName, string blockName, bool over)
+        {
+            return
+               table.GetRecordFrom(
+                    t => t.BlockTable,
+                    fileName,
+                    blockName,
+                    over);
+        }
+        #endregion
+
 
         #region 线型表
         /// <summary>

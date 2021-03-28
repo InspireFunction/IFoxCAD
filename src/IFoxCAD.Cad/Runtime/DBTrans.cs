@@ -9,6 +9,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.Geometry;
+using System.IO;
 
 namespace IFoxCAD.Cad
 {
@@ -20,7 +21,7 @@ namespace IFoxCAD.Cad
 
         private bool disposedValue;
 
-        private readonly bool _commit;
+        private bool _commit;
         /// <summary>
         /// 事务栈
         /// </summary>
@@ -53,14 +54,47 @@ namespace IFoxCAD.Cad
 
         #region 构造函数
         /// <summary>
-        /// 构造函数，默认事务退出时提交全部操作
+        /// 默认构造函数，默认为打开当前文档，默认提交事务
         /// </summary>
-        /// <param name="commit"></param>
-        public DBTrans(bool commit = true)
+        /// <param name="doc">要打开的文档</param>
+        /// <param name="commit">事务是否提交</param>
+        public DBTrans(Document doc = null, bool commit = true)
         {
-            Document = Application.DocumentManager.MdiActiveDocument;
+            doc ??= Application.DocumentManager.MdiActiveDocument;
+            Document = doc;
             Database = Document.Database;
             Editor = Document.Editor;
+            Init(commit);
+        }
+
+        /// <summary>
+        /// 构造函数，打开数据库，默认提交事务
+        /// </summary>
+        /// <param name="database">要打开的数据库</param>
+        /// <param name="commit">事务是否提交</param>
+        public DBTrans(Database database, bool commit = true)
+        {
+            Database = database;
+            Init(commit);
+        }
+        /// <summary>
+        /// 构造函数，打开文件，默认提交事务
+        /// </summary>
+        /// <param name="fileName">要打开的文件名</param>
+        /// <param name="commit">事务是否提交</param>
+        public DBTrans(string fileName, bool commit = true)
+        {
+            Database = new Database(false, true);
+            Database.ReadDwgFile(fileName, FileShare.Read, true, null);
+            Database.CloseInput(true);
+            Init(commit);
+        }
+        /// <summary>
+        /// 初始化事务及事务队列、提交模式
+        /// </summary>
+        /// <param name="commit">提交模式</param>
+        private void Init(bool commit)
+        {
             Trans = Database.TransactionManager.StartTransaction();
             _commit = commit;
             dBTrans.Push(this);
@@ -147,7 +181,7 @@ namespace IFoxCAD.Cad
 
         #endregion
 
-       
+
 
         #region idispose接口相关函数
 
