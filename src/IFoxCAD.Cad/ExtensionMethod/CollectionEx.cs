@@ -90,6 +90,5 @@ namespace IFoxCAD.Cad
             }
         }
 
-
     }
 }
