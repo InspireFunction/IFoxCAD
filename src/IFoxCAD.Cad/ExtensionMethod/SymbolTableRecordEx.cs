@@ -59,6 +59,107 @@ namespace IFoxCAD.Cad
         }
         #endregion
 
+        #region 添加图元
+        /// <summary>
+        /// 在指定绘图空间添加图元
+        /// </summary>
+        /// <typeparam name="T">图元类型</typeparam>
+        /// <param name="btr">绘图空间</param>
+        /// <param name="ent">图元对象</param>
+        /// <param name="action">图元属性设置委托</param>
+        /// <param name="trans">事务管理器</param>
+        /// <returns>图元id</returns>
+        private static ObjectId DrawEnt<T>(this BlockTableRecord btr, T ent, Action<T> action, Transaction trans) where T : Entity
+        {
+            trans ??= DBTrans.Top.Trans;
+            action?.Invoke(ent);
+            return btr.AddEntity(ent, trans);
+        }
+
+        /// <summary>
+        /// 在指定绘图空间添加直线
+        /// </summary>
+        /// <param name="trans">事务管理器</param>
+        /// <param name="start">起点</param>
+        /// <param name="end">终点</param>
+        /// <param name="btr">绘图空间</param>
+        /// <param name="action">直线属性设置委托</param>
+        /// <returns>直线的id</returns>
+        public static ObjectId DrawLine(this BlockTableRecord btr, Point3d start, Point3d end, Action<Line> action = default, Transaction trans = default)
+        {
+            var line = new Line(start, end);
+            return btr.DrawEnt(line, action, trans);
+        }
+        /// <summary>
+        /// 在指定绘图空间X-Y平面添加圆
+        /// </summary>
+        /// <param name="btr">绘图空间</param>
+        /// <param name="center">圆心</param>
+        /// <param name="radius">半径</param>
+        /// <param name="action">圆属性设置委托</param>
+        /// <param name="trans">事务管理器</param>
+        /// <returns>圆的id</returns>
+        public static ObjectId DrawCircle(this BlockTableRecord btr, Point3d center, double radius, Action<Circle> action = default, Transaction trans = default)
+        {
+            var circle = new Circle(center, Vector3d.ZAxis, radius);
+            return btr.DrawEnt(circle, action, trans);
+        }
+
+        /// <summary>
+        /// 在指定绘图空间X-Y平面3点画外接圆
+        /// </summary>
+        /// <param name="btr">绘图空间</param>
+        /// <param name="p0">第一点</param>
+        /// <param name="p1">第二点</param>
+        /// <param name="p2">第三点</param>
+        /// <param name="action">圆属性设置委托</param>
+        /// <param name="trans">事务管理器</param>
+        /// <returns>三点有外接圆则返回圆的id，否则返回ObjectId.Null</returns>
+        public static ObjectId DrawCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2, Action<Circle> action = default, Transaction trans = default)
+        {
+            var dx1 = p1.X - p0.X;
+            var dy1 = p1.Y - p0.Y;
+            var dx2 = p2.X - p0.X;
+            var dy2 = p2.Y - p0.Y;
+
+            var d = dx1 * dy2 - dx2 * dy1;
+            
+            if (d != 0.0)
+            {
+                var d2 = d * 2;
+                var c1 = (p0.X + p1.X) * dx1 + (p0.Y + p1.Y) * dy1;
+                var c2 = (p0.X + p2.X) * dx2 + (p0.Y + p2.Y) * dy2;
+                var ce = new Point3d((c1 * dy2 - c2 * dy1) / d2, (c2 * dx1 - c1 * dx2) / d2, 0);
+                var circle = new Circle(ce, Vector3d.ZAxis, p0.DistanceTo(ce));
+                return btr.DrawEnt(circle, action, trans);
+            }
+            return ObjectId.Null;
+        }
+        /// <summary>
+        /// 在指定的绘图空间添加轻多段线
+        /// </summary>
+        /// <param name="btr">绘图空间</param>
+        /// <param name="pts">端点表</param>
+        /// <param name="bulges">凸度表</param>
+        /// <param name="startWidths">端点的起始宽度</param>
+        /// <param name="endWidths">端点的终止宽度</param>
+        /// <param name="action">轻多段线属性设置委托</param>
+        /// <param name="trans">事务管理器</param>
+        /// <returns>轻多段线</returns>
+        public static ObjectId DrawPline(this BlockTableRecord btr, List<Point3d> pts, List<double> bulges = default, List<double> startWidths = default, List<double> endWidths = default, Action<Polyline> action = default, Transaction trans = default)
+        {
+            bulges ??= new List<double>(new double[pts.Count]);
+            startWidths ??= new List<double>(new double[pts.Count]);
+            endWidths ??= new List<double>(new double[pts.Count]);
+            Polyline pl = new();
+            for (int i = 0; i < pts.Count; i++)
+            {
+                pl.AddVertexAt(i, pts[i].Point2d(), bulges[i], startWidths[i], endWidths[i]);
+            }
+            return btr.DrawEnt(pl, action, trans);
+        }
+        #endregion
+
         #region 获取实体/实体id
         /// <summary>
         /// 获取块表记录内的指定类型的实体
