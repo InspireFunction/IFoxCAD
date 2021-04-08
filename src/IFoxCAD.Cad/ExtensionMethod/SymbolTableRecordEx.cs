@@ -158,6 +158,24 @@ namespace IFoxCAD.Cad
             }
             return btr.DrawEnt(pl, action, trans);
         }
+
+        /// <summary>
+        /// 在指定绘图空间X-Y平面3点画圆弧
+        /// </summary>
+        /// <param name="btr">绘图空间</param>
+        /// <param name="startPoint">圆弧起点</param>
+        /// <param name="pointOnArc">圆弧上的点</param>
+        /// <param name="endPoint">圆弧终点</param>
+        /// <param name="action">圆弧属性设置委托</param>
+        /// <param name="trans">事务管理器</param>
+        /// <returns>圆弧id</returns>
+        public static ObjectId DrawArc(this BlockTableRecord btr, Point3d startPoint, Point3d pointOnArc,    Point3d endPoint, Action<Arc> action = default, Transaction trans = default)
+        {
+
+            var arc = new CircularArc3d(startPoint, pointOnArc, endPoint);
+            return btr.DrawEnt(Curve.CreateFromGeCurve(arc) as Arc, action, trans);
+            
+        }
         #endregion
 
         #region 获取实体/实体id
@@ -218,7 +236,6 @@ namespace IFoxCAD.Cad
         }
 
         #endregion
-
 
         #region 插入块参照
 

@@ -65,6 +65,12 @@ namespace test
             tr.PaperSpace.AddEntity(line2);
         }
 
+        [CommandMethod("drawarc")]
+        public void drawarc()
+        {
+            using var tr = new DBTrans();
+            tr.CurrentSpace.DrawArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));
+        }
 
         [CommandMethod("layertest")]
         public void Layertest()

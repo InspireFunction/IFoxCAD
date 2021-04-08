@@ -52,9 +52,9 @@ namespace test
             //tr.CurrentSpace.AddEntity(pl);
 
             var a1 = GeometryEx.GetArea(new Point2d(0, 0), new Point2d(1, 0), new Point2d(1, 1));
-            var a2 = ConvexHull.cross(new Point3d(0, 0, 0), new Point3d(1, 0, 0), new Point3d(1, 1, 0));
+            //var a2 = ConvexHull.cross(new Point3d(0, 0, 0), new Point3d(1, 0, 0), new Point3d(1, 1, 0));
             tr.Editor.WriteMessage(a1.ToString());
-            tr.Editor.WriteMessage(a2.ToString());
+            //tr.Editor.WriteMessage(a2.ToString());
         }
     }
 }
