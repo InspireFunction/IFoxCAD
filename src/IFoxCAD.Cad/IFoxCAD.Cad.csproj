@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net45</TargetFrameworks>
+        <TargetFrameworks>net35;net40</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
         <Version>0.1.0</Version>
         <Company>InspireFunction</Company>
@@ -21,13 +21,29 @@
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     </PropertyGroup>
 
-    <ItemGroup>
-        <PackageReference Include="AutoCAD.NET" Version="20.0.1">
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
+        <PackageReference Include="Autocad.NetApi" Version="17.2.0">
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
+        <PackageReference Include="Autocad.NetApi" Version="19.0.0">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
 
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DefineConstants>DEBUG</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
+        <DefineConstants>$(Configuration);ac2009</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
+        <DefineConstants>$(Configuration);ac2013</DefineConstants>
+    </PropertyGroup>
+    
+    
     <ItemGroup>
       <None Include="..\..\LICENSE">
         <Pack>True</Pack>

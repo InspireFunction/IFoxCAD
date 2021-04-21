@@ -81,7 +81,11 @@ namespace IFoxCAD.Cad
 
         private static RegistryKey GetAcAppKey()
         {
+#if ac2009
+            string key = HostApplicationServices.Current.RegistryProductRootKey;
+#elif ac2013
             string key = HostApplicationServices.Current.MachineRegistryProductRootKey;
+#endif
             RegistryKey ackey =
                 Registry.CurrentUser.OpenSubKey(key, true);
             return ackey.CreateSubKey("Applications");
@@ -108,9 +112,9 @@ namespace IFoxCAD.Cad
             appkey.Close();
         }
 
-        #endregion RegApp
+#endregion RegApp
 
-        #region IExtensionApplication 成员
+#region IExtensionApplication 成员
 
         /// <summary>
         /// 初始化函数
@@ -122,6 +126,6 @@ namespace IFoxCAD.Cad
         /// </summary>
         public abstract void Terminate();
 
-        #endregion IExtensionApplication 成员
+#endregion IExtensionApplication 成员
     }
 }

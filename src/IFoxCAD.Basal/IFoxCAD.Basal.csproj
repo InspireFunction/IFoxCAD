@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net45</TargetFrameworks>
+        <TargetFrameworks>net35;net40</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
         <Version>0.1.0</Version>
         <Company>InspireFunction</Company>
@@ -21,7 +21,7 @@
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     </PropertyGroup>
 
-    <ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
 

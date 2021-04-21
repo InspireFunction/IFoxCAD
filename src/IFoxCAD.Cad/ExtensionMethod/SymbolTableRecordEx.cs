@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
+
 
 using Autodesk.AutoCAD.Colors;
 using Autodesk.AutoCAD.DatabaseServices;
@@ -173,12 +173,15 @@ namespace IFoxCAD.Cad
         {
 
             var arc = new CircularArc3d(startPoint, pointOnArc, endPoint);
+#if ac2009
+            return btr.DrawEnt(arc.ToArc(), action, trans);
+#elif ac2013
             return btr.DrawEnt(Curve.CreateFromGeCurve(arc) as Arc, action, trans);
-            
+#endif           
         }
-        #endregion
+#endregion
 
-        #region 获取实体/实体id
+#region 获取实体/实体id
         /// <summary>
         /// 获取块表记录内的指定类型的实体
         /// </summary>
@@ -235,9 +238,9 @@ namespace IFoxCAD.Cad
             return tr.GetObject(btr.DrawOrderTableId, OpenMode.ForRead) as DrawOrderTable;
         }
 
-        #endregion
+#endregion
 
-        #region 插入块参照
+#region 插入块参照
 
         /// <summary>
         /// 插入块参照
@@ -316,8 +319,8 @@ namespace IFoxCAD.Cad
             return objid;
         }
 
-        #endregion
-        #endregion
+#endregion
+#endregion
 
 
 

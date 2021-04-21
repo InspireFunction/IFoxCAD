@@ -18,7 +18,7 @@ namespace IFoxCAD.WPF
         /// 属性改变时调用
         /// </summary>
         /// <param name="propertyName">属性名</param>
-        public void OnPropertyChanged([CallerMemberName] string propertyName = "")
+        public void OnPropertyChanged(string propertyName = "")
         {
             
             PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
@@ -31,7 +31,7 @@ namespace IFoxCAD.WPF
         /// <param name="value">属性值</param>
         /// <param name="propertyName">属性名</param>
         /// <returns>成功返回 <see langword="true"/>，反之 <see langword="false"/></returns>
-        protected virtual bool Set<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+        protected virtual bool Set<T>(ref T storage, T value, string propertyName = null)
         {
             if (object.Equals(storage, value)) return false;
 

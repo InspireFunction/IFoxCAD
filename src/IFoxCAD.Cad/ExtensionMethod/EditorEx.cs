@@ -432,7 +432,70 @@ namespace IFoxCAD.Cad
         /// <returns>变换矩阵</returns>
         public static Matrix3d GetMatrix(this Editor editor, CoordinateSystemCode from, CoordinateSystemCode to)
         {
-           
+#if ac2009
+            switch (from)
+            {
+                case CoordinateSystemCode.Wcs:
+                    switch (to)
+                    {
+                        case CoordinateSystemCode.Ucs:
+                            return editor.GetMatrixFromWcsToUcs();
+
+                        case CoordinateSystemCode.MDcs:
+                            return editor.GetMatrixFromMDcsToWcs();
+
+                        case CoordinateSystemCode.PDcs:
+                            throw new Autodesk.AutoCAD.Runtime.Exception(
+                                ErrorStatus.InvalidInput,
+                                "To be used only with DCS");
+                    }
+                    break;
+                case CoordinateSystemCode.Ucs:
+                    switch (to)
+                    {
+                        case CoordinateSystemCode.Wcs:
+                            return editor.GetMatrixFromUcsToWcs();
+
+                        case CoordinateSystemCode.MDcs:
+                            return editor.GetMatrixFromUcsToWcs() * editor.GetMatrixFromWcsToMDcs();
+
+                        case CoordinateSystemCode.PDcs:
+                            throw new Autodesk.AutoCAD.Runtime.Exception(
+                                ErrorStatus.InvalidInput,
+                                "To be used only with DCS");
+                    }
+                    break;
+                case CoordinateSystemCode.MDcs:
+                    switch (to)
+                    {
+                        case CoordinateSystemCode.Wcs:
+                            return editor.GetMatrixFromMDcsToWcs();
+
+                        case CoordinateSystemCode.Ucs:
+                            return editor.GetMatrixFromMDcsToWcs() * editor.GetMatrixFromWcsToUcs();
+
+                        case CoordinateSystemCode.PDcs:
+                            return editor.GetMatrixFromMDcsToPDcs();
+                    }
+                    break;
+                case CoordinateSystemCode.PDcs:
+                    switch (to)
+                    {
+                        case CoordinateSystemCode.Wcs:
+                            throw new Autodesk.AutoCAD.Runtime.Exception(
+                                ErrorStatus.InvalidInput,
+                                "To be used only with DCS");
+                        case CoordinateSystemCode.Ucs:
+                            throw new Autodesk.AutoCAD.Runtime.Exception(
+                                ErrorStatus.InvalidInput,
+                                "To be used only with DCS");
+                        case CoordinateSystemCode.MDcs:
+                            return editor.GetMatrixFromPDcsToMDcs();
+                    }
+                    break;
+            }
+            return Matrix3d.Identity;
+#elif ac2013
             return (from, to) switch
             {
                 (CoordinateSystemCode.Wcs, CoordinateSystemCode.Ucs) => editor.GetMatrixFromWcsToUcs(),
@@ -447,11 +510,12 @@ namespace IFoxCAD.Cad
                 or (CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs, CoordinateSystemCode.PDcs) => throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.InvalidInput,"To be used only with DCS"),
                 (_, _) => Matrix3d.Identity
             };
+#endif
         }
 
-        #endregion Matrix
+#endregion Matrix
 
-        #region Zoom
+#region Zoom
 
         /// <summary>
         /// 缩放窗口范围
@@ -567,9 +631,9 @@ namespace IFoxCAD.Cad
             ed.ZoomWindow(ext.MinPoint, ext.MinPoint, offsetDist);
         }
 
-        #endregion Zoom
+#endregion Zoom
 
-        #region Get交互类
+#region Get交互类
 
         /// <summary>
         /// 获取Point
@@ -636,9 +700,9 @@ namespace IFoxCAD.Cad
             return ed.GetString(strOp);
         }
 
-        #endregion Get交互类
+#endregion Get交互类
 
-        #region 执行lisp
+#region 执行lisp
 
         [System.Security.SuppressUnmanagedCodeSecurity]
         [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
@@ -672,6 +736,6 @@ namespace IFoxCAD.Cad
             return null;
         }
 
-        #endregion 执行lisp
+#endregion 执行lisp
     }
 }
