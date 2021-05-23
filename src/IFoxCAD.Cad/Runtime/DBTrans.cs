@@ -212,9 +212,10 @@ namespace IFoxCAD.Cad
                     // 释放托管状态(托管对象)
                     Commit();
                     dBTrans.Pop();
-                    Trans.Dispose();
-
-
+                    if (!Trans.IsDisposed)
+                    {
+                        Trans.Dispose();
+                    }
                 }
 
                 // 释放未托管的资源(未托管的对象)并替代终结器
