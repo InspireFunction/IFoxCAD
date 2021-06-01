@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq; 
@@ -132,7 +132,10 @@ namespace IFoxCAD.Cad
                     Name = name
                 };
                 id = Add(record);
-                action?.Invoke(record);
+                using (record.ForWrite())
+                {
+                    action?.Invoke(record);
+                }
             }
             return id;
         }
