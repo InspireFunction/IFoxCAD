@@ -179,9 +179,9 @@ namespace IFoxCAD.Cad
             return btr.DrawEnt(Curve.CreateFromGeCurve(arc) as Arc, action, trans);
 #endif           
         }
-#endregion
+        #endregion
 
-#region 获取实体/实体id
+        #region 获取实体/实体id
         /// <summary>
         /// 获取块表记录内的指定类型的实体
         /// </summary>
@@ -238,9 +238,9 @@ namespace IFoxCAD.Cad
             return tr.GetObject(btr.DrawOrderTableId, OpenMode.ForRead) as DrawOrderTable;
         }
 
-#endregion
+        #endregion
 
-#region 插入块参照
+        #region 插入块参照
 
         /// <summary>
         /// 插入块参照
@@ -319,8 +319,8 @@ namespace IFoxCAD.Cad
             return objid;
         }
 
-#endregion
-#endregion
+        #endregion
+        #endregion
 
 
 

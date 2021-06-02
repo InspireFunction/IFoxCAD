@@ -84,11 +84,13 @@ namespace test
 
             });
             tr.LayerTable.Remove("3");
+            tr.LayerTable.Delete("0");
             tr.LayerTable.Change("4", lt =>
             {
                 lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 2);
             });
         }
+
 
         //添加图层
         [CommandMethod("layerAdd1")]
@@ -106,7 +108,19 @@ namespace test
             tr.LayerTable.Add("test2", 2);
             //tr.LayerTable["3"] = new LayerTableRecord();
         }
+        //删除图层
+        [CommandMethod("layerdel")]
+        public void LayerDel()
+        {
+            using var tr = new DBTrans();
+            Env.Editor.WriteMessage(tr.LayerTable.Delete("0").ToString()); //删除图层 0
+            Env.Editor.WriteMessage(tr.LayerTable.Delete("Defpoints").ToString());//删除图层 Defpoints
+            Env.Editor.WriteMessage(tr.LayerTable.Delete("1").ToString());//删除不存在的图层 1
+            Env.Editor.WriteMessage(tr.LayerTable.Delete("2").ToString());//删除有图元的图层 2
+            Env.Editor.WriteMessage(tr.LayerTable.Delete("3").ToString());//删除图层 3
 
+            tr.LayerTable.Remove("2"); //测试是否能强制删除
+        }
         
         //添加直线
         [CommandMethod("linedemo1")]

@@ -63,6 +63,30 @@ namespace IFoxCAD.Cad
                 return ObjectId.Null;
             }
         }
+        /// <summary>
+        /// 删除图层
+        /// </summary>
+        /// <param name="table">层表</param>
+        /// <param name="name">图层名</param>
+        /// <returns>成功返回 <see langword="true"/>，失败返回 <see langword="false"/></returns>
+        public static bool Delete(this SymbolTable<LayerTable, LayerTableRecord> table, string name)
+        {
+            if (name == "0" || name == "Defpoints" || !table.Has(name) ||table[name] == DBTrans.Top.Database.Clayer)
+            {
+                return false;
+            }
+            table.CurrentSymbolTable.GenerateUsageData();
+            var ltr = table.GetRecord(name);
+            if (ltr.IsUsed)
+            {
+                return false;
+            }
+            using (ltr.ForWrite())
+            {
+                ltr.Erase();
+            }
+            return true;
+        }
         #endregion
 
         #region 块表
