@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -52,7 +52,7 @@ namespace test
             // 追加模式
             Env.OSMode |= Env.OSModeType.Center;
             //检查是否有某个模式
-            var os = Env.OSMode.Check(Env.OSModeType.Center);
+            var os = Env.OSMode.Include(Env.OSModeType.Center);
             // 取消某个模式
             Env.OSMode ^= Env.OSModeType.Center;
             Env.Editor.WriteMessage(Env.OSMode.ToString());

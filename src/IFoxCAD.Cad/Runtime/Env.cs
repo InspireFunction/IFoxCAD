@@ -1,4 +1,4 @@
-﻿using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.GraphicsSystem;
@@ -108,7 +108,7 @@ namespace IFoxCAD.Cad
         #region Enum
 
         /// <summary>
-        /// 命令行回显系统变量， <see langword="true"/> 为显示， <see langword="false"/> 为不显示
+        /// 控制在AutoLISP的command函数运行时AutoCAD是否回显提示和输入， <see langword="true"/> 为显示， <see langword="false"/> 为不显示
         /// </summary>
         public static bool CmdEcho
         {
@@ -376,19 +376,16 @@ namespace IFoxCAD.Cad
                 Application.SetSystemVariable("osmode", (int)value);
             }
         }
-
-       
         /// <summary>
-        /// 检查系统变量的模式是否相同
+        /// 捕捉模式osm1是否包含osm2
         /// </summary>
         /// <param name="osm1">原模式</param>
         /// <param name="osm2">要比较的模式</param>
-        /// <returns>等于要比较的模式返回 <see langword="true"/>，反之返回 <see langword="false"/></returns>
-        public static bool Check(this OSModeType osm1, OSModeType osm2)
+        /// <returns>包含时返回 <see langword="true"/>，不包含时返回 <see langword="false"/></returns>
+        public static bool Include(this OSModeType osm1, OSModeType osm2)
         {
             return (osm1 & osm2) == osm2;
         }
-
         #endregion OsMode
 
         private static T ToEnum<T>(this string value)
@@ -430,6 +427,7 @@ namespace IFoxCAD.Cad
         /// <returns>指定的环境变量的值；或者如果找不到环境变量，则返回 null</returns>
         public static string? GetEnv(string var)
         {
+            //从当前进程或者从当前用户或本地计算机的 Windows 操作系统注册表项检索环境变量的值
             return Environment.GetEnvironmentVariable(var);
         }
         /// <summary>
@@ -439,6 +437,7 @@ namespace IFoxCAD.Cad
         /// <param name="value">变量值</param>
         public static void SetEnv(string var, string? value)
         {
+            //创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
             Environment.SetEnvironmentVariable(var, value);
         }
 #nullable disable
