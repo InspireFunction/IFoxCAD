@@ -97,7 +97,7 @@ namespace test
         public void Layertest1()
         {
             using var tr = new DBTrans();
-            tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor,1));
+            tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor, 1));
         }
 
         //添加图层
@@ -121,7 +121,7 @@ namespace test
 
             tr.LayerTable.Remove("2"); //测试是否能强制删除
         }
-        
+
         //添加直线
         [CommandMethod("linedemo1")]
         public void AddLine1()
@@ -141,8 +141,12 @@ namespace test
             //    {
             //        line.
             //    });
-            Line line = new(new Point3d(0,0,0),new Point3d(1,1,0));
-            tr.CurrentSpace.AddEntity(line);
+            Line line1 = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+            Line line2 = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+            Line line3 = new(new Point3d(1, 1, 0), new Point3d(3, 3, 0));
+            Circle circle = new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 10);
+            tr.CurrentSpace.AddEntity(line1);
+            tr.CurrentSpace.AddEntity(line2, line3, circle);
         }
 
         //增加多段线1
@@ -151,11 +155,11 @@ namespace test
         {
             using var tr = new DBTrans();
             Polyline pl = new Polyline();
-            pl.AddVertexAt(0, new Point2d(0,0), 0, 0, 0);
-            pl.AddVertexAt(1, new Point2d(10,10), 0, 0, 0);
-            pl.AddVertexAt(2, new Point2d(20,20), 0, 0, 0);
-            pl.AddVertexAt(3, new Point2d(30,30), 0, 0, 0);
-            pl.AddVertexAt(4, new Point2d(40,40), 0, 0, 0);
+            pl.AddVertexAt(0, new Point2d(0, 0), 0, 0, 0);
+            pl.AddVertexAt(1, new Point2d(10, 10), 0, 0, 0);
+            pl.AddVertexAt(2, new Point2d(20, 20), 0, 0, 0);
+            pl.AddVertexAt(3, new Point2d(30, 30), 0, 0, 0);
+            pl.AddVertexAt(4, new Point2d(40, 40), 0, 0, 0);
             pl.Closed = true;
             pl.Color = Color.FromColorIndex(ColorMethod.ByColor, 6);
             tr.CurrentSpace.AddEntity(pl);
@@ -167,10 +171,10 @@ namespace test
         {
             using var tr = new DBTrans();
             //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-            tr.BlockTable.Add("test", 
+            tr.BlockTable.Add("test",
                 () => //图元
                 {
-                    return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0))};
+                    return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0)) };
                 },
                 () => //属性定义
                 {
@@ -193,7 +197,7 @@ namespace test
                 btr.GetEntities<BlockReference>()
                     .ToList()
                     .ForEach(e => e.Flush()); //刷新块显示
-                
+
             });
             tr.Editor.Regen();
         }
@@ -227,14 +231,14 @@ namespace test
         {
             using var tr = new DBTrans();
             var appname = "myapp";
-            
+
             tr.RegAppTable.Add(appname); // add函数会默认的在存在这个名字的时候返回这个名字的regapp的id，不存在就新建
-            
+
             var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
 
 
-            line.XData = new XDataList() 
-            { 
+            line.XData = new XDataList()
+            {
                 { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码
                 { DxfCode.ExtendedDataAsciiString, "hahhahah" },
                 {1070, 12 }
@@ -279,7 +283,7 @@ namespace test
                         { DxfCode.ExtendedDataLayerName, "0"}
                     };
                 }
-                
+
                 //tr.AddEntity(data);
 
                 ed.WriteMessage(data.XData.ToString());
@@ -345,7 +349,7 @@ namespace test
             //tr.BlockTable.GetBlockFrom(filename, true);
             string blkdefname = SymbolUtilityServices.RepairSymbolName(SymbolUtilityServices.GetSymbolNameFromPathName(filename, "dwg"), false);
             tr.Database.Insert(blkdefname, tr1.Database, false); //插入了块定义，未插入块参照
-            
+
         }
 
 

@@ -57,6 +57,16 @@ namespace IFoxCAD.Cad
                     .ToList();
             }
         }
+        /// <summary>
+        /// 添加多个实体
+        /// </summary>
+        /// <param name="btr"></param>
+        /// <param name="ents"></param>
+        /// <returns></returns>
+        public static List<ObjectId> AddEntity(this BlockTableRecord btr, params Entity[] ents)
+        {
+            return btr.AddEntity(ents, null);
+        }
         #endregion
 
         #region 添加图元
@@ -123,7 +133,7 @@ namespace IFoxCAD.Cad
             var dy2 = p2.Y - p0.Y;
 
             var d = dx1 * dy2 - dx2 * dy1;
-            
+
             if (d != 0.0)
             {
                 var d2 = d * 2;
@@ -169,7 +179,7 @@ namespace IFoxCAD.Cad
         /// <param name="action">圆弧属性设置委托</param>
         /// <param name="trans">事务管理器</param>
         /// <returns>圆弧id</returns>
-        public static ObjectId DrawArc(this BlockTableRecord btr, Point3d startPoint, Point3d pointOnArc,    Point3d endPoint, Action<Arc> action = default, Transaction trans = default)
+        public static ObjectId DrawArc(this BlockTableRecord btr, Point3d startPoint, Point3d pointOnArc, Point3d endPoint, Action<Arc> action = default, Transaction trans = default)
         {
 
             var arc = new CircularArc3d(startPoint, pointOnArc, endPoint);
