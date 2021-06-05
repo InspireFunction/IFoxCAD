@@ -181,7 +181,8 @@ namespace IFoxCAD.Cad
         }
         #endregion
 
-        #region 多行文字
+        #region 单行文字
+
         /// <summary>
         /// 更正单行文字的镜像属性
         /// </summary>
@@ -194,6 +195,9 @@ namespace IFoxCAD.Cad
                 txt.IsMirroredInY = false;
             }
         }
+        #endregion
+
+        #region 多行文字
 
         /// <summary>
         /// 炸散多行文字

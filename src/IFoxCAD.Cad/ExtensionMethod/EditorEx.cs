@@ -309,7 +309,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取UCS到WCS的矩阵
         /// </summary>
-        /// <param name="editor">编辑器对象</param>
+        /// <param name="editor">命令行对象</param>
         /// <returns>变换矩阵</returns>
         public static Matrix3d GetMatrixFromUcsToWcs(this Editor editor)
         {
@@ -319,7 +319,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取WCS到UCS的矩阵
         /// </summary>
-        /// <param name="editor">编辑器对象</param>
+        /// <param name="editor">命令行对象</param>
         /// <returns>变换矩阵</returns>
         public static Matrix3d GetMatrixFromWcsToUcs(this Editor editor)
         {
@@ -329,7 +329,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取MDCS(模型空间)到WCS的矩阵
         /// </summary>
-        /// <param name="editor">编辑器对象</param>
+        /// <param name="editor">命令行对象</param>
         /// <returns>变换矩阵</returns>
         public static Matrix3d GetMatrixFromMDcsToWcs(this Editor editor)
         {
@@ -343,7 +343,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取WCS到MDCS(模型空间)的矩阵
         /// </summary>
-        /// <param name="editor">编辑器对象</param>
+        /// <param name="editor">命令行对象</param>
         /// <returns>变换矩阵</returns>
         public static Matrix3d GetMatrixFromWcsToMDcs(this Editor editor)
         {
@@ -353,7 +353,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取MDCS(模型空间)到PDCS(图纸空间)的矩阵
         /// </summary>
-        /// <param name="editor">编辑器对象</param>
+        /// <param name="editor">命令行对象</param>
         /// <returns>变换矩阵</returns>
         public static Matrix3d GetMatrixFromMDcsToPDcs(this Editor editor)
         {
@@ -390,7 +390,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取PDCS(图纸空间)到MDCS(模型空间)的矩阵
         /// </summary>
-        /// <param name="editor">编辑器对象</param>
+        /// <param name="editor">命令行对象</param>
         /// <returns>变换矩阵</returns>
         public static Matrix3d GetMatrixFromPDcsToMDcs(this Editor editor)
         {
@@ -400,7 +400,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取变换矩阵
         /// </summary>
-        /// <param name="editor">编辑器对象</param>
+        /// <param name="editor">命令行对象</param>
         /// <param name="from">源坐标系</param>
         /// <param name="to">目标坐标系</param>
         /// <returns>变换矩阵</returns>
@@ -487,14 +487,14 @@ namespace IFoxCAD.Cad
 #endif
         }
 
-#endregion Matrix
+        #endregion Matrix
 
-#region Zoom
+        #region Zoom
 
         /// <summary>
         /// 缩放窗口范围
         /// </summary>
-        /// <param name="ed">编辑器对象</param>
+        /// <param name="ed">命令行对象</param>
         /// <param name="minPoint">窗口左下点</param>
         /// <param name="maxPoint">窗口右上点</param>
         public static void ZoomWindow(this Editor ed, Point3d minPoint, Point3d maxPoint)
@@ -540,7 +540,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 缩放窗口范围
         /// </summary>
-        /// <param name="ed">编辑器对象</param>
+        /// <param name="ed">命令行对象</param>
         /// <param name="ext">窗口范围点</param>
         public static void ZoomWindow(this Editor ed, Extents3d ext)
         {
@@ -548,12 +548,12 @@ namespace IFoxCAD.Cad
         }
 
         /// <summary>
-        /// Zooms the scaled.
+        /// 缩放比例
         /// </summary>
-        /// <param name="ed">The ed.</param>
-        /// <param name="CenPt">The cen pt.</param>
-        /// <param name="width">The width.</param>
-        /// <param name="height">The height.</param>
+        /// <param name="ed">命令行对象</param>
+        /// <param name="CenPt">中心点</param>
+        /// <param name="width">窗口宽</param>
+        /// <param name="height">窗口高</param>
         public static void Zoom(this Editor ed, Point3d CenPt, double width, double height)
         {
             using ViewTableRecord view = ed.GetCurrentView();
@@ -564,12 +564,12 @@ namespace IFoxCAD.Cad
         }
 
         /// <summary>
-        /// 视图的窗口缩放
+        ///缩放窗口范围
         /// </summary>
-        /// <param name="ed">The ed.</param>
+        /// <param name="ed">命令行对象</param>
         /// <param name="lpt">第一点</param>
         /// <param name="rpt">对角点</param>
-        /// <param name="offsetDist"></param>
+        /// <param name="offsetDist">偏移距离</param>
         public static void ZoomWindow(this Editor ed, Point3d lpt, Point3d rpt, double offsetDist = 0.00)
         {
             Extents3d extents = new();
@@ -584,7 +584,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 动态缩放
         /// </summary>
-        /// <param name="ed">编辑器对象</param>
+        /// <param name="ed">命令行对象</param>
         /// <param name="offsetDist">偏移距离</param>
         public static void ZoomExtents(this Editor ed, double offsetDist = 0.00)
         {
@@ -596,7 +596,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 根据实体对象的范围显示视图
         /// </summary>
-        /// <param name="ed"></param>
+        /// <param name="ed">命令行对象</param>
         /// <param name="ent">Entity对象</param>
         /// <param name="offsetDist">偏移距离</param>
         public static void ZoomObject(this Editor ed, Entity ent, double offsetDist = 0.00)
@@ -605,16 +605,16 @@ namespace IFoxCAD.Cad
             ed.ZoomWindow(ext.MinPoint, ext.MinPoint, offsetDist);
         }
 
-#endregion Zoom
+        #endregion Zoom
 
-#region Get交互类
+        #region Get交互类
 
         /// <summary>
         /// 获取Point
         /// </summary>
-        /// <param name="ed"></param>
-        /// <param name="Message"></param>
-        /// <param name="BasePoint"></param>
+        /// <param name="ed">命令行对象</param>
+        /// <param name="Message">提示信息</param>
+        /// <param name="BasePoint">提示使用的基点</param>
         /// <returns></returns>
         public static PromptPointResult GetPoint(this Editor ed, string Message, Point3d BasePoint)
         {
@@ -629,8 +629,8 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取double值
         /// </summary>
-        /// <param name="ed"></param>
-        /// <param name="Message">显示信息</param>
+        /// <param name="ed">命令行对象</param>
+        /// <param name="Message">提示信息</param>
         /// <param name="DefaultValue">double默认值</param>
         /// <returns></returns>
         public static PromptDoubleResult GetDouble(this Editor ed, string Message, double DefaultValue = 1.0)
@@ -645,8 +645,8 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取int值
         /// </summary>
-        /// <param name="ed"></param>
-        /// <param name="Message">显示信息</param>
+        /// <param name="ed">命令行对象</param>
+        /// <param name="Message">提示信息</param>
         /// <param name="DefaultValue">double默认值</param>
         /// <returns></returns>
         public static PromptIntegerResult GetInteger(this Editor ed, string Message, int DefaultValue = 1)
@@ -661,9 +661,9 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取string值
         /// </summary>
-        /// <param name="ed"></param>
-        /// <param name="Message"></param>
-        /// <param name="DefaultValue"></param>
+        /// <param name="ed">命令行对象</param>
+        /// <param name="Message">提示信息</param>
+        /// <param name="DefaultValue">string默认值</param>
         /// <returns></returns>
         public static PromptResult GetString(this Editor ed, string Message, string DefaultValue = "")
         {
@@ -674,9 +674,9 @@ namespace IFoxCAD.Cad
             return ed.GetString(strOp);
         }
 
-#endregion Get交互类
+        #endregion Get交互类
 
-#region 执行lisp
+        #region 执行lisp
 
         [System.Security.SuppressUnmanagedCodeSecurity]
         [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
@@ -710,6 +710,6 @@ namespace IFoxCAD.Cad
             return null;
         }
 
-#endregion 执行lisp
+        #endregion 执行lisp
     }
 }
