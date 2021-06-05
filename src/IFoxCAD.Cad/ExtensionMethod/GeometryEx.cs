@@ -246,36 +246,12 @@ namespace IFoxCAD.Cad
         }
 
         /// <summary>
-        /// 获取三点的面积
-        /// </summary>
-        /// <param name="ptBase">基准点</param>
-        /// <param name="pt1">第一点</param>
-        /// <param name="pt2">第二点</param>
-        /// <returns>三点围成的三角形的面积</returns>
-        public static double GetArea(Point2d ptBase, Point2d pt1, Point2d pt2)
-        {
-            return (pt2 - ptBase).DotProduct((pt1 - ptBase).GetPerpendicularVector());
-        }
-
-        /// <summary>
-        /// 判断三点是否为逆时针，也就是说判断三点是否为左转
-        /// </summary>
-        /// <param name="ptBase">基点</param>
-        /// <param name="pt1">第一点</param>
-        /// <param name="pt2">第二点</param>
-        /// <returns>左转/逆时针或者三点共线返回 <see langword="true"/>，反之返回 <see langword="false"/></returns>
-        public static bool IsClockWise(Point2d ptBase, Point2d pt1, Point2d pt2)
-        {
-            return GetArea(ptBase, pt1, pt2) <= 0;
-        }
-
-        /// <summary>
-        /// 获取两个向量的点积
+        /// 获取两个向量的叉积（|vecBase|×|vec|×sin（a））
         /// </summary>
         /// <param name="vecBase">基向量</param>
         /// <param name="vec">向量</param>
-        /// <returns>点积</returns>
-        public static double GetArea(Vector2d vecBase, Vector2d vec)
+        /// <returns>叉积</returns>
+        public static double CrossProduct(this Vector2d vecBase, Vector2d vec)
         {
             return vec.DotProduct(vecBase.GetPerpendicularVector());
         }
@@ -288,17 +264,41 @@ namespace IFoxCAD.Cad
         /// <returns>左转/逆时针返回 <see langword="true"/>，反之返回 <see langword="false"/></returns>
         public static bool IsClockWise(Vector2d vecBase, Vector2d vec)
         {
-            return GetArea(vecBase, vec) <= 0;
+            return vecBase.CrossProduct(vec) <= 0;
         }
 
+        /// <summary>
+        /// 判断三点是否为逆时针，也就是说判断三点是否为左转
+        /// </summary>
+        /// <param name="ptBase">基点</param>
+        /// <param name="pt1">第一点</param>
+        /// <param name="pt2">第二点</param>
+        /// <returns>左转/逆时针或者三点共线返回 <see langword="true"/>，反之返回 <see langword="false"/></returns>
+        public static bool IsClockWise(Point2d ptBase, Point2d pt1, Point2d pt2)
+        {
+            return IsClockWise((pt1 - ptBase), (pt2 - ptBase));
+        }
+
+        /// <summary>
+        /// 获取三点的面积
+        /// </summary>
+        /// <param name="ptBase">基准点</param>
+        /// <param name="pt1">第一点</param>
+        /// <param name="pt2">第二点</param>
+        /// <returns>三点围成的三角形的面积</returns>
+        public static double GetArea(Point2d ptBase, Point2d pt1, Point2d pt2)
+        {
+            return Math.Abs((pt1 - ptBase).CrossProduct(pt2 - ptBase)) / 2;//求三角形面积需加绝对值除2
+        }
         #region PointList
 
         /// <summary>
         /// 获取点集的面积
         /// </summary>
         /// <param name="pnts">点集</param>
+        /// <param name="positive">是否恒为正数</param>
         /// <returns>面积</returns>
-        public static double GetArea(this IEnumerable<Point2d> pnts)
+        public static double GetArea(this IEnumerable<Point2d> pnts, bool positive = true)
         {
             IEnumerator<Point2d> itor = pnts.GetEnumerator();
             if (!itor.MoveNext())
@@ -316,7 +316,8 @@ namespace IFoxCAD.Cad
             }
 
             area = (area + (p2.X * start.Y - start.X * p2.Y)) / 2.0;
-            return area;
+
+            return positive ? Math.Abs(area) : area;
         }
 
         /// <summary>
@@ -324,17 +325,17 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="vertices">点集</param>
         /// <returns>面积</returns>
-        public static double GetArea(this IList<Point2d> vertices)
-        {
-            double sum = 0.0;
-            for (int i = 0; i < vertices.Count; i++)
-            {
-                Point2d v1 = vertices[i];
-                Point2d v2 = vertices[(i + 1) % vertices.Count];
-                sum += (v1.X * v2.Y - v2.X * v1.Y);
-            }
-            return sum / 2;
-        }
+        //public static double GetArea(this IList<Point2d> vertices)
+        //{
+        //    double sum = 0.0;
+        //    for (int i = 0; i < vertices.Count; i++)
+        //    {
+        //        Point2d v1 = vertices[i];
+        //        Point2d v2 = vertices[(i + 1) % vertices.Count];
+        //        sum += (v1.X * v2.Y - v2.X * v1.Y);
+        //    }
+        //    return sum / 2;
+        //}
 
         /// <summary>
         /// 判断点集的点是否为左转/逆时针
@@ -343,7 +344,7 @@ namespace IFoxCAD.Cad
         /// <returns>左转/逆时针返回 <see langword="true"/>，反之返回 <see langword="false"/></returns>
         public static bool IsClockWise(this IEnumerable<Point2d> pnts)
         {
-            return pnts.GetArea() <= 0;
+            return pnts.GetArea(false) <= 0;
         }
 
         /// <summary>
@@ -434,7 +435,7 @@ namespace IFoxCAD.Cad
             points.Sort((a, b) =>
                  a.X == b.X ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X));
 
-            // Build lower hull
+            // 建立下凸包
             for (int i = 0; i < n; ++i)
             {
                 while (k >= 2 && IsClockWise(H[k - 2], H[k - 1], points[i]))
@@ -442,7 +443,7 @@ namespace IFoxCAD.Cad
                 H[k++] = points[i];
             }
 
-            // Build upper hull
+            // 建立上凸包
             for (int i = n - 2, t = k + 1; i >= 0; i--)
             {
                 while (k >= t && IsClockWise(H[k - 2], H[k - 1], points[i]))

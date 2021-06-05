@@ -32,7 +32,7 @@ namespace test
             //    {
             //        flag = false;
             //    }
-                
+
             //}
 
             //var ptt = ConvexHull.GetConvexHull(pts);
@@ -52,9 +52,24 @@ namespace test
             //tr.CurrentSpace.AddEntity(pl);
 
             var a1 = GeometryEx.GetArea(new Point2d(0, 0), new Point2d(1, 0), new Point2d(1, 1));
+            var a2 = GeometryEx.GetArea(new Point2d(0, 0), new Point2d(-1, 0), new Point2d(-1, 1));
             //var a2 = ConvexHull.cross(new Point3d(0, 0, 0), new Point3d(1, 0, 0), new Point3d(1, 1, 0));
-            tr.Editor.WriteMessage(a1.ToString());
+            tr.Editor.WriteMessage((a1 == 0.5).ToString() + "\n");
+            tr.Editor.WriteMessage((a2 == 0.5).ToString() + "\n");
             //tr.Editor.WriteMessage(a2.ToString());
+            List<Point2d> vertices1 = new();
+            vertices1.Add(new Point2d(0, 0));
+            vertices1.Add(new Point2d(1, 0));
+            vertices1.Add(new Point2d(1, 1));
+            vertices1.Add(new Point2d(0, 1));
+            List<Point2d> vertices2 = new();
+            vertices2.Add(new Point2d(0, 0));
+            vertices2.Add(new Point2d(-1, 0));
+            vertices2.Add(new Point2d(-1, 1));
+            vertices2.Add(new Point2d(0, 1));
+            tr.Editor.WriteMessage(vertices1.GetArea().ToString() + "\n");
+            tr.Editor.WriteMessage(vertices2.GetArea().ToString() + "\n");
+            tr.Editor.WriteMessage(vertices2.GetArea(false).ToString() + "\n");
         }
     }
 }
