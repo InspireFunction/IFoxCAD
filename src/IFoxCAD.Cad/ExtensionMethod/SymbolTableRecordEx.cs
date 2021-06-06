@@ -79,7 +79,7 @@ namespace IFoxCAD.Cad
         /// <param name="action">图元属性设置委托</param>
         /// <param name="trans">事务管理器</param>
         /// <returns>图元id</returns>
-        private static ObjectId DrawEnt<T>(this BlockTableRecord btr, T ent, Action<T> action, Transaction trans) where T : Entity
+        private static ObjectId AddEnt<T>(this BlockTableRecord btr, T ent, Action<T> action, Transaction trans) where T : Entity
         {
             trans ??= DBTrans.Top.Trans;
             action?.Invoke(ent);
@@ -95,10 +95,10 @@ namespace IFoxCAD.Cad
         /// <param name="btr">绘图空间</param>
         /// <param name="action">直线属性设置委托</param>
         /// <returns>直线的id</returns>
-        public static ObjectId DrawLine(this BlockTableRecord btr, Point3d start, Point3d end, Action<Line> action = default, Transaction trans = default)
+        public static ObjectId AddLine(this BlockTableRecord btr, Point3d start, Point3d end, Action<Line> action = default, Transaction trans = default)
         {
             var line = new Line(start, end);
-            return btr.DrawEnt(line, action, trans);
+            return btr.AddEnt(line, action, trans);
         }
         /// <summary>
         /// 在指定绘图空间X-Y平面添加圆
@@ -109,10 +109,10 @@ namespace IFoxCAD.Cad
         /// <param name="action">圆属性设置委托</param>
         /// <param name="trans">事务管理器</param>
         /// <returns>圆的id</returns>
-        public static ObjectId DrawCircle(this BlockTableRecord btr, Point3d center, double radius, Action<Circle> action = default, Transaction trans = default)
+        public static ObjectId AddCircle(this BlockTableRecord btr, Point3d center, double radius, Action<Circle> action = default, Transaction trans = default)
         {
             var circle = new Circle(center, Vector3d.ZAxis, radius);
-            return btr.DrawEnt(circle, action, trans);
+            return btr.AddEnt(circle, action, trans);
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace IFoxCAD.Cad
         /// <param name="action">圆属性设置委托</param>
         /// <param name="trans">事务管理器</param>
         /// <returns>三点有外接圆则返回圆的id，否则返回ObjectId.Null</returns>
-        public static ObjectId DrawCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2, Action<Circle> action = default, Transaction trans = default)
+        public static ObjectId AddCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2, Action<Circle> action = default, Transaction trans = default)
         {
             var dx1 = p1.X - p0.X;
             var dy1 = p1.Y - p0.Y;
@@ -141,7 +141,7 @@ namespace IFoxCAD.Cad
                 var c2 = (p0.X + p2.X) * dx2 + (p0.Y + p2.Y) * dy2;
                 var ce = new Point3d((c1 * dy2 - c2 * dy1) / d2, (c2 * dx1 - c1 * dx2) / d2, 0);
                 var circle = new Circle(ce, Vector3d.ZAxis, p0.DistanceTo(ce));
-                return btr.DrawEnt(circle, action, trans);
+                return btr.AddEnt(circle, action, trans);
             }
             return ObjectId.Null;
         }
@@ -156,7 +156,7 @@ namespace IFoxCAD.Cad
         /// <param name="action">轻多段线属性设置委托</param>
         /// <param name="trans">事务管理器</param>
         /// <returns>轻多段线</returns>
-        public static ObjectId DrawPline(this BlockTableRecord btr, List<Point3d> pts, List<double> bulges = default, List<double> startWidths = default, List<double> endWidths = default, Action<Polyline> action = default, Transaction trans = default)
+        public static ObjectId AddPline(this BlockTableRecord btr, List<Point3d> pts, List<double> bulges = default, List<double> startWidths = default, List<double> endWidths = default, Action<Polyline> action = default, Transaction trans = default)
         {
             bulges ??= new List<double>(new double[pts.Count]);
             startWidths ??= new List<double>(new double[pts.Count]);
@@ -166,7 +166,7 @@ namespace IFoxCAD.Cad
             {
                 pl.AddVertexAt(i, pts[i].Point2d(), bulges[i], startWidths[i], endWidths[i]);
             }
-            return btr.DrawEnt(pl, action, trans);
+            return btr.AddEnt(pl, action, trans);
         }
 
         /// <summary>
@@ -179,14 +179,14 @@ namespace IFoxCAD.Cad
         /// <param name="action">圆弧属性设置委托</param>
         /// <param name="trans">事务管理器</param>
         /// <returns>圆弧id</returns>
-        public static ObjectId DrawArc(this BlockTableRecord btr, Point3d startPoint, Point3d pointOnArc, Point3d endPoint, Action<Arc> action = default, Transaction trans = default)
+        public static ObjectId AddArc(this BlockTableRecord btr, Point3d startPoint, Point3d pointOnArc, Point3d endPoint, Action<Arc> action = default, Transaction trans = default)
         {
 
             var arc = new CircularArc3d(startPoint, pointOnArc, endPoint);
 #if ac2009
-            return btr.DrawEnt(arc.ToArc(), action, trans);
+            return btr.AddEnt(arc.ToArc(), action, trans);
 #elif ac2013
-            return btr.DrawEnt(Curve.CreateFromGeCurve(arc) as Arc, action, trans);
+            return btr.AddEnt(Curve.CreateFromGeCurve(arc) as Arc, action, trans);
 #endif           
         }
         #endregion
