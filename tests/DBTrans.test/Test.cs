@@ -69,7 +69,7 @@ namespace test
         public void drawarc()
         {
             using var tr = new DBTrans();
-            tr.CurrentSpace.DrawArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));
+            tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));
         }
 
         [CommandMethod("layertest")]
@@ -183,6 +183,8 @@ namespace test
                     return new List<AttributeDefinition> { id1, id2 };
                 }
             );
+            ObjectId objectId = tr.BlockTable.Add("a");//新建块
+            objectId.GetObject<BlockTableRecord>().AddEntity();//测试添加空实体
         }
         //修改块定义
         [CommandMethod("blockdefchange")]

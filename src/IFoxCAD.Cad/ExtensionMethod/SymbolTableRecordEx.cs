@@ -257,7 +257,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="position">插入点</param>
         /// <param name="blockName">块名</param>
-        /// <param name="scale">块插入比例，默认为0</param>
+        /// <param name="scale">块插入比例，默认为1</param>
         /// <param name="rotation">块插入旋转角(弧度)，默认为0</param>
         /// <param name="atts">属性字典{Tag,Value}，默认为null</param>
         /// <returns>块参照对象id</returns>
@@ -280,7 +280,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="position">插入点</param>
         /// <param name="blockId">块定义id</param>
-        /// <param name="scale">块插入比例，默认为0</param>
+        /// <param name="scale">块插入比例，默认为1</param>
         /// <param name="rotation">块插入旋转角(弧度)，默认为0</param>
         /// <param name="atts">属性字典{Tag,Value}，默认为null</param>
         /// <returns>块参照对象id</returns>
