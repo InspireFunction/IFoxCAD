@@ -25,18 +25,18 @@
    - 在nuget程序里搜索**ifoxcad**，直接选择最新的版本，然后点击安装**IFoxCAD.Cad**，nuget会自动安装ifoxcad依赖的库。
    - 添加引用
 
-    ```c#
+      ```c#
      using Autodesk.AutoCAD.ApplicationServices;
      using Autodesk.AutoCAD.EditorInput;
      using Autodesk.AutoCAD.Runtime;
      using Autodesk.AutoCAD.Geometry;
      using Autodesk.AutoCAD.DatabaseServices;
      using IFoxCAD.Cad;
-    ```
+      ```
 
    - 添加代码
 
-    ```c#
+      ```c#
      [CommandMethod("hello")]
      public void Hello()
      {
@@ -46,10 +46,9 @@
          tr.CurrentSpace.AddEntity(line1);
        }
      }
-    ```
-   
-
-    这段代码就是在cad的当前空间内添加了一条直线。
+      ```
+    
+  这段代码就是在cad的当前空间内添加了一条直线。
 
    - F6生成，然后打开cad，netload命令将刚刚生成的dll加载。
    - 运行hello命令，然后缩放一下视图，现在一条直线和一个圆已经显示在屏幕上了。
