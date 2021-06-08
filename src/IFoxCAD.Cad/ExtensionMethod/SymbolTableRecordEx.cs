@@ -181,13 +181,8 @@ namespace IFoxCAD.Cad
         /// <returns>圆弧id</returns>
         public static ObjectId AddArc(this BlockTableRecord btr, Point3d startPoint, Point3d pointOnArc, Point3d endPoint, Action<Arc> action = default, Transaction trans = default)
         {
-
-            var arc = new CircularArc3d(startPoint, pointOnArc, endPoint);
-#if ac2009
-            return btr.AddEnt(arc.ToArc(), action, trans);
-#elif ac2013
-            return btr.AddEnt(Curve.CreateFromGeCurve(arc) as Arc, action, trans);
-#endif           
+            var arc = CurveEx.CreateArc(startPoint, pointOnArc, endPoint);
+            return btr.AddEnt(arc, action, trans);
         }
         #endregion
 

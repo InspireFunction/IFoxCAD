@@ -666,7 +666,7 @@ namespace IFoxCAD.Cad
             return arc;
         }
         /// <summary>
-        /// 三点法创建圆弧(二维)（有问题）
+        /// 三点法创建圆弧(二维)
         /// </summary>
         /// <param name="arc">圆弧对象</param>
         /// <param name="startPoint">起点</param>

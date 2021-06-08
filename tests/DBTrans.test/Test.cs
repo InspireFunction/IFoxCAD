@@ -69,15 +69,11 @@ namespace test
         public void drawarc()
         {
             using var tr = new DBTrans();
-            tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));
-            Arc arc1 = CurveEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));
-            Arc arc2 = CurveEx.CreateArcSCE(new Point3d(0, 3, 0), new Point3d(0, 0, 0), new Point3d(3, 0, 0));
-            tr.CurrentSpace.AddEntity(arc1, arc2);
-            Arc arc3 = CurveEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);
-            tr.CurrentSpace.AddEntity(arc3);
-            Arc arc4 =CurveEx.CreateArcSCE(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));
-            tr.CurrentSpace.AddEntity(arc4);
-
+            Arc arc1 = CurveEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));//起点，圆心，终点
+            Arc arc2 = CurveEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);//起点，圆心，弧度
+            Arc arc3 = CurveEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));//起点，圆上一点，终点
+            tr.CurrentSpace.AddEntity(arc1, arc2, arc3);
+            tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));//起点，圆上一点，终点
         }
 
         [CommandMethod("layertest")]
