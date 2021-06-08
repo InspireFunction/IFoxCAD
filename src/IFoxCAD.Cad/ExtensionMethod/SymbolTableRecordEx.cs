@@ -22,8 +22,18 @@ namespace IFoxCAD.Cad
         #region 块表记录
 
         #region 添加实体
+        /// <summary>
+        /// 添加实体对象
+        /// </summary>
+        /// <param name="btr">块表记录</param>
+        /// <param name="entity">实体</param>
+        /// <param name="trans">事务管理器</param>
+        /// <returns>对象 id</returns>
         public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity, Transaction trans = null)
         {
+            if (entity is null)
+                throw new ArgumentNullException(nameof(entity),"对象为 null");
+
             ObjectId id;
             trans ??= DBTrans.Top.Trans;
             using (btr.ForWrite())
@@ -42,8 +52,11 @@ namespace IFoxCAD.Cad
         /// <param name="tr">事务</param>
         /// <param name="ents">实体集合</param>
         /// <returns>对象 id 列表</returns>
-        public static List<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents, Transaction trans = null) where T : Entity
+        public static IEnumerable<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents, Transaction trans = null) where T : Entity
         {
+            if (ents.Any(ent => ent is null)) 
+                throw new ArgumentNullException(nameof(ents), "实体集合内存在 null 对象");
+
             trans ??= DBTrans.Top.Trans;
             using (btr.ForWrite())
             {
@@ -53,17 +66,16 @@ namespace IFoxCAD.Cad
                         ObjectId id = btr.AppendEntity(ent);
                         trans.AddNewlyCreatedDBObject(ent, true);
                         return id;
-                    })
-                    .ToList();
+                    });
             }
         }
         /// <summary>
         /// 添加多个实体
         /// </summary>
-        /// <param name="btr"></param>
-        /// <param name="ents"></param>
-        /// <returns></returns>
-        public static List<ObjectId> AddEntity(this BlockTableRecord btr, params Entity[] ents)
+        /// <param name="btr">块表记录</param>
+        /// <param name="ents">实体集合</param>
+        /// <returns>对象 id 列表</returns>
+        public static IEnumerable<ObjectId> AddEntity(this BlockTableRecord btr, params Entity[] ents)
         {
             return btr.AddEntity(ents, null);
         }
