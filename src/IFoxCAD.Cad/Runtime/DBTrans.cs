@@ -13,8 +13,6 @@ using System.IO;
 
 namespace IFoxCAD.Cad
 {
-    // TODO 命名词典的属性
-
     public class DBTrans : IDisposable
     {
         #region 私有字段
@@ -158,6 +156,10 @@ namespace IFoxCAD.Cad
         /// 视口表
         /// </summary>
         public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => new(this, Database.ViewportTableId);
+        #endregion
+
+        #region 对象字典
+        //TODO: 补充关于扩展字典，有名对象字典，组字典，多线样式字典等对象字典的属性
         #endregion
 
         #region 获取对象
