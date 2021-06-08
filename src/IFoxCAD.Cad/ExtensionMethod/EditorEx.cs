@@ -63,6 +63,7 @@ namespace IFoxCAD.Cad
             return res.Value;
         }
         #endregion
+
         #region Info
 
         /// <summary>
@@ -216,7 +217,7 @@ namespace IFoxCAD.Cad
 
         #endregion Info
 
-        #region DrawVectors
+        #region 画矢量线
 
         /// <summary>
         /// 根据点表返回矢量线的列表
@@ -337,9 +338,9 @@ namespace IFoxCAD.Cad
             editor.DrawVectors(pnts, colorIndex, true);
         }
 
-        #endregion DrawVectors
+        #endregion
 
-        #region Matrix
+        #region 矩阵
 
         /// <summary>
         /// 获取UCS到WCS的矩阵
@@ -522,9 +523,9 @@ namespace IFoxCAD.Cad
 #endif
         }
 
-        #endregion Matrix
+        #endregion
 
-        #region Zoom
+        #region 缩放
 
         /// <summary>
         /// 缩放窗口范围
@@ -640,7 +641,7 @@ namespace IFoxCAD.Cad
             ed.ZoomWindow(ext.MinPoint, ext.MinPoint, offsetDist);
         }
 
-        #endregion Zoom
+        #endregion
 
         #region Get交互类
 
