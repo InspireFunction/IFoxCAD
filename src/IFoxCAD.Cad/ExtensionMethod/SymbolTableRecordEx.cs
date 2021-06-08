@@ -129,7 +129,7 @@ namespace IFoxCAD.Cad
             Action<Circle> action = default, Transaction trans = default)
         {
             Circle circle = EntityEx.CreateCircle(p0, p1, p2);
-            return circle is not null ? btr.AddEnt(circle, action, trans) : throw new System.Exception("实体为Null");
+            return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
         }
         /// <summary>
         /// 在指定的绘图空间添加轻多段线
