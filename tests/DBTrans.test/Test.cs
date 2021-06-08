@@ -69,11 +69,24 @@ namespace test
         public void drawarc()
         {
             using var tr = new DBTrans();
-            Arc arc1 = CurveEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));//起点，圆心，终点
-            Arc arc2 = CurveEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);//起点，圆心，弧度
-            Arc arc3 = CurveEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));//起点，圆上一点，终点
+            Arc arc1 = EntityEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));//起点，圆心，终点
+            Arc arc2 = EntityEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);//起点，圆心，弧度
+            Arc arc3 = EntityEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));//起点，圆上一点，终点
             tr.CurrentSpace.AddEntity(arc1, arc2, arc3);
             tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));//起点，圆上一点，终点
+        }
+
+        [CommandMethod("drawcircle")]
+        public void draCircle()
+        {
+            using var tr = new DBTrans();
+            Circle circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));//起点，终点
+            Circle circle2 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(2, 0, 0), new Point3d(0, 2, 0), out bool bl1);//三点画圆，成功
+            Circle circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0), out bool bl2);//起点，圆心，终点，失败
+            tr.CurrentSpace.AddEntity(circle1, circle2, circle3);
+            tr.Editor.WriteMessage(bl1.ToString() + "\n" + bl2.ToString());
+            tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));//三点画圆，成功
+            tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 2, 0));//起点，圆上一点，终点(共线)
         }
 
         [CommandMethod("layertest")]

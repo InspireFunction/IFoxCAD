@@ -58,7 +58,7 @@ namespace IFoxCAD.Cad
     /// </summary>
     public static class GeometryEx
     {
-        
+
         #region Point&Circle
 
         /// <summary>
@@ -727,6 +727,17 @@ namespace IFoxCAD.Cad
         public static Point3d Point3d(this Point2d pt)
         {
             return new Point3d(pt.X, pt.Y, 0);
+        }
+
+        /// <summary>
+        /// 获取两个点之间的中点
+        /// </summary>
+        /// <param name="pt1">第一点</param>
+        /// <param name="pt2">第二点</param>
+        /// <returns>返回两个点之间的中点</returns>
+        public static Point3d MidPoint(Point3d pt1, Point3d pt2)
+        {
+            return new Point3d((pt1.X + pt2.X) * 0.5, (pt1.Y + pt2.Y) * 0.5, (pt1.Z + pt2.Z) * 0.5);
         }
 
         public static IEnumerable<Point2d> Point2d(this IEnumerable<Point3d> pts)
