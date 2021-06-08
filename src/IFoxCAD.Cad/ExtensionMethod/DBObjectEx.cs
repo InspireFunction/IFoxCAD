@@ -39,10 +39,6 @@ namespace IFoxCAD.Cad
         }
         #endregion
 
-
-
-
-
         #region 读写模式切换
 
         /// <summary>
@@ -121,6 +117,5 @@ namespace IFoxCAD.Cad
             #endregion IDisposable 成员
         }
         #endregion
-
     }
 }

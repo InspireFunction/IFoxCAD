@@ -56,7 +56,7 @@ namespace IFoxCAD.Cad
         }
 
         /// <summary>
-        /// 三维点迭代器转换为二维点集合
+        /// 三维点迭代器转换为三维点集合
         /// </summary>
         /// <param name="pts">三维点迭代器</param>
         /// <returns>三维点集合</returns>

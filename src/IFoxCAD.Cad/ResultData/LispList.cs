@@ -14,6 +14,7 @@ namespace IFoxCAD.Cad
     /// </summary>
     public class LispList : TypedValueList
     {
+        #region 构造函数
         /// <summary>
         /// 默认构造函数
         /// </summary>
@@ -24,7 +25,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="values">TypedValue 迭代器</param>
         public LispList(IEnumerable<TypedValue> values) : base(values) { }
-        
+        #endregion
         /// <summary>
         /// lisp 列表的值
         /// </summary>

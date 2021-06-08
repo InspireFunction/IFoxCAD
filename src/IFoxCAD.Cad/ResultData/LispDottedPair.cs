@@ -10,6 +10,7 @@ namespace IFoxCAD.Cad
     /// </summary>
     public class LispDottedPair : LispList
     {
+        #region 构造函数
         /// <summary>
         /// 默认无参构造函数
         /// </summary>
@@ -34,6 +35,8 @@ namespace IFoxCAD.Cad
             Add(left);
             Add(right);
         }
+        #endregion
+
         /// <summary>
         /// 点对表的值
         /// </summary>
@@ -63,7 +66,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="values">TypedValueList 实例</param>
         public static implicit operator ResultBuffer(LispDottedPair values) => new(values.Value.ToArray());
-        
+
         #endregion
     }
 }
