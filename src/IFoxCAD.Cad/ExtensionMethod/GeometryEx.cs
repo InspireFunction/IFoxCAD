@@ -735,7 +735,7 @@ namespace IFoxCAD.Cad
         /// <param name="pt1">第一点</param>
         /// <param name="pt2">第二点</param>
         /// <returns>返回两个点之间的中点</returns>
-        public static Point3d MidPoint(Point3d pt1, Point3d pt2)
+        public static Point3d GetMidPointTo(this Point3d pt1, Point3d pt2)
         {
             return new Point3d((pt1.X + pt2.X) * 0.5, (pt1.Y + pt2.Y) * 0.5, (pt1.Z + pt2.Z) * 0.5);
         }

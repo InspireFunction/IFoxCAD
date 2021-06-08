@@ -307,7 +307,7 @@ namespace IFoxCAD.Cad
         public static Circle CreateCircle(Point3d startPoint, Point3d endPoint)
         {
             Circle circle = new();
-            circle.Center = GeometryEx.MidPoint(startPoint, endPoint);
+            circle.Center = startPoint.GetMidPointTo(endPoint);
             circle.Radius = startPoint.DistanceTo(endPoint) * 0.5;
             return circle;
         }
