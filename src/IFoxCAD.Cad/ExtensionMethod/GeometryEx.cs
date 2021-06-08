@@ -670,6 +670,16 @@ namespace IFoxCAD.Cad
             return new Point2d(pt.X, pt.Y);
         }
 
+        /// <summary>
+        /// 将二维点转换为三维点
+        /// </summary>
+        /// <param name="pt">二维点</param>
+        /// <returns>三维点</returns>
+        public static Point3d Point3d(this Point2d pt)
+        {
+            return new Point3d(pt.X, pt.Y, 0);
+        }
+
         public static IEnumerable<Point2d> Point2d(this IEnumerable<Point3d> pts)
         {
             return pts.Select(pt => pt.Point2d());
