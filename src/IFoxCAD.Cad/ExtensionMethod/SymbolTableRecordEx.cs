@@ -128,15 +128,8 @@ namespace IFoxCAD.Cad
         public static ObjectId AddCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2,
             Action<Circle> action = default, Transaction trans = default)
         {
-            Circle circle = EntityEx.CreateCircle(p0, p1, p2, out bool pl);
-            if (pl)
-            {
-                return btr.AddEnt(circle, action, trans);
-            }
-            else
-            {
-                return ObjectId.Null;
-            }
+            Circle circle = EntityEx.CreateCircle(p0, p1, p2);
+            return circle is not null ? btr.AddEnt(circle, action, trans) : throw new System.Exception("实体为Null");
         }
         /// <summary>
         /// 在指定的绘图空间添加轻多段线

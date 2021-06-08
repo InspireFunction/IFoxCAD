@@ -81,10 +81,18 @@ namespace test
         {
             using var tr = new DBTrans();
             Circle circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));//起点，终点
-            Circle circle2 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(2, 0, 0), new Point3d(0, 2, 0), out bool bl1);//三点画圆，成功
-            Circle circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0), out bool bl2);//起点，圆心，终点，失败
-            tr.CurrentSpace.AddEntity(circle1, circle2, circle3);
-            tr.Editor.WriteMessage(bl1.ToString() + "\n" + bl2.ToString());
+            Circle circle2 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(2, 0, 0), new Point3d(0, 2, 0));//三点画圆，成功
+            Circle circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0));//起点，圆心，终点，失败
+            tr.CurrentSpace.AddEntity(circle1, circle2);
+            if (circle3 is not null)
+            {
+                tr.CurrentSpace.AddEntity(circle3);
+            }
+            else
+            {
+                tr.Editor.WriteMessage("三点画圆失败");
+            }
+            tr.CurrentSpace.AddEntity(circle3);
             tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));//三点画圆，成功
             tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 2, 0));//起点，圆上一点，终点(共线)
         }

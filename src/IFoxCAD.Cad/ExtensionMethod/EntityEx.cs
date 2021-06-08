@@ -313,14 +313,13 @@ namespace IFoxCAD.Cad
         }
 
         /// <summary>
-        /// 三点法创建圆
+        /// 三点法创建圆(失败则返回Null)
         /// </summary>
         /// <param name="pt1">第一点</param>
         /// <param name="pt2">第二点</param>
         /// <param name="pt3">第三点</param>
-        /// <param name="bl">若成功创建圆，则输出true，否则输出false</param>
         /// <returns>圆</returns>
-        public static Circle CreateCircle(Point3d pt1, Point3d pt2, Point3d pt3, out bool bl)
+        public static Circle CreateCircle(Point3d pt1, Point3d pt2, Point3d pt3)
         {
             //先判断三点是否共线,得到pt1点指向pt2、pt2点的矢量
             Vector3d va = pt1.GetVectorTo(pt2);
@@ -328,15 +327,13 @@ namespace IFoxCAD.Cad
             //如两矢量夹角为0或180度（π弧度),则三点共线.
             if (va.GetAngleTo(vb) == 0 | va.GetAngleTo(vb) == Math.PI)
             {
-                bl = false;
-                return new Circle();
+                return null;
             }
             else
             {
                 //创建一个几何类的圆弧对象
                 CircularArc3d geArc = new(pt1, pt2, pt3);
                 geArc.ToCircle();
-                bl = true;
                 return geArc.ToCircle();
             }
         }
