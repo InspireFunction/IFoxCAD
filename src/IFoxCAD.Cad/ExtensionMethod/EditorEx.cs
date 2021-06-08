@@ -15,7 +15,7 @@ namespace IFoxCAD.Cad
     /// </summary>
     public static class EditorEx
     {
-
+        #region 选择集
         /// <summary>
         /// 选择穿过一个点的对象
         /// </summary>
@@ -28,6 +28,41 @@ namespace IFoxCAD.Cad
             return editor.SelectCrossingWindow(point, point, filter);
         }
 
+        /// <summary>
+        /// 根据线宽创建图层选择集
+        /// </summary>
+        /// <param name="editor">命令行对象</param>
+        /// <param name="lineWeight">线宽</param>
+        /// <returns>图层选择集</returns>
+        public static SelectionSet SelectByLineWeight(this Editor editor, LineWeight lineWeight)
+        {
+            OpFilter filter = new OpEqual(370, lineWeight);
+
+            var lays =
+                DBTrans.Top.LayerTable
+                .GetRecords()
+                .Where(ltr => ltr.LineWeight == lineWeight)
+                .Select(ltr => ltr.Name)
+                .ToArray();
+
+            if (lays.Length > 0)
+            {
+                filter =
+                    new OpOr
+                    {
+                        filter,
+                        new OpAnd
+                        {
+                            { 8, string.Join(",", lays) },
+                            { 370, LineWeight.ByLayer }
+                        }
+                    };
+            }
+
+            PromptSelectionResult res = editor.SelectAll(filter);
+            return res.Value;
+        }
+        #endregion
         #region Info
 
         /// <summary>
