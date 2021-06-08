@@ -70,6 +70,14 @@ namespace test
         {
             using var tr = new DBTrans();
             tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));
+            Arc arc1 = CurveEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));
+            Arc arc2 = CurveEx.CreateArcSCE(new Point3d(0, 3, 0), new Point3d(0, 0, 0), new Point3d(3, 0, 0));
+            tr.CurrentSpace.AddEntity(arc1, arc2);
+            Arc arc3 = CurveEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);
+            tr.CurrentSpace.AddEntity(arc3);
+            Arc arc4 =CurveEx.CreateArcSCE(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));
+            tr.CurrentSpace.AddEntity(arc4);
+
         }
 
         [CommandMethod("layertest")]
