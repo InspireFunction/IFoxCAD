@@ -137,25 +137,11 @@ namespace IFoxCAD.Cad
         /// <param name="action">圆属性设置委托</param>
         /// <param name="trans">事务管理器</param>
         /// <returns>三点有外接圆则返回圆的id，否则返回ObjectId.Null</returns>
-        public static ObjectId AddCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2, Action<Circle> action = default, Transaction trans = default)
+        public static ObjectId AddCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2,
+            Action<Circle> action = default, Transaction trans = default)
         {
-            var dx1 = p1.X - p0.X;
-            var dy1 = p1.Y - p0.Y;
-            var dx2 = p2.X - p0.X;
-            var dy2 = p2.Y - p0.Y;
-
-            var d = dx1 * dy2 - dx2 * dy1;
-
-            if (d != 0.0)
-            {
-                var d2 = d * 2;
-                var c1 = (p0.X + p1.X) * dx1 + (p0.Y + p1.Y) * dy1;
-                var c2 = (p0.X + p2.X) * dx2 + (p0.Y + p2.Y) * dy2;
-                var ce = new Point3d((c1 * dy2 - c2 * dy1) / d2, (c2 * dx1 - c1 * dx2) / d2, 0);
-                var circle = new Circle(ce, Vector3d.ZAxis, p0.DistanceTo(ce));
-                return btr.AddEnt(circle, action, trans);
-            }
-            return ObjectId.Null;
+            Circle circle = EntityEx.CreateCircle(p0, p1, p2);
+            return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
         }
         /// <summary>
         /// 在指定的绘图空间添加轻多段线
@@ -193,13 +179,8 @@ namespace IFoxCAD.Cad
         /// <returns>圆弧id</returns>
         public static ObjectId AddArc(this BlockTableRecord btr, Point3d startPoint, Point3d pointOnArc, Point3d endPoint, Action<Arc> action = default, Transaction trans = default)
         {
-
-            var arc = new CircularArc3d(startPoint, pointOnArc, endPoint);
-#if ac2009
-            return btr.AddEnt(arc.ToArc(), action, trans);
-#elif ac2013
-            return btr.AddEnt(Curve.CreateFromGeCurve(arc) as Arc, action, trans);
-#endif           
+            var arc = EntityEx.CreateArc(startPoint, pointOnArc, endPoint);
+            return btr.AddEnt(arc, action, trans);
         }
         #endregion
 

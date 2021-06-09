@@ -232,5 +232,112 @@ namespace IFoxCAD.Cad
             return string.Join("", strs.ToArray());
         }
         #endregion
+
+        #region 圆弧
+
+        /// <summary>
+        /// 根据圆心、起点和终点来创建圆弧(二维)
+        /// </summary>
+        /// <param name="arc">圆弧对象</param>
+        /// <param name="startPoint">起点</param>
+        /// <param name="centerPoint">圆心</param>
+        /// <param name="endPoint">终点</param>
+        /// <returns>圆弧</returns>
+        public static Arc CreateArcSCE(Point3d startPoint, Point3d centerPoint, Point3d endPoint)
+        {
+            Arc arc = new();
+            arc.Center = centerPoint;
+            arc.Radius = centerPoint.DistanceTo(startPoint);
+            Vector2d startVector = new(startPoint.X - centerPoint.X, startPoint.Y - centerPoint.Y);
+            Vector2d endVector = new(endPoint.X - centerPoint.X, endPoint.Y - centerPoint.Y);
+            //计算起始和终止角度
+            arc.StartAngle = startVector.Angle;
+            arc.EndAngle = endVector.Angle;
+            return arc;
+        }
+        /// <summary>
+        /// 三点法创建圆弧(二维)
+        /// </summary>
+        /// <param name="arc">圆弧对象</param>
+        /// <param name="startPoint">起点</param>
+        /// <param name="pointOnArc">圆弧上的点</param>
+        /// <param name="endPoint">终点</param>
+        /// <returns>圆弧</returns>
+        public static Arc CreateArc(Point3d startPoint, Point3d pointOnArc, Point3d endPoint)
+        {
+            //创建一个几何类的圆弧对象
+            CircularArc3d geArc = new(startPoint, pointOnArc, endPoint);
+            //将几何类圆弧对象的圆心和半径赋值给圆弧
+#if ac2009
+            return geArc.ToArc();
+#elif ac2013
+            return (Arc)Curve.CreateFromGeCurve(geArc);
+#endif
+        }
+
+        /// <summary>
+        /// 根据起点、圆心和圆弧角度创建圆弧(二维)
+        /// </summary>
+        /// <param name="arc">圆弧对象</param>
+        /// <param name="startPoint">起点</param>
+        /// <param name="centerPoint">圆心</param>
+        /// <param name="angle">圆弧角度</param>
+        /// <returns>圆弧</returns>
+        public static Arc CreateArc(Point3d startPoint, Point3d centerPoint, double angle)
+        {
+            Arc arc = new();
+            arc.Center = centerPoint;
+            arc.Radius = centerPoint.DistanceTo(startPoint);
+            Vector2d startVector = new(startPoint.X - centerPoint.X, startPoint.Y - centerPoint.Y);
+            arc.StartAngle = startVector.Angle;
+            arc.EndAngle = startVector.Angle + angle;
+            return arc;
+        }
+
+        #endregion
+
+        #region 圆
+
+        /// <summary>
+        /// 两点创建圆(两点中点为圆心)
+        /// </summary>
+        /// <param name="startPoint">起点</param>
+        /// <param name="endPoint">终点</param>
+        /// <returns>圆</returns>
+        public static Circle CreateCircle(Point3d startPoint, Point3d endPoint)
+        {
+            Circle circle = new();
+            circle.Center = startPoint.GetMidPointTo(endPoint);
+            circle.Radius = startPoint.DistanceTo(endPoint) * 0.5;
+            return circle;
+        }
+
+        /// <summary>
+        /// 三点法创建圆(失败则返回Null)
+        /// </summary>
+        /// <param name="pt1">第一点</param>
+        /// <param name="pt2">第二点</param>
+        /// <param name="pt3">第三点</param>
+        /// <returns>圆</returns>
+        public static Circle CreateCircle(Point3d pt1, Point3d pt2, Point3d pt3)
+        {
+            //先判断三点是否共线,得到pt1点指向pt2、pt2点的矢量
+            Vector3d va = pt1.GetVectorTo(pt2);
+            Vector3d vb = pt1.GetVectorTo(pt3);
+            //如两矢量夹角为0或180度（π弧度),则三点共线.
+            if (va.GetAngleTo(vb) == 0 | va.GetAngleTo(vb) == Math.PI)
+            {
+                return null;
+            }
+            else
+            {
+                //创建一个几何类的圆弧对象
+                CircularArc3d geArc = new(pt1, pt2, pt3);
+                geArc.ToCircle();
+                return geArc.ToCircle();
+            }
+        }
+
+        #endregion
     }
 }

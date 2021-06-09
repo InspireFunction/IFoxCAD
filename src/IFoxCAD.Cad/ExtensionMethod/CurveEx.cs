@@ -644,7 +644,7 @@ namespace IFoxCAD.Cad
         public static NurbCurve3d ToNurbCurve3d(this Arc arc)
         {
             return new NurbCurve3d(ToEllipticalArc3d(arc));
-        }
+        } 
 
         #endregion Arc
 
