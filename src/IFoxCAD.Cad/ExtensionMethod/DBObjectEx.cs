@@ -15,7 +15,6 @@ namespace IFoxCAD.Cad
     public static class DBObjectEx
     {
         #region Xdata扩展
-        // TODO: 补充关于扩展数据的函数
         /// <summary>
         /// 删除扩展数据
         /// </summary>
@@ -24,7 +23,34 @@ namespace IFoxCAD.Cad
         /// <param name="dxfCode">要删除数据的组码</param>
         public static void RemoveXData(this DBObject obj, string appName, DxfCode dxfCode)
         {
-            // 填内容吧
+            XDataList data = obj.XData;
+            var indexlst = new List<int>();
+            bool flag = false;
+            for (int i = 0; i < data.Count; i++)
+            {
+                if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName && data[i].Value.ToString() == appName)
+                {
+                    flag = true;
+                }
+                if (flag)
+                {
+                    if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName && data[i].Value.ToString() != appName)
+                        break;
+                    if (data[i].TypeCode == (int)dxfCode)
+                    {
+                        indexlst.Add(i);
+                    }
+                }
+            }
+            foreach (var item in indexlst)
+            {
+                data.RemoveAt(item);
+            }
+
+            using (obj.ForWrite())
+            {
+                obj.XData = data;
+            }
         }
         /// <summary>
         /// 修改扩展数据
@@ -35,7 +61,29 @@ namespace IFoxCAD.Cad
         /// <param name="newvalue">新的数据</param>
         public static void ChangeXData(this DBObject obj, string appName, DxfCode dxfCode, object newvalue)
         {
-            // 填内容吧
+            XDataList data = obj.XData;
+            bool flag = false;
+            for (int i = 0; i < data.Count; i++)
+            {
+                if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName && data[i].Value.ToString() == appName)
+                {
+                    flag = true;
+                }
+                if (flag)
+                {
+                    if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName && data[i].Value.ToString() != appName)
+                        break;
+                    if (data[i].TypeCode == (int)dxfCode)
+                    {
+                        data[i] = new TypedValue((int)dxfCode,newvalue);
+                    }
+                }
+            }
+
+            using (obj.ForWrite())
+            {
+                obj.XData = data;
+            }    
         }
         #endregion
 

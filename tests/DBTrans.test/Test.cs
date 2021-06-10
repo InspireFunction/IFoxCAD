@@ -260,6 +260,7 @@ namespace test
             var appname = "myapp";
 
             tr.RegAppTable.Add(appname); // add函数会默认的在存在这个名字的时候返回这个名字的regapp的id，不存在就新建
+            tr.RegAppTable.Add("myapp2");
 
             var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
 
@@ -267,6 +268,9 @@ namespace test
             line.XData = new XDataList()
             {
                 { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码
+                { DxfCode.ExtendedDataAsciiString, "hahhahah" },
+                {1070, 12 },
+                { DxfCode.ExtendedDataRegAppName, "myapp2" },  //可以用dxfcode和int表示组码
                 { DxfCode.ExtendedDataAsciiString, "hahhahah" },
                 {1070, 12 }
             };
@@ -300,23 +304,27 @@ namespace test
             {
                 using var tr = new DBTrans();
                 var data = tr.GetObject<Entity>(res.ObjectId);
-                using (data.ForWrite())
-                {
-                    data.XData = new XDataList()
-                    {
-                        { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码
-                        { DxfCode.ExtendedDataAsciiString, "change" },
-                        { 1070, 20 },
-                        { DxfCode.ExtendedDataLayerName, "0"}
-                    };
-                }
-
-                //tr.AddEntity(data);
+                data.ChangeXData(appname, DxfCode.ExtendedDataAsciiString, "change");
 
                 ed.WriteMessage(data.XData.ToString());
             }
         }
+        [CommandMethod("removexdata")]
+        public void Removexdata()
+        {
+            var doc = Application.DocumentManager.MdiActiveDocument;
+            var ed = doc.Editor;
+            var appname = "myapp";
+            var res = ed.GetEntity("\n select the entity:");
+            if (res.Status == PromptStatus.OK)
+            {
+                using var tr = new DBTrans();
+                var data = tr.GetObject<Entity>(res.ObjectId);
+                data.RemoveXData(appname, DxfCode.ExtendedDataAsciiString);
 
+                ed.WriteMessage(data.XData.ToString());
+            }
+        }
 
         [CommandMethod("PrintLayerName")]
         public void PrintLayerName()
