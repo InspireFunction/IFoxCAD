@@ -32,7 +32,7 @@
      using Autodesk.AutoCAD.Geometry;
      using Autodesk.AutoCAD.DatabaseServices;
      using IFoxCAD.Cad;
-      ```
+     ```
 
    - 添加代码
 
@@ -40,26 +40,24 @@
      [CommandMethod("hello")]
      public void Hello()
      {
-       using (DBTrans tr = new DBTrans())
-       {
-         Line line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-         tr.CurrentSpace.AddEntity(line1);
-       }
+        using var tr = new DBTrans()
+        var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+        tr.CurrentSpace.AddEntity(line1);
      }
-      ```
-    
+     ```
+
   这段代码就是在cad的当前空间内添加了一条直线。
 
    - F6生成，然后打开cad，netload命令将刚刚生成的dll加载。
    - 运行hello命令，然后缩放一下视图，现在一条直线和一个圆已经显示在屏幕上了。
-  
-2. 事务管理器用法(待完善）
 
-3. 选择集过滤器用法(待完善）
+2. [事务管理器用法](/docs/DBTrans.md)
 
-4. 符号表用法(待完善）
+3. [选择集过滤器用法](/docs/SelectionFilter.md)
 
-5. WPF支持(待完善）
+4. [符号表用法](/docs/SymbolTable.md)
+
+5. [WPF支持](/docs/WPF.md)
 
 6. 天秀的自动加载与初始化
 
