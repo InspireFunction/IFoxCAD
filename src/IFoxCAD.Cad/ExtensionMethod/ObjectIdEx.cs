@@ -23,7 +23,7 @@ namespace IFoxCAD.Cad
         /// <returns>指定类型对象</returns>
         public static T GetObject<T>(this ObjectId id, OpenMode mode = OpenMode.ForRead, bool openErased = false, Transaction tr = default) where T : DBObject
         {
-            tr ??= DBTrans.Top.Trans;
+            tr ??= DBTrans.Top.Transaction;
             return tr.GetObject(id, mode, openErased) as T;
         }
 

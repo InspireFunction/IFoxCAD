@@ -27,7 +27,7 @@ namespace IFoxCAD.Cad
             }
             if (trans is null)
             {
-                trans = DBTrans.Top.Trans;
+                trans = DBTrans.Top.Transaction;
             }
             entity.RecordGraphicsModified(true);
             trans.TransactionManager.QueueForGraphicsFlush();
@@ -49,7 +49,7 @@ namespace IFoxCAD.Cad
         /// <returns>端点坐标集合</returns>
         public static IEnumerable<Point3d> GetPoints(this Polyline2d pl2d, Transaction tr = null)
         {
-            tr ??= DBTrans.Top.Trans;
+            tr ??= DBTrans.Top.Transaction;
             foreach (ObjectId id in pl2d)
             {
                 yield return ((Vertex2d)tr.GetObject(id, OpenMode.ForRead)).Position;
@@ -64,7 +64,7 @@ namespace IFoxCAD.Cad
         /// <returns>端点坐标集合</returns>
         public static IEnumerable<Point3d> GetPoints(this Polyline3d pl3d, Transaction tr = null)
         {
-            tr ??= DBTrans.Top.Trans;
+            tr ??= DBTrans.Top.Transaction;
             foreach (ObjectId id in pl3d)
             {
                 yield return ((PolylineVertex3d)tr.GetObject(id, OpenMode.ForRead)).Position;

@@ -35,7 +35,7 @@ namespace IFoxCAD.Cad
                 throw new ArgumentNullException(nameof(entity),"对象为 null");
 
             ObjectId id;
-            trans ??= DBTrans.Top.Trans;
+            trans ??= DBTrans.Top.Transaction;
             using (btr.ForWrite())
             {
                 id = btr.AppendEntity(entity);
@@ -57,7 +57,7 @@ namespace IFoxCAD.Cad
             if (ents.Any(ent => ent is null)) 
                 throw new ArgumentNullException(nameof(ents), "实体集合内存在 null 对象");
 
-            trans ??= DBTrans.Top.Trans;
+            trans ??= DBTrans.Top.Transaction;
             using (btr.ForWrite())
             {
                 return ents
@@ -93,7 +93,7 @@ namespace IFoxCAD.Cad
         /// <returns>图元id</returns>
         private static ObjectId AddEnt<T>(this BlockTableRecord btr, T ent, Action<T> action, Transaction trans) where T : Entity
         {
-            trans ??= DBTrans.Top.Trans;
+            trans ??= DBTrans.Top.Transaction;
             action?.Invoke(ent);
             return btr.AddEntity(ent, trans);
         }
@@ -195,7 +195,7 @@ namespace IFoxCAD.Cad
         /// <returns>实体集合</returns>
         public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr, OpenMode mode = OpenMode.ForRead, Transaction trans = null) where T : Entity
         {
-            trans ??= DBTrans.Top.Trans;
+            trans ??= DBTrans.Top.Transaction;
             return
                 btr
                 .Cast<ObjectId>()
@@ -237,7 +237,7 @@ namespace IFoxCAD.Cad
         /// <returns>绘制顺序表</returns>
         public static DrawOrderTable GetDrawOrderTable(this BlockTableRecord btr, Transaction tr = null)
         {
-            tr ??= DBTrans.Top.Trans;
+            tr ??= DBTrans.Top.Transaction;
             return tr.GetObject(btr.DrawOrderTableId, OpenMode.ForRead) as DrawOrderTable;
         }
 
@@ -260,7 +260,7 @@ namespace IFoxCAD.Cad
                                     double rotation = default,
                                     Dictionary<string, string> atts = default, Transaction trans = null)
         {
-            trans ??= DBTrans.Top.Trans;
+            trans ??= DBTrans.Top.Transaction;
             if (!DBTrans.Top.BlockTable.Has(blockName))
             {
                 DBTrans.Top.Editor.WriteMessage($"\n不存在名字为{blockName}的块定义。");
@@ -283,7 +283,7 @@ namespace IFoxCAD.Cad
                                     double rotation = default,
                                     Dictionary<string, string> atts = default, Transaction trans = null)
         {
-            trans ??= DBTrans.Top.Trans;
+            trans ??= DBTrans.Top.Transaction;
             if (!DBTrans.Top.BlockTable.Has(blockId))
             {
                 DBTrans.Top.Editor.WriteMessage($"\n不存在名字为{DBTrans.Top.GetObject<BlockTableRecord>(blockId).Name}的块定义。");

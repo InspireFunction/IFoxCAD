@@ -46,7 +46,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 事务管理器
         /// </summary>
-        public Transaction Trans { get; private set; }
+        public Transaction Transaction { get; private set; }
 
         #endregion
 
@@ -93,7 +93,7 @@ namespace IFoxCAD.Cad
         /// <param name="commit">提交模式</param>
         private void Init(bool commit)
         {
-            Trans = Database.TransactionManager.StartTransaction();
+            Transaction = Database.TransactionManager.StartTransaction();
             _commit = commit;
             dBTrans.Push(this);
         }
@@ -235,7 +235,7 @@ namespace IFoxCAD.Cad
                               bool openErased = false,
                               bool forceOpenOnLockedLayer = false) where T : DBObject
         {
-            return Trans.GetObject(id, mode, openErased, forceOpenOnLockedLayer) as T;
+            return Transaction.GetObject(id, mode, openErased, forceOpenOnLockedLayer) as T;
         }
 
 
@@ -247,14 +247,14 @@ namespace IFoxCAD.Cad
 
         public void Abort()
         {
-            Trans.Abort();
+            Transaction.Abort();
         }
 
         public void Commit()
         {
             if (_commit)
             {
-                Trans.Commit();
+                Transaction.Commit();
             }
             else
             {
@@ -272,9 +272,9 @@ namespace IFoxCAD.Cad
                     // 释放托管状态(托管对象)
                     Commit();
                     dBTrans.Pop();
-                    if (!Trans.IsDisposed)
+                    if (!Transaction.IsDisposed)
                     {
-                        Trans.Dispose();
+                        Transaction.Dispose();
                     }
                 }
 

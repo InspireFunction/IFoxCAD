@@ -112,7 +112,7 @@ namespace IFoxCAD.Cad
             using (CurrentSymbolTable.ForWrite())
             {
                 id = CurrentSymbolTable.Add(record);
-                DTrans.Trans.AddNewlyCreatedDBObject(record, true);
+                DTrans.Transaction.AddNewlyCreatedDBObject(record, true);
             }
             return id;
         }
