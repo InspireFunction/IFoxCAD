@@ -158,8 +158,66 @@ namespace IFoxCAD.Cad
         public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => new(this, Database.ViewportTableId);
         #endregion
 
-        #region 对象字典
-        //TODO: 补充关于扩展字典，有名对象字典，组字典，多线样式字典等对象字典的属性
+        #region 字典
+        //TODO: 补充关于扩展字典，命名对象字典，组字典，多线样式字典等对象字典的属性
+        /// <summary>
+        /// 命名对象字典
+        /// </summary>
+        public DBDictionary NamedObjectsDict => GetObject<DBDictionary>(Database.NamedObjectsDictionaryId);
+        /// <summary>
+        /// 组字典
+        /// </summary>
+        public DBDictionary GroupDict => GetObject<DBDictionary>(Database.GroupDictionaryId);
+        /// <summary>
+        /// 多重引线样式字典
+        /// </summary>
+        public DBDictionary MLeaderStyleDict => GetObject<DBDictionary>(Database.MLeaderStyleDictionaryId);
+        /// <summary>
+        /// 多线样式字典
+        /// </summary>
+        public DBDictionary MLStyleDict => GetObject<DBDictionary>(Database.MLStyleDictionaryId);
+        /// <summary>
+        /// 材质字典
+        /// </summary>
+        public DBDictionary MaterialDict => GetObject<DBDictionary>(Database.MaterialDictionaryId);
+        /// <summary>
+        /// 表格样式字典
+        /// </summary>
+        public DBDictionary TableStyleDict => GetObject<DBDictionary>(Database.TableStyleDictionaryId);
+        /// <summary>
+        /// 视觉样式字典
+        /// </summary>
+        public DBDictionary VisualStyleDict => GetObject<DBDictionary>(Database.VisualStyleDictionaryId);
+        /// <summary>
+        /// 颜色字典
+        /// </summary>
+        public DBDictionary ColorDict => GetObject<DBDictionary>(Database.ColorDictionaryId);
+        /// <summary>
+        /// 打印设置字典
+        /// </summary>
+        public DBDictionary PlotSettingsDict => GetObject<DBDictionary>(Database.PlotSettingsDictionaryId);
+        /// <summary>
+        /// 打印样式表名字典
+        /// </summary>
+        public DBDictionary PlotStyleNameDict => GetObject<DBDictionary>(Database.PlotStyleNameDictionaryId);
+        /// <summary>
+        /// 布局字典
+        /// </summary>
+        public DBDictionary LayoutDict => GetObject<DBDictionary>(Database.LayoutDictionaryId);
+        /// <summary>
+        /// 数据链接字典
+        /// </summary>
+        public DBDictionary DataLinkDict => GetObject<DBDictionary>(Database.DataLinkDictionaryId);
+#if ac2013
+        /// <summary>
+        /// 详细视图样式字典
+        /// </summary>
+        public DBDictionary DetailViewStyleDict => GetObject<DBDictionary>(Database.DetailViewStyleDictionaryId);
+        /// <summary>
+        /// 剖面视图样式字典
+        /// </summary>
+        public DBDictionary SectionViewStyleDict => GetObject<DBDictionary>(Database.SectionViewStyleDictionaryId);
+#endif
         #endregion
 
         #region 获取对象
@@ -181,11 +239,11 @@ namespace IFoxCAD.Cad
         }
 
 
-        #endregion
+#endregion
 
 
 
-        #region idispose接口相关函数
+#region idispose接口相关函数
 
         public void Abort()
         {
@@ -239,6 +297,6 @@ namespace IFoxCAD.Cad
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
-        #endregion
+#endregion
     }
 }
