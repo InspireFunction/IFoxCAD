@@ -61,12 +61,14 @@ namespace IFoxCAD.Cad
             using (btr.ForWrite())
             {
                 return ents
-                    .Select(ent =>
-                    {
-                        ObjectId id = btr.AppendEntity(ent);
-                        trans.AddNewlyCreatedDBObject(ent, true);
-                        return id;
-                    });
+                    .Select(
+                        ent =>
+                        {
+                            ObjectId id = btr.AppendEntity(ent);
+                            trans.AddNewlyCreatedDBObject(ent, true);
+                            return id;
+                        })
+                    .ToList();
             }
         }
         /// <summary>
@@ -77,7 +79,7 @@ namespace IFoxCAD.Cad
         /// <returns>对象 id 列表</returns>
         public static IEnumerable<ObjectId> AddEntity(this BlockTableRecord btr, params Entity[] ents)
         {
-            return btr.AddEntity(ents, null);
+            return btr.AddEntity<Entity>(ents,null);
         }
         #endregion
 

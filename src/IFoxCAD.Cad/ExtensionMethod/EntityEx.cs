@@ -1,4 +1,5 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
+using Autodesk.AutoCAD.DatabaseServices.Filters;
 using Autodesk.AutoCAD.Geometry;
 
 using System;
@@ -338,6 +339,72 @@ namespace IFoxCAD.Cad
             }
         }
 
+        #endregion
+
+        #region 块参照
+
+        #region 裁剪块参照
+
+        private const string filterDictName = "ACAD_FILTER";
+        private const string spatialName = "SPATIAL";
+
+        /// <summary>
+        /// 裁剪块参照
+        /// </summary>
+        /// <param name="bref">块参照</param>
+        /// <param name="pt3ds">裁剪多边形点表</param>
+        public static void ClipBlockRef(this BlockReference bref, IEnumerable<Point3d> pt3ds)
+        {
+            if (bref == null)
+            {
+                throw new ArgumentNullException(nameof(bref));
+            }
+            if (pt3ds == null)
+            {
+                throw new ArgumentNullException(nameof(pt3ds));
+            }
+            Matrix3d mat = bref.BlockTransform.Inverse();
+            var pts =
+                pt3ds
+                .Select(p => p.TransformBy(mat))
+                .Select(p => new Point2d(p.X, p.Y))
+                .ToCollection();
+
+            SpatialFilterDefinition sfd = new(pts, Vector3d.ZAxis, 0.0, 0.0, 0.0, true);
+            using SpatialFilter sf = new() { Definition = sfd };
+            var dict = bref.GetXDictionary().GetSubDictionary(true, new string[] { filterDictName });
+            dict.SetAt<SpatialFilter>(spatialName, sf);
+            //SetToDictionary(dict, spatialName, sf);
+        }
+
+        /// <summary>
+        /// 裁剪块参照
+        /// </summary>
+        /// <param name="bref">块参照</param>
+        /// <param name="pt1">第一角点</param>
+        /// <param name="pt2">第二角点</param>
+        //public static void ClipBlockRef(this BlockReference bref, Point3d pt1, Point3d pt2)
+        //{
+        //    if (bref == null)
+        //    {
+        //        throw new ArgumentNullException(nameof(bref));
+        //    }
+        //    Matrix3d mat = bref.BlockTransform.Inverse();
+        //    pt1 = pt1.TransformBy(mat);
+        //    pt2 = pt2.TransformBy(mat);
+        //    Point2dCollection pts = new()
+        //    {
+        //        new Point2d(Math.Min(pt1.X, pt2.X), Math.Min(pt1.Y, pt2.Y)),
+        //        new Point2d(Math.Max(pt1.X, pt2.X), Math.Max(pt1.Y, pt2.Y))
+        //    };
+
+        //    SpatialFilterDefinition sfd = new(pts, Vector3d.ZAxis, 0.0, 0.0, 0.0, true);
+        //    using SpatialFilter sf = new() { Definition = sfd };
+        //    var dict = bref.GetSubDictionary(true, filterDictName);
+        //    dict.SetAt<SpatialFilter>(spatialName, sf);
+        //    //SetToDictionary(dict, spatialName, sf);
+        //}
+        #endregion
         #endregion
     }
 }

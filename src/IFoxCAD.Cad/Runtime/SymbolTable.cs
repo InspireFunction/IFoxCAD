@@ -59,24 +59,6 @@ namespace IFoxCAD.Cad
                 return ObjectId.Null;
             }
         }
-        /// <summary>
-        /// 索引器
-        /// </summary>
-        /// <param name="id">对象id</param>
-        /// <returns>对象的id</returns>
-        public ObjectId this[ObjectId id]
-        {
-            // TODO: 需论证是否需要这个索引器
-            get 
-            { 
-                /* return the specified index here */
-                if (Has(id))
-                {
-                    return id;
-                }
-                return ObjectId.Null;
-            }
-        }
         #endregion
 
         #region Has
@@ -132,6 +114,7 @@ namespace IFoxCAD.Cad
                     Name = name
                 };
                 id = Add(record);
+                record = GetRecord(id);
                 using (record.ForWrite())
                 {
                     action?.Invoke(record);

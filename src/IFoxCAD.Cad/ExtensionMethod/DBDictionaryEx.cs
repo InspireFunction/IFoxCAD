@@ -110,7 +110,10 @@ namespace IFoxCAD.Cad
             if (id.IsNull)
             {
                 using (obj.ForWrite())
+                {
                     obj.CreateExtensionDictionary();
+                }
+
                 id = obj.ExtensionDictionary;
             }
             return id.GetObject<DBDictionary>(tr:trans);
@@ -253,18 +256,18 @@ namespace IFoxCAD.Cad
         }
 
 
-        /// <summary>
-        /// 获取对象扩展字典的子字典
-        /// </summary>
-        /// <param name="obj">对象</param>
-        /// <param name="tr">事务</param>
-        /// <param name="createSubDictionary">是否创建子字典</param>
-        /// <param name="dictNames">键值列表</param>
-        /// <returns>字典</returns>
-        public static DBDictionary GetSubDictionary(this DBObject obj, bool createSubDictionary, params string[] dictNames)
-        {
-            return obj.GetXDictionary().GetSubDictionary(createSubDictionary, dictNames);
-        }
+        ///// <summary>
+        ///// 获取对象扩展字典的子字典
+        ///// </summary>
+        ///// <param name="obj">对象</param>
+        ///// <param name="tr">事务</param>
+        ///// <param name="createSubDictionary">是否创建子字典</param>
+        ///// <param name="dictNames">键值列表</param>
+        ///// <returns>字典</returns>
+        //public static DBDictionary GetSubDictionary(this DBObject obj, bool createSubDictionary, params string[] dictNames)
+        //{
+        //    return obj.GetXDictionary().GetSubDictionary(createSubDictionary, dictNames);
+        //}
 
         #endregion
 

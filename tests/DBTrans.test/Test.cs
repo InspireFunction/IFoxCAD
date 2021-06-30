@@ -22,7 +22,7 @@ using System.IO;
 
 namespace test
 {
-    public class Test : AutoRegAssem
+    public class Test
     {
         [CommandMethod("dbtest")]
         public void Dbtest()
@@ -197,6 +197,10 @@ namespace test
             using var tr = new DBTrans();
             //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
             tr.BlockTable.Add("test",
+                btr => 
+                {
+                    btr.Origin = new Point3d(0, 0, 0);
+                },
                 () => //图元
                 {
                     return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0)) };
@@ -208,8 +212,8 @@ namespace test
                     return new List<AttributeDefinition> { id1, id2 };
                 }
             );
-            ObjectId objectId = tr.BlockTable.Add("a");//新建块
-            objectId.GetObject<BlockTableRecord>().AddEntity();//测试添加空实体
+            //ObjectId objectId = tr.BlockTable.Add("a");//新建块
+            //objectId.GetObject<BlockTableRecord>().AddEntity();//测试添加空实体
         }
         //修改块定义
         [CommandMethod("blockdefchange")]
@@ -252,6 +256,31 @@ namespace test
             tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test", atts: def);
         }
 
+
+        [CommandMethod("testclip")]
+        public void TestClipBlock()
+        {
+            using var tr = new DBTrans();
+            tr.BlockTable.Add("test1", 
+                btr =>
+                {
+                    btr.Origin = new Point3d(0, 0, 0);
+                    btr.AddEntity(new Line(new Point3d(0, 0, 0), new Point3d(10, 10, 0)),
+                        new Line(new Point3d(10, 10, 0), new Point3d(10, 0, 0))
+                        );
+                }
+                );
+            //tr.BlockTable.Add("hah");
+            var id = tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test1");
+            var bref = tr.GetObject<BlockReference>(id);
+            var pts = new List<Point3d> { new Point3d(3, 3, 0), new Point3d(7, 3, 0), new Point3d(7, 7, 0), new Point3d(3, 7, 0) };
+            bref.ClipBlockRef(pts);
+
+        }
+
+
+
+
         // 测试扩展数据
         [CommandMethod("addxdata")]
         public void AddXdata()
@@ -262,17 +291,17 @@ namespace test
             tr.RegAppTable.Add(appname); // add函数会默认的在存在这个名字的时候返回这个名字的regapp的id，不存在就新建
             tr.RegAppTable.Add("myapp2");
 
-            var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-
-
-            line.XData = new XDataList()
+            var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0))
             {
-                { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码
-                { DxfCode.ExtendedDataAsciiString, "hahhahah" },
-                {1070, 12 },
-                { DxfCode.ExtendedDataRegAppName, "myapp2" },  //可以用dxfcode和int表示组码
-                { DxfCode.ExtendedDataAsciiString, "hahhahah" },
-                {1070, 12 }
+                XData = new XDataList()
+                {
+                    { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码
+                    { DxfCode.ExtendedDataAsciiString, "hahhahah" },
+                    {1070, 12 },
+                    { DxfCode.ExtendedDataRegAppName, "myapp2" },  //可以用dxfcode和int表示组码
+                    { DxfCode.ExtendedDataAsciiString, "hahhahah" },
+                    {1070, 12 }
+                }
             };
 
             tr.CurrentSpace.AddEntity(line);
@@ -361,15 +390,15 @@ namespace test
             return doc;
         }
 
-        public override void Initialize()
-        {
-            Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nload....");
-        }
+        //public override void Initialize()
+        //{
+        //    Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nload....");
+        //}
 
-        public override void Terminate()
-        {
-            Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nunload....");
-        }
+        //public override void Terminate()
+        //{
+        //    Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nunload....");
+        //}
     }
 
     public class BlockImportClass
