@@ -197,7 +197,7 @@ namespace test
             using var tr = new DBTrans();
             //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
             tr.BlockTable.Add("test",
-                btr =>  //属性定义
+                btr =>
                 {
                     btr.Origin = new Point3d(0, 0, 0);
                 },
@@ -237,23 +237,34 @@ namespace test
         public void InsertBlockDef()
         {
             using var tr = new DBTrans();
-            //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-            //tr.InsertBlock(new Point3d(4, 4, 0), "test1"); //测试插入不存在的块定义
-            //tr.InsertBlock(new Point3d(4, 4, 0), "test"); // 测试默认
-            //tr.InsertBlock(new Point3d(0, 0, 0),"test", new Scale3d(2)); // 测试放大2倍
-            //tr.InsertBlock(new Point3d(4, 4, 0), "test", new Scale3d(2), Math.PI / 4); // 测试放大2倍,旋转45度
+            var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+            var line2 = new Line(new Point3d(0, 0, 0), new Point3d(-1, 1, 0));
+            var att1 = new AttributeDefinition() { Position = new Point3d(10, 10, 0), Tag = "tagTest1", Height = 1, TextString = "valueTest1" };
+            var att2 = new AttributeDefinition() { Position = new Point3d(10, 12, 0), Tag = "tagTest2", Height = 1, TextString = "valueTest2" };
+            tr.BlockTable.Add("test1", line1, line2, att1, att2);
+            var line3 = new Line(new Point3d(5, 5, 0), new Point3d(6, 6, 0));
+            var line4 = new Line(new Point3d(5, 5, 0), new Point3d(-6, 6, 0));
+            var att3 = new AttributeDefinition() { Position = new Point3d(10, 14, 0), Tag = "tagTest3", Height = 1, TextString = "valueTest3" };
+            var att4 = new AttributeDefinition() { Position = new Point3d(10, 16, 0), Tag = "tagTest4", Height = 1, TextString = "valueTest4" };
+            tr.BlockTable.Add("test2", new List<Entity> { line3, line4 }, new List<AttributeDefinition> { att3, att4 });
+            //tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test1"); // 测试默认
+            //tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test2");
+            //tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test3"); //测试插入不存在的块定义
+            //tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test1", new Scale3d(2)); // 测试放大2倍
+            //tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test1", new Scale3d(2), Math.PI / 4); // 测试放大2倍,旋转45度
 
-            tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test1"); //测试插入不存在的块定义
-            tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test"); // 测试默认
-            tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test", new Scale3d(2)); // 测试放大2倍
-            tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test", new Scale3d(2), Math.PI / 4); // 测试放大2倍,旋转45度
-
-            var def = new Dictionary<string, string>
+            var def1 = new Dictionary<string, string>
             {
-                { "start", "1" },
-                { "end", "2" }
+                { "tagTest1", "1" },
+                { "tagTest2", "2" }
             };
-            tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test", atts: def);
+            tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test1", atts: def1);
+            var def2 = new Dictionary<string, string>
+            {
+                { "tagTest3", "1" },
+                { "tagTest4", "" }
+            };
+            tr.CurrentSpace.InsertBlock(new Point3d(10,10, 0), "test2", atts: def2);
         }
 
 
@@ -261,7 +272,7 @@ namespace test
         public void TestClipBlock()
         {
             using var tr = new DBTrans();
-            tr.BlockTable.Add("test1", 
+            tr.BlockTable.Add("test1",
                 btr =>
                 {
                     btr.Origin = new Point3d(0, 0, 0);
