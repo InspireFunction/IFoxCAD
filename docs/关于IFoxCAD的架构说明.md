@@ -49,14 +49,18 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 
 ### 2.3 DBTrans类应该具有的成员
 为了尽量少的封装方法，减少类的复杂度，目前计划的方法主要为：
+
 属性:
+- Top  ---返回当前事务
 - Database  ---数据库
 - Document  ---文档
 - Editor  ---命令行
 - Trans  ---事务管理器
 
 构造函数:
-- DBTrans(bool commit = true)
+- DBTrans(Document doc = null, bool commit = true)
+- DBTrans(Database database, bool commit = true)
+- DBTrans(string fileName, bool commit = true)
 
 符号表:
 - BlockTable 块表
@@ -72,6 +76,11 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 方法:
 - GetObject  ---根据对象id获取图元对象
 - 。。。
+
+接口:
+- Abort ---放弃事务
+- Commit ---提交事务
+- Dispose --- 执行与释放非托管资源
 
 ## 三、 关于SymbolTable类的说明
 
