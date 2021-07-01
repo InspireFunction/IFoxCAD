@@ -29,9 +29,9 @@ using (DBTrans tr = new DBTrans())
 
 ## 符号表操作
 
-Ifoxcad 内裤的符号表其实是一个符号表的泛型类，直接将符号表和符号表记录包装为一个整体。不用担心，在实际使用的过程中，你几乎不会关心符号表的构成原理。
+Ifoxcad 类库的符号表其实是一个符号表的泛型类，直接将符号表和符号表记录包装为一个整体。不用担心，在实际使用的过程中，你几乎不会关心符号表的构成原理。
 
-Ifoxcad 内裤里采用如下的符号来表示9大符号表。
+Ifoxcad 类库里采用如下的符号来表示9大符号表。
 
 |    符号表名    | 符号表含义 |
 | :------------: | :--------: |
@@ -45,19 +45,18 @@ Ifoxcad 内裤里采用如下的符号来表示9大符号表。
 | ViewportTable  |   视口表   |
 |   ViewTable    |   视图表   |
 
-然后怎么使用呢？使用符号表一共分几步呢？
+ **然后怎么使用呢？使用符号表一共分几步呢？** 
 
 ```c#
-using (DBTrans tr = new DBTrans()) 
-{ // 第一步，开启事务
-  	var layerTable = tr.LayerTable;
-  // 第二步，获取图层表
-} // 事务结束，会自动的提交
+using (DBTrans tr = new DBTrans()) // 第一步，开启事务
+{ 
+  var layerTable = tr.LayerTable;// 第二步，获取图层表  
+} // 事务结束并自动提交
 ```
 
 上面是一个获取层表的例子，其他的符号表都是一样的写法，因为这些符号表都是事务管理器的属性。那么获取到符号表之后能做些什么？
 
-- 向符号表里添加元素
+-  **向符号表里添加元素** 
 
   ```c#
   using (DBTransaction tr = new DBTransaction()) 
@@ -66,30 +65,27 @@ using (DBTrans tr = new DBTrans())
     // 第二步，获取图层表
     	layerTable.Add("1");// 返回值为ObjectId
     // 第三步，向层表里添加一个元素，也就是新建一个图层。
-  } // 事务结束，会自动的提交
+  } // 事务结束并自动提交
   ```
 
   每个符号表都有Add函数，而且提供了不止一个重载函数。
 
-- 获取符号表里的元素
+-  **添加和获取符号表里的元素** 
 
-  想要获取符号表内的某个元素非常的简单：
+  想要添加和获取符号表内的某个元素非常的简单：
 
   ```c#
-  using (DBTransaction tr = new DBTransaction()) 
-  { // 第一步，开启事务
-    	var layerTable = tr.LayerTable;
-    // 第二步，获取图层表
-    	layerTable.Add("1"); // 返回值为ObjectId
-    // 第三步，向层表里添加一个元素，也就是新建一个图层。
-    	ObjectId id = layerTable["1"];
-    // 第四步，获取图层“1”的id。
-  } // 事务结束，会自动的提交
+  using (DBTransaction tr = new DBTransaction()) // 第一步，开启事务
+  { 
+    var layerTable = tr.LayerTable; // 第二步，获取图层表
+    layerTable.Add("1"); // 第三步，添加名为“1”的图层，即新建图层
+    ObjectId id = layerTable["1"]; // 第四步，获取图层“1”的id。   
+  } // 事务结束并自动提交
   ```
 
   每个符号表都提供了索引形式的获取元素id的写法。
 
-- 线型表
+-  **线型表** 
 
   ```c#
   // 两种方式
@@ -107,14 +103,14 @@ using (DBTrans tr = new DBTrans())
                           ltt.SetDashLengthAt(2, 0); // 一个点
                           ltt.SetDashLengthAt(3, -0.25); //0.25个单位的空格
                       });
-  // 这段代码同时演示了 ifoxcad 内裤关于符号表的public ObjectId Add(string name, Action<TRecord> action)这个函数的用法。
+  // 这段代码同时演示了 ifoxcad 类库关于符号表的public ObjectId Add(string name, Action<TRecord> action)这个函数的用法。
   // 或者直接调用：
   tr.LinetypeTable.Add("hah", "虚线",0.95,new double[]{0.5,-0.25,0,-0.25});
   // 获取线型表
   tr.LinetypeTable["hah"];
   ```
 
-  其他符号表就真的大同小异了。如果内裤没有提供的Add函数的重载，那么Action委托可以完成你想完成的所有事情。
+   **其他符号表的操作类同。如果类库没有提供的Add函数的重载，那么Action委托可以完成你想完成的所有事情。** 
 
 ## 基础属性操作
 
