@@ -114,7 +114,6 @@ namespace IFoxCAD.Cad
                     Name = name
                 };
                 id = Add(record);
-                record = GetRecord(id);
                 using (record.ForWrite())
                 {
                     action?.Invoke(record);
