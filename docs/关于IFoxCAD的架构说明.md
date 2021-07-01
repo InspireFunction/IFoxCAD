@@ -7,13 +7,30 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
 ## 一、组织结构图
 
 - IFoxCAD
-
-  - IFoxCAD.Cad -- cad 相关的类库
-  - IFoxCAD.WPF -- wpf的mvvm模式相关的类库
-  - and so on....
+    - IFoxCAD.Cad - cad相关的类库
+        - LinqEx - linq扩展类
+        - LoopList - 环链表
+    - IFoxCAD.Basal - cad以外常用的类库
+        - Runtime - 包含系统级别的功能
+            - AcadVersion - cad版本号类
+            - AssemInfo - 程序集信息
+            - AutoRegAssem - 程序集加载类型
+            - DBTrans - 事务处理类
+            - Env - 系统管理类
+            - SymbolTable - 符号表类
+        - ExtensionMethod - 扩展函数，以Ex结尾
+            - SymbolTableEx - 符号表扩展类
+            - SymbolTableRecordEx - 符号表记录扩展类 
+            - EntityEx - 实体扩展类   
+            - 。。。。。。  
+        - ResultData
+            - 待补充。。。
+        - SelectionFilter
+            - 待补充。。。
+    - IFoxCAD.WPF - wpf的mvvm模式相关的类库
+            - 待补充。。。
 
   
-
 ## 二、关于DBTrans类的说明
 
 ### 2.1 为什么要构建DBTrans类？
