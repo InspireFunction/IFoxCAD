@@ -225,10 +225,19 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 获取符号表记录
         /// </summary>
-        /// <returns>符号表记录迭代器</returns>
+        /// <returns>符号表记录集合</returns>
         public IEnumerable<TRecord> GetRecords()
         {
             return this.Select(id => GetRecord(id));
+        }
+
+        /// <summary>
+        /// 获取符号表记录的名字集合
+        /// </summary>
+        /// <returns>记录的名字集合</returns>
+        public IEnumerable<string> GetRecordNames()
+        {
+            return this.Select(id => GetRecord(id).Name);
         }
 
         /// <summary>
