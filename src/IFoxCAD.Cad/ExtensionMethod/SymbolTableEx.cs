@@ -133,7 +133,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="table">块表</param>
         /// <param name="name">块名</param>
-        /// <param name="ents">图元</param>
+        /// <param name="ents">图元(包括属性)</param>
         /// <returns></returns>
         public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name, params Entity[] ents)
         {
