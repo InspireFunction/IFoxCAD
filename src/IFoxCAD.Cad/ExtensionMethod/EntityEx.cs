@@ -383,27 +383,27 @@ namespace IFoxCAD.Cad
         /// <param name="bref">块参照</param>
         /// <param name="pt1">第一角点</param>
         /// <param name="pt2">第二角点</param>
-        //public static void ClipBlockRef(this BlockReference bref, Point3d pt1, Point3d pt2)
-        //{
-        //    if (bref == null)
-        //    {
-        //        throw new ArgumentNullException(nameof(bref));
-        //    }
-        //    Matrix3d mat = bref.BlockTransform.Inverse();
-        //    pt1 = pt1.TransformBy(mat);
-        //    pt2 = pt2.TransformBy(mat);
-        //    Point2dCollection pts = new()
-        //    {
-        //        new Point2d(Math.Min(pt1.X, pt2.X), Math.Min(pt1.Y, pt2.Y)),
-        //        new Point2d(Math.Max(pt1.X, pt2.X), Math.Max(pt1.Y, pt2.Y))
-        //    };
+        public static void ClipBlockRef(this BlockReference bref, Point3d pt1, Point3d pt2)
+        {
+            if (bref == null)
+            {
+                throw new ArgumentNullException(nameof(bref));
+            }
+            Matrix3d mat = bref.BlockTransform.Inverse();
+            pt1 = pt1.TransformBy(mat);
+            pt2 = pt2.TransformBy(mat);
+            Point2dCollection pts = new()
+            {
+                new Point2d(Math.Min(pt1.X, pt2.X), Math.Min(pt1.Y, pt2.Y)),
+                new Point2d(Math.Max(pt1.X, pt2.X), Math.Max(pt1.Y, pt2.Y))
+            };
 
-        //    SpatialFilterDefinition sfd = new(pts, Vector3d.ZAxis, 0.0, 0.0, 0.0, true);
-        //    using SpatialFilter sf = new() { Definition = sfd };
-        //    var dict = bref.GetSubDictionary(true, filterDictName);
-        //    dict.SetAt<SpatialFilter>(spatialName, sf);
-        //    //SetToDictionary(dict, spatialName, sf);
-        //}
+            SpatialFilterDefinition sfd = new(pts, Vector3d.ZAxis, 0.0, 0.0, 0.0, true);
+            using SpatialFilter sf = new() { Definition = sfd };
+            var dict = bref.GetXDictionary().GetSubDictionary(true, new string[] { filterDictName });
+            dict.SetAt<SpatialFilter>(spatialName, sf);
+            //SetToDictionary(dict, spatialName, sf);
+        }
         #endregion
         #endregion
     }

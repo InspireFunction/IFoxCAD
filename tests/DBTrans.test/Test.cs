@@ -197,7 +197,7 @@ namespace test
             using var tr = new DBTrans();
             //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
             tr.BlockTable.Add("test",
-                btr => 
+                btr =>  //属性定义
                 {
                     btr.Origin = new Point3d(0, 0, 0);
                 },
@@ -276,6 +276,10 @@ namespace test
             var pts = new List<Point3d> { new Point3d(3, 3, 0), new Point3d(7, 3, 0), new Point3d(7, 7, 0), new Point3d(3, 7, 0) };
             bref.ClipBlockRef(pts);
 
+            var id1 = tr.CurrentSpace.InsertBlock(new Point3d(20, 20, 0), "test1");
+            var bref1 = tr.GetObject<BlockReference>(id);
+            
+            bref1.ClipBlockRef(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
         }
 
 
