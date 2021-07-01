@@ -251,8 +251,7 @@ namespace IFoxCAD.Cad
             {
                 ObjectId id = table[name];
                 using IdMapping idm = new();
-                using (ObjectIdCollection ids = new()
-                { id })
+                using (ObjectIdCollection ids = new(){ id })
                 {
                     table.Database.WblockCloneObjects(ids, CurrentSymbolTable.Id, idm, DuplicateRecordCloning.Replace, false);
                 }
