@@ -714,14 +714,21 @@ namespace IFoxCAD.Cad
 
         #region 执行lisp
 
+#if ac2009
         [System.Security.SuppressUnmanagedCodeSecurity]
-        [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
-        EntryPoint = "?acedEvaluateLisp@@YAHPEB_WAEAPEAUresbuf@@@Z")]
+        [DllImport("acad.exe", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, EntryPoint = "?acedEvaluateLisp@@YAHPB_WAAPAUresbuf@@@Z")]
+        private static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
+
+        [DllImport("acad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
+        private static extern int AcedInvoke(IntPtr args, out IntPtr result);
+#else
+        [System.Security.SuppressUnmanagedCodeSecurity]
+        [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, EntryPoint = "?acedEvaluateLisp@@YAHPEB_WAEAPEAUresbuf@@@Z")]
         private static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
 
         [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
         private static extern int AcedInvoke(IntPtr args, out IntPtr result);
-
+#endif
         /// <summary>
         /// 发送lisp语句字符串到cad执行
         /// </summary>
@@ -730,7 +737,7 @@ namespace IFoxCAD.Cad
         /// <returns>缓冲结果,返回值</returns>
         public static ResultBuffer RunLisp(this Editor ed, string arg)
         {
-            AcedEvaluateLisp(arg, out IntPtr rb);
+            _ = AcedEvaluateLisp(arg, out IntPtr rb);
             if (rb != IntPtr.Zero)
             {
                 try
