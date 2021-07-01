@@ -71,7 +71,7 @@ namespace IFoxCAD.Cad
         /// <returns>成功返回 <see langword="true"/>，失败返回 <see langword="false"/></returns>
         public static bool Delete(this SymbolTable<LayerTable, LayerTableRecord> table, string name)
         {
-            if (name == "0" || name == "Defpoints" || !table.Has(name) ||table[name] == DBTrans.Top.Database.Clayer)
+            if (name == "0" || name == "Defpoints" || !table.Has(name) || table[name] == DBTrans.Top.Database.Clayer)
             {
                 return false;
             }
@@ -95,38 +95,50 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="table">块表</param>
         /// <param name="name">块名</param>
-        /// <param name="ents">图元</param>
-        /// <param name="attdef">属性定义</param>
+        /// <param name="action">对所添加块表的委托n</param>
+        /// <param name="ents">添加图元的委托</param>
+        /// <param name="attdef">添加属性定义的委托</param>
         /// <returns>块定义id</returns>
         /// TODO: 需要测试匿名块等特殊的块是否能定义
-        public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name, Action<BlockTableRecord> action = null, Func < IEnumerable<Entity>> ents = null, Func<IEnumerable<AttributeDefinition>> attdef = null)
+        public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name, Action<BlockTableRecord> action = null, Func<IEnumerable<Entity>> ents = null, Func<IEnumerable<AttributeDefinition>> attdef = null)
         {
             return table.Add(name, btr =>
             {
                 action?.Invoke(btr);
-                btr.AddEntity(ents?.Invoke());
-                //ents.Invoke().ForEach(ent => btr.AppendEntity(ent));
-                btr.AddEntity(attdef?.Invoke());
-              
+                if (ents is not null)
+                {
+                    btr.AddEntity(ents?.Invoke());
+                }
+                if (attdef is not null)
+                {
+                    btr.AddEntity(attdef?.Invoke());
+                }
             });
-            //var id = table.Add(name, action);
-
-            //table.Change(id, btr => 
-            //{
-            //    if (ents is not null)
-            //    {
-            //        btr.AddEntity(ents?.Invoke());
-            //        //ents.Invoke().ForEach(ent => btr.AppendEntity(ent));
-            //    }
-            //    if (attdef is not null)
-            //    {
-            //        btr.AddEntity(attdef?.Invoke());
-            //    }
-            //});
-            //return id;
+        }
+        /// <summary>
+        /// 添加块定义
+        /// </summary>
+        /// <param name="table">块表</param>
+        /// <param name="name">块名</param>
+        /// <param name="ents">图元</param>
+        /// <param name="attdef">属性定义</param>
+        /// <returns></returns>
+        public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name, IEnumerable<Entity> ents = null, IEnumerable<AttributeDefinition> attdef = null)
+        {
+            return table.Add(name, null, () => { return ents; }, () => { return attdef; });
         }
 
-
+        /// <summary>
+        /// 添加块定义
+        /// </summary>
+        /// <param name="table">块表</param>
+        /// <param name="name">块名</param>
+        /// <param name="ents">图元(包括属性)</param>
+        /// <returns></returns>
+        public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name, params Entity[] ents)
+        {
+            return table.Add(name, null, () => { return ents; });
+        }
 
         /// <summary>
         /// 从文件中获取块定义
@@ -158,7 +170,7 @@ namespace IFoxCAD.Cad
             return id;
         }
 
-        
+
 
         /// <summary>
         /// 从文件中获取块定义
