@@ -30,7 +30,9 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
     - IFoxCAD.WPF - wpf的mvvm模式相关的类库
             - 待补充。。。
 
-  
+  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225449_2b18eb89_9063830.png "屏幕截图.png")
+  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225550_840a862a_9063830.png "屏幕截图.png")
+  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225525_b246bbd2_9063830.png "屏幕截图.png")
 ## 二、关于DBTrans类的说明
 
 ### 2.1 为什么要构建DBTrans类？
