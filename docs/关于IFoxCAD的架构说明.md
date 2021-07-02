@@ -7,13 +7,32 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
 ## 一、组织结构图
 
 - IFoxCAD
+    - IFoxCAD.Cad - cad相关的类库
+        - LinqEx - linq扩展类
+        - LoopList - 环链表
+    - IFoxCAD.Basal - cad以外常用的类库
+        - Runtime - 包含系统级别的功能
+            - AcadVersion - cad版本号类
+            - AssemInfo - 程序集信息
+            - AutoRegAssem - 程序集加载类型
+            - DBTrans - 事务处理类
+            - Env - 系统管理类
+            - SymbolTable - 符号表类
+        - ExtensionMethod - 扩展函数，以Ex结尾
+            - SymbolTableEx - 符号表扩展类
+            - SymbolTableRecordEx - 符号表记录扩展类 
+            - EntityEx - 实体扩展类   
+            - 。。。。。。  
+        - ResultData
+            - 待补充。。。
+        - SelectionFilter
+            - 待补充。。。
+    - IFoxCAD.WPF - wpf的mvvm模式相关的类库
+            - 待补充。。。
 
-  - IFoxCAD.Cad -- cad 相关的类库
-  - IFoxCAD.WPF -- wpf的mvvm模式相关的类库
-  - and so on....
-
-  
-
+  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225449_2b18eb89_9063830.png "屏幕截图.png")
+  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225550_840a862a_9063830.png "屏幕截图.png")
+  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225525_b246bbd2_9063830.png "屏幕截图.png")
 ## 二、关于DBTrans类的说明
 
 ### 2.1 为什么要构建DBTrans类？
@@ -32,14 +51,18 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 
 ### 2.3 DBTrans类应该具有的成员
 为了尽量少的封装方法，减少类的复杂度，目前计划的方法主要为：
+
 属性:
+- Top  ---返回当前事务
 - Database  ---数据库
 - Document  ---文档
 - Editor  ---命令行
 - Trans  ---事务管理器
 
 构造函数:
-- DBTrans(bool commit = true)
+- DBTrans(Document doc = null, bool commit = true)
+- DBTrans(Database database, bool commit = true)
+- DBTrans(string fileName, bool commit = true)
 
 符号表:
 - BlockTable 块表
@@ -55,6 +78,11 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 方法:
 - GetObject  ---根据对象id获取图元对象
 - 。。。
+
+接口:
+- Abort ---放弃事务
+- Commit ---提交事务
+- Dispose --- 执行与释放非托管资源
 
 ## 三、 关于SymbolTable类的说明
 
@@ -74,9 +102,10 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 方法:
 - this  ---索引器符号表记录函数
 - Add  ---添加符号表记录函数
-- Remove --- 删除符号表记录函数
+- Remove --- 删除符号表记录函数(层表请使用扩展方法Delete)
 - Change --- 修改符号表记录函数
 - GetRecord --- 获取符号表记录
+- GetRecordFrom --- 从源数据库拷贝符号表记录
 - Has --- 判断符号表是否有符号表记录的函数
 - 。。。
 
