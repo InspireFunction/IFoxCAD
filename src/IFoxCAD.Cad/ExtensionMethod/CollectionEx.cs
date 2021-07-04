@@ -77,10 +77,10 @@ namespace IFoxCAD.Cad
 
 
         /// <summary>
-        /// 遍历迭代器，执行action委托
+        /// 遍历集合的迭代器，执行action委托
         /// </summary>
-        /// <typeparam name="T">迭代器类型</typeparam>
-        /// <param name="source">迭代器</param>
+        /// <typeparam name="T">集合值的类型</typeparam>
+        /// <param name="source">集合</param>
         /// <param name="action">要运行的委托</param>
         public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {
@@ -88,6 +88,22 @@ namespace IFoxCAD.Cad
             {
                 action?.Invoke(element);
             }
+        }
+        /// <summary>
+        /// 同时遍历集合索引和值的迭代器，执行action委托
+        /// </summary>
+        /// <typeparam name="T">集合值的类型</typeparam>
+        /// <param name="source">集合</param>
+        /// <param name="action">要运行的委托</param>
+        public static void ForEach<T>(this IEnumerable<T> source, Action<int, T> action)
+        {
+            int i = 0;
+            foreach (var item in source)
+            {
+                action?.Invoke(i, item);
+                i++;
+            }
+            
         }
 
     }

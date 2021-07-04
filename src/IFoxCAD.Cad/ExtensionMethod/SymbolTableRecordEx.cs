@@ -155,7 +155,7 @@ namespace IFoxCAD.Cad
         /// <param name="endWidths">端点的终止宽度</param>
         /// <param name="action">轻多段线属性设置委托</param>
         /// <param name="trans">事务管理器</param>
-        /// <returns>轻多段线</returns>
+        /// <returns>轻多段线id</returns>
         public static ObjectId AddPline(this BlockTableRecord btr, List<Point3d> pts, List<double> bulges = default, List<double> startWidths = default, List<double> endWidths = default, Action<Polyline> action = default, Transaction trans = default)
         {
             bulges ??= new List<double>(new double[pts.Count]);
@@ -168,6 +168,29 @@ namespace IFoxCAD.Cad
             }
             return btr.AddEnt(pl, action, trans);
         }
+
+#if ac2013
+        /// <summary>
+        /// 在指定的绘图空间添加轻多段线
+        /// </summary>
+        /// <param name="btr">绘图空间</param>
+        /// <param name="pts">端点表,利用元组(Point3d pt, double bulge, double startWidth, double endWidth)</param>
+        /// <param name="action">轻多段线属性设置委托</param>
+        /// <param name="trans">事务管理器</param>
+        /// <returns>轻多段线id</returns>
+        public static ObjectId AddPline(this BlockTableRecord btr, List<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,  Action<Polyline> action = default, Transaction trans = default)
+        {
+           
+            Polyline pl = new();
+            pts.ForEach((i, vertex) =>
+            {
+                pl.AddVertexAt(i, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
+            });
+            
+            return btr.AddEnt(pl, action, trans);
+        }
+#endif
+
 
         /// <summary>
         /// 在指定绘图空间X-Y平面3点画圆弧

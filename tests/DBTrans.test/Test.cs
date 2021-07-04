@@ -190,6 +190,22 @@ namespace test
             tr.CurrentSpace.AddEntity(pl);
         }
 
+        //增加多段线2
+        [CommandMethod("pldemo2")]
+        public void Addpl2()
+        {
+            var pts = new List<(Point3d, double, double, double)>
+            {
+                (new Point3d(0,0,0),0,0,0),
+                (new Point3d(10,0,0),0,0,0),
+                (new Point3d(10,10,0),0,0,0),
+                (new Point3d(0,10,0),0,0,0),
+                (new Point3d(5,5,0),0,0,0)
+            };
+            using var tr = new DBTrans();
+            tr.CurrentSpace.AddPline(pts);
+        }
+
         //块定义
         [CommandMethod("blockdef")]
         public void BlockDef()
