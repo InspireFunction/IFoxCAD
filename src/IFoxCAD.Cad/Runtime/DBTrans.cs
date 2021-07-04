@@ -16,9 +16,17 @@ namespace IFoxCAD.Cad
     public class DBTrans : IDisposable
     {
         #region 私有字段
-
+        /// <summary>
+        /// 文档锁
+        /// </summary>
+        private DocumentLock documentLock = default;
+        /// <summary>
+        /// 是否释放资源
+        /// </summary>
         private bool disposedValue;
-
+        /// <summary>
+        /// 是否提交事务
+        /// </summary>
         private bool _commit;
         /// <summary>
         /// 事务栈
@@ -56,13 +64,13 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="doc">要打开的文档</param>
         /// <param name="commit">事务是否提交</param>
-        public DBTrans(Document doc = null, bool commit = true)
+        public DBTrans(Document doc = null, bool commit = true, bool doclock = false)
         {
             doc ??= Application.DocumentManager.MdiActiveDocument;
             Document = doc;
             Database = Document.Database;
             Editor = Document.Editor;
-            Init(commit);
+            Init(commit, doclock);
         }
 
         /// <summary>
@@ -73,7 +81,7 @@ namespace IFoxCAD.Cad
         public DBTrans(Database database, bool commit = true)
         {
             Database = database;
-            Init(commit);
+            Init(commit,false);
         }
         /// <summary>
         /// 构造函数，打开文件，默认提交事务
@@ -85,14 +93,18 @@ namespace IFoxCAD.Cad
             Database = new Database(false, true);
             Database.ReadDwgFile(fileName, FileShare.Read, true, null);
             Database.CloseInput(true);
-            Init(commit);
+            Init(commit,false);
         }
         /// <summary>
         /// 初始化事务及事务队列、提交模式
         /// </summary>
         /// <param name="commit">提交模式</param>
-        private void Init(bool commit)
+        private void Init(bool commit, bool doclock)
         {
+            if (doclock)
+            {
+                documentLock = Document.LockDocument();
+            }
             Transaction = Database.TransactionManager.StartTransaction();
             _commit = commit;
             dBTrans.Push(this);
@@ -243,7 +255,7 @@ namespace IFoxCAD.Cad
 
 
 
-#region idispose接口相关函数
+        #region idispose接口相关函数
 
         public void Abort()
         {
@@ -276,6 +288,7 @@ namespace IFoxCAD.Cad
                     {
                         Transaction.Dispose();
                     }
+                    documentLock?.Dispose();
                 }
 
                 // 释放未托管的资源(未托管的对象)并替代终结器
@@ -297,6 +310,6 @@ namespace IFoxCAD.Cad
             Dispose(disposing: true);
             GC.SuppressFinalize(this);
         }
-#endregion
+        #endregion
     }
 }
