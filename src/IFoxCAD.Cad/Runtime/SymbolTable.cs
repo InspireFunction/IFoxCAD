@@ -235,9 +235,22 @@ namespace IFoxCAD.Cad
         /// 获取符号表记录的名字集合
         /// </summary>
         /// <returns>记录的名字集合</returns>
-        public IEnumerable<string> GetRecordNames()
+        public IEnumerable<string> GetRecordNames() => this.Select(id => GetRecord(id).Name);
+        /// <summary>
+        /// 获取符合过滤条件的符号表记录名字集合
+        /// </summary>
+        /// <param name="filter">过滤器委托</param>
+        /// <returns>记录的名字集合</returns>
+        public IEnumerable<string> GetRecordNames(Func<TRecord, bool> filter)
         {
-            return this.Select(id => GetRecord(id).Name);
+            foreach (var id in this)
+            {
+                var record = GetRecord(id);
+                if (filter.Invoke(record))
+                {
+                    yield return record.Name;
+                }
+            }
         }
 
         /// <summary>
