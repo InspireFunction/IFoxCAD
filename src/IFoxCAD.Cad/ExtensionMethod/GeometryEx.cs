@@ -673,7 +673,15 @@ namespace IFoxCAD.Cad
         {
             return new Point2d(pt.X, pt.Y);
         }
-
+        /// <summary>
+        /// 将三维点集转换为二维点集
+        /// </summary>
+        /// <param name="pts">三维点集</param>
+        /// <returns>二维点集</returns>
+        public static IEnumerable<Point2d> Point2d(this IEnumerable<Point3d> pts)
+        {
+            return pts.Select(pt => pt.Point2d());
+        }
         /// <summary>
         /// 将二维点转换为三维点
         /// </summary>
@@ -683,7 +691,7 @@ namespace IFoxCAD.Cad
         {
             return new Point3d(pt.X, pt.Y, 0);
         }
-
+        
         /// <summary>
         /// 获取两个点之间的中点
         /// </summary>
@@ -695,9 +703,31 @@ namespace IFoxCAD.Cad
             return new Point3d((pt1.X + pt2.X) * 0.5, (pt1.Y + pt2.Y) * 0.5, (pt1.Z + pt2.Z) * 0.5);
         }
 
-        public static IEnumerable<Point2d> Point2d(this IEnumerable<Point3d> pts)
+        /// <summary>
+        /// 根据世界坐标计算用户坐标
+        /// </summary>
+        /// <param name="basePt">基点世界坐标</param>
+        /// <param name="userPt">基点用户坐标</param>
+        /// <param name="transPt">目标世界坐标</param>
+        /// <param name="ang">坐标网旋转角，按x轴正向逆时针弧度</param>
+        /// <returns>目标用户坐标</returns>
+        public static Point3d TransPoint(this Point3d basePt, Point3d userPt, Point3d transPt, double ang)
         {
-            return pts.Select(pt => pt.Point2d());
+            Matrix3d transMat = Matrix3d.Displacement(userPt - basePt);
+            Matrix3d roMat = Matrix3d.Rotation(-ang, Vector3d.ZAxis, userPt);
+            return transPt.TransformBy(roMat * transMat);
+        }
+        /// <summary>
+        /// 计算指定距离和角度的点
+        /// </summary>
+        /// <remarks>本函数仅适用于x-y平面</remarks>
+        /// <param name="pt">基点</param>
+        /// <param name="ang">角度，x轴正向逆时针弧度</param>
+        /// <param name="len">距离</param>
+        /// <returns>目标点</returns>
+        public static Point3d Polar(this Point3d pt, double ang, double len)
+        {
+            return pt + Vector3d.XAxis.RotateBy(ang, Vector3d.ZAxis) * len;
         }
     }
 }
