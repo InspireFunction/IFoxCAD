@@ -559,78 +559,7 @@ namespace IFoxCAD.Cad
 
         #endregion Ucs
 
-        #region CompareTo
-
-        /// <summary>
-        /// 比较两个点是否相等
-        /// </summary>
-        /// <param name="p1">基点</param>
-        /// <param name="p2">目标点</param>
-        /// <returns>
-        /// <para>若点的x与y值都相等，则返回z值的比较结果</para>
-        /// <para>若点的x值相等，y值不相等，则返回y值的比较结果</para>
-        /// <para>若点的x值不相等，则返回x值的比较结果</para>
-        /// </returns>
-        public static int CompareTo(this Point3d p1, Point3d p2)
-        {
-            return
-                (p1.X == p2.X) ?
-                    ((p1.Y == p2.Y) ?
-                        p1.Z.CompareTo(p2.Z) :
-                        p1.Y.CompareTo(p2.Y)) :
-                    p1.X.CompareTo(p2.X);
-        }
-
-        /// <summary>
-        /// 比较两个向量是否相等
-        /// </summary>
-        /// <param name="v1">基向量</param>
-        /// <param name="v2">目标向量</param>
-        /// <returns>
-        /// <para>若点的x与y值都相等，则返回z值的比较结果</para>
-        /// <para>若点的x值相等，y值不相等，则返回y值的比较结果</para>
-        /// <para>若点的x值不相等，则返回x值的比较结果</para>
-        /// </returns>
-        public static int CompareTo(this Vector3d v1, Vector3d v2)
-        {
-            return
-                (v1.X == v2.X) ?
-                    ((v1.Y == v2.Y) ?
-                        v1.Z.CompareTo(v2.Z) :
-                        v1.Y.CompareTo(v2.Y)) :
-                    v1.X.CompareTo(v2.X);
-        }
-
-        /// <summary>
-        /// 比较两个点是否相等
-        /// </summary>
-        /// <param name="p1">基点</param>
-        /// <param name="p2">目标点</param>
-        /// <returns>
-        /// <para>若点的x值相等，则返回y值的比较结果</para>
-        /// <para>若点的x值不相等，则返回x值的比较结果</para>
-        /// </returns>
-        public static int CompareTo(this Point2d p1, Point2d p2)
-        {
-            return (p1.X == p2.X) ? p1.Y.CompareTo(p2.Y) : p1.X.CompareTo(p2.X);
-        }
-
-        /// <summary>
-        /// 比较两个向量是否相等
-        /// </summary>
-        /// <param name="v1">基向量</param>
-        /// <param name="v2">目标向量</param>
-        /// <returns>
-        /// <para>若点的x值相等，则返回y值的比较结果</para>
-        /// <para>若点的x值不相等，则返回x值的比较结果</para>
-        /// </returns>
-        public static int CompareTo(this Vector2d v1, Vector2d v2)
-        {
-            return (v1.X == v2.X) ? v1.Y.CompareTo(v2.Y) : v1.X.CompareTo(v2.X);
-        }
-
-        #endregion CompareTo
-
+       
         /// <summary>
         /// 返回不等比例变换矩阵
         /// </summary>

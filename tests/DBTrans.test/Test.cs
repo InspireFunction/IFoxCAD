@@ -405,7 +405,17 @@ namespace test
             Application.ShowModalWindow(test);
         }
 
-
+        [CommandMethod("testpt")]
+        public void TestPt()
+        {
+            var pt1 = new Point3d(0, 0.00000000000001, 0);
+            var pt2 = new Point3d(0, 0.00001, 0);
+            Env.Print(Tolerance.Global.EqualPoint.ToString());
+            Env.Print(pt1.IsEqualTo(pt2).ToString());
+            Env.Print(pt1.IsEqualTo(pt2,new Tolerance(0.0,1e-6)).ToString());
+            Env.Print((pt1 == pt2).ToString());
+            Env.Print((pt1 != pt2).ToString());
+        }
 
 
         public Database Getdb()

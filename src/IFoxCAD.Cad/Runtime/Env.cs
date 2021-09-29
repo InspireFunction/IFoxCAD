@@ -442,5 +442,12 @@ namespace IFoxCAD.Cad
         }
 #nullable disable
         #endregion
+
+
+        /// <summary>
+        /// 命令行打印
+        /// </summary>
+        /// <param name="message">字符串</param>
+        public static void Print(string message) => Editor.WriteMessage($"{message}\n");
     }
 }
