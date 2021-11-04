@@ -445,9 +445,9 @@ namespace IFoxCAD.Cad
 
 
         /// <summary>
-        /// 命令行打印
+        /// 命令行打印，会自动调用对象的toString函数
         /// </summary>
-        /// <param name="message">字符串</param>
-        public static void Print(string message) => Editor.WriteMessage($"{message}\n");
+        /// <param name="message">要打印的对象</param>
+        public static void Print(object message) => Editor.WriteMessage($"{message}\n");
     }
 }

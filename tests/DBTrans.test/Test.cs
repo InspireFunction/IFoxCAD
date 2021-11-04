@@ -401,6 +401,7 @@ namespace test
         [CommandMethod("testwpf")]
         public void TestWPf()
         {
+
             var test = new TestView();
             Application.ShowModalWindow(test);
         }
@@ -408,13 +409,24 @@ namespace test
         [CommandMethod("testpt")]
         public void TestPt()
         {
-            var pt1 = new Point3d(0, 0.00000000000001, 0);
-            var pt2 = new Point3d(0, 0.00001, 0);
-            Env.Print(Tolerance.Global.EqualPoint.ToString());
-            Env.Print(pt1.IsEqualTo(pt2).ToString());
-            Env.Print(pt1.IsEqualTo(pt2,new Tolerance(0.0,1e-6)).ToString());
-            Env.Print((pt1 == pt2).ToString());
-            Env.Print((pt1 != pt2).ToString());
+            //var pt = Env.Editor.GetPoint("pick pt:").Value;
+            //var pl = Env.Editor.GetEntity("pick pl").ObjectId;
+            var tr1 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
+            using var tr2 = new DBTrans();
+            var tr3 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
+            Env.Print(tr2.Transaction == tr3);
+            using var tr4 = new DBTrans();
+            var tr5 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
+            Env.Print(tr4.Transaction == tr5);
+            var trm = HostApplicationServices.WorkingDatabase.TransactionManager;
+            //var ptt = tr.GetObject<Polyline>(pl).GetClosestPointTo(pt,false);
+            //var pt1 = new Point3d(0, 0.00000000000001, 0);
+            //var pt2 = new Point3d(0, 0.00001, 0);
+            Env.Print(Tolerance.Global.EqualPoint);
+            //Env.Print(pt1.IsEqualTo(pt2).ToString());
+            //Env.Print(pt1.IsEqualTo(pt2,new Tolerance(0.0,1e-6)).ToString());
+            //Env.Print((pt1 == pt2).ToString());
+            //Env.Print((pt1 != pt2).ToString());
         }
 
 
