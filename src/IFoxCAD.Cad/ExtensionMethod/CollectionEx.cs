@@ -2,6 +2,7 @@
 using Autodesk.AutoCAD.Geometry;
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Linq;
 
 namespace IFoxCAD.Cad
@@ -75,6 +76,27 @@ namespace IFoxCAD.Cad
             return ids.Cast<ObjectId>().ToList();
         }
 
+        public static List<string> ToList(this StringCollection strs)
+        {
+            return strs.Cast<string>().ToList();
+        }
+
+        /* Cast不进行过滤,而是直接强转
+              var s = new System.Collections.ArrayList();
+              s.Add("1");
+              s.Add("a");
+              s.Add(5666);
+
+              var aaa = s.Cast<int>().ToList();
+                  System.InvalidCastException: 指定的转换无效。
+                  + List<T>..ctor(IEnumerable<T>)
+                  + System.Linq.Enumerable.ToList<TSource>(IEnumerable<TSource>)
+
+              var aaa = s.Cast<string>().ToList();
+                  System.InvalidCastException: 无法将类型为“System.Int32”的对象强制转换为类型“System.String”。
+                  + List<T>..ctor(IEnumerable<T>)
+                  + System.Linq.Enumerable.ToList<TSource>(IEnumerable<TSource>)
+        */
 
         /// <summary>
         /// 遍历集合的迭代器，执行action委托
@@ -84,11 +106,13 @@ namespace IFoxCAD.Cad
         /// <param name="action">要运行的委托</param>
         public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
             foreach (var element in source)
-            {
-                action?.Invoke(element);
-            }
+                action.Invoke(element);
         }
+
+
         /// <summary>
         /// 同时遍历集合索引和值的迭代器，执行action委托
         /// </summary>
@@ -97,13 +121,14 @@ namespace IFoxCAD.Cad
         /// <param name="action">要运行的委托</param>
         public static void ForEach<T>(this IEnumerable<T> source, Action<int, T> action)
         {
+            if (action == null)
+                throw new ArgumentNullException(nameof(action));
             int i = 0;
             foreach (var item in source)
             {
-                action?.Invoke(i, item);
+                action.Invoke(i, item);
                 i++;
             }
-            
         }
 
     }

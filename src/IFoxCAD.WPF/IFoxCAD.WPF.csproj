@@ -1,7 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
     <PropertyGroup>
-        <TargetFrameworks>net45</TargetFrameworks>
+        <!--<TargetFrameworks>NET35;NET40;NET45;NET46;NET47;NET48</TargetFrameworks>-->
+        <TargetFrameworks>NET45;NET46;NET47;NET48</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -21,18 +22,18 @@
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
-      <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31"/>
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31"/>
     </ItemGroup>
 
     <ItemGroup>
-      <None Include="..\..\LICENSE">
-        <Pack>True</Pack>
-        <PackagePath></PackagePath>
-      </None>
+        <None Include="..\..\LICENSE">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
     </ItemGroup>
 
 </Project>

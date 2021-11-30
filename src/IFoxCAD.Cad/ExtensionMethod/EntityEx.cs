@@ -225,8 +225,7 @@ namespace IFoxCAD.Cad
             List<string> strs = new();
             mt.ExplodeFragments(
                 strs,
-                (f, o) =>
-                {
+                (f, o) => {
                     o.Add(f.Text);
                     return MTextFragmentCallbackStatus.Continue;
                 });
@@ -317,13 +316,13 @@ namespace IFoxCAD.Cad
         /// 三点法创建圆(失败则返回Null)
         /// </summary>
         /// <param name="pt1">第一点</param>
-        /// <param name="pt2">第二点</param>
+        /// <param name="PointV">第二点</param>
         /// <param name="pt3">第三点</param>
         /// <returns>圆</returns>
-        public static Circle CreateCircle(Point3d pt1, Point3d pt2, Point3d pt3)
+        public static Circle CreateCircle(Point3d pt1, Point3d PointV, Point3d pt3)
         {
-            //先判断三点是否共线,得到pt1点指向pt2、pt2点的矢量
-            Vector3d va = pt1.GetVectorTo(pt2);
+            //先判断三点是否共线,得到pt1点指向PointV、PointV点的矢量
+            Vector3d va = pt1.GetVectorTo(PointV);
             Vector3d vb = pt1.GetVectorTo(pt3);
             //如两矢量夹角为0或180度（π弧度),则三点共线.
             if (va.GetAngleTo(vb) == 0 | va.GetAngleTo(vb) == Math.PI)
@@ -333,7 +332,7 @@ namespace IFoxCAD.Cad
             else
             {
                 //创建一个几何类的圆弧对象
-                CircularArc3d geArc = new(pt1, pt2, pt3);
+                CircularArc3d geArc = new(pt1, PointV, pt3);
                 geArc.ToCircle();
                 return geArc.ToCircle();
             }
@@ -382,8 +381,8 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="bref">块参照</param>
         /// <param name="pt1">第一角点</param>
-        /// <param name="pt2">第二角点</param>
-        public static void ClipBlockRef(this BlockReference bref, Point3d pt1, Point3d pt2)
+        /// <param name="PointV">第二角点</param>
+        public static void ClipBlockRef(this BlockReference bref, Point3d pt1, Point3d PointV)
         {
             if (bref == null)
             {
@@ -391,11 +390,11 @@ namespace IFoxCAD.Cad
             }
             Matrix3d mat = bref.BlockTransform.Inverse();
             pt1 = pt1.TransformBy(mat);
-            pt2 = pt2.TransformBy(mat);
+            PointV = PointV.TransformBy(mat);
             Point2dCollection pts = new()
             {
-                new Point2d(Math.Min(pt1.X, pt2.X), Math.Min(pt1.Y, pt2.Y)),
-                new Point2d(Math.Max(pt1.X, pt2.X), Math.Max(pt1.Y, pt2.Y))
+                new Point2d(Math.Min(pt1.X, PointV.X), Math.Min(pt1.Y, PointV.Y)),
+                new Point2d(Math.Max(pt1.X, PointV.X), Math.Max(pt1.Y, PointV.Y))
             };
 
             SpatialFilterDefinition sfd = new(pts, Vector3d.ZAxis, 0.0, 0.0, 0.0, true);

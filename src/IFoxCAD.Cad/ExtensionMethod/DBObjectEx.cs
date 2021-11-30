@@ -75,7 +75,7 @@ namespace IFoxCAD.Cad
                         break;
                     if (data[i].TypeCode == (int)dxfCode)
                     {
-                        data[i] = new TypedValue((int)dxfCode,newvalue);
+                        data[i] = new TypedValue((int)dxfCode, newvalue);
                     }
                 }
             }
@@ -83,7 +83,7 @@ namespace IFoxCAD.Cad
             using (obj.ForWrite())
             {
                 obj.XData = data;
-            }    
+            }
         }
         #endregion
 

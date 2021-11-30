@@ -1,14 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-
-using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.Geometry;
 using System.IO;
 
 namespace IFoxCAD.Cad
@@ -81,7 +75,7 @@ namespace IFoxCAD.Cad
         public DBTrans(Database database, bool commit = true)
         {
             Database = database;
-            Init(commit,false);
+            Init(commit, false);
         }
         /// <summary>
         /// 构造函数，打开文件，默认提交事务
@@ -93,7 +87,7 @@ namespace IFoxCAD.Cad
             Database = new Database(false, true);
             Database.ReadDwgFile(fileName, FileShare.Read, true, null);
             Database.CloseInput(true);
-            Init(commit,false);
+            Init(commit, false);
         }
         /// <summary>
         /// 初始化事务及事务队列、提交模式
@@ -251,7 +245,7 @@ namespace IFoxCAD.Cad
         }
 
 
-#endregion
+        #endregion
 
 
 
@@ -272,7 +266,7 @@ namespace IFoxCAD.Cad
             {
                 Abort();
             }
-            
+
         }
 
         protected virtual void Dispose(bool disposing)

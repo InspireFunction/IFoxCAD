@@ -112,9 +112,9 @@ namespace IFoxCAD.Cad
             appkey.Close();
         }
 
-#endregion RegApp
+        #endregion RegApp
 
-#region IExtensionApplication 成员
+        #region IExtensionApplication 成员
 
         /// <summary>
         /// 初始化函数
@@ -126,6 +126,6 @@ namespace IFoxCAD.Cad
         /// </summary>
         public abstract void Terminate();
 
-#endregion IExtensionApplication 成员
+        #endregion IExtensionApplication 成员
     }
 }

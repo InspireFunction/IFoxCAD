@@ -13,6 +13,10 @@ namespace IFoxCAD.Cad
     /// </summary>
     public static class GeometryEx
     {
+        public static double DistanceTo(this Point2d pt1, Point2d PointV)
+        {
+            return pt1.GetDistanceTo(PointV);
+        }
 
         #region Point&Circle
 
@@ -50,12 +54,12 @@ namespace IFoxCAD.Cad
             foreach (var node in ptlst.GetNodes())
             {
                 var pt1 = node.Value;
-                var pt2 = node.Next.Value;
-                if (pt.Y < pt1.Y && pt.Y < pt2.Y)
+                var PointV = node.Next.Value;
+                if (pt.Y < pt1.Y && pt.Y < PointV.Y)
                     continue;
-                if (pt1.X < pt.X && pt2.X < pt.X)
+                if (pt1.X < pt.X && PointV.X < pt.X)
                     continue;
-                Vector2d vec = pt2 - pt1;
+                Vector2d vec = PointV - pt1;
                 double t = (pt.X - pt1.X) / vec.X;
                 double y = t * vec.Y + pt1.Y;
                 if (y < pt.Y && t >= 0 && t <= 1)
@@ -102,12 +106,12 @@ namespace IFoxCAD.Cad
             foreach (var node in ptlst.GetNodes())
             {
                 var pt1 = node.Value;
-                var pt2 = node.Next.Value;
-                if (pt.Y < pt1.Y && pt.Y < pt2.Y)
+                var PointV = node.Next.Value;
+                if (pt.Y < pt1.Y && pt.Y < PointV.Y)
                     continue;
-                if (pt1.X < pt.X && pt2.X < pt.X)
+                if (pt1.X < pt.X && PointV.X < pt.X)
                     continue;
-                Vector3d vec = pt2 - pt1;
+                Vector3d vec = PointV - pt1;
                 double t = (pt.X - pt1.X) / vec.X;
                 double y = t * vec.Y + pt1.Y;
                 if (y < pt.Y && t >= 0 && t <= 1)
@@ -122,17 +126,17 @@ namespace IFoxCAD.Cad
         /// 按两点返回最小包围圆
         /// </summary>
         /// <param name="pt1">基准点</param>
-        /// <param name="pt2">基准点</param>
+        /// <param name="PointV">基准点</param>
         /// <param name="ptlst">输出圆上的点</param>
         /// <returns>解析类圆对象</returns>
-        public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, out LoopList<Point2d> ptlst)
+        public static CircularArc2d GetMinCircle(Point2d pt1, Point2d PointV, out LoopList<Point2d> ptlst)
         {
-            ptlst = new LoopList<Point2d> { pt1, pt2 };
+            ptlst = new LoopList<Point2d> { pt1, PointV };
             return
                 new CircularArc2d
                 (
-                    (pt1 + pt2.GetAsVector()) / 2,
-                    pt1.GetDistanceTo(pt2) / 2
+                    (pt1 + PointV.GetAsVector()) / 2,
+                    pt1.DistanceTo(PointV) / 2
                 );
         }
 
@@ -140,14 +144,14 @@ namespace IFoxCAD.Cad
         /// 按三点返回最小包围圆
         /// </summary>
         /// <param name="pt1">基准点</param>
-        /// <param name="pt2">基准点</param>
+        /// <param name="PointV">基准点</param>
         /// <param name="pt3">基准点</param>
         /// <param name="ptlst">输出圆上的点</param>
         /// <returns>解析类圆对象</returns>
-        public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, Point2d pt3, out LoopList<Point2d> ptlst)
+        public static CircularArc2d GetMinCircle(Point2d pt1, Point2d PointV, Point2d pt3, out LoopList<Point2d> ptlst)
         {
             ptlst =
-                new LoopList<Point2d> { pt1, pt2, pt3 };
+                new LoopList<Point2d> { pt1, PointV, pt3 };
 
             //遍历各点与下一点的向量长度,找到距离最大的两个点
             double maxLength;
@@ -155,7 +159,7 @@ namespace IFoxCAD.Cad
                 ptlst.GetNodes().FindByMax
                 (
                     out maxLength,
-                    node => node.Value.GetDistanceTo(node.Next.Value)
+                    node => node.Value.DistanceTo(node.Next.Value)
                 );
 
             //以两点做最小包围圆
@@ -173,7 +177,7 @@ namespace IFoxCAD.Cad
 
             //否则按三点做圆
             ptlst.SetFirst(maxNode);
-            ca2d = new CircularArc2d(pt1, pt2, pt3);
+            ca2d = new CircularArc2d(pt1, PointV, pt3);
             ca2d.SetAngles(0, Math.PI * 2);
             return ca2d;
         }
@@ -182,15 +186,15 @@ namespace IFoxCAD.Cad
         /// 按四点返回最小包围圆
         /// </summary>
         /// <param name="pt1">基准点</param>
-        /// <param name="pt2">基准点</param>
+        /// <param name="PointV">基准点</param>
         /// <param name="pt3">基准点</param>
         /// <param name="pt4">基准点</param>
         /// <param name="ptlst">输出圆上的点</param>
         /// <returns>解析类圆对象</returns>
-        public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, Point2d pt3, Point2d pt4, out LoopList<Point2d> ptlst)
+        public static CircularArc2d GetMinCircle(Point2d pt1, Point2d PointV, Point2d pt3, Point2d pt4, out LoopList<Point2d> ptlst)
         {
             LoopList<Point2d> iniptlst =
-                new LoopList<Point2d> { pt1, pt2, pt3, pt4 };
+                new LoopList<Point2d> { pt1, PointV, pt3, pt4 };
 
             ptlst = null;
             CircularArc2d ca2d = null;
@@ -224,22 +228,22 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="ptBase">基准点</param>
         /// <param name="pt1">第一点</param>
-        /// <param name="pt2">第二点</param>
+        /// <param name="PointV">第二点</param>
         /// <returns>三点围成的三角形的有向面积</returns>
-        private static double CalArea(Point2d ptBase, Point2d pt1, Point2d pt2)
+        private static double CalArea(Point2d ptBase, Point2d pt1, Point2d PointV)
         {
-            return (pt2 - ptBase).DotProduct((pt1 - ptBase).GetPerpendicularVector()) / 2;
+            return (PointV - ptBase).DotProduct((pt1 - ptBase).GetPerpendicularVector()) / 2;
         }
         /// <summary>
         /// 计算三点围成的三角形的真实面积
         /// </summary>
         /// <param name="ptBase">基准点</param>
         /// <param name="pt1">第一点</param>
-        /// <param name="pt2">第二点</param>
+        /// <param name="PointV">第二点</param>
         /// <returns>三点围成的三角形的真实面积</returns>
-        public static double GetArea(this Point2d ptBase, Point2d pt1, Point2d pt2)
+        public static double GetArea(this Point2d ptBase, Point2d pt1, Point2d PointV)
         {
-            return Math.Abs(CalArea(ptBase, pt1, pt2));
+            return Math.Abs(CalArea(ptBase, pt1, PointV));
         }
 
         /// <summary>
@@ -247,12 +251,12 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="ptBase">基点</param>
         /// <param name="pt1">第一点</param>
-        /// <param name="pt2">第二点</param>
+        /// <param name="PointV">第二点</param>
         /// <returns>OrientationType 类型值</returns>
-        public static OrientationType IsClockWise(this Point2d ptBase, Point2d pt1, Point2d pt2)
+        public static OrientationType IsClockWise(this Point2d ptBase, Point2d pt1, Point2d PointV)
         {
 
-            return CalArea(ptBase, pt1, pt2) switch
+            return CalArea(ptBase, pt1, PointV) switch
             {
 
                 > 0 => OrientationType.CounterClockWise,
@@ -385,7 +389,7 @@ namespace IFoxCAD.Cad
             CircularArc2d ca2d = GetMinCircle(tpnts[0], tpnts[1], tpnts[2], out ptlst);
 
             //找到点集中距离圆心的最远点为第四点
-            tpnts[3] = pnts.FindByMax(pnt => ca2d.Center.GetDistanceTo(pnt));
+            tpnts[3] = pnts.FindByMax(pnt => ca2d.Center.DistanceTo(pnt));
 
             //如果最远点属于圆结束
             while (!ca2d.IsIn(tpnts[3]))
@@ -404,7 +408,7 @@ namespace IFoxCAD.Cad
                     //按算法中描述的任选其中一点的话,还是无法收敛......
                     tpnts[2] =
                         tpnts.Except(ptlst)
-                        .FindByMax(pnt => ca2d.Center.GetDistanceTo(pnt));
+                        .FindByMax(pnt => ca2d.Center.DistanceTo(pnt));
                 }
                 tpnts[0] = ptlst.First.Value;
                 tpnts[1] = ptlst.First.Next.Value;
@@ -413,7 +417,7 @@ namespace IFoxCAD.Cad
                 ca2d = GetMinCircle(tpnts[0], tpnts[1], tpnts[2], out ptlst);
 
                 //找到点集中圆心的最远点为第四点
-                tpnts[3] = pnts.FindByMax(pnt => ca2d.Center.GetDistanceTo(pnt));
+                tpnts[3] = pnts.FindByMax(pnt => ca2d.Center.DistanceTo(pnt));
             }
 
             return ca2d;
@@ -691,16 +695,16 @@ namespace IFoxCAD.Cad
         {
             return new Point3d(pt.X, pt.Y, 0);
         }
-        
+
         /// <summary>
         /// 获取两个点之间的中点
         /// </summary>
         /// <param name="pt1">第一点</param>
-        /// <param name="pt2">第二点</param>
+        /// <param name="PointV">第二点</param>
         /// <returns>返回两个点之间的中点</returns>
-        public static Point3d GetMidPointTo(this Point3d pt1, Point3d pt2)
+        public static Point3d GetMidPointTo(this Point3d pt1, Point3d PointV)
         {
-            return new Point3d((pt1.X + pt2.X) * 0.5, (pt1.Y + pt2.Y) * 0.5, (pt1.Z + pt2.Z) * 0.5);
+            return new Point3d((pt1.X + PointV.X) * 0.5, (pt1.Y + PointV.Y) * 0.5, (pt1.Z + PointV.Z) * 0.5);
         }
 
         /// <summary>

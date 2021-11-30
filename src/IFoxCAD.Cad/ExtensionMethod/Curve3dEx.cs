@@ -403,7 +403,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="ca3d">三维解析类圆/弧</param>
         /// <returns>实体圆</returns>
-        public static Circle ToCircle(this CircularArc3d ca3d) => 
+        public static Circle ToCircle(this CircularArc3d ca3d) =>
             new Circle(ca3d.Center, ca3d.Normal, ca3d.Radius);
 
         /// <summary>

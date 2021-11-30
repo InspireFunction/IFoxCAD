@@ -27,19 +27,19 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="btr">块表记录</param>
         /// <param name="entity">实体</param>
-        /// <param name="trans">事务管理器</param>
+        /// <param name="tr">事务管理器</param>
         /// <returns>对象 id</returns>
-        public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity, Transaction trans = null)
+        public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity, Transaction tr = null)
         {
             if (entity is null)
-                throw new ArgumentNullException(nameof(entity),"对象为 null");
+                throw new ArgumentNullException(nameof(entity), "对象为 null");
 
             ObjectId id;
-            trans ??= DBTrans.Top.Transaction;
+            tr ??= DBTrans.Top.Transaction;
             using (btr.ForWrite())
             {
                 id = btr.AppendEntity(entity);
-                trans.AddNewlyCreatedDBObject(entity, true);
+                tr.AddNewlyCreatedDBObject(entity, true);
             }
             return id;
         }
@@ -52,20 +52,19 @@ namespace IFoxCAD.Cad
         /// <param name="tr">事务</param>
         /// <param name="ents">实体集合</param>
         /// <returns>对象 id 列表</returns>
-        public static IEnumerable<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents, Transaction trans = null) where T : Entity
+        public static IEnumerable<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents, Transaction tr = null) where T : Entity
         {
-            if (ents.Any(ent => ent is null)) 
+            if (ents.Any(ent => ent is null))
                 throw new ArgumentNullException(nameof(ents), "实体集合内存在 null 对象");
 
-            trans ??= DBTrans.Top.Transaction;
+            tr ??= DBTrans.Top.Transaction;
             using (btr.ForWrite())
             {
                 return ents
                     .Select(
-                        ent =>
-                        {
+                        ent => {
                             ObjectId id = btr.AppendEntity(ent);
-                            trans.AddNewlyCreatedDBObject(ent, true);
+                            tr.AddNewlyCreatedDBObject(ent, true);
                             return id;
                         })
                     .ToList();
@@ -180,13 +179,13 @@ namespace IFoxCAD.Cad
         /// <returns>轻多段线id</returns>
         public static ObjectId AddPline(this BlockTableRecord btr, List<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,  Action<Polyline> action = default, Transaction trans = default)
         {
-           
+
             Polyline pl = new();
             pts.ForEach((i, vertex) =>
             {
                 pl.AddVertexAt(i, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
             });
-            
+
             return btr.AddEnt(pl, action, trans);
         }
 #endif
@@ -238,7 +237,7 @@ namespace IFoxCAD.Cad
         {
             string dxfName = RXClass.GetClass(typeof(T)).DxfName;
             return btr.Cast<ObjectId>()
-                .Where(id => id.ObjectClass.DxfName == dxfName);
+                .Where(id => id.ObjectClass().DxfName == dxfName);
         }
 
         /// <summary>
@@ -251,7 +250,7 @@ namespace IFoxCAD.Cad
             return
                 btr
                 .Cast<ObjectId>()
-                .GroupBy(id => id.ObjectClass.DxfName);
+                .GroupBy(id => id.ObjectClass().DxfName);
         }
 
         /// <summary>
@@ -306,9 +305,9 @@ namespace IFoxCAD.Cad
                                     ObjectId blockId,
                                     Scale3d scale = default,
                                     double rotation = default,
-                                    Dictionary<string, string> atts = default, Transaction trans = null)
+                                    Dictionary<string, string> atts = default, Transaction tr = null)
         {
-            trans ??= DBTrans.Top.Transaction;
+            tr ??= DBTrans.Top.Transaction;
             if (!DBTrans.Top.BlockTable.Has(blockId))
             {
                 DBTrans.Top.Editor.WriteMessage($"\n不存在名字为{DBTrans.Top.GetObject<BlockTableRecord>(blockId).Name}的块定义。");
@@ -335,12 +334,10 @@ namespace IFoxCAD.Cad
                         attref.Position = attdef.Position.TransformBy(blockref.BlockTransform);
                         attref.AdjustAlignment(DBTrans.Top.Database);
                         if (atts.ContainsKey(attdef.Tag))
-                        {
                             attref.TextString = atts[attdef.Tag];
-                        }
 
                         blockref.AttributeCollection.AppendAttribute(attref);
-                        trans.AddNewlyCreatedDBObject(attref, true);
+                        tr.AddNewlyCreatedDBObject(attref, true);
                     }
                 }
             }

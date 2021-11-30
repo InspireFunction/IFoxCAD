@@ -183,7 +183,7 @@ namespace IFoxCAD.Cad
         /// <returns>实体类构造线</returns>
         public static Xline ToCurve(this Line2d line2d)
         {
-            Plane plane = new Plane();
+            var plane = new Plane();
             return
                 new Xline
                 {

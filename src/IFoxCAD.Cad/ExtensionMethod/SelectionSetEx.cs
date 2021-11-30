@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace IFoxCAD.Cad
 {
-    
+
     /// <summary>
     /// 选择集扩展类
     /// </summary>
@@ -47,7 +47,7 @@ namespace IFoxCAD.Cad
             return
                 ss
                 .GetObjectIds()
-                .Where(id => id.ObjectClass.DxfName == dxfName);
+                .Where(id => id.ObjectClass().DxfName == dxfName);
         }
 
         /// <summary>
@@ -60,7 +60,7 @@ namespace IFoxCAD.Cad
             return
                 ss
                 .GetObjectIds()
-                .GroupBy(id => id.ObjectClass.DxfName);
+                .GroupBy(id => id.ObjectClass().DxfName);
         }
         #endregion
 
@@ -74,14 +74,14 @@ namespace IFoxCAD.Cad
         /// <param name="tr">事务</param>
         /// <param name="openMode">打开模式</param>
         /// <returns>图元集合</returns>
-        public static IEnumerable<T> GetEntities<T>(this SelectionSet ss, OpenMode openMode=OpenMode.ForRead, Transaction tr = default) where T : Entity
+        public static IEnumerable<T> GetEntities<T>(this SelectionSet ss, OpenMode openMode = OpenMode.ForRead, Transaction tr = default) where T : Entity
         {
             return
                 ss
                 .GetObjectIds()
                 .Select(id => tr.GetObject(id, openMode) as T);
         }
-       
+
         #endregion
 
         #region ForEach

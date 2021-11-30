@@ -1,14 +1,14 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq; 
+using System.Linq;
 using Autodesk.AutoCAD.DatabaseServices;
 namespace IFoxCAD.Cad
 {
-    public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId> 
-        where TTable : SymbolTable 
+    public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
+        where TTable : SymbolTable
         where TRecord : SymbolTableRecord, new()
-    { 
+    {
         #region 程序集内部属性
         /// <summary>
         /// 事务管理器
@@ -50,7 +50,7 @@ namespace IFoxCAD.Cad
         /// <returns>对象的id</returns>
         public ObjectId this[string key]
         {
-            get 
+            get
             {
                 if (Has(key))
                 {
@@ -146,7 +146,7 @@ namespace IFoxCAD.Cad
             {
                 Remove(record);
             }
-            
+
         }
         /// <summary>
         /// 删除符号表记录
@@ -273,7 +273,7 @@ namespace IFoxCAD.Cad
             {
                 ObjectId id = table[name];
                 using IdMapping idm = new();
-                using (ObjectIdCollection ids = new(){ id })
+                using (ObjectIdCollection ids = new() { id })
                 {
                     table.Database.WblockCloneObjects(ids, CurrentSymbolTable.Id, idm, DuplicateRecordCloning.Replace, false);
                 }

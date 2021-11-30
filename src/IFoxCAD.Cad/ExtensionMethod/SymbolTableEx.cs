@@ -51,8 +51,7 @@ namespace IFoxCAD.Cad
         {
             if (table.Has(Oldname))
             {
-                table.Change(Oldname, ly =>
-                {
+                table.Change(Oldname, ly => {
                     ly.Name = NewName;
                 }
                 );
@@ -102,8 +101,7 @@ namespace IFoxCAD.Cad
         /// TODO: 需要测试匿名块等特殊的块是否能定义
         public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name, Action<BlockTableRecord> action = null, Func<IEnumerable<Entity>> ents = null, Func<IEnumerable<AttributeDefinition>> attdef = null)
         {
-            return table.Add(name, btr =>
-            {
+            return table.Add(name, btr => {
                 action?.Invoke(btr);
                 if (ents is not null)
                 {
@@ -206,8 +204,7 @@ namespace IFoxCAD.Cad
         {
             return table.Add(
                 name,
-                ltt =>
-                {
+                ltt => {
                     ltt.AsciiDescription = description;
                     ltt.PatternLength = length; //线型的总长度
                     ltt.NumDashes = dash.Length; //组成线型的笔画数目
@@ -238,8 +235,7 @@ namespace IFoxCAD.Cad
             return
                 table.Add(
                     textStyleName,
-                    tstr =>
-                    {
+                    tstr => {
                         tstr.Name = textStyleName;
                         tstr.FileName = font;
                         tstr.XScale = xscale;

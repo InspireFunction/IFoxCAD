@@ -1,24 +1,17 @@
 ﻿using System;
-
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Diagnostics;
-using System.Collections;
+using System.IO;
 
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.EditorInput;
 using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Internal;
+using Autodesk.AutoCAD.Colors;
 
 using IFoxCAD.Cad;
-using Autodesk.AutoCAD.Colors;
-using IFoxCAD.WPF;
 using test.wpf;
-using System.IO;
 
 namespace test
 {
@@ -45,7 +38,7 @@ namespace test
             Circle circle = new(new Point3d(0, 0, 0), Vector3d.ZAxis, 2);
             //var lienid = tr.AddEntity(line);
             //var cirid = tr.AddEntity(circle);
-            //var linent = tr.GetObject<Line>(lienid); 
+            //var linent = tr.GetObject<Line>(lienid);
             //var lineent = tr.GetObject<Circle>(cirid);
             //var linee = tr.GetObject<Line>(cirid); //经测试，类型不匹配，返回null
             //var dd = tr.GetObject<Circle>(lienid);
@@ -70,8 +63,8 @@ namespace test
         {
             using var tr = new DBTrans();
             Arc arc1 = EntityEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));//起点，圆心，终点
-            Arc arc2 = EntityEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);//起点，圆心，弧度
-            Arc arc3 = EntityEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));//起点，圆上一点，终点
+            Arc arc2 = EntityEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);            //起点，圆心，弧度
+            Arc arc3 = EntityEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));   //起点，圆上一点，终点
             tr.CurrentSpace.AddEntity(arc1, arc2, arc3);
             tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));//起点，圆上一点，终点
         }
@@ -80,7 +73,7 @@ namespace test
         public void draCircle()
         {
             using var tr = new DBTrans();
-            Circle circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));//起点，终点
+            Circle circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));                       //起点，终点
             Circle circle2 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(2, 0, 0), new Point3d(0, 2, 0));//三点画圆，成功
             Circle circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0));//起点，圆心，终点，失败
             tr.CurrentSpace.AddEntity(circle1, circle2);
@@ -102,16 +95,14 @@ namespace test
         {
             using var tr = new DBTrans();
             tr.LayerTable.Add("1");
-            tr.LayerTable.Add("2", lt =>
-            {
-                lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 1);
+            tr.LayerTable.Add("2", lt => {
+                lt.Color      = Color.FromColorIndex(ColorMethod.ByColor, 1);
                 lt.LineWeight = LineWeight.LineWeight030;
 
             });
             tr.LayerTable.Remove("3");
             tr.LayerTable.Delete("0");
-            tr.LayerTable.Change("4", lt =>
-            {
+            tr.LayerTable.Change("4", lt => {
                 lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 2);
             });
         }
@@ -138,11 +129,11 @@ namespace test
         public void LayerDel()
         {
             using var tr = new DBTrans();
-            Env.Editor.WriteMessage(tr.LayerTable.Delete("0").ToString()); //删除图层 0
+            Env.Editor.WriteMessage(tr.LayerTable.Delete("0").ToString());        //删除图层 0
             Env.Editor.WriteMessage(tr.LayerTable.Delete("Defpoints").ToString());//删除图层 Defpoints
-            Env.Editor.WriteMessage(tr.LayerTable.Delete("1").ToString());//删除不存在的图层 1
-            Env.Editor.WriteMessage(tr.LayerTable.Delete("2").ToString());//删除有图元的图层 2
-            Env.Editor.WriteMessage(tr.LayerTable.Delete("3").ToString());//删除图层 3
+            Env.Editor.WriteMessage(tr.LayerTable.Delete("1").ToString());        //删除不存在的图层 1
+            Env.Editor.WriteMessage(tr.LayerTable.Delete("2").ToString());        //删除有图元的图层 2
+            Env.Editor.WriteMessage(tr.LayerTable.Delete("3").ToString());        //删除图层 3
 
             tr.LayerTable.Remove("2"); //测试是否能强制删除
         }
@@ -213,8 +204,7 @@ namespace test
             using var tr = new DBTrans();
             //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
             tr.BlockTable.Add("test",
-                btr =>
-                {
+                btr => {
                     btr.Origin = new Point3d(0, 0, 0);
                 },
                 () => //图元
@@ -237,8 +227,7 @@ namespace test
         {
             using var tr = new DBTrans();
             //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-            tr.BlockTable.Change("test", btr =>
-            {
+            tr.BlockTable.Change("test", btr => {
                 btr.Origin = new Point3d(5, 5, 0);
                 btr.AddEntity(new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 2));
                 btr.GetEntities<BlockReference>()
@@ -280,7 +269,7 @@ namespace test
                 { "tagTest3", "1" },
                 { "tagTest4", "" }
             };
-            tr.CurrentSpace.InsertBlock(new Point3d(10,10, 0), "test2", atts: def2);
+            tr.CurrentSpace.InsertBlock(new Point3d(10, 10, 0), "test2", atts: def2);
         }
 
 
@@ -289,8 +278,7 @@ namespace test
         {
             using var tr = new DBTrans();
             tr.BlockTable.Add("test1",
-                btr =>
-                {
+                btr => {
                     btr.Origin = new Point3d(0, 0, 0);
                     btr.AddEntity(new Line(new Point3d(0, 0, 0), new Point3d(10, 10, 0)),
                         new Line(new Point3d(10, 10, 0), new Point3d(10, 0, 0))
@@ -305,7 +293,7 @@ namespace test
 
             var id1 = tr.CurrentSpace.InsertBlock(new Point3d(20, 20, 0), "test1");
             var bref1 = tr.GetObject<BlockReference>(id);
-            
+
             bref1.ClipBlockRef(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
         }
 

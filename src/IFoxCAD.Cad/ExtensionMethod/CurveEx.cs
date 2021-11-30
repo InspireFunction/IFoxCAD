@@ -644,7 +644,7 @@ namespace IFoxCAD.Cad
         public static NurbCurve3d ToNurbCurve3d(this Arc arc)
         {
             return new NurbCurve3d(ToEllipticalArc3d(arc));
-        } 
+        }
 
         #endregion Arc
 
@@ -780,14 +780,11 @@ namespace IFoxCAD.Cad
         /// <returns>三维ge多段线</returns>
         public static PolylineCurve3d ToPolylineCurve3d(this Polyline2d pl)
         {
-            Point3dCollection pnts = new Point3dCollection();
+            var pnts = new Point3dCollection();
             foreach (Vertex2d ver in pl)
-            {
                 pnts.Add(ver.Position);
-            }
             return new PolylineCurve3d(pnts);
         }
-
         #endregion Polyline2d
 
         #region Polyline3d
@@ -912,16 +909,16 @@ namespace IFoxCAD.Cad
             if (index < 1 || index > polyline.NumberOfVertices - 2)
                 throw new System.Exception("错误的索引号");
 
-            if (polyline.GetSegmentType(index - 1) != SegmentType.Line || polyline.GetSegmentType(index) != SegmentType.Line)
+            if (polyline.GetSegmentType(index - 1) != SegmentType.Line ||
+                polyline.GetSegmentType(index) != SegmentType.Line)
                 throw new System.Exception("非直线段不能倒角");
 
             //获取当前索引号的前后两段直线,并组合为Ge复合曲线
-            Curve3d[] c3ds =
-                new Curve3d[]
-                    {
-                        polyline.GetLineSegmentAt(index - 1),
-                        polyline.GetLineSegmentAt(index)
-                    };
+            var c3ds = new Curve3d[]
+            {
+                polyline.GetLineSegmentAt(index - 1),
+                polyline.GetLineSegmentAt(index)
+            };
             var cc3d = new CompositeCurve3d(c3ds);
 
             //试倒直角
@@ -929,31 +926,26 @@ namespace IFoxCAD.Cad
             //1、=3时倒角方向正确
             //2、=2时倒角方向相反
             //3、=0或为直线时失败
-            c3ds =
-                cc3d.GetTrimmedOffset
-                (
-                    radius,
-                    Vector3d.ZAxis,
-                    OffsetCurveExtensionType.Chamfer
-                );
+            c3ds = cc3d.GetTrimmedOffset
+            (
+                radius,
+                Vector3d.ZAxis,
+                OffsetCurveExtensionType.Chamfer
+            );
 
-            if (c3ds.Length > 0 && c3ds[0] is CompositeCurve3d)
+            if (c3ds.Length > 0 && c3ds[0] is CompositeCurve3d newcc3d)
             {
-                var newcc3d = c3ds[0] as CompositeCurve3d;
                 c3ds = newcc3d.GetCurves();
                 if (c3ds.Length == 3)
                 {
-                    c3ds =
-                        cc3d.GetTrimmedOffset
-                        (
-                            -radius,
-                            Vector3d.ZAxis,
-                            OffsetCurveExtensionType.Chamfer
-                        );
+                    c3ds = cc3d.GetTrimmedOffset
+                    (
+                        -radius,
+                        Vector3d.ZAxis,
+                        OffsetCurveExtensionType.Chamfer
+                    );
                     if (c3ds.Length == 0 || c3ds[0] is LineSegment3d)
-                    {
                         throw new System.Exception("倒角半径过大");
-                    }
                 }
                 else if (c3ds.Length == 2)
                 {
@@ -966,26 +958,22 @@ namespace IFoxCAD.Cad
             }
 
             //GetTrimmedOffset会生成倒角+偏移，故先反方向倒角,再倒回
-            c3ds =
-                cc3d.GetTrimmedOffset
-                (
-                    -radius,
-                    Vector3d.ZAxis,
-                    OffsetCurveExtensionType.Extend
-                );
-            OffsetCurveExtensionType type =
-                isFillet ?
-                OffsetCurveExtensionType.Fillet : OffsetCurveExtensionType.Chamfer;
-            c3ds =
-                c3ds[0].GetTrimmedOffset
-                (
-                    radius,
-                    Vector3d.ZAxis,
-                    type
-                );
+            c3ds = cc3d.GetTrimmedOffset
+            (
+                -radius,
+                Vector3d.ZAxis,
+                OffsetCurveExtensionType.Extend
+            );
+            var type = isFillet ? OffsetCurveExtensionType.Fillet : OffsetCurveExtensionType.Chamfer;
+            c3ds = c3ds[0].GetTrimmedOffset
+            (
+                radius,
+                Vector3d.ZAxis,
+                type
+            );
 
             //将结果Ge曲线转为Db曲线,并将相关的数值反映到原曲线
-            Polyline plTemp = c3ds[0].ToCurve() as Polyline;
+            var plTemp = c3ds[0].ToCurve() as Polyline;
             polyline.RemoveVertexAt(index);
             polyline.AddVertexAt(index, plTemp.GetPoint2dAt(1), plTemp.GetBulgeAt(1), 0, 0);
             polyline.AddVertexAt(index + 1, plTemp.GetPoint2dAt(2), 0, 0, 0);

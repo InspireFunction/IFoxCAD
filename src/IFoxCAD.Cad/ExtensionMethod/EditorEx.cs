@@ -516,7 +516,7 @@ namespace IFoxCAD.Cad
                 (CoordinateSystemCode.MDcs, CoordinateSystemCode.Ucs) => editor.GetMatrixFromMDcsToWcs() * editor.GetMatrixFromWcsToUcs(),
                 (CoordinateSystemCode.MDcs, CoordinateSystemCode.PDcs) => editor.GetMatrixFromMDcsToPDcs(),
                 (CoordinateSystemCode.PDcs, CoordinateSystemCode.MDcs) => editor.GetMatrixFromPDcsToMDcs(),
-                (CoordinateSystemCode.PDcs, CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs) 
+                (CoordinateSystemCode.PDcs, CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs)
                 or (CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs, CoordinateSystemCode.PDcs) => throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.InvalidInput,"To be used only with DCS"),
                 (_, _) => Matrix3d.Identity
             };
@@ -624,7 +624,7 @@ namespace IFoxCAD.Cad
         /// <param name="offsetDist">偏移距离</param>
         public static void ZoomExtents(this Editor ed, double offsetDist = 0.00)
         {
-            Database db = ed.Document.Database;
+            var db = ed.Document.Database;
             db.UpdateExt(true);
             ed.ZoomWindow(db.Extmax, db.Extmin, offsetDist);
         }
@@ -737,22 +737,16 @@ namespace IFoxCAD.Cad
         /// <returns>缓冲结果,返回值</returns>
         public static ResultBuffer RunLisp(this Editor ed, string arg)
         {
-            _ = AcedEvaluateLisp(arg, out IntPtr rb);
-            if (rb != IntPtr.Zero)
+            AcedEvaluateLisp(arg, out IntPtr rb);
+            try
             {
-                try
-                {
-                    var rbb = DisposableWrapper.Create(typeof(ResultBuffer), rb, true) as ResultBuffer;
-                    return rbb;
-                }
-                catch
-                {
-                    return null;
-                }
+                if (rb != IntPtr.Zero)
+                    return DisposableWrapper.Create(typeof(ResultBuffer), rb, true) as ResultBuffer;
             }
+            catch
+            { }
             return null;
         }
-
         #endregion 执行lisp
     }
 }

@@ -16,7 +16,7 @@ namespace IFoxCAD.Cad
         }
 
         public XDataList(IEnumerable<TypedValue> values) : base(values) { }
-        
+
         #region 添加数据
         /// <summary>
         /// 添加数据

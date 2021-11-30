@@ -1,15 +1,24 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
     <PropertyGroup>
-        <TargetFramework>net45</TargetFramework>
+        <!--永远支持最新语法 preview,默认是latestMajor-->
+        <LangVersion>preview</LangVersion>
+        <!--版本号迭代-->
+        <AssemblyVersion>1.0.0.*</AssemblyVersion>
+        <FileVersion>1.0.0.0</FileVersion>
+        <Deterministic>False</Deterministic>
+        <RepositoryType>git</RepositoryType>
+
+        <!--<TargetFrameworks>NET35;NET40;NET45;NET46;NET47;NET48</TargetFrameworks>-->
+        <TargetFrameworks>NET45;NET46;NET47;NET48</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
-        <LangVersion>preview</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Cad.csproj" />
         <ProjectReference Include="..\..\src\IFoxCAD.WPF\IFoxCAD.WPF.csproj" />
     </ItemGroup>
+
 
 </Project>

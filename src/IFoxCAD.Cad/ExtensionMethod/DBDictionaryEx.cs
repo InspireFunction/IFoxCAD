@@ -55,16 +55,16 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <typeparam name="T">对象类型</typeparam>
         /// <param name="dict">字典</param>
-        /// <param name="trans">事务</param>
+        /// <param name="tr">事务</param>
         /// <param name="key">键</param>
         /// <param name="obj">值</param>
-        public static void SetAt<T>(this DBDictionary dict, string key, T obj, Transaction trans = null) where T : DBObject
+        public static void SetAt<T>(this DBDictionary dict, string key, T obj, Transaction tr = null) where T : DBObject
         {
-            trans ??= DBTrans.Top.Transaction;
+            tr ??= DBTrans.Top.Transaction;
             using (dict.ForWrite())
             {
                 dict.SetAt(key, obj);
-                trans.AddNewlyCreatedDBObject(obj, true);
+                tr.AddNewlyCreatedDBObject(obj, true);
             }
         }
 
@@ -116,7 +116,7 @@ namespace IFoxCAD.Cad
 
                 id = obj.ExtensionDictionary;
             }
-            return id.GetObject<DBDictionary>(tr:trans);
+            return id.GetObject<DBDictionary>(tr: trans);
         }
 
         #region 数据表
@@ -158,8 +158,8 @@ namespace IFoxCAD.Cad
         /// <param name="value">数据</param>
         public static void SetValue(this DataCell cell, CellType type, object value)
         {
-            
-           
+
+
             switch (type)
             {
                 case CellType.Bool:

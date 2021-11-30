@@ -1,5 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
-
+﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFrameworks>net35;net40</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
@@ -22,12 +21,10 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
-        <PackageReference Include="Autocad.NetApi" Version="17.2.0">
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </PackageReference>
+        <PackageReference Include="JJBox.Acad2008" Version="1.0.0" ExcludeAssets="runtime" />
     </ItemGroup>
     <ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
-        <PackageReference Include="Autocad.NetApi" Version="19.0.0">
+        <PackageReference Include="JJBox.Acad2013" Version="1.0.0">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
         <PackageReference Include="System.ValueTuple" Version="4.5.0" />
@@ -42,8 +39,8 @@
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
         <DefineConstants>$(Configuration);ac2013</DefineConstants>
     </PropertyGroup>
-    
-    
+
+
     <ItemGroup>
       <None Include="..\..\LICENSE">
         <Pack>True</Pack>

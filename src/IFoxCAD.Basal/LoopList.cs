@@ -496,9 +496,7 @@ namespace IFoxCAD.Collections
         {
             string s = "( ";
             foreach (T value in this)
-            {
                 s += value.ToString() + " ";
-            }
             return s + ")";
         }
 
