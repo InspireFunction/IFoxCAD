@@ -398,3 +398,4 @@ ASALocalRun/
 # BeatPulse healthcheck temp database 
 # BeatPulse healthcheck ÁÙÊ±Êı¾İ¿â
 healthchecksdb
+*.DS_Store
