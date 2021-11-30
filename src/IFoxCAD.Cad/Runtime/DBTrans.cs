@@ -244,6 +244,16 @@ namespace IFoxCAD.Cad
             return Transaction.GetObject(id, mode, openErased, forceOpenOnLockedLayer) as T;
         }
 
+        /// <summary>
+        /// 根据对象句柄字符串获取对象Id
+        /// </summary>
+        /// <param name="handleString">句柄字符串</param>
+        /// <returns>对象id</returns>
+        public ObjectId GetObjectId(string handleString)
+        {
+            var hanle = new Handle(Convert.ToInt64(handleString, 16));
+            return Database.GetObjectId(false, hanle, 0);
+        }
 
         #endregion
 

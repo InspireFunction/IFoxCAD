@@ -1,5 +1,7 @@
 ﻿using IFoxCAD.Cad;
 using Autodesk.AutoCAD.Runtime;
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.DatabaseServices;
 
 namespace test
 {
@@ -55,5 +57,15 @@ namespace test
 
         }
 
+        [CommandMethod("testzoom")]
+        public void testzoom()
+        {
+            using var tr = new DBTrans();
+            var res = Env.Editor.GetEntity("\npick ent:");
+            if (res.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK)
+            {
+                Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>());
+            }
+        }
     }
 }
