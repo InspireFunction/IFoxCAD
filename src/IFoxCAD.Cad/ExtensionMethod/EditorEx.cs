@@ -617,6 +617,29 @@ namespace IFoxCAD.Cad
             ed.Zoom(lpt + ver / 2, ver.X, ver.Y);
         }
 
+        
+        /// <summary>
+        /// 获取有效的数据库范围
+        /// </summary>
+        /// <param name="db">数据库</param>
+        /// <param name="dbExtent">范围</param>
+        /// <returns>数据库没有图元返回 true, 反之返回 false</returns>
+        public static bool GetValidExtents3d(this Database db, out Extents3d dbExtent)
+        {
+            dbExtent = new Extents3d(Point3d.Origin, new Point3d(1, 1, 0));
+            //数据库没有图元的时候,min是大,max是小,导致新建出错
+            var a = db.Extmin;
+            var b = db.Extmax;
+            var ve = new Vector3d(1, 1, 0);
+            if (!(a.X == 1E20 && a.Y == 1E20 && a.Z == 1E20 &&
+                  b.X == -1E20 && b.Y == -1E20 && b.Z == -1E20))
+            {
+                dbExtent = new Extents3d(db.Extmin - ve, db.Extmax + ve);
+                return true;
+            }
+            return false;
+        }
+
         /// <summary>
         /// 动态缩放
         /// </summary>
@@ -626,6 +649,12 @@ namespace IFoxCAD.Cad
         {
             Database db = ed.Document.Database;
             db.UpdateExt(true);
+
+            if (db.GetValidExtents3d(out Extents3d extents3D) == true)
+            {
+                ed.ZoomWindow(extents3D.MinPoint, extents3D.MinPoint, offsetDist);
+                return;
+            }
             ed.ZoomWindow(db.Extmax, db.Extmin, offsetDist);
         }
 
@@ -638,7 +667,7 @@ namespace IFoxCAD.Cad
         public static void ZoomObject(this Editor ed, Entity ent, double offsetDist = 0.00)
         {
             Extents3d ext = ent.GeometricExtents;
-            ed.ZoomWindow(ext.MinPoint, ext.MinPoint, offsetDist);
+            ed.ZoomWindow(ext.MinPoint, ext.MaxPoint, offsetDist);
         }
 
         #endregion
