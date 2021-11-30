@@ -105,14 +105,24 @@ namespace IFoxCAD.Cad
             return table.Add(name, btr =>
             {
                 action?.Invoke(btr);
-                if (ents is not null)
+                var entsres = ents?.Invoke();
+                if (entsres != null)
                 {
-                    btr.AddEntity(ents?.Invoke());
+                    btr.AddEntity(entsres);
                 }
-                if (attdef is not null)
+                var adddefres = attdef?.Invoke();
+                if (adddefres != null)
                 {
-                    btr.AddEntity(attdef?.Invoke());
+                    btr.AddEntity(adddefres);
                 }
+                //if (ents is not null)
+                //{
+                //    btr.AddEntity(ents?.Invoke());
+                //}
+                //if (attdef is not null)
+                //{
+                //    btr.AddEntity(attdef?.Invoke());
+                //}
             });
         }
         /// <summary>
