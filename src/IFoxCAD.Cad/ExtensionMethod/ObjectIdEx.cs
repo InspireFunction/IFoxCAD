@@ -55,6 +55,14 @@ namespace IFoxCAD.Cad
                 .Where(id => id.ObjectClass.DxfName == dxfName);
         }
         #endregion GetObject
-
+        /// <summary>
+        /// id是否有效,未被删除
+        /// </summary>
+        /// <param name="id">对象id</param>
+        /// <returns>id有效返回 <see langword="true"/>，反之返回 <see langword="false"/></returns>
+        public static bool IsOk(this ObjectId id)
+        {
+            return !id.IsNull && id.IsValid && !id.IsErased && !id.IsEffectivelyErased && id.IsResident;
+        }
     }
 }
