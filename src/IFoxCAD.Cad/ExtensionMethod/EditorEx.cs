@@ -638,7 +638,7 @@ namespace IFoxCAD.Cad
         public static void ZoomObject(this Editor ed, Entity ent, double offsetDist = 0.00)
         {
             Extents3d ext = ent.GeometricExtents;
-            ed.ZoomWindow(ext.MinPoint, ext.MinPoint, offsetDist);
+            ed.ZoomWindow(ext.MinPoint, ext.MaxPoint, offsetDist);
         }
 
         #endregion
