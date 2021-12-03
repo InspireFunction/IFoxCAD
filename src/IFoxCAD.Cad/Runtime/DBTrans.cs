@@ -123,6 +123,18 @@ public class DBTrans : IDisposable
 
     #endregion
 
+    #region 类型转换
+    /// <summary>
+    /// 隐式转换为Transaction
+    /// </summary>
+    /// <param name="tr">事务管理器</param>
+    /// <returns>事务管理器</returns>
+    public static implicit operator Transaction(DBTrans tr)
+    {
+        return tr.Transaction;
+    }
+    #endregion
+
     #region 符号表
 
     /// <summary>
@@ -275,8 +287,6 @@ public class DBTrans : IDisposable
 
 
     #endregion
-
-
 
     #region idispose接口相关函数
 
