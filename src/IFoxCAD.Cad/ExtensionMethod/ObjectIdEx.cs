@@ -24,6 +24,7 @@ namespace IFoxCAD.Cad
         public static T GetObject<T>(this ObjectId id, OpenMode mode = OpenMode.ForRead, bool openErased = false, Transaction tr = default) where T : DBObject
         {
             tr ??= DBTrans.Top.Transaction;
+            //tr = Env.GetTrans(tr);
             return tr.GetObject(id, mode, openErased) as T;
         }
 
@@ -63,6 +64,21 @@ namespace IFoxCAD.Cad
         public static bool IsOk(this ObjectId id)
         {
             return !id.IsNull && id.IsValid && !id.IsErased && !id.IsEffectivelyErased && id.IsResident;
+        }
+        /// <summary>
+        /// 删除id代表的对象
+        /// </summary>
+        /// <param name="id">对象id</param>
+        public static void Erase(this ObjectId id)
+        {
+            if (id.IsOk())
+            {
+                var ent = id.GetObject<DBObject>();
+                using (ent.ForWrite())
+                {
+                    ent.Erase();
+                }// 第一种读写权限自动转换写法
+            } 
         }
     }
 }
