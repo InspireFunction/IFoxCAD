@@ -102,7 +102,14 @@ public class DBTrans : IDisposable
     public DBTrans(string fileName, bool commit = true)
     {
         Database = new Database(false, true);
-        Database.ReadDwgFile(fileName, FileShare.Read, true, null);
+        if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
+        {
+            Database.DxfIn(fileName, null);
+        }
+        else
+        {
+            Database.ReadDwgFile(fileName, FileShare.Read, true, null);
+        }
         Database.CloseInput(true);
         Init(commit, false);
     }
