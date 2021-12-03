@@ -310,6 +310,7 @@ public class DBTrans : IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
+        Transaction.TransactionManager.QueueForGraphicsFlush();
         if (!disposedValue)
         {
             if (disposing)
