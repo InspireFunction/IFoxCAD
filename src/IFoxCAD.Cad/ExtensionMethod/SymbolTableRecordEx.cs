@@ -157,16 +157,16 @@ public static class SymbolTableRecordEx
         return btr.AddEnt(pl, action, trans);
     }
 
-#if ac2013
-        /// <summary>
-        /// 在指定的绘图空间添加轻多段线
-        /// </summary>
-        /// <param name="btr">绘图空间</param>
-        /// <param name="pts">端点表,利用元组(Point3d pt, double bulge, double startWidth, double endWidth)</param>
-        /// <param name="action">轻多段线属性设置委托</param>
-        /// <param name="trans">事务管理器</param>
-        /// <returns>轻多段线id</returns>
-        public static ObjectId AddPline(this BlockTableRecord btr, List<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,  Action<Polyline> action = default, Transaction trans = default)
+
+    /// <summary>
+    /// 在指定的绘图空间添加轻多段线
+    /// </summary>
+    /// <param name="btr">绘图空间</param>
+    /// <param name="pts">端点表,利用元组(Point3d pt, double bulge, double startWidth, double endWidth)</param>
+    /// <param name="action">轻多段线属性设置委托</param>
+    /// <param name="trans">事务管理器</param>
+    /// <returns>轻多段线id</returns>
+    public static ObjectId AddPline(this BlockTableRecord btr, List<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,  Action<Polyline> action = default, Transaction trans = default)
         {
            
             Polyline pl = new();
@@ -177,7 +177,7 @@ public static class SymbolTableRecordEx
             
             return btr.AddEnt(pl, action, trans);
         }
-#endif
+
 
 
     /// <summary>

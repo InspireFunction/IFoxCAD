@@ -1,6 +1,6 @@
 ﻿namespace IFoxCAD.Cad;
 
-using IFoxCAD.Collections;
+using IFoxCAD.Basal;
 /// <summary>
 /// 实体类曲线扩展类
 /// </summary>
