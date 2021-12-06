@@ -1,9 +1,3 @@
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.GraphicsSystem;
-using System;
-
 namespace IFoxCAD.Cad;
 
 /// <summary>
