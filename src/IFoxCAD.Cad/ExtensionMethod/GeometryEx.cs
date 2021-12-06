@@ -1,9 +1,7 @@
 ﻿namespace IFoxCAD.Cad;
 
 using System.Drawing;
-
-using IFoxCAD.Collections;
-using IFoxCAD.Linq;
+using IFoxCAD.Basal;
 /// <summary>
 /// 图形扩展类
 /// </summary>

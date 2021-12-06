@@ -1,3 +1,5 @@
+using Autodesk.AutoCAD.GraphicsSystem;
+
 namespace IFoxCAD.Cad;
 
 /// <summary>

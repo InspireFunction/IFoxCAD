@@ -6,7 +6,7 @@
         <UseWindowsForms>true</UseWindowsForms>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <Version>0.1.0</Version>
+        <Version>0.2.0</Version>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Company>InspireFunction</Company>
         <Description>WPF的简单MVVM模式开发类库</Description>
@@ -16,7 +16,7 @@
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <PackageTags>IFoxCAD;C#;NET;WPF;MVVM</PackageTags>
         <RepositoryType>git</RepositoryType>
-        <PackageReleaseNotes>基于NFOX类库的重构版本</PackageReleaseNotes>
+        <PackageReleaseNotes>增加c#10语法相关内容.</PackageReleaseNotes>
         <LangVersion>preview</LangVersion>
     </PropertyGroup>
 
