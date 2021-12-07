@@ -87,6 +87,23 @@ public static class SymbolTableRecordEx
         action?.Invoke(ent);
         return btr.AddEntity(ent, trans);
     }
+    /// <summary>
+    /// 委托式的添加图元
+    /// </summary>
+    /// <param name="btr">块表</param>
+    /// <param name="action">返回图元的委托</param>
+    /// <param name="transaction">事务</param>
+    /// <returns>图元id，如果委托返回 null，则为 ObjectId.Null</returns>
+    public static ObjectId AddEnt(this BlockTableRecord btr, Func<Entity> action, Transaction transaction)
+    {
+        transaction ??= DBTrans.Top.Transaction;
+        var ent = action?.Invoke();
+        if (ent == null)
+        {
+            return ObjectId.Null;
+        }
+        return btr.AddEntity(ent, transaction);
+    }
 
     /// <summary>
     /// 在指定绘图空间添加直线
