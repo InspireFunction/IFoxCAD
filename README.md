@@ -6,7 +6,7 @@
 
 可以加群交流：
 
-![ifoxcad用户交流群群二维码](/Users/vic/Downloads/ifoxcad用户交流群群二维码.png)
+![ifoxcad用户交流群群二维码](./docs/ifoxcad用户交流群群二维码.png)
 
 #### 软件架构及相关说明
 
