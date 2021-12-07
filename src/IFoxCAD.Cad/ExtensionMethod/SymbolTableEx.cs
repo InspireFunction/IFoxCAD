@@ -232,7 +232,10 @@ public static class SymbolTableEx
     /// <param name="font">字体名</param>
     /// <param name="xscale">宽度比例</param>
     /// <returns>文字样式Id</returns>
-    public static ObjectId Add(this SymbolTable<TextStyleTable, TextStyleTableRecord> table, string textStyleName, string font, double xscale)
+    public static ObjectId Add(this SymbolTable<TextStyleTable, TextStyleTableRecord> table,
+                               string textStyleName,
+                               string font,
+                               double xscale = 1.0)
     {
         return
             table.Add(
@@ -244,6 +247,62 @@ public static class SymbolTableEx
                     tstr.XScale = xscale;
                 });
     }
+    /// <summary>
+    /// 添加文字样式记录
+    /// </summary>
+    /// <param name="table">文字样式表</param>
+    /// <param name="textStyleName">文字样式名</param>
+    /// <param name="fontTTF">字体名枚举</param>
+    /// <param name="xscale">宽度比例</param>
+    /// <returns>文字样式Id</returns>
+    public static ObjectId Add(this SymbolTable<TextStyleTable,TextStyleTableRecord> table, string textStyleName, FontTTF fontTTF, double xscale = 1.0)
+    {
+        return table.Add(textStyleName, fontTTF.GetDesc(), xscale);
+    }
+
+    /// <summary>
+    /// <p>添加文字样式记录,如果存在就默认强制替换</p>
+    /// <para>此函数为了 <see langword="二惊"/> 和 <see langword="edata"/> 而设</para>
+    /// </summary>
+    /// <param name="table">文字样式表</param>
+    /// <param name="textStyleName">文字样式名</param>
+    /// <param name="smallFont">字体名</param>
+    /// <param name="bigFont">大字体名</param>
+    /// <param name="xScale">宽度比例</param>
+    /// <param name="height">高度</param>
+    /// <param name="forceChange">是否强制替换</param>
+    /// <returns>文字样式Id</returns>
+    public static ObjectId AddWithChange(this SymbolTable<TextStyleTable, TextStyleTableRecord> table,
+                                         string textStyleName,
+                                         string smallFont,
+                                         string bigFont = null,
+                                         double xScale = 1,
+                                         double height = 0,
+                                         bool forceChange = true)
+    {
+        if (forceChange && table.Has(textStyleName))
+        {
+            table.Change(textStyleName, ttr =>
+            {
+                ttr.FileName = smallFont;
+                ttr.XScale = xScale;
+                ttr.TextSize = height;
+                if (bigFont != null)
+                {
+                    ttr.BigFontFileName = bigFont;
+                }
+            });
+            return table[textStyleName];
+        }
+        return table.Add(textStyleName, ttr =>
+        {
+            ttr.FileName = smallFont;
+            ttr.XScale = xScale;
+            ttr.TextSize = height;
+        });
+    }
+
+
     #endregion
 
     #region 注册应用程序表

@@ -70,3 +70,38 @@ public enum PointOnRegionType
     /// </summary>
     Error
 }
+
+
+
+public enum FontTTF
+{
+    [Description("宋体.ttf")]
+    宋体,
+    [Description("simfang.ttf")]
+    仿宋,
+    [Description("FSGB2312.ttf")]
+    仿宋GB2312,
+    [Description("Arial.ttf")]
+    Arial,
+    [Description("Romans")]
+    Romans
+}
+
+
+
+public static class EnumHelper
+{
+    public static string GetDesc(this Enum val)
+    {
+        var type = val.GetType();
+        var memberInfo = type.GetMember(val.ToString());
+        var attributes = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+        //如果没有定义描述，就把当前枚举值的对应名称返回
+        if (attributes == null || attributes.Length != 1)
+        {
+            return val.ToString();
+        }
+        return (attributes.Single() as DescriptionAttribute).Description;
+    }
+}
+

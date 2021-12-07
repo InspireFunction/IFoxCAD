@@ -171,6 +171,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         {
             action?.Invoke(record);
         }
+        Env.Editor.Regen();
     }
     /// <summary>
     /// 修改符号表
