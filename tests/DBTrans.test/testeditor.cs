@@ -34,5 +34,29 @@ namespace test
             var s = ed.GetString("qustr");
             Env.Editor.WriteMessage("");
         }
+        [CommandMethod("testzoom")]
+        public void testzoom()
+        {
+            using var tr = new DBTrans();
+            var res = Env.Editor.GetEntity("\npick ent:");
+            if (res.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK)
+            {
+                Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>());
+            }
+
+
+        }
+        [CommandMethod("testzoomextent")]
+        public void testzoomextent()
+        {
+            //using var tr = new DBTrans();
+            //var res = Env.Editor.GetEntity("\npick ent:");
+            //if (res.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK)
+            //{
+            //    Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>());
+            //}
+
+            Env.Editor.ZoomExtents();
+        }
     }
 }

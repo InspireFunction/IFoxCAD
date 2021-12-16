@@ -577,12 +577,12 @@ public static class EditorEx
         Database db = ed.Document.Database;
         db.UpdateExt(true);
 
-        if (db.GetValidExtents3d(out Extents3d extents3D) == true)
+        if (db.GetValidExtents3d(out Extents3d extents3D))
         {
-            ed.ZoomWindow(extents3D.MinPoint, extents3D.MinPoint, offsetDist);
+            ed.ZoomWindow(extents3D.MinPoint, extents3D.MaxPoint, offsetDist);
             return;
         }
-        ed.ZoomWindow(db.Extmax, db.Extmin, offsetDist);
+        ed.ZoomWindow(db.Extmin, db.Extmax, offsetDist);
     }
 
     /// <summary>
