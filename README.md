@@ -68,17 +68,27 @@
    为了将程序集的初始化和通过写注册表的方式实现自动加载统一设置，减少每次重复的工作量，内裤提供了`AutoRegAssem`抽象类来完成此功能，只要在需要初始化的类继承`AutoRegAssem`类，然后实现`Initialize()` 和`Terminate()`两个函数就可以了。特别强调的是，一个程序集里只能有一个类继承，不管是不是同一个命名空间。
 
    ```c#
-   public class Test : AutoRegAssem //继承
-   {
-       public override void Initialize() //实现接口函数
-       {
-           throw new NotImplementedException();
-       }
-       public override void Terminate() //实现接口函数
-       {
-           throw new NotImplementedException();
-       }
-   }
+using Autodesk.AutoCAD.Runtime;
+using IFoxCAD.Cad;
+using System;
+using System.Reflection;
+
+[assembly: ExtensionApplication(typeof(CadLoad.CmdINI))]
+namespace CadLoad
+{
+    internal class CmdINI : AutoRegAssem
+    {
+        public override void Initialize()
+        {
+            throw new NotImplementedException();
+        }
+
+        public override void Terminate()
+        {
+            throw new NotImplementedException();
+        }
+    }
+}
    ```
 
 7. 天秀的打开模式提权
