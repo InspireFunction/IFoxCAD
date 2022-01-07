@@ -225,7 +225,7 @@ public class TestViewModel : ViewModelBase
 
 首先是在xaml里引入命名空间。
 
-`xmlns:eb="clr-namespace:IFoxCad.WPF;assembly=IFoxCad"`
+`xmlns:eb="clr-namespace:IFoxCAD.WPF;assembly=IFoxCAD.WPF"`
 
 然后
 
