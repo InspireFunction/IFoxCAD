@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net35;net40</TargetFrameworks>
+        <TargetFramework>net45</TargetFramework>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
-        <Version>0.1.3</Version>
+        <Version>0.2.0.2</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的Cad二次开发类库</Description>
@@ -12,7 +12,7 @@
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
-        <PackageReleaseNotes>Optimize and add multiple functions.</PackageReleaseNotes>
+        <PackageReleaseNotes>删除net35支持，升级至net45，增加c#10语法相关内容.</PackageReleaseNotes>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <LangVersion>preview</LangVersion>
@@ -21,27 +21,14 @@
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
-        <PackageReference Include="Autocad.NetApi" Version="17.2.0">
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </PackageReference>
-    </ItemGroup>
-    <ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
-        <PackageReference Include="Autocad.NetApi" Version="19.0.0">
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </PackageReference>
-        <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    </ItemGroup>
 
-    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-        <DefineConstants>DEBUG</DefineConstants>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
-        <DefineConstants>$(Configuration);ac2009</DefineConstants>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
-        <DefineConstants>$(Configuration);ac2013</DefineConstants>
-    </PropertyGroup>
+
+
+	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
+		<DefineConstants>DEBUG;TRACE</DefineConstants>
+	</PropertyGroup>
+
+
     
     
     <ItemGroup>
@@ -51,9 +38,15 @@
       </None>
     </ItemGroup>
 
+
     <ItemGroup>
-      <Folder Include="ResultData\" />
+      <PackageReference Include="AutoCAD.NET" Version="20.0.1">
+	    <ExcludeAssets>runtime</ExcludeAssets>
+      </PackageReference>
+      <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
+
+    
 
     <ItemGroup>
       <ProjectReference Include="..\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />

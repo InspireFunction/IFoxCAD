@@ -2,7 +2,11 @@
 
 #### 介绍
 
-基于.NET的Cad二次开发类库
+基于.NET的Cad二次开发类库。
+
+可以加群交流：
+
+![ifoxcad用户交流群群二维码](./docs/ifoxcad用户交流群群二维码.png)
 
 #### 软件架构及相关说明
 
@@ -20,9 +24,9 @@
 
 1.  快速入门
 
-   - 打开vs，新建一个standard类型的类库项目，修改项目文件里的`<TargetFramework>netcore2.0</TargetFramework>`为`<TargetFrameworks>NET45</TargetFrameworks>`。其中的net45，可以改为NET35以上的标准TFM（如：net35、net40、net45、net46、net47等等）。同时可以指定多版本。具体的详细的教程见 [VS通过添加不同引用库，建立多条件编译]( https://www.yuque.com/vicwjb/zqpcd0/ufbwyl)。
+   - 打开vs，新建一个standard类型的类库项目，修改项目文件里的`<TargetFramework>netcore2.0</TargetFramework>`为`<TargetFrameworks>NET45</TargetFrameworks>`。其中的net45，可以改为NET45以上的标准TFM（如：net45、net46、net47等等）。同时可以指定多版本。具体的详细的教程见 [VS通过添加不同引用库，建立多条件编译]( https://www.yuque.com/vicwjb/zqpcd0/ufbwyl)。
    - 右键项目文件，选择管理nuget程序包。
-   - 在nuget程序里搜索**ifoxcad**，直接选择最新的版本，然后点击安装**IFoxCAD.Cad**，nuget会自动安装ifoxcad依赖的库。
+   - 在nuget程序里搜索**ifoxcad**，直接选择最新的版本（如果你是 **net40** 或者 **net35** 的用户，可以安装 **0.1.6** 版本），然后点击安装**IFoxCAD.Cad**，nuget会自动安装ifoxcad依赖的库。
    - 添加引用
 
       ```c#
@@ -64,17 +68,26 @@
    为了将程序集的初始化和通过写注册表的方式实现自动加载统一设置，减少每次重复的工作量，内裤提供了`AutoRegAssem`抽象类来完成此功能，只要在需要初始化的类继承`AutoRegAssem`类，然后实现`Initialize()` 和`Terminate()`两个函数就可以了。特别强调的是，一个程序集里只能有一个类继承，不管是不是同一个命名空间。
 
    ```c#
-   public class Test : AutoRegAssem //继承
-   {
-       public override void Initialize() //实现接口函数
-       {
-           throw new NotImplementedException();
-       }
-       public override void Terminate() //实现接口函数
-       {
-           throw new NotImplementedException();
-       }
-   }
+    using Autodesk.AutoCAD.Runtime;
+    using IFoxCAD.Cad;
+    using System;
+    using System.Reflection;
+    [assembly: ExtensionApplication(typeof(CadLoad.CmdINI))]
+    namespace CadLoad
+    {
+        internal class CmdINI : AutoRegAssem
+        {
+            public override void Initialize()
+            {
+                throw new NotImplementedException();
+            }
+    
+            public override void Terminate()
+            {
+                throw new NotImplementedException();
+            }
+        }
+    }
    ```
 
 7. 天秀的打开模式提权
