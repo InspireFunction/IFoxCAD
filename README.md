@@ -40,7 +40,7 @@
      [CommandMethod("hello")]
      public void Hello()
      {
-        using var tr = new DBTrans()
+        using var tr = new DBTrans();
         var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.CurrentSpace.AddEntity(line1);
      }
