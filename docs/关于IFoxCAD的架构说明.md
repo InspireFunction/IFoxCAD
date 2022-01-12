@@ -7,10 +7,10 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
 ## 一、组织结构图
 
 - IFoxCAD
-    - IFoxCAD.Cad - cad相关的类库
+    - IFoxCAD.Basal - cad以外常用的类库
         - LinqEx - linq扩展类
         - LoopList - 环链表
-    - IFoxCAD.Basal - cad以外常用的类库
+    - IFoxCAD.Cad - cad相关的类库
         - Runtime - 包含系统级别的功能
             - AcadVersion - cad版本号类
             - AssemInfo - 程序集信息
