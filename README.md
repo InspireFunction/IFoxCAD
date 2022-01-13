@@ -26,16 +26,19 @@
 
    - 打开vs，新建一个standard类型的类库项目
    - 双击项目，打开项目文件：
-   -- 修改项目文件里的`<TargetFramework>netcore2.0</TargetFramework>`为`<TargetFrameworks>NET45</TargetFrameworks>`。其中的net45，可以改为NET45以上的标准TFM（如：net45、net46、net47等等）。同时可以指定多版本。具体的详细的教程见 [VS通过添加不同引用库，建立多条件编译]( https://www.yuque.com/vicwjb/zqpcd0/ufbwyl)。
-   -- 在 `<PropertyGroup> xxx  </PropertyGroup>` 中增加 `<LangVersion>preview</LangVersion>`，主要是为了支持最新的语法，本项目采用了最新的语法编写。项目文件想在的内容类似如下：
-     ```
-     <Project Sdk="Microsoft.NET.Sdk">
-        <PropertyGroup>
-            <TargetFramework>net45</TargetFramework>
-            <LangVersion>preview</LangVersion>
-        </PropertyGroup>
-    </Project>
-    ```
+       - 修改项目文件里的`<TargetFramework>netcore2.0</TargetFramework>`为`<TargetFrameworks>NET45</TargetFrameworks>`。其中的net45，可以改为NET45以上的标准TFM（如：net45、net46、net47等等）。同时可以指定多版本。具体的详细的教程见 [VS通过添加不同引用库，建立多条件编译]( https://www.yuque.com/vicwjb/zqpcd0/ufbwyl)。
+       - 在 `<PropertyGroup> xxx  </PropertyGroup>` 中增加 `<LangVersion>preview</LangVersion>`，主要是为了支持最新的语法，本项目采用了最新的语法编写。项目文件现在的内容类似如下：
+        
+         
+        ```
+        <Project Sdk="Microsoft.NET.Sdk">
+            <PropertyGroup>
+                <TargetFramework>net45</TargetFramework>
+                <LangVersion>preview</LangVersion>
+            </PropertyGroup>
+         </Project>
+        ```
+    
    - 右键项目文件，选择管理nuget程序包。
    - 在nuget程序里搜索**ifoxcad**，直接选择最新的版本（如果你是 **net40** 或者 **net35** 的用户，可以安装 **0.1.6** 版本），然后点击安装**IFoxCAD.Cad**，nuget会自动安装ifoxcad依赖的库。
    - 添加引用
@@ -58,6 +61,12 @@
         using var tr = new DBTrans();
         var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.CurrentSpace.AddEntity(line1);
+        // 如果你没有添加<LangVersion>preview</LangVersion>到项目文件里的话：按如下旧语法：
+        // using(var tr = new DBTrans())
+        // {
+        //     var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+        //     tr.CurrentSpace.AddEntity(line1);
+        // }
      }
      ```
 
