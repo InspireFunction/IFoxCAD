@@ -121,7 +121,7 @@ public abstract class OpFilter
         /// </summary>
         /// <param name="args">操作符类型的可变参数</param>
         /// <returns>Op对象</returns>
-        public static Op And(params Op[] args)
+        public Op And(params Op[] args)
         {
             var filter = new OpAnd();
             foreach (var op in args)
@@ -134,7 +134,7 @@ public abstract class OpFilter
         /// </summary>
         /// <param name="args">操作符类型的可变参数</param>
         /// <returns>Op对象</returns>
-        public static Op Or(params Op[] args)
+        public Op Or(params Op[] args)
         {
             var filter = new OpOr();
             foreach (var op in args)
@@ -147,7 +147,7 @@ public abstract class OpFilter
         /// </summary>
         /// <param name="code">组码</param>
         /// <returns>Op对象</returns>
-        public static Op Dxf(int code)
+        public Op Dxf(int code)
         {
             return new Op(new OpEqual(code));
         }
@@ -158,7 +158,7 @@ public abstract class OpFilter
         /// <param name="code">组码</param>
         /// <param name="content">关系运算符的值，比如">,>,="</param>
         /// <returns>Op对象</returns>
-        public static Op Dxf(int code, string content)
+        public Op Dxf(int code, string content)
         {
             return new Op(new OpComp(content, code));
         }

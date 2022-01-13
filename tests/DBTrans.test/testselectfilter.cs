@@ -20,15 +20,15 @@ namespace test
             
             var p = new Point3d(10, 10, 0);
             var f = OpFilter.Bulid(
-            e =>!(OpFilter.Op.Dxf(0) == "line" & OpFilter.Op.Dxf(8) == "0")
-                    | OpFilter.Op.Dxf(0) != "circle" & OpFilter.Op.Dxf(8) == "2" & OpFilter.Op.Dxf(10) >= p);
+            e =>!(e.Dxf(0) == "line" & e.Dxf(8) == "0")
+                    | e.Dxf(0) != "circle" & e.Dxf(8) == "2" & e.Dxf(10) >= p);
             
            
             var f2 = OpFilter.Bulid(
-            e => OpFilter.Op.Or(
-            !OpFilter.Op.And(OpFilter.Op.Dxf(0) == "line", OpFilter.Op.Dxf(8) == "0"),
-            OpFilter.Op.And(OpFilter.Op.Dxf(0) != "circle", OpFilter.Op.Dxf(8) == "2",
-            OpFilter.Op.Dxf(10) <= new Point3d(10, 10, 0))));
+            e => e.Or(
+            !e.And(e.Dxf(0) == "line", e.Dxf(8) == "0"),
+            e.And(e.Dxf(0) != "circle", e.Dxf(8) == "2",
+            e.Dxf(10) <= new Point3d(10, 10, 0))));
 
             SelectionFilter f3 = f;
             SelectionFilter f4 = f2;
