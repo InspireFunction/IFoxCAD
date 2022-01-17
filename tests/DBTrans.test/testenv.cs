@@ -10,6 +10,13 @@ using Autodesk.AutoCAD.DatabaseServices;
 
 namespace test
 {
+    public static class ObjEx
+    {
+        public static void Print(this Object obj)
+        {
+            Env.Print(obj);
+        }
+    }
     public class testenv
     {
         [CommandMethod("testenum")]
@@ -63,6 +70,15 @@ namespace test
         {
             var dim = Env.OSMode;
             Env.Editor.WriteMessage(dim.ToString());
+
+        }
+
+        [CommandMethod("testcadver")]
+        public void testcadver()
+        {
+            //Env.Print(AcadVersion.Versions);
+            AcadVersion.Versions.ForEach(v => Env.Print(v));
+            AcadVersion.FromApp(Application.AcadApplication).Print();
 
         }
 

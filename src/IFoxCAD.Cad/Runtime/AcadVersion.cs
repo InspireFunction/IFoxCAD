@@ -1,79 +1,47 @@
 ﻿namespace IFoxCAD.Cad;
 using Registry = Microsoft.Win32.Registry;
+
 /// <summary>
 /// cad版本号类
 /// </summary>
-public class AcadVersion
+public static class AcadVersion
 {
-    /// <summary>
-    /// 主版本
-    /// </summary>
-    public int Major
-    { private set; get; }
-
-    /// <summary>
-    /// 次版本
-    /// </summary>
-    public int Minor
-    { private set; get; }
-
-    /// <summary>
-    /// 版本号
-    /// </summary>
-    public double ProgId => double.Parse($"{Major}.{Minor}");
-
-    /// <summary>
-    /// 注册表名称
-    /// </summary>
-    public string ProductName
-    { private set; get; }
-
-    /// <summary>
-    /// 注册表位置
-    /// </summary>
-    public string ProductRootKey
-    { private set; get; }
-
     private static readonly string _pattern = @"Autodesk\\AutoCAD\\R(\d+)\.(\d+)\\.*?";
-
-    private static List<AcadVersion> _versions;
 
     /// <summary>
     /// 所有安装的cad的版本号
     /// </summary>
-    public static List<AcadVersion> Versions
+    public static List<CadVersion> Versions
     {
         get
         {
-            if (_versions == null)
+            
+            string[] copys =
+                Registry.LocalMachine
+                .OpenSubKey(@"SOFTWARE\Autodesk\Hardcopy")
+                .GetValueNames();
+            var _versions = new List<CadVersion>();
+            foreach (var rootkey in copys)
             {
-                string[] copys =
-                   Registry.LocalMachine
-                   .OpenSubKey(@"SOFTWARE\Autodesk\Hardcopy")
-                   .GetValueNames();
-                _versions = new List<AcadVersion>();
-                foreach (var rootkey in copys)
+                if (Regex.IsMatch(rootkey, _pattern))
                 {
-                    if (Regex.IsMatch(rootkey, _pattern))
-                    {
-                        var gs = Regex.Match(rootkey, _pattern).Groups;
-                        var ver =
-                            new AcadVersion
-                            {
-                                ProductRootKey = rootkey,
-                                ProductName =
-                                    Registry.LocalMachine
-                                    .OpenSubKey("SOFTWARE")
-                                    .OpenSubKey(rootkey)
-                                    .GetValue("ProductName")
-                                    .ToString(),
+                    var gs = Regex.Match(rootkey, _pattern).Groups;
+                    var ver =
+                        new CadVersion
+                        {
+                            ProductRootKey = rootkey,
+                            ProductName =
+                                Registry.LocalMachine
+                                .OpenSubKey("SOFTWARE")
+                                .OpenSubKey(rootkey)
+                                .GetValue("ProductName")
+                                .ToString(),
 
-                                Major = int.Parse(gs[1].Value),
-                                Minor = int.Parse(gs[2].Value),
-                            };
+                            Major = int.Parse(gs[1].Value),
+                            Minor = int.Parse(gs[2].Value),
+                        };
 
-                        _versions.Add(ver);
-                    }
+                    _versions.Add(ver);
                 }
             }
             return _versions;
@@ -83,7 +51,7 @@ public class AcadVersion
     /// <summary>已打开的cad的版本号</summary>
     /// <param name="app">已打开cad的application对象</param>
     /// <returns>cad版本号对象</returns>
-    public static AcadVersion FromApp(object app)
+    public static CadVersion FromApp(object app)
     {
         if (app == null)
         {
@@ -107,17 +75,6 @@ public class AcadVersion
             if (ver.Major == major && ver.Minor == minor)
                 return ver;
         }
-
         return null;
-    }
-
-    /// <summary>
-    /// 转换为字符串
-    /// </summary>
-    /// <returns>表示版本号的字符串</returns>
-    public override string ToString()
-    {
-        return
-            $"名称:{ProductName}\n版本号:{ProgId}\n注册表位置:{ProductRootKey}";
     }
 }
