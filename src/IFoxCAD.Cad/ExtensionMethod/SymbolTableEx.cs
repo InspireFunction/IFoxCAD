@@ -161,8 +161,9 @@ public static class SymbolTableEx
         bool has = id != ObjectId.Null;
         if ((has && over) || !has)
         {
-            Database db = new();
+            Database db = new(false, true);
             db.ReadDwgFile(fileName, FileShare.Read, true, null);
+            db.CloseInput(true);
             id = table.Database.Insert(BlockTableRecord.ModelSpace, blkdefname, db, false);
         }
 

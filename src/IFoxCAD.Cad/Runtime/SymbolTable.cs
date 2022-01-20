@@ -32,6 +32,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     internal SymbolTable(DBTrans tr, ObjectId tableId)
     {
         DTrans = tr;
+        Database = tr.Database;
         CurrentSymbolTable = DTrans.GetObject<TTable>(tableId);
     }
 

@@ -12,9 +12,21 @@ namespace test
 {
     public static class ObjEx
     {
-        public static void Print(this Object obj)
+        /// <summary>
+        /// cad的打印
+        /// </summary>
+        /// <param name="obj"></param>
+        public static void Print(this object obj)
         {
             Env.Print(obj);
+        }
+        /// <summary>
+        /// 系统的打印
+        /// </summary>
+        /// <param name="obj"></param>
+        public static void PrintLine(this object obj)
+        {
+            Console.WriteLine(obj.ToString());
         }
     }
     public class testenv
@@ -79,6 +91,8 @@ namespace test
             //Env.Print(AcadVersion.Versions);
             AcadVersion.Versions.ForEach(v => Env.Print(v));
             AcadVersion.FromApp(Application.AcadApplication).Print();
+            1.Print();
+            "1".Print();
 
         }
 

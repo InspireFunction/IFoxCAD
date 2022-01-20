@@ -54,6 +54,112 @@ public static class EditorEx
         PromptSelectionResult res = editor.SelectAll(filter);
         return res.Value;
     }
+
+    //#region 即时选择样板
+
+    ///// <summary>
+    /////  即时选择,框选更新关键字
+    ///// </summary>
+    //public static void SelectTest()
+    //{
+    //    Env.Editor.WriteMessage("\n[白嫖工具]--测试");
+    //    //激活选中事件
+    //    Env.Editor.SelectionAdded += SelectTest_SelectionAdded;
+    //    //初始化坐标系
+    //    Env.Editor.CurrentUserCoordinateSystem = Matrix3d.Identity;
+
+    //    //创建过滤器
+    //    var sf = new OpEqual(0, "arc");
+    //    var pso = new PromptSelectionOptions
+    //    {
+    //        MessageForAdding = "\n请选择对象:"
+    //    };
+
+    //    pso.Keywords.Add("Z");
+    //    pso.Keywords.Add("X");
+    //    pso.Keywords.Add("Q");
+    //    //注册关键字
+    //    pso.KeywordInput += SelectTest_KeywordInput;
+    //    try
+    //    {
+    //        //用户选择
+    //        var psr = Env.Editor.GetSelection(pso, sf);
+    //        //处理代码
+
+
+    //    }
+    //    catch (Exception ex)//捕获关键字
+    //    {
+    //        if (ex.Message == "XuError")
+    //        {
+    //            //关闭关键字事件
+    //            pso.KeywordInput -= SelectTest_KeywordInput;
+    //            //关闭选中事件
+    //            Env.Editor.SelectionAdded -= SelectTest_SelectionAdded;
+    //            //重新调用自身
+    //            ZengLiangYuanJiao();
+    //        }
+    //    }
+    //    //关闭关键字事件
+    //    pso.KeywordInput -= SelectTest_KeywordInput;
+    //    //关闭选中事件
+    //    Env.Editor.SelectionAdded -= SelectTest_SelectionAdded;
+    //}
+
+    ///// <summary>
+    ///// 即时选择
+    ///// </summary>
+    ///// <param name="sender"></param>
+    ///// <param name="e"></param>
+    //private static void SelectTest_SelectionAdded(object sender, SelectionAddedEventArgs e)
+    //{
+    //    //关闭选中事件
+    //    Env.Editor.SelectionAdded -= SelectTest_SelectionAdded;
+    //    using (var tr = new DBTrans())
+    //    {
+    //        //处理代码
+    //        for (int i = 0; i < e.AddedObjects.Count; i++)
+    //        {
+
+
+    //            //处理完移除已处理的对象
+    //            e.Remove(i);
+    //        }
+    //    }
+    //    //激活选中事件
+    //    Env.Editor.SelectionAdded += SelectTest_SelectionAdded;
+    //}
+
+    ///// <summary>
+    ///// 关键字响应
+    ///// </summary>
+    ///// <param name="sender"></param>
+    ///// <param name="e"></param>
+    //private static void SelectTest_KeywordInput(object sender, SelectionTextInputEventArgs e)
+    //{
+    //    //获取关键字
+    //    switch (e.Input)
+    //    {
+    //        case "Z":
+    //            {
+    //                break;
+    //            }
+    //        case "X":
+    //            {
+    //                break;
+    //            }
+
+    //        case "Q":
+    //            {
+    //                break;
+    //            }
+    //    }
+    //    //抛出异常,用于更新提示信息
+    //    throw new ArgumentException("XuError");
+    //}
+
+
+    //#endregion
     #endregion
 
     #region Info

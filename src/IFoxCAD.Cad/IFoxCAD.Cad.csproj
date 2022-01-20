@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net45</TargetFramework>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
-        <Version>0.2.0.3</Version>
+        <Version>0.2.0.4</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的Cad二次开发类库</Description>
@@ -12,7 +12,7 @@
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
-        <PackageReleaseNotes>修复选择集过滤器错误.</PackageReleaseNotes>
+        <PackageReleaseNotes>修复版本信息类错误.</PackageReleaseNotes>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <LangVersion>preview</LangVersion>
