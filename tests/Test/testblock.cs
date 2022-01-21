@@ -39,6 +39,19 @@ public class TestBlock
         );
         //ObjectId objectId = tr.BlockTable.Add("a");//新建块
         //objectId.GetObject<BlockTableRecord>().AddEntity();//测试添加空实体
+        tr.BlockTable.Add("test1",
+        btr =>
+        {
+            btr.Origin = new Point3d(0, 0, 0);
+
+        },
+        () =>
+        {
+            return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0)) ,
+            new DBText{ Position = new Point3d(0,0,0),
+            TextString = "123"
+            } };
+        });
     }
     //修改块定义
     [CommandMethod("blockdefchange")]
@@ -46,14 +59,31 @@ public class TestBlock
     {
         using var tr = new DBTrans();
         //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+        //tr.BlockTable.Change("test", btr =>
+        //{
+        //    btr.Origin = new Point3d(5, 5, 0);
+        //    btr.AddEntity(new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 2));
+        //    btr.GetEntities<BlockReference>()
+        //        .ToList()
+        //        .ForEach(e => e.Flush()); //刷新块显示
+
+        //});
+
         tr.BlockTable.Change("test", btr =>
         {
-            btr.Origin = new Point3d(5, 5, 0);
-            btr.AddEntity(new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 2));
-            btr.GetEntities<BlockReference>()
-                .ToList()
-                .ForEach(e => e.Flush()); //刷新块显示
-
+            foreach (var id in btr)
+            {
+                var ent = tr.GetObject<Entity>(id);
+                using (ent.ForWrite())
+                {
+                    if (ent is Dimension dBText)
+                    {
+                        dBText.DimensionText = "234";
+                        dBText.RecomputeDimensionBlock(true);
+                    }
+                }
+                
+            }
         });
         tr.Editor.Regen();
     }
@@ -157,36 +187,44 @@ public class TestBlock
     [CommandMethod("test_block_ej")]
     public void EJ()
     {
-        using var tr = new DBTrans();
-        
-        //Point3d.Origin.AddBellowToModelSpace(100, 100, 5, 3, 30);//画波纹管
-
-        //Database db2 = new Database(false, true);
-        //string fullFileName = @".\MyBlockDwgFile\001.dwg";
-        //db2.ReadDwgFile(fullFileName, System.IO.FileShare.Read, true, null);
-        //db2.CloseInput(true);
-        //string blockName = "test";
-        //if (!tr.BlockTable.Has(blockName))
-        //{
-        //    //tr.Database.Insert(blockName, db2, false);//插入块
-        //    db.Insert(blockName, db2, false);
-
-        //}
-
-        string fullFileName = @".\MyBlockDwgFile\001.dwg";
-        var blockdef = tr.BlockTable.GetBlockFrom(fullFileName, false);
-
-        tr.Database.Clayer = tr.LayerTable["0"];//当前图层切换为0图层
-        tr.LayerTable.Change(tr.Database.Clayer, ltr =>
+        using (var tr = new DBTrans())
         {
-            ltr.Color = Color.FromColorIndex(ColorMethod.ByAci, 2); //ColorMethod.ByAci可以让我们使用AutoCAD ACI颜色索引……这里为2（表示黄色）
-    });
 
-        ObjectId id = tr.ModelSpace.InsertBlock(Point3d.Origin, blockdef);//插入块参照
+            //Point3d.Origin.AddBellowToModelSpace(100, 100, 5, 3, 30);//画波纹管
 
-        var entTest = tr.GetObject<BlockReference>(id);
-        entTest.Draw();
+            //Database db2 = new Database(false, true);
+            //string fullFileName = @".\MyBlockDwgFile\001.dwg";
+            //db2.ReadDwgFile(fullFileName, System.IO.FileShare.Read, true, null);
+            //db2.CloseInput(true);
+            //string blockName = "test";
+            //if (!tr.BlockTable.Has(blockName))
+            //{
+            //    //tr.Database.Insert(blockName, db2, false);//插入块
+            //    db.Insert(blockName, db2, false);
 
+            //}
+
+            string fullFileName = @"C:\Users\vic\Desktop\001.dwg";
+            var blockdef = tr.BlockTable.GetBlockFrom(fullFileName, false);
+
+            tr.Database.Clayer = tr.LayerTable["0"];//当前图层切换为0图层
+            tr.LayerTable.Change(tr.Database.Clayer, ltr =>
+            {
+                ltr.Color = Color.FromColorIndex(ColorMethod.ByAci, 2); //ColorMethod.ByAci可以让我们使用AutoCAD ACI颜色索引……这里为2（表示黄色）
+        });
+
+            ObjectId id = tr.ModelSpace.InsertBlock(Point3d.Origin, blockdef);//插入块参照
+
+
+
+
+
+            var entTest = tr.GetObject<BlockReference>(id);
+            entTest.Draw();
+    
+        }
+
+        using var tr2 = new DBTrans();
         PromptEntityOptions PEO = new PromptEntityOptions("\n请选择一个块");
         PEO.SetRejectMessage("\n对象必须是块");
         PEO.AddAllowedClass(typeof(BlockReference), true);
@@ -197,19 +235,19 @@ public class TestBlock
             return;
         }
 
-        var Bref = tr.GetObject<BlockReference>(PER.ObjectId);
+        var Bref = tr2.GetObject<BlockReference>(PER.ObjectId);
         //var BTR = tr.GetObject<BlockTableRecord>(Bref.BlockTableRecord, OpenMode.ForWrite);
         ////如果知道块名字BTRName
         //BlockTableRecord BTR = tr.GetObject<BlockTableRecord>(tr.BlockTable[blockName], OpenMode.ForWrite);
 
-        var btr = tr.BlockTable[Bref.Name];
+        var btr = tr2.BlockTable[Bref.Name];
 
-        tr.BlockTable.Change(btr, ltr =>
+        tr2.BlockTable.Change(btr, ltr =>
         {
 
             foreach (ObjectId OID in ltr)
             {
-                var Ent = tr.GetObject<Entity>(OID);
+                var Ent = tr2.GetObject<Entity>(OID);
                 using (Ent.ForWrite())
                 {
                     if (Ent is MText mText)
@@ -235,6 +273,7 @@ public class TestBlock
                         {
                             case "$$pipeLen":
                                 dimension.DimensionText = "350";
+                                dimension.RecomputeDimensionBlock(true);
                                 break;
                             default:
                                 break;
@@ -244,13 +283,11 @@ public class TestBlock
               
 
             }
-            ltr.GetEntities<BlockReference>()
-                .ToList()
-                .ForEach(e => e.Flush()); //刷新块显示
+           
         });
 
 
-        tr.Editor.Regen();
+        tr2.Editor.Regen();
 
 
     }
