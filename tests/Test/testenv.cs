@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -10,25 +9,6 @@ using Autodesk.AutoCAD.DatabaseServices;
 
 namespace test
 {
-    public static class ObjEx
-    {
-        /// <summary>
-        /// cad的打印
-        /// </summary>
-        /// <param name="obj"></param>
-        public static void Print(this object obj)
-        {
-            Env.Print(obj);
-        }
-        /// <summary>
-        /// 系统的打印
-        /// </summary>
-        /// <param name="obj"></param>
-        public static void PrintLine(this object obj)
-        {
-            Console.WriteLine(obj.ToString());
-        }
-    }
     public class testenv
     {
         [CommandMethod("testenum")]
