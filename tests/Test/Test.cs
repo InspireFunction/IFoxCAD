@@ -1,17 +1,4 @@
-﻿using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.Colors;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.Runtime;
-
-using IFoxCAD.Cad;
-
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-
+﻿
 using test.wpf;
 
 namespace test;
@@ -291,13 +278,7 @@ public class Test
     }
 
 
-    [CommandMethod("testwpf")]
-    public void TestWPf()
-    {
 
-        var test = new TestView();
-        Application.ShowModalWindow(test);
-    }
 
     [CommandMethod("testpt")]
     public void TestPt()
