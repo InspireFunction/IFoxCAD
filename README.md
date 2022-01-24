@@ -6,7 +6,7 @@
 
 可以加群交流：
 
-![ifoxcad用户交流群群二维码](./docs/ifoxcad用户交流群群二维码.png)
+![ifoxcad用户交流群群二维码](./docs/png/ifoxcad用户交流群群二维码.png)
 
 #### 软件架构及相关说明
 
@@ -24,14 +24,14 @@
 
 1. 快速入门
    
-   - 打开vs，新建一个standard类型的类库项目![](/Users/vic/Library/Application%20Support/marktext/images/2022-01-24-20-15-21-image.png)
+   - 打开vs，新建一个standard类型的类库项目![](./docs/png/standard.png)
    
    - 双击项目，打开项目文件：
      
      - 修改项目文件里的`<TargetFramework>netcore2.0</TargetFramework>`为`<TargetFrameworks>NET45</TargetFrameworks>`。其中的net45，可以改为NET45以上的标准TFM（如：net45、net46、net47等等）。同时可以指定多版本。具体的详细的教程见 [VS通过添加不同引用库，建立多条件编译]( https://www.yuque.com/vicwjb/zqpcd0/ufbwyl)。
      
      - 在 `<PropertyGroup> xxx  </PropertyGroup>` 中增加 `<LangVersion>preview</LangVersion>`，主要是为了支持最新的语法，本项目采用了最新的语法编写。项目文件现在的内容类似如下：
-       
+     
      ```xml
      <Project Sdk="Microsoft.NET.Sdk">
         <PropertyGroup>
@@ -40,11 +40,11 @@
         </PropertyGroup>
      </Project>
      ```
-     
-   - 右键项目文件，选择管理nuget程序包。![](/Users/vic/Library/Application%20Support/marktext/images/2022-01-24-20-17-21-image.png)
-     
-   - 在nuget程序里搜索**ifoxcad**，直接选择最新的版本（如果你是 **net40** 或者 **net35** 的用户，可以安装 **0.1.6** 版本），然后点击安装**IFoxCAD.Cad**，nuget会自动安装ifoxcad依赖的库。(按下图绿色框框里选择浏览，程序包来源选择nuget.org，安装IFoxCAD.Cad包。IFoxCAD.Basal是IFoxCAD.Cad的依赖项会自动安装，如果要开发wpf界面的话，可以安装IFoxCAD.WPF，提供了简单的mvvm支持)![](/Users/vic/Library/Application%20Support/marktext/images/2022-01-24-20-18-42-image.png)
-     
+   
+   - 右键项目文件，选择管理nuget程序包。![](./docs/png/nuget1.png)
+   
+   - 在nuget程序里搜索**ifoxcad**，直接选择最新的版本（如果你是 **net40** 或者 **net35** 的用户，可以安装 **0.1.6** 版本），然后点击安装**IFoxCAD.Cad**，nuget会自动安装ifoxcad依赖的库。(按下图绿色框框里选择浏览，程序包来源选择nuget.org，安装IFoxCAD.Cad包。IFoxCAD.Basal是IFoxCAD.Cad的依赖项会自动安装，如果要开发wpf界面的话，可以安装IFoxCAD.WPF，提供了简单的mvvm支持)![](./docs/png/nuget.png)
+   
    - 添加引用
    
    ```c#
@@ -77,7 +77,7 @@
    这段代码就是在cad的当前空间内添加了一条直线。
    
    - F6生成，然后打开cad，netload命令将刚刚生成的dll加载。
-     
+   
    - 运行hello命令，然后缩放一下视图，现在一条直线和一个圆已经显示在屏幕上了。
 
 2. [事务管理器用法](/docs/DBTrans.md)
