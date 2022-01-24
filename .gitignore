@@ -399,3 +399,5 @@ ASALocalRun/
 # BeatPulse healthcheck ÁÙÊ±Êý¾Ý¿â
 healthchecksdb
 *.DS_Store
+
+.ionide
