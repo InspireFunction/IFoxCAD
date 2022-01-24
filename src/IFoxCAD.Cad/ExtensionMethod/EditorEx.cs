@@ -55,6 +55,65 @@ public static class EditorEx
         return res.Value;
     }
 
+
+    public static PromptSelectionResult SSGet(this Editor editor, string mode = null, SelectionFilter filter = null, string[] messages = null, string[] keywords = null)
+    {
+        var pso = new PromptSelectionOptions();
+        PromptSelectionResult ss = null;
+        if (mode != null)
+        {
+            mode = mode.ToUpper();
+            pso.SinglePickInSpace = mode.Contains(":A");
+            pso.RejectObjectsFromNonCurrentSpace = mode.Contains(":C");
+            pso.AllowDuplicates = mode.Contains(":D");
+            pso.SelectEverythingInAperture = mode.Contains(":E");
+            pso.RejectObjectsOnLockedLayers = mode.Contains(":L");
+            pso.PrepareOptionalDetails = mode.Contains(":N");
+            pso.SingleOnly = mode.Contains(":S");
+            pso.RejectPaperspaceViewport = mode.Contains(":V");
+            pso.AllowSubSelections = mode.Contains("-A");
+            pso.ForceSubSelections = mode.Contains("-F");
+
+        }
+        if (messages != null)
+        {
+            pso.MessageForAdding = messages[0];
+            pso.MessageForRemoval = messages[1];
+        }
+
+        if (keywords != null)
+        {
+            foreach (var keyword in keywords)
+            {
+                pso.Keywords.Add(keyword);
+            }
+            if (pso.MessageForRemoval == null)
+            {
+                pso.MessageForAdding = "选择对象";
+            }
+            pso.MessageForAdding += $"[{string.Join(" / ", keywords)}]";
+            pso.KeywordInput += (s,e) => 
+                throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.OK, e.Input);
+        }
+        try
+        {
+            if (filter != null)
+            {
+                ss = editor.GetSelection(pso, filter);
+            }
+            else
+            {
+                ss = editor.GetSelection(pso);
+            }
+        }
+        catch (Autodesk.AutoCAD.Runtime.Exception e)
+        {
+
+            editor.WriteMessage($"\nKey is {e.Message}");
+        }
+        return ss;
+    }
+
     //#region 即时选择样板
 
     ///// <summary>
