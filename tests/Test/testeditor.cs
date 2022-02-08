@@ -54,7 +54,6 @@ public class testeditor
         var ss = 
 
         Env.Editor.SSGet(":S", messages: new string[2] { "get", "del" }, keywords: new string[2] { "A", "B" });
-        Env.Editor.SSGet(":S", messages: [ "get", "del" ], keywords: [ "A", "B" ]);
 
         Env.Print(ss);
     }
