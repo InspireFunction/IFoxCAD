@@ -67,7 +67,7 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="doc">要打开的文档</param>
     /// <param name="commit">事务是否提交</param>
-    public DBTrans(Document doc = null, bool commit = true, bool doclock = false)
+    public DBTrans(bool commit = true, bool doclock = false, Document doc = null)
     {
         doc ??= Application.DocumentManager.MdiActiveDocument;
         Document = doc;
@@ -93,17 +93,34 @@ public class DBTrans : IDisposable
     /// <param name="commit">事务是否提交</param>
     public DBTrans(string fileName, bool commit = true)
     {
-        Database = new Database(false, true);
-        if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
+        if (string.IsNullOrWhiteSpace(fileName))
+            throw new ArgumentNullException(nameof(fileName));
+
+        var doc = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.Cast<Document>()
+          .FirstOrDefault(doc => doc.Database.OriginalFileName == fileName);
+        if (null != doc)
         {
-            Database.DxfIn(fileName, null);
+            Database = doc.Database;
+            Document = doc;
+            Editor = doc.Editor;
+            Init(commit, true);
         }
         else
         {
-            Database.ReadDwgFile(fileName, FileShare.Read, true, null);
+            if (System.IO.File.Exists(fileName))
+            {
+                Database = new Database(false, true);
+                if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
+                    Database.DxfIn(fileName, null);
+                else
+                    Database.ReadDwgFile(fileName, FileOpenMode.OpenForReadAndWriteNoShare, true, null);
+            }
+            else
+                Database = new Database(true, false);
+
+            Database.CloseInput(true);
+            Init(commit, false);
         }
-        Database.CloseInput(true);
-        Init(commit, false);
     }
     /// <summary>
     /// 初始化事务及事务队列、提交模式
@@ -288,7 +305,18 @@ public class DBTrans : IDisposable
     #endregion
 
     #region idispose接口相关函数
-
+    /// <summary>
+    /// 保存
+    /// </summary>
+    /// <param name="fileName">文件名</param>
+    /// <param name="version">版本</param>
+    public void SaveAs(string fileName, DwgVersion version)
+    {
+        if (Document != null)
+            Document.SendStringToExecute("_qsave\n", false, true, true);
+        else
+            Database.SaveAs(fileName, version);
+    }
     public void Abort()
     {
         Transaction.Abort();
@@ -309,7 +337,6 @@ public class DBTrans : IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        Transaction.TransactionManager.QueueForGraphicsFlush();
         if (!disposedValue)
         {
             if (disposing)
@@ -319,6 +346,8 @@ public class DBTrans : IDisposable
                 dBTrans.Pop();
                 if (!Transaction.IsDisposed)
                 {
+                    if (Document?.IsActive==true)
+                        Transaction.TransactionManager.QueueForGraphicsFlush();
                     Transaction.Dispose();
                 }
                 documentLock?.Dispose();
