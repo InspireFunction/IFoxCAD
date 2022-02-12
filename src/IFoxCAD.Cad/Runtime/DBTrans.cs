@@ -71,10 +71,12 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="doc">要打开的文档</param>
     /// <param name="commit">事务是否提交</param>
-    public DBTrans(bool commit = true, bool doclock = false)
+    public DBTrans(Document doc = null, bool commit = true, bool doclock = false)
     {
-        Database = HostApplicationServices.WorkingDatabase;
-        Init(true, commit, doclock);
+        Document = doc ?? Application.DocumentManager.MdiActiveDocument;
+        Database = Document.Database;
+        Editor = Document.Editor;
+        Init(commit, doclock);
     }
 
     /// <summary>
@@ -85,7 +87,7 @@ public class DBTrans : IDisposable
     public DBTrans(Database database, bool commit = true)
     {
         Database = database;
-        Init(false, commit, false);
+        Init(commit, false);
     }
     /// <summary>
     /// 构造函数，打开文件，默认提交事务
@@ -104,19 +106,14 @@ public class DBTrans : IDisposable
             Database.ReadDwgFile(fileName, FileShare.Read, true, null);
         }
         Database.CloseInput(true);
-        Init(false, commit, false);
+        Init(commit, false);
     }
     /// <summary>
     /// 初始化事务及事务队列、提交模式
     /// </summary>
     /// <param name="commit">提交模式</param>
-    private void Init(bool hasDoc, bool commit, bool doclock)
+    private void Init(bool commit, bool doclock)
     {
-        if (HasDocument = hasDoc)
-        {
-            Document = Application.DocumentManager.GetDocument(Database);
-            Editor = Document.Editor;
-        }
         if (doclock)
         {
             documentLock = Document.LockDocument();

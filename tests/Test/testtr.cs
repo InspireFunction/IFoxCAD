@@ -1,6 +1,6 @@
 ﻿namespace Test
 {
-    public class IFoxCAD1
+    public class TestTrans
     {
         [CommandMethod("testtr")]
         public void Testtr()
