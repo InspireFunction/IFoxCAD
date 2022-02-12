@@ -166,11 +166,19 @@ public static class EntityEx
     /// <returns>实体集合的范围</returns>
     public static Extents3d GetExtents(this IEnumerable<Entity> ents)
     {
-        var it = ents.GetEnumerator();
-        var ext = it.Current.GeometricExtents;
-        while (it.MoveNext())
-            ext.AddExtents(it.Current.GeometricExtents);
+        var ext = new Extents3d();
+        foreach (var item in ents)
+        {
+            ext.AddExtents(item.GeometricExtents);
+        }
+
+        //var it = ents.GetEnumerator();
+        //var ext = it.Current.GeometricExtents;
+        //while (it.MoveNext())
+        //    ext.AddExtents(it.Current.GeometricExtents);
         return ext;
+
+
     }
     #endregion
 
