@@ -12,11 +12,12 @@ namespace Test
             try
             {
                 var fileName = @"C:\Users\Administrator\Desktop\合并详图测试BUG.dwg";
-
-                DBTrans trans = new(fileName);
+                using DBTrans trans = new(fileName);
                 trans.ModelSpace.AddEntity(new Line(new(0, 0, 0), new(1000, 1000, 0)));
-                trans.SaveAs(fileName, DwgVersion.AC1021);
-                trans.Dispose();
+                if (trans.Document != null && trans.Document.IsActive)
+                    trans.Document.SendStringToExecute("_qsave\n", false, true, true);
+                else
+                    trans.Database.SaveAs(fileName, DwgVersion.AC1021);
             }
             catch (System.Exception e)
             {
