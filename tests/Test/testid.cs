@@ -55,7 +55,7 @@ namespace test
         [CommandMethod("testmycommand")]
         public void TestMyCommand()
         {
-            using (var dbtrans = new DBTrans(Env.Document,true,false)) { 
+            using (var dbtrans = new DBTrans(true,false)) { 
                 using (var trans = Env.Database.TransactionManager.StartTransaction())
                 {
                     var l1 = new Line(new Point3d(0, 0, 0), new Point3d(100, 100, 0));
