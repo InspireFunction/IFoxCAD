@@ -58,6 +58,10 @@ public class DBTrans : IDisposable
     /// 事务管理器
     /// </summary>
     public Transaction Transaction { get; private set; }
+    /// <summary>
+    /// 文档对象是否存在
+    /// </summary>
+    public bool HasDocument { get; private set; }
 
     #endregion
 
@@ -69,8 +73,7 @@ public class DBTrans : IDisposable
     /// <param name="commit">事务是否提交</param>
     public DBTrans(bool commit = true, bool doclock = false, Document doc = null)
     {
-        doc ??= Application.DocumentManager.MdiActiveDocument;
-        Document = doc;
+        Document = doc ?? Application.DocumentManager.MdiActiveDocument;
         Database = Document.Database;
         Editor = Document.Editor;
         Init(commit, doclock);
@@ -305,18 +308,7 @@ public class DBTrans : IDisposable
     #endregion
 
     #region idispose接口相关函数
-    /// <summary>
-    /// 保存
-    /// </summary>
-    /// <param name="fileName">文件名</param>
-    /// <param name="version">版本</param>
-    public void SaveAs(string fileName, DwgVersion version)
-    {
-        if (Document != null)
-            Document.SendStringToExecute("_qsave\n", false, true, true);
-        else
-            Database.SaveAs(fileName, version);
-    }
+
     public void Abort()
     {
         Transaction.Abort();
@@ -357,6 +349,7 @@ public class DBTrans : IDisposable
             // 将大型字段设置为 null
             disposedValue = true;
         }
+        //Transaction.TransactionManager.QueueForGraphicsFlush();
     }
 
     // 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器

@@ -2,7 +2,7 @@
 
 namespace test;
 
-public class Test
+public class Test : AutoRegAssem
 {
     [CommandMethod("dbtest")]
     public void Dbtest()
@@ -323,15 +323,15 @@ public class Test
         return doc;
     }
 
-    //public override void Initialize()
-    //{
-    //    Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nload....");
-    //}
+    public override void Initialize()
+    {
+        Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nload....");
+    }
 
-    //public override void Terminate()
-    //{
-    //    Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nunload....");
-    //}
+    public override void Terminate()
+    {
+        Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nunload....");
+    }
 }
 
 

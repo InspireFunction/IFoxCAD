@@ -68,6 +68,7 @@ public static class SelectionSetEx
     /// <returns>图元集合</returns>
     public static IEnumerable<T> GetEntities<T>(this SelectionSet ss, OpenMode openMode = OpenMode.ForRead, Transaction tr = default) where T : Entity
     {
+        tr ??= DBTrans.Top.Transaction;
         return
             ss
             .GetObjectIds()
