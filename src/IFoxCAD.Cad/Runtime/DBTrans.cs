@@ -101,27 +101,41 @@ public class DBTrans : IDisposable
     /// <param name="commit">事务是否提交</param>
     public DBTrans(string fileName, bool commit = true)
     {
-        Database = CreateDatabase(fileName);
+        if (string.IsNullOrWhiteSpace(fileName))
+            throw new ArgumentNullException(nameof(fileName));
+        if (File.Exists(fileName))
+        {
+            var doc =
+                Application.DocumentManager.Cast<Document>().FirstOrDefault(doc => doc.Name == fileName);
+            if (doc is not null)
+            {
+                Database = doc.Database;
+                Document = doc;
+                Editor = doc.Editor;
+            }
+            else
+            {
+                Database = new Database(false, true);
+                if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
+                {
+                    Database.DxfIn(fileName, null);
+                }
+                else
+                {
+                    Database.ReadDwgFile(fileName, FileOpenMode.OpenForReadAndWriteNoShare, true, null);
+                }
+                Database.CloseInput(true);
+            }
+        }
+        else
+        {
+            Database = new Database(true, false);
+        }
+                
         Transaction = Database.TransactionManager.StartTransaction();
         _commit = commit;
         dBTrans.Push(this);
     }
-
-    private static Database CreateDatabase(string fileName)
-    {
-        var db = new Database(false, true);
-        if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
-        {
-            db.DxfIn(fileName, null);
-        }
-        else
-        {
-            db.ReadDwgFile(fileName, FileShare.Read, true, null);
-        }
-        db.CloseInput(true);
-        return db;
-    }
-
     #endregion
 
     #region 类型转换
