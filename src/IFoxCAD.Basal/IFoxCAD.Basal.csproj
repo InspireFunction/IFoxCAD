@@ -4,7 +4,7 @@
         <TargetFramework>net45</TargetFramework>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
 		<Nullable>enable</Nullable>
-        <Version>0.2.0</Version>
+        <Version>0.3.0</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的二次开发基本类库</Description>
@@ -13,7 +13,7 @@
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>IFoxCAD;C#;NET;Common;Basal</PackageTags>
-        <PackageReleaseNotes>删除net35支持，升级至net45，增加c#10语法相关内容.</PackageReleaseNotes>
+        <PackageReleaseNotes>删除LoopList类,改为利用LinkedList;开启可空类型.</PackageReleaseNotes>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <LangVersion>preview</LangVersion>
