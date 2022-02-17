@@ -311,7 +311,6 @@ public class DBTrans : IDisposable
 
     protected virtual void Dispose(bool disposing)
     {
-        //Transaction.TransactionManager.QueueForGraphicsFlush();
         if (!disposedValue)
         {
             if (disposing)
@@ -321,7 +320,8 @@ public class DBTrans : IDisposable
                 dBTrans.Pop();
                 if (!Transaction.IsDisposed)
                 {
-                    Transaction.TransactionManager.QueueForGraphicsFlush();
+                    if (Document?.IsActive==true)
+                        Transaction.TransactionManager.QueueForGraphicsFlush();
                     Transaction.Dispose();
                 }
                 documentLock?.Dispose();
