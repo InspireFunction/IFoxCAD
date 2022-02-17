@@ -66,15 +66,19 @@ public static class SymbolTableEx
         }
         table.CurrentSymbolTable.GenerateUsageData();
         var ltr = table.GetRecord(name);
-        if (ltr.IsUsed)
+        if (ltr is not null)
         {
-            return false;
+            if (ltr.IsUsed)
+            {
+                return false;
+            }
+            using (ltr.ForWrite())
+            {
+                ltr.Erase();
+            }
+            return true;
         }
-        using (ltr.ForWrite())
-        {
-            ltr.Erase();
-        }
-        return true;
+        return false;
     }
     #endregion
 
@@ -89,7 +93,7 @@ public static class SymbolTableEx
     /// <param name="attdef">添加属性定义的委托</param>
     /// <returns>块定义id</returns>
     /// TODO: 需要测试匿名块等特殊的块是否能定义
-    public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name, Action<BlockTableRecord> action = null, Func<IEnumerable<Entity>> ents = null, Func<IEnumerable<AttributeDefinition>> attdef = null)
+    public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name, Action<BlockTableRecord>? action = null, Func<IEnumerable<Entity>>? ents = null, Func<IEnumerable<AttributeDefinition>>? attdef = null)
     {
         return table.Add(name, btr =>
         {
@@ -104,15 +108,8 @@ public static class SymbolTableEx
             {
                 btr.AddEntity(adddefres);
             }
-                //if (ents is not null)
-                //{
-                //    btr.AddEntity(ents?.Invoke());
-                //}
-                //if (attdef is not null)
-                //{
-                //    btr.AddEntity(attdef?.Invoke());
-                //}
-            });
+
+        });
     }
     /// <summary>
     /// 添加块定义
@@ -122,9 +119,19 @@ public static class SymbolTableEx
     /// <param name="ents">图元</param>
     /// <param name="attdef">属性定义</param>
     /// <returns></returns>
-    public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name, IEnumerable<Entity> ents = null, IEnumerable<AttributeDefinition> attdef = null)
+    public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name, IEnumerable<Entity>? ents = null, IEnumerable<AttributeDefinition>? attdef = null)
     {
-        return table.Add(name, null, () => { return ents; }, () => { return attdef; });
+        return table.Add(name, btr =>
+        {
+            if (ents != null)
+            {
+                btr.AddEntity(ents);
+            }
+            if (attdef != null)
+            {
+                btr.AddEntity(attdef);
+            }
+        });
     }
 
     /// <summary>
@@ -276,7 +283,7 @@ public static class SymbolTableEx
     public static ObjectId AddWithChange(this SymbolTable<TextStyleTable, TextStyleTableRecord> table,
                                          string textStyleName,
                                          string smallFont,
-                                         string bigFont = null,
+                                         string bigFont = "",
                                          double xScale = 1,
                                          double height = 0,
                                          bool forceChange = true)
@@ -288,7 +295,7 @@ public static class SymbolTableEx
                 ttr.FileName = smallFont;
                 ttr.XScale = xScale;
                 ttr.TextSize = height;
-                if (bigFont != null)
+                if (bigFont != "")
                 {
                     ttr.BigFontFileName = bigFont;
                 }

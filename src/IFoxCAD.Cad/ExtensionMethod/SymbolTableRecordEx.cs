@@ -17,10 +17,10 @@ public static class SymbolTableRecordEx
     /// <param name="entity">实体</param>
     /// <param name="trans">事务管理器</param>
     /// <returns>对象 id</returns>
-    public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity, Transaction trans = null)
+    public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity, Transaction? trans = null)
     {
-        if (entity is null)
-            throw new ArgumentNullException(nameof(entity), "对象为 null");
+        //if (entity is null)
+        //    throw new ArgumentNullException(nameof(entity), "对象为 null");
 
         ObjectId id;
         trans ??= DBTrans.Top.Transaction;
@@ -40,10 +40,10 @@ public static class SymbolTableRecordEx
     /// <param name="tr">事务</param>
     /// <param name="ents">实体集合</param>
     /// <returns>对象 id 列表</returns>
-    public static IEnumerable<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents, Transaction trans = null) where T : Entity
+    public static IEnumerable<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents, Transaction? trans = null) where T : Entity
     {
-        if (ents.Any(ent => ent is null))
-            throw new ArgumentNullException(nameof(ents), "实体集合内存在 null 对象");
+        //if (ents.Any(ent => ent is null))
+        //    throw new ArgumentNullException(nameof(ents), "实体集合内存在 null 对象");
 
         trans ??= DBTrans.Top.Transaction;
         using (btr.ForWrite())
@@ -81,9 +81,9 @@ public static class SymbolTableRecordEx
     /// <param name="action">图元属性设置委托</param>
     /// <param name="trans">事务管理器</param>
     /// <returns>图元id</returns>
-    private static ObjectId AddEnt<T>(this BlockTableRecord btr, T ent, Action<T> action, Transaction trans) where T : Entity
+    private static ObjectId AddEnt<T>(this BlockTableRecord btr, T ent, Action<T>? action, Transaction? trans) where T : Entity
     {
-        trans ??= DBTrans.Top.Transaction;
+        //trans ??= DBTrans.Top.Transaction;
         action?.Invoke(ent);
         return btr.AddEntity(ent, trans);
     }
@@ -94,10 +94,10 @@ public static class SymbolTableRecordEx
     /// <param name="action">返回图元的委托</param>
     /// <param name="transaction">事务</param>
     /// <returns>图元id，如果委托返回 null，则为 ObjectId.Null</returns>
-    public static ObjectId AddEnt(this BlockTableRecord btr, Func<Entity> action, Transaction transaction)
+    public static ObjectId AddEnt(this BlockTableRecord btr, Func<Entity> action, Transaction? transaction)
     {
-        transaction ??= DBTrans.Top.Transaction;
-        var ent = action?.Invoke();
+        //transaction ??= DBTrans.Top.Transaction;
+        var ent = action.Invoke();
         if (ent == null)
         {
             return ObjectId.Null;
@@ -114,7 +114,7 @@ public static class SymbolTableRecordEx
     /// <param name="btr">绘图空间</param>
     /// <param name="action">直线属性设置委托</param>
     /// <returns>直线的id</returns>
-    public static ObjectId AddLine(this BlockTableRecord btr, Point3d start, Point3d end, Action<Line> action = default, Transaction trans = default)
+    public static ObjectId AddLine(this BlockTableRecord btr, Point3d start, Point3d end, Action<Line>? action = default, Transaction? trans = default)
     {
         var line = new Line(start, end);
         return btr.AddEnt(line, action, trans);
@@ -128,7 +128,7 @@ public static class SymbolTableRecordEx
     /// <param name="action">圆属性设置委托</param>
     /// <param name="trans">事务管理器</param>
     /// <returns>圆的id</returns>
-    public static ObjectId AddCircle(this BlockTableRecord btr, Point3d center, double radius, Action<Circle> action = default, Transaction trans = default)
+    public static ObjectId AddCircle(this BlockTableRecord btr, Point3d center, double radius, Action<Circle>? action = default, Transaction? trans = default)
     {
         var circle = new Circle(center, Vector3d.ZAxis, radius);
         return btr.AddEnt(circle, action, trans);
@@ -145,10 +145,15 @@ public static class SymbolTableRecordEx
     /// <param name="trans">事务管理器</param>
     /// <returns>三点有外接圆则返回圆的id，否则返回ObjectId.Null</returns>
     public static ObjectId AddCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2,
-        Action<Circle> action = default, Transaction trans = default)
+        Action<Circle>? action = default, Transaction? trans = default)
     {
-        Circle circle = EntityEx.CreateCircle(p0, p1, p2);
-        return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
+        var circle = EntityEx.CreateCircle(p0, p1, p2);
+        //return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
+        if (circle == null)
+        {
+            throw new ArgumentNullException(nameof(circle), "对象为 null");
+        }
+        return btr.AddEnt(circle, action, trans);
     }
     /// <summary>
     /// 在指定的绘图空间添加轻多段线
@@ -161,7 +166,7 @@ public static class SymbolTableRecordEx
     /// <param name="action">轻多段线属性设置委托</param>
     /// <param name="trans">事务管理器</param>
     /// <returns>轻多段线id</returns>
-    public static ObjectId AddPline(this BlockTableRecord btr, List<Point3d> pts, List<double> bulges = default, List<double> startWidths = default, List<double> endWidths = default, Action<Polyline> action = default, Transaction trans = default)
+    public static ObjectId AddPline(this BlockTableRecord btr, List<Point3d> pts, List<double>? bulges = default, List<double>? startWidths = default, List<double>? endWidths = default, Action<Polyline>? action = default, Transaction? trans = default)
     {
         bulges ??= new List<double>(new double[pts.Count]);
         startWidths ??= new List<double>(new double[pts.Count]);
@@ -183,7 +188,7 @@ public static class SymbolTableRecordEx
     /// <param name="action">轻多段线属性设置委托</param>
     /// <param name="trans">事务管理器</param>
     /// <returns>轻多段线id</returns>
-    public static ObjectId AddPline(this BlockTableRecord btr, List<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,  Action<Polyline> action = default, Transaction trans = default)
+    public static ObjectId AddPline(this BlockTableRecord btr, List<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,  Action<Polyline>? action = default, Transaction? trans = default)
         {
            
             Polyline pl = new();
@@ -207,7 +212,7 @@ public static class SymbolTableRecordEx
     /// <param name="action">圆弧属性设置委托</param>
     /// <param name="trans">事务管理器</param>
     /// <returns>圆弧id</returns>
-    public static ObjectId AddArc(this BlockTableRecord btr, Point3d startPoint, Point3d pointOnArc, Point3d endPoint, Action<Arc> action = default, Transaction trans = default)
+    public static ObjectId AddArc(this BlockTableRecord btr, Point3d startPoint, Point3d pointOnArc, Point3d endPoint, Action<Arc>? action = default, Transaction? trans = default)
     {
         var arc = EntityEx.CreateArc(startPoint, pointOnArc, endPoint);
         return btr.AddEnt(arc, action, trans);
@@ -223,7 +228,7 @@ public static class SymbolTableRecordEx
     /// <param name="tr">事务</param>
     /// <param name="mode">打开模式</param>
     /// <returns>实体集合</returns>
-    public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr, OpenMode mode = OpenMode.ForRead, Transaction trans = null) where T : Entity
+    public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr, OpenMode mode = OpenMode.ForRead, Transaction? trans = default) where T : Entity
     {
         trans ??= DBTrans.Top.Transaction;
         return
@@ -265,7 +270,7 @@ public static class SymbolTableRecordEx
     /// <param name="btr">块表</param>
     /// <param name="tr">事务</param>
     /// <returns>绘制顺序表</returns>
-    public static DrawOrderTable GetDrawOrderTable(this BlockTableRecord btr, Transaction tr = null)
+    public static DrawOrderTable? GetDrawOrderTable(this BlockTableRecord btr, Transaction? tr = default)
     {
         tr ??= DBTrans.Top.Transaction;
         return tr.GetObject(btr.DrawOrderTableId, OpenMode.ForRead) as DrawOrderTable;
@@ -288,12 +293,12 @@ public static class SymbolTableRecordEx
                                 string blockName,
                                 Scale3d scale = default,
                                 double rotation = default,
-                                Dictionary<string, string> atts = default, Transaction trans = null)
+                                Dictionary<string, string>? atts = default, Transaction? trans = null)
     {
         trans ??= DBTrans.Top.Transaction;
         if (!DBTrans.Top.BlockTable.Has(blockName))
         {
-            DBTrans.Top.Editor.WriteMessage($"\n不存在名字为{blockName}的块定义。");
+            DBTrans.Top.Editor?.WriteMessage($"\n不存在名字为{blockName}的块定义。");
             return ObjectId.Null;
         }
         return blockTableRecord.InsertBlock(position, DBTrans.Top.BlockTable[blockName], scale, rotation, atts, trans);
@@ -311,12 +316,12 @@ public static class SymbolTableRecordEx
                                 ObjectId blockId,
                                 Scale3d scale = default,
                                 double rotation = default,
-                                Dictionary<string, string> atts = default, Transaction trans = null)
+                                Dictionary<string, string>? atts = default, Transaction? trans = null)
     {
         trans ??= DBTrans.Top.Transaction;
         if (!DBTrans.Top.BlockTable.Has(blockId))
         {
-            DBTrans.Top.Editor.WriteMessage($"\n不存在名字为{DBTrans.Top.GetObject<BlockTableRecord>(blockId).Name}的块定义。");
+            DBTrans.Top.Editor?.WriteMessage($"\n不存在块定义。");
             return ObjectId.Null;
         }
         using var blockref = new BlockReference(position, blockId)
@@ -327,7 +332,7 @@ public static class SymbolTableRecordEx
         var objid = blockTableRecord.AddEntity(blockref);
         if (atts != default)
         {
-            var btr = DBTrans.Top.GetObject<BlockTableRecord>(blockref.BlockTableRecord);
+            var btr = DBTrans.Top.GetObject<BlockTableRecord>(blockref.BlockTableRecord)!;
             if (btr.HasAttributeDefinitions)
             {
                 var attdefs = btr

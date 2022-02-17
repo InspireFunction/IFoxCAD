@@ -92,7 +92,7 @@ public abstract class OpFilter
     /// <returns>过滤器</returns>
     public static OpFilter Bulid(Func<Op, Op> func)
     {
-        return func(new OpFilter.Op()).Filter;
+        return func(new Op()).Filter!;
     }
 
     #region Operator
@@ -105,7 +105,7 @@ public abstract class OpFilter
         /// <summary>
         /// 过滤器属性
         /// </summary>
-        internal OpFilter Filter { get; private set; }
+        internal OpFilter? Filter { get; private set; }
 
         internal Op()
         {
@@ -121,11 +121,13 @@ public abstract class OpFilter
         /// </summary>
         /// <param name="args">操作符类型的可变参数</param>
         /// <returns>Op对象</returns>
+#pragma warning disable CA1822 // 将成员标记为 static
         public Op And(params Op[] args)
+#pragma warning restore CA1822 // 将成员标记为 static
         {
             var filter = new OpAnd();
             foreach (var op in args)
-                filter.Add(op.Filter);
+                filter.Add(op.Filter!);
             return new Op(filter);
         }
 
@@ -134,11 +136,13 @@ public abstract class OpFilter
         /// </summary>
         /// <param name="args">操作符类型的可变参数</param>
         /// <returns>Op对象</returns>
+#pragma warning disable CA1822 // 将成员标记为 static
         public Op Or(params Op[] args)
+#pragma warning restore CA1822 // 将成员标记为 static
         {
             var filter = new OpOr();
             foreach (var op in args)
-                filter.Add(op.Filter);
+                filter.Add(op.Filter!);
             return new Op(filter);
         }
 
@@ -147,7 +151,9 @@ public abstract class OpFilter
         /// </summary>
         /// <param name="code">组码</param>
         /// <returns>Op对象</returns>
+#pragma warning disable CA1822 // 将成员标记为 static
         public Op Dxf(int code)
+#pragma warning restore CA1822 // 将成员标记为 static
         {
             return new Op(new OpEqual(code));
         }
@@ -158,7 +164,9 @@ public abstract class OpFilter
         /// <param name="code">组码</param>
         /// <param name="content">关系运算符的值，比如">,>,="</param>
         /// <returns>Op对象</returns>
+#pragma warning disable CA1822 // 将成员标记为 static
         public Op Dxf(int code, string content)
+#pragma warning restore CA1822 // 将成员标记为 static
         {
             return new Op(new OpComp(content, code));
         }
@@ -170,7 +178,7 @@ public abstract class OpFilter
         /// <returns>Op对象</returns>
         public static Op operator !(Op right)
         {
-            right.Filter = !right.Filter;
+            right.Filter = !right.Filter!;
             return right;
         }
 
@@ -182,7 +190,7 @@ public abstract class OpFilter
         /// <returns>Op对象</returns>
         public static Op operator ==(Op left, object right)
         {
-            var eq = (OpEqual)left.Filter;
+            var eq = (OpEqual)left.Filter!;
             eq.SetValue(right);
             return left;
         }
@@ -195,7 +203,7 @@ public abstract class OpFilter
         /// <returns>Op对象</returns>
         public static Op operator !=(Op left, object right)
         {
-            var eq = (OpEqual)left.Filter;
+            var eq = (OpEqual)left.Filter!;
             eq.SetValue(right);
             left.Filter = eq.Not;
             return left;
@@ -203,7 +211,7 @@ public abstract class OpFilter
 
         private static Op GetCompOp(string content, Op left, object right)
         {
-            var eq = (OpEqual)left.Filter;
+            var eq = (OpEqual)left.Filter!;
             var comp = new OpComp(content, eq.Value.TypeCode, right);
             return new Op(comp);
         }
@@ -284,8 +292,8 @@ public abstract class OpFilter
         {
             var filter = new OpAnd
             {
-                left.Filter,
-                right.Filter
+                left.Filter!,
+                right.Filter!
             };
             return new Op(filter);
         }
@@ -300,8 +308,8 @@ public abstract class OpFilter
         {
             var filter = new OpOr
             {
-                left.Filter,
-                right.Filter
+                left.Filter!,
+                right.Filter!
             };
             return new Op(filter);
         }
@@ -314,7 +322,7 @@ public abstract class OpFilter
         /// <returns>Op对象</returns>
         public static Op operator ^(Op left, Op right)
         {
-            var filter = new OpXor(left.Filter, right.Filter);
+            var filter = new OpXor(left.Filter!, right.Filter!);
             return new Op(filter);
         }
 

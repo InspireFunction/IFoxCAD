@@ -63,7 +63,7 @@ public class EnumSelection<T> : INotifyPropertyChanged where T : struct, ICompar
         }
     }
 
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
 
     private void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {

@@ -12,25 +12,23 @@ public static class EntityEx
     /// 刷新实体显示
     /// </summary>
     /// <param name="entity">实体对象</param>
-    public static void Flush(this Entity entity, Transaction trans = null)
+    public static void Flush(this Entity entity, DBTrans? trans = null)
     {
-        if (entity is null)
-        {
-            throw new ArgumentNullException(nameof(entity));
-        }
-        if (trans is null)
-        {
-            trans = DBTrans.Top.Transaction;
-        }
+        //if (entity is null)
+        //{
+        //    throw new ArgumentNullException(nameof(entity));
+        //}
+        trans ??= DBTrans.Top;
         entity.RecordGraphicsModified(true);
-        trans.TransactionManager.QueueForGraphicsFlush();
+        trans.Transaction.TransactionManager.QueueForGraphicsFlush();
+        trans.Document?.TransactionManager.FlushGraphics();
     }
 
     /// <summary>
     /// 刷新实体显示
     /// </summary>
     /// <param name="id">实体id</param>
-    public static void Flush(this ObjectId id) => Flush(DBTrans.Top.GetObject<Entity>(id));
+    public static void Flush(this ObjectId id) => Flush(DBTrans.Top.GetObject<Entity>(id)!);
     #endregion
 
     #region 多段线端点坐标
@@ -40,12 +38,12 @@ public static class EntityEx
     /// <param name="pl2d">二维多段线</param>
     /// <param name="tr">事务</param>
     /// <returns>端点坐标集合</returns>
-    public static IEnumerable<Point3d> GetPoints(this Polyline2d pl2d, Transaction tr = null)
+    public static IEnumerable<Point3d> GetPoints(this Polyline2d pl2d, DBTrans? tr = null)
     {
-        tr ??= DBTrans.Top.Transaction;
+        tr ??= DBTrans.Top;
         foreach (ObjectId id in pl2d)
         {
-            yield return ((Vertex2d)tr.GetObject(id, OpenMode.ForRead)).Position;
+            yield return tr.GetObject<Vertex2d>(id)!.Position;
         }
     }
 
@@ -55,12 +53,12 @@ public static class EntityEx
     /// <param name="pl3d">三维多段线</param>
     /// <param name="tr">事务</param>
     /// <returns>端点坐标集合</returns>
-    public static IEnumerable<Point3d> GetPoints(this Polyline3d pl3d, Transaction tr = null)
+    public static IEnumerable<Point3d> GetPoints(this Polyline3d pl3d, DBTrans? tr = null)
     {
-        tr ??= DBTrans.Top.Transaction;
+        tr ??= DBTrans.Top;
         foreach (ObjectId id in pl3d)
         {
-            yield return ((PolylineVertex3d)tr.GetObject(id, OpenMode.ForRead)).Position;
+            yield return tr.GetObject<PolylineVertex3d>(id, OpenMode.ForRead)!.Position;
         }
     }
 
@@ -171,14 +169,7 @@ public static class EntityEx
         {
             ext.AddExtents(item.GeometricExtents);
         }
-
-        //var it = ents.GetEnumerator();
-        //var ext = it.Current.GeometricExtents;
-        //while (it.MoveNext())
-        //    ext.AddExtents(it.Current.GeometricExtents);
         return ext;
-
-
     }
     #endregion
 
@@ -316,7 +307,7 @@ public static class EntityEx
     /// <param name="pt2">第二点</param>
     /// <param name="pt3">第三点</param>
     /// <returns>圆</returns>
-    public static Circle CreateCircle(Point3d pt1, Point3d pt2, Point3d pt3)
+    public static Circle? CreateCircle(Point3d pt1, Point3d pt2, Point3d pt3)
     {
         //先判断三点是否共线,得到pt1点指向pt2、pt2点的矢量
         Vector3d va = pt1.GetVectorTo(pt2);
@@ -351,14 +342,14 @@ public static class EntityEx
     /// <param name="pt3ds">裁剪多边形点表</param>
     public static void ClipBlockRef(this BlockReference bref, IEnumerable<Point3d> pt3ds)
     {
-        if (bref == null)
-        {
-            throw new ArgumentNullException(nameof(bref));
-        }
-        if (pt3ds == null)
-        {
-            throw new ArgumentNullException(nameof(pt3ds));
-        }
+        //if (bref == null)
+        //{
+        //    throw new ArgumentNullException(nameof(bref));
+        //}
+        //if (pt3ds == null)
+        //{
+        //    throw new ArgumentNullException(nameof(pt3ds));
+        //}
         Matrix3d mat = bref.BlockTransform.Inverse();
         var pts =
             pt3ds
@@ -368,7 +359,7 @@ public static class EntityEx
 
         SpatialFilterDefinition sfd = new(pts, Vector3d.ZAxis, 0.0, 0.0, 0.0, true);
         using SpatialFilter sf = new() { Definition = sfd };
-        var dict = bref.GetXDictionary().GetSubDictionary(true, new string[] { filterDictName });
+        var dict = bref.GetXDictionary()!.GetSubDictionary(true, new string[] { filterDictName })!;
         dict.SetAt<SpatialFilter>(spatialName, sf);
         //SetToDictionary(dict, spatialName, sf);
     }
@@ -381,10 +372,10 @@ public static class EntityEx
     /// <param name="pt2">第二角点</param>
     public static void ClipBlockRef(this BlockReference bref, Point3d pt1, Point3d pt2)
     {
-        if (bref == null)
-        {
-            throw new ArgumentNullException(nameof(bref));
-        }
+        //if (bref == null)
+        //{
+        //    throw new ArgumentNullException(nameof(bref));
+        //}
         Matrix3d mat = bref.BlockTransform.Inverse();
         pt1 = pt1.TransformBy(mat);
         pt2 = pt2.TransformBy(mat);
@@ -396,7 +387,7 @@ public static class EntityEx
 
         SpatialFilterDefinition sfd = new(pts, Vector3d.ZAxis, 0.0, 0.0, 0.0, true);
         using SpatialFilter sf = new() { Definition = sfd };
-        var dict = bref.GetXDictionary().GetSubDictionary(true, new string[] { filterDictName });
+        var dict = bref.GetXDictionary()!.GetSubDictionary(true, new string[] { filterDictName })!;
         dict.SetAt<SpatialFilter>(spatialName, sf);
         //SetToDictionary(dict, spatialName, sf);
     }

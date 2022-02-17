@@ -6,7 +6,7 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 文档锁
     /// </summary>
-    private DocumentLock documentLock = default;
+    private readonly DocumentLock? documentLock;
     /// <summary>
     /// 是否释放资源
     /// </summary>
@@ -14,7 +14,7 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 是否提交事务
     /// </summary>
-    private bool _commit;
+    private readonly bool _commit;
     /// <summary>
     /// 事务栈
     /// </summary>
@@ -49,19 +49,15 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 文档
     /// </summary>
-    public Document Document { get; private set; }
+    public Document? Document { get; private set; }
     /// <summary>
     /// 命令行
     /// </summary>
-    public Editor Editor { get; private set; }
+    public Editor? Editor { get; private set; }
     /// <summary>
     /// 事务管理器
     /// </summary>
     public Transaction Transaction { get; private set; }
-    /// <summary>
-    /// 文档对象是否存在
-    /// </summary>
-    public bool HasDocument { get; private set; }
 
     #endregion
 
@@ -71,12 +67,19 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="doc">要打开的文档</param>
     /// <param name="commit">事务是否提交</param>
-    public DBTrans(Document doc = null, bool commit = true, bool doclock = false)
+    /// <param name="doclock">是否锁文档</param>
+    public DBTrans(Document? doc = null, bool commit = true, bool doclock = false)
     {
         Document = doc ?? Application.DocumentManager.MdiActiveDocument;
         Database = Document.Database;
         Editor = Document.Editor;
-        Init(commit, doclock);
+        Transaction = Database.TransactionManager.StartTransaction();
+        _commit = commit;
+        if (doclock)
+        {
+            documentLock = Document.LockDocument();
+        }
+        dBTrans.Push(this);
     }
 
     /// <summary>
@@ -87,7 +90,9 @@ public class DBTrans : IDisposable
     public DBTrans(Database database, bool commit = true)
     {
         Database = database;
-        Init(commit, false);
+        Transaction = Database.TransactionManager.StartTransaction();
+        _commit = commit;
+        dBTrans.Push(this);
     }
     /// <summary>
     /// 构造函数，打开文件，默认提交事务
@@ -96,31 +101,25 @@ public class DBTrans : IDisposable
     /// <param name="commit">事务是否提交</param>
     public DBTrans(string fileName, bool commit = true)
     {
-        Database = new Database(false, true);
-        if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
-        {
-            Database.DxfIn(fileName, null);
-        }
-        else
-        {
-            Database.ReadDwgFile(fileName, FileShare.Read, true, null);
-        }
-        Database.CloseInput(true);
-        Init(commit, false);
-    }
-    /// <summary>
-    /// 初始化事务及事务队列、提交模式
-    /// </summary>
-    /// <param name="commit">提交模式</param>
-    private void Init(bool commit, bool doclock)
-    {
-        if (doclock)
-        {
-            documentLock = Document.LockDocument();
-        }
+        Database = CreateDatabase(fileName);
         Transaction = Database.TransactionManager.StartTransaction();
         _commit = commit;
         dBTrans.Push(this);
+    }
+
+    private static Database CreateDatabase(string fileName)
+    {
+        var db = new Database(false, true);
+        if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
+        {
+            db.DxfIn(fileName, null);
+        }
+        else
+        {
+            db.ReadDwgFile(fileName, FileShare.Read, true, null);
+        }
+        db.CloseInput(true);
+        return db;
     }
 
     #endregion
@@ -146,15 +145,15 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 当前绘图空间
     /// </summary>
-    public BlockTableRecord CurrentSpace => BlockTable.GetRecord(Database.CurrentSpaceId);
+    public BlockTableRecord CurrentSpace => BlockTable.GetRecord(Database.CurrentSpaceId)!;
     /// <summary>
     /// 模型空间
     /// </summary>
-    public BlockTableRecord ModelSpace => BlockTable.GetRecord(BlockTable.CurrentSymbolTable[BlockTableRecord.ModelSpace]);
+    public BlockTableRecord ModelSpace => BlockTable.GetRecord(BlockTable.CurrentSymbolTable[BlockTableRecord.ModelSpace])!;
     /// <summary>
     /// 图纸空间
     /// </summary>
-    public BlockTableRecord PaperSpace => BlockTable.GetRecord(BlockTable.CurrentSymbolTable[BlockTableRecord.PaperSpace]);
+    public BlockTableRecord PaperSpace => BlockTable.GetRecord(BlockTable.CurrentSymbolTable[BlockTableRecord.PaperSpace])!;
     /// <summary>
     /// 层表
     /// </summary>
@@ -200,61 +199,60 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 命名对象字典
     /// </summary>
-    public DBDictionary NamedObjectsDict => GetObject<DBDictionary>(Database.NamedObjectsDictionaryId);
+    public DBDictionary NamedObjectsDict => GetObject<DBDictionary>(Database.NamedObjectsDictionaryId)!;
     /// <summary>
     /// 组字典
     /// </summary>
-    public DBDictionary GroupDict => GetObject<DBDictionary>(Database.GroupDictionaryId);
+    public DBDictionary GroupDict => GetObject<DBDictionary>(Database.GroupDictionaryId)!;
     /// <summary>
     /// 多重引线样式字典
     /// </summary>
-    public DBDictionary MLeaderStyleDict => GetObject<DBDictionary>(Database.MLeaderStyleDictionaryId);
+    public DBDictionary MLeaderStyleDict => GetObject<DBDictionary>(Database.MLeaderStyleDictionaryId)!;
     /// <summary>
     /// 多线样式字典
     /// </summary>
-    public DBDictionary MLStyleDict => GetObject<DBDictionary>(Database.MLStyleDictionaryId);
+    public DBDictionary MLStyleDict => GetObject<DBDictionary>(Database.MLStyleDictionaryId)!;
     /// <summary>
     /// 材质字典
     /// </summary>
-    public DBDictionary MaterialDict => GetObject<DBDictionary>(Database.MaterialDictionaryId);
+    public DBDictionary MaterialDict => GetObject<DBDictionary>(Database.MaterialDictionaryId)!;
     /// <summary>
     /// 表格样式字典
     /// </summary>
-    public DBDictionary TableStyleDict => GetObject<DBDictionary>(Database.TableStyleDictionaryId);
+    public DBDictionary TableStyleDict => GetObject<DBDictionary>(Database.TableStyleDictionaryId)!;
     /// <summary>
     /// 视觉样式字典
     /// </summary>
-    public DBDictionary VisualStyleDict => GetObject<DBDictionary>(Database.VisualStyleDictionaryId);
+    public DBDictionary VisualStyleDict => GetObject<DBDictionary>(Database.VisualStyleDictionaryId)!;
     /// <summary>
     /// 颜色字典
     /// </summary>
-    public DBDictionary ColorDict => GetObject<DBDictionary>(Database.ColorDictionaryId);
+    public DBDictionary ColorDict => GetObject<DBDictionary>(Database.ColorDictionaryId)!;
     /// <summary>
     /// 打印设置字典
     /// </summary>
-    public DBDictionary PlotSettingsDict => GetObject<DBDictionary>(Database.PlotSettingsDictionaryId);
+    public DBDictionary PlotSettingsDict => GetObject<DBDictionary>(Database.PlotSettingsDictionaryId)!;
     /// <summary>
     /// 打印样式表名字典
     /// </summary>
-    public DBDictionary PlotStyleNameDict => GetObject<DBDictionary>(Database.PlotStyleNameDictionaryId);
+    public DBDictionary PlotStyleNameDict => GetObject<DBDictionary>(Database.PlotStyleNameDictionaryId)!;
     /// <summary>
     /// 布局字典
     /// </summary>
-    public DBDictionary LayoutDict => GetObject<DBDictionary>(Database.LayoutDictionaryId);
+    public DBDictionary LayoutDict => GetObject<DBDictionary>(Database.LayoutDictionaryId)!;
     /// <summary>
     /// 数据链接字典
     /// </summary>
-    public DBDictionary DataLinkDict => GetObject<DBDictionary>(Database.DataLinkDictionaryId);
-#if ac2013
-        /// <summary>
-        /// 详细视图样式字典
-        /// </summary>
-        public DBDictionary DetailViewStyleDict => GetObject<DBDictionary>(Database.DetailViewStyleDictionaryId);
-        /// <summary>
-        /// 剖面视图样式字典
-        /// </summary>
-        public DBDictionary SectionViewStyleDict => GetObject<DBDictionary>(Database.SectionViewStyleDictionaryId);
-#endif
+    public DBDictionary DataLinkDict => GetObject<DBDictionary>(Database.DataLinkDictionaryId)!;
+    /// <summary>
+    /// 详细视图样式字典
+    /// </summary>
+    public DBDictionary DetailViewStyleDict => GetObject<DBDictionary>(Database.DetailViewStyleDictionaryId)!;
+    /// <summary>
+    /// 剖面视图样式字典
+    /// </summary>
+    public DBDictionary SectionViewStyleDict => GetObject<DBDictionary>(Database.SectionViewStyleDictionaryId)!;
+
     #endregion
 
     #region 获取对象
@@ -267,7 +265,7 @@ public class DBTrans : IDisposable
     /// <param name="openErased">是否打开已删除对象，默认为不打开</param>
     /// <param name="forceOpenOnLockedLayer">是否打开锁定图层对象，默认为不打开</param>
     /// <returns>图元对象，类型不匹配时返回 <see langword="null"/> </returns>
-    public T GetObject<T>(ObjectId id,
+    public T? GetObject<T>(ObjectId id,
                           OpenMode mode = OpenMode.ForRead,
                           bool openErased = false,
                           bool forceOpenOnLockedLayer = false) where T : DBObject
@@ -295,6 +293,7 @@ public class DBTrans : IDisposable
     public void Abort()
     {
         Transaction.Abort();
+        Dispose(false);
     }
 
     public void Commit()

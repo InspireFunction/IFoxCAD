@@ -16,7 +16,7 @@ public static class ObjectIdEx
     /// <param name="mode">打开模式</param>
     /// <param name="openErased">打开删除对象</param>
     /// <returns>指定类型对象</returns>
-    public static T GetObject<T>(this ObjectId id, OpenMode mode = OpenMode.ForRead, bool openErased = false, Transaction tr = default) where T : DBObject
+    public static T? GetObject<T>(this ObjectId id, OpenMode mode = OpenMode.ForRead, bool openErased = false, Transaction? tr = default) where T : DBObject
     {
         tr ??= DBTrans.Top.Transaction;
         //tr = Env.GetTrans(tr);
@@ -32,7 +32,7 @@ public static class ObjectIdEx
     /// <param name="mode">打开模式</param>
     /// <param name="openErased">打开删除对象</param>
     /// <returns>指定类型对象集合</returns>
-    public static IEnumerable<T> GetObject<T>(this IEnumerable<ObjectId> ids, OpenMode mode = OpenMode.ForRead, bool openErased = false, Transaction tr = default) where T : DBObject
+    public static IEnumerable<T?> GetObject<T>(this IEnumerable<ObjectId> ids, OpenMode mode = OpenMode.ForRead, bool openErased = false, Transaction? tr = default) where T : DBObject
     {
         return ids.Select(id => id.GetObject<T>(mode, openErased, tr));
     }
@@ -68,7 +68,7 @@ public static class ObjectIdEx
     {
         if (id.IsOk())
         {
-            var ent = id.GetObject<DBObject>();
+            var ent = id.GetObject<DBObject>()!;
             using (ent.ForWrite())
             {
                 ent.Erase();

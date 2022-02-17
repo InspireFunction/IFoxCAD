@@ -15,7 +15,7 @@ public static class EditorEx
     /// <param name="point">点</param>
     /// <param name="filter">过滤器</param>
     /// <returns>选择集结果类</returns>
-    public static PromptSelectionResult SelectAtPoint(this Editor editor, Point3d point, SelectionFilter filter = default)
+    public static PromptSelectionResult SelectAtPoint(this Editor editor, Point3d point, SelectionFilter? filter = default)
     {
         return editor.SelectCrossingWindow(point, point, filter);
     }
@@ -56,10 +56,10 @@ public static class EditorEx
     }
 
 
-    public static PromptSelectionResult SSGet(this Editor editor, string mode = null, SelectionFilter filter = null, string[] messages = null, string[] keywords = null)
+    public static PromptSelectionResult? SSGet(this Editor editor, string? mode = null, SelectionFilter? filter = null, string[]? messages = null, string[]? keywords = null)
     {
         var pso = new PromptSelectionOptions();
-        PromptSelectionResult ss = null;
+        PromptSelectionResult? ss = null;
         if (mode != null)
         {
             mode = mode.ToUpper();
@@ -557,8 +557,8 @@ public static class EditorEx
         Matrix3d mat;
         using (Transaction tr = db.TransactionManager.StartTransaction())
         {
-            Viewport vp = tr.GetObject(editor.CurrentViewportObjectId, OpenMode.ForRead) as Viewport;
-            if (vp.Number == 1)
+            Viewport? vp = tr.GetObject(editor.CurrentViewportObjectId, OpenMode.ForRead) as Viewport;
+            if (vp?.Number == 1)
             {
                 try
                 {
@@ -571,7 +571,7 @@ public static class EditorEx
                     throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.InvalidInput, "Aucun fenêtre active");
                 }
             }
-            Point3d vCtr = new(vp.ViewCenter.X, vp.ViewCenter.Y, 0.0);
+            Point3d vCtr = new(vp!.ViewCenter.X, vp.ViewCenter.Y, 0.0);
             mat = Matrix3d.Displacement(vCtr.GetAsVector().Negate());
             mat = Matrix3d.Displacement(vp.CenterPoint.GetAsVector()) * mat;
             mat = Matrix3d.Scaling(vp.CustomScale, vp.CenterPoint) * mat;
@@ -857,7 +857,7 @@ public static class EditorEx
     /// <param name="arg">lisp语句</param>
     /// <returns>缓冲结果,返回值</returns>
 #pragma warning disable IDE0060 // 删除未使用的参数
-    public static ResultBuffer RunLisp(this Editor ed, string arg)
+    public static ResultBuffer? RunLisp(this Editor ed, string arg)
 #pragma warning restore IDE0060 // 删除未使用的参数
     {
         _ = AcedEvaluateLisp(arg, out IntPtr rb);

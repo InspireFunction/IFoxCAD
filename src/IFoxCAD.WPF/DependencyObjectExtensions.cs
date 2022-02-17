@@ -10,7 +10,7 @@ public static class DependencyObjectExtensions
     /// </summary>
     /// <param name="child">子对象</param>
     /// <returns>依赖属性</returns>
-    public static DependencyObject GetParentObject(this DependencyObject child)
+    public static DependencyObject? GetParentObject(this DependencyObject child)
     {
         if (child == null) return null;
 
@@ -19,7 +19,7 @@ public static class DependencyObjectExtensions
             DependencyObject parent = ContentOperations.GetParent(contentElement);
             if (parent != null) return parent;
 
-            FrameworkContentElement fce = contentElement as FrameworkContentElement;
+            FrameworkContentElement? fce = contentElement as FrameworkContentElement;
             return fce?.Parent;
         }
 

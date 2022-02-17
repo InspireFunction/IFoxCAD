@@ -19,7 +19,7 @@ public static class GeometryEx
     public static PointOnRegionType PointOnRegion(this IEnumerable<Point2d> pts, Point2d pt)
     {
         //遍历点集并生成首尾连接的多边形
-        var ptlst = new LoopList<Point2d>(pts);
+        var ptlst = new LinkedList<Point2d>(pts);
         if (ptlst.Count < 3)
             return PointOnRegionType.Error;
 
@@ -69,7 +69,7 @@ public static class GeometryEx
     public static PointOnRegionType PointOnRegion(this IEnumerable<Point3d> pts, Point3d pt)
     {
         //遍历点集并生成首尾连接的多边形
-        var ptlst = new LoopList<Point3d>(pts);
+        var ptlst = new LinkedList<Point3d>(pts);
         if (ptlst.First.Value == ptlst.Last.Value)
             ptlst.RemoveLast();
         if (ptlst.Count < 3)
@@ -119,9 +119,9 @@ public static class GeometryEx
     /// <param name="pt2">基准点</param>
     /// <param name="ptlst">输出圆上的点</param>
     /// <returns>解析类圆对象</returns>
-    public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, out LoopList<Point2d> ptlst)
+    public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, out LinkedList<Point2d> ptlst)
     {
-        ptlst = new LoopList<Point2d> { pt1, pt2 };
+        ptlst = new LinkedList<Point2d> { pt1, pt2 };
         return
             new CircularArc2d
             (
@@ -138,14 +138,13 @@ public static class GeometryEx
     /// <param name="pt3">基准点</param>
     /// <param name="ptlst">输出圆上的点</param>
     /// <returns>解析类圆对象</returns>
-    public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, Point2d pt3, out LoopList<Point2d> ptlst)
+    public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, Point2d pt3, out LinkedList<Point2d> ptlst)
     {
-        ptlst =
-            new LoopList<Point2d> { pt1, pt2, pt3 };
+        ptlst = new LinkedList<Point2d> { pt1, pt2, pt3 };
 
         //遍历各点与下一点的向量长度,找到距离最大的两个点
-        LoopListNode<Point2d> maxNode =
-            ptlst.GetNodes().FindByMax
+        LinkedListNode<Point2d> maxNode =
+            ptlst.GetNodes<Point2d>().FindByMax
             (
                 out double maxLength,
                 node => node.Value.GetDistanceTo(node.Next.Value)
@@ -153,7 +152,7 @@ public static class GeometryEx
 
         //以两点做最小包围圆
         CircularArc2d ca2d =
-            GetMinCircle(maxNode.Value, maxNode.Next.Value, out LoopList<Point2d> tptlst);
+            GetMinCircle(maxNode.Value, maxNode.Next.Value, out LinkedList<Point2d> tptlst);
 
         //如果另一点属于该圆
         if (ca2d.IsIn(maxNode.Previous.Value))
@@ -162,9 +161,9 @@ public static class GeometryEx
             ptlst = tptlst;
             return ca2d;
         }
-
         //否则按三点做圆
-        ptlst.SetFirst(maxNode);
+        //ptlst.SetFirst(maxNode);
+        ptlst = new LinkedList<Point2d> { maxNode.Value, maxNode.Next.Value, maxNode.Previous.Value };
         ca2d = new CircularArc2d(pt1, pt2, pt3);
         ca2d.SetAngles(0, Math.PI * 2);
         return ca2d;
@@ -179,19 +178,19 @@ public static class GeometryEx
     /// <param name="pt4">基准点</param>
     /// <param name="ptlst">输出圆上的点</param>
     /// <returns>解析类圆对象</returns>
-    public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, Point2d pt3, Point2d pt4, out LoopList<Point2d> ptlst)
+    public static CircularArc2d? GetMinCircle(Point2d pt1, Point2d pt2, Point2d pt3, Point2d pt4, out LinkedList<Point2d>? ptlst)
     {
-        LoopList<Point2d> iniptlst = new() { pt1, pt2, pt3, pt4 };
+        var iniptlst = new LinkedList<Point2d>() { pt1, pt2, pt3, pt4 };
         ptlst = null;
-        CircularArc2d ca2d = null;
+        CircularArc2d? ca2d = null;
 
         //遍历C43的组合,环链表的优势在这里
-        foreach (LoopListNode<Point2d> firstNode in iniptlst.GetNodes())
+        foreach (LinkedListNode<Point2d> firstNode in iniptlst.GetNodes())
         {
             //获取各组合下三点的最小包围圆
-            LoopListNode<Point2d> secondNode = firstNode.Next;
-            LoopListNode<Point2d> thirdNode = secondNode.Next;
-            CircularArc2d tca2d = GetMinCircle(firstNode.Value, secondNode.Value, thirdNode.Value, out LoopList<Point2d> tptlst);
+            var secondNode = firstNode.Next;
+            var thirdNode = secondNode.Next;
+            CircularArc2d tca2d = GetMinCircle(firstNode.Value, secondNode.Value, thirdNode.Value, out LinkedList<Point2d> tptlst);
 
             //如果另一点属于该圆,并且半径小于当前值就把它做为候选解
             if (tca2d.IsIn(firstNode.Previous.Value))
@@ -345,7 +344,7 @@ public static class GeometryEx
     /// <param name="pnts">点集</param>
     /// <param name="ptlst">输出圆上的点</param>
     /// <returns>解析类圆对象</returns>
-    public static CircularArc2d GetMinCircle(this List<Point2d> pnts, out LoopList<Point2d> ptlst)
+    public static CircularArc2d? GetMinCircle(this List<Point2d> pnts, out LinkedList<Point2d>? ptlst)
     {
         //点数较小时直接返回
         switch (pnts.Count)
@@ -355,7 +354,7 @@ public static class GeometryEx
                 return null;
 
             case 1:
-                ptlst = new LoopList<Point2d> { pnts[0] };
+                ptlst = new LinkedList<Point2d> { pnts[0] };
                 return new CircularArc2d(pnts[0], 0);
 
             case 2:
@@ -371,7 +370,7 @@ public static class GeometryEx
         //按前三点计算最小包围圆
         Point2d[] tpnts = new Point2d[4];
         pnts.CopyTo(0, tpnts, 0, 3);
-        CircularArc2d ca2d = GetMinCircle(tpnts[0], tpnts[1], tpnts[2], out ptlst);
+        CircularArc2d? ca2d = GetMinCircle(tpnts[0], tpnts[1], tpnts[2], out ptlst);
 
         //找到点集中距离圆心的最远点为第四点
         tpnts[3] = pnts.FindByMax(pnt => ca2d.Center.GetDistanceTo(pnt));
@@ -383,7 +382,7 @@ public static class GeometryEx
             ca2d = GetMinCircle(tpnts[0], tpnts[1], tpnts[2], tpnts[3], out ptlst);
 
             //将结果作为新的前三点
-            if (ptlst.Count == 3)
+            if (ptlst!.Count == 3)
             {
                 tpnts[2] = ptlst.Last.Value;
             }
@@ -393,7 +392,7 @@ public static class GeometryEx
                 //按算法中描述的任选其中一点的话,还是无法收敛......
                 tpnts[2] =
                     tpnts.Except(ptlst)
-                    .FindByMax(pnt => ca2d.Center.GetDistanceTo(pnt));
+                    .FindByMax(pnt => ca2d!.Center.GetDistanceTo(pnt));
             }
             tpnts[0] = ptlst.First.Value;
             tpnts[1] = ptlst.First.Next.Value;
@@ -413,7 +412,7 @@ public static class GeometryEx
     /// </summary>
     /// <param name="points">点集</param>
     /// <returns>凸包</returns>
-    public static List<Point2d> ConvexHull(this List<Point2d> points)
+    public static List<Point2d>? ConvexHull(this List<Point2d> points)
     {
         if (points == null)
             return null;

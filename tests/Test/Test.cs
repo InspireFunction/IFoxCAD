@@ -30,6 +30,7 @@ public class Test : AutoRegAssem
         //var linee = tr.GetObject<Line>(cirid); //经测试，类型不匹配，返回null
         //var dd = tr.GetObject<Circle>(lienid);
         //List<DBObject> ds = new() { linee, dd };
+        //tr.CurrentSpace.AddEntity(line,tr);
     }
 
     //add entity test

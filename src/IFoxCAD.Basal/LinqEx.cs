@@ -20,7 +20,7 @@ public static class LinqEx
     {
         var itor = source.GetEnumerator();
         if (!itor.MoveNext())
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(source), "对象为 null");
 
         TValue value = itor.Current;
         TKey key = func(value);
@@ -51,7 +51,7 @@ public static class LinqEx
     {
         var itor = source.GetEnumerator();
         if (!itor.MoveNext())
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(source), "对象为 null");
 
         TValue value = itor.Current;
         TKey key = func(value);
@@ -80,7 +80,7 @@ public static class LinqEx
     {
         var itor = source.GetEnumerator();
         if (!itor.MoveNext())
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(source), "对象为 null");
 
         TValue value = itor.Current;
 
@@ -110,7 +110,7 @@ public static class LinqEx
     {
         var itor = source.GetEnumerator();
         if (!itor.MoveNext())
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(source), "对象为 null");
 
         TValue value = itor.Current;
         TKey key = func(value);
@@ -141,7 +141,7 @@ public static class LinqEx
     {
         var itor = source.GetEnumerator();
         if (!itor.MoveNext())
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(source), "对象为 null");
 
         TValue value = itor.Current;
         TKey key = func(value);
@@ -169,7 +169,7 @@ public static class LinqEx
     {
         var itor = source.GetEnumerator();
         if (!itor.MoveNext())
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(source), "对象为 null");
 
         TValue value = itor.Current;
 
@@ -198,7 +198,7 @@ public static class LinqEx
     {
         var itor = source.GetEnumerator();
         if (!itor.MoveNext())
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(source), "对象为 null");
 
         TValue[] values = new TValue[2];
         values[0] = values[1] = itor.Current;
@@ -234,7 +234,7 @@ public static class LinqEx
     {
         var itor = source.GetEnumerator();
         if (!itor.MoveNext())
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(source), "对象为 null");
 
         TValue[] values = new TValue[2];
         values[0] = values[1] = itor.Current;
@@ -262,7 +262,7 @@ public static class LinqEx
     {
         var itor = source.GetEnumerator();
         if (!itor.MoveNext())
-            throw new ArgumentNullException();
+            throw new ArgumentNullException(nameof(source), "对象为 null");
 
         TKey[] keys = new TKey[2];
         keys[0] = keys[1] = func(itor.Current);
@@ -288,7 +288,7 @@ public static class LinqEx
     /// <typeparam name="T">泛型</typeparam>
     private class SpecComparer<T> : IComparer<T>
     {
-        private Comparison<T> _comp;
+        private readonly Comparison<T> _comp;
 
         internal SpecComparer(Comparison<T> comp)
         {

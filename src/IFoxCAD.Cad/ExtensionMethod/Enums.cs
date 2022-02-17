@@ -101,7 +101,7 @@ public static class EnumHelper
         {
             return val.ToString();
         }
-        return (attributes.Single() as DescriptionAttribute).Description;
+        return ((DescriptionAttribute)attributes.Single()).Description;
     }
 }
 

@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFramework>net45</TargetFramework>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+		<Nullable>enable</Nullable>
         <Version>0.2.0</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
@@ -26,6 +27,10 @@
             <Pack>True</Pack>
             <PackagePath></PackagePath>
         </None>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="System.ValueTuple" Version="4.5.0" />
     </ItemGroup>
 
 

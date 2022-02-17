@@ -40,7 +40,7 @@ public class LispList : TypedValueList
     /// </summary>
     /// <param name="code">组码</param>
     /// <param name="obj">组码值</param>
-    public override void Add(int code, object obj)
+    public override void Add(int code, object? obj)
     {
         if (code < 5000)
         {
@@ -54,7 +54,7 @@ public class LispList : TypedValueList
     /// </summary>
     /// <param name="code">dxfcode枚举值</param>
     /// <param name="obj">组码值</param>
-    public void Add(LispDataType code, object obj)
+    public void Add(LispDataType code, object? obj)
     {
         Add((int)code, obj);
     }

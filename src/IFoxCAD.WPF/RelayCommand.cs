@@ -8,7 +8,7 @@ namespace IFoxCAD.WPF;
 /// <seealso cref="System.Windows.Input.ICommand" />
 public class RelayCommand : ICommand
 {
-    readonly Func<object, bool> _canExecute;
+    readonly Func<object, bool>? _canExecute;
     readonly Action<object> _execute;
     /// <summary>
     /// 初始化 <see cref="RelayCommand"/> 类.
@@ -24,7 +24,7 @@ public class RelayCommand : ICommand
     /// <param name="execute">执行函数委托</param>
     /// <param name="canExecute">是否可执行函数委托</param>
     /// <exception cref="ArgumentNullException">execute</exception>
-    public RelayCommand(Action<object> execute, Func<object, bool> canExecute)
+    public RelayCommand(Action<object> execute, Func<object, bool>? canExecute)
     {
         _execute = execute ?? throw new ArgumentNullException(nameof(execute));
         _canExecute = canExecute;
@@ -60,7 +60,7 @@ public class RelayCommand : ICommand
     [DebuggerStepThrough]
     public bool CanExecute(object parameter)
     {
-        return _canExecute == null ? true : _canExecute(parameter);
+        return _canExecute == null || _canExecute(parameter);
     }
     /// <summary>
     /// 定义在调用此命令时要调用的方法。

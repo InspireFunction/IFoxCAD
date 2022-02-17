@@ -9,7 +9,7 @@ public class ViewModelBase : INotifyPropertyChanged
     /// <summary>
     /// 属性值更改事件。
     /// </summary>
-    public event PropertyChangedEventHandler PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged;
     /// <summary>
     /// 属性改变时调用
     /// </summary>
@@ -27,7 +27,7 @@ public class ViewModelBase : INotifyPropertyChanged
     /// <param name="value">属性值</param>
     /// <param name="propertyName">属性名</param>
     /// <returns>成功返回 <see langword="true"/>，反之 <see langword="false"/></returns>
-    protected virtual bool Set<T>(ref T storage, T value, [CallerMemberName] string propertyName = null)
+    protected virtual bool Set<T>(ref T storage, T value, [CallerMemberName] string propertyName = "")
     {
         if (object.Equals(storage, value)) return false;
 

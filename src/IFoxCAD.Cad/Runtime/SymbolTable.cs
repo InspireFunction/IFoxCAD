@@ -33,7 +33,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         DTrans = tr;
         Database = tr.Database;
-        CurrentSymbolTable = DTrans.GetObject<TTable>(tableId);
+        CurrentSymbolTable = DTrans.GetObject<TTable>(tableId)!;
     }
 
     #endregion
@@ -100,12 +100,12 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="name">符号表记录名</param>
     /// <param name="action">符号表记录处理函数的无返回值委托</param>
     /// <returns>对象id</returns>
-    public ObjectId Add(string name, Action<TRecord> action = null)
+    public ObjectId Add(string name, Action<TRecord>? action = null)
     {
         ObjectId id = this[name];
         if (id.IsNull)
         {
-            TRecord record = new()
+            var record = new TRecord()
             {
                 Name = name
             };
@@ -137,7 +137,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="name">符号表记录名</param>
     public void Remove(string name)
     {
-        TRecord record = GetRecord(name);
+        var record = GetRecord(name);
         if (record != null)
         {
             Remove(record);
@@ -150,7 +150,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="id">符号表记录对象id</param>
     public void Remove(ObjectId id)
     {
-        TRecord record = GetRecord(id);
+        var record = GetRecord(id);
         if (record != null)
         {
             Remove(record);
@@ -170,9 +170,10 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         using (record.ForWrite())
         {
-            action?.Invoke(record);
+            action.Invoke(record);
         }
-        Env.Editor.Regen();
+        // 调用regen()函数可能会导致卡顿
+        //Env.Editor.Regen();
     }
     /// <summary>
     /// 修改符号表
@@ -209,7 +210,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="id">符号表记录的id</param>
     /// <param name="openMode">打开模式，默认为只读</param>
     /// <returns>符号表记录</returns>
-    public TRecord GetRecord(ObjectId id, OpenMode openMode = OpenMode.ForRead) => id.IsNull ? null : DTrans.GetObject<TRecord>(id, openMode);
+    public TRecord? GetRecord(ObjectId id, OpenMode openMode = OpenMode.ForRead) => id.IsNull ? null : DTrans.GetObject<TRecord>(id, openMode);
 
     /// <summary>
     /// 获取符号表记录
@@ -217,7 +218,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="name">符号表记录名</param>
     /// <param name="openMode">打开模式，默认为只读</param>
     /// <returns>符号表记录</returns>
-    public TRecord GetRecord(string name, OpenMode openMode = OpenMode.ForRead) => GetRecord(this[name], openMode);
+    public TRecord? GetRecord(string name, OpenMode openMode = OpenMode.ForRead) => GetRecord(this[name], openMode);
 
     /// <summary>
     /// 获取符号表记录
@@ -225,14 +226,21 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <returns>符号表记录集合</returns>
     public IEnumerable<TRecord> GetRecords()
     {
-        return this.Select(id => GetRecord(id));
+        foreach (var item in this)
+        {
+            var record = GetRecord(item);
+            if (record is not null)
+            {
+                yield return record;
+            }
+        }
     }
 
     /// <summary>
     /// 获取符号表记录的名字集合
     /// </summary>
     /// <returns>记录的名字集合</returns>
-    public IEnumerable<string> GetRecordNames() => this.Select(id => GetRecord(id).Name);
+    public IEnumerable<string> GetRecordNames() => GetRecords().Select(record => record.Name);
     /// <summary>
     /// 获取符合过滤条件的符号表记录名字集合
     /// </summary>
@@ -240,10 +248,10 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <returns>记录的名字集合</returns>
     public IEnumerable<string> GetRecordNames(Func<TRecord, bool> filter)
     {
-        foreach (var id in this)
+        foreach (var item in this)
         {
-            var record = GetRecord(id);
-            if (filter.Invoke(record))
+            var record = GetRecord(item);
+            if (record is not null && filter.Invoke(record))
             {
                 yield return record.Name;
             }
@@ -261,7 +269,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         if (table is null)
         {
-            throw new ArgumentNullException(nameof(table));
+            throw new ArgumentNullException(nameof(table),"对象为null");
         }
 
         ObjectId rid = this[name];

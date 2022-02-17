@@ -66,13 +66,13 @@ public static class SelectionSetEx
     /// <param name="tr">事务</param>
     /// <param name="openMode">打开模式</param>
     /// <returns>图元集合</returns>
-    public static IEnumerable<T> GetEntities<T>(this SelectionSet ss, OpenMode openMode = OpenMode.ForRead, Transaction tr = default) where T : Entity
+    public static IEnumerable<T?> GetEntities<T>(this SelectionSet ss, OpenMode openMode = OpenMode.ForRead, DBTrans? tr = default) where T : Entity
     {
-        tr ??= DBTrans.Top.Transaction;
+        tr ??= DBTrans.Top;
         return
             ss
             .GetObjectIds()
-            .Select(id => tr.GetObject(id, openMode) as T);
+            .Select(id => tr.GetObject<T>(id, openMode));
     }
 
     #endregion
@@ -87,9 +87,9 @@ public static class SelectionSetEx
     /// <param name="tr">事务</param>
     /// <param name="openMode">打开模式</param>
     /// <param name="action">处理函数</param>
-    public static void ForEach<T>(this SelectionSet ss, Action<T> action, OpenMode openMode = OpenMode.ForRead, Transaction tr = default) where T : Entity
+    public static void ForEach<T>(this SelectionSet ss, Action<T?> action, OpenMode openMode = OpenMode.ForRead, DBTrans? tr = default) where T : Entity
     {
-        foreach (T ent in ss.GetEntities<T>(openMode, tr))
+        foreach (T? ent in ss.GetEntities<T>(openMode, tr))
         {
             action?.Invoke(ent);
         }

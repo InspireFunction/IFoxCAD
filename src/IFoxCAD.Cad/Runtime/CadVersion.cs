@@ -20,12 +20,12 @@ public record CadVersion
     /// <summary>
     /// 注册表名称
     /// </summary>
-    public string ProductName;
+    public string? ProductName;
 
     /// <summary>
     /// 注册表位置
     /// </summary>
-    public string ProductRootKey;
+    public string? ProductRootKey;
 
     /// <summary>
     /// 转换为字符串

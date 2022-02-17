@@ -15,7 +15,7 @@ public class StringToIntConverter : IValueConverter
     /// <returns>转换后的值。 如果该方法返回 null，则使用有效的 null 值。</returns>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        string a = value as string;
+        string? a = value as string;
         _ = int.TryParse(a, out int b);
         return b;
     }
@@ -47,7 +47,7 @@ public class StringToDoubleConverter : IValueConverter
     /// <returns>转换后的值。 如果该方法返回 null，则使用有效的 null 值。</returns>
     public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        string a = value as string;
+        string? a = value as string;
         _ = double.TryParse(a, out double b);
         return b;
     }
@@ -91,7 +91,7 @@ public class IntToStringConverter : IValueConverter
     /// <returns>转换后的值。 如果该方法返回 null，则使用有效的 null 值。</returns>
     public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
     {
-        string a = value as string;
+        string? a = value as string;
         _ = int.TryParse(a, out int b);
         return b;
     }

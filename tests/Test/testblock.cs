@@ -420,4 +420,16 @@ public class TestBlock
 
     }
 
+    public void TestWblock()
+    {
+        Database db = new Database(false,true);
+        var curdb = HostApplicationServices.WorkingDatabase;
+        var opts = new PromptSelectionOptions();
+        opts.MessageForAdding = "选择对象";
+        var ss = Env.Editor.GetSelection(opts).Value;
+        var ids = new ObjectIdCollection(ss.GetObjectIds());
+        db = curdb.Wblock(ids, Point3d.Origin);
+        db.SaveAs(@"c:\test.dwg", DwgVersion.Current);
+    }
+
 }

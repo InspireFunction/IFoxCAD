@@ -90,7 +90,7 @@ public static class Curve3dEx
     /// </summary>
     /// <param name="curve">三维解析类曲线</param>
     /// <returns>三维实体类曲线</returns>
-    public static Curve ToCurve(this Curve3d curve)
+    public static Curve? ToCurve(this Curve3d curve)
     {
         return curve switch
         {
@@ -110,7 +110,7 @@ public static class Curve3dEx
     /// </summary>
     /// <param name="curve">三维解析类曲线</param>
     /// <returns>三维解析类Nurb曲线</returns>
-    public static NurbCurve3d ToNurbCurve3d(this Curve3d curve)
+    public static NurbCurve3d? ToNurbCurve3d(this Curve3d curve)
     {
         return curve switch
         {
@@ -252,7 +252,7 @@ public static class Curve3dEx
     /// </summary>
     /// <param name="curve">三维复合曲线</param>
     /// <returns>实体曲线</returns>
-    public static Curve ToCurve(this CompositeCurve3d curve)
+    public static Curve? ToCurve(this CompositeCurve3d curve)
     {
         Curve3d[] cs = curve.GetCurves();
         if (cs.Length == 0)
@@ -277,10 +277,10 @@ public static class Curve3dEx
             }
             if (hasNurb)
             {
-                NurbCurve3d nc3d = cs[0].ToNurbCurve3d();
+                NurbCurve3d? nc3d = cs[0].ToNurbCurve3d();
                 for (int i = 1; i < cs.Length; i++)
-                    nc3d.JoinWith(cs[i].ToNurbCurve3d());
-                return nc3d.ToCurve();
+                    nc3d?.JoinWith(cs[i].ToNurbCurve3d());
+                return nc3d?.ToCurve();
             }
             else
             {

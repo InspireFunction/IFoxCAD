@@ -44,7 +44,9 @@ public static class CurveEx
             .GetSplitCurves(new Point3dCollection(points.ToArray()))
             .Cast<Curve>();
     }
-
+    /// <summary>
+    /// 边
+    /// </summary>
     private struct EdgeItem : IEquatable<EdgeItem>
     {
         public Edge Edge;
@@ -56,17 +58,17 @@ public static class CurveEx
             Forward = forward;
         }
 
-        public CompositeCurve3d GetCurve()
+        public CompositeCurve3d? GetCurve()
         {
-            CompositeCurve3d cc3d = Edge.Curve;
+            var cc3d = Edge.Curve;
             if (Forward)
             {
                 return cc3d;
             }
             else
             {
-                cc3d = cc3d.Clone() as CompositeCurve3d;
-                return cc3d.GetReverseParameterCurve() as CompositeCurve3d;
+                cc3d = cc3d!.Clone() as CompositeCurve3d;
+                return cc3d!.GetReverseParameterCurve() as CompositeCurve3d;
             }
         }
 
@@ -77,11 +79,11 @@ public static class CurveEx
                Forward == other.Forward;
         }
 
-        public void FindRegion(List<Edge> edges, List<LoopList<EdgeItem>> regions)
+        public void FindRegion(List<Edge> edges, List<LinkedList<EdgeItem>> regions)
         {
-            var region = new LoopList<EdgeItem>();
+            var region = new LinkedList<EdgeItem>();
             var edgeItem = this;
-            region.Add(edgeItem);
+            region.AddLast(edgeItem);
             var edgeItem2 = this.GetNext(edges);
             if (edgeItem2.Edge != null)
             {
@@ -104,7 +106,7 @@ public static class CurveEx
                     {
                         if (edgeItem2.Edge == edgeItem.Edge)
                             break;
-                        region.Add(edgeItem2);
+                        region.AddLast(edgeItem2);
                         edgeItem2 = edgeItem2.GetNext(edges);
                     }
                     if (edgeItem2.Edge == edgeItem.Edge)
@@ -168,24 +170,34 @@ public static class CurveEx
                 string.Format("{0}-{1}", Edge.StartIndex, Edge.EndIndex) :
                 string.Format("{0}-{1}", Edge.EndIndex, Edge.StartIndex);
         }
+
+        public override bool Equals(object obj)
+        {
+            return obj is EdgeItem item && Equals(item);
+        }
+
+        public override int GetHashCode()
+        {
+            return this.ToString().GetHashCode();
+        }
     }
 
     private class Edge
     {
-        public CompositeCurve3d Curve;
+        public CompositeCurve3d? Curve;
         public int StartIndex;
         public int EndIndex;
 
         public Vector3d GetStartVector()
         {
-            var inter = Curve.GetInterval();
-            PointOnCurve3d poc = new(Curve, inter.LowerBound);
+            var inter = Curve?.GetInterval();
+            PointOnCurve3d poc = new(Curve, inter!.LowerBound);
             return poc.GetDerivative(1);
         }
 
         public Vector3d GetEndVector()
         {
-            var inter = Curve.GetInterval();
+            var inter = Curve!.GetInterval();
             PointOnCurve3d poc = new(Curve, inter.UpperBound);
             return -poc.GetDerivative(1);
         }
@@ -260,7 +272,7 @@ public static class CurveEx
                 }
                 else if (gc1.IsClosed())
                 {
-                    newCurves.Add(gc1.ToCurve());
+                    newCurves.Add(gc1.ToCurve()!);
                 }
                 else
                 {
@@ -269,7 +281,7 @@ public static class CurveEx
             }
             else if (gc1.IsClosed())
             {
-                newCurves.Add(gc1.ToCurve());
+                newCurves.Add(gc1.ToCurve()!);
             }
         }
 
@@ -280,7 +292,7 @@ public static class CurveEx
 
         foreach (var edge in edges)
         {
-            if (edge.Curve.IsClosed())
+            if (edge.Curve!.IsClosed())
             {
                 closedEdges.Add(edge);
             }
@@ -314,7 +326,7 @@ public static class CurveEx
             }
         }
 
-        newCurves.AddRange(closedEdges.Select(e => e.Curve.ToCurve()));
+        newCurves.AddRange(closedEdges.Select(e => e.Curve!.ToCurve())!);
 
         edges =
             edges
@@ -348,7 +360,7 @@ public static class CurveEx
             }
         }
 
-        List<LoopList<EdgeItem>> regions = new();
+        var regions = new List<LinkedList<EdgeItem>>();
         foreach (var edge in edges)
         {
             var edgeItem = new EdgeItem(edge, true);
@@ -370,7 +382,7 @@ public static class CurveEx
                     if (eq = node2 != null)
                     {
                         var b = node.Value.Forward;
-                        var b2 = node2.Value.Forward;
+                        var b2 = node2!.Value.Forward;
                         for (int k = 1; k < regions[i].Count; k++)
                         {
                             node = node.GetNext(b);
@@ -396,7 +408,7 @@ public static class CurveEx
                 region
                 .Select(e => e.GetCurve())
                 .ToArray();
-            newCurves.Add(new CompositeCurve3d(cs3ds.ToArray()).ToCurve());
+            newCurves.Add(new CompositeCurve3d(cs3ds.ToArray()).ToCurve()!);
         }
 
         return newCurves;
@@ -452,7 +464,7 @@ public static class CurveEx
                 {
                     foreach (CompositeCurve3d c3d in c3ds)
                     {
-                        Curve c = c3d.ToCurve();
+                        var c = c3d.ToCurve();
                         if (c != null)
                         {
                             c.SetPropertiesFrom(curves[i]);
@@ -477,7 +489,7 @@ public static class CurveEx
     /// <param name="curve">曲线</param>
     /// <returns>ge曲线</returns>
     [Obsolete("请使用Cad自带的 GetGeCurve 函数！")]
-    public static Curve3d ToCurve3d(this Curve curve)
+    public static Curve3d? ToCurve3d(this Curve curve)
     {
         return curve switch
         {
@@ -498,7 +510,7 @@ public static class CurveEx
     /// </summary>
     /// <param name="curve">曲线</param>
     /// <returns>复合曲线</returns>
-    public static CompositeCurve3d ToCompositeCurve3d(this Curve curve)
+    public static CompositeCurve3d? ToCompositeCurve3d(this Curve curve)
     {
         return curve switch
         {
@@ -508,7 +520,7 @@ public static class CurveEx
             Ellipse el => new CompositeCurve3d(new Curve3d[] { ToCurve3d(el) }),
             Polyline pl => new CompositeCurve3d(new Curve3d[] { ToCurve3d(pl) }),
 
-            Polyline2d pl2 => new CompositeCurve3d(new Curve3d[] { ToCurve3d(pl2) }),
+            Polyline2d pl2 => new CompositeCurve3d(new Curve3d[] { ToCurve3d(pl2)! }),
             Polyline3d pl3 => new CompositeCurve3d(new Curve3d[] { ToCurve3d(pl3) }),
             Spline sp => new CompositeCurve3d(new Curve3d[] { ToCurve3d(sp) }),
             _ => null
@@ -520,7 +532,7 @@ public static class CurveEx
     /// </summary>
     /// <param name="curve">曲线</param>
     /// <returns>Nurb曲线</returns>
-    public static NurbCurve3d ToNurbCurve3d(this Curve curve)
+    public static NurbCurve3d? ToNurbCurve3d(this Curve curve)
     {
         return curve switch
         {
@@ -728,7 +740,7 @@ public static class CurveEx
     /// </summary>
     /// <param name="pl2d">二维多段线</param>
     /// <returns>三维ge曲线</returns>
-    public static Curve3d ToCurve3d(this Polyline2d pl2d)
+    public static Curve3d? ToCurve3d(this Polyline2d pl2d)
     {
         switch (pl2d.PolyType)
         {
@@ -752,7 +764,7 @@ public static class CurveEx
     /// </summary>
     /// <param name="pl2d">二维多段线</param>
     /// <returns>三维Nurb曲线</returns>
-    public static NurbCurve3d ToNurbCurve3d(this Polyline2d pl2d)
+    public static NurbCurve3d? ToNurbCurve3d(this Polyline2d pl2d)
     {
         switch (pl2d.PolyType)
         {
@@ -863,12 +875,12 @@ public static class CurveEx
     /// </summary>
     /// <param name="pl">多段线</param>
     /// <returns>Nurb曲线</returns>
-    public static NurbCurve3d ToNurbCurve3d(this Polyline pl)
+    public static NurbCurve3d? ToNurbCurve3d(this Polyline pl)
     {
-        NurbCurve3d nc3d = null;
+        NurbCurve3d? nc3d = null;
         for (int i = 0; i < pl.NumberOfVertices; i++)
         {
-            NurbCurve3d nc3dtemp = null;
+            NurbCurve3d? nc3dtemp = null;
             switch (pl.GetSegmentType(i))
             {
                 case SegmentType.Line:
@@ -934,7 +946,7 @@ public static class CurveEx
         if (c3ds.Length > 0 && c3ds[0] is CompositeCurve3d)
         {
             var newcc3d = c3ds[0] as CompositeCurve3d;
-            c3ds = newcc3d.GetCurves();
+            c3ds = newcc3d!.GetCurves();
             if (c3ds.Length == 3)
             {
                 c3ds =
@@ -979,9 +991,9 @@ public static class CurveEx
             );
 
         //将结果Ge曲线转为Db曲线,并将相关的数值反映到原曲线
-        Polyline plTemp = c3ds[0].ToCurve() as Polyline;
+        Polyline? plTemp = c3ds[0].ToCurve() as Polyline;
         polyline.RemoveVertexAt(index);
-        polyline.AddVertexAt(index, plTemp.GetPoint2dAt(1), plTemp.GetBulgeAt(1), 0, 0);
+        polyline.AddVertexAt(index, plTemp!.GetPoint2dAt(1), plTemp.GetBulgeAt(1), 0, 0);
         polyline.AddVertexAt(index + 1, plTemp.GetPoint2dAt(2), 0, 0, 0);
     }
 

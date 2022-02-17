@@ -9,11 +9,11 @@ public class EventBindingExtension : MarkupExtension
     /// <summary>
     /// 命令属性
     /// </summary>
-    public string Command { get; set; }
+    public string? Command { get; set; }
     /// <summary>
     /// 命令参数属性
     /// </summary>
-    public string CommandParameter { get; set; }
+    public string? CommandParameter { get; set; }
     /// <summary>
     /// 当在派生类中实现时，返回用作此标记扩展的目标属性值的对象。
     /// </summary>
@@ -23,18 +23,18 @@ public class EventBindingExtension : MarkupExtension
     /// </returns>
     /// <exception cref="InvalidOperationException">
     /// </exception>
-    public override object ProvideValue(IServiceProvider serviceProvider)
+    public override object? ProvideValue(IServiceProvider serviceProvider)
     {
         if (serviceProvider == null)
         {
             throw new ArgumentNullException(nameof(serviceProvider));
         }
-        if (!(serviceProvider.GetService(typeof(IProvideValueTarget)) is IProvideValueTarget targetProvider))
+        if (serviceProvider.GetService(typeof(IProvideValueTarget)) is not IProvideValueTarget targetProvider)
         {
             throw new InvalidOperationException();
         }
 
-        if (!(targetProvider.TargetObject is FrameworkElement targetObject))
+        if (targetProvider.TargetObject is not FrameworkElement targetObject)
         {
             throw new InvalidOperationException();
         }
@@ -58,22 +58,22 @@ public class EventBindingExtension : MarkupExtension
             }
         }
 
-        return CreateHandler(memberInfo, Command, targetObject.GetType());
+        return CreateHandler(memberInfo, Command!, targetObject.GetType());
     }
 
-    private Type GetEventHandlerType(MemberInfo memberInfo)
+    private Type? GetEventHandlerType(MemberInfo memberInfo)
     {
-        Type eventHandlerType = null;
-        if (memberInfo is EventInfo)
+        Type? eventHandlerType = null;
+        if (memberInfo is EventInfo eventInfo)
         {
-            var info = memberInfo as EventInfo;
-            var eventInfo = info;
+            //var info = memberInfo as EventInfo;
+            //var eventInfo = info;
             eventHandlerType = eventInfo.EventHandlerType;
         }
-        else if (memberInfo is MethodInfo)
+        else if (memberInfo is MethodInfo methodInfo)
         {
-            var info = memberInfo as MethodInfo;
-            var methodInfo = info;
+            //var info = memberInfo as MethodInfo;
+            //var methodInfo = info;
             ParameterInfo[] pars = methodInfo.GetParameters();
             eventHandlerType = pars[1].ParameterType;
         }
@@ -81,9 +81,11 @@ public class EventBindingExtension : MarkupExtension
         return eventHandlerType;
     }
 
-    private object CreateHandler(MemberInfo memberInfo, string cmdName, Type targetType)
+#pragma warning disable IDE0060 // 删除未使用的参数
+    private object? CreateHandler(MemberInfo memberInfo, string cmdName, Type targetType)
+#pragma warning restore IDE0060 // 删除未使用的参数
     {
-        Type eventHandlerType = GetEventHandlerType(memberInfo);
+        Type? eventHandlerType = GetEventHandlerType(memberInfo);
 
         if (eventHandlerType == null) return null;
 
@@ -115,7 +117,9 @@ public class EventBindingExtension : MarkupExtension
 
     static readonly MethodInfo getMethod = typeof(EventBindingExtension).GetMethod("HandlerIntern", new Type[] { typeof(object), typeof(object), typeof(string), typeof(string) });
 
+#pragma warning disable IDE0051 // 删除未使用的私有成员
     static void Handler(object sender, object args)
+#pragma warning restore IDE0051 // 删除未使用的私有成员
     {
         HandlerIntern(sender, args, "cmd", null);
     }
@@ -126,16 +130,15 @@ public class EventBindingExtension : MarkupExtension
     /// <param name="args">The arguments.</param>
     /// <param name="cmdName">Name of the command.</param>
     /// <param name="commandParameter">The command parameter.</param>
-    public static void HandlerIntern(object sender, object args, string cmdName, string commandParameter)
+    public static void HandlerIntern(object sender, object args, string cmdName, string? commandParameter)
     {
-        var fe = sender as FrameworkElement;
-        if (fe != null)
+        if (sender is FrameworkElement fe)
         {
-            ICommand cmd = GetCommand(fe, cmdName);
-            object commandParam = null;
+            var cmd = GetCommand(fe, cmdName);
+            object? commandParam = null;
             if (!string.IsNullOrWhiteSpace(commandParameter))
             {
-                commandParam = GetCommandParameter(fe, args, commandParameter);
+                commandParam = GetCommandParameter(fe, args, commandParameter!);
             }
             if ((cmd != null) && cmd.CanExecute(commandParam))
             {
@@ -144,7 +147,7 @@ public class EventBindingExtension : MarkupExtension
         }
     }
 
-    internal static ICommand GetCommand(FrameworkElement target, string cmdName)
+    internal static ICommand? GetCommand(FrameworkElement target, string cmdName)
     {
         var vm = FindViewModel(target);
         if (vm == null) return null;
@@ -159,30 +162,25 @@ public class EventBindingExtension : MarkupExtension
         throw new Exception("EventBinding path error: '" + cmdName + "' property not found on '" + vmType + "' 'DelegateCommand'");
 #endif
 
+
+#pragma warning disable CS0162 // 检测到无法访问的代码
         return null;
+#pragma warning restore CS0162 // 检测到无法访问的代码
     }
 
     internal static object GetCommandParameter(FrameworkElement target, object args, string commandParameter)
     {
         var classify = commandParameter.Split('.');
-        object ret;
-        switch (classify[0])
+        object ret = classify[0] switch
         {
-            case "$e":
-                ret = args;
-                break;
-            case "$this":
-                ret = classify.Length > 1 ? FollowPropertyPath(target, commandParameter.Replace("$this.", ""), target.GetType()) : target;
-                break;
-            default:
-                ret = commandParameter;
-                break;
-        }
-
+            "$e" => args,
+            "$this" => classify.Length > 1 ? FollowPropertyPath(target, commandParameter.Replace("$this.", ""), target.GetType()) : target,
+            _ => commandParameter,
+        };
         return ret;
     }
 
-    internal static ViewModelBase FindViewModel(FrameworkElement target)
+    internal static ViewModelBase? FindViewModel(FrameworkElement? target)
     {
         if (target == null) return null;
 
@@ -193,7 +191,7 @@ public class EventBindingExtension : MarkupExtension
         return FindViewModel(parent);
     }
 
-    internal static object FollowPropertyPath(object target, string path, Type valueType = null)
+    internal static object FollowPropertyPath(object target, string path, Type? valueType = null)
     {
         if (target == null) throw new ArgumentNullException(nameof(target));
         if (path == null) throw new ArgumentNullException(nameof(path));
