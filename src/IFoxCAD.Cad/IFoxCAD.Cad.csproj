@@ -4,7 +4,7 @@
         <TargetFramework>net45</TargetFramework>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
 		<Nullable>enable</Nullable>
-        <Version>0.3.0</Version>
+        <Version>0.3.0.1</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的Cad二次开发类库</Description>

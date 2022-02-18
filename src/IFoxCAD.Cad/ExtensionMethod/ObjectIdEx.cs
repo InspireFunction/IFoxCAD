@@ -73,7 +73,7 @@ public static class ObjectIdEx
             {
                 ent.Erase();
             }// 第一种读写权限自动转换写法
-            Env.Editor.Regen();
+            //Env.Editor.Regen();
         }
     }
 }

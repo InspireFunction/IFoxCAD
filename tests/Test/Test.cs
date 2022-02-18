@@ -20,7 +20,7 @@ public class Test : AutoRegAssem
         {
             tr.Editor.WriteMessage("\ndatabase 正常");
         }
-
+        
         Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         Circle circle = new(new Point3d(0, 0, 0), Vector3d.ZAxis, 2);
         //var lienid = tr.AddEntity(line);
@@ -309,7 +309,23 @@ public class Test : AutoRegAssem
 
 
     }
+    [CommandMethod("TestBack")]
+    public void TestBack()
+    {
+        using var tr = new DBTrans(@"C:\Users\vic\Desktop\test.dwg");
+        tr.ModelSpace.GetEntities<Circle>().ForEach(ent =>
+        {
+            ent.ForWrite(e => e.ColorIndex = 3);
+        });
+        tr.Database.SaveAs(@"C:\Users\vic\Desktop\test.dwg", DwgVersion.Current);
 
+        tr.ModelSpace.GetEntities<Circle>().ForEach(ent =>
+        {
+            ent.ForWrite(e => e.ColorIndex = 4);
+        });
+        tr.Database.SaveAs(@"C:\Users\vic\Desktop\test.dwg", DwgVersion.Current);
+
+    }
 
     public Database Getdb()
     {

@@ -391,7 +391,6 @@ public static class Env
     {
         Application.SetSystemVariable(varName, value);
     }
-#nullable enable
     /// <summary>
     /// 获取系统环境变量
     /// </summary>
@@ -412,7 +411,6 @@ public static class Env
         //创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
         Environment.SetEnvironmentVariable(var, value);
     }
-#nullable disable
     #endregion
 
 
