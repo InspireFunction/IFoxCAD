@@ -432,4 +432,22 @@ public class TestBlock
         db.SaveAs(@"c:\test.dwg", DwgVersion.Current);
     }
 
+    public void TestChangeDynameicBlock()
+    {
+        var pro = new Dictionary<string, object>();
+        pro.Add("haha", 1);
+        var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
+        using (var tr = new DBTrans()) 
+        {
+            var blockref = tr.GetObject<BlockReference>(blockid);
+            blockref.ChangeBlockProperty(pro);
+            // 这是第一个函数的用法
+        }
+
+
+
+    }
+
+
+
 }

@@ -2,7 +2,7 @@
 
 public class DBTrans : IDisposable
 {
-    #region 私有字段
+#region 私有字段
     /// <summary>
     /// 文档锁
     /// </summary>
@@ -21,7 +21,7 @@ public class DBTrans : IDisposable
     private static readonly Stack<DBTrans> dBTrans = new();
     #endregion
 
-    #region 公开属性
+#region 公开属性
     /// <summary>
     /// 返回当前事务
     /// </summary>
@@ -61,7 +61,7 @@ public class DBTrans : IDisposable
 
     #endregion
 
-    #region 构造函数
+#region 构造函数
     /// <summary>
     /// 默认构造函数，默认为打开当前文档，默认提交事务
     /// </summary>
@@ -101,8 +101,14 @@ public class DBTrans : IDisposable
     /// <param name="commit">事务是否提交</param>
     public DBTrans(string fileName, bool commit = true)
     {
+#if ac2009
+        if (string.IsNullOrEmpty(fileName.Trim()))
+            throw new ArgumentNullException(nameof(fileName));
+#else
+
         if (string.IsNullOrWhiteSpace(fileName))
             throw new ArgumentNullException(nameof(fileName));
+#endif
         if (File.Exists(fileName))
         {
             var doc =
@@ -136,9 +142,9 @@ public class DBTrans : IDisposable
         _commit = commit;
         dBTrans.Push(this);
     }
-    #endregion
+#endregion
 
-    #region 类型转换
+#region 类型转换
     /// <summary>
     /// 隐式转换为Transaction
     /// </summary>
@@ -148,9 +154,9 @@ public class DBTrans : IDisposable
     {
         return tr.Transaction;
     }
-    #endregion
+#endregion
 
-    #region 符号表
+#region 符号表
 
     /// <summary>
     /// 块表
@@ -206,9 +212,9 @@ public class DBTrans : IDisposable
     /// 视口表
     /// </summary>
     public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => new(this, Database.ViewportTableId);
-    #endregion
+#endregion
 
-    #region 字典
+#region 字典
     //TODO: 补充关于扩展字典，命名对象字典，组字典，多线样式字典等对象字典的属性
     /// <summary>
     /// 命名对象字典
@@ -258,6 +264,7 @@ public class DBTrans : IDisposable
     /// 数据链接字典
     /// </summary>
     public DBDictionary DataLinkDict => GetObject<DBDictionary>(Database.DataLinkDictionaryId)!;
+#if !ac2009
     /// <summary>
     /// 详细视图样式字典
     /// </summary>
@@ -266,10 +273,10 @@ public class DBTrans : IDisposable
     /// 剖面视图样式字典
     /// </summary>
     public DBDictionary SectionViewStyleDict => GetObject<DBDictionary>(Database.SectionViewStyleDictionaryId)!;
+#endif
+#endregion
 
-    #endregion
-
-    #region 获取对象
+#region 获取对象
     /// <summary>
     /// 根据对象id获取图元对象
     /// </summary>
@@ -300,9 +307,9 @@ public class DBTrans : IDisposable
 
 
 
-    #endregion
+#endregion
 
-    #region idispose接口相关函数
+#region idispose接口相关函数
 
     public void Abort()
     {
@@ -361,5 +368,5 @@ public class DBTrans : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
-    #endregion
+#endregion
 }

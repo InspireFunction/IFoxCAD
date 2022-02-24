@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net45</TargetFramework>
+        <TargetFrameworks>net35;net40;net45</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
 		<Nullable>enable</Nullable>
-        <Version>0.3.0</Version>
+        <Version>0.3.1</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的二次开发基本类库</Description>
@@ -13,8 +13,8 @@
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>IFoxCAD;C#;NET;Common;Basal</PackageTags>
-        <PackageReleaseNotes>删除LoopList类,改为利用LinkedList;开启可空类型.</PackageReleaseNotes>
-        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <PackageReleaseNotes>恢复LoopList类.</PackageReleaseNotes>
+        <!--<EnableNETAnalyzers>true</EnableNETAnalyzers>-->
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <LangVersion>preview</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -28,10 +28,28 @@
             <PackagePath></PackagePath>
         </None>
     </ItemGroup>
+	
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
+		
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	</ItemGroup>
 
-    <ItemGroup>
-      <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    </ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
+		
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	</ItemGroup>
 
-
+	
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+		<DefineConstants>DEBUG</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
+		<DefineConstants>$(Configuration);ac2009</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
+		<DefineConstants>$(Configuration);ac2013</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
+		<DefineConstants>$(Configuration);ac2015</DefineConstants>
+	</PropertyGroup>
 </Project>

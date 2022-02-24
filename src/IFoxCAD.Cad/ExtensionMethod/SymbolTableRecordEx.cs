@@ -178,7 +178,7 @@ public static class SymbolTableRecordEx
         }
         return btr.AddEnt(pl, action, trans);
     }
-
+#if !ac2009
 
     /// <summary>
     /// 在指定的绘图空间添加轻多段线
@@ -200,7 +200,7 @@ public static class SymbolTableRecordEx
             return btr.AddEnt(pl, action, trans);
         }
 
-
+#endif
 
     /// <summary>
     /// 在指定绘图空间X-Y平面3点画圆弧
@@ -217,9 +217,9 @@ public static class SymbolTableRecordEx
         var arc = EntityEx.CreateArc(startPoint, pointOnArc, endPoint);
         return btr.AddEnt(arc, action, trans);
     }
-    #endregion
+#endregion
 
-    #region 获取实体/实体id
+#region 获取实体/实体id
     /// <summary>
     /// 获取块表记录内的指定类型的实体
     /// </summary>
@@ -276,9 +276,9 @@ public static class SymbolTableRecordEx
         return tr.GetObject(btr.DrawOrderTableId, OpenMode.ForRead) as DrawOrderTable;
     }
 
-    #endregion
+#endregion
 
-    #region 插入块参照
+#region 插入块参照
 
     /// <summary>
     /// 插入块参照
@@ -357,8 +357,8 @@ public static class SymbolTableRecordEx
         return objid;
     }
 
-    #endregion
-    #endregion
+#endregion
+#endregion
 
 
 

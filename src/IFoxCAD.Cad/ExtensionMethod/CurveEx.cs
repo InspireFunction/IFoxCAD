@@ -79,11 +79,11 @@ public static class CurveEx
                Forward == other.Forward;
         }
 
-        public void FindRegion(List<Edge> edges, List<LinkedList<EdgeItem>> regions)
+        public void FindRegion(List<Edge> edges, List<LoopList<EdgeItem>> regions)
         {
-            var region = new LinkedList<EdgeItem>();
+            var region = new LoopList<EdgeItem>();
             var edgeItem = this;
-            region.AddLast(edgeItem);
+            region.Add(edgeItem);
             var edgeItem2 = this.GetNext(edges);
             if (edgeItem2.Edge != null)
             {
@@ -91,9 +91,10 @@ public static class CurveEx
                 foreach (var edgeList2 in regions)
                 {
                     var node = edgeList2.GetNode(e => e.Equals(edgeItem));
-                    if (node != null)
+                    //var node = edgeList2.Find(edgeItem);
+                    if (node != null && node != edgeList2.Last)
                     {
-                        if (node.Next.Value.Equals(edgeItem2))
+                        if (node.Next!.Value.Equals(edgeItem2))
                         {
                             hasList = true;
                             break;
@@ -106,7 +107,7 @@ public static class CurveEx
                     {
                         if (edgeItem2.Edge == edgeItem.Edge)
                             break;
-                        region.AddLast(edgeItem2);
+                        region.Add(edgeItem2); //上一条语句判断失误，导致不停的将相同的值加入region，不能退出循环
                         edgeItem2 = edgeItem2.GetNext(edges);
                     }
                     if (edgeItem2.Edge == edgeItem.Edge)
@@ -222,12 +223,16 @@ public static class CurveEx
             return false;
         }
     }
-
+    /// <summary>
+    /// 获取曲线集所围成的封闭区域的曲线集
+    /// </summary>
+    /// <param name="curves">曲线集</param>
+    /// <returns>曲线集</returns>
     public static List<Curve> Topo(List<Curve> curves)
     {
         //首先按交点分解为Ge曲线集
-        List<CompositeCurve3d> geCurves = new();
-        List<List<double>> paramss = new();
+        var geCurves = new List<CompositeCurve3d>();
+        var paramss = new List<List<double>>();
 
         foreach (var curve in curves)
         {
@@ -239,24 +244,24 @@ public static class CurveEx
             }
         }
 
-        List<Edge> edges = new();
-        CurveCurveIntersector3d cci3d = new();
-        List<Curve> newCurves = new();
+        var edges = new List<Edge>();
+        var cci3d = new CurveCurveIntersector3d();
+        var newCurves = new List<Curve>();
 
         for (int i = 0; i < curves.Count; i++)
         {
-            CompositeCurve3d gc1 = geCurves[i];
-            List<double> pars1 = paramss[i];
+            var gc1 = geCurves[i];
+            var pars1 = paramss[i];
             for (int j = i; j < curves.Count; j++)
             {
-                CompositeCurve3d gc2 = geCurves[j];
-                List<double> pars2 = paramss[j];
+                var gc2 = geCurves[j];
+                var pars2 = paramss[j];
 
                 cci3d.Set(gc1, gc2, Vector3d.ZAxis);
 
                 for (int k = 0; k < cci3d.NumberOfIntersectionPoints; k++)
                 {
-                    double[] pars = cci3d.GetIntersectionParameters(k);
+                    var pars = cci3d.GetIntersectionParameters(k);
                     pars1.Add(pars[0]);
                     pars2.Add(pars[1]);
                 }
@@ -264,11 +269,10 @@ public static class CurveEx
 
             if (pars1.Count > 0)
             {
-                List<CompositeCurve3d> c3ds = gc1.GetSplitCurves(pars1);
+                var c3ds = gc1.GetSplitCurves(pars1);
                 if (c3ds.Count > 0)
                 {
-                    edges.AddRange(
-                        c3ds.Select(c => new Edge { Curve = c }));
+                    edges.AddRange(c3ds.Select(c => new Edge { Curve = c }));
                 }
                 else if (gc1.IsClosed())
                 {
@@ -360,11 +364,11 @@ public static class CurveEx
             }
         }
 
-        var regions = new List<LinkedList<EdgeItem>>();
+        var regions = new List<LoopList<EdgeItem>>();
         foreach (var edge in edges)
-        {
+        { // 这里有bug，两个内接的矩形会卡死
             var edgeItem = new EdgeItem(edge, true);
-            edgeItem.FindRegion(edges, regions);
+            edgeItem.FindRegion(edges, regions); // 经测试是这里卡住了
             edgeItem = new EdgeItem(edge, false);
             edgeItem.FindRegion(edges, regions);
         }
@@ -377,17 +381,19 @@ public static class CurveEx
                 if (regions[i].Count == regions[j].Count)
                 {
                     var node = regions[i].First;
-                    var curve = node.Value.Edge.Curve;
+                    var curve = node!.Value.Edge.Curve;
                     var node2 = regions[j].GetNode(e => e.Edge.Curve == curve);
-                    if (eq = node2 != null)
+                    //var node2 = regions[j].Find(node.Value);
+                    if (node2 != null)
                     {
+                        eq = true;
                         var b = node.Value.Forward;
-                        var b2 = node2!.Value.Forward;
+                        var b2 = node2.Value.Forward;
                         for (int k = 1; k < regions[i].Count; k++)
                         {
                             node = node.GetNext(b);
                             node2 = node2.GetNext(b2);
-                            if (node.Value.Edge.Curve != node2.Value.Edge.Curve)
+                            if (node!.Value.Edge.Curve != node2!.Value.Edge.Curve)
                             {
                                 eq = false;
                                 break;
@@ -408,7 +414,7 @@ public static class CurveEx
                 region
                 .Select(e => e.GetCurve())
                 .ToArray();
-            newCurves.Add(new CompositeCurve3d(cs3ds.ToArray()).ToCurve()!);
+            newCurves.Add(new CompositeCurve3d(cs3ds).ToCurve()!);
         }
 
         return newCurves;
@@ -419,10 +425,10 @@ public static class CurveEx
     /// </summary>
     /// <param name="curves">曲线列表</param>
     /// <returns>打断后的曲线列表</returns>
-    public static List<Curve> BreakCurve(List<Curve> curves)
+    public static List<Curve> BreakCurve(this List<Curve> curves)
     {
-        List<CompositeCurve3d> geCurves = new();
-        List<List<double>> paramss = new();
+        var geCurves = new List<CompositeCurve3d>(); // 存储曲线转换后的复合曲线
+        var paramss = new List<List<double>>(); // 存储每个曲线的交点参数值
 
         foreach (var curve in curves)
         {
@@ -434,32 +440,32 @@ public static class CurveEx
             }
         }
 
-        List<Curve> oldCurves = new();
-        List<Curve> newCurves = new();
-        CurveCurveIntersector3d cci3d = new();
+        //var oldCurves = new List<Curve>();
+        var newCurves = new List<Curve>();
+        var cci3d = new CurveCurveIntersector3d();
 
         for (int i = 0; i < curves.Count; i++)
         {
-            CompositeCurve3d gc1 = geCurves[i];
-            List<double> pars1 = paramss[i];
+            var gc1 = geCurves[i];
+            var pars1 = paramss[i]; //引用
             for (int j = i; j < curves.Count; j++)
             {
-                CompositeCurve3d gc2 = geCurves[j];
-                List<double> pars2 = paramss[j];
+                var gc2 = geCurves[j];
+                var pars2 = paramss[j]; // 引用
 
                 cci3d.Set(gc1, gc2, Vector3d.ZAxis);
 
                 for (int k = 0; k < cci3d.NumberOfIntersectionPoints; k++)
                 {
-                    double[] pars = cci3d.GetIntersectionParameters(k);
-                    pars1.Add(pars[0]);
-                    pars2.Add(pars[1]);
+                    var pars = cci3d.GetIntersectionParameters(k);
+                    pars1.Add(pars[0]); // 引用修改会同步到源对象
+                    pars2.Add(pars[1]); // 引用修改会同步到源对象
                 }
             }
 
             if (pars1.Count > 0)
             {
-                List<CompositeCurve3d> c3ds = gc1.GetSplitCurves(pars1);
+                var c3ds = gc1.GetSplitCurves(pars1);
                 if (c3ds.Count > 1)
                 {
                     foreach (CompositeCurve3d c3d in c3ds)
@@ -471,7 +477,7 @@ public static class CurveEx
                             newCurves.Add(c);
                         }
                     }
-                    oldCurves.Add(curves[i]);
+                    //oldCurves.Add(curves[i]);
                 }
             }
         }

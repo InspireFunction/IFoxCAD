@@ -599,6 +599,70 @@ public static class EditorEx
     /// <returns>变换矩阵</returns>
     public static Matrix3d GetMatrix(this Editor editor, CoordinateSystemCode from, CoordinateSystemCode to)
     {
+#if ac2009
+        switch (from)
+        {
+            case CoordinateSystemCode.Wcs:
+                switch (to)
+                {
+                    case CoordinateSystemCode.Ucs:
+                        return editor.GetMatrixFromWcsToUcs();
+
+                    case CoordinateSystemCode.MDcs:
+                        return editor.GetMatrixFromMDcsToWcs();
+
+                    case CoordinateSystemCode.PDcs:
+                        throw new Autodesk.AutoCAD.Runtime.Exception(
+                            ErrorStatus.InvalidInput,
+                            "To be used only with DCS");
+                }
+                break;
+            case CoordinateSystemCode.Ucs:
+                switch (to)
+                {
+                    case CoordinateSystemCode.Wcs:
+                        return editor.GetMatrixFromUcsToWcs();
+
+                    case CoordinateSystemCode.MDcs:
+                        return editor.GetMatrixFromUcsToWcs() * editor.GetMatrixFromWcsToMDcs();
+
+                    case CoordinateSystemCode.PDcs:
+                        throw new Autodesk.AutoCAD.Runtime.Exception(
+                            ErrorStatus.InvalidInput,
+                            "To be used only with DCS");
+                }
+                break;
+            case CoordinateSystemCode.MDcs:
+                switch (to)
+                {
+                    case CoordinateSystemCode.Wcs:
+                        return editor.GetMatrixFromMDcsToWcs();
+
+                    case CoordinateSystemCode.Ucs:
+                        return editor.GetMatrixFromMDcsToWcs() * editor.GetMatrixFromWcsToUcs();
+
+                    case CoordinateSystemCode.PDcs:
+                        return editor.GetMatrixFromMDcsToPDcs();
+                }
+                break;
+            case CoordinateSystemCode.PDcs:
+                switch (to)
+                {
+                    case CoordinateSystemCode.Wcs:
+                        throw new Autodesk.AutoCAD.Runtime.Exception(
+                            ErrorStatus.InvalidInput,
+                            "To be used only with DCS");
+                    case CoordinateSystemCode.Ucs:
+                        throw new Autodesk.AutoCAD.Runtime.Exception(
+                            ErrorStatus.InvalidInput,
+                            "To be used only with DCS");
+                    case CoordinateSystemCode.MDcs:
+                        return editor.GetMatrixFromPDcsToMDcs();
+                }
+                break;
+        }
+        return Matrix3d.Identity;
+#else
         return (from, to) switch
         {
             (CoordinateSystemCode.Wcs, CoordinateSystemCode.Ucs) => editor.GetMatrixFromWcsToUcs(),
@@ -613,11 +677,12 @@ public static class EditorEx
             or (CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs, CoordinateSystemCode.PDcs) => throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.InvalidInput, "To be used only with DCS"),
             (_, _) => Matrix3d.Identity
         };
+#endif
     }
 
-    #endregion
+#endregion
 
-    #region 缩放
+#region 缩放
 
     /// <summary>
     /// 缩放窗口范围
@@ -762,9 +827,9 @@ public static class EditorEx
         ed.ZoomWindow(ext.MinPoint, ext.MaxPoint, offsetDist);
     }
 
-    #endregion
+#endregion
 
-    #region Get交互类
+#region Get交互类
 
     /// <summary>
     /// 获取Point
@@ -831,9 +896,9 @@ public static class EditorEx
         return ed.GetString(strOp);
     }
 
-    #endregion Get交互类
+#endregion Get交互类
 
-    #region 执行lisp
+#region 执行lisp
 
 #if ac2009
         [System.Security.SuppressUnmanagedCodeSecurity]
@@ -876,5 +941,5 @@ public static class EditorEx
         return null;
     }
 
-    #endregion 执行lisp
+#endregion 执行lisp
 }

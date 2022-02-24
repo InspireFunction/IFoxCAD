@@ -74,8 +74,11 @@ public abstract class AutoRegAssem : IExtensionApplication
 
     private static RegistryKey GetAcAppKey()
     {
-
+#if ac2009
+            string key = HostApplicationServices.Current.RegistryProductRootKey;
+#else
         string key = HostApplicationServices.Current.MachineRegistryProductRootKey;
+#endif
         RegistryKey ackey =
             Registry.CurrentUser.OpenSubKey(key, true);
         return ackey.CreateSubKey("Applications");

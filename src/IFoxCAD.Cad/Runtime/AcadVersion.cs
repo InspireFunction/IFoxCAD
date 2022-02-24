@@ -51,13 +51,8 @@ public static class AcadVersion
     /// <summary>已打开的cad的版本号</summary>
     /// <param name="app">已打开cad的application对象</param>
     /// <returns>cad版本号对象</returns>
-    public static CadVersion? FromApp(object app)
+    public static CadVersion? FromApp(object app!!)
     {
-        if (app == null)
-        {
-            throw new ArgumentNullException(nameof(app));
-        }
-
         string acver =
             app.GetType()
                 .InvokeMember(

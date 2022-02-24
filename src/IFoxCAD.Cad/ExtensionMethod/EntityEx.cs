@@ -260,7 +260,11 @@ public static class EntityEx
         //创建一个几何类的圆弧对象
         CircularArc3d geArc = new(startPoint, pointOnArc, endPoint);
         //将几何类圆弧对象的圆心和半径赋值给圆弧
+#if ac2009
+        return (Arc)geArc.ToCurve();
+#else
         return (Arc)Curve.CreateFromGeCurve(geArc);
+#endif
     }
 
     /// <summary>
@@ -282,9 +286,9 @@ public static class EntityEx
         return arc;
     }
 
-    #endregion
+#endregion
 
-    #region 圆
+#region 圆
 
     /// <summary>
     /// 两点创建圆(两点中点为圆心)
@@ -326,11 +330,11 @@ public static class EntityEx
         }
     }
 
-    #endregion
+#endregion
 
-    #region 块参照
+#region 块参照
 
-    #region 裁剪块参照
+#region 裁剪块参照
 
     private const string filterDictName = "ACAD_FILTER";
     private const string spatialName = "SPATIAL";
@@ -391,6 +395,30 @@ public static class EntityEx
         dict.SetAt<SpatialFilter>(spatialName, sf);
         //SetToDictionary(dict, spatialName, sf);
     }
-    #endregion
-    #endregion
+#endregion
+
+    /// <summary>
+    /// 更新动态块属性值
+    /// </summary>
+    /// <param name="blockReference">动态块</param>
+    /// <param name="propertyNameValues">属性值字典</param>
+    public static void ChangeBlockProperty(this BlockReference blockReference, Dictionary<string,object> propertyNameValues)
+    {
+        if (blockReference.IsDynamicBlock)
+        {
+            using (blockReference.ForWrite())
+            {
+                foreach (DynamicBlockReferenceProperty item in blockReference.DynamicBlockReferencePropertyCollection)
+                {
+                    if (propertyNameValues.ContainsKey(item.PropertyName))
+                    {
+                        item.Value = propertyNameValues[item.PropertyName];
+                    }
+                }
+            }
+            
+        }
+    }
+    
+#endregion
 }

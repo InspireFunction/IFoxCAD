@@ -1,10 +1,10 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFramework>net45</TargetFramework>
+        <TargetFrameworks>net35;net40;net45</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
 		<Nullable>enable</Nullable>
-        <Version>0.3.0.1</Version>
+        <Version>0.3.1</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的Cad二次开发类库</Description>
@@ -22,15 +22,43 @@
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
     </PropertyGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
+		<PackageReference Include="Autocad.NetApi" Version="17.2.0">
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
+	</ItemGroup>
 
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
+		<PackageReference Include="Autocad.NetApi" Version="19.0.0">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	</ItemGroup>
 
-
-	<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
+		<PackageReference Include="AutoCAD.NET" Version="20.0.1">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	</ItemGroup>
+	
+	
+	<!--<PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
 		<DefineConstants>DEBUG;TRACE</DefineConstants>
+	</PropertyGroup>-->
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+		<DefineConstants>DEBUG</DefineConstants>
 	</PropertyGroup>
-
-
-    
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
+		<DefineConstants>$(Configuration);ac2009</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
+		<DefineConstants>$(Configuration);ac2013</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
+		<DefineConstants>$(Configuration);ac2015</DefineConstants>
+	</PropertyGroup>
     
     <ItemGroup>
       <None Include="..\..\LICENSE">
@@ -40,12 +68,12 @@
     </ItemGroup>
 
 
-    <ItemGroup>
+    <!--<ItemGroup>
       <PackageReference Include="AutoCAD.NET" Version="20.0.1">
 	    <ExcludeAssets>runtime</ExcludeAssets>
       </PackageReference>
       <PackageReference Include="System.ValueTuple" Version="4.5.0" />
-    </ItemGroup>
+    </ItemGroup>-->
 
     
 
@@ -56,5 +84,6 @@
     <ItemGroup>
       <Reference Include="System.Windows.Forms" />
     </ItemGroup>
+
 
 </Project>
