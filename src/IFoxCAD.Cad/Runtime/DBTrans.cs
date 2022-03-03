@@ -215,7 +215,6 @@ public class DBTrans : IDisposable
 #endregion
 
 #region 字典
-    //TODO: 补充关于扩展字典，命名对象字典，组字典，多线样式字典等对象字典的属性
     /// <summary>
     /// 命名对象字典
     /// </summary>

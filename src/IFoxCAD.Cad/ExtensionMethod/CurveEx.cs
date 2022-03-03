@@ -45,7 +45,7 @@ public static class CurveEx
             .Cast<Curve>();
     }
     /// <summary>
-    /// 边
+    /// 边节点
     /// </summary>
     private struct EdgeItem : IEquatable<EdgeItem>
     {
@@ -67,8 +67,8 @@ public static class CurveEx
             }
             else
             {
-                cc3d = cc3d!.Clone() as CompositeCurve3d;
-                return cc3d!.GetReverseParameterCurve() as CompositeCurve3d;
+                cc3d = cc3d.Clone() as CompositeCurve3d;
+                return cc3d?.GetReverseParameterCurve() as CompositeCurve3d;
             }
         }
 
@@ -182,23 +182,28 @@ public static class CurveEx
             return this.ToString().GetHashCode();
         }
     }
-
+    /// <summary>
+    /// 边
+    /// </summary>
     private class Edge
     {
-        public CompositeCurve3d? Curve;
+        public CompositeCurve3d Curve;
         public int StartIndex;
         public int EndIndex;
-
+        public Edge(CompositeCurve3d curve)
+        {
+            Curve = curve;
+        }
         public Vector3d GetStartVector()
         {
-            var inter = Curve?.GetInterval();
-            PointOnCurve3d poc = new(Curve, inter!.LowerBound);
+            var inter = Curve.GetInterval();
+            PointOnCurve3d poc = new(Curve, inter.LowerBound);
             return poc.GetDerivative(1);
         }
 
         public Vector3d GetEndVector()
         {
-            var inter = Curve!.GetInterval();
+            var inter = Curve.GetInterval();
             PointOnCurve3d poc = new(Curve, inter.UpperBound);
             return -poc.GetDerivative(1);
         }
@@ -272,7 +277,7 @@ public static class CurveEx
                 var c3ds = gc1.GetSplitCurves(pars1);
                 if (c3ds.Count > 0)
                 {
-                    edges.AddRange(c3ds.Select(c => new Edge { Curve = c }));
+                    edges.AddRange(c3ds.Select(c => new Edge(c)));
                 }
                 else if (gc1.IsClosed())
                 {
@@ -280,7 +285,7 @@ public static class CurveEx
                 }
                 else
                 {
-                    edges.Add(new Edge { Curve = gc1 });
+                    edges.Add(new Edge(gc1));
                 }
             }
             else if (gc1.IsClosed())
@@ -296,7 +301,7 @@ public static class CurveEx
 
         foreach (var edge in edges)
         {
-            if (edge.Curve!.IsClosed())
+            if (edge.Curve.IsClosed())
             {
                 closedEdges.Add(edge);
             }
@@ -330,7 +335,7 @@ public static class CurveEx
             }
         }
 
-        newCurves.AddRange(closedEdges.Select(e => e.Curve!.ToCurve())!);
+        newCurves.AddRange(closedEdges.Select(e => e.Curve.ToCurve())!);
 
         edges =
             edges

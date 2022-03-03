@@ -236,13 +236,12 @@ public class Commands
                 {
                     case "Bold":
                         {
-                            // TODO
-
+                            
                             break;
                         }
                     case "Italic":
                         {
-                            // TODO
+                          
 
                             break;
                         }
@@ -274,19 +273,19 @@ public class Commands
                         }
                     case "LEft":
                         {
-                            // TODO
+                            
 
                             break;
                         }
                     case "RIght":
                         {
-                            // TODO
+                          
 
                             break;
                         }
                     case "Middle":
                         {
-                            // TODO
+                            
 
                             break;
                         }
