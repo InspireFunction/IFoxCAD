@@ -24,7 +24,7 @@
 
 1. 快速入门
    
-   - 打开vs，新建一个standard类型的类库项目![](./docs/png/standard.png)
+   - 打开vs，新建一个standard类型的类库项目，**注意，需要选择类型的时候一定要选standord2.0** ![](./docs/png/standard.png)
    
    - 双击项目，打开项目文件：
      
