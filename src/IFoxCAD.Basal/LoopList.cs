@@ -32,10 +32,12 @@ namespace IFoxCAD.Collections
         /// 环链表节点构造函数
         /// </summary>
         /// <param name="value">节点值</param>
-        public LoopListNode(T value)
+        public LoopListNode(T value, LoopList<T> ts)
         {
             Value = value;
+            List  = ts;
         }
+
         /// <summary>
         /// 获取当前节点的临近节点
         /// </summary>
@@ -149,6 +151,7 @@ namespace IFoxCAD.Collections
             Count = 0;
         }
 
+
         /// <summary>
         /// 从头遍历
         /// </summary>
@@ -190,9 +193,29 @@ namespace IFoxCAD.Collections
             bool result = false;
             ForEach(node =>
             {
-                if (node.Equals(value))
+                if (node.Value.Equals(value))
                 {
                     result = true;
+                    return true;
+                }
+                return false;
+            });
+            return result;
+        }
+
+        /// <summary>
+        /// 查找节点
+        /// </summary>
+        /// <param name="t2"></param>
+        /// <returns></returns>
+        public LoopListNode<T> Find(T t2)
+        {
+            LoopListNode<T> result = null;
+            ForEach(node =>
+            {
+                if (node.Value.Equals(t2))
+                {
+                    result = node;
                     return true;
                 }
                 return false;
@@ -208,11 +231,11 @@ namespace IFoxCAD.Collections
         public LoopListNode<T> GetNode(Func<T, bool> func)
         {
             LoopListNode<T> result = null;
-            ForEach(a =>
+            ForEach(node =>
             {
-                if (func(a.Value))
+                if (func(node.Value))
                 {
-                    result = a;
+                    result = node;
                     return true;
                 }
                 return false;
@@ -231,10 +254,8 @@ namespace IFoxCAD.Collections
         /// <returns></returns>
         public LoopListNode<T> AddFirst(T value)
         {
-            LoopListNode<T> node = new(value)
-            {
-                List = this
-            };
+            LoopListNode<T> node = new(value, this);
+
             if (Count == 0)
             {
                 First          = node;
@@ -259,8 +280,8 @@ namespace IFoxCAD.Collections
         /// <returns></returns>
         public LoopListNode<T> Add(T value)
         {
-            LoopListNode<T> node = new(value);
-            node.List = this;
+            LoopListNode<T> node = new(value, this);
+
             if (Count == 0)
             {
                 First          = node;
@@ -290,7 +311,8 @@ namespace IFoxCAD.Collections
             }
             else
             {
-                LoopListNode<T> tnode = new(value);
+                LoopListNode<T> tnode = new(value, this);
+
                 node.Previous.Next = tnode;
                 tnode.Previous = node.Previous;
                 node.Previous = tnode;
@@ -307,7 +329,8 @@ namespace IFoxCAD.Collections
         /// <returns></returns>
         public LoopListNode<T> AddAfter(LoopListNode<T> node, T value)
         {
-            LoopListNode<T> tnode = new(value);
+            LoopListNode<T> tnode = new(value, this);
+
             node.Next.Previous = tnode;
             tnode.Next = node.Next;
             node.Next = tnode;
@@ -342,7 +365,6 @@ namespace IFoxCAD.Collections
                     last.Next = First;
                     break;
             }
-            Count--;
             return true;
         }
 
@@ -378,28 +400,27 @@ namespace IFoxCAD.Collections
         /// <returns></returns>
         public bool Remove(LoopListNode<T> node)
         {
-            if (Contains(node))
+            if (!Contains(node))
+                return false;
+
+            if (Count == 1)
             {
-                if (Count == 1)
+                First = null;
+            }
+            else
+            {
+                if (node == First)
                 {
-                    First = null;
+                    RemoveFirst();
                 }
                 else
                 {
-                    if (node == First)
-                    {
-                        RemoveFirst();
-                    }
-                    else
-                    {
-                        node.Next.Previous = node.Previous;
-                        node.Previous.Next = node.Next;
-                    }
+                    node.Next.Previous = node.Previous;
+                    node.Previous.Next = node.Next;
                 }
-                Count--;
-                return true;
             }
-            return false;
+            Count--;
+            return true;
         }
 
         #endregion

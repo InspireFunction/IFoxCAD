@@ -58,7 +58,7 @@ namespace IFoxCAD.Cad
 
             public EdgeItem(Edge edge, bool forward)
             {
-                Edge = edge;
+                Edge    = edge;
                 Forward = forward;
             }
 
@@ -125,12 +125,12 @@ namespace IFoxCAD.Cad
                 int next;
                 if (Forward)
                 {
-                    vec = Edge.GetEndVector();
+                    vec  = Edge.GetEndVector();
                     next = Edge.EndIndex;
                 }
                 else
                 {
-                    vec = Edge.GetStartVector();
+                    vec  = Edge.GetStartVector();
                     next = Edge.StartIndex;
                 }
 
@@ -148,19 +148,19 @@ namespace IFoxCAD.Cad
                             var angle2 = vec.GetAngleTo(vec3, Vector3d.ZAxis);
                             if (angle2 < angle)
                             {
-                                vec2 = vec3;
-                                angle = angle2;
-                                item.Edge = edge;
+                                vec2         = vec3;
+                                angle        = angle2;
+                                item.Edge    = edge;
                                 item.Forward = forward;
                             }
                         }
                         else
                         {
-                            vec2 = vec3;
-                            angle = vec.GetAngleTo(vec2, Vector3d.ZAxis);
-                            item.Edge = edge;
+                            vec2         = vec3;
+                            angle        = vec.GetAngleTo(vec2, Vector3d.ZAxis);
+                            item.Edge    = edge;
                             item.Forward = forward;
-                            hasNext = true;
+                            hasNext      = true;
                         }
                     }
                 }
@@ -335,7 +335,7 @@ namespace IFoxCAD.Cad
                     if (nums[edge.StartIndex] == 1 && nums[edge.EndIndex] == 1)
                     {
                         nums[edge.StartIndex] = 0;
-                        nums[edge.EndIndex] = 0;
+                        nums[edge.EndIndex]   = 0;
                     }
                     else
                     {
@@ -343,12 +343,12 @@ namespace IFoxCAD.Cad
                         if (nums[edge.StartIndex] == 1)
                         {
                             nums[edge.StartIndex] = 0;
-                            nums[next = edge.EndIndex]--;
+                            nums[next             = edge.EndIndex]--;
                         }
                         else
                         {
                             nums[edge.EndIndex] = 0;
-                            nums[next = edge.StartIndex]--;
+                            nums[next           = edge.StartIndex]--;
                         }
                     }
                 }
