@@ -1,4 +1,7 @@
-﻿namespace IFoxCAD.Basal
+﻿using static System.Net.Mime.MediaTypeNames;
+using System.Collections.Generic;
+
+namespace IFoxCAD.Basal
 {
     /// <summary>
     /// 环链表节点
@@ -43,6 +46,13 @@
         public LoopListNode<T>? GetNext(bool forward)
         {
             return forward ? Next : Previous;
+}
+
+        internal void Invalidate()
+        {
+            List = null;
+            Next = null;
+            Previous = null;
         }
     }
 
@@ -62,12 +72,12 @@
         /// <summary>
         /// 首节点
         /// </summary>
-        public LoopListNode<T> First { get; private set; }
+        public LoopListNode<T>? First { get; private set; }
 
         /// <summary>
         /// 尾节点
         /// </summary>
-        public LoopListNode<T> Last => First?.Previous;
+        public LoopListNode<T>? Last => First?.Previous;
 
         #endregion
 
@@ -115,7 +125,7 @@
         public void Swap(LoopListNode<T> node1, LoopListNode<T> node2)
         {
 #if NET35
-            T value                    = node1.Value;
+            var value                    = node1.Value;
             node1.Value                = node2.Value;
             node2.Value                = value;
 #else
@@ -128,15 +138,15 @@
         /// </summary>
         public void Reverse()
         {
-            LoopListNode<T> first = First;
+            var first = First;
             if (first == null)
                 return;
             var last = Last;
             for (int i = 0; i < Count / 2; i++)
             {
-                Swap(first, last);
-                first = first.Next;
-                last = last.Previous;
+                Swap(first!, last!);
+                first = first!.Next;
+                last = last!.Previous;
             }
         }
 
@@ -145,7 +155,8 @@
             //清理的时候不释放数组长度
             ForEach(a =>
             {
-                a.Value = default;
+                //a.Value = default;
+                a.Invalidate();
                 return false;
             });
             Count = 0;
@@ -158,16 +169,17 @@
         /// <param name="action"></param>
         public void ForEach(Func<LoopListNode<T>, bool> action)
         {
-            LoopListNode<T> node = First;
+            var node = First;
             if (node == null)
                 return;
-
             for (int i = 0; i < Count; i++)
             {
-                if (action(node))
+                if (action(node!))
                     break;
-                node = node.Next;
+                node = node!.Next;
             }
+            
+            
         }
         #endregion
 
@@ -193,7 +205,8 @@
             bool result = false;
             ForEach(node =>
             {
-                if (node.Value.Equals(value))
+
+                if (node.Value!.Equals(value))
                 {
                     result = true;
                     return true;
@@ -208,19 +221,48 @@
         /// </summary>
         /// <param name="t2"></param>
         /// <returns></returns>
-        public LoopListNode<T> Find(T t2)
+        public LoopListNode<T>? Find(T value)
         {
-            LoopListNode<T> result = null;
-            ForEach(node =>
+            //LoopListNode<T> result = null;
+            //ForEach(node =>
+            //{
+            //    if (node.Value.Equals(t2))
+            //    {
+            //        result = node;
+            //        return true;
+            //    }
+            //    return false;
+            //});
+            //return result;
+
+            LoopListNode<T>? node = First;
+            EqualityComparer<T> c = EqualityComparer<T>.Default;
+            if (node != null)
             {
-                if (node.Value.Equals(t2))
+                if (value != null)
                 {
-                    result = node;
-                    return true;
+                    do
+                    {
+                        if (c.Equals(node!.Value, value))
+                        {
+                            return node;
+                        }
+                        node = node.Next;
+                    } while (node != First);
                 }
-                return false;
-            });
-            return result;
+                else
+                {
+                    do
+                    {
+                        if (node!.Value == null)
+                        {
+                            return node;
+                        }
+                        node = node.Next;
+                    } while (node != First);
+                }
+            }
+            return null;
         }
 
         /// <summary>
@@ -230,7 +272,7 @@
         /// <returns></returns>
         public LoopListNode<T>? GetNode(Func<T, bool> func)
         {
-            LoopListNode<T> result = null;
+            LoopListNode<T>? result = null;
             ForEach(node =>
             {
                 if (func(node.Value))
@@ -415,10 +457,11 @@
                 }
                 else
                 {
-                    node.Next.Previous = node.Previous;
-                    node.Previous.Next = node.Next;
+                    node.Next!.Previous = node.Previous;
+                    node.Previous!.Next = node.Next;
                 }
             }
+            node.Invalidate();
 
             Count--;
             return true;
