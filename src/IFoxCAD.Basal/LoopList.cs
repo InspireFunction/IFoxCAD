@@ -14,28 +14,27 @@
         /// <summary>
         /// 上一个节点
         /// </summary>
-        public LoopListNode<T>? Previous
-        { internal set; get; }
+        public LoopListNode<T>? Previous { internal set; get; }
 
         /// <summary>
         /// 下一个节点
         /// </summary>
-        public LoopListNode<T>? Next
-        { internal set; get; }
+        public LoopListNode<T>? Next { internal set; get; }
 
         /// <summary>
         ///环链表序列
         /// </summary>
-        public LoopList<T>? List
-        { internal set; get; }
+        public LoopList<T>? List { internal set; get; }
         /// <summary>
         /// 环链表节点构造函数
         /// </summary>
         /// <param name="value">节点值</param>
-        public LoopListNode(T value)
+        public LoopListNode(T value, LoopList<T> ts)
         {
             Value = value;
+            List  = ts;
         }
+
         /// <summary>
         /// 获取当前节点的临近节点
         /// </summary>
@@ -53,40 +52,47 @@
     /// <typeparam name="T"></typeparam>
     public class LoopList<T> : IEnumerable<T>, IFormattable
     {
+        #region 成员
+
+        /// <summary>
+        /// 节点数
+        /// </summary>
+        public int Count { get; private set; }
+
+        /// <summary>
+        /// 首节点
+        /// </summary>
+        public LoopListNode<T> First { get; private set; }
+
+        /// <summary>
+        /// 尾节点
+        /// </summary>
+        public LoopListNode<T> Last => First?.Previous;
+
+        #endregion
+
+        #region 构造
+
         /// <summary>
         /// 默认构造函数
         /// </summary>
-        public LoopList()
-        { }
+        public LoopList() { }
+
         /// <summary>
         /// 环链表构造函数
         /// </summary>
         /// <param name="values">节点迭代器</param>
         public LoopList(IEnumerable<T> values)
         {
-            foreach (T value in values)
-                Add(value);
+            var ge = values.GetEnumerator();
+            while (ge.MoveNext())
+                Add(ge.Current);
         }
 
-        /// <summary>
-        /// 节点数
-        /// </summary>
-        public int Count
-        { get; private set; }
+        #endregion
 
-        /// <summary>
-        /// 首节点
-        /// </summary>
-        public LoopListNode<T>? First
-        { get; private set; }
+        #region 方法
 
-        /// <summary>
-        /// 尾节点
-        /// </summary>
-        public LoopListNode<T>? Last
-        {
-            get { return First?.Previous; }
-        }
         /// <summary>
         /// 设置首节点
         /// </summary>
@@ -94,12 +100,11 @@
         /// <returns></returns>
         public bool SetFirst(LoopListNode<T> node)
         {
-            if (Contains(node))
-            {
-                First = node;
-                return true;
-            }
-            return false;
+            if (!Contains(node))
+                return false;
+
+            First = node;
+            return true;
         }
 
         /// <summary>
@@ -109,18 +114,65 @@
         /// <param name="node2">第二个节点</param>
         public void Swap(LoopListNode<T> node1, LoopListNode<T> node2)
         {
-#if ac2009
-#pragma warning disable IDE0180 // 使用元组交换值
-            T value = node1.Value;
-#pragma warning restore IDE0180 // 使用元组交换值
-            node1.Value = node2.Value;
-            node2.Value = value;
+#if NET35
+            T value                    = node1.Value;
+            node1.Value                = node2.Value;
+            node2.Value                = value;
 #else
             (node2.Value, node1.Value) = (node1.Value, node2.Value);
 #endif
         }
 
-#region Contains
+        /// <summary>
+        /// 链内翻转
+        /// </summary>
+        public void Reverse()
+        {
+            LoopListNode<T> first = First;
+            if (first == null)
+                return;
+            var last = Last;
+            for (int i = 0; i < Count / 2; i++)
+            {
+                Swap(first, last);
+                first = first.Next;
+                last = last.Previous;
+            }
+        }
+
+        public void Clear()
+        {
+            //清理的时候不释放数组长度
+            ForEach(a =>
+            {
+                a.Value = default;
+                return false;
+            });
+            Count = 0;
+        }
+
+
+        /// <summary>
+        /// 从头遍历
+        /// </summary>
+        /// <param name="action"></param>
+        public void ForEach(Func<LoopListNode<T>, bool> action)
+        {
+            LoopListNode<T> node = First;
+            if (node == null)
+                return;
+
+            for (int i = 0; i < Count; i++)
+            {
+                if (action(node))
+                    break;
+                node = node.Next;
+            }
+        }
+        #endregion
+
+        #region Contains
+
         /// <summary>
         /// 是否包含节点
         /// </summary>
@@ -130,6 +182,7 @@
         {
             return node != null && node.List == this;
         }
+
         /// <summary>
         /// 是否包含值
         /// </summary>
@@ -137,19 +190,39 @@
         /// <returns></returns>
         public bool Contains(T value)
         {
-            
-            var node = First;
-            if (node != null)
+            bool result = false;
+            ForEach(node =>
             {
-                for (int i = 0; i < Count; i++)
+                if (node.Value.Equals(value))
                 {
-                    if (node!.Value!.Equals(value))
-                        return true;
-                    node = node.Next;
+                    result = true;
+                    return true;
                 }
-            }
-            return false;
+                return false;
+            });
+            return result;
         }
+
+        /// <summary>
+        /// 查找节点
+        /// </summary>
+        /// <param name="t2"></param>
+        /// <returns></returns>
+        public LoopListNode<T> Find(T t2)
+        {
+            LoopListNode<T> result = null;
+            ForEach(node =>
+            {
+                if (node.Value.Equals(t2))
+                {
+                    result = node;
+                    return true;
+                }
+                return false;
+            });
+            return result;
+        }
+
         /// <summary>
         /// 获取节点
         /// </summary>
@@ -157,24 +230,22 @@
         /// <returns></returns>
         public LoopListNode<T>? GetNode(Func<T, bool> func)
         {
-            var node = First;
-            if (node != null)
+            LoopListNode<T> result = null;
+            ForEach(node =>
             {
-                for (int i = 0; i < Count; i++)
+                if (func(node.Value))
                 {
-                    if (func(node!.Value))
-                    {
-                        return node;
-                    }
-                    node = node.Next;
+                    result = node;
+                    return true;
                 }
-            }
-            return null;
+                return false;
+            });
+            return result;
         }
 
-#endregion Contains
+        #endregion
 
-#region Add
+        #region Add
 
         /// <summary>
         /// 在首节点之前插入节点,并设置新节点为首节点
@@ -183,22 +254,20 @@
         /// <returns></returns>
         public LoopListNode<T> AddFirst(T value)
         {
-            var node = new LoopListNode<T>(value)
-            {
-                List = this
-            };
+            var node = new LoopListNode<T>(value, this);
+
             if (Count == 0)
             {
-                First = node;
+                First          = node;
                 First.Previous = First.Next = node;
             }
             else
             {
                 LoopListNode<T> last = Last!;
-                First!.Previous = last.Next = node;
-                node.Next = First;
-                node.Previous = last;
-                First = node;
+                First!.Previous      = last.Next = node;
+                node.Next            = First;
+                node.Previous        = last;
+                First                = node;
             }
             Count++;
             return First;
@@ -211,21 +280,19 @@
         /// <returns></returns>
         public LoopListNode<T> Add(T value)
         {
-            var node = new LoopListNode<T>(value)
-            {
-                List = this
-            };
+            var node = new LoopListNode<T>(value, this);
+
             if (Count == 0)
             {
-                First = node;
+                First          = node;
                 First.Previous = First.Next = node;
             }
             else
             {
-                var last = First!.Previous!;
+                var last       = First!.Previous!;
                 First.Previous = last.Next = node;
-                node.Next = First;
-                node.Previous = last;
+                node.Next      = First;
+                node.Previous  = last;
             }
             Count++;
             return Last!;
@@ -244,7 +311,8 @@
             }
             else
             {
-                var tnode = new LoopListNode<T>(value);
+                var tnode = new LoopListNode<T>(value, this);
+
                 node.Previous!.Next = tnode;
                 tnode.Previous = node.Previous;
                 node.Previous = tnode;
@@ -261,7 +329,8 @@
         /// <returns></returns>
         public LoopListNode<T> AddAfter(LoopListNode<T> node, T value)
         {
-            LoopListNode<T> tnode = new(value);
+            var tnode = new LoopListNode<T>(value, this);
+
             node.Next!.Previous = tnode;
             tnode.Next = node.Next;
             node.Next = tnode;
@@ -270,9 +339,9 @@
             return tnode;
         }
 
-#endregion Add
+        #endregion
 
-#region Remove
+        #region Remove
 
         /// <summary>
         /// 删除首节点
@@ -296,7 +365,6 @@
                     last.Next = First;
                     break;
             }
-            Count--;
             return true;
         }
 
@@ -332,33 +400,33 @@
         /// <returns></returns>
         public bool Remove(LoopListNode<T> node)
         {
-            if (Contains(node))
+            if (!Contains(node))
+                return false;
+
+            if (Count == 1)
             {
-                if (Count == 1)
+                First = null;
+            }
+            else
+            {
+                if (node == First)
                 {
-                    First = null;
+                    RemoveFirst();
                 }
                 else
                 {
-                    if (node == First)
-                    {
-                        RemoveFirst();
-                    }
-                    else
-                    {
-                        node.Next!.Previous = node.Previous;
-                        node.Previous!.Next = node.Next;
-                    }
+                    node.Next.Previous = node.Previous;
+                    node.Previous.Next = node.Next;
                 }
-                Count--;
-                return true;
             }
-            return false;
+
+            Count--;
+            return true;
         }
 
-#endregion Remove
+        #endregion
 
-#region LinkTo
+        #region LinkTo
 
         /// <summary>
         /// 链接两节点,并去除这两个节点间的所有节点
@@ -428,9 +496,9 @@
             }
         }
 
-#endregion LinkTo
+        #endregion
 
-#region IEnumerable<T> 成员
+        #region IEnumerable<T> 成员
 
         /// <summary>
         /// 获取节点的查询器
@@ -477,27 +545,28 @@
 
         IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
-#region IEnumerable 成员
+        #region IEnumerable 成员
 
         IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
-#endregion IEnumerable 成员
+        #endregion IEnumerable 成员
 
-#endregion IEnumerable<T> 成员
+        #endregion
 
-#region IFormattable 成员
+        #region IFormattable 成员
         /// <summary>
         /// 转换为字符串
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            string s = "( ";
+            var s = new StringBuilder();
+            s.Append("( ");
             foreach (T value in this)
-            {
-                s += $"{value} ";
-            }
-            return s + ")";
+                s.Append($"{value} ");
+
+            s.Append(")");
+            return s.ToString();
         }
 
         string IFormattable.ToString(string format, IFormatProvider formatProvider)
@@ -505,6 +574,6 @@
             return ToString();
         }
 
-#endregion IFormattable 成员
+        #endregion
     }
 }
