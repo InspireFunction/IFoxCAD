@@ -27,7 +27,7 @@ namespace IFoxCAD.Collections
         public LoopListNode<T>? Next { internal set; get; }
 
         /// <summary>
-        ///环链表序列
+        /// 环链表序列
         /// </summary>
         public LoopList<T>? List { internal set; get; }
 
@@ -56,7 +56,6 @@ namespace IFoxCAD.Collections
         /// </summary>
         internal void Invalidate()
         {
-            Value    = default!;
             List     = null;
             Next     = null;
             Previous = null;
@@ -163,16 +162,11 @@ namespace IFoxCAD.Collections
         /// </summary>
         public void Clear()
         {
-            //清理的时候不释放数组长度
-            ForEach(a =>
-            {
-                //a.Value = default;
-                a.Invalidate();
-                return false;
-            });
+            //移除头部,表示链表再也无法遍历得到
+            First = null;
             Count = 0;
+            GC.Collect();
         }
-
 
         /// <summary>
         /// 从头遍历
@@ -225,7 +219,7 @@ namespace IFoxCAD.Collections
         }
 
         /// <summary>
-        /// 查找节点
+        /// 查找第一个出现的节点
         /// </summary>
         /// <param name="t2"></param>
         /// <returns></returns>
@@ -438,33 +432,51 @@ namespace IFoxCAD.Collections
         /// <summary>
         /// 删除节点
         /// </summary>
-        /// <param name="node"></param>
+        /// <param name="node">指定节点</param>
         /// <returns></returns>
         public bool Remove(LoopListNode<T> node)
         {
             if (!Contains(node))
                 return false;
+            InternalRemove(node);
+            return true;
+        }
 
-            if (Count == 1)
+        /// <summary>
+        /// 删除节点
+        /// </summary>
+        /// <param name="value">将移除所有含有此值</param>
+        /// <returns></returns>
+        public bool Remove(T value)
+        {
+            ForEach(node =>
             {
-                First = null;
+                if (node!.Value.Equals(value))
+                    InternalRemove(node);
+                return false;
+            });
+            return true;
+        }
+
+        /// <summary>
+        /// 删除节点_内部调用
+        /// </summary>
+        /// <param name="node">此值肯定存在当前链表</param>
+        /// <returns></returns>
+        void InternalRemove(LoopListNode<T> node)
+        {
+            if (Count == 1 || node == First)
+            {
+                RemoveFirst();
             }
             else
             {
-                if (node == First)
-                {
-                    RemoveFirst();
-                }
-                else
-                {
-                    node.Next!.Previous = node.Previous;
-                    node.Previous!.Next = node.Next;
-                }
+                node.Next!.Previous = node.Previous;
+                node.Previous!.Next = node.Next;
             }
-            node.Invalidate();
 
+            node.Invalidate();
             Count--;
-            return true;
         }
 
         #endregion
