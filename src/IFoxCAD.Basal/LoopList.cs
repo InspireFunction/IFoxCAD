@@ -451,7 +451,7 @@ namespace IFoxCAD.Collections
         {
             ForEach(node =>
             {
-                if (node!.Value.Equals(value))
+                if (node!.Value!.Equals(value))
                     InternalRemove(node);
                 return false;
             });
