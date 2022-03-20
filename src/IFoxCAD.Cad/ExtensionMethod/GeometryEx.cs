@@ -150,8 +150,7 @@ namespace IFoxCAD.Cad
         /// <returns>解析类圆对象</returns>
         public static CircularArc2d GetMinCircle(Point2d pt1, Point2d PointV, Point2d pt3, out LoopList<Point2d> ptlst)
         {
-            ptlst =
-                new LoopList<Point2d> { pt1, PointV, pt3 };
+            ptlst = new LoopList<Point2d> { pt1, PointV, pt3 };
 
             //遍历各点与下一点的向量长度,找到距离最大的两个点
             double maxLength;
@@ -213,7 +212,7 @@ namespace IFoxCAD.Cad
                 {
                     if (ca2d == null || tca2d.Radius < ca2d.Radius)
                     {
-                        ca2d = tca2d;
+                        ca2d  = tca2d;
                         ptlst = tptlst;
                     }
                 }
@@ -563,7 +562,7 @@ namespace IFoxCAD.Cad
 
         #endregion Ucs
 
-       
+
         /// <summary>
         /// 返回不等比例变换矩阵
         /// </summary>

@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 namespace IFoxCAD.Collections
 {
     /// <summary>
@@ -12,25 +11,23 @@ namespace IFoxCAD.Collections
         /// <summary>
         /// 取值
         /// </summary>
-        public T Value { get; set; }
+        public T Value { internal set; get; }
 
         /// <summary>
         /// 上一个节点
         /// </summary>
-        public LoopListNode<T> Previous
-        { internal set; get; }
+        public LoopListNode<T> Previous { internal set; get; }
 
         /// <summary>
         /// 下一个节点
         /// </summary>
-        public LoopListNode<T> Next
-        { internal set; get; }
+        public LoopListNode<T> Next { internal set; get; }
 
         /// <summary>
         ///环链表序列
         /// </summary>
-        public LoopList<T> List
-        { internal set; get; }
+        public LoopList<T> List { internal set; get; }
+
         /// <summary>
         /// 环链表节点构造函数
         /// </summary>
@@ -54,43 +51,49 @@ namespace IFoxCAD.Collections
     /// 环链表
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class LoopList<T> :
-        IEnumerable<T>, IFormattable
+    public class LoopList<T> : IEnumerable<T>, IFormattable
     {
+        #region 成员
+
+        /// <summary>
+        /// 节点数
+        /// </summary>
+        public int Count { get; private set; }
+
+        /// <summary>
+        /// 首节点
+        /// </summary>
+        public LoopListNode<T> First { get; private set; }
+
+        /// <summary>
+        /// 尾节点
+        /// </summary>
+        public LoopListNode<T> Last => First?.Previous;
+
+        #endregion
+
+        #region 构造
+
         /// <summary>
         /// 默认构造函数
         /// </summary>
-        public LoopList()
-        { }
+        public LoopList() { }
+
         /// <summary>
         /// 环链表构造函数
         /// </summary>
         /// <param name="values">节点迭代器</param>
         public LoopList(IEnumerable<T> values)
         {
-            foreach (T value in values)
-                Add(value);
+            var ge = values.GetEnumerator();
+            while (ge.MoveNext())
+                Add(ge.Current);
         }
 
-        /// <summary>
-        /// 节点数
-        /// </summary>
-        public int Count
-        { get; private set; }
+        #endregion
 
-        /// <summary>
-        /// 首节点
-        /// </summary>
-        public LoopListNode<T> First
-        { get; private set; }
+        #region 方法
 
-        /// <summary>
-        /// 尾节点
-        /// </summary>
-        public LoopListNode<T> Last
-        {
-            get { return First?.Previous; }
-        }
         /// <summary>
         /// 设置首节点
         /// </summary>
@@ -113,12 +116,60 @@ namespace IFoxCAD.Collections
         /// <param name="node2">第二个节点</param>
         public void Swap(LoopListNode<T> node1, LoopListNode<T> node2)
         {
-            T value = node1.Value;
+            T value     = node1.Value;
             node1.Value = node2.Value;
             node2.Value = value;
         }
 
-        #region Contains
+        /// <summary>
+        /// 链内翻转
+        /// </summary>
+        public void Reverse()
+        {
+            LoopListNode<T> first = First;
+            if (first == null)
+                return;
+            var last = Last;
+            for (int i = 0; i < Count / 2; i++)
+            {
+                Swap(first, last);
+                first = first.Next;
+                last = last.Previous;
+            }
+        }
+
+        public void Clear()
+        {
+            //清理的时候不释放数组长度
+            ForEach(a =>
+            {
+                a.Value = default;
+                return false;
+            });
+            Count = 0;
+        }
+
+        /// <summary>
+        /// 从头遍历
+        /// </summary>
+        /// <param name="action"></param>
+        public void ForEach(Func<LoopListNode<T>, bool> action)
+        {
+            LoopListNode<T> node = First;
+            if (node == null)
+                return;
+
+            for (int i = 0; i < Count; i++)
+            {
+                if (action(node))
+                    break;
+                node = node.Next;
+            }
+        }
+        #endregion
+
+        #region
+
         /// <summary>
         /// 是否包含节点
         /// </summary>
@@ -128,6 +179,7 @@ namespace IFoxCAD.Collections
         {
             return node != null && node.List == this;
         }
+
         /// <summary>
         /// 是否包含值
         /// </summary>
@@ -135,19 +187,19 @@ namespace IFoxCAD.Collections
         /// <returns></returns>
         public bool Contains(T value)
         {
-            LoopListNode<T> node = First;
-            if (node == null)
-                return false;
-
-            for (int i = 0; i < Count; i++)
+            bool result = false;
+            ForEach(node =>
             {
-                if (node.Value.Equals(value))
+                if (node.Equals(value))
+                {
+                    result = true;
                     return true;
-                node = node.Next;
-            }
-
-            return false;
+                }
+                return false;
+            });
+            return result;
         }
+
         /// <summary>
         /// 获取节点
         /// </summary>
@@ -155,22 +207,20 @@ namespace IFoxCAD.Collections
         /// <returns></returns>
         public LoopListNode<T> GetNode(Func<T, bool> func)
         {
-            LoopListNode<T> node = First;
-            if (node == null)
-                return null;
-
-            for (int i = 0; i < Count; i++)
+            LoopListNode<T> result = null;
+            ForEach(a =>
             {
-                if (func(node.Value))
+                if (func(a.Value))
                 {
-                    return node;
+                    result = a;
+                    return true;
                 }
-                node = node.Next;
-            }
-            return null;
+                return false;
+            });
+            return result;
         }
 
-        #endregion Contains
+        #endregion
 
         #region Add
 
@@ -187,16 +237,16 @@ namespace IFoxCAD.Collections
             };
             if (Count == 0)
             {
-                First = node;
+                First          = node;
                 First.Previous = First.Next = node;
             }
             else
             {
                 LoopListNode<T> last = Last;
-                First.Previous = last.Next = node;
-                node.Next = First;
-                node.Previous = last;
-                First = node;
+                First.Previous       = last.Next = node;
+                node.Next            = First;
+                node.Previous        = last;
+                First                = node;
             }
             Count++;
             return First;
@@ -213,15 +263,15 @@ namespace IFoxCAD.Collections
             node.List = this;
             if (Count == 0)
             {
-                First = node;
+                First          = node;
                 First.Previous = First.Next = node;
             }
             else
             {
                 LoopListNode<T> last = First.Previous;
-                First.Previous = last.Next = node;
-                node.Next = First;
-                node.Previous = last;
+                First.Previous       = last.Next = node;
+                node.Next            = First;
+                node.Previous        = last;
             }
             Count++;
             return Last;
@@ -266,7 +316,7 @@ namespace IFoxCAD.Collections
             return tnode;
         }
 
-        #endregion Add
+        #endregion
 
         #region Remove
 
@@ -352,7 +402,7 @@ namespace IFoxCAD.Collections
             return false;
         }
 
-        #endregion Remove
+        #endregion
 
         #region LinkTo
 
@@ -424,7 +474,7 @@ namespace IFoxCAD.Collections
             }
         }
 
-        #endregion LinkTo
+        #endregion
 
         #region IEnumerable<T> 成员
 
@@ -485,9 +535,10 @@ namespace IFoxCAD.Collections
 
         #endregion IEnumerable 成员
 
-        #endregion IEnumerable<T> 成员
+        #endregion
 
         #region IFormattable 成员
+
         /// <summary>
         /// 转换为字符串
         /// </summary>
@@ -505,6 +556,6 @@ namespace IFoxCAD.Collections
             return ToString();
         }
 
-        #endregion IFormattable 成员
+        #endregion
     }
 }
