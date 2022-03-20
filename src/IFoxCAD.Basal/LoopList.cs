@@ -1,7 +1,4 @@
-﻿using static System.Net.Mime.MediaTypeNames;
-using System.Collections.Generic;
-
-namespace IFoxCAD.Basal
+﻿namespace IFoxCAD.Basal
 {
     /// <summary>
     /// 环链表节点
@@ -12,7 +9,7 @@ namespace IFoxCAD.Basal
         /// <summary>
         /// 取值
         /// </summary>
-        public T Value { get; set; }
+        public T Value;
 
         /// <summary>
         /// 上一个节点
@@ -28,6 +25,7 @@ namespace IFoxCAD.Basal
         ///环链表序列
         /// </summary>
         public LoopList<T>? List { internal set; get; }
+
         /// <summary>
         /// 环链表节点构造函数
         /// </summary>
@@ -46,12 +44,16 @@ namespace IFoxCAD.Basal
         public LoopListNode<T>? GetNext(bool forward)
         {
             return forward ? Next : Previous;
-}
+        }
 
+        /// <summary>
+        /// 无效化成员
+        /// </summary>
         internal void Invalidate()
         {
-            List = null;
-            Next = null;
+            Value    = default!;
+            List     = null;
+            Next     = null;
             Previous = null;
         }
     }
@@ -125,7 +127,7 @@ namespace IFoxCAD.Basal
         public void Swap(LoopListNode<T> node1, LoopListNode<T> node2)
         {
 #if NET35
-            var value                    = node1.Value;
+            var value                  = node1.Value;
             node1.Value                = node2.Value;
             node2.Value                = value;
 #else
@@ -141,6 +143,7 @@ namespace IFoxCAD.Basal
             var first = First;
             if (first == null)
                 return;
+
             var last = Last;
             for (int i = 0; i < Count / 2; i++)
             {
@@ -150,6 +153,9 @@ namespace IFoxCAD.Basal
             }
         }
 
+        /// <summary>
+        /// 清理
+        /// </summary>
         public void Clear()
         {
             //清理的时候不释放数组长度
@@ -178,8 +184,6 @@ namespace IFoxCAD.Basal
                     break;
                 node = node!.Next;
             }
-            
-            
         }
         #endregion
 
@@ -205,7 +209,6 @@ namespace IFoxCAD.Basal
             bool result = false;
             ForEach(node =>
             {
-
                 if (node.Value!.Equals(value))
                 {
                     result = true;
@@ -244,9 +247,7 @@ namespace IFoxCAD.Basal
                     do
                     {
                         if (c.Equals(node!.Value, value))
-                        {
                             return node;
-                        }
                         node = node.Next;
                     } while (node != First);
                 }
@@ -255,9 +256,7 @@ namespace IFoxCAD.Basal
                     do
                     {
                         if (node!.Value == null)
-                        {
                             return node;
-                        }
                         node = node.Next;
                     } while (node != First);
                 }
@@ -339,6 +338,7 @@ namespace IFoxCAD.Basal
             Count++;
             return Last!;
         }
+
         /// <summary>
         /// 前面增加节点
         /// </summary>
@@ -348,21 +348,17 @@ namespace IFoxCAD.Basal
         public LoopListNode<T> AddBefore(LoopListNode<T> node, T value)
         {
             if (node == First)
-            {
                 return AddFirst(value);
-            }
-            else
-            {
-                var tnode = new LoopListNode<T>(value, this);
 
-                node.Previous!.Next = tnode;
-                tnode.Previous = node.Previous;
-                node.Previous = tnode;
-                tnode.Next = node;
-                Count++;
-                return tnode;
-            }
+            var tnode = new LoopListNode<T>(value, this);
+            node.Previous!.Next = tnode;
+            tnode.Previous = node.Previous;
+            node.Previous = tnode;
+            tnode.Next = node;
+            Count++;
+            return tnode;
         }
+
         /// <summary>
         /// 后面增加节点
         /// </summary>
@@ -372,7 +368,6 @@ namespace IFoxCAD.Basal
         public LoopListNode<T> AddAfter(LoopListNode<T> node, T value)
         {
             var tnode = new LoopListNode<T>(value, this);
-
             node.Next!.Previous = tnode;
             tnode.Next = node.Next;
             node.Next = tnode;
