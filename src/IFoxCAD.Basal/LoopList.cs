@@ -1,4 +1,9 @@
-﻿namespace IFoxCAD.Basal
+﻿using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Text;
+
+namespace IFoxCAD.Collections
 {
     /// <summary>
     /// 环链表节点
@@ -6,6 +11,7 @@
     /// <typeparam name="T"></typeparam>
     public class LoopListNode<T>
     {
+        #region 成员
         /// <summary>
         /// 取值
         /// </summary>
@@ -25,7 +31,9 @@
         /// 环链表序列
         /// </summary>
         public LoopList<T>? List { internal set; get; }
+        #endregion
 
+        #region 构造
         /// <summary>
         /// 环链表节点构造函数
         /// </summary>
@@ -45,7 +53,9 @@
         {
             return forward ? Next : Previous;
         }
+        #endregion
 
+        #region 方法
         /// <summary>
         /// 无效化成员
         /// </summary>
@@ -55,6 +65,7 @@
             Next     = null;
             Previous = null;
         }
+        #endregion
     }
 
     /// <summary>
@@ -179,7 +190,6 @@
                 node = node!.Next;
             }
         }
-        #endregion
 
         #region Contains
 
@@ -233,7 +243,7 @@
             //return result;
 
             LoopListNode<T>? node = First;
-            EqualityComparer<T> c = EqualityComparer<T>.Default;
+            var c = EqualityComparer<T>.Default;
             if (node != null)
             {
                 if (value != null)
@@ -256,6 +266,40 @@
                 }
             }
             return null;
+        }
+
+        /// <summary>
+        /// 查找所有出现的节点
+        /// </summary>
+        /// <param name="value"></param>
+        /// <returns></returns>
+        public IEnumerable<LoopListNode<T>>? Finds(T value)
+        {
+            LoopListNode<T>? node = First;
+            if (node == null)
+                return null;
+
+            List<LoopListNode<T>> result = new();
+            var c = EqualityComparer<T>.Default;
+            if (value != null)
+            {
+                do
+                {
+                    if (c.Equals(node!.Value, value))
+                        result.Add(node);
+                    node = node.Next;
+                } while (node != First);
+            }
+            else
+            {
+                do
+                {
+                    if (node!.Value == null)
+                        result.Add(node);
+                    node = node.Next;
+                } while (node != First);
+            }
+            return result;
         }
 
         /// <summary>
@@ -444,12 +488,13 @@
         /// <returns></returns>
         public bool Remove(T value)
         {
-            ForEach(node =>
-            {
-                if (node!.Value!.Equals(value))
-                    InternalRemove(node);
+            var lst = Finds(value);
+            if (lst == null)
                 return false;
-            });
+
+            var ge = lst!.GetEnumerator();
+            while (ge.MoveNext())
+                InternalRemove(ge.Current);
             return true;
         }
 
@@ -548,6 +593,8 @@
 
         #endregion
 
+        #endregion
+
         #region IEnumerable<T> 成员
 
         /// <summary>
@@ -605,25 +652,42 @@
 
         #region IFormattable 成员
         /// <summary>
-        /// 转换为字符串
+        /// 转换为字符串_格式化实现
+        /// </summary>
+        /// <param name="format"></param>
+        /// <param name="formatProvider"></param>
+        /// <returns></returns>
+        string IFormattable.ToString(string? format, IFormatProvider? formatProvider)
+        {
+            return ToString(format, formatProvider);
+        }
+
+        /// <summary>
+        /// 转换为字符串_无参调用
         /// </summary>
         /// <returns></returns>
         public override string ToString()
         {
-            var s = new StringBuilder();
-            s.Append("( ");
-            foreach (T value in this)
-                s.Append($"{value} ");
+            return ToString(null, null);
+        }
 
-            s.Append(")");
+        /// <summary>
+        /// 转换为字符串_有参调用
+        /// </summary>
+        /// <returns></returns>
+        public string ToString(string? format, IFormatProvider? formatProvider = null)
+        {
+            var s = new StringBuilder();
+            s.Append($"Count = {Count};");
+            if (format == null)
+            {
+                s.Append("{ ");
+                foreach (T value in this)
+                    s.Append($"{value} ");
+                s.Append(" }");
+            }
             return s.ToString();
         }
-
-        string IFormattable.ToString(string format, IFormatProvider formatProvider)
-        {
-            return ToString();
-        }
-
         #endregion
     }
 }
