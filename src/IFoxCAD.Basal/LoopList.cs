@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Text;
-
-namespace IFoxCAD.Collections
+﻿namespace IFoxCAD.Basal
 {
     /// <summary>
     /// 环链表节点
