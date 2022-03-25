@@ -210,7 +210,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="id">符号表记录的id</param>
     /// <param name="openMode">打开模式，默认为只读</param>
     /// <returns>符号表记录</returns>
-    public TRecord? GetRecord(ObjectId id, OpenMode openMode = OpenMode.ForRead) => id.IsNull ? null : DTrans.GetObject<TRecord>(id, openMode);
+    public TRecord? GetRecord(ObjectId id, OpenMode openMode = OpenMode.ForRead) => /*id.IsNull ? null : */DTrans.GetObject<TRecord>(id, openMode);
 
     /// <summary>
     /// 获取符号表记录
@@ -299,6 +299,28 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         using var tr = new DBTrans(fileName);
         return GetRecordFrom(tableSelector(tr), name, over);
+    }
+    #endregion
+
+    #region 遍历
+    /// <summary>
+    /// 遍历集合的迭代器，执行action委托
+    /// </summary>
+    /// <typeparam name="T">集合值的类型</typeparam>
+    /// <param name="source">集合</param>
+    /// <param name="action">要运行的委托</param>
+    public void ForEach(Action<TRecord> action)
+    {
+        //GetRecords().ForEach(re => action(re));
+       
+        foreach (var item in this)
+        {
+            var record = GetRecord(item);
+            if (record is not null)
+            {
+                action(record);
+            }
+        }
     }
     #endregion
 

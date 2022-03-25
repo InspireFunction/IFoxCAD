@@ -223,14 +223,21 @@ public class Test : AutoRegAssem
     {
         var doc = Application.DocumentManager.MdiActiveDocument;
         var ed = doc.Editor;
-
-        var res = ed.GetEntity("\n select the entity:");
-        if (res.Status == PromptStatus.OK)
-        {
-            using var tr = new DBTrans();
-            var data = tr.GetObject<Entity>(res.ObjectId).XData;
-            ed.WriteMessage(data.ToString());
-        }
+        using var tr = new DBTrans();
+        tr.RegAppTable.ForEach(id => 
+            id.GetObject<RegAppTableRecord>().Name.Print());
+        tr.RegAppTable.GetRecords().ForEach(rec => rec.Name.Print());
+        tr.RegAppTable.GetRecordNames().ForEach(name => name.Print());
+        tr.RegAppTable.ForEach(re => re.Name.Print());
+        
+        //var res = ed.GetEntity("\n select the entity:");
+        //if (res.Status == PromptStatus.OK)
+        //{
+        //    using var tr = new DBTrans();
+        //    tr.RegAppTable.ForEach(id => id.GetObject<RegAppTableRecord>().Print());
+        //    var data = tr.GetObject<Entity>(res.ObjectId).XData;
+        //    ed.WriteMessage(data.ToString());
+        //}
     }
 
     [CommandMethod("changexdata")]
