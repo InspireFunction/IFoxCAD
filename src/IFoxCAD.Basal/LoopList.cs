@@ -36,7 +36,7 @@ public class LoopListNode<T>
     public LoopListNode(T value, LoopList<T> ts)
     {
         Value = value;
-        List  = ts;
+        List = ts;
     }
 
     /// <summary>
@@ -56,8 +56,8 @@ public class LoopListNode<T>
     /// </summary>
     internal void Invalidate()
     {
-        List     = null;
-        Next     = null;
+        List = null;
+        Next = null;
         Previous = null;
     }
     #endregion
@@ -67,7 +67,7 @@ public class LoopListNode<T>
 /// 环链表
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class LoopList<T> : IEnumerable<T>, IFormattable
+public class LoopList<T> : IEnumerable<T>, IFormattable, ICloneable
 {
     #region 成员
 
@@ -132,9 +132,9 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     public void Swap(LoopListNode<T> node1, LoopListNode<T> node2)
     {
 #if NET35
-        var value                  = node1.Value;
-        node1.Value                = node2.Value;
-        node2.Value                = value;
+        var value = node1.Value;
+        node1.Value = node2.Value;
+        node2.Value = value;
 #else
         (node2.Value, node1.Value) = (node1.Value, node2.Value);
 #endif
@@ -148,7 +148,6 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         var first = First;
         if (first is null)
             return;
-
         var last = Last;
         for (int i = 0; i < Count / 2; i++)
         {
@@ -166,11 +165,10 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         //移除头部,表示链表再也无法遍历得到
         First = null;
         Count = 0;
-       
     }
 
     /// <summary>
-    /// 从头遍历
+    /// 从头遍历_非迭代器
     /// </summary>
     /// <param name="action"></param>
     public void ForEach(Func<LoopListNode<T>, bool> action)
@@ -332,16 +330,16 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
 
         if (Count == 0)
         {
-            First          = node;
+            First = node;
             First.Previous = First.Next = node;
         }
         else
         {
             LoopListNode<T> last = Last!;
-            First!.Previous      = last.Next = node;
-            node.Next            = First;
-            node.Previous        = last;
-            First                = node;
+            First!.Previous = last.Next = node;
+            node.Next = First;
+            node.Previous = last;
+            First = node;
         }
         Count++;
         return First;
@@ -358,18 +356,28 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
 
         if (Count == 0)
         {
-            First          = node;
+            First = node;
             First.Previous = First.Next = node;
         }
         else
         {
-            var last       = First!.Previous!;
+            var last = First!.Previous!;
             First.Previous = last.Next = node;
-            node.Next      = First;
-            node.Previous  = last;
+            node.Next = First;
+            node.Previous = last;
         }
         Count++;
         return Last!;
+    }
+
+    /// <summary>
+    ///  在尾节点之后插入节点,并设置新节点为尾节点_此函数仅为与LinkedList同名方法
+    /// </summary>
+    /// <param name="value"></param>
+    /// <returns></returns>
+    public LoopListNode<T> AddLast(T value)
+    {
+        return Add(value);
     }
 
     /// <summary>
@@ -590,7 +598,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
 
     #endregion
 
-    #region IEnumerable<T> 成员
+    #region IEnumerable<T>
 
     /// <summary>
     /// 获取节点的查询器
@@ -645,7 +653,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
 
     #endregion
 
-    #region IFormattable 成员
+    #region IFormattable
     /// <summary>
     /// 转换为字符串_格式化实现
     /// </summary>
@@ -682,6 +690,19 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
             s.Append(" }");
         }
         return s.ToString();
+    }
+    #endregion
+
+    #region ICloneable
+    public object Clone()
+    {
+        //浅克隆
+        var lst = new LoopList<LoopListNode<T>>();
+        ForEach(node => {
+            lst.Add(node);
+            return false;
+        });
+        return lst;
     }
     #endregion
 }
