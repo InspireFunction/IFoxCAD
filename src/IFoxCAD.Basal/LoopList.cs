@@ -67,7 +67,7 @@ public class LoopListNode<T>
 /// 环链表
 /// </summary>
 /// <typeparam name="T"></typeparam>
-public class LoopList<T> : IEnumerable<T>, IFormattable, ICloneable
+public class LoopList<T> : IEnumerable<T>, IFormattable
 {
     #region 成员
 
@@ -694,15 +694,17 @@ public class LoopList<T> : IEnumerable<T>, IFormattable, ICloneable
     #endregion
 
     #region ICloneable
-    public object Clone()
-    {
-        //浅克隆
-        var lst = new LoopList<LoopListNode<T>>();
-        ForEach(node => {
-            lst.Add(node);
-            return false;
-        });
-        return lst;
-    }
+    /* 山人说无法分辨ICloneable接口是深浅克隆,因此不要在泛型模板实现克隆函数,让用户自己来
+     * 因此约定了:CopyTo(T,index)是深克隆;MemberwiseClone()是浅克隆;
+     * public object Clone()
+     * {
+     *     var lst = new LoopList<LoopListNode<T>>();
+     *     ForEach(node => {
+     *         lst.Add(node);
+     *         return false;
+     *     });
+     *     return lst;
+     * }
+     */
     #endregion
 }
