@@ -12,12 +12,12 @@ public static class DependencyObjectExtensions
     /// <returns>依赖属性</returns>
     public static DependencyObject? GetParentObject(this DependencyObject child)
     {
-        if (child == null) return null;
+        if (child is null) return null;
 
         if (child is ContentElement contentElement)
         {
             DependencyObject parent = ContentOperations.GetParent(contentElement);
-            if (parent != null) return parent;
+            if (parent is not null) return parent;
 
             FrameworkContentElement? fce = contentElement as FrameworkContentElement;
             return fce?.Parent;
@@ -26,7 +26,7 @@ public static class DependencyObjectExtensions
         if (child is FrameworkElement frameworkElement)
         {
             DependencyObject parent = frameworkElement.Parent;
-            if (parent != null) return parent;
+            if (parent is not null) return parent;
         }
 
         return VisualTreeHelper.GetParent(child);

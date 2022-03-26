@@ -346,11 +346,11 @@ public static class EntityEx
     /// <param name="pt3ds">裁剪多边形点表</param>
     public static void ClipBlockRef(this BlockReference bref, IEnumerable<Point3d> pt3ds)
     {
-        //if (bref == null)
+        //if (bref is null)
         //{
         //    throw new ArgumentNullException(nameof(bref));
         //}
-        //if (pt3ds == null)
+        //if (pt3ds is null)
         //{
         //    throw new ArgumentNullException(nameof(pt3ds));
         //}
@@ -376,7 +376,7 @@ public static class EntityEx
     /// <param name="pt2">第二角点</param>
     public static void ClipBlockRef(this BlockReference bref, Point3d pt1, Point3d pt2)
     {
-        //if (bref == null)
+        //if (bref is null)
         //{
         //    throw new ArgumentNullException(nameof(bref));
         //}

@@ -138,7 +138,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     public void Remove(string name)
     {
         var record = GetRecord(name);
-        if (record != null)
+        if (record is not null)
         {
             Remove(record);
         }
@@ -151,7 +151,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     public void Remove(ObjectId id)
     {
         var record = GetRecord(id);
-        if (record != null)
+        if (record is not null)
         {
             Remove(record);
         }
@@ -183,7 +183,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     public void Change(string name, Action<TRecord> action)
     {
         var record = GetRecord(name);
-        if (record != null)
+        if (record is not null)
         {
             Change(record, action);
         }
@@ -196,7 +196,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     public void Change(ObjectId id, Action<TRecord> action)
     {
         var record = GetRecord(id);
-        if (record != null)
+        if (record is not null)
         {
             Change(record, action);
         }

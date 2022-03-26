@@ -60,7 +60,7 @@ public static class EditorEx
     {
         var pso = new PromptSelectionOptions();
         PromptSelectionResult? ss = null;
-        if (mode != null)
+        if (mode is not null)
         {
             mode = mode.ToUpper();
             pso.SinglePickInSpace = mode.Contains(":A");
@@ -75,19 +75,19 @@ public static class EditorEx
             pso.ForceSubSelections = mode.Contains("-F");
 
         }
-        if (messages != null)
+        if (messages is not null)
         {
             pso.MessageForAdding = messages[0];
             pso.MessageForRemoval = messages[1];
         }
 
-        if (keywords != null)
+        if (keywords is not null)
         {
             foreach (var keyword in keywords)
             {
                 pso.Keywords.Add(keyword);
             }
-            if (pso.MessageForRemoval == null)
+            if (pso.MessageForRemoval is null)
             {
                 pso.MessageForAdding = "选择对象";
             }
@@ -97,7 +97,7 @@ public static class EditorEx
         }
         try
         {
-            if (filter != null)
+            if (filter is not null)
             {
                 ss = editor.GetSelection(pso, filter);
             }
@@ -357,9 +357,9 @@ public static class EditorEx
     /// <returns><see langword="true"/>有，<see langword="false"/>没有</returns>
     public static bool HasEditor()
     {
-        return Application.DocumentManager.MdiActiveDocument != null
+        return Application.DocumentManager.MdiActiveDocument is not null
             && Application.DocumentManager.Count != 0
-            && Application.DocumentManager.MdiActiveDocument.Editor != null;
+            && Application.DocumentManager.MdiActiveDocument.Editor is not null;
     }//
 
     /// <summary>

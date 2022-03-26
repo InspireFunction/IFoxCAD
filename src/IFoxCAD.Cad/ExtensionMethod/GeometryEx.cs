@@ -195,7 +195,7 @@ public static class GeometryEx
             //如果另一点属于该圆,并且半径小于当前值就把它做为候选解
             if (tca2d.IsIn(firstNode.Previous!.Value))
             {
-                if (ca2d == null || tca2d.Radius < ca2d.Radius)
+                if (ca2d is null || tca2d.Radius < ca2d.Radius)
                 {
                     ca2d = tca2d;
                     ptlst = tptlst;
@@ -414,7 +414,7 @@ public static class GeometryEx
     /// <returns>凸包</returns>
     public static List<Point2d>? ConvexHull(this List<Point2d> points)
     {
-        if (points == null)
+        if (points is null)
             return null;
 
         if (points.Count <= 1)

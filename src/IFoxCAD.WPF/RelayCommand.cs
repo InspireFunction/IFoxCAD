@@ -37,14 +37,14 @@ public class RelayCommand : ICommand
     {
         add
         {
-            if (_canExecute != null)
+            if (_canExecute is not null)
             {
                 CommandManager.RequerySuggested += value;
             }
         }
         remove
         {
-            if (_canExecute != null)
+            if (_canExecute is not null)
             {
                 CommandManager.RequerySuggested -= value;
             }
@@ -60,7 +60,7 @@ public class RelayCommand : ICommand
     [DebuggerStepThrough]
     public bool CanExecute(object parameter)
     {
-        return _canExecute == null || _canExecute(parameter);
+        return _canExecute is null || _canExecute(parameter);
     }
     /// <summary>
     /// 定义在调用此命令时要调用的方法。
@@ -108,14 +108,14 @@ public class RelayCommand<T> : ICommand
     {
         add
         {
-            if (_canExecute != null)
+            if (_canExecute is not null)
             {
                 CommandManager.RequerySuggested += value;
             }
         }
         remove
         {
-            if (_canExecute != null)
+            if (_canExecute is not null)
             {
                 CommandManager.RequerySuggested -= value;
             }
@@ -130,7 +130,7 @@ public class RelayCommand<T> : ICommand
     /// </returns>
     public bool CanExecute(object parameter)
     {
-        if (_canExecute == null)
+        if (_canExecute is null)
         {
             return true;
         }
@@ -142,7 +142,7 @@ public class RelayCommand<T> : ICommand
     /// <param name="parameter">此命令使用的数据。  如果此命令不需要传递数据，则该对象可以设置为 <see langword="null" />。</param>
     public void Execute(object parameter)
     {
-        if (_execute != null && CanExecute(parameter))
+        if (_execute is not null && CanExecute(parameter))
         {
             _execute((T)parameter);
         }
@@ -160,11 +160,11 @@ public class EventCommand : TriggerAction<DependencyObject>
     /// <param name="parameter">要执行的动作参数， 如果动作为提供参数，就设置为null</param>
     protected override void Invoke(object parameter)
     {
-        if (CommandParameter != null)
+        if (CommandParameter is not null)
         {
             parameter = CommandParameter;
         }
-        if (Command != null)
+        if (Command is not null)
         {
             Command.Execute(parameter);
         }

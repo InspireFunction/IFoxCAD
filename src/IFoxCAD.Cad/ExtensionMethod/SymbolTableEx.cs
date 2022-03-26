@@ -99,12 +99,12 @@ public static class SymbolTableEx
         {
             action?.Invoke(btr);
             var entsres = ents?.Invoke();
-            if (entsres != null)
+            if (entsres is not null)
             {
                 btr.AddEntity(entsres);
             }
             var adddefres = attdef?.Invoke();
-            if (adddefres != null)
+            if (adddefres is not null)
             {
                 btr.AddEntity(adddefres);
             }
@@ -123,11 +123,11 @@ public static class SymbolTableEx
     {
         return table.Add(name, btr =>
         {
-            if (ents != null)
+            if (ents is not null)
             {
                 btr.AddEntity(ents);
             }
-            if (attdef != null)
+            if (attdef is not null)
             {
                 btr.AddEntity(attdef);
             }

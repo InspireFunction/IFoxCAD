@@ -85,14 +85,14 @@ public static class CurveEx
             var edgeItem = this;
             region.Add(edgeItem);
             var edgeItem2 = this.GetNext(edges);
-            if (edgeItem2.Edge != null)
+            if (edgeItem2.Edge is not null)
             {
                 bool hasList = false;
                 foreach (var edgeList2 in regions)
                 {
                     var node = edgeList2.GetNode(e => e.Equals(edgeItem));
                     //var node = edgeList2.Find(edgeItem);
-                    if (node != null && node != edgeList2.Last)
+                    if (node is not null && node != edgeList2.Last)
                     {
                         if (node.Next!.Value.Equals(edgeItem2))
                         {
@@ -103,7 +103,7 @@ public static class CurveEx
                 }
                 if (!hasList)
                 {
-                    while (edgeItem2.Edge != null)
+                    while (edgeItem2.Edge is not null)
                     {
                         if (edgeItem2.Edge == edgeItem.Edge)
                             break;
@@ -242,7 +242,7 @@ public static class CurveEx
         foreach (var curve in curves)
         {
             var cc3d = curve.ToCompositeCurve3d();
-            if (cc3d != null)
+            if (cc3d is not null)
             {
                 geCurves.Add(cc3d);
                 paramss.Add(new List<double>());
@@ -389,7 +389,7 @@ public static class CurveEx
                     var curve = node!.Value.Edge.Curve;
                     var node2 = regions[j].GetNode(e => e.Edge.Curve == curve);
                     //var node2 = regions[j].Find(node.Value);
-                    if (node2 != null)
+                    if (node2 is not null)
                     {
                         eq = true;
                         var b = node.Value.Forward;
@@ -438,7 +438,7 @@ public static class CurveEx
         foreach (var curve in curves)
         {
             var cc3d = curve.ToCompositeCurve3d();
-            if (cc3d != null)
+            if (cc3d is not null)
             {
                 geCurves.Add(cc3d);
                 paramss.Add(new List<double>());
@@ -476,7 +476,7 @@ public static class CurveEx
                     foreach (CompositeCurve3d c3d in c3ds)
                     {
                         var c = c3d.ToCurve();
-                        if (c != null)
+                        if (c is not null)
                         {
                             c.SetPropertiesFrom(curves[i]);
                             newCurves.Add(c);
@@ -905,11 +905,11 @@ public static class CurveEx
                 default:
                     break;
             }
-            if (nc3d == null)
+            if (nc3d is null)
             {
                 nc3d = nc3dtemp;
             }
-            else if (nc3dtemp != null)
+            else if (nc3dtemp is not null)
             {
                 nc3d.JoinWith(nc3dtemp);
             }

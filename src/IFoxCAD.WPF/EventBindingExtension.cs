@@ -25,7 +25,7 @@ public class EventBindingExtension : MarkupExtension
     /// </exception>
     public override object? ProvideValue(IServiceProvider serviceProvider)
     {
-        if (serviceProvider == null)
+        if (serviceProvider is null)
         {
             throw new ArgumentNullException(nameof(serviceProvider));
         }
@@ -40,7 +40,7 @@ public class EventBindingExtension : MarkupExtension
         }
 
         var memberInfo = targetProvider.TargetProperty as MemberInfo;
-        if (memberInfo == null)
+        if (memberInfo is null)
         {
             throw new InvalidOperationException();
         }
@@ -87,7 +87,7 @@ public class EventBindingExtension : MarkupExtension
     {
         Type? eventHandlerType = GetEventHandlerType(memberInfo);
 
-        if (eventHandlerType == null) return null;
+        if (eventHandlerType is null) return null;
 
         var handlerInfo = eventHandlerType.GetMethod("Invoke");
         var method = new DynamicMethod("", handlerInfo.ReturnType,
@@ -101,7 +101,7 @@ public class EventBindingExtension : MarkupExtension
         gen.Emit(OpCodes.Ldarg, 0);
         gen.Emit(OpCodes.Ldarg, 1);
         gen.Emit(OpCodes.Ldstr, cmdName);
-        if (CommandParameter == null)
+        if (CommandParameter is null)
         {
             gen.Emit(OpCodes.Ldnull);
         }
@@ -140,7 +140,7 @@ public class EventBindingExtension : MarkupExtension
             {
                 commandParam = GetCommandParameter(fe, args, commandParameter!);
             }
-            if ((cmd != null) && cmd.CanExecute(commandParam))
+            if ((cmd is not null) && cmd.CanExecute(commandParam))
             {
                 cmd.Execute(commandParam);
             }
@@ -150,11 +150,11 @@ public class EventBindingExtension : MarkupExtension
     internal static ICommand? GetCommand(FrameworkElement target, string cmdName)
     {
         var vm = FindViewModel(target);
-        if (vm == null) return null;
+        if (vm is null) return null;
 
         var vmType = vm.GetType();
         var cmdProp = vmType.GetProperty(cmdName);
-        if (cmdProp != null)
+        if (cmdProp is not null)
         {
             return cmdProp.GetValue(vm) as ICommand;
         }
@@ -182,7 +182,7 @@ public class EventBindingExtension : MarkupExtension
 
     internal static ViewModelBase? FindViewModel(FrameworkElement? target)
     {
-        if (target == null) return null;
+        if (target is null) return null;
 
         if (target.DataContext is ViewModelBase vm) return vm;
 
@@ -193,15 +193,15 @@ public class EventBindingExtension : MarkupExtension
 
     internal static object FollowPropertyPath(object target, string path, Type? valueType = null)
     {
-        if (target == null) throw new ArgumentNullException(nameof(target));
-        if (path == null) throw new ArgumentNullException(nameof(path));
+        if (target is null) throw new ArgumentNullException(nameof(target));
+        if (path is null) throw new ArgumentNullException(nameof(path));
 
         Type currentType = valueType ?? target.GetType();
 
         foreach (string propertyName in path.Split('.'))
         {
             PropertyInfo property = currentType.GetProperty(propertyName);
-            if (property == null) throw new NullReferenceException("property");
+            if (property is null) throw new NullReferenceException("property");
 
             target = property.GetValue(target);
             currentType = property.PropertyType;

@@ -46,7 +46,7 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// <returns>路径对象</returns>
     public static DirectoryInfo GetDirectory(Assembly assem)
     {
-        if (assem == null)
+        if (assem is null)
         {
             throw new(nameof(assem));
         }

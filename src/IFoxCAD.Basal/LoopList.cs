@@ -146,7 +146,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     public void Reverse()
     {
         var first = First;
-        if (first == null)
+        if (first is null)
             return;
 
         var last = Last;
@@ -176,7 +176,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     public void ForEach(Func<LoopListNode<T>, bool> action)
     {
         var node = First;
-        if (node == null)
+        if (node is null)
             return;
         for (int i = 0; i < Count; i++)
         {
@@ -195,7 +195,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// <returns></returns>
     public bool Contains(LoopListNode<T> node)
     {
-        return node != null && node.List == this;
+        return node is not null && node.List == this;
     }
 
     /// <summary>
@@ -239,9 +239,9 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
 
         LoopListNode<T>? node = First;
         var c = EqualityComparer<T>.Default;
-        if (node != null)
+        if (node is not null)
         {
-            if (value != null)
+            if (value is not null)
             {
                 do
                 {
@@ -254,7 +254,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
             {
                 do
                 {
-                    if (node!.Value == null)
+                    if (node!.Value is null)
                         return node;
                     node = node.Next;
                 } while (node != First);
@@ -271,12 +271,12 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     public IEnumerable<LoopListNode<T>>? Finds(T value)
     {
         LoopListNode<T>? node = First;
-        if (node == null)
+        if (node is null)
             return null;
 
         List<LoopListNode<T>> result = new();
         var c = EqualityComparer<T>.Default;
-        if (value != null)
+        if (value is not null)
         {
             do
             {
@@ -289,7 +289,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         {
             do
             {
-                if (node!.Value == null)
+                if (node!.Value is null)
                     result.Add(node);
                 node = node.Next;
             } while (node != First);
@@ -484,7 +484,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     public bool Remove(T value)
     {
         var lst = Finds(value);
-        if (lst == null)
+        if (lst is null)
             return false;
 
         var ge = lst!.GetEnumerator();
@@ -674,7 +674,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     {
         var s = new StringBuilder();
         s.Append($"Count = {Count};");
-        if (format == null)
+        if (format is null)
         {
             s.Append("{ ");
             foreach (T value in this)

@@ -312,7 +312,7 @@ public class TestBlock
                 //foreach (var id in ids)
                 //{
                 //    Entity ent = tr.GetObject<Entity>(id);
-                //    if (ent == null)
+                //    if (ent is null)
                 //        continue;
                 //    try
                 //    {

@@ -98,7 +98,7 @@ public static class SymbolTableRecordEx
     {
         //transaction ??= DBTrans.Top.Transaction;
         var ent = action.Invoke();
-        if (ent == null)
+        if (ent is null)
         {
             return ObjectId.Null;
         }
@@ -149,7 +149,7 @@ public static class SymbolTableRecordEx
     {
         var circle = EntityEx.CreateCircle(p0, p1, p2);
         //return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
-        if (circle == null)
+        if (circle is null)
         {
             throw new ArgumentNullException(nameof(circle), "对象为 null");
         }
