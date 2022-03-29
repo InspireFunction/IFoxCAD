@@ -200,9 +200,9 @@ namespace IFoxCAD.Cad
         /// <returns><see langword="true"/>有，<see langword="false"/>没有</returns>
         public static bool HasEditor()
         {
-            return Application.DocumentManager.MdiActiveDocument != null
+            return Application.DocumentManager.MdiActiveDocument is not null
                 && Application.DocumentManager.Count != 0
-                && Application.DocumentManager.MdiActiveDocument.Editor != null;
+                && Application.DocumentManager.MdiActiveDocument.Editor is not null;
         }//
 
         /// <summary>
@@ -548,8 +548,8 @@ namespace IFoxCAD.Cad
                 {
                     for (int k = 0; k < 2; k++)
                     {
-                        int n = i * 4 + j * 2 + k;
-                        pnts[n] = new Point3d(oldpnts[i][0], oldpnts[j][1], oldpnts[k][2]);
+                        int n    = i * 4 + j * 2 + k;
+                        pnts[n]  = new Point3d(oldpnts[i][0], oldpnts[j][1], oldpnts[k][2]);
                         dpnts[n] = pnts[n].TransformBy(ed.GetMatrixFromWcsToMDcs());
                     }
                 }
@@ -656,7 +656,7 @@ namespace IFoxCAD.Cad
         {
             PromptPointOptions ptOp = new(Message)
             {
-                BasePoint = BasePoint,
+                BasePoint    = BasePoint,
                 UseBasePoint = true
             };
             return ed.GetPoint(ptOp);

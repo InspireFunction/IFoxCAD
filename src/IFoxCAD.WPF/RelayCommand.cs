@@ -30,7 +30,7 @@ namespace IFoxCAD.WPF
         /// <exception cref="ArgumentNullException">execute</exception>
         public RelayCommand(Action<object> execute,Func<object,bool> canExecute)
         {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _execute    = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
 
@@ -41,14 +41,14 @@ namespace IFoxCAD.WPF
         {
             add
             {
-                if (_canExecute != null)
+                if (_canExecute is not null)
                 {
                     CommandManager.RequerySuggested += value;
                 }
             }
             remove
             {
-                if (_canExecute != null)
+                if (_canExecute is not null)
                 {
                     CommandManager.RequerySuggested -= value;
                 }
@@ -64,7 +64,7 @@ namespace IFoxCAD.WPF
         [DebuggerStepThrough]
         public bool CanExecute(object parameter)
         {
-            return _canExecute == null ? true : _canExecute(parameter);
+            return _canExecute is null ? true : _canExecute(parameter);
         }
         /// <summary>
         /// 定义在调用此命令时要调用的方法。
@@ -93,7 +93,7 @@ namespace IFoxCAD.WPF
         {
 
         }
-        
+
         /// <summary>
         /// 初始化 <see cref="RelayCommand{T}"/> 类。
         /// </summary>
@@ -102,7 +102,7 @@ namespace IFoxCAD.WPF
         /// <exception cref="System.ArgumentNullException">execute</exception>
         public RelayCommand(Action<T> execute, Func<T, bool> canExecute)
         {
-            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _execute    = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
         /// <summary>
@@ -112,14 +112,14 @@ namespace IFoxCAD.WPF
         {
             add
             {
-                if (_canExecute != null)
+                if (_canExecute is not null)
                 {
                     CommandManager.RequerySuggested += value;
                 }
             }
             remove
             {
-                if (_canExecute != null)
+                if (_canExecute is not null)
                 {
                     CommandManager.RequerySuggested -= value;
                 }
@@ -134,7 +134,7 @@ namespace IFoxCAD.WPF
         /// </returns>
         public bool CanExecute(object parameter)
         {
-            if (_canExecute == null)
+            if (_canExecute is null)
             {
                 return true;
             }
@@ -146,7 +146,7 @@ namespace IFoxCAD.WPF
         /// <param name="parameter">此命令使用的数据。  如果此命令不需要传递数据，则该对象可以设置为 <see langword="null" />。</param>
         public void Execute(object parameter)
         {
-            if (_execute != null && CanExecute(parameter))
+            if (_execute is not null && CanExecute(parameter))
             {
                 _execute((T)parameter);
             }
@@ -164,11 +164,11 @@ namespace IFoxCAD.WPF
         /// <param name="parameter">要执行的动作参数， 如果动作为提供参数，就设置为null</param>
         protected override void Invoke(object parameter)
         {
-            if (CommandParameter != null)
+            if (CommandParameter is not null)
             {
                 parameter = CommandParameter;
             }
-            if (Command != null)
+            if (Command is not null)
             {
                 Command.Execute(parameter);
             }

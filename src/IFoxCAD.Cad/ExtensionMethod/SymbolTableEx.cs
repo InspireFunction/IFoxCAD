@@ -37,7 +37,7 @@ namespace IFoxCAD.Cad
         /// <returns>图层id</returns>
         public static ObjectId Add(this SymbolTable<LayerTable, LayerTableRecord> table, string name, int colorIndex)
         {
-            colorIndex %= 256;//防止输入的颜色超出256
+            colorIndex %= 256;                //防止输入的颜色超出256
             colorIndex = Math.Abs(colorIndex);//防止负数
             return table.Add(name, lt => lt.Color = Color.FromColorIndex(ColorMethod.ByColor, (short)colorIndex));
         }
@@ -104,12 +104,12 @@ namespace IFoxCAD.Cad
             return table.Add(name, btr => {
                 action?.Invoke(btr);
                 var entsres = ents?.Invoke();
-                if (entsres != null)
+                if (entsres is not null)
                 {
                     btr.AddEntity(entsres);
                 }
                 var adddefres = attdef?.Invoke();
-                if (adddefres != null)
+                if (adddefres is not null)
                 {
                     btr.AddEntity(adddefres);
                 }
@@ -216,7 +216,7 @@ namespace IFoxCAD.Cad
                 name,
                 ltt => {
                     ltt.AsciiDescription = description;
-                    ltt.PatternLength = length; //线型的总长度
+                    ltt.PatternLength = length;  //线型的总长度
                     ltt.NumDashes = dash.Length; //组成线型的笔画数目
                     for (int i = 0; i < dash.Length; i++)
                     {
@@ -246,9 +246,9 @@ namespace IFoxCAD.Cad
                 table.Add(
                     textStyleName,
                     tstr => {
-                        tstr.Name = textStyleName;
+                        tstr.Name     = textStyleName;
                         tstr.FileName = font;
-                        tstr.XScale = xscale;
+                        tstr.XScale   = xscale;
                     });
         }
         #endregion

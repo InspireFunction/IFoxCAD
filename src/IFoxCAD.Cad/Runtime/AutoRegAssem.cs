@@ -26,7 +26,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 无效
         /// </summary>
-        Disabled = 20
+        Disabled  = 20
     }
 
     /// <summary>
@@ -53,7 +53,7 @@ namespace IFoxCAD.Cad
         /// <returns>路径对象</returns>
         public static DirectoryInfo GetDirectory(Assembly assem)
         {
-            if (assem == null)
+            if (assem is null)
             {
                 throw new(nameof(assem));
             }

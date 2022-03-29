@@ -18,7 +18,7 @@ namespace IFoxCAD.Cad
         /// <param name="curve">Ge2d曲线</param>
         /// <param name="mat">曲线转换矩阵</param>
         /// <returns>Db曲线</returns>
-        public static Curve ToCurve(this Curve2d curve, Matrix3d mat)
+        public static Curve? ToCurve(this Curve2d curve, Matrix3d mat)
         {
             return curve switch
             {

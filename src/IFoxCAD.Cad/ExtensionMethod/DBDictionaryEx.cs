@@ -79,7 +79,7 @@ namespace IFoxCAD.Cad
         public static XRecordDataList GetXRecord(this DBDictionary dict, string key)
         {
             Xrecord rec = dict.GetAt<Xrecord>(key);
-            if (rec != null)
+            if (rec is not null)
                 return rec.Data;
             return null;
         }

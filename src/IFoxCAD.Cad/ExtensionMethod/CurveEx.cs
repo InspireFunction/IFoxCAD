@@ -64,14 +64,12 @@ namespace IFoxCAD.Cad
 
             public CompositeCurve3d GetCurve()
             {
-                CompositeCurve3d cc3d = Edge.Curve;
+                var cc3d = Edge.Curve;
                 if (Forward)
-                {
                     return cc3d;
-                }
                 else
                 {
-                    cc3d = cc3d.Clone() as CompositeCurve3d;
+                    cc3d = (CompositeCurve3d)cc3d.Clone();
                     return cc3d.GetReverseParameterCurve() as CompositeCurve3d;
                 }
             }
@@ -89,13 +87,13 @@ namespace IFoxCAD.Cad
                 var edgeItem = this;
                 region.Add(edgeItem);
                 var edgeItem2 = this.GetNext(edges);
-                if (edgeItem2.Edge != null)
+                if (edgeItem2.Edge is not null)
                 {
                     bool hasList = false;
                     foreach (var edgeList2 in regions)
                     {
                         var node = edgeList2.GetNode(e => e.Equals(edgeItem));
-                        if (node != null)
+                        if (node is not null)
                         {
                             if (node.Next.Value.Equals(edgeItem2))
                             {
@@ -106,7 +104,7 @@ namespace IFoxCAD.Cad
                     }
                     if (!hasList)
                     {
-                        while (edgeItem2.Edge != null)
+                        while (edgeItem2.Edge is not null)
                         {
                             if (edgeItem2.Edge == edgeItem.Edge)
                                 break;
@@ -226,7 +224,7 @@ namespace IFoxCAD.Cad
             foreach (var curve in curves)
             {
                 var cc3d = curve.ToCompositeCurve3d();
-                if (cc3d != null)
+                if (cc3d is not null)
                 {
                     geCurves.Add(cc3d);
                     paramss.Add(new List<double>());
@@ -373,7 +371,7 @@ namespace IFoxCAD.Cad
                         var node = regions[i].First;
                         var curve = node.Value.Edge.Curve;
                         var node2 = regions[j].GetNode(e => e.Edge.Curve == curve);
-                        if (eq = node2 != null)
+                        if (eq = node2 is not null)
                         {
                             var b = node.Value.Forward;
                             var b2 = node2.Value.Forward;
@@ -421,7 +419,7 @@ namespace IFoxCAD.Cad
             foreach (var curve in curves)
             {
                 var cc3d = curve.ToCompositeCurve3d();
-                if (cc3d != null)
+                if (cc3d is not null)
                 {
                     geCurves.Add(cc3d);
                     paramss.Add(new List<double>());
@@ -459,7 +457,7 @@ namespace IFoxCAD.Cad
                         foreach (CompositeCurve3d c3d in c3ds)
                         {
                             Curve c = c3d.ToCurve();
-                            if (c != null)
+                            if (c is not null)
                             {
                                 c.SetPropertiesFrom(curves[i]);
                                 newCurves.Add(c);
@@ -483,7 +481,7 @@ namespace IFoxCAD.Cad
         /// <param name="curve">曲线</param>
         /// <returns>ge曲线</returns>
         [Obsolete("请使用Cad自带的 GetGeCurve 函数！")]
-        public static Curve3d ToCurve3d(this Curve curve)
+        public static Curve3d? ToCurve3d(this Curve curve)
         {
             return curve switch
             {
@@ -504,7 +502,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="curve">曲线</param>
         /// <returns>复合曲线</returns>
-        public static CompositeCurve3d ToCompositeCurve3d(this Curve curve)
+        public static CompositeCurve3d? ToCompositeCurve3d(this Curve curve)
         {
             return curve switch
             {
@@ -526,7 +524,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <param name="curve">曲线</param>
         /// <returns>Nurb曲线</returns>
-        public static NurbCurve3d ToNurbCurve3d(this Curve curve)
+        public static NurbCurve3d? ToNurbCurve3d(this Curve curve)
         {
             return curve switch
             {
@@ -885,11 +883,11 @@ namespace IFoxCAD.Cad
                     default:
                         break;
                 }
-                if (nc3d == null)
+                if (nc3d is null)
                 {
                     nc3d = nc3dtemp;
                 }
-                else if (nc3dtemp != null)
+                else if (nc3dtemp is not null)
                 {
                     nc3d.JoinWith(nc3dtemp);
                 }

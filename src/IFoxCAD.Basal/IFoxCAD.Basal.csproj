@@ -2,6 +2,8 @@
 	<PropertyGroup>
 		<!--永远支持最新语法 preview,默认是latestMajor-->
 		<LangVersion>preview</LangVersion>
+		<Nullable>enable</Nullable>
+
 		<!--版本号迭代-->
 		<AssemblyVersion>1.0.0.*</AssemblyVersion>
 		<FileVersion>1.0.0.0</FileVersion>

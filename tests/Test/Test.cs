@@ -79,12 +79,11 @@ namespace test
             Circle circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0));//起点，圆心，终点，失败
             tr.CurrentSpace.AddEntity(circle1, circle2);
             if (circle3 is not null)
-            {
                 tr.CurrentSpace.AddEntity(circle3);
-            }
             else
             {
                 tr.Editor.WriteMessage("三点画圆失败");
+                return;
             }
             tr.CurrentSpace.AddEntity(circle3);
             tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));//三点画圆，成功
@@ -98,7 +97,7 @@ namespace test
             tr.LayerTable.Add("1");
             tr.LayerTable.Add("2", lt =>
             {
-                lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 1);
+                lt.Color      = Color.FromColorIndex(ColorMethod.ByColor, 1);
                 lt.LineWeight = LineWeight.LineWeight030;
 
             });

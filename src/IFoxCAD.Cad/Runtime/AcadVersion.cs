@@ -51,7 +51,7 @@ namespace IFoxCAD.Cad
         {
             get
             {
-                if (_versions == null)
+                if (_versions is null)
                 {
                     string[] copys =
                        Registry.LocalMachine
@@ -91,7 +91,7 @@ namespace IFoxCAD.Cad
         /// <returns>cad版本号对象</returns>
         public static AcadVersion FromApp(object app)
         {
-            if (app == null)
+            if (app is null)
             {
                 throw new ArgumentNullException(nameof(app));
             }

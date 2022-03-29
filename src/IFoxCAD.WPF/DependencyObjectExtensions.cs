@@ -13,23 +13,25 @@ namespace IFoxCAD.WPF
         /// </summary>
         /// <param name="child">子对象</param>
         /// <returns>依赖属性</returns>
-        public static DependencyObject GetParentObject(this DependencyObject child)
+        public static DependencyObject? GetParentObject(this DependencyObject child)
         {
-            if (child == null) return null;
+            if (child is null)
+                return null;
 
             if (child is ContentElement contentElement)
             {
-                DependencyObject parent = ContentOperations.GetParent(contentElement);
-                if (parent != null) return parent;
+                var parent = ContentOperations.GetParent(contentElement);
+                if (parent is not null) return parent;
 
-                FrameworkContentElement fce = contentElement as FrameworkContentElement;
+                var fce = contentElement as FrameworkContentElement;
                 return fce?.Parent;
             }
 
             if (child is FrameworkElement frameworkElement)
             {
-                DependencyObject parent = frameworkElement.Parent;
-                if (parent != null) return parent;
+                var parent = frameworkElement.Parent;
+                if (parent is not null)
+                    return parent;
             }
 
             return VisualTreeHelper.GetParent(child);

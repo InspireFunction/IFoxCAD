@@ -34,7 +34,7 @@ namespace IFoxCAD.WPF
         /// </exception>
         public override object ProvideValue(IServiceProvider serviceProvider)
         {
-            if (serviceProvider == null)
+            if (serviceProvider is null)
             {
                 throw new ArgumentNullException(nameof(serviceProvider));
             }
@@ -49,7 +49,7 @@ namespace IFoxCAD.WPF
             }
 
             var memberInfo = targetProvider.TargetProperty as MemberInfo;
-            if (memberInfo == null)
+            if (memberInfo is null)
             {
                 throw new InvalidOperationException();
             }
@@ -69,22 +69,22 @@ namespace IFoxCAD.WPF
 
             return CreateHandler(memberInfo, Command, targetObject.GetType());
         }
-       
+
         private Type GetEventHandlerType(MemberInfo memberInfo)
         {
             Type eventHandlerType = null;
             if (memberInfo is EventInfo)
             {
-                var info = memberInfo as EventInfo;
-                var eventInfo = info;
+                var info         = memberInfo as EventInfo;
+                var eventInfo    = info;
                 eventHandlerType = eventInfo.EventHandlerType;
             }
             else if (memberInfo is MethodInfo)
             {
-                var info = memberInfo as MethodInfo;
-                var methodInfo = info;
+                var info             = memberInfo as MethodInfo;
+                var methodInfo       = info;
                 ParameterInfo[] pars = methodInfo.GetParameters();
-                eventHandlerType = pars[1].ParameterType;
+                eventHandlerType     = pars[1].ParameterType;
             }
 
             return eventHandlerType;
@@ -94,7 +94,7 @@ namespace IFoxCAD.WPF
         {
             Type eventHandlerType = GetEventHandlerType(memberInfo);
 
-            if (eventHandlerType == null) return null;
+            if (eventHandlerType is null) return null;
 
             var handlerInfo = eventHandlerType.GetMethod("Invoke");
             var method = new DynamicMethod("", handlerInfo.ReturnType,
@@ -108,7 +108,7 @@ namespace IFoxCAD.WPF
             gen.Emit(OpCodes.Ldarg, 0);
             gen.Emit(OpCodes.Ldarg, 1);
             gen.Emit(OpCodes.Ldstr, cmdName);
-            if (CommandParameter == null)
+            if (CommandParameter is null)
             {
                 gen.Emit(OpCodes.Ldnull);
             }
@@ -138,7 +138,7 @@ namespace IFoxCAD.WPF
         public static void HandlerIntern(object sender, object args, string cmdName, string commandParameter)
         {
             var fe = sender as FrameworkElement;
-            if (fe != null)
+            if (fe is not null)
             {
                 ICommand cmd = GetCommand(fe, cmdName);
                 object commandParam = null;
@@ -146,7 +146,7 @@ namespace IFoxCAD.WPF
                 {
                     commandParam = GetCommandParameter(fe, args, commandParameter);
                 }
-                if ((cmd != null) && cmd.CanExecute(commandParam))
+                if ((cmd is not null) && cmd.CanExecute(commandParam))
                 {
                     cmd.Execute(commandParam);
                 }
@@ -156,18 +156,15 @@ namespace IFoxCAD.WPF
         internal static ICommand GetCommand(FrameworkElement target, string cmdName)
         {
             var vm = FindViewModel(target);
-            if (vm == null) return null;
+            if (vm is null) return null;
 
             var vmType = vm.GetType();
             var cmdProp = vmType.GetProperty(cmdName);
-            if (cmdProp != null)
-            {
+            if (cmdProp is not null)
                 return cmdProp.GetValue(vm) as ICommand;
-            }
 #if DEBUG
             throw new Exception("EventBinding path error: '" + cmdName + "' property not found on '" + vmType + "' 'DelegateCommand'");
 #endif
-
             return null;
         }
 
@@ -191,28 +188,29 @@ namespace IFoxCAD.WPF
             return ret;
         }
 
-        internal static ViewModelBase FindViewModel(FrameworkElement target)
+        internal static ViewModelBase? FindViewModel(FrameworkElement? target)
         {
-            if (target == null) return null;
+            if (target is null)
+                return null;
 
-            if (target.DataContext is ViewModelBase vm) return vm;
+            if (target.DataContext is ViewModelBase vm)
+                return vm;
 
             var parent = target.GetParentObject() as FrameworkElement;
-
             return FindViewModel(parent);
         }
 
         internal static object FollowPropertyPath(object target, string path, Type valueType = null)
         {
-            if (target == null) throw new ArgumentNullException(nameof(target));
-            if (path == null) throw new ArgumentNullException(nameof(path));
+            if (target is null) throw new ArgumentNullException(nameof(target));
+            if (path is null) throw new ArgumentNullException(nameof(path));
 
             Type currentType = valueType ?? target.GetType();
 
             foreach (string propertyName in path.Split('.'))
             {
                 PropertyInfo property = currentType.GetProperty(propertyName);
-                if (property == null) throw new NullReferenceException("property");
+                if (property is null) throw new NullReferenceException("property");
 
                 target = property.GetValue(target);
                 currentType = property.PropertyType;

@@ -36,7 +36,7 @@ namespace IFoxCAD.Cad
         /// <param name="tableId">符号表id</param>
         internal SymbolTable(DBTrans tr, ObjectId tableId)
         {
-            DTrans = tr;
+            DTrans             = tr;
             CurrentSymbolTable = DTrans.GetObject<TTable>(tableId);
         }
 
@@ -142,7 +142,7 @@ namespace IFoxCAD.Cad
         public void Remove(string name)
         {
             TRecord record = GetRecord(name);
-            if (record != null)
+            if (record is not null)
             {
                 Remove(record);
             }
@@ -155,7 +155,7 @@ namespace IFoxCAD.Cad
         public void Remove(ObjectId id)
         {
             TRecord record = GetRecord(id);
-            if (record != null)
+            if (record is not null)
             {
                 Remove(record);
             }
@@ -185,7 +185,7 @@ namespace IFoxCAD.Cad
         public void Change(string name, Action<TRecord> action)
         {
             var record = GetRecord(name);
-            if (record != null)
+            if (record is not null)
             {
                 Change(record, action);
             }
@@ -198,7 +198,7 @@ namespace IFoxCAD.Cad
         public void Change(ObjectId id, Action<TRecord> action)
         {
             var record = GetRecord(id);
-            if (record != null)
+            if (record is not null)
             {
                 Change(record, action);
             }

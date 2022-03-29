@@ -106,7 +106,7 @@ namespace IFoxCAD.Cad
         /// <param name="action">要运行的委托</param>
         public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
         {
-            if (action == null)
+            if (action is null)
                 throw new ArgumentNullException(nameof(action));
             foreach (var element in source)
                 action.Invoke(element);
@@ -121,7 +121,7 @@ namespace IFoxCAD.Cad
         /// <param name="action">要运行的委托</param>
         public static void ForEach<T>(this IEnumerable<T> source, Action<int, T> action)
         {
-            if (action == null)
+            if (action is null)
                 throw new ArgumentNullException(nameof(action));
             int i = 0;
             foreach (var item in source)
