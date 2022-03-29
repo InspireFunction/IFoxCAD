@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 /// <summary>
 /// 环链表节点
@@ -378,6 +378,17 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     public LoopListNode<T> AddLast(T value)
     {
         return Add(value);
+    }
+
+    /// <summary>
+    /// 容器内容全部加入到末尾
+    /// </summary>
+    /// <param name="list"></param>
+    public void AddRange(IEnumerable<T> list)
+    {
+        var ge = list.GetEnumerator();
+        while (ge.MoveNext())
+            Add(ge.Current);
     }
 
     /// <summary>
