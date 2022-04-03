@@ -1,6 +1,4 @@
-﻿
-
-namespace test;
+﻿namespace test;
 
 public class Test : AutoRegAssem
 {
@@ -83,14 +81,16 @@ public class Test : AutoRegAssem
     {
         using var tr = new DBTrans();
         tr.LayerTable.Add("1");
-        tr.LayerTable.Add("2", lt => {
-            lt.Color      = Color.FromColorIndex(ColorMethod.ByColor, 1);
+        tr.LayerTable.Add("2", lt =>
+        {
+            lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 1);
             lt.LineWeight = LineWeight.LineWeight030;
 
         });
         tr.LayerTable.Remove("3");
         tr.LayerTable.Delete("0");
-        tr.LayerTable.Change("4", lt => {
+        tr.LayerTable.Change("4", lt =>
+        {
             lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 2);
         });
     }
@@ -318,12 +318,14 @@ public class Test : AutoRegAssem
     public void TestBack()
     {
         using var tr = new DBTrans(@"C:\Users\vic\Desktop\test.dwg");
-        tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
+        tr.ModelSpace.GetEntities<Circle>().ForEach(ent =>
+        {
             ent.ForWrite(e => e.ColorIndex = 3);
         });
         tr.Database.SaveAs(@"C:\Users\vic\Desktop\test.dwg", DwgVersion.Current);
 
-        tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
+        tr.ModelSpace.GetEntities<Circle>().ForEach(ent =>
+        {
             ent.ForWrite(e => e.ColorIndex = 4);
         });
         tr.Database.SaveAs(@"C:\Users\vic\Desktop\test.dwg", DwgVersion.Current);
