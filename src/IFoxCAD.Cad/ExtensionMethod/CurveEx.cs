@@ -245,7 +245,6 @@ public static class CurveEx
         GetEdgesAndnewCurves(curves, edges, newCurves);
 
         //构建边的邻接表
-
         //knots 和 nums 实际上是一个键值对(基于ArrayOfStruct思想,拆开更合适内存布局)
         //knots 是不重复地将所有交点设置为节点,如果是重复,就对应 nums++
         //nums 是记录每个节点坐标被重复了几次
@@ -388,12 +387,12 @@ public static class CurveEx
     /// <summary>
     /// 从曲线集合分离边界(交点断分曲线的)和独立的曲线
     /// </summary>
-    /// <param name="curves"></param>
-    /// <param name="edgesOut"></param>
-    /// <param name="newCurvesOut"></param>
+    /// <param name="curves">传入判断的曲线集</param>
+    /// <param name="edgesOut">边界(可能仍然存在自闭,因为样条曲线允许打个鱼形圈,尾巴又交叉在其他曲线)</param>
+    /// <param name="closedCurvesOut">自闭的曲线</param>
     static void GetEdgesAndnewCurves(List<Curve> curves,
         List<Edge> edgesOut,
-        List<Curve> newCurvesOut)
+        List<Curve> closedCurvesOut)
     {
         //首先按交点分解为Ge曲线集
         var geCurves = new List<CompositeCurve3d>();
@@ -417,7 +416,7 @@ public static class CurveEx
             var gc1 = geCurves[i];
             var pars1 = paramss[i];
             //曲线a,和曲线b/c/d/e...分别交点,组成交点数组
-            //第一次是aa对比,所以会怎么样呢?(交点无限个)
+            //第一次是 aa对比,所以会怎么样呢?(交点无限个)
             for (int j = i; j < curves.Count; j++)
             {
                 var gc2 = geCurves[j];
@@ -447,11 +446,11 @@ public static class CurveEx
                 //惊惊留:(不敢删啊...)
                 //狐哥写的这里出现的条件是:有曲线参数,但是切分不出来曲线...没懂为什么...
                 //猜测:曲线参数在头或者尾,那么交点就是直接碰头碰尾,
-                //也就是aa判断的时候,同一条曲线自己和自己产生的?
+                //也就是 aa对比 同一条曲线自己和自己产生的?
                 //参数大于0{是这些参数? 头参/尾参/参数不在曲线上?}
                 else if (gc1.IsClosed())
                 {
-                    newCurvesOut.Add(gc1.ToCurve()!);
+                    closedCurvesOut.Add(gc1.ToCurve()!);
                 }
                 else
                 {
@@ -460,7 +459,7 @@ public static class CurveEx
             }
             else if (gc1.IsClosed())
             {
-                newCurvesOut.Add(gc1.ToCurve()!);
+                closedCurvesOut.Add(gc1.ToCurve()!);
             }
         }
     }
