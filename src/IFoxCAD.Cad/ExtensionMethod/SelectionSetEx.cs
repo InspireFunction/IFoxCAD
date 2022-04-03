@@ -68,6 +68,9 @@ public static class SelectionSetEx
     /// <returns>图元集合</returns>
     public static IEnumerable<T?> GetEntities<T>(this SelectionSet ss, OpenMode openMode = OpenMode.ForRead, DBTrans? tr = default) where T : Entity
     {
+        if (ss is null)
+            throw new ArgumentNullException(nameof(ss));
+
         tr ??= DBTrans.Top;
         return
             ss

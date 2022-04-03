@@ -20,12 +20,12 @@ public class Test : AutoRegAssem
         {
             tr.Editor.WriteMessage("\ndatabase 正常");
         }
-        
+
         Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         Circle circle = new(new Point3d(0, 0, 0), Vector3d.ZAxis, 2);
         //var lienid = tr.AddEntity(line);
         //var cirid = tr.AddEntity(circle);
-        //var linent = tr.GetObject<Line>(lienid); 
+        //var linent = tr.GetObject<Line>(lienid);
         //var lineent = tr.GetObject<Circle>(cirid);
         //var linee = tr.GetObject<Line>(cirid); //经测试，类型不匹配，返回null
         //var dd = tr.GetObject<Circle>(lienid);
@@ -51,8 +51,8 @@ public class Test : AutoRegAssem
     {
         using var tr = new DBTrans();
         Arc arc1 = EntityEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));//起点，圆心，终点
-        Arc arc2 = EntityEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);//起点，圆心，弧度
-        Arc arc3 = EntityEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));//起点，圆上一点，终点
+        Arc arc2 = EntityEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);            //起点，圆心，弧度
+        Arc arc3 = EntityEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));   //起点，圆上一点，终点
         tr.CurrentSpace.AddEntity(arc1, arc2, arc3);
         tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));//起点，圆上一点，终点
     }
@@ -61,7 +61,7 @@ public class Test : AutoRegAssem
     public void draCircle()
     {
         using var tr = new DBTrans();
-        Circle circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));//起点，终点
+        Circle circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));                       //起点，终点
         Circle circle2 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(2, 0, 0), new Point3d(0, 2, 0));//三点画圆，成功
         Circle circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0));//起点，圆心，终点，失败
         tr.CurrentSpace.AddEntity(circle1, circle2);
@@ -83,16 +83,14 @@ public class Test : AutoRegAssem
     {
         using var tr = new DBTrans();
         tr.LayerTable.Add("1");
-        tr.LayerTable.Add("2", lt =>
-        {
-            lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 1);
+        tr.LayerTable.Add("2", lt => {
+            lt.Color      = Color.FromColorIndex(ColorMethod.ByColor, 1);
             lt.LineWeight = LineWeight.LineWeight030;
 
         });
         tr.LayerTable.Remove("3");
         tr.LayerTable.Delete("0");
-        tr.LayerTable.Change("4", lt =>
-        {
+        tr.LayerTable.Change("4", lt => {
             lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 2);
         });
     }
@@ -119,11 +117,11 @@ public class Test : AutoRegAssem
     public void LayerDel()
     {
         using var tr = new DBTrans();
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("0").ToString()); //删除图层 0
+        Env.Editor.WriteMessage(tr.LayerTable.Delete("0").ToString());        //删除图层 0
         Env.Editor.WriteMessage(tr.LayerTable.Delete("Defpoints").ToString());//删除图层 Defpoints
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("1").ToString());//删除不存在的图层 1
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("2").ToString());//删除有图元的图层 2
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("3").ToString());//删除图层 3
+        Env.Editor.WriteMessage(tr.LayerTable.Delete("1").ToString());        //删除不存在的图层 1
+        Env.Editor.WriteMessage(tr.LayerTable.Delete("2").ToString());        //删除有图元的图层 2
+        Env.Editor.WriteMessage(tr.LayerTable.Delete("3").ToString());        //删除图层 3
 
         tr.LayerTable.Remove("2"); //测试是否能强制删除
     }
@@ -224,12 +222,12 @@ public class Test : AutoRegAssem
         var doc = Application.DocumentManager.MdiActiveDocument;
         var ed = doc.Editor;
         using var tr = new DBTrans();
-        tr.RegAppTable.ForEach(id => 
+        tr.RegAppTable.ForEach(id =>
             id.GetObject<RegAppTableRecord>().Name.Print());
         tr.RegAppTable.GetRecords().ForEach(rec => rec.Name.Print());
         tr.RegAppTable.GetRecordNames().ForEach(name => name.Print());
         tr.RegAppTable.ForEach(re => re.Name.Print());
-        
+
         //var res = ed.GetEntity("\n select the entity:");
         //if (res.Status == PromptStatus.OK)
         //{
@@ -320,14 +318,12 @@ public class Test : AutoRegAssem
     public void TestBack()
     {
         using var tr = new DBTrans(@"C:\Users\vic\Desktop\test.dwg");
-        tr.ModelSpace.GetEntities<Circle>().ForEach(ent =>
-        {
+        tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
             ent.ForWrite(e => e.ColorIndex = 3);
         });
         tr.Database.SaveAs(@"C:\Users\vic\Desktop\test.dwg", DwgVersion.Current);
 
-        tr.ModelSpace.GetEntities<Circle>().ForEach(ent =>
-        {
+        tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
             ent.ForWrite(e => e.ColorIndex = 4);
         });
         tr.Database.SaveAs(@"C:\Users\vic\Desktop\test.dwg", DwgVersion.Current);
@@ -349,12 +345,14 @@ public class Test : AutoRegAssem
 
     public override void Initialize()
     {
+        //文档管理器将比此接口前创建,因此此句会执行
         Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nload....");
     }
 
     public override void Terminate()
     {
-        Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nunload....");
+        //文档管理器将比此接口前死亡,因此此句不会执行
+        Application.DocumentManager.MdiActiveDocument?.Editor.WriteMessage("\nunload....");
     }
 }
 
