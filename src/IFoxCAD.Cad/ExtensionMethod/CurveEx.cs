@@ -48,7 +48,7 @@ public static class CurveEx
     }
 
     /// <summary>
-    /// 获取曲线集所围成的封闭区域的曲线集 TESTTopo
+    /// 获取曲线集所围成的封闭区域的曲线集
     /// </summary>
     /// <param name="curves">曲线集</param>
     /// <returns>闭合的曲线集</returns>
@@ -75,8 +75,6 @@ public static class CurveEx
         }
         return newCurves;
     }
-
-     
 
     /// <summary>
     /// 曲线打断

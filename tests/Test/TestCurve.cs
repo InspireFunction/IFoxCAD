@@ -13,18 +13,6 @@ namespace Test
             tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
             tr.CurrentSpace.AddEntity(tt);
         }
-        [CommandMethod("testtopo")]
-        public void TestToPo()
-        {
-            var ents = Env.Editor.SSGet().Value?.GetEntities<Curve>();
-            if (ents == null)
-                return;
-            var tt = CurveEx.Topo(ents.ToList());
-            using var tr = new DBTrans();
-            tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
-            tr.CurrentSpace.AddEntity(tt);
-
-        }
         [CommandMethod("testCurveCurveIntersector3d")]
         public void TestCurveCurveIntersector3d()
         {
@@ -75,6 +63,19 @@ namespace Test
             //using var tr = new DBTrans();
             //tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
             //tr.CurrentSpace.AddEntity(tt);
+        }
+
+
+        [CommandMethod("testtopo")]
+        public void TestToPo()
+        {
+            var ents = Env.Editor.SSGet().Value?.GetEntities<Curve>();
+            if (ents == null)
+                return;
+            var tt = CurveEx.Topo(ents.ToList());
+            using var tr = new DBTrans();
+            tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
+            tr.CurrentSpace.AddEntity(tt);
         }
 
         [CommandMethod("testGetEdgesAndnewCurves")]
