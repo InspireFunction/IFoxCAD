@@ -49,7 +49,7 @@ public static class CurveEx
     /// <summary>
     /// 边节点
     /// </summary>
-    private struct EdgeItem : IEquatable<EdgeItem>
+    public struct EdgeItem : IEquatable<EdgeItem>
     {
         #region 字段
         public Edge Edge;
@@ -207,7 +207,7 @@ public static class CurveEx
     /// <summary>
     /// 边
     /// </summary>
-    private class Edge : IEquatable<Edge>
+    public class Edge : IEquatable<Edge>
     {
         #region 字段
         public CompositeCurve3d Curve;
@@ -458,9 +458,7 @@ public static class CurveEx
     /// <param name="curves">传入判断的曲线集</param>
     /// <param name="edgesOut">边界(可能仍然存在自闭,因为样条曲线允许打个鱼形圈,尾巴又交叉在其他曲线)</param>
     /// <param name="closedCurvesOut">自闭的曲线</param>
-    static void GetEdgesAndnewCurves(List<Curve> curves,
-        List<Edge> edgesOut,
-        List<Curve> closedCurvesOut)
+    public static void GetEdgesAndnewCurves(List<Curve> curves, List<Edge> edgesOut, List<Curve> closedCurvesOut)
     {
         //首先按交点分解为Ge曲线集
         var geCurves = new List<CompositeCurve3d>();
@@ -502,6 +500,11 @@ public static class CurveEx
                 }
             }
 
+
+            if (gc1.IsClosed())
+            {
+                closedCurvesOut.Add(gc1.ToCurve()!);
+            }
             //有交点参数
             if (pars1.Count > 0)
             {
@@ -516,21 +519,52 @@ public static class CurveEx
                 //猜测:曲线参数在头或者尾,那么交点就是直接碰头碰尾,
                 //也就是 aa对比 同一条曲线自己和自己产生的?
                 //参数大于0{是这些参数? 头参/尾参/参数不在曲线上?}
-                else if (gc1.IsClosed())
-                {
-                    closedCurvesOut.Add(gc1.ToCurve()!);
-                }
+                //else if (gc1.IsClosed())
+                //{
+                //    closedCurvesOut.Add(gc1.ToCurve()!);
+                //}
                 else
                 {
                     edgesOut.Add(new Edge(gc1));
                 }
             }
-            else if (gc1.IsClosed())
-            {
-                closedCurvesOut.Add(gc1.ToCurve()!);
-            }
+            //else if (gc1.IsClosed())
+            //{
+            //    closedCurvesOut.Add(gc1.ToCurve()!);
+            //}
+        }
+        edgesOut = edgesOut.Distinct(new EdgeComparer()).ToList();
+    }
+
+
+    private class EdgeComparer : IEqualityComparer<Edge>
+    {
+        
+        public bool Equals(Edge x, Edge y)
+        {
+#if ac2009
+            var pts = x.Curve.GetSamplePoints(100);
+            return pts.All(pt => y.Curve.IsOn(pt));
+#elif ac2013 || ac2015
+            var pts = x.Curve.GetSamplePoints(100);
+            return pts.All(pt => y.Curve.IsOn(pt.Point));
+#endif
+
+
+            //return x.Curve.IsEqualTo(y.Curve);
+        }
+
+        // If Equals() returns true for a pair of objects
+        // then GetHashCode() must return the same value for these objects.
+
+        public int GetHashCode(Edge product)
+        {
+            return product.Curve.GetHashCode();
         }
     }
+
+
+
 
     /// <summary>
     /// 曲线打断
