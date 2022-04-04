@@ -8,7 +8,7 @@ namespace Test
         public void TestBreakCurve()
         {
             var ents = Env.Editor.SSGet().Value.GetEntities<Curve>();
-            var tt =  CurveEx.BreakCurve(ents.ToList());
+            var tt = CurveEx.BreakCurve(ents.ToList());
             using var tr = new DBTrans();
             tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
             tr.CurrentSpace.AddEntity(tt);
@@ -16,19 +16,21 @@ namespace Test
         [CommandMethod("testtopo")]
         public void TestToPo()
         {
-            var ents = Env.Editor.SSGet().Value.GetEntities<Curve>();
+            var ents = Env.Editor.SSGet().Value?.GetEntities<Curve>();
+            if (ents == null)
+                return;
             var tt = CurveEx.Topo(ents.ToList());
             using var tr = new DBTrans();
             tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
             tr.CurrentSpace.AddEntity(tt);
-           
+
         }
         [CommandMethod("testCurveCurveIntersector3d")]
         public void TestCurveCurveIntersector3d()
         {
             var ents = Env.Editor.SSGet().Value.GetEntities<Curve>()
                 .Select(e => e.ToCompositeCurve3d()).ToList();
-           
+
             var cci3d = new CurveCurveIntersector3d();
 
 
@@ -42,7 +44,7 @@ namespace Test
                     var gc2 = ents[j];
                     //var pars2 = paramss[j];
                     var int2 = gc2.GetInterval();
-                    cci3d.Set(gc1, gc2, int1,int2, Vector3d.ZAxis);
+                    cci3d.Set(gc1, gc2, int1, int2, Vector3d.ZAxis);
                     var d = cci3d.OverlapCount();
                     var a = cci3d.GetIntersectionRanges();
                     Env.Print($"{a[0].LowerBound}-{a[0].UpperBound} and {a[1].LowerBound}-{a[1].UpperBound}");
@@ -78,10 +80,13 @@ namespace Test
         [CommandMethod("testGetEdgesAndnewCurves")]
         public void TestGetEdgesAndnewCurves()
         {
-            var curves = Env.Editor.SSGet().Value.GetEntities<Curve>().ToList();
-            var edges = new List<CurveEx.Edge>();
+            var curves = Env.Editor.SSGet().Value?.GetEntities<Curve>().ToList();
+            if (curves == null)
+                return;
+            var edges = new List<IFoxCAD.Cad.Edge>();
             var newCurves = new List<Curve>();
-            CurveEx.GetEdgesAndnewCurves(curves, edges, newCurves);
+            var topo = new Topo(curves);
+            topo.GetEdgesAndnewCurves(edges, newCurves);
 
             using var tr = new DBTrans();
 
@@ -92,9 +97,7 @@ namespace Test
                 tr.CurrentSpace.AddEntity(ent);
             }
 
-
             //Env.Print("");
-
         }
     }
 }
