@@ -1,5 +1,8 @@
 ﻿namespace test;
 
+
+
+
 public class Test : AutoRegAssem
 {
     [CommandMethod("dbtest")]
@@ -279,6 +282,62 @@ public class Test : AutoRegAssem
         {
             tr.Editor.WriteMessage(layerRecord.Name);
         }
+
+    }
+
+
+    [CommandMethod("testrec")]
+    public void TestRec()
+    {
+        Point2d p1 = new(10000.2, 100000.5);
+        Point2d p2 = new(15000.9, 100000.5);
+        Point2d p3 = new(15000.9, 105000.7);
+        Point2d p4 = new(10000.2, 105000.7);
+
+        var p12 = p2 - p1;
+        var p23 = p3 - p2;
+        var p34 = p4 - p3;
+        var p41 = p1 - p4;
+        var p13 = p3 - p1;
+        var p24 = p4 - p2;
+
+
+        const double pi90 = Math.PI / 2; 
+
+        Tools.TestTimes(1000000,"对角线",() =>
+        {
+            var result = false;
+            if (Math.Abs(p13.Length - p24.Length) <= 1e8)
+            {
+                result = p41.IsParallelTo(p12);
+            }
+
+        });
+
+        Tools.TestTimes(1000000,"三次点乘", () =>
+        {
+            var result = false;
+            if (Math.Abs(p12.DotProduct(p23)) < 1e8 && 
+                Math.Abs(p23.DotProduct(p34)) < 1e8 &&
+                Math.Abs(p34.DotProduct(p41)) < 1e8)
+            {
+                result = true;
+            }
+
+        });
+
+        Tools.TestTimes(1000000, "三次垂直", () =>
+        {
+            var result = false;
+            if (p12.IsParallelTo(p23) &&
+                p23.IsParallelTo(p34) &&
+                p34.IsParallelTo(p41))
+            {
+                result = true;
+            }
+
+        });
+
 
     }
 

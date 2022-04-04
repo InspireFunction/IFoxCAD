@@ -19,6 +19,7 @@
             using var tr = new DBTrans();
             tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
             tr.CurrentSpace.AddEntity(tt);
+           
         }
         [CommandMethod("testCurveCurveIntersector3d")]
         public void TestCurveCurveIntersector3d()
