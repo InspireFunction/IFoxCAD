@@ -51,15 +51,20 @@ public static class CurveEx
     /// </summary>
     private struct EdgeItem : IEquatable<EdgeItem>
     {
+        #region 字段
         public Edge Edge;
         public bool Forward;
+        #endregion
 
+        #region 构造
         public EdgeItem(Edge edge, bool forward)
         {
             Edge = edge;
             Forward = forward;
         }
+        #endregion
 
+        #region 方法
         public CompositeCurve3d? GetCurve()
         {
             var cc3d = Edge.Curve;
@@ -72,11 +77,6 @@ public static class CurveEx
                 cc3d = cc3d.Clone() as CompositeCurve3d;
                 return cc3d?.GetReverseParameterCurve() as CompositeCurve3d;
             }
-        }
-
-        public bool Equals(EdgeItem other)
-        {
-            return Edge == other.Edge && Forward == other.Forward;
         }
 
         /// <summary>
@@ -168,7 +168,9 @@ public static class CurveEx
             }
             return item;
         }
+        #endregion
 
+        #region 类型转换
         public override string ToString()
         {
             return
@@ -176,29 +178,51 @@ public static class CurveEx
                 string.Format("{0}-{1}", Edge.StartIndex, Edge.EndIndex) :
                 string.Format("{0}-{1}", Edge.EndIndex, Edge.StartIndex);
         }
-
+        #endregion
+        #region 重载运算符_比较
         public override bool Equals(object obj)
         {
-            return obj is EdgeItem item && Equals(item);
+            return this == (EdgeItem)obj;
         }
-
+        public bool Equals(EdgeItem b)
+        {
+            return this == b;
+        }
+        public static bool operator !=(EdgeItem a, EdgeItem b)
+        {
+            return !(a == b);
+        }
+        public static bool operator ==(EdgeItem a, EdgeItem b)
+        {
+            return a.Edge == b.Edge && a.Forward == b.Forward;
+        }
         public override int GetHashCode()
         {
-            return this.ToString().GetHashCode();
+            return base.GetHashCode();
+            //return this.ToString().GetHashCode();
         }
+        #endregion
     }
+
     /// <summary>
     /// 边
     /// </summary>
-    private class Edge
+    private class Edge : IEquatable<Edge>
     {
+        #region 字段
         public CompositeCurve3d Curve;
         public int StartIndex;
         public int EndIndex;
+        #endregion
+
+        #region 构造
         public Edge(CompositeCurve3d curve)
         {
             Curve = curve;
         }
+        #endregion
+
+        #region 方法
         public Vector3d GetStartVector()
         {
             var inter = Curve.GetInterval();
@@ -213,17 +237,25 @@ public static class CurveEx
             return -poc.GetDerivative(1);
         }
 
-        public bool IsNext(Edge edge, int index, ref Vector3d vec, ref bool forward)
+        /// <summary>
+        /// 判断节点位置
+        /// </summary>
+        /// <param name="edge">边界</param>
+        /// <param name="startOrEndIndex">边界是否位于此处</param>
+        /// <param name="vec"></param>
+        /// <param name="forward"></param>
+        /// <returns></returns>
+        public bool IsNext(Edge edge, int startOrEndIndex, ref Vector3d vec, ref bool forward)
         {
             if (edge != this)
             {
-                if (StartIndex == index)
+                if (StartIndex == startOrEndIndex)
                 {
                     vec = GetStartVector();
                     forward = true;
                     return true;
                 }
-                else if (EndIndex == index)
+                else if (EndIndex == startOrEndIndex)
                 {
                     vec = GetEndVector();
                     forward = false;
@@ -232,6 +264,41 @@ public static class CurveEx
             }
             return false;
         }
+        #endregion
+
+        #region 重载运算符_比较
+        public override bool Equals(object? obj)
+        {
+            return this == obj as Edge;
+        }
+        public bool Equals(Edge? b)
+        {
+            return this == b;
+        }
+        public static bool operator !=(Edge? a, Edge? b)
+        {
+            return !(a == b);
+        }
+        public static bool operator ==(Edge? a, Edge? b)
+        {
+            //此处地方不允许使用==null,因为此处是定义
+            if (b is null)
+                return a is null;
+            else if (a is null)
+                return false;
+            if (ReferenceEquals(a, b))//同一对象
+                return true;
+
+            return a.Curve == b.Curve &&
+                   a.StartIndex == b.StartIndex &&
+                   a.EndIndex == b.EndIndex;
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
+        }
+        #endregion
     }
     /// <summary>
     /// 获取曲线集所围成的封闭区域的曲线集
@@ -270,7 +337,7 @@ public static class CurveEx
             }
             else
             {
-                //不含有就加入节点,共用计数也加入,边界加入节点索引
+                //不含有就加入节点,共用计数也加入,边界设置节点索引
                 knots.Add(edge.Curve.StartPoint);
                 nums.Add(1);
                 edge.StartIndex = knots.Count - 1;
@@ -326,6 +393,7 @@ public static class CurveEx
         //     }
         // }
 
+        //在边界集中找到闭合链条
         var regions = new List<LoopList<EdgeItem>>();
         for (int i = 0; i < edges.Count; i++)
         {
