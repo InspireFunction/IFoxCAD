@@ -271,6 +271,25 @@ public class Edge : IEquatable<Edge>
     }
     #endregion
 }
+ 
+
+public class CurveInfo: Rect
+{
+    public Curve Curve;
+    public CompositeCurve3d? CompositeCurve3d 
+    { 
+        get  {
+            return 
+        }
+    }
+ 
+    public List<double>? Paramss;
+    public CurveInfo(Curve curve)
+    {
+        Curve = curve;
+        Paramss = new List<double>();
+    }
+}
 
 public class Topo
 {
@@ -291,12 +310,14 @@ public class Topo
     /// <param name="closedCurvesOut">自闭的曲线</param>
     public void GetEdgesAndnewCurves(List<Edge> edges, List<Curve> closedCurvesOut)
     {
+        //请不要把它做成结构,因为这是一种ArrayOfStruct写法
         var geCurves = new List<CompositeCurve3d>();
         var paramss = new List<List<double>>();
-
+         
         //将曲线按节点转为Ge曲线集(提取多段线每段/样条曲线子段..)
         for (int i = 0; i < _curves.Count; i++)
         {
+            _curves[i].GeometricExtents.
             var cc3d = _curves[i].ToCompositeCurve3d();
             if (cc3d is not null)
             {
@@ -307,13 +328,13 @@ public class Topo
 
         var cci3d = new CurveCurveIntersector3d();
 
-        //遍历所有曲线,然后获取交点...此处是O(n²)
+        //此处是O(n²)
+        //曲线a和曲线a/b/c/d/e...求交点,组成交点数组(第一次是自交对比)
         for (int i = 0; i < geCurves.Count; i++)
         {
             var gc1 = geCurves[i];
             var pars1 = paramss[i];
-
-            //曲线a和曲线a/b/c/d/e...分别交点,组成交点数组(第一次是自交对比)
+        
             for (int j = i; j < geCurves.Count; j++)
             {
                 var gc2 = geCurves[j];
@@ -335,6 +356,7 @@ public class Topo
             {
                 closedCurvesOut.Add(gc1.ToCurve()!);
             }
+
             //有交点参数
             if (pars1.Count > 0)
             {
@@ -358,27 +380,27 @@ public class Topo
         edges = edges.Distinct(new EdgeComparer()).ToList();
     }
 
-    private class EdgeComparer : IEqualityComparer<Edge>
-    {
-        public bool Equals(Edge x, Edge y)
-        {
-#if ac2009
-            var pts = x.Curve.GetSamplePoints(100);
-            return pts.All(pt => y.Curve.IsOn(pt));
-#elif ac2013 || ac2015
-            var pts = x.Curve.GetSamplePoints(100);
-            return pts.All(pt => y.Curve.IsOn(pt.Point));
-#endif
-            //return x.Curve.IsEqualTo(y.Curve);
-        }
+//    private class EdgeComparer : IEqualityComparer<Edge>
+//    {
+//        public bool Equals(Edge x, Edge y)
+//        {
+//#if ac2009
+//            var pts = x.Curve.GetSamplePoints(100);
+//            return pts.All(pt => y.Curve.IsOn(pt));
+//#elif ac2013 || ac2015
+//            var pts = x.Curve.GetSamplePoints(100);
+//            return pts.All(pt => y.Curve.IsOn(pt.Point));
+//#endif
+//            //return x.Curve.IsEqualTo(y.Curve);
+//        }
 
-        // If Equals() returns true for a pair of objects
-        // then GetHashCode() must return the same value for these objects.
-        public int GetHashCode(Edge product)
-        {
-            return product.Curve.GetHashCode();
-        }
-    }
+//        // If Equals() returns true for a pair of objects
+//        // then GetHashCode() must return the same value for these objects.
+//        public int GetHashCode(Edge product)
+//        {
+//            return product.Curve.GetHashCode();
+//        }
+//    }
 
     /// <summary>
     /// 创建邻接表
