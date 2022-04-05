@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
 using IFoxCAD.Basal;
 
@@ -154,7 +154,7 @@ public class Edge : IEquatable<Edge>
     /// <param name="edgesOut"></param>
     public static void Distinct(List<Edge> edgesOut)
     {
-        if (edgesOut.Count > 0)
+        if (edgesOut.Count == 0)
             return;
 
         //Edge没有包围盒,无法快速判断
