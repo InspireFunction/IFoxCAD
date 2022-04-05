@@ -74,7 +74,7 @@ namespace Test
                 return;
             var tt = CurveEx.Topo(ents.ToList());
             using var tr = new DBTrans();
-            tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
+            tt.ForEach((i,t) => t.ForWrite(e => e.ColorIndex = i));
             tr.CurrentSpace.AddEntity(tt);
         }
 
