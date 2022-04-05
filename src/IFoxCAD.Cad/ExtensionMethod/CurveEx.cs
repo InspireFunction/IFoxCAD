@@ -1,8 +1,5 @@
 ﻿namespace IFoxCAD.Cad;
 
-using IFoxCAD.Basal;
-using System.Diagnostics;
-
 /// <summary>
 /// 实体类曲线扩展类
 /// </summary>
