@@ -286,8 +286,8 @@ public static class Curve3dEx
 
             for (int i = 0; i < cs.Length; i++)
             {
-                var c = cs[i].GetType().Name;
-                if (c == nameof(NurbCurve3d) || c == nameof(EllipticalArc3d))
+                var c = cs[i];
+                if (c is NurbCurve3d || c is EllipticalArc3d)
                 {
                     hasNurb = true;
                     break;
