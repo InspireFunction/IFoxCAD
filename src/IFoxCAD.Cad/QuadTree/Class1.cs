@@ -1,4 +1,5 @@
 ﻿namespace IFoxCAD.Cad;
+using Box = System.Windows.Rect;
 
 using System.Windows;
 
@@ -10,16 +11,16 @@ using System.Windows;
 /// This class efficiently stores and retrieves arbitrarily sized and positioned
 /// objects in a quad-tree data structure.  This can be used to do efficient hit
 /// detection or visiblility checks on objects in a virtualized canvas.
-/// The object does not need to implement any special interface because the Rect Bounds
+/// The object does not need to implement any special interface because the Box Bounds
 /// of those objects is handled as a separate argument to Insert.
 /// 此类有效地存储和检索四叉树数据结构中任意大小和位置的对象。 这可用于对虚拟画布中的对象进行有效的命中检测或可见性检查。
-/// 该对象不需要实现任何特殊接口，因为这些对象的 Rect Bounds 被作为单独的参数进行插入。
+/// 该对象不需要实现任何特殊接口，因为这些对象的 Box Bounds 被作为单独的参数进行插入。
 /// </summary>
 public class QuadTree<T> where T : class
 {
 
 
-    Rect bounds; // overall bounds we are indexing. 索引的总体范围 
+    Box bounds; // overall bounds we are indexing. 索引的总体范围 
     Quadrant? root;
     IDictionary<T, Quadrant>? table;
 
@@ -30,7 +31,7 @@ public class QuadTree<T> where T : class
     /// is expensive since it has to re-divide the entire thing - like a re-hash operation.
     /// 这决定了整个四叉树索引策略，改变这个界限是昂贵的，因为它必须重新划分整个事物 - 就像重新散列操作一样。
     /// </summary>
-    public Rect Bounds
+    public Box Bounds
     {
         get { return this.bounds; }
         set { this.bounds = value; ReIndex(); }
@@ -42,7 +43,7 @@ public class QuadTree<T> where T : class
     /// </summary>
     /// <param name="node">The node to insert 要插入的节点</param>
     /// <param name="bounds">The bounds of this node 这个节点的边界</param>
-    public void Insert(T node, Rect bounds)
+    public void Insert(T node, Box bounds)
     {
         if (this.bounds.Width == 0 || this.bounds.Height == 0)
         {
@@ -77,7 +78,7 @@ public class QuadTree<T> where T : class
     /// List of zero or mode nodes found inside the given bounds 
     /// 在给定范围内找到零个或多个节点的列表
     /// </returns>
-    public IEnumerable<T> GetNodesInside(Rect bounds)
+    public IEnumerable<T> GetNodesInside(Box bounds)
     {
         foreach (QuadNode n in GetNodes(bounds))
         {
@@ -91,7 +92,7 @@ public class QuadTree<T> where T : class
     /// </summary>
     /// <param name="bounds">The bounds to test 给定的边界</param>
     /// <returns>如果此象限中有任何节点与给定边界相交，则返回 true。</returns>
-    public bool HasNodesInside(Rect bounds)
+    public bool HasNodesInside(Box bounds)
     {
         if (this.root == null)
         {
@@ -105,7 +106,7 @@ public class QuadTree<T> where T : class
     /// </summary>
     /// <param name="bounds">The bounds to test</param>
     /// <returns>The list of nodes intersecting the given bounds</returns>
-    IEnumerable<QuadNode> GetNodes(Rect bounds)
+    IEnumerable<QuadNode> GetNodes(Box bounds)
     {
         List<QuadNode> result = new();
         if (this.root != null)
@@ -152,7 +153,7 @@ public class QuadTree<T> where T : class
     /// </summary>
     internal class QuadNode
     {
-        Rect bounds;
+        Box bounds;
         QuadNode? next; // linked in a circular list.
         T node; // the actual visual object being stored here.
 
@@ -161,7 +162,7 @@ public class QuadTree<T> where T : class
         /// </summary>
         /// <param name="node">The node</param>
         /// <param name="bounds">The bounds of that node</param>
-        public QuadNode(T node, Rect bounds)
+        public QuadNode(T node, Box bounds)
         {
             this.node = node;
             this.bounds = bounds;
@@ -177,9 +178,9 @@ public class QuadTree<T> where T : class
         }
 
         /// <summary>
-        /// The Rect bounds of the node
+        /// The Box bounds of the node
         /// </summary>
-        public Rect Bounds
+        public Box Bounds
         {
             get { return this.bounds; }
         }
@@ -204,7 +205,7 @@ public class QuadTree<T> where T : class
     internal class Quadrant
     {
         readonly Quadrant? parent;
-        Rect bounds; // quadrant bounds.
+        Box bounds; // quadrant bounds.
 
         QuadNode nodes; // nodes that overlap the sub quadrant boundaries.
 
@@ -223,7 +224,7 @@ public class QuadTree<T> where T : class
         /// </summary>
         /// <param name="parent">The parent quadrant (if any)</param>
         /// <param name="bounds">The bounds of this quadrant</param>
-        public Quadrant(Quadrant? parent, Rect bounds)
+        public Quadrant(Quadrant? parent, Box bounds)
         {
             this.parent = parent;
             //Fx.Assert(bounds.Width != 0 && bounds.Height != 0, "Cannot have empty bound");
@@ -245,7 +246,7 @@ public class QuadTree<T> where T : class
         /// <summary>
         /// The bounds of this quadrant
         /// </summary>
-        internal Rect Bounds
+        internal Box Bounds
         {
             get { return this.bounds; }
         }
@@ -256,7 +257,7 @@ public class QuadTree<T> where T : class
         /// <param name="node">The node </param>
         /// <param name="bounds">The bounds of that node</param>
         /// <returns></returns>
-        internal Quadrant Insert(T node, Rect bounds)
+        internal Quadrant Insert(T node, Box bounds)
         {
 
             
@@ -279,13 +280,13 @@ public class QuadTree<T> where T : class
                     h = 1;
                 }
 
-                // assumption that the Rect struct is almost as fast as doing the operations
-                // manually since Rect is a value type.
+                // assumption that the Box struct is almost as fast as doing the operations
+                // manually since Box is a value type.
 
-                Rect topLeft = new Rect(toInsert.bounds.Left, toInsert.bounds.Top, w, h);
-                Rect topRight = new Rect(toInsert.bounds.Left + w, toInsert.bounds.Top, w, h);
-                Rect bottomLeft = new Rect(toInsert.bounds.Left, toInsert.bounds.Top + h, w, h);
-                Rect bottomRight = new Rect(toInsert.bounds.Left + w, toInsert.bounds.Top + h, w, h);
+                Box topLeft = new Box(toInsert.bounds.Left, toInsert.bounds.Top, w, h);
+                Box topRight = new Box(toInsert.bounds.Left + w, toInsert.bounds.Top, w, h);
+                Box bottomLeft = new Box(toInsert.bounds.Left, toInsert.bounds.Top + h, w, h);
+                Box bottomRight = new Box(toInsert.bounds.Left + w, toInsert.bounds.Top + h, w, h);
 
                 Quadrant? child = null;
 
@@ -353,19 +354,19 @@ public class QuadTree<T> where T : class
         /// </summary>
         /// <param name="nodes">List of nodes found in the given bounds</param>
         /// <param name="bounds">The bounds that contains the nodes you want returned</param>
-        internal void GetIntersectingNodes(List<QuadNode> nodes, Rect bounds)
+        internal void GetIntersectingNodes(List<QuadNode> nodes, Box bounds)
         {
             if (bounds.IsEmpty) return;
             double w = this.bounds.Width / 2;
             double h = this.bounds.Height / 2;
 
-            // assumption that the Rect struct is almost as fast as doing the operations
-            // manually since Rect is a value type.
+            // assumption that the Box struct is almost as fast as doing the operations
+            // manually since Box is a value type.
 
-            Rect topLeft = new Rect(this.bounds.Left, this.bounds.Top, w, h);
-            Rect topRight = new Rect(this.bounds.Left + w, this.bounds.Top, w, h);
-            Rect bottomLeft = new Rect(this.bounds.Left, this.bounds.Top + h, w, h);
-            Rect bottomRight = new Rect(this.bounds.Left + w, this.bounds.Top + h, w, h);
+            Box topLeft = new Box(this.bounds.Left, this.bounds.Top, w, h);
+            Box topRight = new Box(this.bounds.Left + w, this.bounds.Top, w, h);
+            Box bottomLeft = new Box(this.bounds.Left, this.bounds.Top + h, w, h);
+            Box bottomRight = new Box(this.bounds.Left + w, this.bounds.Top + h, w, h);
 
             // See if any child quadrants completely contain this node.
             if (topLeft.IntersectsWith(bounds) && this.topLeft != null)
@@ -398,7 +399,7 @@ public class QuadTree<T> where T : class
         /// <param name="last">The last QuadNode in a circularly linked list</param>
         /// <param name="nodes">The resulting nodes are added to this list</param>
         /// <param name="bounds">The bounds to test against each node</param>
-        static void GetIntersectingNodes(QuadNode last, List<QuadNode> nodes, Rect bounds)
+        static void GetIntersectingNodes(QuadNode last, List<QuadNode> nodes, Box bounds)
         {
             if (last != null)
             {
@@ -420,19 +421,19 @@ public class QuadTree<T> where T : class
         /// </summary>
         /// <param name="bounds">The bounds to test</param>
         /// <returns>boolean</returns>
-        internal bool HasIntersectingNodes(Rect bounds)
+        internal bool HasIntersectingNodes(Box bounds)
         {
             if (bounds.IsEmpty) return false;
             double w = this.bounds.Width / 2;
             double h = this.bounds.Height / 2;
 
-            // assumption that the Rect struct is almost as fast as doing the operations
-            // manually since Rect is a value type.
+            // assumption that the Box struct is almost as fast as doing the operations
+            // manually since Box is a value type.
 
-            Rect topLeft = new Rect(this.bounds.Left, this.bounds.Top, w, h);
-            Rect topRight = new Rect(this.bounds.Left + w, this.bounds.Top, w, h);
-            Rect bottomLeft = new Rect(this.bounds.Left, this.bounds.Top + h, w, h);
-            Rect bottomRight = new Rect(this.bounds.Left + w, this.bounds.Top + h, w, h);
+            Box topLeft = new Box(this.bounds.Left, this.bounds.Top, w, h);
+            Box topRight = new Box(this.bounds.Left + w, this.bounds.Top, w, h);
+            Box bottomLeft = new Box(this.bounds.Left, this.bounds.Top + h, w, h);
+            Box bottomRight = new Box(this.bounds.Left + w, this.bounds.Top + h, w, h);
 
             bool found = false;
 
@@ -469,7 +470,7 @@ public class QuadTree<T> where T : class
         /// <param name="last">The last node in the circularly linked list.</param>
         /// <param name="bounds">Bounds to test</param>
         /// <returns>Return true if a node in the list intersects the bounds</returns>
-        static bool HasIntersectingNodes(QuadNode last, Rect bounds)
+        static bool HasIntersectingNodes(QuadNode last, Box bounds)
         {
             if (last != null)
             {
