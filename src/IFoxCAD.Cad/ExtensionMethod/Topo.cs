@@ -29,7 +29,7 @@ public struct EdgeItem : IEquatable<EdgeItem>
     #region 方法
     public CompositeCurve3d? GetCurve()
     {
-        var cc3d = Edge.Curve;
+        var cc3d = Edge.GeCurve3d;
         if (Forward)
         {
             return cc3d;
@@ -175,36 +175,38 @@ public struct EdgeItem : IEquatable<EdgeItem>
     #endregion
 }
 
-/// <summary>
-/// 边
-/// </summary>
+
 public class Edge : IEquatable<Edge>
 {
     #region 字段
-    public CompositeCurve3d Curve;
+    public CompositeCurve3d GeCurve3d;
     public int StartIndex;
     public int EndIndex;
+    public static Tolerance _cadTolerance = new(1e-6, 1e-6);
     #endregion
 
     #region 构造
+    /// <summary>
+    /// 边线(没有包围盒,除非ToCurve)
+    /// </summary>
     public Edge(CompositeCurve3d curve)
     {
-        Curve = curve;
+        GeCurve3d = curve;
     }
     #endregion
 
     #region 方法
     public Vector3d GetStartVector()
     {
-        var inter = Curve.GetInterval();
-        PointOnCurve3d poc = new(Curve, inter.LowerBound);
+        var inter = GeCurve3d.GetInterval();
+        PointOnCurve3d poc = new(GeCurve3d, inter.LowerBound);
         return poc.GetDerivative(1);
     }
 
     public Vector3d GetEndVector()
     {
-        var inter = Curve.GetInterval();
-        PointOnCurve3d poc = new(Curve, inter.UpperBound);
+        var inter = GeCurve3d.GetInterval();
+        PointOnCurve3d poc = new(GeCurve3d, inter.UpperBound);
         return -poc.GetDerivative(1);
     }
 
@@ -260,125 +262,117 @@ public class Edge : IEquatable<Edge>
         if (ReferenceEquals(a, b))//同一对象
             return true;
 
-        return a.Curve == b.Curve &&
-               a.StartIndex == b.StartIndex &&
-               a.EndIndex == b.EndIndex;
+        return a.GeCurve3d == b.GeCurve3d
+            && a.StartIndex == b.StartIndex
+            && a.EndIndex == b.EndIndex;
     }
 
+    /// <summary>
+    /// 采样点比较(会排序,无视顺序逆序)
+    /// </summary>
+    /// <param name="b"></param>
+    /// <param name="splitNum">切割曲线份数</param>
+    /// <returns></returns>
+    public bool SplitPointEquals(Edge? b, int splitNum = 5)
+    {
+        //此处地方不允许使用==null,因为此处是定义
+        if (b is null)
+            return this is null;
+        else if (this is null)
+            return false;
+        if (ReferenceEquals(this, b))//同一对象
+            return true;
+
+        //曲线采样分割点也一样,才是一样
+        Point3d[] sp1;
+        Point3d[] sp2;
+#if NET35
+        sp1 = GeCurve3d.GetSamplePoints(splitNum);
+        sp2 = b.GeCurve3d.GetSamplePoints(splitNum);
+        if (sp1.Length != sp2.Length)
+            return false;
+#else
+        var tmp1 = GeCurve3d.GetSamplePoints(splitNum);
+        var tmp2 = b.GeCurve3d.GetSamplePoints(splitNum);
+        if (tmp1.Length != tmp2.Length)
+            return false;
+
+        sp1 = tmp1.Select(a => a.Point).ToArray();
+        sp2 = tmp2.Select(a => a.Point).ToArray();
+#endif
+
+        //因为两条曲线可能是逆向的,所以采样之后需要点排序
+        sp1 = sp1.OrderBy(a => a.X).ThenBy(a => a.Y).ThenBy(a => a.Z).ToArray();
+        sp2 = sp2.OrderBy(a => a.X).ThenBy(a => a.Y).ThenBy(a => a.Z).ToArray();
+
+        for (int i = 0; i < sp1.Length; i++)
+        {
+            if (!sp1[i].IsEqualTo(sp2[i], _cadTolerance))
+                return false;
+        }
+        return true;
+    }
     public override int GetHashCode()
     {
         return base.GetHashCode();
     }
     #endregion
 }
- 
 
-public class CurveInfo: Rect
+
+public class CurveInfo : Rect
 {
+    /// <summary>
+    /// 曲线图元(母线)
+    /// </summary>
     public Curve Curve;
-    public CompositeCurve3d? CompositeCurve3d 
-    { 
-        get  {
-            return 
+    /// <summary>
+    /// 曲线参数
+    /// </summary>
+    public List<double> Paramss;
+
+    Edge? _Edge;
+    /// <summary>
+    /// 边界
+    /// </summary>
+    public Edge Edge
+    {
+        get
+        {
+            if (_Edge == null)
+                _Edge = new Edge(Curve.ToCompositeCurve3d()!);
+            return _Edge;
         }
     }
- 
-    public List<double>? Paramss;
+
     public CurveInfo(Curve curve)
     {
-        Curve = curve;
         Paramss = new List<double>();
+        Curve = curve;
+
+        //TODO 此处存在bug:射线之类的没有过滤
+        var box = Curve.GeometricExtents;
+        _X = box.MinPoint.X;
+        _Y = box.MinPoint.Y;
+        _Right = box.MaxPoint.X;
+        _Top = box.MaxPoint.Y;
+    }
+
+    /// <summary>
+    /// 分割曲线,返回子线
+    /// </summary>
+    /// <param name="pars1">曲线参数</param>
+    /// <returns></returns>
+    public List<Edge> Split(List<double> pars1)
+    {
+        var edges = new List<Edge>();
+        var c3ds = Edge.GeCurve3d.GetSplitCurves(pars1);
+        if (c3ds.Count > 0)
+            edges.AddRange(c3ds.Select(c => new Edge(c)));
+        return edges;
     }
 }
 
-public class Topo
-{
-    /// <summary>
-    /// 用于切割的曲线集
-    /// </summary>
-    List<Curve> _curves;
-
-    public Topo(List<Curve> curves)
-    {
-        _curves = curves;
-    }
-
-    /// <summary>
-    /// 从曲线集合分离边界(交点断分曲线的)和独立的曲线
-    /// </summary>
-    /// <param name="edges">边界(可能仍然存在自闭,因为样条曲线允许打个鱼形圈,尾巴又交叉在其他曲线)</param>
-    /// <param name="closedCurvesOut">自闭的曲线</param>
-    public void GetEdgesAndnewCurves(List<Edge> edges, List<Curve> closedCurvesOut)
-    {
-        //请不要把它做成结构,因为这是一种ArrayOfStruct写法
-        var geCurves = new List<CompositeCurve3d>();
-        var paramss = new List<List<double>>();
-         
-        //将曲线按节点转为Ge曲线集(提取多段线每段/样条曲线子段..)
-        for (int i = 0; i < _curves.Count; i++)
-        {
-            _curves[i].GeometricExtents.
-            var cc3d = _curves[i].ToCompositeCurve3d();
-            if (cc3d is not null)
-            {
-                geCurves.Add(cc3d);
-                paramss.Add(new List<double>());
-            }
-        }
-
-        var cci3d = new CurveCurveIntersector3d();
-
-        //此处是O(n²)
-        //曲线a和曲线a/b/c/d/e...求交点,组成交点数组(第一次是自交对比)
-        for (int i = 0; i < geCurves.Count; i++)
-        {
-            var gc1 = geCurves[i];
-            var pars1 = paramss[i];
-        
-            for (int j = i; j < geCurves.Count; j++)
-            {
-                var gc2 = geCurves[j];
-                var pars2 = paramss[j];
-
-                //求交类此方法内部会重置,不需要清空,每次set都会有个新的结果
-                cci3d.Set(gc1, gc2, Vector3d.ZAxis);
-
-                //计算两条曲线的交点(多个),分别放入对应的交点参数集
-                for (int k = 0; k < cci3d.NumberOfIntersectionPoints; k++)
-                {
-                    var pars = cci3d.GetIntersectionParameters(k);
-                    pars1.Add(pars[0]);//0是第一条曲线的交点参数
-                    pars2.Add(pars[1]);//1是第二条曲线的交点参数
-                }
-            }
-
-            if (gc1.IsClosed())
-            {
-                closedCurvesOut.Add(gc1.ToCurve()!);
-            }
-
-            //有交点参数
-            if (pars1.Count > 0)
-            {
-                //根据交点参数断分曲线,然后获取边界
-                var c3ds = gc1.GetSplitCurves(pars1);
-                if (c3ds.Count > 0)
-                {
-                    edges.AddRange(c3ds.Select(c => new Edge(c)));
-                }
-                else
-                {
-                    //惊惊留:(不敢删啊...)
-                    //狐哥写的这里出现的条件是:有曲线参数,但是切分不出来曲线...没懂为什么...
-                    //猜测:曲线参数在头或者尾,那么交点就是直接碰头碰尾,
-                    //也就是 aa对比 同一条曲线自己和自己产生的?
-                    //参数大于0{是这些参数? 头参/尾参/参数不在曲线上?}
-                    edges.Add(new Edge(gc1));
-                }
-            }
-        }
-        edges = edges.Distinct(new EdgeComparer()).ToList();
-    }
 
 //    private class EdgeComparer : IEqualityComparer<Edge>
 //    {
@@ -402,6 +396,121 @@ public class Topo
 //        }
 //    }
 
+
+public class Topo
+{
+    /// <summary>
+    /// 用于切割的曲线集
+    /// </summary>
+    List<CurveInfo> _curves;
+
+    /// <summary>
+    /// 求交类
+    /// </summary>
+    static CurveCurveIntersector3d _cci3d = new();
+    public static Tolerance _cadTolerance = new(1e-6, 1e-6);
+
+    public Topo(List<Curve> curves)
+    {
+        _curves = new();
+        for (int i = 0; i < curves.Count; i++)
+            _curves.Add(new CurveInfo(curves[i]));
+
+        //TODO 这里需要补充 列扫碰撞检测(碰撞算法)
+        //将包围盒碰撞的放入一个集合a,这个集合a又被_curves储存起来,
+        //集合a再运行 GetEdgesAndnewCurves
+    }
+
+    /// <summary>
+    /// 利用交点断分曲线和独立曲线
+    /// </summary>
+    /// <param name="edgesOut">边界(可能仍然存在自闭,因为样条曲线允许打个鱼形圈,尾巴又交叉在其他曲线)</param>
+    /// <param name="closedCurvesOut">自闭的曲线</param>
+    public void GetEdgesAndnewCurves(List<Edge> edgesOut, List<Curve> closedCurvesOut)
+    {
+        //此处是O(n²)
+        //曲线a和其他曲线n根据 交点 切割子线(第一次是自交对比)
+        for (int a = 0; a < _curves.Count; a++)
+        {
+            var curve1 = _curves[a];
+            var gc1 = curve1.Edge.GeCurve3d;
+            var pars1 = curve1.Paramss;
+
+            for (int n = a; n < _curves.Count; n++)
+            {
+                var curve2 = _curves[n];
+
+                //包围盒没有碰撞就直接结束
+                if (!curve1.IntersectsWith(curve2))
+                    continue;
+
+                var gc2 = curve2.Edge.GeCurve3d;
+                var pars2 = curve2.Paramss;
+
+                //求交类此方法内部会重置,不需要清空,每次set都会有个新的结果
+                _cci3d.Set(gc1, gc2, Vector3d.ZAxis);
+
+                //计算两条曲线的交点(多个),分别放入对应的交点参数集
+                for (int k = 0; k < _cci3d.NumberOfIntersectionPoints; k++)
+                {
+                    var pars = _cci3d.GetIntersectionParameters(k);
+                    pars1.Add(pars[0]);//0是第一条曲线的交点参数
+                    pars2.Add(pars[1]);//1是第二条曲线的交点参数
+                }
+            }
+
+            if (gc1.IsClosed())
+                closedCurvesOut.Add(gc1.ToCurve()!);
+
+            //有交点参数
+            if (pars1.Count > 0)
+            {
+                //根据交点参数断分曲线,然后获取边界
+                var c3ds = curve1.Split(pars1);
+                if (c3ds.Count > 0)
+                {
+                    edgesOut.AddRange(c3ds);
+                }
+                else
+                {
+                    //惊惊留:(不敢删啊...)
+                    //狐哥写的这里出现的条件是:有曲线参数,但是切分不出来曲线...没懂为什么...
+                    //猜测:曲线参数在头或者尾,那么交点就是直接碰头碰尾,
+                    //也就是 aa对比 同一条曲线自己和自己产生的?
+                    //参数大于0{是这些参数? 头参/尾参/参数不在曲线上?}
+                    edgesOut.Add(curve1.Edge);
+                }
+            }
+
+            if (edgesOut.Count > 0)
+            {
+                //Edge没有包围盒,无法快速判断
+                //曲线a和其他曲线n根据交点切割子线,会造成重复部分,例如多段线逆向相同
+                for (int i = edgesOut.Count - 1; i >= 0; i--)
+                {
+                    var aa = edgesOut[i];
+                    for (int j = i - 1; j >= 0; j--)
+                    {
+                        var bb = edgesOut[j];
+                        //顺序 || 逆序
+                        if ((aa.GeCurve3d.StartPoint.IsEqualTo(bb.GeCurve3d.StartPoint, _cadTolerance) &&
+                             aa.GeCurve3d.EndPoint.IsEqualTo(bb.GeCurve3d.EndPoint, _cadTolerance))
+                            ||
+                            (aa.GeCurve3d.StartPoint.IsEqualTo(bb.GeCurve3d.EndPoint, _cadTolerance) &&
+                             aa.GeCurve3d.EndPoint.IsEqualTo(bb.GeCurve3d.StartPoint, _cadTolerance)))
+                        {
+                            if (aa.SplitPointEquals(bb, 5))
+                                edgesOut.RemoveAt(i);
+                        }
+                    }
+                }
+            }
+        }
+
+        //TODO: 此处是否消重?此处数据量超大,但是可以用四叉树
+        //edgesOut = edgesOut.Distinct(new EdgeComparer()).ToList();
+    }
+
     /// <summary>
     /// 创建邻接表
     /// </summary>
@@ -420,41 +529,41 @@ public class Topo
         for (int i = 0; i < edges.Count; i++)
         {
             var edge = edges[i];
-            if (edge.Curve.IsClosed())
+            if (edge.GeCurve3d.IsClosed())
             {
                 closedEdges.Add(edge);
                 continue;
             }
 
-            if (knots.Contains(edge.Curve.StartPoint))
+            if (knots.Contains(edge.GeCurve3d.StartPoint))
             {
                 //含有就是其他曲线"共用"此交点,
                 //节点所在索引==共用计数索引=>将它++
-                edge.StartIndex = knots.IndexOf(edge.Curve.StartPoint);
+                edge.StartIndex = knots.IndexOf(edge.GeCurve3d.StartPoint);
                 nums[edge.StartIndex]++;
             }
             else
             {
                 //不含有就加入节点,共用计数也加入,边界设置节点索引
-                knots.Add(edge.Curve.StartPoint);
+                knots.Add(edge.GeCurve3d.StartPoint);
                 nums.Add(1);
                 edge.StartIndex = knots.Count - 1;
             }
 
-            if (knots.Contains(edge.Curve.EndPoint))
+            if (knots.Contains(edge.GeCurve3d.EndPoint))
             {
-                edge.EndIndex = knots.IndexOf(edge.Curve.EndPoint);
+                edge.EndIndex = knots.IndexOf(edge.GeCurve3d.EndPoint);
                 nums[edge.EndIndex]++;
             }
             else
             {
-                knots.Add(edge.Curve.EndPoint);
+                knots.Add(edge.GeCurve3d.EndPoint);
                 nums.Add(1);
                 edge.EndIndex = knots.Count - 1;
             }
         }
 
-        closedCurvesOut.AddRange(closedEdges.Select(e => e.Curve.ToCurve())!);
+        closedCurvesOut.AddRange(closedEdges.Select(e => e.GeCurve3d.ToCurve())!);
 
         //这里把交点只有一条曲线通过的点过滤掉了,也就是尾巴的图元,
         //剩下的都是闭合的曲线连接了,每个点都至少有两条曲线通过
@@ -531,8 +640,8 @@ public class Topo
                 if (regions[i].Count == regions[j].Count)
                 {
                     var node = regions[i].First;
-                    var curve = node!.Value.Edge.Curve;
-                    var node2 = regions[j].GetNode(e => e.Edge.Curve == curve);
+                    var curve = node!.Value.Edge.GeCurve3d;
+                    var node2 = regions[j].GetNode(e => e.Edge.GeCurve3d == curve);
                     //var node2 = regions[j].Find(node.Value);
                     if (node2 is not null)
                     {
@@ -543,7 +652,7 @@ public class Topo
                         {
                             node = node.GetNext(b);
                             node2 = node2.GetNext(b2);
-                            if (node!.Value.Edge.Curve != node2!.Value.Edge.Curve)
+                            if (node!.Value.Edge.GeCurve3d != node2!.Value.Edge.GeCurve3d)
                             {
                                 eq = false;
                                 break;

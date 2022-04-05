@@ -13,6 +13,7 @@ namespace Test
             tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
             tr.CurrentSpace.AddEntity(tt);
         }
+
         [CommandMethod("testCurveCurveIntersector3d")]
         public void TestCurveCurveIntersector3d()
         {
@@ -66,6 +67,8 @@ namespace Test
         }
 
 
+
+
         [CommandMethod("testtopo")]
         public void TestToPo()
         {
@@ -93,7 +96,7 @@ namespace Test
 
             for (int i = 0; i < edges.Count; i++)
             {
-                var ent = edges[i].Curve.ToCurve();
+                var ent = edges[i].GeCurve3d.ToCurve();
                 ent.ColorIndex = i;
                 tr.CurrentSpace.AddEntity(ent);
             }
