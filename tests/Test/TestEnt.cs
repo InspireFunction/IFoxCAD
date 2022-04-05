@@ -15,4 +15,26 @@ public class TestEnt
 
 
     }
+
+
+    [CommandMethod("Testtypespeed")]
+    public void TestTypeSpeed()
+    {
+        var line = new Line();
+        var line1 = line as Entity;
+        Tools.TestTimes(100000, "is 匹配：", () =>
+         {
+             var t = line1 is Line;
+         });
+        Tools.TestTimes(100000, "name 匹配：", () =>
+        {
+            //var t = line.GetType().Name;
+            var tt = line1.GetType().Name == nameof(Line);
+        });
+        Tools.TestTimes(100000, "dxfname 匹配：", () =>
+        {
+            //var t = line.GetType().Name;
+            var tt = line1.GetRXClass().DxfName == nameof(Line);
+        });
+    }
 }
