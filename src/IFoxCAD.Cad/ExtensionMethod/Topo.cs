@@ -172,7 +172,7 @@ public class Edge : IEquatable<Edge>
                     (aa.GeCurve3d.StartPoint.IsEqualTo(bb.GeCurve3d.EndPoint, CadTolerance) &&
                      aa.GeCurve3d.EndPoint.IsEqualTo(bb.GeCurve3d.StartPoint, CadTolerance)))
                 {
-                    if (aa.SplitPointEquals(bb, 5))
+                    if (aa.SplitPointEquals(bb))
                         edgesOut.RemoveAt(i);
                 }
             }
