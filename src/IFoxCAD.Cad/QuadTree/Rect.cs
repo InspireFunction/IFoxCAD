@@ -22,10 +22,10 @@ public class TolerancePoint2d : IEqualityComparer<Point2d>
         else if (a == null)
             return false;
 #if true
-            // 方形限定
-            // 在 0~1e-6 范围实现 圆形限定 则计算部分在浮点数6位后,没有啥意义
-            // 在 0~1e-6 范围实现 从时间和CPU消耗来说,圆形限定 都没有 方形限定 的好
-            return a.IsEqualTo(b, new Tolerance(_tolerance, _tolerance));
+        // 方形限定
+        // 在 0~1e-6 范围实现 圆形限定 则计算部分在浮点数6位后,没有啥意义
+        // 在 0~1e-6 范围实现 从时间和CPU消耗来说,圆形限定 都没有 方形限定 的好
+        return a.IsEqualTo(b, new Tolerance(_tolerance, _tolerance));
 #else
             // 圆形限定
             // DistanceTo 分别对XYZ进行了一次乘法,也是总数3次乘法,然后求了一次平方根
@@ -39,7 +39,7 @@ public class TolerancePoint2d : IEqualityComparer<Point2d>
         //结构体直接返回 obj.GetHashCode(); Point3d ToleranceDistinct3d
         //因为结构体是用可值叠加来判断?或者因为结构体兼备了一些享元模式的状态?
         //而类是构造的指针,所以取哈希值要改成x+y+z..s给Equals判断用,+是会溢出,所以用^
-        return (int)obj.X ^ (int)obj.Y ^ (int)obj.Z;
+        return (int)obj.X ^ (int)obj.Y;// ^ (int)obj.Z;
     }
 }
 
@@ -248,7 +248,7 @@ public class Rect : IEquatable<Rect>
     }
 
     /// <summary>
-    /// 包含是四个点都包含
+    /// 四个点都在内部就是包含
     /// </summary>
     /// <param name="rect"></param>
     /// <returns></returns>
@@ -259,7 +259,7 @@ public class Rect : IEquatable<Rect>
     }
 
     /// <summary>
-    /// 碰撞是其中一个点在就是在
+    /// 一个点在内部就是碰撞
     /// </summary>
     /// <param name="rect"></param>
     /// <returns></returns>
@@ -334,13 +334,13 @@ public class Rect : IEquatable<Rect>
         //最快的方案
         //点乘求值法:(为了处理 正梯形/平行四边形 需要三次)
         //这里的容差要在1e-8内,因为点乘的三次浮点数乘法会令精度变低
-        var dot = DotProductValue( pts[0],pts[1], pts[3]);
+        var dot = DotProductValue(pts[0], pts[1], pts[3]);
         if (Math.Abs(dot) < tolerance)
         {
-            dot = DotProductValue( pts[1],pts[2], pts[0]);
+            dot = DotProductValue(pts[1], pts[2], pts[0]);
             if (Math.Abs(dot) < tolerance)
             {
-                dot = DotProductValue(pts[2],pts[3], pts[1]);
+                dot = DotProductValue(pts[2], pts[3], pts[1]);
                 return Math.Abs(dot) < tolerance;
             }
         }
@@ -370,7 +370,7 @@ public class Rect : IEquatable<Rect>
     {
         if (ptList == null)
             throw new ArgumentNullException(nameof(ptList));
-   
+
         var pts = ptList.ToList();
         if (ptList.Count == 5)
         {
@@ -440,7 +440,7 @@ public class Rect : IEquatable<Rect>
             node = node.Next;
         }
         //保证是逆时针
-        var isAcw = CrossAclockwise(pts[0],pts[1], pts[2]);
+        var isAcw = CrossAclockwise(pts[0], pts[1], pts[2]);
         if (!isAcw)
         {
             var tmp = pts[1];
