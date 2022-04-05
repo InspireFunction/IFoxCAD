@@ -244,24 +244,11 @@ public static class Curve3dEx
         {
             var cus1 = curves[curves.Count - 1].GetCurves();
             var cus2 = curves[0].GetCurves();
-            var cs = Combine2(cus1, cus2);
+            var cs = cus1.Combine2(cus2);
             curves[curves.Count - 1] = new CompositeCurve3d(cs);
             curves.RemoveAt(0);
         }
         return curves;
-    }
-
-    /// <summary>
-    /// 合并数组
-    /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    static T[] Combine2<T>(T[] a, T[] b)
-    {
-        var c = new T[a.Length + b.Length];
-        Array.Copy(a, 0, c, 0, a.Length);
-        Array.Copy(b, 0, c, a.Length, b.Length);
-        return c;
     }
 
     /// <summary>
