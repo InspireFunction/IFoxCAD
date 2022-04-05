@@ -149,8 +149,7 @@ public static class Curve3dEx
     /// <returns>三维复合曲线列表</returns>
     public static List<CompositeCurve3d> GetSplitCurves(this CompositeCurve3d c3d, List<double> pars)
     {
-        Interval inter = c3d.GetInterval();
-        Curve3d[] c3ds = c3d.GetCurves();
+        //曲线参数剔除重复的
         pars.Sort();
         for (int i = pars.Count - 1; i > 0; i--)
         {
@@ -160,6 +159,11 @@ public static class Curve3dEx
 
         if (pars.Count == 0)
             return new List<CompositeCurve3d>();
+
+        //这个是曲线参数类
+        var inter = c3d.GetInterval();
+        //曲线们
+        var c3ds = c3d.GetCurves();
         if (c3ds.Length == 1 && c3ds[0].IsClosed())
         {
             //闭合曲线不允许打断于一点
@@ -207,8 +211,8 @@ public static class Curve3dEx
         {
             List<Curve3d> cc3ds = new();
             //复合曲线参数转换到包含曲线参数
-            CompositeParameter cp1 = c3d.GlobalToLocalParameter(pars[i]);
-            CompositeParameter cp2 = c3d.GlobalToLocalParameter(pars[i + 1]);
+            var cp1 = c3d.GlobalToLocalParameter(pars[i]);
+            var cp2 = c3d.GlobalToLocalParameter(pars[i + 1]);
             if (cp1.SegmentIndex == cp2.SegmentIndex)
             {
                 cc3ds.Add(
@@ -238,13 +242,26 @@ public static class Curve3dEx
 
         if (c3d.IsClosed() && c3ds.Length > 1)
         {
-            var cs = curves[curves.Count - 1].GetCurves().ToList();
-            cs.AddRange(curves[0].GetCurves());
-            curves[curves.Count - 1] = new CompositeCurve3d(cs.ToArray());
+            var cus1 = curves[curves.Count - 1].GetCurves();
+            var cus2 = curves[0].GetCurves();
+            var cs = Combine2(cus1, cus2);
+            curves[curves.Count - 1] = new CompositeCurve3d(cs);
             curves.RemoveAt(0);
         }
-
         return curves;
+    }
+
+    /// <summary>
+    /// 合并数组
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    static T[] Combine2<T>(T[] a, T[] b)
+    {
+        var c = new T[a.Length + b.Length];
+        Array.Copy(a, 0, c, 0, a.Length);
+        Array.Copy(b, 0, c, a.Length, b.Length);
+        return c;
     }
 
     /// <summary>
@@ -267,9 +284,10 @@ public static class Curve3dEx
         {
             bool hasNurb = false;
 
-            foreach (var c in cs)
+            for (int i = 0; i < cs.Length; i++)
             {
-                if (c is NurbCurve3d || c is EllipticalArc3d)
+                var c = cs[i].GetType().Name;
+                if (c == nameof(NurbCurve3d) || c == nameof(EllipticalArc3d))
                 {
                     hasNurb = true;
                     break;
@@ -277,7 +295,7 @@ public static class Curve3dEx
             }
             if (hasNurb)
             {
-                NurbCurve3d? nc3d = cs[0].ToNurbCurve3d();
+                var nc3d = cs[0].ToNurbCurve3d();
                 for (int i = 1; i < cs.Length; i++)
                     nc3d?.JoinWith(cs[i].ToNurbCurve3d());
                 return nc3d?.ToCurve();
