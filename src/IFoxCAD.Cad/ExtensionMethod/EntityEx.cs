@@ -76,7 +76,7 @@ public static class EntityEx
     }
     #endregion
 
-    #region TransformBy
+    #region 实体线性变换
 
     /// <summary>
     /// 移动实体
@@ -105,7 +105,7 @@ public static class EntityEx
     /// </summary>
     /// <param name="ent">实体</param>
     /// <param name="center">旋转中心</param>
-    /// <param name="angle">转角</param>
+    /// <param name="angle">转角，弧度制，正数为顺时针</param>
     /// <param name="normal">旋转平面的法向矢量</param>
     public static void Rotation(this Entity ent, Point3d center, double angle, Vector3d normal)
     {
@@ -117,7 +117,7 @@ public static class EntityEx
     /// </summary>
     /// <param name="ent">实体</param>
     /// <param name="center">旋转中心</param>
-    /// <param name="angle">转角</param>
+    /// <param name="angle">转角，弧度制，正数为顺时针</param>
     public static void Rotation(this Entity ent, Point3d center, double angle)
     {
         ent.TransformBy(Matrix3d.Rotation(angle, Vector3d.ZAxis.TransformBy(ent.Ecs), center));
