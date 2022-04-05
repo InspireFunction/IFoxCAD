@@ -2,179 +2,6 @@
 
 using IFoxCAD.Basal;
 
-/// <summary>
-/// 边节点
-/// </summary>
-public struct EdgeItem : IEquatable<EdgeItem>
-{
-    #region 字段
-    /// <summary>
-    /// 边界
-    /// </summary>
-    public Edge Edge;
-    /// <summary>
-    /// 用来判断搜索方向(向前还是向后)
-    /// </summary>
-    public bool Forward;
-    #endregion
-
-    #region 构造
-    public EdgeItem(Edge edge, bool forward)
-    {
-        Edge = edge;
-        Forward = forward;
-    }
-    #endregion
-
-    #region 方法
-    public CompositeCurve3d? GetCurve()
-    {
-        var cc3d = Edge.GeCurve3d;
-        if (Forward)
-        {
-            return cc3d;
-        }
-        else
-        {
-            //反向曲线参数
-            cc3d = cc3d.Clone() as CompositeCurve3d;
-            return cc3d?.GetReverseParameterCurve() as CompositeCurve3d;
-        }
-    }
-
-    /// <summary>
-    /// 查找面域
-    /// </summary>
-    /// <param name="edges"></param>
-    /// <param name="regions"></param>
-    public void FindRegion(List<Edge> edges, List<LoopList<EdgeItem>> regions)
-    {
-        var region = new LoopList<EdgeItem>();
-        var edgeItem = this;
-        region.Add(edgeItem);
-        var edgeItem2 = this.GetNext(edges);
-        if (edgeItem2.Edge is null)
-            return;
-
-        bool hasList = false;
-
-        for (int i = 0; i < regions.Count; i++)
-        {
-            var edgeList2 = regions[i];
-            var node = edgeList2.GetNode(e => e.Equals(edgeItem));
-            if (node is not null && node != edgeList2.Last)
-            {
-                if (node.Next!.Value.Equals(edgeItem2))
-                {
-                    hasList = true;
-                    break;
-                }
-            }
-        }
-        if (!hasList)
-        {
-            while (edgeItem2.Edge is not null)
-            {
-                if (edgeItem2.Edge == edgeItem.Edge)
-                    break;
-                region.Add(edgeItem2); //TODO 此处死循环,上一条语句判断失误,导致不停的将相同的值加入region
-                edgeItem2 = edgeItem2.GetNext(edges);
-            }
-            if (edgeItem2.Edge == edgeItem.Edge)
-                regions.Add(region);
-        }
-    }
-
-    /// <summary>
-    /// 获取下一个
-    /// </summary>
-    /// <param name="edges"></param>
-    /// <returns></returns>
-    public EdgeItem GetNext(List<Edge> edges)
-    {
-        Vector3d vec;
-        int next;
-        if (Forward)
-        {
-            vec = Edge.GetEndVector();
-            next = Edge.EndIndex;
-        }
-        else
-        {
-            vec = Edge.GetStartVector();
-            next = Edge.StartIndex;
-        }
-
-        EdgeItem item = new();
-        Vector3d vec2, vec3 = new();
-        double angle = 0;
-        bool hasNext = false;
-        bool forward = false;
-        for (int i = 0; i < edges.Count; i++)
-        {
-            var edge = edges[i];
-            if (edge.IsNext(Edge, next, ref vec3, ref forward))
-            {
-                if (hasNext)
-                {
-                    var angle2 = vec.GetAngleTo(vec3, Vector3d.ZAxis);
-                    if (angle2 < angle)
-                    {
-                        vec2 = vec3;
-                        angle = angle2;
-                        item.Edge = edge;
-                        item.Forward = forward;
-                    }
-                }
-                else
-                {
-                    vec2 = vec3;
-                    angle = vec.GetAngleTo(vec2, Vector3d.ZAxis);
-                    item.Edge = edge;
-                    item.Forward = forward;
-                    hasNext = true;
-                }
-            }
-        }
-        return item;
-    }
-    #endregion
-
-    #region 类型转换
-    public override string ToString()
-    {
-        return
-            Forward ?
-            string.Format("{0}-{1}", Edge.StartIndex, Edge.EndIndex) :
-            string.Format("{0}-{1}", Edge.EndIndex, Edge.StartIndex);
-    }
-    #endregion
-
-    #region 重载运算符_比较
-    public override bool Equals(object obj)
-    {
-        return this == (EdgeItem)obj;
-    }
-    public bool Equals(EdgeItem b)
-    {
-        return this == b;
-    }
-    public static bool operator !=(EdgeItem a, EdgeItem b)
-    {
-        return !(a == b);
-    }
-    public static bool operator ==(EdgeItem a, EdgeItem b)
-    {
-        return a.Edge == b.Edge && a.Forward == b.Forward;
-    }
-    public override int GetHashCode()
-    {
-        return base.GetHashCode();
-        //return this.ToString().GetHashCode();
-    }
-    #endregion
-}
-
 
 public class Edge : IEquatable<Edge>
 {
@@ -182,16 +9,21 @@ public class Edge : IEquatable<Edge>
     public CompositeCurve3d GeCurve3d;
     public int StartIndex;
     public int EndIndex;
-    public static Tolerance _cadTolerance = new(1e-6, 1e-6);
+    public static Tolerance CadTolerance = new(1e-6, 1e-6);
     #endregion
 
     #region 构造
     /// <summary>
     /// 边线(没有包围盒,除非ToCurve)
     /// </summary>
-    public Edge(CompositeCurve3d curve)
+    public Edge(CompositeCurve3d geCurve3d)
     {
-        GeCurve3d = curve;
+        GeCurve3d = geCurve3d;
+    }
+    public Edge(Edge edge) : this(edge.GeCurve3d)
+    {
+        StartIndex = edge.StartIndex;
+        EndIndex = edge.EndIndex;
     }
     #endregion
 
@@ -220,20 +52,20 @@ public class Edge : IEquatable<Edge>
     /// <returns></returns>
     public bool IsNext(Edge edge, int startOrEndIndex, ref Vector3d vec, ref bool forward)
     {
-        if (edge != this)
+        if (edge == this)
+            return false;
+
+        if (StartIndex == startOrEndIndex)
         {
-            if (StartIndex == startOrEndIndex)
-            {
-                vec = GetStartVector();
-                forward = true;
-                return true;
-            }
-            else if (EndIndex == startOrEndIndex)
-            {
-                vec = GetEndVector();
-                forward = false;
-                return true;
-            }
+            vec = GetStartVector();
+            forward = true;
+            return true;
+        }
+        else if (EndIndex == startOrEndIndex)
+        {
+            vec = GetEndVector();
+            forward = false;
+            return true;
         }
         return false;
     }
@@ -273,9 +105,8 @@ public class Edge : IEquatable<Edge>
     /// <param name="b"></param>
     /// <param name="splitNum">切割曲线份数</param>
     /// <returns></returns>
-    public bool SplitPointEquals(Edge? b, int splitNum = 5)
+    public bool SplitPointEquals(Edge? b, int splitNum = 4)
     {
-        //此处地方不允许使用==null,因为此处是定义
         if (b is null)
             return this is null;
         else if (this is null)
@@ -283,9 +114,13 @@ public class Edge : IEquatable<Edge>
         if (ReferenceEquals(this, b))//同一对象
             return true;
 
+        //这里获取曲线长度会经过很多次平方根,
+        //所以不要这样做,直接采样点之后判断就完事
+
         //曲线采样分割点也一样,才是一样
         Point3d[] sp1;
         Point3d[] sp2;
+
 #if NET35
         sp1 = GeCurve3d.GetSamplePoints(splitNum);
         sp2 = b.GeCurve3d.GetSamplePoints(splitNum);
@@ -307,10 +142,238 @@ public class Edge : IEquatable<Edge>
 
         for (int i = 0; i < sp1.Length; i++)
         {
-            if (!sp1[i].IsEqualTo(sp2[i], _cadTolerance))
+            if (!sp1[i].IsEqualTo(sp2[i], CadTolerance))
                 return false;
         }
         return true;
+    }
+
+    /// <summary>
+    /// 消重顺序逆序
+    /// </summary>
+    /// <param name="edgesOut"></param>
+    public static void Distinct(List<Edge> edgesOut)
+    {
+        if (edgesOut.Count > 0)
+            return;
+
+        //Edge没有包围盒,无法快速判断
+        //曲线a和其他曲线n根据交点切割子线,会造成重复部分,例如多段线逆向相同
+        for (int i = edgesOut.Count - 1; i >= 0; i--)
+        {
+            var aa = edgesOut[i];
+            for (int j = i - 1; j >= 0; j--)
+            {
+                var bb = edgesOut[j];
+                //顺序 || 逆序
+                if ((aa.GeCurve3d.StartPoint.IsEqualTo(bb.GeCurve3d.StartPoint, CadTolerance) &&
+                     aa.GeCurve3d.EndPoint.IsEqualTo(bb.GeCurve3d.EndPoint, CadTolerance))
+                    ||
+                    (aa.GeCurve3d.StartPoint.IsEqualTo(bb.GeCurve3d.EndPoint, CadTolerance) &&
+                     aa.GeCurve3d.EndPoint.IsEqualTo(bb.GeCurve3d.StartPoint, CadTolerance)))
+                {
+                    if (aa.SplitPointEquals(bb, 5))
+                        edgesOut.RemoveAt(i);
+                }
+            }
+        }
+    }
+
+    //    private class EdgeComparer : IEqualityComparer<Edge>
+    //    {
+    //        public bool Equals(Edge x, Edge y)
+    //        {
+    //#if ac2009
+    //            var pts = x.Curve.GetSamplePoints(100);
+    //            return pts.All(pt => y.Curve.IsOn(pt));
+    //#elif ac2013 || ac2015
+    //            var pts = x.Curve.GetSamplePoints(100);
+    //            return pts.All(pt => y.Curve.IsOn(pt.Point));
+    //#endif
+    //            //return x.Curve.IsEqualTo(y.Curve);
+    //        }
+
+    //        // If Equals() returns true for a pair of objects
+    //        // then GetHashCode() must return the same value for these objects.
+    //        public int GetHashCode(Edge product)
+    //        {
+    //            return product.Curve.GetHashCode();
+    //        }
+    //    }
+
+    public override int GetHashCode()
+    {
+        return base.GetHashCode();
+    }
+    #endregion
+}
+
+
+public class EdgeItem : Edge, IEquatable<EdgeItem>
+{
+    #region 字段
+    /// <summary>
+    /// 用来判断搜索方向(向前还是向后)
+    /// </summary>
+    public bool Forward;
+    #endregion
+
+    #region 构造
+    /// <summary>
+    /// 边节点
+    /// </summary>
+    public EdgeItem(Edge edge, bool forward) : base(edge)
+    {
+        Forward = forward;
+    }
+    #endregion
+
+    #region 方法
+    public CompositeCurve3d? GetCurve()
+    {
+        var cc3d = GeCurve3d;
+        if (Forward)
+        {
+            return cc3d;
+        }
+        else
+        {
+            //反向曲线参数
+            cc3d = cc3d.Clone() as CompositeCurve3d;
+            return cc3d?.GetReverseParameterCurve() as CompositeCurve3d;
+        }
+    }
+
+    /// <summary>
+    /// 查找面域
+    /// </summary>
+    /// <param name="edges"></param>
+    /// <param name="regions"></param>
+    public void FindRegion(List<Edge> edges, List<LoopList<EdgeItem>> regions)
+    {
+        var region = new LoopList<EdgeItem>();
+        var edgeItem = this;
+        region.Add(edgeItem);
+        var edgeItem2 = this.GetNext(edges);
+        if (edgeItem2 is null)
+            return;
+
+        bool hasList = false;
+
+        for (int i = 0; i < regions.Count; i++)
+        {
+            var edgeList2 = regions[i];
+            var node = edgeList2.GetNode(e => e.Equals(edgeItem));
+            if (node is not null && node != edgeList2.Last)
+            {
+                if (node.Next!.Value.Equals(edgeItem2))
+                {
+                    hasList = true;
+                    break;
+                }
+            }
+        }
+        if (!hasList)
+        {
+            while (edgeItem2 is not null)
+            {
+                if (edgeItem2 == edgeItem)
+                    break;
+                region.Add(edgeItem2); //TODO 此处死循环,上一条语句判断失误,导致不停的将相同的值加入region
+                edgeItem2 = edgeItem2.GetNext(edges);
+            }
+            if (edgeItem2 == edgeItem)
+                regions.Add(region);
+        }
+    }
+
+    /// <summary>
+    /// 获取下一个
+    /// </summary>
+    /// <param name="edges"></param>
+    /// <returns></returns>
+    public EdgeItem? GetNext(List<Edge> edges)
+    {
+        Vector3d vec;
+        int next;
+        if (Forward)
+        {
+            vec = GetEndVector();
+            next = EndIndex;
+        }
+        else
+        {
+            vec = GetStartVector();
+            next = StartIndex;
+        }
+
+        EdgeItem? edgeItem = null;
+        Vector3d vec2, vec3 = new();
+        double angle = 0;
+        bool hasNext = false;
+        bool forward = false;
+        for (int i = 0; i < edges.Count; i++)
+        {
+            var edge = edges[i];
+            if (this.IsNext(edge, next, ref vec3, ref forward))
+            {
+                if (hasNext)
+                {
+                    var angle2 = vec.GetAngleTo(vec3, Vector3d.ZAxis);
+                    if (angle2 < angle)
+                    {
+                        vec2 = vec3;
+                        angle = angle2;
+                        edgeItem = new EdgeItem(edge, forward);
+                    }
+                }
+                else
+                {
+                    hasNext = true;
+                    vec2 = vec3;
+                    angle = vec.GetAngleTo(vec2, Vector3d.ZAxis);
+                    edgeItem = new EdgeItem(edge, forward);
+                }
+            }
+        }
+        return edgeItem;
+    }
+    #endregion
+
+    #region 类型转换
+    public override string ToString()
+    {
+        return
+            Forward ?
+            string.Format("{0}-{1}", StartIndex, EndIndex) :
+            string.Format("{0}-{1}", EndIndex, StartIndex);
+    }
+    #endregion
+
+    #region 重载运算符_比较
+    public override bool Equals(object? obj)
+    {
+        return this == obj as EdgeItem;
+    }
+    public bool Equals(EdgeItem? b)
+    {
+        return this == b;
+    }
+    public static bool operator !=(EdgeItem? a, EdgeItem? b)
+    {
+        return !(a == b);
+    }
+    public static bool operator ==(EdgeItem? a, EdgeItem? b)
+    {
+        //此处地方不允许使用==null,因为此处是定义
+        if (b is null)
+            return a is null;
+        else if (a is null)
+            return false;
+        if (ReferenceEquals(a, b))//同一对象
+            return true;
+
+        return a.Forward == b.Forward && (a == b as Edge);
     }
     public override int GetHashCode()
     {
@@ -347,8 +410,8 @@ public class CurveInfo : Rect
 
     public CurveInfo(Curve curve)
     {
-        Paramss = new List<double>();
         Curve = curve;
+        Paramss = new List<double>();
 
         //TODO 此处存在bug:射线之类的没有过滤
         var box = Curve.GeometricExtents;
@@ -374,29 +437,6 @@ public class CurveInfo : Rect
 }
 
 
-//    private class EdgeComparer : IEqualityComparer<Edge>
-//    {
-//        public bool Equals(Edge x, Edge y)
-//        {
-//#if ac2009
-//            var pts = x.Curve.GetSamplePoints(100);
-//            return pts.All(pt => y.Curve.IsOn(pt));
-//#elif ac2013 || ac2015
-//            var pts = x.Curve.GetSamplePoints(100);
-//            return pts.All(pt => y.Curve.IsOn(pt.Point));
-//#endif
-//            //return x.Curve.IsEqualTo(y.Curve);
-//        }
-
-//        // If Equals() returns true for a pair of objects
-//        // then GetHashCode() must return the same value for these objects.
-//        public int GetHashCode(Edge product)
-//        {
-//            return product.Curve.GetHashCode();
-//        }
-//    }
-
-
 public class Topo
 {
     /// <summary>
@@ -405,10 +445,10 @@ public class Topo
     List<CurveInfo> _curves;
 
     /// <summary>
-    /// 求交类
+    /// 求交类(每次set自动重置,都会有个新的结果)
     /// </summary>
     static CurveCurveIntersector3d _cci3d = new();
-    public static Tolerance _cadTolerance = new(1e-6, 1e-6);
+    public static Tolerance CadTolerance = new(1e-6, 1e-6);
 
     public Topo(List<Curve> curves)
     {
@@ -447,7 +487,6 @@ public class Topo
                 var gc2 = curve2.Edge.GeCurve3d;
                 var pars2 = curve2.Paramss;
 
-                //求交类此方法内部会重置,不需要清空,每次set都会有个新的结果
                 _cci3d.Set(gc1, gc2, Vector3d.ZAxis);
 
                 //计算两条曲线的交点(多个),分别放入对应的交点参数集
@@ -462,53 +501,27 @@ public class Topo
             if (gc1.IsClosed())
                 closedCurvesOut.Add(gc1.ToCurve()!);
 
+            if (pars1.Count == 0)
+                continue;
+
             //有交点参数
-            if (pars1.Count > 0)
+            //根据交点参数断分曲线,然后获取边界
+            var c3ds = curve1.Split(pars1);
+            if (c3ds.Count > 0)
             {
-                //根据交点参数断分曲线,然后获取边界
-                var c3ds = curve1.Split(pars1);
-                if (c3ds.Count > 0)
-                {
-                    edgesOut.AddRange(c3ds);
-                }
-                else
-                {
-                    //惊惊留:(不敢删啊...)
-                    //狐哥写的这里出现的条件是:有曲线参数,但是切分不出来曲线...没懂为什么...
-                    //猜测:曲线参数在头或者尾,那么交点就是直接碰头碰尾,
-                    //也就是 aa对比 同一条曲线自己和自己产生的?
-                    //参数大于0{是这些参数? 头参/尾参/参数不在曲线上?}
-                    edgesOut.Add(curve1.Edge);
-                }
+                edgesOut.AddRange(c3ds);
+            }
+            else
+            {
+                //惊惊留:(不敢删啊...)
+                //狐哥写的这里出现的条件是:有曲线参数,但是切分不出来曲线...没懂为什么...
+                //是这些参数?{参数0位置?头参/尾参/参数不在曲线上?}
+                edgesOut.Add(curve1.Edge);
             }
 
-            if (edgesOut.Count > 0)
-            {
-                //Edge没有包围盒,无法快速判断
-                //曲线a和其他曲线n根据交点切割子线,会造成重复部分,例如多段线逆向相同
-                for (int i = edgesOut.Count - 1; i >= 0; i--)
-                {
-                    var aa = edgesOut[i];
-                    for (int j = i - 1; j >= 0; j--)
-                    {
-                        var bb = edgesOut[j];
-                        //顺序 || 逆序
-                        if ((aa.GeCurve3d.StartPoint.IsEqualTo(bb.GeCurve3d.StartPoint, _cadTolerance) &&
-                             aa.GeCurve3d.EndPoint.IsEqualTo(bb.GeCurve3d.EndPoint, _cadTolerance))
-                            ||
-                            (aa.GeCurve3d.StartPoint.IsEqualTo(bb.GeCurve3d.EndPoint, _cadTolerance) &&
-                             aa.GeCurve3d.EndPoint.IsEqualTo(bb.GeCurve3d.StartPoint, _cadTolerance)))
-                        {
-                            if (aa.SplitPointEquals(bb, 5))
-                                edgesOut.RemoveAt(i);
-                        }
-                    }
-                }
-            }
+            //有交点的才消重,无交点必然不重复.
+            Edge.Distinct(edgesOut);
         }
-
-        //TODO: 此处是否消重?此处数据量超大,但是可以用四叉树
-        //edgesOut = edgesOut.Distinct(new EdgeComparer()).ToList();
     }
 
     /// <summary>
@@ -640,8 +653,8 @@ public class Topo
                 if (regions[i].Count == regions[j].Count)
                 {
                     var node = regions[i].First;
-                    var curve = node!.Value.Edge.GeCurve3d;
-                    var node2 = regions[j].GetNode(e => e.Edge.GeCurve3d == curve);
+                    var curve = node!.Value.GeCurve3d;
+                    var node2 = regions[j].GetNode(e => e.GeCurve3d == curve);
                     //var node2 = regions[j].Find(node.Value);
                     if (node2 is not null)
                     {
@@ -652,7 +665,7 @@ public class Topo
                         {
                             node = node.GetNext(b);
                             node2 = node2.GetNext(b2);
-                            if (node!.Value.Edge.GeCurve3d != node2!.Value.Edge.GeCurve3d)
+                            if (node!.Value.GeCurve3d != node2!.Value.GeCurve3d)
                             {
                                 eq = false;
                                 break;
@@ -667,5 +680,4 @@ public class Topo
             }
         }
     }
-
 }
