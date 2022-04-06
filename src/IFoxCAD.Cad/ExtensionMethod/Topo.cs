@@ -103,8 +103,11 @@ public class Edge : IEquatable<Edge>
     /// 采样点比较(会排序,无视顺序逆序)
     /// </summary>
     /// <param name="b"></param>
-    /// <param name="splitNum">切割曲线份数</param>
-    /// <returns></returns>
+    /// <param name="splitNum">
+    /// 切割曲线份数(采样3点令样条和圆弧重叠发生失效,因此从4开始)
+    ///  <a href="..\..\..\docs\Topo命令说明\曲线采样点数说明.png">图例说明在将本工程docs内</a>
+    /// </param>
+    /// <returns>采样点重叠true</returns>
     public bool SplitPointEquals(Edge? b, int splitNum = 4)
     {
         if (b is null)
@@ -149,7 +152,7 @@ public class Edge : IEquatable<Edge>
     }
 
     /// <summary>
-    /// 消重顺序逆序
+    /// 消重顺序逆序 
     /// </summary>
     /// <param name="edgesOut"></param>
     public static void Distinct(List<Edge> edgesOut)
@@ -589,33 +592,6 @@ public class Topo
         {
             edges.Add(ge.Current);
         }
-
-        //这一大坨不用看了 注释掉也没影响貌似,而且后续也没有用 nums
-        // foreach (var edge in edges.Except(closedEdges))
-        // {
-        //     if (nums[edge.StartIndex] == 1 || nums[edge.EndIndex] == 1)
-        //     {
-        //         if (nums[edge.StartIndex] == 1 && nums[edge.EndIndex] == 1)
-        //         {
-        //             nums[edge.StartIndex] = 0;
-        //             nums[edge.EndIndex] = 0;
-        //         }
-        //         else
-        //         {
-        //             int next = -1;
-        //             if (nums[edge.StartIndex] == 1)
-        //             {
-        //                 nums[edge.StartIndex] = 0;
-        //                 nums[next = edge.EndIndex]--;
-        //             }
-        //             else
-        //             {
-        //                 nums[edge.EndIndex] = 0;
-        //                 nums[next = edge.StartIndex]--;
-        //             }
-        //         }
-        //     }
-        // }
     }
 
     /// <summary>
@@ -630,9 +606,9 @@ public class Topo
         for (int i = 0; i < edges.Count; i++)
         {
             var edge = edges[i];
-            //TODO 这里有bug,两个内接的矩形会卡死
+            //TODO 这里有bug,两个内接的矩形会卡死 FindRegion
             var edgeItem = new EdgeItem(edge, true);
-            edgeItem.FindRegion(edges, regions); // 经测试是这里卡住了 testTopo
+            edgeItem.FindRegion(edges, regions);
             edgeItem = new EdgeItem(edge, false);
             edgeItem.FindRegion(edges, regions);
         }
