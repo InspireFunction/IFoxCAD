@@ -204,8 +204,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     public bool Contains(T value)
     {
         bool result = false;
-        ForEach(node =>
-        {
+        ForEach(node => {
             if (node.Value!.Equals(value))
             {
                 result = true;
@@ -303,8 +302,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     public LoopListNode<T>? GetNode(Func<T, bool> func)
     {
         LoopListNode<T>? result = null;
-        ForEach(node =>
-        {
+        ForEach(node => {
             if (func(node.Value))
             {
                 result = node;
@@ -454,6 +452,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
                 last.Next = First;
                 break;
         }
+        Count--;
         return true;
     }
 
@@ -521,16 +520,15 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     {
         if (Count == 1 || node == First)
         {
-            RemoveFirst();
+            RemoveFirst();//此处会减数字
         }
         else
         {
             node.Next!.Previous = node.Previous;
             node.Previous!.Next = node.Next;
+            Count--;
         }
-
         node.Invalidate();
-        Count--;
     }
 
     #endregion
