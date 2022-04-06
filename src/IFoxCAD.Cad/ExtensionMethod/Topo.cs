@@ -189,7 +189,7 @@ public class EdgeItem : Edge, IEquatable<EdgeItem>
 {
     #region 字段
     /// <summary>
-    /// 用来判断搜索方向(向前还是向后)
+    /// <param name="forward">搜索方向标志，<see langword="true"/>为向前搜索，<see langword="false"/>为向后搜索</param>
     /// </summary>
     public bool Forward;
     #endregion
@@ -223,26 +223,26 @@ public class EdgeItem : Edge, IEquatable<EdgeItem>
     /// <summary>
     /// 查找面域
     /// </summary>
-    /// <param name="edges"></param>
-    /// <param name="regions"></param>
-    public void FindRegion(List<Edge> edges, List<LoopList<EdgeItem>> regions)
+    /// <param name="edges">用来查询位置的</param>
+    /// <param name="regions_out">返回的面域</param>
+    public void FindRegion(List<Edge> edges, List<LoopList<EdgeItem>> regions_out)
     {
-        var region = new LoopList<EdgeItem>();
+        var result = new LoopList<EdgeItem>();//新的面域
         var edgeItem = this;
-        region.Add(edgeItem);
-        var edgeItem2 = this.GetNext(edges);
-        if (edgeItem2 is null)
+        result.Add(edgeItem);
+        var getEdgeItem = this.GetNext(edges);
+        if (getEdgeItem is null)
             return;
 
         bool hasList = false;
 
-        for (int i = 0; i < regions.Count; i++)
+        for (int i = 0; i < regions_out.Count; i++)
         {
-            var edgeList2 = regions[i];
+            var edgeList2 = regions_out[i];
             var node = edgeList2.GetNode(e => e.Equals(edgeItem));
             if (node is not null && node != edgeList2.Last)
             {
-                if (node.Next!.Value.Equals(edgeItem2))
+                if (node.Next!.Value.Equals(getEdgeItem))
                 {
                     hasList = true;
                     break;
@@ -251,15 +251,21 @@ public class EdgeItem : Edge, IEquatable<EdgeItem>
         }
         if (!hasList)
         {
-            while (edgeItem2 is not null)
+            //之前这里有个死循环,造成的原因是8字走b了(腰身闭环),然后下面闭环永远找不到开头
+            while (getEdgeItem is not null)
             {
-                if (edgeItem2 == edgeItem)
+                if (result.Contains(getEdgeItem))
+                {
+                    //腰身闭环,从前头开始剔除到这个重复节点
+                    while (result.First?.Value != getEdgeItem)
+                        result.RemoveFirst();
                     break;
-                region.Add(edgeItem2); //TODO 此处死循环,上一条语句判断失误,导致不停的将相同的值加入region
-                edgeItem2 = edgeItem2.GetNext(edges);
+                }
+                result.Add(getEdgeItem);
+                getEdgeItem = getEdgeItem.GetNext(edges);
             }
-            if (edgeItem2 == edgeItem)
-                regions.Add(region);
+            if (getEdgeItem == edgeItem)//TODO 这里必须存在可以环形排序方式,令它不会重复加入一样的链条.
+                regions_out.Add(result);
         }
     }
 
@@ -364,11 +370,11 @@ public class EdgeItem : Edge, IEquatable<EdgeItem>
 public class CurveInfo : Rect
 {
     /// <summary>
-    /// 曲线图元(母线)
+    /// 曲线图元
     /// </summary>
     public Curve Curve;
     /// <summary>
-    /// 曲线参数
+    /// 曲线分割点的参数
     /// </summary>
     public List<double> Paramss;
     /// <summary>
@@ -433,16 +439,13 @@ public class CollisionChain
 
 public class Topo
 {
-    /// <summary>
-    /// 用于切割的曲线集
-    /// </summary>
+    // 碰撞链集合
     List<CollisionChain> _coc;
-
-    /// <summary>
-    /// 求交类(每次set自动重置,都会有个新的结果)
-    /// </summary>
+    // 求交类(每次set自动重置,都会有个新的结果)
     static CurveCurveIntersector3d _cci3d = new();
+    // cad容差类
     public static Tolerance CadTolerance = new(1e-6, 1e-6);
+
 
     public Topo(List<Curve> curves)
     {
@@ -483,8 +486,10 @@ public class Topo
                 if (one._X <= two._X && two._X <= one._Right)
                 {
                     //y碰撞,那就是真的碰撞了
-                    if ((one._Top >= two._Top && two._Top >= one._Y) ||
-                        (one._Top >= two._Y && two._Y >= one._Y))
+                    if ((one._Top >= two._Top && two._Top >= one._Y) /*包容上边*/
+                     || (one._Top >= two._Y && two._Y >= one._Y)     /*包容下边*/
+                     || (two._Top >= one._Top && one._Y >= two._Y))  /*穿过*/
+
                     {
                         if (coc == null)
                         {
@@ -526,21 +531,21 @@ public class Topo
     /// <summary>
     /// 利用交点断分曲线和独立自闭曲线
     /// </summary>
-    /// <param name="edgesOut">边界(可能仍然存在自闭,因为样条曲线允许打个鱼形圈,尾巴又交叉在其他曲线)</param>
-    /// <param name="closedCurvesOut">自闭的曲线</param>
-    public void GetEdgesAndnewCurves(List<CurveInfo> infos, List<Edge> edgesOut, List<CompositeCurve3d> closedCurvesOut)
+    /// <param name="edges_Out">边界(可能仍然存在自闭,因为样条曲线允许打个鱼形圈,尾巴又交叉在其他曲线)</param>
+    /// <param name="closedCurves_Out">自闭的曲线</param>
+    public void GetEdgesAndnewCurves(List<CurveInfo> infos_In, List<Edge> edges_Out, List<CompositeCurve3d> closedCurves_Out)
     {
         //此处是O(n²)
         //曲线a和其他曲线n根据 交点 切割子线(第一次是自交对比)
-        for (int a = 0; a < infos.Count; a++)
+        for (int a = 0; a < infos_In.Count; a++)
         {
-            var curve1 = infos[a];
+            var curve1 = infos_In[a];
             var gc1 = curve1.Edge.GeCurve3d;
             var pars1 = curve1.Paramss;
 
-            for (int n = a; n < infos.Count; n++)
+            for (int n = a; n < infos_In.Count; n++)
             {
-                var curve2 = infos[n];
+                var curve2 = infos_In[n];
 
                 //包围盒没有碰撞就直接结束
                 if (!curve1.IntersectsWith(curve2))
@@ -561,7 +566,7 @@ public class Topo
             }
 
             if (gc1.IsClosed())
-                closedCurvesOut.Add(gc1);
+                closedCurves_Out.Add(gc1);
 
             if (pars1.Count == 0)
                 continue;
@@ -571,41 +576,40 @@ public class Topo
             var c3ds = curve1.Split(pars1);
             if (c3ds.Count > 0)
             {
-                edgesOut.AddRange(c3ds);
+                edges_Out.AddRange(c3ds);
             }
             else
             {
                 //惊惊留:(不敢删啊...)
                 //狐哥写的这里出现的条件是:有曲线参数,但是切分不出来曲线...没懂为什么...
                 //是这些参数?{参数0位置?头参/尾参/参数不在曲线上?}
-                edgesOut.Add(curve1.Edge);
+                edges_Out.Add(curve1.Edge);
             }
 
             //有交点的才消重,无交点必然不重复.
-            Edge.Distinct(edgesOut);
+            Edge.Distinct(edges_Out);
         }
     }
 
     /// <summary>
     /// 创建邻接表
     /// </summary>
-    /// <param name="edges">传入传出,扔掉单交点图元剩下闭合图元集</param>
-    /// <param name="closedCurve3dOut"></param>
-    public void AdjacencyList(List<Edge> edges, List<CompositeCurve3d> closedCurve3dOut)
+    /// <param name="edges_InOut">传入传出,扔掉单交点图元剩下闭合图元集</param>
+    /// <param name="closedCurve3d_Out"></param>
+    public void AdjacencyList(List<Edge> edges_InOut, List<CompositeCurve3d> closedCurve3d_Out)
     {
         //构建边的邻接表
-        //knots 和 nums 实际上是一个键值对(基于ArrayOfStruct思想,拆开更合适内存布局)
-        //knots 是不重复地将所有交点设置为节点,如果是重复,就对应 nums++
-        //nums 是记录每个节点坐标被重复了几次
+        //下面是键值对(基于ArrayOfStruct思想,拆开更合适内存布局)
+        //knots 是不重复地将所有交点设置为节点(如果是重复就对应 nums++)
+        //nums  是记录每个交点被重复了几次
         var knots = new List<Point3d>();
         var nums = new List<int>();
         var closedEdges = new List<Edge>();
 
-        //一次遍历就完成了,所以不需要四叉树,
-        //但是不需要时,交点集合 knots 会不断增大,会变得更加慢
-        for (int i = 0; i < edges.Count; i++)
+        //交点集合 knots 会不断增大,会变得更加慢,因此我在一开始就进行碰撞链分析
+        for (int i = 0; i < edges_InOut.Count; i++)
         {
-            var edge = edges[i];
+            var edge = edges_InOut[i];
             if (edge.GeCurve3d.IsClosed())
             {
                 closedEdges.Add(edge);
@@ -640,80 +644,79 @@ public class Topo
             }
         }
 
-        closedCurve3dOut.AddRange(closedEdges.Select(e => e.GeCurve3d));
+        closedCurve3d_Out.AddRange(closedEdges.Select(e => e.GeCurve3d));
 
         //这里把交点只有一条曲线通过的点过滤掉了,也就是尾巴的图元,
         //剩下的都是闭合的曲线连接了,每个点都至少有两条曲线通过
-        var tmp = edges
+        var tmp = edges_InOut
                 .Except(closedEdges)
                 .Where(e => nums[e.StartIndex] > 1 && nums[e.EndIndex] > 1)
                 .ToArray();//要ToArray克隆,否则下面会清空掉这个容器
 
-        edges.Clear();
+        edges_InOut.Clear();
         for (int i = 0; i < tmp.Length; i++)
-            edges.Add(tmp[i]);
+            edges_InOut.Add(tmp[i]);
     }
 
     /// <summary>
     /// 获取多个面域
     /// </summary>
-    /// <param name="edges"></param>
+    /// <param name="edges">剩下都有两个交点的线</param>
     /// <returns></returns>
     public List<LoopList<EdgeItem>> GetRegions(List<Edge> edges)
     {
+        var regions_out = new List<LoopList<EdgeItem>>();
+
         //利用边界的顺序和逆序获取闭合链条
-        var regions = new List<LoopList<EdgeItem>>();
         for (int i = 0; i < edges.Count; i++)
         {
             var edge = edges[i];
             //TODO 这里有bug,两个内接的矩形会卡死 FindRegion
             var edgeItem = new EdgeItem(edge, true);
-            edgeItem.FindRegion(edges, regions);
+            edgeItem.FindRegion(edges, regions_out);
             edgeItem = new EdgeItem(edge, false);
-            edgeItem.FindRegion(edges, regions);
+            edgeItem.FindRegion(edges, regions_out);
         }
-        return regions;
-    }
 
+        DeduplicationRegions(regions_out);
+        return regions_out;
+    }
+     
     /// <summary>
-    /// 广度优先算法?
+    /// 移除相同面域
     /// </summary>
     /// <param name="regions"></param>
-    public void RegionsInfo(List<LoopList<EdgeItem>> regions)
+    void DeduplicationRegions(List<LoopList<EdgeItem>> regions)
     {
-        for (int i = 0; i < regions.Count; i++)
-        {
-            for (int j = i + 1; j < regions.Count;)
+        Basal.ArrayEx.Deduplication(regions,(first, last) => {
+            bool eq = false;//是否存在相同成员
+            if (first.Count == last.Count)
             {
-                bool eq = false;
-                if (regions[i].Count == regions[j].Count)
+                var node1 = first.First;
+                var curve1 = node1!.Value.GeCurve3d;
+
+                //两个面域对比,找到相同成员
+                var node2 = last.GetNode(e => e.GeCurve3d == curve1);
+                if (node2 is not null)
                 {
-                    var node = regions[i].First;
-                    var curve = node!.Value.GeCurve3d;
-                    var node2 = regions[j].GetNode(e => e.GeCurve3d == curve);
-                    //var node2 = regions[j].Find(node.Value);
-                    if (node2 is not null)
+                    eq = true;
+                    var f1 = node1.Value.Forward;
+                    var f2 = node2.Value.Forward;
+                    //链条搜索方向来进行
+                    //判断每个节点的成员如果一致就会执行移除
+                    for (int k = 1; k < first.Count; k++)
                     {
-                        eq = true;
-                        var b = node.Value.Forward;
-                        var b2 = node2.Value.Forward;
-                        for (int k = 1; k < regions[i].Count; k++)
+                        node1 = node1.GetNext(f1);
+                        node2 = node2.GetNext(f2);
+                        if (node1!.Value.GeCurve3d != node2!.Value.GeCurve3d)
                         {
-                            node = node.GetNext(b);
-                            node2 = node2.GetNext(b2);
-                            if (node!.Value.GeCurve3d != node2!.Value.GeCurve3d)
-                            {
-                                eq = false;
-                                break;
-                            }
+                            eq = false;
+                            break;
                         }
                     }
                 }
-                if (eq)
-                    regions.RemoveAt(j);
-                else
-                    j++;
             }
-        }
+            return eq;
+        });
     }
 }

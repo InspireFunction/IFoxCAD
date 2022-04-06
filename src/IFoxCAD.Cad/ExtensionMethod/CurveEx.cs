@@ -51,29 +51,29 @@ public static class CurveEx
     /// <returns>闭合的曲线集</returns>
     public static IEnumerable<Curve>? Topo(List<Curve> curves)
     {
-        ////闭合的曲线集合
-        //var closedCurve3d = new List<CompositeCurve3d>();
-        //var edges = new List<Edge>();
+        //闭合的曲线集合
+        var closedCurve3d = new List<CompositeCurve3d>();
 
-        //var topo = new Topo(curves);
-        //topo.GetEdgesAndnewCurves(edges,closedCurve3d);
-        //topo.AdjacencyList(edges, closedCurve3d);
+        var topo = new Topo(curves);
+        topo.CollisionFor(infos => {
+            var gs = new List<Edge>();
+            var c3 = new List<CompositeCurve3d>();
 
-        //var regions = topo.GetRegions(edges);
-        //topo.RegionsInfo(regions);
+            topo.GetEdgesAndnewCurves(infos, gs, c3);
+            topo.AdjacencyList(gs, c3);//增加测试..需要加入四叉树
+            var regions = topo.GetRegions(gs);
 
-        //for (int i = 0; i < regions.Count; i++)
-        //{
-        //    var cs3ds = regions[i]
-        //                .Select(e => e.GetCurve())
-        //                .ToArray();
-        //    closedCurve3d.Add(new CompositeCurve3d(cs3ds));
-        //}
+            for (int i = 0; i < regions.Count; i++)
+            {
+                var cs3ds = regions[i]
+                            .Select(e => e.GetCurve())
+                            .ToArray();
+                closedCurve3d.Add(new CompositeCurve3d(cs3ds));
+            }
+        });
 
-        ////因为生成可能导致遗忘释放,所以这里统一生成
-        //return closedCurve3d.Select(e => e.ToCurve()!);
-
-        return null;
+        //因为生成可能导致遗忘释放,所以这里统一生成
+        return closedCurve3d.Select(e => e.ToCurve()!);
     }
 
     /// <summary>

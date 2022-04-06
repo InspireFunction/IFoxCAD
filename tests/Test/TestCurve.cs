@@ -75,7 +75,9 @@ namespace Test
             var ents = Env.Editor.SSGet().Value?.GetEntities<Curve>();
             if (ents == null)
                 return;
+
             var tt = CurveEx.Topo(ents.ToList());
+
             using var tr = new DBTrans();
             tt.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i));
             tr.CurrentSpace.AddEntity(tt);
@@ -89,8 +91,8 @@ namespace Test
                 return;
             using var tr = new DBTrans();
 
-            var edgess = new List<List<IFoxCAD.Cad.Edge>>();
-            var closedCurve3ds = new List<List<CompositeCurve3d>>();
+            var edgesGroup = new List<List<IFoxCAD.Cad.Edge>>();
+            var closedCurve3dGroup = new List<List<CompositeCurve3d>>();
 
             var topo = new Topo(curves);
 
@@ -101,16 +103,19 @@ namespace Test
                 topo.GetEdgesAndnewCurves(infos, gs, c3);
                 topo.AdjacencyList(gs, c3);//增加测试..需要加入四叉树
 
-                for (int i = 0; i < gs.Count; i++)
+                edgesGroup.Add(gs);
+                closedCurve3dGroup.Add(c3);
+            });
+
+            foreach (var edge in edgesGroup)
+            {
+                for (int i = 0; i < edge.Count; i++)
                 {
-                    var ent = gs[i].GeCurve3d.ToCurve();
+                    var ent = edge[i].GeCurve3d.ToCurve();
                     ent.ColorIndex = i;
                     tr.CurrentSpace.AddEntity(ent);
                 }
-
-                edgess.Add(gs);
-                closedCurve3ds.Add(c3);
-            });
+            }
 
             //Env.Print("");
         }
