@@ -15,5 +15,23 @@
             return c;
         }
 
+        /// <summary>
+        /// 单数组消重
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="lst"></param>
+        public static void Deduplication<T>(List<T> edgesOut, Func<T, T, bool> func)
+        {
+            for (int i = 0; i < edgesOut.Count; i++)
+            {
+                var first = edgesOut[i];
+                for (int j = edgesOut.Count - 1; j > i; j--)
+                {
+                    var last = edgesOut[j];
+                    if (func(first, last))
+                        edgesOut.RemoveAt(j);
+                }
+            }
+        }
     }
 }

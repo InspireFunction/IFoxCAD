@@ -162,25 +162,20 @@ public class Edge : IEquatable<Edge>
 
         //Edge没有包围盒,无法快速判断
         //曲线a和其他曲线n根据交点切割子线,会造成重复部分,例如多段线逆向相同
-        for (int i = edgesOut.Count - 1; i >= 0; i--)
-        {
-            var aa = edgesOut[i];
-            for (int j = i - 1; j >= 0; j--)
+        ArrayEx.Deduplication(edgesOut, (first, last) => {
+            //顺序 || 逆序
+            if ((first.GeCurve3d.StartPoint.IsEqualTo(last.GeCurve3d.StartPoint, CadTolerance) &&
+                 first.GeCurve3d.EndPoint.IsEqualTo(last.GeCurve3d.EndPoint, CadTolerance))
+                ||
+                (first.GeCurve3d.StartPoint.IsEqualTo(last.GeCurve3d.EndPoint, CadTolerance) &&
+                 first.GeCurve3d.EndPoint.IsEqualTo(last.GeCurve3d.StartPoint, CadTolerance)))
             {
-                var bb = edgesOut[j];
-                //顺序 || 逆序
-                if ((aa.GeCurve3d.StartPoint.IsEqualTo(bb.GeCurve3d.StartPoint, CadTolerance) &&
-                     aa.GeCurve3d.EndPoint.IsEqualTo(bb.GeCurve3d.EndPoint, CadTolerance))
-                    ||
-                    (aa.GeCurve3d.StartPoint.IsEqualTo(bb.GeCurve3d.EndPoint, CadTolerance) &&
-                     aa.GeCurve3d.EndPoint.IsEqualTo(bb.GeCurve3d.StartPoint, CadTolerance)))
-                {
-                    if (aa.SplitPointEquals(bb))
-                        edgesOut.RemoveAt(i);
-                }
+                return first.SplitPointEquals(last);
             }
-        }
+            return false;
+        });
     }
+
 
     //    private class EdgeComparer : IEqualityComparer<Edge>
     //    {
@@ -396,6 +391,10 @@ public class CurveInfo : Rect
     /// 曲线参数
     /// </summary>
     public List<double> Paramss;
+    /// <summary>
+    /// 碰撞链
+    /// </summary>
+    public CollisionChain? CollisionChain;
 
     Edge? _Edge;
     /// <summary>
@@ -439,13 +438,26 @@ public class CurveInfo : Rect
     }
 }
 
+public class CollisionChain
+{
+    /// <summary>
+    /// 碰撞链
+    /// </summary>
+    public List<CurveInfo> Collision;
+
+    public CollisionChain()
+    {
+        Collision = new List<CurveInfo>();
+    }
+}
+
 
 public class Topo
 {
     /// <summary>
     /// 用于切割的曲线集
     /// </summary>
-    List<CurveInfo> _curves;
+    List<CollisionChain> _cuc;
 
     /// <summary>
     /// 求交类(每次set自动重置,都会有个新的结果)
@@ -455,33 +467,102 @@ public class Topo
 
     public Topo(List<Curve> curves)
     {
-        _curves = new();
-        for (int i = 0; i < curves.Count; i++)
-            _curves.Add(new CurveInfo(curves[i]));
+        List<CurveInfo> curveList = new();
 
-        //TODO 这里需要补充 列扫碰撞检测(碰撞算法)
-        //将包围盒碰撞的放入一个集合a,这个集合a又被_curves储存起来,
-        //集合a再运行 GetEdgesAndnewCurves
+        //提取包围盒信息
+        for (int i = 0; i < curves.Count; i++)
+            curveList.Add(new CurveInfo(curves[i]));
+
+        _cuc = XCollision(curveList);
     }
 
     /// <summary>
-    /// 利用交点断分曲线和独立曲线
+    /// 列扫碰撞检测(碰撞算法)
+    /// 比四叉树还快哦~
+    /// </summary>
+    /// <returns></returns>
+    List<CollisionChain> XCollision(List<CurveInfo> curves)
+    {
+        //先排序X:不需要Y排序,因为Y的上下浮动不共X .ThenBy(a => a.Box.Y)
+        //因为先排序就可以有序遍历x区间,超过就break,达到更快
+        curves = curves.OrderBy(a => a._X).ToList();
+
+        List<CollisionChain> collision = new();
+        CollisionChain? cuc = null;
+
+        //遍历所有图元
+        for (int i = 0; i < curves.Count; i++)
+        {
+            var one = curves[i];
+            if (one.CollisionChain != null)//有碰撞链直接跳过
+                continue;
+
+            //搜索范围要在 one 的头尾中间的部分
+            for (int j = i + 1; j < curves.Count; j++)
+            {
+                var two = curves[j];
+                //x碰撞:矩形2的Left 在 矩形1[Left-Right]闭区间
+                if (one._X <= two._X && two._X <= one._Right)
+                {
+                    //y碰撞,那就是真的碰撞了
+                    if ((one._Top >= two._Top && two._Top >= one._Y) ||
+                        (one._Top >= two._Y && two._Y >= one._Y))
+                    {
+                        if (cuc == null)
+                        {
+                            cuc = new();
+                            one.CollisionChain = cuc;//碰撞链设置
+                            cuc.Collision.Add(one);//本体也在链条内
+                        }
+                        two.CollisionChain = cuc;//碰撞链设置
+                        cuc.Collision.Add(two);
+                    }
+                    //这里想中断y高过它的无意义比较,
+                    //但是必须排序Y,而排序Y必须同X,而这里不是同X(而是同X区间),所以不能中断
+                    //而做到X区间排序,就必须创造一个集合,再排序这个集合,
+                    //会导致每个图元都拥有一次X区间集合,开销更巨大(因此放弃).
+                }
+                else
+                    break;//因为已经排序了,后续的必然超过 x碰撞区间
+            }
+            if (cuc != null)
+            {
+                collision.Add(cuc);
+                cuc = null;
+            }
+        }
+        return collision;
+    }
+
+    /// <summary>
+    /// 遍历多条碰撞链
+    /// </summary>
+    /// <param name="action"></param>
+    public void CollisionFor(Action<List<CurveInfo>> action)
+    {
+        _cuc.ForEach(a => {
+            action(a.Collision);//输出每条碰撞链
+        });
+    }
+
+    /// <summary>
+    /// 利用交点断分曲线和独立自闭曲线
     /// </summary>
     /// <param name="edgesOut">边界(可能仍然存在自闭,因为样条曲线允许打个鱼形圈,尾巴又交叉在其他曲线)</param>
     /// <param name="closedCurvesOut">自闭的曲线</param>
-    public void GetEdgesAndnewCurves(List<Edge> edgesOut, List<CompositeCurve3d> closedCurvesOut)
+    public void GetEdgesAndnewCurves(List<CurveInfo> infos, List<Edge> edgesOut, List<CompositeCurve3d> closedCurvesOut)
     {
         //此处是O(n²)
         //曲线a和其他曲线n根据 交点 切割子线(第一次是自交对比)
-        for (int a = 0; a < _curves.Count; a++)
+        for (int a = 0; a < infos.Count; a++)
         {
-            var curve1 = _curves[a];
+            var curve1 = infos[a];
             var gc1 = curve1.Edge.GeCurve3d;
             var pars1 = curve1.Paramss;
 
-            for (int n = a; n < _curves.Count; n++)
+            for (int n = a; n < infos.Count; n++)
             {
-                var curve2 = _curves[n];
+                var curve2 = infos[n];
 
                 //包围盒没有碰撞就直接结束
                 if (!curve1.IntersectsWith(curve2))
@@ -530,7 +611,7 @@ public class Topo
     /// <summary>
     /// 创建邻接表
     /// </summary>
-    /// <param name="edges">传入的集合将被传出,扔掉单交点图元剩下闭合图元集</param>
+    /// <param name="edges">传入传出,扔掉单交点图元剩下闭合图元集</param>
     /// <param name="closedCurve3dOut"></param>
     public void AdjacencyList(List<Edge> edges, List<CompositeCurve3d> closedCurve3dOut)
     {
@@ -542,6 +623,8 @@ public class Topo
         var nums = new List<int>();
         var closedEdges = new List<Edge>();
 
+        //一次遍历就完成了,所以不需要四叉树,
+        //但是不需要时,交点集合 knots 会不断增大,会变得更加慢
         for (int i = 0; i < edges.Count; i++)
         {
             var edge = edges[i];
@@ -579,7 +662,6 @@ public class Topo
             }
         }
 
-        //closedCurvesOut.AddRange(closedEdges.Select(e => e.GeCurve3d.ToCurve())!);
         closedCurve3dOut.AddRange(closedEdges.Select(e => e.GeCurve3d));
 
         //这里把交点只有一条曲线通过的点过滤掉了,也就是尾巴的图元,
@@ -591,9 +673,7 @@ public class Topo
 
         edges.Clear();
         for (int i = 0; i < tmp.Length; i++)
-        {
             edges.Add(tmp[i]);
-        }
     }
 
     /// <summary>

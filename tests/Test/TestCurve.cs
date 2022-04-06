@@ -77,7 +77,7 @@ namespace Test
                 return;
             var tt = CurveEx.Topo(ents.ToList());
             using var tr = new DBTrans();
-            tt.ForEach((i,t) => t.ForWrite(e => e.ColorIndex = i));
+            tt.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i));
             tr.CurrentSpace.AddEntity(tt);
         }
 
@@ -87,20 +87,30 @@ namespace Test
             var curves = Env.Editor.SSGet().Value?.GetEntities<Curve>().ToList();
             if (curves == null)
                 return;
-            var edges = new List<IFoxCAD.Cad.Edge>();
-            var closedCurve3d = new List<CompositeCurve3d>();
-            var topo = new Topo(curves);
-            topo.GetEdgesAndnewCurves(edges, closedCurve3d);
-            topo.AdjacencyList(edges, closedCurve3d);//增加测试
-
             using var tr = new DBTrans();
 
-            for (int i = 0; i < edges.Count; i++)
-            {
-                var ent = edges[i].GeCurve3d.ToCurve();
-                ent.ColorIndex = i;
-                tr.CurrentSpace.AddEntity(ent);
-            }
+            var edgess = new List<List<IFoxCAD.Cad.Edge>>();
+            var closedCurve3ds = new List<List<CompositeCurve3d>>();
+
+            var topo = new Topo(curves);
+
+            topo.CollisionFor(infos => {
+                var gs = new List<IFoxCAD.Cad.Edge>();
+                var c3 = new List<CompositeCurve3d>();
+
+                topo.GetEdgesAndnewCurves(infos, gs, c3);
+                topo.AdjacencyList(gs, c3);//增加测试..需要加入四叉树
+
+                for (int i = 0; i < gs.Count; i++)
+                {
+                    var ent = gs[i].GeCurve3d.ToCurve();
+                    ent.ColorIndex = i;
+                    tr.CurrentSpace.AddEntity(ent);
+                }
+
+                edgess.Add(gs);
+                closedCurve3ds.Add(c3);
+            });
 
             //Env.Print("");
         }
