@@ -502,10 +502,7 @@ public class Topo
             }
 
             if (gc1.IsClosed())
-            {
-                //closedCurvesOut.Add(gc1.ToCurve()!);
                 closedCurvesOut.Add(gc1);
-            }
 
             if (pars1.Count == 0)
                 continue;
@@ -589,12 +586,14 @@ public class Topo
         //剩下的都是闭合的曲线连接了,每个点都至少有两条曲线通过
         var tmp = edges
                 .Except(closedEdges)
-                .Where(e => nums[e.StartIndex] > 1 && nums[e.EndIndex] > 1);
-        
+                .Where(e => nums[e.StartIndex] > 1 && nums[e.EndIndex] > 1)
+                .ToArray();//要ToArray克隆,否则下面会清空掉这个容器
+
         edges.Clear();
-        var ge = tmp.GetEnumerator();
-        while (ge.MoveNext())
-            edges.Add(ge.Current);
+        for (int i = 0; i < tmp.Length; i++)
+        {
+            edges.Add(tmp[i]);
+        }
     }
 
     /// <summary>

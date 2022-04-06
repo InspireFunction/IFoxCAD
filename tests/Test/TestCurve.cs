@@ -91,6 +91,7 @@ namespace Test
             var closedCurve3d = new List<CompositeCurve3d>();
             var topo = new Topo(curves);
             topo.GetEdgesAndnewCurves(edges, closedCurve3d);
+            topo.AdjacencyList(edges, closedCurve3d);//增加测试
 
             using var tr = new DBTrans();
 
