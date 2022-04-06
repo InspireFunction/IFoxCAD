@@ -1,8 +1,8 @@
 namespace IFoxCAD.Cad;
 
-using IFoxCAD.Basal;
-
-
+/// <summary>
+/// 边
+/// </summary>
 public class Edge : IEquatable<Edge>
 {
     #region 字段
@@ -162,7 +162,7 @@ public class Edge : IEquatable<Edge>
 
         //Edge没有包围盒,无法快速判断
         //曲线a和其他曲线n根据交点切割子线,会造成重复部分,例如多段线逆向相同
-        ArrayEx.Deduplication(edgesOut, (first, last) => {
+        Basal.ArrayEx.Deduplication(edgesOut, (first, last) => {
             //顺序 || 逆序
             if ((first.GeCurve3d.StartPoint.IsEqualTo(last.GeCurve3d.StartPoint, CadTolerance) &&
                  first.GeCurve3d.EndPoint.IsEqualTo(last.GeCurve3d.EndPoint, CadTolerance))
@@ -175,30 +175,6 @@ public class Edge : IEquatable<Edge>
             return false;
         });
     }
-
-
-    //    private class EdgeComparer : IEqualityComparer<Edge>
-    //    {
-    //        public bool Equals(Edge x, Edge y)
-    //        {
-    //#if ac2009
-    //            var pts = x.Curve.GetSamplePoints(100);
-    //            return pts.All(pt => y.Curve.IsOn(pt));
-    //#elif ac2013 || ac2015
-    //            var pts = x.Curve.GetSamplePoints(100);
-    //            return pts.All(pt => y.Curve.IsOn(pt.Point));
-    //#endif
-    //            //return x.Curve.IsEqualTo(y.Curve);
-    //        }
-
-    //        // If Equals() returns true for a pair of objects
-    //        // then GetHashCode() must return the same value for these objects.
-    //        public int GetHashCode(Edge product)
-    //        {
-    //            return product.Curve.GetHashCode();
-    //        }
-    //    }
-
     public override int GetHashCode()
     {
         return base.GetHashCode();
@@ -206,7 +182,9 @@ public class Edge : IEquatable<Edge>
     #endregion
 }
 
-
+/// <summary>
+/// 边节点
+/// </summary>
 public class EdgeItem : Edge, IEquatable<EdgeItem>
 {
     #region 字段
@@ -380,7 +358,9 @@ public class EdgeItem : Edge, IEquatable<EdgeItem>
     #endregion
 }
 
-
+/// <summary>
+/// 曲线信息
+/// </summary>
 public class CurveInfo : Rect
 {
     /// <summary>
@@ -450,7 +430,6 @@ public class CollisionChain
         Collision = new List<CurveInfo>();
     }
 }
-
 
 public class Topo
 {
