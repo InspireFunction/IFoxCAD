@@ -88,9 +88,9 @@ namespace Test
             if (curves == null)
                 return;
             var edges = new List<IFoxCAD.Cad.Edge>();
-            var newCurves = new List<Curve>();
+            var closedCurve3d = new List<CompositeCurve3d>();
             var topo = new Topo(curves);
-            topo.GetEdgesAndnewCurves(edges, newCurves);
+            topo.GetEdgesAndnewCurves(edges, closedCurve3d);
 
             using var tr = new DBTrans();
 

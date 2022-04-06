@@ -469,7 +469,7 @@ public class Topo
     /// </summary>
     /// <param name="edgesOut">边界(可能仍然存在自闭,因为样条曲线允许打个鱼形圈,尾巴又交叉在其他曲线)</param>
     /// <param name="closedCurvesOut">自闭的曲线</param>
-    public void GetEdgesAndnewCurves(List<Edge> edgesOut, List<Curve> closedCurvesOut)
+    public void GetEdgesAndnewCurves(List<Edge> edgesOut, List<CompositeCurve3d> closedCurvesOut)
     {
         //此处是O(n²)
         //曲线a和其他曲线n根据 交点 切割子线(第一次是自交对比)
@@ -502,7 +502,10 @@ public class Topo
             }
 
             if (gc1.IsClosed())
-                closedCurvesOut.Add(gc1.ToCurve()!);
+            {
+                //closedCurvesOut.Add(gc1.ToCurve()!);
+                closedCurvesOut.Add(gc1);
+            }
 
             if (pars1.Count == 0)
                 continue;
@@ -530,9 +533,9 @@ public class Topo
     /// <summary>
     /// 创建邻接表
     /// </summary>
-    /// <param name="edges"></param>
-    /// <param name="closedCurvesOut"></param>
-    public void AdjacencyList(List<Edge> edges, List<Curve> closedCurvesOut)
+    /// <param name="edges">传入的集合将被传出,扔掉单交点图元剩下闭合图元集</param>
+    /// <param name="closedCurve3dOut"></param>
+    public void AdjacencyList(List<Edge> edges, List<CompositeCurve3d> closedCurve3dOut)
     {
         //构建边的邻接表
         //knots 和 nums 实际上是一个键值对(基于ArrayOfStruct思想,拆开更合适内存布局)
@@ -579,19 +582,19 @@ public class Topo
             }
         }
 
-        closedCurvesOut.AddRange(closedEdges.Select(e => e.GeCurve3d.ToCurve())!);
+        //closedCurvesOut.AddRange(closedEdges.Select(e => e.GeCurve3d.ToCurve())!);
+        closedCurve3dOut.AddRange(closedEdges.Select(e => e.GeCurve3d));
 
         //这里把交点只有一条曲线通过的点过滤掉了,也就是尾巴的图元,
         //剩下的都是闭合的曲线连接了,每个点都至少有两条曲线通过
         var tmp = edges
                 .Except(closedEdges)
                 .Where(e => nums[e.StartIndex] > 1 && nums[e.EndIndex] > 1);
+        
         edges.Clear();
         var ge = tmp.GetEnumerator();
         while (ge.MoveNext())
-        {
             edges.Add(ge.Current);
-        }
     }
 
     /// <summary>

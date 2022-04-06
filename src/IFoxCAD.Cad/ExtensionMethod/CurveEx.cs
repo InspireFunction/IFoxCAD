@@ -49,28 +49,29 @@ public static class CurveEx
     /// </summary>
     /// <param name="curves">曲线集</param>
     /// <returns>闭合的曲线集</returns>
-    public static List<Curve> Topo(List<Curve> curves)
+    public static IEnumerable<Curve>? Topo(List<Curve> curves)
     {
         //闭合的曲线集合
-        var newCurves = new List<Curve>();
+        var closedCurve3d = new List<CompositeCurve3d>();
         var edges = new List<Edge>();
 
         var topo = new Topo(curves);
-        topo.GetEdgesAndnewCurves(edges,newCurves);
-        topo.AdjacencyList(edges, newCurves);
+        topo.GetEdgesAndnewCurves(edges,closedCurve3d);
+        topo.AdjacencyList(edges, closedCurve3d);
 
         var regions = topo.GetRegions(edges);
         topo.RegionsInfo(regions);
 
         for (int i = 0; i < regions.Count; i++)
         {
-            var cs3ds =
-                regions[i]
-                .Select(e => e.GetCurve())
-                .ToArray();
-            newCurves.Add(new CompositeCurve3d(cs3ds).ToCurve()!);
+            var cs3ds = regions[i]
+                        .Select(e => e.GetCurve())
+                        .ToArray();
+            closedCurve3d.Add(new CompositeCurve3d(cs3ds));
         }
-        return newCurves;
+
+        //因为生成可能导致遗忘释放,所以这里统一生成
+        return closedCurve3d.Select(e => e.ToCurve()!);
     }
 
     /// <summary>
