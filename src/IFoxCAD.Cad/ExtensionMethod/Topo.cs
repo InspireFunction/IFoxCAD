@@ -436,7 +436,7 @@ public class Topo
     /// <summary>
     /// 用于切割的曲线集
     /// </summary>
-    List<CollisionChain> _cuc;
+    List<CollisionChain> _coc;
 
     /// <summary>
     /// 求交类(每次set自动重置,都会有个新的结果)
@@ -452,7 +452,7 @@ public class Topo
         for (int i = 0; i < curves.Count; i++)
             curveList.Add(new CurveInfo(curves[i]));
 
-        _cuc = XCollision(curveList);
+        _coc = XCollision(curveList);
     }
 
     /// <summary>
@@ -467,14 +467,13 @@ public class Topo
         curves = curves.OrderBy(a => a._X).ToList();
 
         List<CollisionChain> collision = new();
-        CollisionChain? cuc = null;
+        CollisionChain? coc = null;
 
         //遍历所有图元
         for (int i = 0; i < curves.Count; i++)
         {
             var one = curves[i];
-            if (one.CollisionChain != null)//有碰撞链直接跳过
-                continue;
+            coc = one.CollisionChain;//有碰撞链就直接利用之前的链
 
             //搜索范围要在 one 的头尾中间的部分
             for (int j = i + 1; j < curves.Count; j++)
@@ -487,14 +486,14 @@ public class Topo
                     if ((one._Top >= two._Top && two._Top >= one._Y) ||
                         (one._Top >= two._Y && two._Y >= one._Y))
                     {
-                        if (cuc == null)
+                        if (coc == null)
                         {
-                            cuc = new();
-                            one.CollisionChain = cuc;//碰撞链设置
-                            cuc.Collision.Add(one);//本体也在链条内
+                            coc = new();
+                            one.CollisionChain = coc;//碰撞链设置
+                            coc.Collision.Add(one);//本体也加入链
                         }
-                        two.CollisionChain = cuc;//碰撞链设置
-                        cuc.Collision.Add(two);
+                        two.CollisionChain = coc;//碰撞链设置
+                        coc.Collision.Add(two);
                     }
                     //这里想中断y高过它的无意义比较,
                     //但是必须排序Y,而排序Y必须同X,而这里不是同X(而是同X区间),所以不能中断
@@ -504,10 +503,10 @@ public class Topo
                 else
                     break;//因为已经排序了,后续的必然超过 x碰撞区间
             }
-            if (cuc != null)
+            if (coc != null && !collision.Contains(coc))
             {
-                collision.Add(cuc);
-                cuc = null;
+                collision.Add(coc);
+                coc = null;
             }
         }
         return collision;
@@ -519,7 +518,7 @@ public class Topo
     /// <param name="action"></param>
     public void CollisionFor(Action<List<CurveInfo>> action)
     {
-        _cuc.ForEach(a => {
+        _coc.ForEach(a => {
             action(a.Collision);//输出每条碰撞链
         });
     }
