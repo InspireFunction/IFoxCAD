@@ -398,6 +398,10 @@ ASALocalRun/
 # BeatPulse healthcheck temp database 
 # BeatPulse healthcheck ÁÙÊ±Êý¾Ý¿â
 healthchecksdb
+
+#macos
 *.DS_Store
 
+#vscode
 .ionide
+.vscode
