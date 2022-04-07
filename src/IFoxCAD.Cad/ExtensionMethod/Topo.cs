@@ -489,7 +489,6 @@ public class Topo
                     if ((one._Top >= two._Top && two._Top >= one._Y) /*包容上边*/
                      || (one._Top >= two._Y && two._Y >= one._Y)     /*包容下边*/
                      || (two._Top >= one._Top && one._Y >= two._Y))  /*穿过*/
-
                     {
                         if (coc == null)
                         {
@@ -531,8 +530,9 @@ public class Topo
     /// <summary>
     /// 利用交点断分曲线和独立自闭曲线
     /// </summary>
-    /// <param name="edges_Out">边界(可能仍然存在自闭,因为样条曲线允许打个鱼形圈,尾巴又交叉在其他曲线)</param>
-    /// <param name="closedCurves_Out">自闭的曲线</param>
+    /// <param name="infos_In">传入每组有碰撞的</param>
+    /// <param name="edges_Out">传出不自闭的曲线集</param>
+    /// <param name="closedCurves_Out">传出自闭曲线集</param>
     public void GetEdgesAndnewCurves(List<CurveInfo> infos_In, List<Edge> edges_Out, List<CompositeCurve3d> closedCurves_Out)
     {
         //此处是O(n²)
@@ -594,8 +594,8 @@ public class Topo
     /// <summary>
     /// 创建邻接表
     /// </summary>
-    /// <param name="edges_InOut">传入传出,扔掉单交点图元剩下闭合图元集</param>
-    /// <param name="closedCurve3d_Out"></param>
+    /// <param name="edges_InOut">传入每组有碰撞的;传出闭合边界集(扔掉单交点的)</param>
+    /// <param name="closedCurve3d_Out">传出自闭曲线集</param>
     public void AdjacencyList(List<Edge> edges_InOut, List<CompositeCurve3d> closedCurve3d_Out)
     {
         //构建边的邻接表
@@ -667,11 +667,15 @@ public class Topo
     {
         var regions_out = new List<LoopList<EdgeItem>>();
 
-        //利用边界的顺序和逆序获取闭合链条
+        /* 
+         * TODO 这里暴力算法需要优化
+         * 狐哥为了处理左拐还是右拐图形bd,用了所有的线做种子线,然后往前后推进
+         * 前后推进:利用边界的顺序和逆序获取闭合链条,
+         *         会造成一环就有: 123,231,312,321,213,132,再其后再判断他们重复
+         */
         for (int i = 0; i < edges.Count; i++)
         {
             var edge = edges[i];
-            //TODO 这里有bug,两个内接的矩形会卡死 FindRegion
             var edgeItem = new EdgeItem(edge, true);
             edgeItem.FindRegion(edges, regions_out);
             edgeItem = new EdgeItem(edge, false);
@@ -681,14 +685,14 @@ public class Topo
         DeduplicationRegions(regions_out);
         return regions_out;
     }
-     
+
     /// <summary>
     /// 移除相同面域
     /// </summary>
     /// <param name="regions"></param>
     void DeduplicationRegions(List<LoopList<EdgeItem>> regions)
     {
-        Basal.ArrayEx.Deduplication(regions,(first, last) => {
+        Basal.ArrayEx.Deduplication(regions, (first, last) => {
             bool eq = false;//是否存在相同成员
             if (first.Count == last.Count)
             {
