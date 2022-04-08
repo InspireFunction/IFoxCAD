@@ -499,29 +499,32 @@ public class Rect : IEquatable<Rect>
     /// 比四叉树还快哦~
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="curves">集合</param>
-    /// <param name="firstProcessing">先处理集合每一个成员</param>
-    /// <param name="collisionProcessing">碰撞,返回两个碰撞的成员</param>
+    /// <param name="box">继承Rect的集合</param>
+    /// <param name="firstProcessing">先处理集合每一个成员;返回true就跳过后续委托</param>
+    /// <param name="collisionProcessing">碰撞,返回两个碰撞的成员;返回true就跳过后续委托</param>
     /// <param name="lastProcessing">后处理集合每一个成员</param>
-    public static void XCollision<T>(List<T> curves,
-        Action<T> firstProcessing,
-        Action<T, T> collisionProcessing,
+    public static void XCollision<T>(List<T> box,
+        Func<T, bool> firstProcessing,
+        Func<T, T, bool> collisionProcessing,
         Action<T> lastProcessing) where T : Rect
     {
         //先排序X:不需要Y排序,因为Y的上下浮动不共X .ThenBy(a => a.Box.Y)
         //因为先排序就可以有序遍历x区间,超过就break,达到更快
-        curves = curves.OrderBy(a => a._X).ToList();
+        box = box.OrderBy(a => a._X).ToList();
 
         //遍历所有图元
-        for (int i = 0; i < curves.Count; i++)
+        for (int i = 0; i < box.Count; i++)
         {
-            var oneRect = curves[i];
-            firstProcessing(oneRect);
+            var oneRect = box[i];
+            if (firstProcessing(oneRect))
+                continue;
+
+            bool actionlast = true;
 
             //搜索范围要在 one 的头尾中间的部分
-            for (int j = i + 1; j < curves.Count; j++)
+            for (int j = i + 1; j < box.Count; j++)
             {
-                var twoRect = curves[j];
+                var twoRect = box[j];
                 //x碰撞:矩形2的Left 在 矩形1[Left-Right]闭区间
                 if (oneRect._X <= twoRect._X && twoRect._X <= oneRect._Right)
                 {
@@ -530,7 +533,8 @@ public class Rect : IEquatable<Rect>
                      || (oneRect._Top >= twoRect._Y && twoRect._Y >= oneRect._Y)     /*包容下边*/
                      || (twoRect._Top >= oneRect._Top && oneRect._Y >= twoRect._Y))  /*穿过*/
                     {
-                        collisionProcessing(oneRect, twoRect);
+                        if (collisionProcessing(oneRect, twoRect))
+                            actionlast = false;
                     }
                     //这里想中断y高过它的无意义比较,
                     //但是必须排序Y,而排序Y必须同X,而这里不是同X(而是同X区间),所以不能中断
@@ -540,7 +544,9 @@ public class Rect : IEquatable<Rect>
                 else
                     break;//因为已经排序了,后续的必然超过 x碰撞区间
             }
-            lastProcessing(oneRect);
+
+            if (actionlast)
+                lastProcessing(oneRect);
         }
     }
 
