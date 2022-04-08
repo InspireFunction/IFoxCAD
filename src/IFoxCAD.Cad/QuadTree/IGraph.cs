@@ -54,6 +54,9 @@ namespace IFoxCAD.Cad
 
     /// <summary>
     /// 无向图节点
+    /// 顶点的数据结构：
+    /// key --- point3d  用于表示点的坐标和作为数据存储的key
+    /// edges -- 邻接边表， 每个边的定义为，（边，下一顶点），这样遍历每个顶点的邻接边表时，就可以知道多少个邻接边及对应的邻接点
     /// </summary>
     /// <typeparam name="T">节点数据类型</typeparam>
     public interface IGraphVertex<T>
@@ -64,7 +67,7 @@ namespace IFoxCAD.Cad
         /// <value></value>
         T Key { get; }
         /// <summary>
-        /// 节点的邻接表
+        /// 节点的邻接边表
         /// </summary>
         /// <value></value>
         IEnumerable<IEdge<T>> Edges { get; }
@@ -101,6 +104,9 @@ namespace IFoxCAD.Cad
     internal class Edge<T, C> : IEdge<T> where C : IComparable
     {
         // 这里的权重是个泛型，所以是否可以用curve类型作为权重？
+        // 看来 这里可以用一个曲线作为边的一个值，取消权重的概念，
+        // 或者说当C 为int的时候 可以视为权重，当为其他类型的时候 就是一种边的数据类型
+        // 所以这里就不能约束C的类型为IComparable
         private object weight;
 
         internal Edge(IGraphVertex<T> target, C weight)
