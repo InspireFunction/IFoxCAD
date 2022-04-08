@@ -1,7 +1,5 @@
-﻿namespace test;
-
-
-
+﻿#pragma warning disable CS0219 // 变量已被赋值，但从未使用过它的值
+namespace test;
 
 public class Test : AutoRegAssem
 {
@@ -317,6 +315,7 @@ public class Test : AutoRegAssem
         Tools.TestTimes(1000000,"三次点乘", () =>
         {
             var result = false;
+
             if (Math.Abs(p12.DotProduct(p23)) < 1e8 && 
                 Math.Abs(p23.DotProduct(p34)) < 1e8 &&
                 Math.Abs(p34.DotProduct(p41)) < 1e8)
@@ -563,3 +562,6 @@ public class BlockImportClass
     }
 }
 
+
+
+#pragma warning restore CS0219 // 变量已被赋值，但从未使用过它的值
