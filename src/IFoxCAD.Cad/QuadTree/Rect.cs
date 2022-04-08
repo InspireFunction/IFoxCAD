@@ -525,7 +525,7 @@ public class Rect : IEquatable<Rect>
             for (int j = i + 1; j < box.Count; j++)
             {
                 var twoRect = box[j];
-                //x碰撞:矩形2的Left 在 矩形1[Left-Right]闭区间
+                //x碰撞:矩形2的Left 在 矩形1[Left-Right]闭区间;穿过的话,也必然有自己的Left因此不需要处理
                 if (oneRect._X <= twoRect._X && twoRect._X <= oneRect._Right)
                 {
                     //y碰撞,那就是真的碰撞了
