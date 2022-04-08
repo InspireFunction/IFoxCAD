@@ -205,7 +205,7 @@ public class Rect : IEquatable<Rect>
 
     public override int GetHashCode()
     {
-        return base.GetHashCode();
+        return (int)_X ^ (int)_Y ^ (int)_Right ^ (int)_Top;
     }
     #endregion
 
@@ -481,16 +481,68 @@ public class Rect : IEquatable<Rect>
     }
 
 #if !WinForm
-    //public Autodesk.AutoCAD.DatabaseServices.Entity ToPolyLine()
-    //{
-    //    var bv = new List<BulgeVertexWidth>();
-    //    var pts = ToPoints();
-    //    pts.ForEach(item => {
-    //        bv.Add(new BulgeVertexWidth(item.ToPoint2d(), 0));
-    //    });
-    //    return EntityAdd.AddPolyLineToEntity(bv);
-    //}
+    public Autodesk.AutoCAD.DatabaseServices.Entity ToPolyLine()
+    {
+        var bv = new List<BulgeVertex>();
+        var pts = ToPoints();
+        Polyline pl = new();
+        pl.SetDatabaseDefaults();
+        pts.ForEach((i, vertex) => {
+            pl.AddVertexAt(i, vertex, 0, 0, 0);
+        });
+        return pl;
+    }
 #endif
+
+    /// <summary>
+    /// 列扫碰撞检测(碰撞算法)
+    /// 比四叉树还快哦~
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
+    /// <param name="curves">集合</param>
+    /// <param name="firstProcessing">先处理集合每一个成员</param>
+    /// <param name="collisionProcessing">碰撞,返回两个碰撞的成员</param>
+    /// <param name="lastProcessing">后处理集合每一个成员</param>
+    public static void XCollision<T>(List<T> curves,
+        Action<T> firstProcessing,
+        Action<T, T> collisionProcessing,
+        Action<T> lastProcessing) where T : Rect
+    {
+        //先排序X:不需要Y排序,因为Y的上下浮动不共X .ThenBy(a => a.Box.Y)
+        //因为先排序就可以有序遍历x区间,超过就break,达到更快
+        curves = curves.OrderBy(a => a._X).ToList();
+
+        //遍历所有图元
+        for (int i = 0; i < curves.Count; i++)
+        {
+            var oneRect = curves[i];
+            firstProcessing(oneRect);
+
+            //搜索范围要在 one 的头尾中间的部分
+            for (int j = i + 1; j < curves.Count; j++)
+            {
+                var twoRect = curves[j];
+                //x碰撞:矩形2的Left 在 矩形1[Left-Right]闭区间
+                if (oneRect._X <= twoRect._X && twoRect._X <= oneRect._Right)
+                {
+                    //y碰撞,那就是真的碰撞了
+                    if ((oneRect._Top >= twoRect._Top && twoRect._Top >= oneRect._Y) /*包容上边*/
+                     || (oneRect._Top >= twoRect._Y && twoRect._Y >= oneRect._Y)     /*包容下边*/
+                     || (twoRect._Top >= oneRect._Top && oneRect._Y >= twoRect._Y))  /*穿过*/
+                    {
+                        collisionProcessing(oneRect, twoRect);
+                    }
+                    //这里想中断y高过它的无意义比较,
+                    //但是必须排序Y,而排序Y必须同X,而这里不是同X(而是同X区间),所以不能中断
+                    //而做到X区间排序,就必须创造一个集合,再排序这个集合,
+                    //会导致每个图元都拥有一次X区间集合,开销更巨大(因此放弃).
+                }
+                else
+                    break;//因为已经排序了,后续的必然超过 x碰撞区间
+            }
+            lastProcessing(oneRect);
+        }
+    }
 
     #endregion
 }
