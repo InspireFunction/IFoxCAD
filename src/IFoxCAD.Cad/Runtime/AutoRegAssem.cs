@@ -75,7 +75,7 @@ public abstract class AutoRegAssem : IExtensionApplication
     private static RegistryKey GetAcAppKey()
     {
 #if ac2009
-            string key = HostApplicationServices.Current.RegistryProductRootKey;
+        string key = HostApplicationServices.Current.RegistryProductRootKey;
 #else
         string key = HostApplicationServices.Current.MachineRegistryProductRootKey;
 #endif
@@ -87,8 +87,17 @@ public abstract class AutoRegAssem : IExtensionApplication
     private bool SearchForReg()
     {
         RegistryKey appkey = GetAcAppKey();
+        if (appkey.SubKeyCount == 0)
+            return false;
+
         var regApps = appkey.GetSubKeyNames();
-        return regApps.Contains(_info.Name);
+        if (regApps.Contains(_info.Name))
+        {
+            //20220409 bug:文件名相同,路径不同,需要判断路径
+            var info = appkey.OpenSubKey(_info.Name);
+            return info.GetValue("LOADER")?.ToString().ToLower() == _info.Loader.ToLower();
+        }
+        return false;
     }
 
     /// <summary>
