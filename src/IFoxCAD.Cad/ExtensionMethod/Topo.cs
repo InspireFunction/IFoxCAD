@@ -127,18 +127,12 @@ public class Edge : IEquatable<Edge>
 #if NET35
         sp1 = GeCurve3d.GetSamplePoints(splitNum);
         sp2 = b.GeCurve3d.GetSamplePoints(splitNum);
-        if (sp1.Length != sp2.Length)
-            return false;
 #else
         var tmp1 = GeCurve3d.GetSamplePoints(splitNum);
         var tmp2 = b.GeCurve3d.GetSamplePoints(splitNum);
-        if (tmp1.Length != tmp2.Length)
-            return false;
-
         sp1 = tmp1.Select(a => a.Point).ToArray();
         sp2 = tmp2.Select(a => a.Point).ToArray();
 #endif
-
         //因为两条曲线可能是逆向的,所以采样之后需要点排序
         sp1 = sp1.OrderBy(a => a.X).ThenBy(a => a.Y).ThenBy(a => a.Z).ToArray();
         sp2 = sp2.OrderBy(a => a.X).ThenBy(a => a.Y).ThenBy(a => a.Z).ToArray();
@@ -163,12 +157,14 @@ public class Edge : IEquatable<Edge>
         //Edge没有包围盒,无法快速判断
         //曲线a和其他曲线n根据交点切割子线,会造成重复部分,例如多段线逆向相同
         Basal.ArrayEx.Deduplication(edgesOut, (first, last) => {
+            var pta1 = first.GeCurve3d.StartPoint;
+            var pta2 = first.GeCurve3d.EndPoint;
+            var ptb1 = last.GeCurve3d.StartPoint;
+            var ptb2 = last.GeCurve3d.EndPoint;
             //顺序 || 逆序
-            if ((first.GeCurve3d.StartPoint.IsEqualTo(last.GeCurve3d.StartPoint, CadTolerance) &&
-                 first.GeCurve3d.EndPoint.IsEqualTo(last.GeCurve3d.EndPoint, CadTolerance))
+            if ((pta1.IsEqualTo(ptb1, CadTolerance) && pta2.IsEqualTo(ptb2, CadTolerance))
                 ||
-                (first.GeCurve3d.StartPoint.IsEqualTo(last.GeCurve3d.EndPoint, CadTolerance) &&
-                 first.GeCurve3d.EndPoint.IsEqualTo(last.GeCurve3d.StartPoint, CadTolerance)))
+                (pta1.IsEqualTo(ptb2, CadTolerance) && pta2.IsEqualTo(ptb1, CadTolerance)))
             {
                 return first.SplitPointEquals(last);
             }
@@ -177,7 +173,7 @@ public class Edge : IEquatable<Edge>
     }
     public override int GetHashCode()
     {
-        return base.GetHashCode();
+        return GeCurve3d.GetHashCode() ^ StartIndex ^ EndIndex;
     }
     #endregion
 }
@@ -359,7 +355,7 @@ public class EdgeItem : Edge, IEquatable<EdgeItem>
     }
     public override int GetHashCode()
     {
-        return base.GetHashCode();
+        return base.GetHashCode() ^ (Forward ? 0 : 1);
     }
     #endregion
 }
@@ -412,7 +408,7 @@ public class CurveInfo : Rect
     /// <summary>
     /// 分割曲线,返回子线
     /// </summary>
-    /// <param name="pars1">曲线参数</param>
+    /// <param name="pars1">曲线分割点的参数</param>
     /// <returns></returns>
     public List<Edge> Split(List<double> pars1)
     {
@@ -440,7 +436,7 @@ public class CollisionChain
 public class Topo
 {
     // 碰撞链集合
-    List<CollisionChain> _coc;
+    List<CollisionChain> _CollisionChains;
     // 求交类(每次set自动重置,都会有个新的结果)
     static CurveCurveIntersector3d _cci3d = new();
     // cad容差类
@@ -455,66 +451,48 @@ public class Topo
         for (int i = 0; i < curves.Count; i++)
             curveList.Add(new CurveInfo(curves[i]));
 
-        _coc = XCollision(curveList);
-    }
+        //碰撞检测+消重
+        _CollisionChains = new();
+        CollisionChain? tmp = null;
 
-    /// <summary>
-    /// 列扫碰撞检测(碰撞算法)
-    /// 比四叉树还快哦~
-    /// </summary>
-    /// <returns></returns>
-    List<CollisionChain> XCollision(List<CurveInfo> curves)
-    {
-        //先排序X:不需要Y排序,因为Y的上下浮动不共X .ThenBy(a => a.Box.Y)
-        //因为先排序就可以有序遍历x区间,超过就break,达到更快
-        curves = curves.OrderBy(a => a._X).ToList();
-
-        List<CollisionChain> collision = new();
-        CollisionChain? coc = null;
-
-        //遍历所有图元
-        for (int i = 0; i < curves.Count; i++)
-        {
-            var one = curves[i];
-            coc = one.CollisionChain;//有碰撞链就直接利用之前的链
-
-            //搜索范围要在 one 的头尾中间的部分
-            for (int j = i + 1; j < curves.Count; j++)
-            {
-                var two = curves[j];
-                //x碰撞:矩形2的Left 在 矩形1[Left-Right]闭区间
-                if (one._X <= two._X && two._X <= one._Right)
+        Rect.XCollision(curveList,
+            oneRect => {
+                tmp = oneRect.CollisionChain;//有碰撞链就直接利用之前的链
+            },
+            (oneRect, twoRect) => {
+                //消重:包围盒大小一样+首尾相同+采样点相同
+                if (oneRect.Equals(twoRect, 1e-6))
                 {
-                    //y碰撞,那就是真的碰撞了
-                    if ((one._Top >= two._Top && two._Top >= one._Y) /*包容上边*/
-                     || (one._Top >= two._Y && two._Y >= one._Y)     /*包容下边*/
-                     || (two._Top >= one._Top && one._Y >= two._Y))  /*穿过*/
-                    {
-                        if (coc == null)
-                        {
-                            coc = new();
-                            one.CollisionChain = coc;//碰撞链设置
-                            coc.Collision.Add(one);//本体也加入链
-                        }
-                        two.CollisionChain = coc;//碰撞链设置
-                        coc.Collision.Add(two);
-                    }
-                    //这里想中断y高过它的无意义比较,
-                    //但是必须排序Y,而排序Y必须同X,而这里不是同X(而是同X区间),所以不能中断
-                    //而做到X区间排序,就必须创造一个集合,再排序这个集合,
-                    //会导致每个图元都拥有一次X区间集合,开销更巨大(因此放弃).
+                    var pta1 = oneRect.Edge.GeCurve3d.StartPoint;
+                    var pta2 = oneRect.Edge.GeCurve3d.EndPoint;
+                    var ptb1 = twoRect.Edge.GeCurve3d.StartPoint;
+                    var ptb2 = twoRect.Edge.GeCurve3d.EndPoint;
+
+                    if ((pta1.IsEqualTo(ptb1, CadTolerance) && pta2.IsEqualTo(ptb2, CadTolerance))
+                        ||
+                        (pta1.IsEqualTo(ptb2, CadTolerance) && pta2.IsEqualTo(ptb1, CadTolerance)))
+                        if (oneRect.Edge.SplitPointEquals(twoRect.Edge))
+                            return;
                 }
-                else
-                    break;//因为已经排序了,后续的必然超过 x碰撞区间
-            }
-            if (coc != null && !collision.Contains(coc))
-            {
-                collision.Add(coc);
-                coc = null;
-            }
-        }
-        return collision;
+
+                if (tmp == null)
+                {
+                    tmp = new();
+                    oneRect.CollisionChain = tmp;//碰撞链设置
+                    tmp.Collision.Add(oneRect);//本体也加入链
+                }
+                twoRect.CollisionChain = tmp;//碰撞链设置
+                tmp.Collision.Add(twoRect);
+            },
+            oneRect => {
+                if (tmp != null && !_CollisionChains.Contains(tmp))
+                {
+                    _CollisionChains.Add(tmp);
+                    tmp = null;
+                }
+            });
     }
+
 
     /// <summary>
     /// 遍历多条碰撞链
@@ -522,7 +500,7 @@ public class Topo
     /// <param name="action"></param>
     public void CollisionFor(Action<List<CurveInfo>> action)
     {
-        _coc.ForEach(a => {
+        _CollisionChains.ForEach(a => {
             action(a.Collision);//输出每条碰撞链
         });
     }
