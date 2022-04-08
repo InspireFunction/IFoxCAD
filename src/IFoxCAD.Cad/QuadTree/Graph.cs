@@ -12,14 +12,14 @@ namespace IFoxCAD.Cad
         /// 存储所有节点的字典，key为节点的类型，value为节点类型
         /// </summary>
         /// <value></value>
-        private Dictionary<T, GraphVertex<T>> vertices { get; set; }
+        private Dictionary<T, GraphVertex<T>> vertices = new Dictionary<T, GraphVertex<T>>();
 
         public int VerticesCount => vertices.Count;
         public bool IsWeightedGraph => false;
 
         public Graph()
         {
-            vertices = new Dictionary<T, GraphVertex<T>>();
+            //vertices = new Dictionary<T, GraphVertex<T>>();
         }
 
         /// <summary>
@@ -217,43 +217,54 @@ namespace IFoxCAD.Cad
 
         public IEnumerable<IGraphVertex<T>> VerticesAsEnumberable => (IEnumerable<IGraphVertex<T>>)vertices.Select(x => x.Value);
 
+       
+    }
+
+    /// <summary>
+    /// 邻接表图实现的顶点。
+    /// IEnumerable 枚举所有出边目标顶点。
+    /// </summary>
+    public class GraphVertex<T> : IEnumerable<T>, IGraphVertex<T>
+    {
+        public T Key { get; set; }
         /// <summary>
-        /// 邻接表图实现的顶点。
-        /// IEnumerable 枚举所有出边目标顶点。
+        /// 邻接表
+        /// todo:这里应该改为adjacencyList 来表示邻接点表
         /// </summary>
-        private class GraphVertex<T> : IEnumerable<T>, IGraphVertex<T>
+        /// <value></value>
+        public HashSet<GraphVertex<T>> Edges { get; }
+        /// <summary>
+        /// 邻接边表
+        /// 这个类的定义有问题：
+        /// todo:邻接边表和邻接表的名字是一样的，造成误解
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="int"></typeparam>
+        /// <returns></returns>
+        IEnumerable<IEdge<T>> IGraphVertex<T>.Edges => (IEnumerable<IEdge<T>>)Edges.Select(x => new Edge<T, int>(x, 1));
+
+        public GraphVertex(T value)
         {
-            public T Key { get; set; }
-            /// <summary>
-            /// 邻接表
-            /// </summary>
-            /// <value></value>
-            public HashSet<GraphVertex<T>> Edges { get; }
+            Key = value;
+            Edges = new HashSet<GraphVertex<T>>();
+        }
 
-            IEnumerable<IEdge<T>> IGraphVertex<T>.Edges => (IEnumerable<IEdge<T>>)Edges.Select(x => new Edge<T, int>(x, 1));
+        public IEdge<T> GetEdge(IGraphVertex<T> targetVertex)
+        {
+            return new Edge<T, int>(targetVertex, 1);
+        }
 
-            public GraphVertex(T value)
-            {
-                Key = value;
-                Edges = new HashSet<GraphVertex<T>>();
-            }
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
-            public IEdge<T> GetEdge(IGraphVertex<T> targetVertex)
-            {
-                return new Edge<T, int>(targetVertex, 1);
-            }
-
-            IEnumerator IEnumerable.GetEnumerator()
-            {
-                return GetEnumerator();
-            }
-
-            public IEnumerator<T> GetEnumerator()
-            {
-                return Edges.Select(x => x.Key).GetEnumerator();
-            }
+        public IEnumerator<T> GetEnumerator()
+        {
+            return Edges.Select(x => x.Key).GetEnumerator();
         }
     }
+
 
     /// <summary>
     /// 深度优先搜索。
