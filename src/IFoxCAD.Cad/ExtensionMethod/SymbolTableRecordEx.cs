@@ -166,19 +166,25 @@ public static class SymbolTableRecordEx
     /// <param name="action">轻多段线属性设置委托</param>
     /// <param name="trans">事务管理器</param>
     /// <returns>轻多段线id</returns>
-    public static ObjectId AddPline(this BlockTableRecord btr, List<Point3d> pts, List<double>? bulges = default, List<double>? startWidths = default, List<double>? endWidths = default, Action<Polyline>? action = default, Transaction? trans = default)
+    public static ObjectId AddPline(this BlockTableRecord btr,
+                                    List<Point3d> pts,
+                                    List<double>? bulges = default,
+                                    List<double>? startWidths = default,
+                                    List<double>? endWidths = default,
+                                    Action<Polyline>? action = default,
+                                    Transaction? trans = default)
     {
         bulges ??= new List<double>(new double[pts.Count]);
         startWidths ??= new List<double>(new double[pts.Count]);
         endWidths ??= new List<double>(new double[pts.Count]);
         Polyline pl = new();
+        pl.SetDatabaseDefaults();
         for (int i = 0; i < pts.Count; i++)
         {
             pl.AddVertexAt(i, pts[i].Point2d(), bulges[i], startWidths[i], endWidths[i]);
         }
         return btr.AddEnt(pl, action, trans);
     }
-#if !ac2009
 
     /// <summary>
     /// 在指定的绘图空间添加轻多段线
@@ -188,19 +194,21 @@ public static class SymbolTableRecordEx
     /// <param name="action">轻多段线属性设置委托</param>
     /// <param name="trans">事务管理器</param>
     /// <returns>轻多段线id</returns>
-    public static ObjectId AddPline(this BlockTableRecord btr, List<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,  Action<Polyline>? action = default, Transaction? trans = default)
-        {
+    public static ObjectId AddPline(this BlockTableRecord btr,
+                                    List<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,
+                                    Action<Polyline>? action = default,
+                                    Transaction? trans = default)
+    {
            
-            Polyline pl = new();
-            pts.ForEach((i, vertex) =>
-            {
-                pl.AddVertexAt(i, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
-            });
+        Polyline pl = new();
+        pl.SetDatabaseDefaults();
+        pts.ForEach((i, vertex) =>
+        {
+            pl.AddVertexAt(i, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
+        });
             
-            return btr.AddEnt(pl, action, trans);
-        }
-
-#endif
+        return btr.AddEnt(pl, action, trans);
+    }
 
     /// <summary>
     /// 在指定绘图空间X-Y平面3点画圆弧
@@ -217,9 +225,11 @@ public static class SymbolTableRecordEx
         var arc = EntityEx.CreateArc(startPoint, pointOnArc, endPoint);
         return btr.AddEnt(arc, action, trans);
     }
-#endregion
 
-#region 获取实体/实体id
+    // todo: 所有涉及默认无参构造的实体类型，都需要调用SetDatabaseDefaults();
+    #endregion
+
+    #region 获取实体/实体id
     /// <summary>
     /// 获取块表记录内的指定类型的实体
     /// </summary>
@@ -276,9 +286,12 @@ public static class SymbolTableRecordEx
         return tr.GetObject(btr.DrawOrderTableId, OpenMode.ForRead) as DrawOrderTable;
     }
 
-#endregion
+    
 
-#region 插入块参照
+
+    #endregion
+
+    #region 插入块参照
 
     /// <summary>
     /// 插入块参照
@@ -358,7 +371,7 @@ public static class SymbolTableRecordEx
     }
 
 #endregion
-#endregion
+    #endregion
 
 
 
