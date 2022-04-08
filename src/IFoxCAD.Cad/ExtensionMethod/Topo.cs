@@ -458,6 +458,7 @@ public class Topo
         Rect.XCollision(curveList,
             oneRect => {
                 tmp = oneRect.CollisionChain;//有碰撞链就直接利用之前的链
+                return false;
             },
             (oneRect, twoRect) => {
                 //消重:包围盒大小一样+首尾相同+采样点相同
@@ -472,7 +473,7 @@ public class Topo
                         ||
                         (pta1.IsEqualTo(ptb2, CadTolerance) && pta2.IsEqualTo(ptb1, CadTolerance)))
                         if (oneRect.Edge.SplitPointEquals(twoRect.Edge))
-                            return;
+                            return true;//跳过后续步骤
                 }
 
                 if (tmp == null)
@@ -483,6 +484,7 @@ public class Topo
                 }
                 twoRect.CollisionChain = tmp;//碰撞链设置
                 tmp.Collision.Add(twoRect);
+                return false;
             },
             oneRect => {
                 if (tmp != null && !_CollisionChains.Contains(tmp))
