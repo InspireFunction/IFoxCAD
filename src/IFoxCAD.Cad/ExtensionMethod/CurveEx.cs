@@ -60,7 +60,7 @@ public static class CurveEx
             var c3 = new List<CompositeCurve3d>();
 
             topo.GetEdgesAndnewCurves(infos, gs, c3);
-            topo.AdjacencyList(gs, c3);//增加测试..需要加入四叉树
+            topo.AdjacencyList(gs, c3);
             var regions = topo.GetRegions(gs);
 
             for (int i = 0; i < regions.Count; i++)

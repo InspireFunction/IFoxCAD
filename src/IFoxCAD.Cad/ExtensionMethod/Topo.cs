@@ -7,8 +7,8 @@ public class Edge : IEquatable<Edge>
 {
     #region 字段
     public CompositeCurve3d GeCurve3d;
-    public int StartIndex;
-    public int EndIndex;
+    public int StartIndex;//DESIGN0409 这个东西只是用在邻接表过滤就没用了.
+    public int EndIndex;  //DESIGN0409 这个东西只是用在邻接表过滤就没用了.
     public static Tolerance CadTolerance = new(1e-6, 1e-6);
     #endregion
 
@@ -586,6 +586,8 @@ public class Topo
         var nums = new List<int>();
         var closedEdges = new List<Edge>();
 
+        //var dic = new Dictionary<Point3d, int>();
+
         //交点集合 knots 会不断增大,会变得更加慢,因此我在一开始就进行碰撞链分析
         for (int i = 0; i < edges_InOut.Count; i++)
         {
@@ -596,12 +598,26 @@ public class Topo
                 continue;
             }
 
+            var sp = edge.GeCurve3d.StartPoint;
+            var ep = edge.GeCurve3d.EndPoint;
+
+            //狐哥在图元信息上面储存的是计数索引(也没有办法储存计数 DESIGN0409),因此这样的写法不对
+            //if (dic.Keys.Contains(sp))
+            //    dic[sp]++;//含有就是其他曲线"共用"此交点,计数
+            //else
+            //    dic.Add(sp, 1);//不含有就加入节点
+
+            //if (dic.Keys.Contains(ep))
+            //    dic[ep]++;
+            //else
+            //    dic.Add(ep, 1);
+
             if (knots.Contains(edge.GeCurve3d.StartPoint))
             {
                 //含有就是其他曲线"共用"此交点,
                 //节点所在索引==共用计数索引=>将它++
-                edge.StartIndex = knots.IndexOf(edge.GeCurve3d.StartPoint);
-                nums[edge.StartIndex]++;
+                edge.StartIndex = knots.IndexOf(edge.GeCurve3d.StartPoint);//给它交点计数的索引,不是次数
+                nums[edge.StartIndex]++;//交点计数
             }
             else
             {
@@ -630,12 +646,15 @@ public class Topo
         //剩下的都是闭合的曲线连接了,每个点都至少有两条曲线通过
         var tmp = edges_InOut
                 .Except(closedEdges)
-                .Where(e => nums[e.StartIndex] > 1 && nums[e.EndIndex] > 1)
-                .ToArray();//要ToArray克隆,否则下面会清空掉这个容器
+                .Where(e => nums[e.StartIndex] > 1 && nums[e.EndIndex] > 1);
 
+        //TODO DESIGN0409 按照引用次数的排序,不成功
+        //tmp = tmp.OrderBy(e => nums[e.StartIndex]);
+
+        var tmpArr = tmp.ToArray();//Clear导致tmp失效
         edges_InOut.Clear();
-        for (int i = 0; i < tmp.Length; i++)
-            edges_InOut.Add(tmp[i]);
+        for (int i = 0; i < tmpArr.Length; i++)
+            edges_InOut.Add(tmpArr[i]);
     }
 
     /// <summary>
