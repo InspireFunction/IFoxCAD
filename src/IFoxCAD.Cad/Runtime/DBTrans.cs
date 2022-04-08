@@ -2,7 +2,7 @@
 
 public class DBTrans : IDisposable
 {
-#region 私有字段
+    #region 私有字段
     /// <summary>
     /// 文档锁
     /// </summary>
@@ -21,7 +21,7 @@ public class DBTrans : IDisposable
     private static readonly Stack<DBTrans> dBTrans = new();
     #endregion
 
-#region 公开属性
+    #region 公开属性
     /// <summary>
     /// 返回当前事务
     /// </summary>
@@ -61,7 +61,7 @@ public class DBTrans : IDisposable
 
     #endregion
 
-#region 构造函数
+    #region 构造函数
     /// <summary>
     /// 默认构造函数，默认为打开当前文档，默认提交事务
     /// </summary>
@@ -137,14 +137,14 @@ public class DBTrans : IDisposable
         {
             Database = new Database(true, false);
         }
-                
+
         Transaction = Database.TransactionManager.StartTransaction();
         _commit = commit;
         dBTrans.Push(this);
     }
-#endregion
+    #endregion
 
-#region 类型转换
+    #region 类型转换
     /// <summary>
     /// 隐式转换为Transaction
     /// </summary>
@@ -154,9 +154,9 @@ public class DBTrans : IDisposable
     {
         return tr.Transaction;
     }
-#endregion
+    #endregion
 
-#region 符号表
+    #region 符号表
 
     /// <summary>
     /// 块表
@@ -212,9 +212,9 @@ public class DBTrans : IDisposable
     /// 视口表
     /// </summary>
     public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => new(this, Database.ViewportTableId);
-#endregion
+    #endregion
 
-#region 字典
+    #region 字典
     /// <summary>
     /// 命名对象字典
     /// </summary>
@@ -273,9 +273,9 @@ public class DBTrans : IDisposable
     /// </summary>
     public DBDictionary SectionViewStyleDict => GetObject<DBDictionary>(Database.SectionViewStyleDictionaryId)!;
 #endif
-#endregion
+    #endregion
 
-#region 获取对象
+    #region 获取对象
     /// <summary>
     /// 根据对象id获取图元对象
     /// </summary>
@@ -301,14 +301,96 @@ public class DBTrans : IDisposable
     public ObjectId GetObjectId(string handleString)
     {
         var hanle = new Handle(Convert.ToInt64(handleString, 16));
-        return Database.GetObjectId(false, hanle, 0);
+        //return Database.GetObjectId(false, hanle, 0);
+        return Helper.TryGetObjectId(Database, hanle);
     }
 
+    class Helper
+    {
+        /*
+         * id = db.GetObjectId(false, handle, 0);
+         * 参数意义: db.GetObjectId(如果没有找到就创建,句柄号,标记..将来备用)
+         * 在vs的输出会一直抛出:
+         * 引发的异常:“Autodesk.AutoCAD.Runtime.Exception”(位于 AcdbMgd.dll 中)
+         * "eUnknownHandle"
+         * 这就是为什么慢的原因,所以直接运行就好了!而Debug还是需要用arx的API替代.
+         */
 
+        [System.Security.SuppressUnmanagedCodeSecurity]
+        [DllImport("acdb17.dll", CallingConvention = CallingConvention.ThisCall/*08的调用约定 高版本是__cdecl*/,
+           EntryPoint = "?getAcDbObjectId@AcDbDatabase@@QAE?AW4ErrorStatus@Acad@@AAVAcDbObjectId@@_NABVAcDbHandle@@K@Z")]
+        extern static int getAcDbObjectId17x32(IntPtr db, out ObjectId id, [MarshalAs(UnmanagedType.U1)] bool createnew, ref Handle h, uint reserved);
 
-#endregion
+        [System.Security.SuppressUnmanagedCodeSecurity]
+        [DllImport("acdb17.dll", CallingConvention = CallingConvention.ThisCall/*08的调用约定 高版本是__cdecl*/,
+          EntryPoint = "?getAcDbObjectId@AcDbDatabase@@QEAA?AW4ErrorStatus@Acad@@AEAVAcDbObjectId@@_NAEBVAcDbHandle@@K@Z")]
+        extern static int getAcDbObjectId17x64(IntPtr db, out ObjectId id, [MarshalAs(UnmanagedType.U1)] bool createnew, ref Handle h, uint reserved);
 
-#region idispose接口相关函数
+        [System.Security.SuppressUnmanagedCodeSecurity]
+        [DllImport("acdb18.dll", CallingConvention = CallingConvention.ThisCall/*08的调用约定 高版本是__cdecl*/,
+           EntryPoint = "?getAcDbObjectId@AcDbDatabase@@QAE?AW4ErrorStatus@Acad@@AAVAcDbObjectId@@_NABVAcDbHandle@@K@Z")]
+        extern static int getAcDbObjectId18x32(IntPtr db, out ObjectId id, [MarshalAs(UnmanagedType.U1)] bool createnew, ref Handle h, uint reserved);
+
+        [System.Security.SuppressUnmanagedCodeSecurity]
+        [DllImport("acdb18.dll", CallingConvention = CallingConvention.ThisCall/*08的调用约定 高版本是__cdecl*/,
+          EntryPoint = "?getAcDbObjectId@AcDbDatabase@@QEAA?AW4ErrorStatus@Acad@@AEAVAcDbObjectId@@_NAEBVAcDbHandle@@K@Z")]
+        extern static int getAcDbObjectId18x64(IntPtr db, out ObjectId id, [MarshalAs(UnmanagedType.U1)] bool createnew, ref Handle h, uint reserved);
+
+        /// <summary>
+        /// 句柄转id,NET35(08~12)专用的
+        /// </summary>
+        /// <param name="db">数据库</param>
+        /// <param name="handle">句柄</param>
+        /// <param name="id">返回的id</param>
+        /// <param name="createIfNotFound">不存在则创建</param>
+        /// <param name="reserved">保留,用于未来</param>
+        /// <returns>成功0,其他值都是错误.可以强转ErrorStatus</returns>
+        static int GetAcDbObjectId(IntPtr db, Handle handle, out ObjectId id, bool createIfNotFound = false, uint reserved = 0)
+        {
+            id = ObjectId.Null;
+            switch (Application.Version.Major)
+            {
+                case 17:
+                    {
+                        if (IntPtr.Size == 4)
+                            return getAcDbObjectId17x32(db, out id, createIfNotFound, ref handle, reserved);
+                        else
+                            return getAcDbObjectId17x64(db, out id, createIfNotFound, ref handle, reserved);
+                    }
+                case 18:
+                    {
+                        if (IntPtr.Size == 4)
+                            return getAcDbObjectId18x32(db, out id, createIfNotFound, ref handle, reserved);
+                        else
+                            return getAcDbObjectId18x64(db, out id, createIfNotFound, ref handle, reserved);
+                    }
+            }
+            return -1;
+        }
+
+        /// <summary>
+        /// 句柄转id
+        /// </summary>
+        /// <param name="db">数据库</param>
+        /// <param name="handle">句柄</param>
+        /// <returns>id</returns>
+        public static ObjectId TryGetObjectId(Database db, Handle handle)
+        {
+#if !NET35
+            //高版本直接利用
+            var es = db.TryGetObjectId(handle, out ObjectId id);
+            //if (!es)
+#else
+            var es = GetAcDbObjectId(db.UnmanagedObject, handle, out ObjectId id);
+            //if (ErrorStatus.OK != (ErrorStatus)es)
+#endif
+            return id;
+        }
+    }
+
+    #endregion
+
+    #region idispose接口相关函数
 
     public void Abort()
     {
@@ -340,7 +422,7 @@ public class DBTrans : IDisposable
                 dBTrans.Pop();
                 if (!Transaction.IsDisposed)
                 {
-                    if (Document?.IsActive==true)
+                    if (Document?.IsActive == true)
                         Transaction.TransactionManager.QueueForGraphicsFlush();
                     Transaction.Dispose();
                 }
@@ -367,5 +449,5 @@ public class DBTrans : IDisposable
         Dispose(disposing: true);
         GC.SuppressFinalize(this);
     }
-#endregion
+    #endregion
 }
