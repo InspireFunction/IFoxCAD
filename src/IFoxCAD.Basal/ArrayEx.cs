@@ -1,5 +1,10 @@
 ﻿namespace IFoxCAD.Basal
 {
+    /* 
+     * 由于linq的函数大部分带有状态机,而cad是一个单机程序,
+     * 使用状态机会变得缓慢,因此我们设计的时候着重于时间优化,
+     * 本工具类在着重于数组遍历时候替代linq
+     */
     public static class ArrayEx
     {
         /// <summary>
@@ -16,22 +21,24 @@
         }
 
         /// <summary>
-        /// 单数组消重
+        /// 一维数组消重
         /// </summary>
         /// <typeparam name="T"></typeparam>
-        /// <param name="lst"></param>
-        public static void Deduplication<T>(List<T> edgesOut, Func<T, T, bool> func)
+        /// <param name="listInOut">传入有重复成员的数组,传出没有重复的</param>
+        /// <param name="func">传出参数1:数组开头;传出参数2:数组结尾;返回值比较结尾为<see langword="true"/>就移除</param>
+        public static void Deduplication<T>(List<T> listInOut, Func<T, T, bool> func)
         {
-            for (int i = 0; i < edgesOut.Count; i++)
+            for (int i = 0; i < listInOut.Count; i++)
             {
-                var first = edgesOut[i];
-                for (int j = edgesOut.Count - 1; j > i; j--)
+                var first = listInOut[i];
+                for (int j = listInOut.Count - 1; j > i; j--)
                 {
-                    var last = edgesOut[j];
+                    var last = listInOut[j];
                     if (func(first, last))
-                        edgesOut.RemoveAt(j);
+                        listInOut.RemoveAt(j);
                 }
             }
         }
+
     }
 }
