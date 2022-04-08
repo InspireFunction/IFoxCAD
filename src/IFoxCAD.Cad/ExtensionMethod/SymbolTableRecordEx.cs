@@ -5,8 +5,6 @@
 /// </summary>
 public static class SymbolTableRecordEx
 {
-
-
     #region 块表记录
 
     #region 添加实体
@@ -37,8 +35,8 @@ public static class SymbolTableRecordEx
     /// </summary>
     /// <typeparam name="T">实体类型</typeparam>
     /// <param name="btr">块表记录</param>
-    /// <param name="tr">事务</param>
     /// <param name="ents">实体集合</param>
+    /// <param name="trans">事务</param>
     /// <returns>对象 id 列表</returns>
     public static IEnumerable<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents, Transaction? trans = null) where T : Entity
     {
@@ -50,8 +48,7 @@ public static class SymbolTableRecordEx
         {
             return ents
                 .Select(
-                    ent =>
-                    {
+                    ent => {
                         ObjectId id = btr.AppendEntity(ent);
                         trans.AddNewlyCreatedDBObject(ent, true);
                         return id;
@@ -59,6 +56,7 @@ public static class SymbolTableRecordEx
                 .ToList();
         }
     }
+
     /// <summary>
     /// 添加多个实体
     /// </summary>
@@ -199,14 +197,13 @@ public static class SymbolTableRecordEx
                                     Action<Polyline>? action = default,
                                     Transaction? trans = default)
     {
-           
+
         Polyline pl = new();
         pl.SetDatabaseDefaults();
-        pts.ForEach((i, vertex) =>
-        {
+        pts.ForEach((i, vertex) => {
             pl.AddVertexAt(i, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
         });
-            
+
         return btr.AddEnt(pl, action, trans);
     }
 
@@ -235,8 +232,8 @@ public static class SymbolTableRecordEx
     /// </summary>
     /// <typeparam name="T">实体类型</typeparam>
     /// <param name="btr">块表记录</param>
-    /// <param name="tr">事务</param>
     /// <param name="mode">打开模式</param>
+    /// <param name="trans">事务</param>
     /// <returns>实体集合</returns>
     public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr, OpenMode mode = OpenMode.ForRead, Transaction? trans = default) where T : Entity
     {
@@ -278,29 +275,26 @@ public static class SymbolTableRecordEx
     /// 获取绘制顺序表
     /// </summary>
     /// <param name="btr">块表</param>
-    /// <param name="tr">事务</param>
+    /// <param name="trans">事务</param>
     /// <returns>绘制顺序表</returns>
-    public static DrawOrderTable? GetDrawOrderTable(this BlockTableRecord btr, Transaction? tr = default)
+    public static DrawOrderTable? GetDrawOrderTable(this BlockTableRecord btr, Transaction? trans = default)
     {
-        tr ??= DBTrans.Top.Transaction;
-        return tr.GetObject(btr.DrawOrderTableId, OpenMode.ForRead) as DrawOrderTable;
+        trans ??= DBTrans.Top.Transaction;
+        return trans.GetObject(btr.DrawOrderTableId, OpenMode.ForRead) as DrawOrderTable;
     }
-
-    
-
-
     #endregion
 
     #region 插入块参照
-
     /// <summary>
     /// 插入块参照
     /// </summary>
+    /// <param name="blockTableRecord">块表记录</param>
     /// <param name="position">插入点</param>
     /// <param name="blockName">块名</param>
     /// <param name="scale">块插入比例，默认为1</param>
     /// <param name="rotation">块插入旋转角(弧度)，默认为0</param>
     /// <param name="atts">属性字典{Tag,Value}，默认为null</param>
+    /// <param name="trans">事务</param>
     /// <returns>块参照对象id</returns>
     public static ObjectId InsertBlock(this BlockTableRecord blockTableRecord, Point3d position,
                                 string blockName,
@@ -369,10 +363,7 @@ public static class SymbolTableRecordEx
         }
         return objid;
     }
-
-#endregion
     #endregion
 
-
-
+    #endregion
 }
