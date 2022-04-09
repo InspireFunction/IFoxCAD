@@ -342,12 +342,11 @@ public static class SymbolTableRecordEx
             var btr = DBTrans.Top.GetObject<BlockTableRecord>(blockref.BlockTableRecord)!;
             if (btr.HasAttributeDefinitions)
             {
-                var attdefs = btr
-                    .GetEntities<AttributeDefinition>()
-                    .Where(attdef => !(attdef.Constant || attdef.Invisible));
+                var attdefs = btr.GetEntities<AttributeDefinition>();
                 foreach (var attdef in attdefs)
                 {
                     using AttributeReference attref = new();
+                    attref.SetDatabaseDefaults();
                     attref.SetAttributeFromBlock(attdef, blockref.BlockTransform);
                     attref.Position = attdef.Position.TransformBy(blockref.BlockTransform);
                     attref.AdjustAlignment(DBTrans.Top.Database);
