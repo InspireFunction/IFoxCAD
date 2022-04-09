@@ -130,6 +130,19 @@ public class TestBlock
         tr.CurrentSpace.InsertBlock(new Point3d(-10, 0, 0), "test44");
     }
 
+    [CommandMethod("addattsdef")]
+    public void AddAttsDef()
+    {
+        using var tr = new DBTrans();
+        var blockid = Env.Editor.GetEntity("pick block:").ObjectId;
+        var blockref = tr.GetObject<BlockReference>(blockid).BlockTableRecord;
+
+        var att1 = new AttributeDefinition() { Position = new Point3d(20, 20, 0), Tag = "addtagTest1", Height = 1, TextString = "valueTest1" };
+        var att2 = new AttributeDefinition() { Position = new Point3d(10, 12, 0), Tag = "tagTest2", Height = 1, TextString = "valueTest2" };
+
+        tr.BlockTable.AddAttsToBlocks(blockref, new List<AttributeDefinition> { att1, att2 });
+    }
+
     [CommandMethod("testblocknullbug")]
     public void TestBlockNullBug()
     {

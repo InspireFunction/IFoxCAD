@@ -147,6 +147,51 @@ public static class SymbolTableEx
     }
 
     /// <summary>
+    /// 添加属性到块定义
+    /// </summary>
+    /// <param name="table">块表</param>
+    /// <param name="id">块定义id</param>
+    /// <param name="atts">属性列表</param>
+    public static void AddAttsToBlocks(this SymbolTable<BlockTable, BlockTableRecord> table, ObjectId id, List<AttributeDefinition> atts)
+    {
+        table.Change(id, btr =>
+        {
+            var attTags = new List<string>();
+            btr.GetEntities<AttributeDefinition>()
+                .ForEach(def => attTags.Add(def.Tag.ToUpper()));
+            foreach (AttributeDefinition att in atts)
+            {
+                if (!attTags.Contains(att.Tag.ToUpper()))
+                {
+                    btr.AddEntity(att);
+                }
+            }
+        });
+    }
+    /// <summary>
+    /// 添加属性到块定义
+    /// </summary>
+    /// <param name="table">块表</param>
+    /// <param name="name">块定义名字</param>
+    /// <param name="atts">属性列表</param>
+    public static void AddAttsToBlocks(this SymbolTable<BlockTable, BlockTableRecord> table, string name, List<AttributeDefinition> atts)
+    {
+        table.Change(name, btr =>
+        {
+            var attTags = new List<string>();
+            btr.GetEntities<AttributeDefinition>()
+                .ForEach(def => attTags.Add(def.Tag.ToUpper()));
+            foreach (AttributeDefinition att in atts)
+            {
+                if (!attTags.Contains(att.Tag.ToUpper()))
+                {
+                    btr.AddEntity(att);
+                }
+            }
+        });
+    }
+
+    /// <summary>
     /// 从文件中获取块定义
     /// </summary>
     /// <param name="table">块表</param>

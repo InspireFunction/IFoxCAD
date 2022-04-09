@@ -298,7 +298,7 @@ namespace IFoxCAD.Cad
             {
                 if (visited.Contains(edge.TargetVertexKey))
                 {
-                    continue;
+                    continue; // 改造这个搜索函数，当搜索闭合的时候，将闭合链存入结果列表
                 }
 
                 if (dfs(edge.TargetVertex, visited, searchVetex))

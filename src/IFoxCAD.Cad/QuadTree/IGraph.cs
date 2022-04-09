@@ -84,7 +84,7 @@ namespace IFoxCAD.Cad
     /// <typeparam name="T">边类型</typeparam>
     public interface IEdge<T>
     {
-        W Weight<W>() where W : IComparable; // 权重，ifoxcad里应该用不到
+        W Weight<W>() where W : IComparable; // 权重，ifoxcad里应该用不到,计划改为 curve
         /// <summary>
         /// 目标节点的键
         /// </summary>
