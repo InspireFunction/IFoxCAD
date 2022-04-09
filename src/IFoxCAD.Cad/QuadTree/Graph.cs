@@ -6,16 +6,19 @@ namespace IFoxCAD.Cad
     /// 无权无向图实现
     /// IEnumerable 枚举所有顶点。
     /// </summary>
-    public class Graph<T> : IGraph<T>, IEnumerable<T>
+    public class Graph : IGraph, IEnumerable<Point3d>
     {
         /// <summary>
-        /// 存储所有节点的字典，key为节点的类型，value为节点类型
+        /// 存储所有节点的字典，key为顶点的类型，value为邻接表
         /// </summary>
         /// <value></value>
-        private Dictionary<T, GraphVertex<T>> vertices = new Dictionary<T, GraphVertex<T>>();
+        private Dictionary<Point3d, HashSet<Point3d>> vertices = new ();
+        /// <summary>
+        /// 邻接边表
+        /// </summary>
+        private Dictionary<Point3d, HashSet<IEdge>> edges = new ();
 
         public int VerticesCount => vertices.Count;
-        public bool IsWeightedGraph => false;
 
         public Graph()
         {
@@ -23,180 +26,182 @@ namespace IFoxCAD.Cad
         }
 
         /// <summary>
-        /// 返回一个参考顶点。
+        /// 向该图添加一个边。
         /// 时间复杂度: O(1).
         /// </summary>
-        private GraphVertex<T> referenceVertex
+        public void AddEdge(Curve3d value!!)
         {
-            get
-            {
-                using (var enumerator = vertices.GetEnumerator())
-                {
-                    if (enumerator.MoveNext())
-                    {
-                        return enumerator.Current.Value;
-                    }
-                }
+            var start = value.StartPoint;
+            var end = value.EndPoint;
 
-                return null;
+            if (vertices.ContainsKey(start)) // 如果曲线的起点在邻接表字典里
+            {
+                var nextVertex = new GraphVertex(end);
+                var edge = new GraphEdge(nextVertex, value);
+                vertices[start].Add(end); // 邻接表加曲线的终点
+                edges[start].Add(edge); // 邻接边表加曲线
             }
-        }
-
-        IGraphVertex<T> IGraph<T>.ReferenceVertex => referenceVertex;
-
-
-        /// <summary>
-        /// 向该图添加一个新顶点。
-        /// 时间复杂度: O(1).
-        /// </summary>
-        public void AddVertex(T value)
-        {
-            if (value == null)
+            else if (vertices.ContainsKey(end)) // 如果曲线的终点在邻接表字典里
             {
-                throw new ArgumentNullException();
+                var nextVertex = new GraphVertex(start);
+                var edge = new GraphEdge(nextVertex, value);
+                vertices[end].Add(start); // 邻接表加曲线的起点
+                edges[end].Add(edge); // 邻接边表加曲线
             }
-
-            var newVertex = new GraphVertex<T>(value);
-
-            vertices.Add(value, newVertex);
-        }
-
-        /// <summary>
-        /// 从此图中删除现有顶点。
-        /// 时间复杂度: O(V) 其中 V 是顶点数。
-        /// </summary>
-        public void RemoveVertex(T vertex)
-        {
-            if (vertex == null)
+            else
             {
-                throw new ArgumentNullException();
+                // 添加起点
+                vertices.Add(start,new HashSet<Point3d>());
+                vertices[start].Add(end);
+                edges.Add(start, new HashSet<IEdge>());
+                edges[start].Add(new GraphEdge(new GraphVertex(end), value));
+                // 添加终点
+                vertices.Add(end,new HashSet<Point3d>());
+                vertices[end].Add(start);
+                edges.Add(end, new HashSet<IEdge>());
+                edges[end].Add(new GraphEdge(new GraphVertex(start),value));
             }
 
-            if (!vertices.ContainsKey(vertex))
-            {
-                throw new Exception("顶点不在此图中。");
-            }
-
-            foreach (var v in vertices[vertex].Edges)
-            {
-                v.Edges.Remove(vertices[vertex]);
-            }
-
-            vertices.Remove(vertex);
-        }
-
-        /// <summary>
-        /// 向该图添加一条边。
-        /// 时间复杂度: O(1).
-        /// </summary>
-        public void AddEdge(T source, T dest)
-        {
-            if (source == null || dest == null)
-            {
-                throw new ArgumentException();
-            }
-
-            if (!vertices.ContainsKey(source) || !vertices.ContainsKey(dest))
-            {
-                throw new Exception("源或目标顶点不在此图中。");
-            }
-
-            if (vertices[source].Edges.Contains(vertices[dest])
-                || vertices[dest].Edges.Contains(vertices[source]))
-            {
-                throw new Exception("边已经存在。");
-            }
-
-            vertices[source].Edges.Add(vertices[dest]);
-            vertices[dest].Edges.Add(vertices[source]);
         }
 
         /// <summary>
         /// 从此图中删除一条边。
-        /// 时间复杂度: O(1).
+        /// 时间复杂度: O(2V*E) 其中 V 是顶点数,E是边数。
         /// </summary>
-        public void RemoveEdge(T source, T dest)
+        public void RemoveEdge(Curve3d curve!!)
         {
+            var start = curve.StartPoint;
+            var end = curve.EndPoint;
 
-            if (source == null || dest == null)
-            {
-                throw new ArgumentException();
-            }
-
-            if (!vertices.ContainsKey(source) || !vertices.ContainsKey(dest))
+            if (!vertices.ContainsKey(start) || !vertices.ContainsKey(end))
             {
                 throw new Exception("源或目标顶点不在此图中。");
             }
 
-            if (!vertices[source].Edges.Contains(vertices[dest])
-                || !vertices[dest].Edges.Contains(vertices[source]))
+            if (!edges[start].Contains(new GraphEdge(new GraphVertex(end),curve))
+                || !edges[end].Contains(new GraphEdge(new GraphVertex(start),curve)))
             {
                 throw new Exception("边不存在。");
             }
 
-            vertices[source].Edges.Remove(vertices[dest]);
-            vertices[dest].Edges.Remove(vertices[source]);
+            RemoveVertex(start);
+            RemoveVertex(end);
+        }
+
+
+        /// <summary>
+        /// 从此图中删除现有顶点。
+        /// 时间复杂度: O(V*E) 其中 V 是顶点数,E是边数。
+        /// </summary>
+        public void RemoveVertex(Point3d vertex)
+        {
+            if (!vertices.ContainsKey(vertex))
+            {
+                throw new Exception("顶点不在此图中。");
+            }
+            // 删除邻接表里的vertex点,先删除后面的遍历可以少一轮
+            vertices.Remove(vertex);
+            // 删除其他顶点的邻接表里的vertex点
+            foreach (var item in vertices.Values)
+            {
+                item.Remove(vertex);
+            }
+
+            // 删除邻接边表里的vertex点,先删除后面的遍历可以少一轮
+            edges.Remove(vertex);
+            // 删除其他顶点的邻接边表的指向vertex的边
+            foreach (var item in edges.Values)
+            {
+                foreach (var edge in item)
+                {
+                    if (edge.TargetVertexKey == vertex)
+                    {
+                        item.Remove(edge);
+                    }
+                }
+            }
+            
+
         }
 
         /// <summary>
-        /// 我们在给定的来源和目的地之间是否有边？
-        /// 时间复杂度: O(1).
+        /// 向该图添加一个新顶点，但是无边。
+        /// 时间复杂度: O(E). E是边数
         /// </summary>
-        public bool HasEdge(T source, T dest)
+        public void AddVertex(GraphVertex vertex!!)
+        {
+            if (vertices.ContainsKey(vertex.Key))
+            {
+                throw new Exception("顶点已经存在。");
+            }
+
+            vertices.Add(vertex.Key, new HashSet<Point3d>());
+            edges.Add(vertex.Key, new HashSet<IEdge>());
+
+            foreach (var item in vertex.Edges)
+            {
+                // 根据顶点的邻接边表构建图的邻接表
+                vertices[vertex.Key].Add(item.Key);
+                // 根据顶点的邻接边表构建图的邻接边表
+                edges[vertex.Key].Add(item.Value);
+            }
+        }
+
+        
+
+        /// <summary>
+        /// 我们在给定的来源和目的地之间是否有边？
+        /// 时间复杂度: O(E).E 是边
+        /// </summary>
+        public bool HasEdge(Point3d source, Point3d dest)
         {
             if (!vertices.ContainsKey(source) || !vertices.ContainsKey(dest))
             {
                 throw new ArgumentException("源或目标不在此图中。");
             }
-
-            return vertices[source].Edges.Contains(vertices[dest])
-                && vertices[dest].Edges.Contains(vertices[source]);
-        }
-        /// <summary>
-        /// 节点的邻接表
-        /// </summary>
-        /// <param name="vertex"></param>
-        /// <returns></returns>
-        public IEnumerable<T> Edges(T vertex)
-        {
-            if (!vertices.ContainsKey(vertex))
+            foreach (var item in edges[source])
             {
-                throw new ArgumentException("顶点不在此图中。");
+                if (item.TargetVertexKey == dest)
+                {
+                    return true;
+                }
             }
-
-            return vertices[vertex].Edges.Select(x => x.Key);
+            return false;
+            
         }
+        
 
-        public bool ContainsVertex(T value)
+        public bool ContainsVertex(Point3d value)
         {
             return vertices.ContainsKey(value);
         }
-
-        public IGraphVertex<T> GetVertex(T value)
+        public IGraphVertex GetVertex(Point3d key)
         {
-            return vertices[value];
+            
+            var vertex = new GraphVertex(key);
+            foreach (var item in edges[key])
+            {
+                vertex.AddEdge(item);
+            }
+            return vertex;
+            
         }
+
 
         /// <summary>
         /// 克隆此图。目测是深克隆
         /// </summary>
-        public Graph<T> Clone()
+        public Graph Clone()
         {
-            var newGraph = new Graph<T>();
+            var newGraph = new Graph();
 
-            foreach (var vertex in vertices)
+            foreach (var vertex in edges.Values)
             {
-                newGraph.AddVertex(vertex.Key);
-            }
-
-            foreach (var vertex in vertices)
-            {
-                foreach (var edge in vertex.Value.Edges)
+                foreach (var item in vertex)
                 {
-                    newGraph.AddEdge(vertex.Value.Key, edge.Key);
+                    newGraph.AddEdge(item.TargetEdge);
                 }
             }
-
             return newGraph;
         }
 
@@ -205,34 +210,31 @@ namespace IFoxCAD.Cad
             return vertices.Select(x => x.Key).GetEnumerator();
         }
 
-        IEnumerator<T> IEnumerable<T>.GetEnumerator()
+        IEnumerator<Point3d>? IEnumerable<Point3d>.GetEnumerator()
         {
-            return GetEnumerator() as IEnumerator<T>;
+            return GetEnumerator() as IEnumerator<Point3d>;
         }
 
-        IGraph<T> IGraph<T>.Clone()
+        IGraph IGraph.Clone()
         {
             return Clone();
         }
 
-        public IEnumerable<IGraphVertex<T>> VerticesAsEnumberable => (IEnumerable<IGraphVertex<T>>)vertices.Select(x => x.Value);
+       
+
+        public IEnumerable<IGraphVertex> VerticesAsEnumberable => (IEnumerable<IGraphVertex>)vertices.Select(x => x.Value);
 
        
     }
 
     /// <summary>
     /// 邻接表图实现的顶点。
-    /// IEnumerable 枚举所有出边目标顶点。
+    /// IEnumerable 枚举所有邻接点。
     /// </summary>
-    public class GraphVertex<T> : IEnumerable<T>, IGraphVertex<T>
+    public class GraphVertex : IEnumerable<Point3d>, IGraphVertex
     {
-        public T Key { get; set; }
-        /// <summary>
-        /// 邻接表
-        /// todo:这里应该改为adjacencyList 来表示邻接点表
-        /// </summary>
-        /// <value></value>
-        public HashSet<GraphVertex<T>> Edges { get; }
+        public Point3d Key { get; private set; }
+
         /// <summary>
         /// 邻接边表
         /// 这个类的定义有问题：
@@ -241,17 +243,20 @@ namespace IFoxCAD.Cad
         /// <typeparam name="T"></typeparam>
         /// <typeparam name="int"></typeparam>
         /// <returns></returns>
-        IEnumerable<IEdge<T>> IGraphVertex<T>.Edges => (IEnumerable<IEdge<T>>)Edges.Select(x => new Edge<T, int>(x, 1));
+        public Dictionary<Point3d, IEdge> Edges => new ();
 
-        public GraphVertex(T value)
+        public GraphVertex(Point3d value)
         {
             Key = value;
-            Edges = new HashSet<GraphVertex<T>>();
         }
 
-        public IEdge<T> GetEdge(IGraphVertex<T> targetVertex)
+        public void AddEdge(IEdge edge)
         {
-            return new Edge<T, int>(targetVertex, 1);
+            Edges.Add(edge.TargetVertexKey,edge);
+        }
+        public IEdge GetEdge(IGraphVertex targetVertex)
+        {
+            return Edges[targetVertex.Key];
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -259,93 +264,67 @@ namespace IFoxCAD.Cad
             return GetEnumerator();
         }
 
-        public IEnumerator<T> GetEnumerator()
+        public IEnumerator<Point3d> GetEnumerator()
         {
             return Edges.Select(x => x.Key).GetEnumerator();
         }
+
+        
     }
 
 
     /// <summary>
     /// 深度优先搜索。
     /// </summary>
-    public class DepthFirst<T>
-    {
-        /// <summary>
-        /// 如果项目存在，则返回 true。
-        /// 这个函数需要改写，在ifoxcad里返回的应该是所有的环
-        /// </summary>
-        public bool Find(IGraph<T> graph, T vertex)
-        {
-            return dfs(graph.ReferenceVertex, new HashSet<T>(), vertex);
-        }
+    //public class DepthFirst<T>
+    //{
+    //    /// <summary>
+    //    /// 如果项目存在，则返回 true。
+    //    /// 这个函数需要改写，在ifoxcad里返回的应该是所有的环
+    //    /// </summary>
+    //    public bool Find(IGraph<T> graph, T vertex)
+    //    {
+    //        return dfs(graph.ReferenceVertex, new HashSet<T>(), vertex);
+    //    }
 
-        /// <summary>
-        /// 递归 DFS。
-        /// 这个函数需要改写，在ifoxcad里返回的应该是所有的环
-        /// </summary>
-        private bool dfs(IGraphVertex<T> current,
-            HashSet<T> visited, T searchVetex)
-        {
-            visited.Add(current.Key);
+    //    /// <summary>
+    //    /// 递归 DFS。
+    //    /// 这个函数需要改写，在ifoxcad里返回的应该是所有的环
+    //    /// </summary>
+    //    private bool dfs(IGraphVertex<T> current,
+    //        HashSet<T> visited, T searchVetex)
+    //    {
+    //        visited.Add(current.Key);
 
-            if (current.Key.Equals(searchVetex))
-            {
-                return true;
-            }
+    //        if (current.Key.Equals(searchVetex))
+    //        {
+    //            return true;
+    //        }
 
-            foreach (var edge in current.Edges)
-            {
-                if (visited.Contains(edge.TargetVertexKey))
-                {
-                    continue; // 改造这个搜索函数，当搜索闭合的时候，将闭合链存入结果列表
-                }
+    //        foreach (var edge in current.Edges)
+    //        {
+    //            if (visited.Contains(edge.TargetVertexKey))
+    //            {
+    //                continue; // 改造这个搜索函数，当搜索闭合的时候，将闭合链存入结果列表
+    //            }
 
-                if (dfs(edge.TargetVertex, visited, searchVetex))
-                {
-                    return true;
-                }
-            }
+    //            if (dfs(edge.TargetVertex, visited, searchVetex))
+    //            {
+    //                return true;
+    //            }
+    //        }
 
-            return false;
-        }
+    //        return false;
+    //    }
 
 
-    }
+    //}
+
+
 
 // ===========另一个dfs实现，感觉比较好一点在于可以用委托干点其他的事情，和前一个可以结合一下
 
-    public interface IDirectedWeightedGraph<T>
-    {
-        int Count { get; }
-
-        Vertex<T>?[] Vertices { get; }
-
-        void AddEdge(Vertex<T> startVertex, Vertex<T> endVertex, double weight);
-
-        Vertex<T> AddVertex(T data);
-
-        bool AreAdjacent(Vertex<T> startVertex, Vertex<T> endVertex);
-
-        double AdjacentDistance(Vertex<T> startVertex, Vertex<T> endVertex);
-
-        IEnumerable<Vertex<T>?> GetNeighbors(Vertex<T> vertex);
-
-        void RemoveEdge(Vertex<T> startVertex, Vertex<T> endVertex);
-
-        void RemoveVertex(Vertex<T> vertex);
-    }
-    public interface IGraphSearch<T>
-    {
-        /// <summary>
-        /// 从起始顶点遍历图。
-        /// </summary>
-        ///<param name="graph">图实例。</param>
-        ///<param name="startVertex">搜索开始的顶点。</param>
-        ///<param name="action">每个图顶点需要执行的动作</param>
-        void VisitAll(IDirectedWeightedGraph<T> graph, Vertex<T> startVertex, Action<Vertex<T>>? action = null);
-    }
-
+ /*
     /// <summary>
     /// Implementation of graph vertex.
     /// </summary>
@@ -641,5 +620,5 @@ namespace IFoxCAD.Cad
             }
         }
     }
-
+ */
 }
