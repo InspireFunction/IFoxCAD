@@ -5,9 +5,46 @@ namespace Test
 
     public class TestGraph
     {
+        [CommandMethod("testpointindict")]
+        public void TestPointInDict()
+        {
+            var pt1 = new Point3d(0.0255, 0.452, 0);
+            var pt2 = new Point3d(0.0255001, 0.452003, 0);
+            var pt3 = new Point3d(0.0255002, 0.4520001, 0);
+            var pt4 = new Point3d(0.0255450, 0.45287893, 0);
+            var pt5 = new Point3d(0.02554935, 0.452092375, 0);
+            var dict = new Dictionary<Point3d, int>();
+            dict.Add(pt1, 1);
+            dict.Add(pt2, 2);
+            dict.Add(pt3, 3);
+            dict.Add(pt4, 4);
+            dict.Add(pt5, 5);
+            Env.Print(dict[pt1]);
+        }
+
+
+
+
         [CommandMethod("testgraph")]
         public void TestGraph1()
         {
+            var ents = Env.Editor.SSGet().Value.GetEntities<Curve>();
+            var graph = new IFoxCAD.Cad.Graph();
+            ents.ForEach(ent => graph.AddEdge(ent.GetGeCurve()));
+            var dfs = new DepthFirst();
+            dfs.FindAll(graph);
+            var res = dfs.Curve3ds.Select(loop =>
+            {
+                var curves = loop.ToArray();
+                var comcur = new CompositeCurve3d(curves);
+                return comcur.ToCurve();
+            });
+            using var tr = new DBTrans();
+            res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
+            tr.CurrentSpace.AddEntity(res);
+
+
+
             //var graph = new Graph<int>();
             //graph.AddVertex(1);
             //graph.AddVertex(2);

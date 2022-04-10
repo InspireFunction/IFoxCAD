@@ -1,4 +1,6 @@
-﻿using Exception = System.Exception;
+﻿using System;
+
+using Exception = System.Exception;
 
 namespace IFoxCAD.Cad
 {
@@ -19,6 +21,8 @@ namespace IFoxCAD.Cad
         private Dictionary<Point3d, HashSet<IEdge>> edges = new ();
 
         public int VerticesCount => vertices.Count;
+
+        public Point3d ReferenceVertex => vertices.FirstOrDefault().Key;
 
         public Graph()
         {
@@ -187,6 +191,16 @@ namespace IFoxCAD.Cad
             
         }
 
+        public HashSet<Point3d> GetAdjacencyList(Point3d vertex)
+        {
+            return vertices[vertex];
+        }
+
+        public HashSet<IEdge> GetAdjacencyEdge(Point3d vertex)
+        {
+            return edges[vertex];
+        }
+
 
         /// <summary>
         /// 克隆此图。目测是深克隆
@@ -220,11 +234,11 @@ namespace IFoxCAD.Cad
             return Clone();
         }
 
-       
+        
 
         public IEnumerable<IGraphVertex> VerticesAsEnumberable => (IEnumerable<IGraphVertex>)vertices.Select(x => x.Value);
+        public IEnumerable<Point3d> Point3dAsEnumberable => vertices.Select(x => x.Key);
 
-       
     }
 
     /// <summary>
@@ -276,349 +290,371 @@ namespace IFoxCAD.Cad
     /// <summary>
     /// 深度优先搜索。
     /// </summary>
-    //public class DepthFirst<T>
-    //{
-    //    /// <summary>
-    //    /// 如果项目存在，则返回 true。
-    //    /// 这个函数需要改写，在ifoxcad里返回的应该是所有的环
-    //    /// </summary>
-    //    public bool Find(IGraph<T> graph, T vertex)
-    //    {
-    //        return dfs(graph.ReferenceVertex, new HashSet<T>(), vertex);
-    //    }
-
-    //    /// <summary>
-    //    /// 递归 DFS。
-    //    /// 这个函数需要改写，在ifoxcad里返回的应该是所有的环
-    //    /// </summary>
-    //    private bool dfs(IGraphVertex<T> current,
-    //        HashSet<T> visited, T searchVetex)
-    //    {
-    //        visited.Add(current.Key);
-
-    //        if (current.Key.Equals(searchVetex))
-    //        {
-    //            return true;
-    //        }
-
-    //        foreach (var edge in current.Edges)
-    //        {
-    //            if (visited.Contains(edge.TargetVertexKey))
-    //            {
-    //                continue; // 改造这个搜索函数，当搜索闭合的时候，将闭合链存入结果列表
-    //            }
-
-    //            if (dfs(edge.TargetVertex, visited, searchVetex))
-    //            {
-    //                return true;
-    //            }
-    //        }
-
-    //        return false;
-    //    }
-
-
-    //}
-
-
-
-// ===========另一个dfs实现，感觉比较好一点在于可以用委托干点其他的事情，和前一个可以结合一下
-
- /*
-    /// <summary>
-    /// Implementation of graph vertex.
-    /// </summary>
-    /// <typeparam name="T">Generic Type.</typeparam>
-    public class Vertex<T>
+    public class DepthFirst
     {
+        // 存储所有的边
+        public List<LoopList<Curve3d>> Curve3ds { get; } = new List<LoopList<Curve3d>> ();
         /// <summary>
-        ///     Gets vertex data.
+        /// 如果项目存在，则返回 true。
+        /// 这个函数需要改写，在ifoxcad里返回的应该是所有的环
         /// </summary>
-        public T Data { get; }
-
-        /// <summary>
-        ///     Gets an index of the vertex in graph adjacency matrix.
-        /// </summary>
-        public int Index { get; }
-
-        /// <summary>
-        ///     Gets reference to the graph this vertex belongs to.
-        /// </summary>
-        public DirectedWeightedGraph<T>? Graph { get; private set; }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Vertex{T}"/> class.
-        /// </summary>
-        /// <param name="data">Vertex data. Generic type.</param>
-        /// <param name="index">Index of the vertex in graph adjacency matrix.</param>
-        /// <param name="graph">Graph this vertex belongs to.</param>
-        public Vertex(T data, int index, DirectedWeightedGraph<T>? graph)
+        public void FindAll(IGraph graph)
         {
-            Data = data;
-            Index = index;
-            Graph = graph;
-        }
-
-        /// <summary>
-        /// Initializes a new instance of the <see cref="Vertex{T}"/> class.
-        /// </summary>
-        /// <param name="data">Vertex data. Generic type.</param>
-        /// <param name="index">Index of the vertex in graph adjacency matrix.</param>
-        public Vertex(T data, int index)
-        {
-            Data = data;
-            Index = index;
-        }
-
-        /// <summary>
-        ///     Sets graph reference to the null. This method called when vertex removed from the graph.
-        /// </summary>
-        public void SetGraphNull() => Graph = null;
-
-        /// <summary>
-        ///     Override of base ToString method. Prints vertex data and index in graph adjacency matrix.
-        /// </summary>
-        /// <returns>String which contains vertex data and index in graph adjacency matrix..</returns>
-        public override string ToString() => $"Vertex Data: {Data}, Index: {Index}";
-    }
-
-    /// <summary>
-    ///     Implementation of the directed weighted graph via adjacency matrix.
-    /// </summary>
-    /// <typeparam name="T">Generic Type.</typeparam>
-    public class DirectedWeightedGraph<T> : IDirectedWeightedGraph<T>
-    {
-        /// <summary>
-        ///     Capacity of the graph, indicates the maximum amount of vertices.
-        /// </summary>
-        private readonly int capacity;
-
-        /// <summary>
-        ///     Adjacency matrix which reflects the edges between vertices and their weight.
-        ///     Zero value indicates no edge between two vertices.
-        /// </summary>
-        private readonly double[,] adjacencyMatrix;
-
-        /// <summary>
-        ///     Initializes a new instance of the <see cref="DirectedWeightedGraph{T}"/> class.
-        /// </summary>
-        /// <param name="capacity">Capacity of the graph, indicates the maximum amount of vertices.</param>
-        public DirectedWeightedGraph(int capacity)
-        {
-            ThrowIfNegativeCapacity(capacity);
-
-            this.capacity = capacity;
-            Vertices = new Vertex<T>[capacity];
-            adjacencyMatrix = new double[capacity, capacity];
-            Count = 0;
-        }
-
-        /// <summary>
-        ///     Gets list of vertices of the graph.
-        /// </summary>
-        public Vertex<T>?[] Vertices { get; private set; }
-
-        /// <summary>
-        ///     Gets current amount of vertices in the graph.
-        /// </summary>
-        public int Count { get; private set; }
-
-        /// <summary>
-        ///     Adds new vertex to the graph.
-        /// </summary>
-        /// <param name="data">Data of the vertex.</param>
-        /// <returns>Reference to created vertex.</returns>
-        public Vertex<T> AddVertex(T data)
-        {
-            ThrowIfOverflow();
-            var vertex = new Vertex<T>(data, Count, this);
-            Vertices[Count] = vertex;
-            Count++;
-            return vertex;
-        }
-
-        /// <summary>
-        ///     Creates an edge between two vertices of the graph.
-        /// </summary>
-        /// <param name="startVertex">Vertex, edge starts at.</param>
-        /// <param name="endVertex">Vertex, edge ends at.</param>
-        /// <param name="weight">Double weight of an edge.</param>
-        public void AddEdge(Vertex<T> startVertex, Vertex<T> endVertex, double weight)
-        {
-            ThrowIfVertexNotInGraph(startVertex);
-            ThrowIfVertexNotInGraph(endVertex);
-
-            ThrowIfWeightZero(weight);
-
-            var currentEdgeWeight = adjacencyMatrix[startVertex.Index, endVertex.Index];
-
-            ThrowIfEdgeExists(currentEdgeWeight);
-
-            adjacencyMatrix[startVertex.Index, endVertex.Index] = weight;
-        }
-
-        /// <summary>
-        ///     Removes vertex from the graph.
-        /// </summary>
-        /// <param name="vertex">Vertex to be removed.</param>
-        public void RemoveVertex(Vertex<T> vertex)
-        {
-            ThrowIfVertexNotInGraph(vertex);
-
-            Vertices[vertex.Index] = null;
-            vertex.SetGraphNull();
-
-            for (var i = 0; i < Count; i++)
+            foreach (var item in graph.Point3dAsEnumberable)
             {
-                adjacencyMatrix[i, vertex.Index] = 0;
-                adjacencyMatrix[vertex.Index, i] = 0;
+                var curves = new LoopList<Curve3d>();
+                var visited = new List<Point3d>();
+                if (dfs(graph,item,visited,item))
+                {
+                    for (int i = 0; i < visited.Count - 1; i++)
+                    {
+                        var cur = visited[i];
+                        var next = visited[i + 1];
+                        var curedge = graph.GetAdjacencyEdge(cur);
+                        foreach (var edge in curedge)
+                        {
+                            if (edge.TargetVertexKey == next)
+                            {
+                                curves.Add(edge.TargetEdge);
+                            }
+                        }
+
+                    }
+                }
+                Curve3ds.Add(curves);
+            }
+            
+            
+        }
+
+        /// <summary>
+        /// 递归 DFS。
+        /// 这个函数需要改写，在ifoxcad里返回的应该是所有的环
+        /// </summary>
+        private bool dfs(IGraph graph, Point3d current, List<Point3d> visited, Point3d search)
+        {
+          
+            visited.Add(current);
+            if (current == search && visited.Count >= 2)
+            {
+                return true;
             }
 
-            Count--;
-        }
-
-        /// <summary>
-        ///     Removes edge between two vertices.
-        /// </summary>
-        /// <param name="startVertex">Vertex, edge starts at.</param>
-        /// <param name="endVertex">Vertex, edge ends at.</param>
-        public void RemoveEdge(Vertex<T> startVertex, Vertex<T> endVertex)
-        {
-            ThrowIfVertexNotInGraph(startVertex);
-            ThrowIfVertexNotInGraph(endVertex);
-            adjacencyMatrix[startVertex.Index, endVertex.Index] = 0;
-        }
-
-        /// <summary>
-        ///     Gets a neighbors of particular vertex.
-        /// </summary>
-        /// <param name="vertex">Vertex, method gets list of neighbors for.</param>
-        /// <returns>Collection of the neighbors of particular vertex.</returns>
-        public IEnumerable<Vertex<T>?> GetNeighbors(Vertex<T> vertex)
-        {
-            ThrowIfVertexNotInGraph(vertex);
-
-            for (var i = 0; i < Count; i++)
+           // 改造这个搜索函数，当搜索闭合的时候，将闭合链存入结果列表
+            foreach (var edge in graph.GetAdjacencyList(current))
             {
-                if (adjacencyMatrix[vertex.Index, i] != 0)
+                if (visited.Contains(edge))
                 {
-                    yield return Vertices[i];
+                    continue; 
+                }
+                if (dfs(graph,edge,visited,search))
+                {
+                    return true;
                 }
             }
-        }
-
-        /// <summary>
-        ///     Returns true, if there is an edge between two vertices.
-        /// </summary>
-        /// <param name="startVertex">Vertex, edge starts at.</param>
-        /// <param name="endVertex">Vertex, edge ends at.</param>
-        /// <returns>True if edge exists, otherwise false.</returns>
-        public bool AreAdjacent(Vertex<T> startVertex, Vertex<T> endVertex)
-        {
-            ThrowIfVertexNotInGraph(startVertex);
-            ThrowIfVertexNotInGraph(endVertex);
-
-            return adjacencyMatrix[startVertex.Index, endVertex.Index] != 0;
-        }
-
-        /// <summary>
-        /// Return the distance between two vertices in the graph.
-        /// </summary>
-        /// <param name="startVertex">first vertex in edge.</param>
-        /// <param name="endVertex">secnod vertex in edge.</param>
-        /// <returns>distance between the two.</returns>
-        public double AdjacentDistance(Vertex<T> startVertex, Vertex<T> endVertex)
-        {
-            if (AreAdjacent(startVertex, endVertex))
-            {
-                return adjacencyMatrix[startVertex.Index, endVertex.Index];
-            }
-
-            return 0;
-        }
-
-        private static void ThrowIfNegativeCapacity(int capacity)
-        {
-            if (capacity < 0)
-            {
-                throw new InvalidOperationException("Graph capacity should always be a non-negative integer.");
-            }
-        }
-
-        private static void ThrowIfWeightZero(double weight)
-        {
-            if (weight.Equals(0.0d))
-            {
-                throw new InvalidOperationException("Edge weight cannot be zero.");
-            }
-        }
-
-        private static void ThrowIfEdgeExists(double currentEdgeWeight)
-        {
-            if (!currentEdgeWeight.Equals(0.0d))
-            {
-                throw new InvalidOperationException($"Vertex already exists: {currentEdgeWeight}");
-            }
-        }
-
-        private void ThrowIfOverflow()
-        {
-            if (Count == capacity)
-            {
-                throw new InvalidOperationException("Graph overflow.");
-            }
-        }
-
-        private void ThrowIfVertexNotInGraph(Vertex<T> vertex)
-        {
-            if (vertex.Graph != this)
-            {
-                throw new InvalidOperationException($"Vertex does not belong to graph: {vertex}.");
-            }
+            return false;
         }
     }
-    /// <summary>
-    /// 深度优先搜索 -遍历图的算法。
-    /// 算法从用户选择的根节点开始。
-    /// 算法在回溯之前尽可能沿着每个分支探索。
-    /// </summary>
-    /// <typeparam name="T">顶点数据类型。</typeparam>
-    public class DepthFirstSearch<T> : IGraphSearch<T> where T : IComparable<T>
-    {
-        /// <summary>
-        /// 从起始顶点遍历图。
-        /// </summary>
-        ///<param name="graph">图实例。</param>
-        ///<param name="startVertex">搜索开始的顶点。</param>
-        ///<param name="action">每个图顶点需要执行的动作</param>
-        public void VisitAll(IDirectedWeightedGraph<T> graph, Vertex<T> startVertex, Action<Vertex<T>>? action = default)
-        {
-            Dfs(graph, startVertex, action, new HashSet<Vertex<T>>());
-        }
 
-        /// <summary>
-        /// 从起始顶点遍历图。
-        /// </summary>
-        ///<param name="graph">图实例。</param>
-        ///<param name="startVertex">搜索开始的顶点。</param>
-        ///<param name="action">每个图顶点需要执行的动作</param>
-        ///<param name="visited">具有访问顶点的哈希集。</param>
-        private void Dfs(IDirectedWeightedGraph<T> graph, Vertex<T> startVertex, Action<Vertex<T>>? action, HashSet<Vertex<T>> visited)
-        {
-            action?.Invoke(startVertex);
+    
 
-            visited.Add(startVertex);
+    // ===========另一个dfs实现，感觉比较好一点在于可以用委托干点其他的事情，和前一个可以结合一下
 
-            foreach (var vertex in graph.GetNeighbors(startVertex))
-            {
-                if (vertex == null || visited.Contains(vertex))
-                {
-                    continue;
-                }
+    /*
+       /// <summary>
+       /// Implementation of graph vertex.
+       /// </summary>
+       /// <typeparam name="T">Generic Type.</typeparam>
+       public class Vertex<T>
+       {
+           /// <summary>
+           ///     Gets vertex data.
+           /// </summary>
+           public T Data { get; }
 
-                Dfs(graph, vertex!, action, visited);
-            }
-        }
-    }
- */
+           /// <summary>
+           ///     Gets an index of the vertex in graph adjacency matrix.
+           /// </summary>
+           public int Index { get; }
+
+           /// <summary>
+           ///     Gets reference to the graph this vertex belongs to.
+           /// </summary>
+           public DirectedWeightedGraph<T>? Graph { get; private set; }
+
+           /// <summary>
+           /// Initializes a new instance of the <see cref="Vertex{T}"/> class.
+           /// </summary>
+           /// <param name="data">Vertex data. Generic type.</param>
+           /// <param name="index">Index of the vertex in graph adjacency matrix.</param>
+           /// <param name="graph">Graph this vertex belongs to.</param>
+           public Vertex(T data, int index, DirectedWeightedGraph<T>? graph)
+           {
+               Data = data;
+               Index = index;
+               Graph = graph;
+           }
+
+           /// <summary>
+           /// Initializes a new instance of the <see cref="Vertex{T}"/> class.
+           /// </summary>
+           /// <param name="data">Vertex data. Generic type.</param>
+           /// <param name="index">Index of the vertex in graph adjacency matrix.</param>
+           public Vertex(T data, int index)
+           {
+               Data = data;
+               Index = index;
+           }
+
+           /// <summary>
+           ///     Sets graph reference to the null. This method called when vertex removed from the graph.
+           /// </summary>
+           public void SetGraphNull() => Graph = null;
+
+           /// <summary>
+           ///     Override of base ToString method. Prints vertex data and index in graph adjacency matrix.
+           /// </summary>
+           /// <returns>String which contains vertex data and index in graph adjacency matrix..</returns>
+           public override string ToString() => $"Vertex Data: {Data}, Index: {Index}";
+       }
+
+       /// <summary>
+       ///     Implementation of the directed weighted graph via adjacency matrix.
+       /// </summary>
+       /// <typeparam name="T">Generic Type.</typeparam>
+       public class DirectedWeightedGraph<T> : IDirectedWeightedGraph<T>
+       {
+           /// <summary>
+           ///     Capacity of the graph, indicates the maximum amount of vertices.
+           /// </summary>
+           private readonly int capacity;
+
+           /// <summary>
+           ///     Adjacency matrix which reflects the edges between vertices and their weight.
+           ///     Zero value indicates no edge between two vertices.
+           /// </summary>
+           private readonly double[,] adjacencyMatrix;
+
+           /// <summary>
+           ///     Initializes a new instance of the <see cref="DirectedWeightedGraph{T}"/> class.
+           /// </summary>
+           /// <param name="capacity">Capacity of the graph, indicates the maximum amount of vertices.</param>
+           public DirectedWeightedGraph(int capacity)
+           {
+               ThrowIfNegativeCapacity(capacity);
+
+               this.capacity = capacity;
+               Vertices = new Vertex<T>[capacity];
+               adjacencyMatrix = new double[capacity, capacity];
+               Count = 0;
+           }
+
+           /// <summary>
+           ///     Gets list of vertices of the graph.
+           /// </summary>
+           public Vertex<T>?[] Vertices { get; private set; }
+
+           /// <summary>
+           ///     Gets current amount of vertices in the graph.
+           /// </summary>
+           public int Count { get; private set; }
+
+           /// <summary>
+           ///     Adds new vertex to the graph.
+           /// </summary>
+           /// <param name="data">Data of the vertex.</param>
+           /// <returns>Reference to created vertex.</returns>
+           public Vertex<T> AddVertex(T data)
+           {
+               ThrowIfOverflow();
+               var vertex = new Vertex<T>(data, Count, this);
+               Vertices[Count] = vertex;
+               Count++;
+               return vertex;
+           }
+
+           /// <summary>
+           ///     Creates an edge between two vertices of the graph.
+           /// </summary>
+           /// <param name="startVertex">Vertex, edge starts at.</param>
+           /// <param name="endVertex">Vertex, edge ends at.</param>
+           /// <param name="weight">Double weight of an edge.</param>
+           public void AddEdge(Vertex<T> startVertex, Vertex<T> endVertex, double weight)
+           {
+               ThrowIfVertexNotInGraph(startVertex);
+               ThrowIfVertexNotInGraph(endVertex);
+
+               ThrowIfWeightZero(weight);
+
+               var currentEdgeWeight = adjacencyMatrix[startVertex.Index, endVertex.Index];
+
+               ThrowIfEdgeExists(currentEdgeWeight);
+
+               adjacencyMatrix[startVertex.Index, endVertex.Index] = weight;
+           }
+
+           /// <summary>
+           ///     Removes vertex from the graph.
+           /// </summary>
+           /// <param name="vertex">Vertex to be removed.</param>
+           public void RemoveVertex(Vertex<T> vertex)
+           {
+               ThrowIfVertexNotInGraph(vertex);
+
+               Vertices[vertex.Index] = null;
+               vertex.SetGraphNull();
+
+               for (var i = 0; i < Count; i++)
+               {
+                   adjacencyMatrix[i, vertex.Index] = 0;
+                   adjacencyMatrix[vertex.Index, i] = 0;
+               }
+
+               Count--;
+           }
+
+           /// <summary>
+           ///     Removes edge between two vertices.
+           /// </summary>
+           /// <param name="startVertex">Vertex, edge starts at.</param>
+           /// <param name="endVertex">Vertex, edge ends at.</param>
+           public void RemoveEdge(Vertex<T> startVertex, Vertex<T> endVertex)
+           {
+               ThrowIfVertexNotInGraph(startVertex);
+               ThrowIfVertexNotInGraph(endVertex);
+               adjacencyMatrix[startVertex.Index, endVertex.Index] = 0;
+           }
+
+           /// <summary>
+           ///     Gets a neighbors of particular vertex.
+           /// </summary>
+           /// <param name="vertex">Vertex, method gets list of neighbors for.</param>
+           /// <returns>Collection of the neighbors of particular vertex.</returns>
+           public IEnumerable<Vertex<T>?> GetNeighbors(Vertex<T> vertex)
+           {
+               ThrowIfVertexNotInGraph(vertex);
+
+               for (var i = 0; i < Count; i++)
+               {
+                   if (adjacencyMatrix[vertex.Index, i] != 0)
+                   {
+                       yield return Vertices[i];
+                   }
+               }
+           }
+
+           /// <summary>
+           ///     Returns true, if there is an edge between two vertices.
+           /// </summary>
+           /// <param name="startVertex">Vertex, edge starts at.</param>
+           /// <param name="endVertex">Vertex, edge ends at.</param>
+           /// <returns>True if edge exists, otherwise false.</returns>
+           public bool AreAdjacent(Vertex<T> startVertex, Vertex<T> endVertex)
+           {
+               ThrowIfVertexNotInGraph(startVertex);
+               ThrowIfVertexNotInGraph(endVertex);
+
+               return adjacencyMatrix[startVertex.Index, endVertex.Index] != 0;
+           }
+
+           /// <summary>
+           /// Return the distance between two vertices in the graph.
+           /// </summary>
+           /// <param name="startVertex">first vertex in edge.</param>
+           /// <param name="endVertex">secnod vertex in edge.</param>
+           /// <returns>distance between the two.</returns>
+           public double AdjacentDistance(Vertex<T> startVertex, Vertex<T> endVertex)
+           {
+               if (AreAdjacent(startVertex, endVertex))
+               {
+                   return adjacencyMatrix[startVertex.Index, endVertex.Index];
+               }
+
+               return 0;
+           }
+
+           private static void ThrowIfNegativeCapacity(int capacity)
+           {
+               if (capacity < 0)
+               {
+                   throw new InvalidOperationException("Graph capacity should always be a non-negative integer.");
+               }
+           }
+
+           private static void ThrowIfWeightZero(double weight)
+           {
+               if (weight.Equals(0.0d))
+               {
+                   throw new InvalidOperationException("Edge weight cannot be zero.");
+               }
+           }
+
+           private static void ThrowIfEdgeExists(double currentEdgeWeight)
+           {
+               if (!currentEdgeWeight.Equals(0.0d))
+               {
+                   throw new InvalidOperationException($"Vertex already exists: {currentEdgeWeight}");
+               }
+           }
+
+           private void ThrowIfOverflow()
+           {
+               if (Count == capacity)
+               {
+                   throw new InvalidOperationException("Graph overflow.");
+               }
+           }
+
+           private void ThrowIfVertexNotInGraph(Vertex<T> vertex)
+           {
+               if (vertex.Graph != this)
+               {
+                   throw new InvalidOperationException($"Vertex does not belong to graph: {vertex}.");
+               }
+           }
+       }
+       /// <summary>
+       /// 深度优先搜索 -遍历图的算法。
+       /// 算法从用户选择的根节点开始。
+       /// 算法在回溯之前尽可能沿着每个分支探索。
+       /// </summary>
+       /// <typeparam name="T">顶点数据类型。</typeparam>
+       public class DepthFirstSearch<T> : IGraphSearch<T> where T : IComparable<T>
+       {
+           /// <summary>
+           /// 从起始顶点遍历图。
+           /// </summary>
+           ///<param name="graph">图实例。</param>
+           ///<param name="startVertex">搜索开始的顶点。</param>
+           ///<param name="action">每个图顶点需要执行的动作</param>
+           public void VisitAll(IDirectedWeightedGraph<T> graph, Vertex<T> startVertex, Action<Vertex<T>>? action = default)
+           {
+               Dfs(graph, startVertex, action, new HashSet<Vertex<T>>());
+           }
+
+           /// <summary>
+           /// 从起始顶点遍历图。
+           /// </summary>
+           ///<param name="graph">图实例。</param>
+           ///<param name="startVertex">搜索开始的顶点。</param>
+           ///<param name="action">每个图顶点需要执行的动作</param>
+           ///<param name="visited">具有访问顶点的哈希集。</param>
+           private void Dfs(IDirectedWeightedGraph<T> graph, Vertex<T> startVertex, Action<Vertex<T>>? action, HashSet<Vertex<T>> visited)
+           {
+               action?.Invoke(startVertex);
+
+               visited.Add(startVertex);
+
+               foreach (var vertex in graph.GetNeighbors(startVertex))
+               {
+                   if (vertex == null || visited.Contains(vertex))
+                   {
+                       continue;
+                   }
+
+                   Dfs(graph, vertex!, action, visited);
+               }
+           }
+       }
+    */
 }

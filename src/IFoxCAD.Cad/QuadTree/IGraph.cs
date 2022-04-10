@@ -18,11 +18,11 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <value></value>
         int VerticesCount { get; }
-        ///// <summary>
-        ///// 搜索的起始顶点
-        ///// </summary>
-        ///// <value></value>
-        // ReferenceVertex { get; }
+        /// <summary>
+        /// 搜索的起始顶点
+        /// </summary>
+        /// <value></value>
+        Point3d ReferenceVertex { get; }
         /// <summary>
         /// 是否存在顶点
         /// </summary>
@@ -40,6 +40,8 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <value></value>
         IEnumerable<IGraphVertex> VerticesAsEnumberable { get; }
+        IEnumerable<Point3d> Point3dAsEnumberable { get; }
+
         /// <summary>
         /// 是否有边
         /// </summary>
@@ -52,6 +54,9 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <returns></returns>
         IGraph Clone();
+
+        HashSet<Point3d> GetAdjacencyList(Point3d vertex);
+        HashSet<IEdge> GetAdjacencyEdge(Point3d vertex);
     }
 
     /// <summary>
