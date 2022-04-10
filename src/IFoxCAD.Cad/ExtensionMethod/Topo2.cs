@@ -67,7 +67,7 @@ public class Topo2
 
         //TODO 直接进入穷举...图....返回参数取消掉
         //还需要优化深度优先算法=>逆时针最短路径
-        //如果次方案测试通过,删除所有 DESIGN0409 的字段所涉及的操作
+        //如果此方案测试通过,删除所有 DESIGN0409 的字段所涉及的操作
     }
 
     /// <summary>
@@ -130,16 +130,45 @@ public class Topo2
         //遍历顺序可能导致:先有{a,b}来找{c,d}找不到,会生成一条{c,d};但是完成纯化之后会有{{a,b,c}{c,d}}
         //所以需要生成完,再找一次首尾.
         Basal.ArrayEx.Deduplication(peList, (first, last) => {
+            byte actionNum = 0;//不执行
             if (first.First!.Value == last.First!.Value)//{{c,b,a}{c,d}}=>{d,c,b,a}
             {
-                last.ForEach(a => first.AddFirst(a));
-                return true;
+                actionNum = 1;
             }
             else if (first.Last!.Value == last.First!.Value)//{{a,b,c}{c,d}}=>{a,b,c,d}
             {
-                last.ForEach(a => first.AddLast(a));
+                actionNum = 2;
+            }
+            else if (first.First!.Value == last.Last!.Value)//{{c,b,a}{d,c}}=>{d,c,b,a}
+            {
+                actionNum = 1;
+                last.Reverse();
+            }
+            else if (first.Last!.Value == last.Last!.Value)//{{a,b,c}{d,c}}=>{a,b,c,d}
+            {
+                actionNum = 2;
+                last.Reverse();
+            }
+
+            if (actionNum == 1)
+            {
+                last.For((num, node) => {
+                    if (num != 1)//跳过第一个
+                        first.AddFirst(node.Value);
+                    return false;
+                });
                 return true;
             }
+            else if (actionNum == 2)
+            {
+                last.For((num, node) => {
+                    if (num != 1)//跳过第一个
+                        first.AddLast(node.Value);
+                    return false;
+                });
+                return true;
+            }
+
             return false;
         });
 

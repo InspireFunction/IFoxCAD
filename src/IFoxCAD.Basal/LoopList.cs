@@ -184,6 +184,23 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         }
     }
 
+    /// <summary>
+    /// 从头遍历_非迭代器(扔出计数)
+    /// </summary>
+    /// <param name="action"></param>
+    public void For(Func<int, LoopListNode<T>, bool> action)
+    {
+        var node = First;
+        if (node is null)
+            return;
+        for (int i = 0; i < Count; i++)
+        {
+            if (action(i, node!))
+                break;
+            node = node!.Next;
+        }
+    }
+
     #region Contains
 
     /// <summary>
