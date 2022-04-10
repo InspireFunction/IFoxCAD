@@ -96,18 +96,34 @@ public class Topo2
             var knot = knots[i];
             if (knot.Count == 2)//共点只有两个图元,它们就是手拉手,没有第三者
             {
-                //{{a,b}{b,c}{c,d}}=>{a,b,c,d}
+                //{{a,b}{b,c}{c,d}}=>{a,b,c}{c,d}=>{a,b,c,d}
+                //{{a,b}{b,c}{d,c}}=>{a,b,c}{d,c}=>{a,b,c,d}
                 //其中一个已经加入,就找到指定多段线,插入子段
                 var a = knot.First!.Value;
                 var b = knot.Last!.Value;
 
                 //多段线集合中查询子段,返回多段线
                 var pe = PolyEdge.Contains(peList, a);
-                if (pe == null)
+                if (pe != null)
+                {
+                    //含有的话,只会有两种情况:头部尾部
+                    var fi = pe.Find(a)!;
+                    if (pe.First == fi)
+                        pe.AddBefore(fi, b);
+                    else if (pe.Last == fi)
+                        pe.AddAfter(fi, b);
+                }
+                else
                 {
                     pe = PolyEdge.Contains(peList, b);
                     if (pe != null)
-                        pe.AddAfter(pe.Find(b)!, a);
+                    {
+                        var fi = pe.Find(b)!;
+                        if (pe.First == fi)
+                            pe.AddBefore(fi, a);
+                        else if (pe.Last == fi)
+                            pe.AddAfter(fi, a);
+                    }
                     else
                     {
                         //新建多段线加入
@@ -115,10 +131,6 @@ public class Topo2
                         //所以需要生成完,再找一次首尾.
                         peList.Add(new PolyEdge(a, b));
                     }
-                }
-                else
-                {
-                    pe.AddAfter(pe.Find(a)!, b);
                 }
             }
             else
