@@ -84,7 +84,7 @@ public static class CurveEx
     public static List<Curve> BreakCurve(this List<Curve> curves)
     {
         var geCurves = new List<CompositeCurve3d>(); // 存储曲线转换后的复合曲线
-        var paramss = new List<List<double>>(); // 存储每个曲线的交点参数值
+        var paramss = new List<List<double>>();      // 存储每个曲线的交点参数值
 
         foreach (var curve in curves)
         {

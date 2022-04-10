@@ -42,7 +42,7 @@ public class LoopListNode<T>
     /// <summary>
     /// 获取当前节点的临近节点
     /// </summary>
-    /// <param name="forward">搜索方向标志，<see langword="true"/>为向前搜索，<see langword="false"/>为向后搜索</param>
+    /// <param name="forward">搜索方向标志,<see langword="true"/>为向前搜索,<see langword="false"/>为向后搜索</param>
     /// <returns></returns>
     public LoopListNode<T>? GetNext(bool forward)
     {
@@ -482,7 +482,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     }
 
     /// <summary>
-    /// 删除节点
+    /// 删除此参数节点(唯一)
     /// </summary>
     /// <param name="node">指定节点</param>
     /// <returns></returns>
@@ -495,7 +495,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     }
 
     /// <summary>
-    /// 删除节点
+    /// 删除含有此参数节点(所有)
     /// </summary>
     /// <param name="value">将移除所有含有此值</param>
     /// <returns></returns>
