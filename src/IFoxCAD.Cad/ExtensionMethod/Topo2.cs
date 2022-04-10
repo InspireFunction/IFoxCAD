@@ -161,7 +161,7 @@ public class Topo2
             if (actionNum == 1)
             {
                 last.For((num, node) => {
-                    if (num != 1)//跳过第一个
+                    if (num != 0)//跳过第一个
                         first.AddFirst(node.Value);
                     return false;
                 });
@@ -169,7 +169,7 @@ public class Topo2
             else if (actionNum == 2)
             {
                 last.For((num, node) => {
-                    if (num != 1)//跳过第一个
+                    if (num != 0)//跳过第一个
                         first.AddLast(node.Value);
                     return false;
                 });
