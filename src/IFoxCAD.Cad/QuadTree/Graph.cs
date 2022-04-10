@@ -1,5 +1,7 @@
 ﻿
 
+using Autodesk.AutoCAD.BoundaryRepresentation;
+
 using Exception = System.Exception;
 
 namespace IFoxCAD.Cad.FirstGraph
@@ -39,7 +41,7 @@ namespace IFoxCAD.Cad.FirstGraph
             {
                 throw new Exception("顶点已经存在。");
             }
-
+            //vertex.Index = vertices.Count;
             vertices.Add(vertex, new HashSet<IGraphVertex>());
             edges.Add(vertex, new HashSet<IEdge>());
 
@@ -200,13 +202,6 @@ namespace IFoxCAD.Cad.FirstGraph
             
         }
 
-
-        
-
-        
-
-        
-
         /// <summary>
         /// 我们在给定的来源和目的地之间是否有边？
         /// 时间复杂度: O(E).E 是边
@@ -229,11 +224,28 @@ namespace IFoxCAD.Cad.FirstGraph
         }
         
 
+        public IEdge? GetEdge(IGraphVertex source, IGraphVertex dest)
+        {
+            if (!vertices.ContainsKey(source) || !vertices.ContainsKey(dest))
+            {
+                throw new ArgumentException("源或目标不在此图中。");
+            }
+            foreach (var item in edges[source])
+            {
+                if (item.TargetVertex == dest)
+                {
+                    return item;
+                }
+            }
+            return null;
+        }
+
         public bool ContainsVertex(IGraphVertex value)
         {
             return vertices.ContainsKey(value);
         }
         
+
 
         public HashSet<IGraphVertex> GetAdjacencyList(IGraphVertex vertex)
         {
@@ -244,6 +256,28 @@ namespace IFoxCAD.Cad.FirstGraph
         {
             return edges[vertex];
         }
+
+        public LoopList<Curve3d> GetCurves(List<IGraphVertex> graphVertices)
+        {
+            var curves = new LoopList<Curve3d>();
+            for (int i = 0; i < graphVertices.Count - 1; i++)
+            {
+                var cur = graphVertices[i];
+                var next = graphVertices[i + 1];
+                var edge = GetEdge(cur, next);
+                if (edge is not null)
+                {
+                    curves.Add(edge.TargetEdge);
+                }
+            }
+            var lastedge = GetEdge(graphVertices[graphVertices.Count - 1], graphVertices[0]);
+            if (lastedge is not null)
+            {
+                curves.Add(lastedge.TargetEdge);
+            }
+            return curves;
+        }
+
 
 
         /// <summary>
@@ -278,8 +312,6 @@ namespace IFoxCAD.Cad.FirstGraph
             return Clone();
         }
 
-        
-
         public IEnumerable<IGraphVertex> VerticesAsEnumberable => 
             vertices.Select(x => x.Key);
 
@@ -312,14 +344,15 @@ namespace IFoxCAD.Cad.FirstGraph
     /// 邻接表图实现的顶点。
     /// IEnumerable 枚举所有邻接点。
     /// </summary>
-    public struct GraphVertex : IGraphVertex, IEquatable<GraphVertex>
+    public struct GraphVertex : IGraphVertex, IEquatable<GraphVertex>, IComparable ,IComparable<IGraphVertex>
     {
         public Point3d Data { get; private set; }
-      
 
+        //public int Index { get; set; }
         public GraphVertex(Point3d value)
         {
             Data = value;
+            //Index = -1;
         }
 
         public bool Equals(GraphVertex other)
@@ -343,6 +376,46 @@ namespace IFoxCAD.Cad.FirstGraph
 
             return (Data.X.ToString("n6"), Data.Y.ToString("n6"), Data.Z.ToString("n6")).GetHashCode();
         }
+
+        public int CompareTo(IGraphVertex other)
+        {
+            if (Equals(other))
+            {
+                return 0;
+            }
+            else if (Data.X <= other.Data.X)
+            {
+                return -1;
+            }
+            else
+            {
+                return 1;
+            }
+        }
+
+        int IComparable<IGraphVertex>.CompareTo(IGraphVertex other)
+        {
+            return CompareTo(other);
+        }
+
+        public int CompareTo(object obj)
+        {
+            if (obj is null)
+            {
+                return 1;
+            }
+            try
+            {
+                var other = (GraphVertex)obj;
+                return CompareTo(other);
+            }
+            catch (Exception)
+            {
+
+                throw new ArgumentException("Object is not a IGraphVertex");
+            }
+        }
+
         public static bool operator ==(GraphVertex person1, GraphVertex person2)
         {
             if (((object)person1) == null || ((object)person2) == null)
@@ -424,66 +497,73 @@ namespace IFoxCAD.Cad.FirstGraph
     public class DepthFirst
     {
         // 存储所有的边
-        public List<LoopList<Curve3d>> Curve3ds { get; } = new List<LoopList<Curve3d>> ();
+        public List<List<IGraphVertex>> Curve3ds { get; } = new();
+        private readonly List<IGraphVertex> GraphVertices;
+        private readonly IGraph _graph;
+        public DepthFirst(IGraph graph)
+        {
+            _graph = graph;
+            GraphVertices = graph.VerticesAsEnumberable.ToList();
+            //for (int i = 0; i < GraphVertices.Count; i++)
+            //{
+            //    GraphVertices[0].Index = i;
+            //}
+        }
         /// <summary>
         /// 如果项目存在，则返回 true。
         /// 这个函数需要改写，在ifoxcad里返回的应该是所有的环
         /// </summary>
-        public void FindAll(IGraph graph)
+        public void FindAll()
         {
-            foreach (var item in graph.VerticesAsEnumberable)
+            foreach (var item in GraphVertices)
             {
-                var curves = new LoopList<Curve3d>();
                 var visited = new List<IGraphVertex>();
-                if (dfs(graph,item,visited,item))
-                {
-                    for (int i = 0; i < visited.Count - 1; i++)
-                    {
-                        var cur = visited[i];
-                        var next = visited[i + 1];
-                        var curedge = graph.GetAdjacencyEdge(cur);
-                        foreach (var edge in curedge)
-                        {
-                            if (edge.TargetVertex == next)
-                            {
-                                curves.Add(edge.TargetEdge);
-                            }
-                        }
-
-                    }
-                }
-                Curve3ds.Add(curves);
+                dfs(_graph, item, visited, e => {
+                    var copy = new IGraphVertex[e.Count];
+                    e.CopyTo(copy);
+                    Curve3ds.Add(copy.ToList());
+                });  
             }
-            
-            
         }
 
         /// <summary>
         /// 递归 DFS。
-        /// 这个函数需要改写，在ifoxcad里返回的应该是所有的环
         /// </summary>
-        private bool dfs(IGraph graph, IGraphVertex current, List<IGraphVertex> visited, IGraphVertex search)
+        private void dfs(IGraph graph, IGraphVertex current, List<IGraphVertex> visited, Action<List<IGraphVertex>>? action)
         {
-          
+            
             visited.Add(current);
-            if (current == search && visited.Count >= 2)
-            {
-                return true;
-            }
-
+            
            // 改造这个搜索函数，当搜索闭合的时候，将闭合链存入结果列表
             foreach (var edge in graph.GetAdjacencyList(current))
             {
                 if (visited.Contains(edge))
                 {
+                    if (visited[0].Equals(edge))
+                    {
+                        if (visited.Count == 2)
+                        {
+                            var cur1 = graph.GetEdge(visited[0], visited[1]);
+                            var cur2 = graph.GetEdge(visited[1], visited[0]);
+                            if (cur1 is not null && cur2 is not null && cur1.TargetEdge.IsEqualTo(cur2.TargetEdge))
+                            {
+                                continue;
+                            } // todo: 这里不太对，应该是两点的时候是两条一样就舍弃
+                            action?.Invoke(visited);
+                        }
+                        else if (visited.Count > 2)
+                        {
+                            action?.Invoke(visited);
+                        } // todo： 这里不对，应该有一种回退机制，搜索到闭合了 就回退回去上一个点继续搜才对 
+                        
+                    }
+                    
                     continue; 
                 }
-                if (dfs(graph,edge,visited,search))
-                {
-                    return true;
-                }
+                dfs(graph, edge, visited, action);
+                
             }
-            return false;
+           
         }
     }
 

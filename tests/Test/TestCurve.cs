@@ -35,21 +35,27 @@ namespace Test
             ents.ForEach(ent => graph.AddEdge(ent.GetGeCurve()));
 
             Env.Print(graph.ToReadable());
-            // 新建 dfs
-            //var dfs = new IFoxCAD.Cad.FirstGraph.DepthFirst();
-            //// 查询全部的 闭合环
-            //dfs.FindAll(graph);
-            //// 遍历闭合环的列表，将每个闭合环转换为实体曲线
-            //var res = dfs.Curve3ds.Select(loop =>
-            //{
-            //    var curves = loop.ToArray();
-            //    var comcur = new CompositeCurve3d(curves);
-            //    return comcur.ToCurve();
-            //});
+            //新建 dfs
+            var dfs = new IFoxCAD.Cad.FirstGraph.DepthFirst(graph);
+            // 查询全部的 闭合环
+            dfs.FindAll();
+            // 遍历闭合环的列表，将每个闭合环转换为实体曲线
+            var res = new List<Curve>();
+            foreach (var item in dfs.Curve3ds)
+            {
+                var curves = graph.GetCurves(item).ToArray();
+                var comcur = new CompositeCurve3d(curves);
+                var tmp = comcur.ToCurve();
+                if (tmp is not null)
+                {
+                    res.Add(tmp);
+                }
+            }
+            
 
-            //using var tr = new DBTrans();
-            //res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
-            //tr.CurrentSpace.AddEntity(res);
+            using var tr = new DBTrans();
+            res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
+            tr.CurrentSpace.AddEntity(res);
 
 
 

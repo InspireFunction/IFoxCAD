@@ -53,7 +53,7 @@ namespace IFoxCAD.Cad
         /// </summary>
         /// <returns></returns>
         IGraph Clone();
-
+        IEdge? GetEdge(IGraphVertex source, IGraphVertex dest);
         HashSet<IGraphVertex> GetAdjacencyList(IGraphVertex vertex);
         HashSet<IEdge> GetAdjacencyEdge(IGraphVertex vertex);
     }
@@ -68,7 +68,7 @@ namespace IFoxCAD.Cad
         /// 顶点的键
         /// </summary>
         /// <value></value>
-        //int Key { get; }
+        //int Index { get; set; }
 
         /// <summary>
         /// 顶点的数据
