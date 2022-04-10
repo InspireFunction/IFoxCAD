@@ -144,13 +144,9 @@ public class Topo2
         Basal.ArrayEx.Deduplication(peList, (first, last) => {
             byte actionNum = 0;//不执行
             if (first.First!.Value == last.First!.Value)//{{c,b,a}{c,d}}=>{d,c,b,a}
-            {
                 actionNum = 1;
-            }
             else if (first.Last!.Value == last.First!.Value)//{{a,b,c}{c,d}}=>{a,b,c,d}
-            {
                 actionNum = 2;
-            }
             else if (first.First!.Value == last.Last!.Value)//{{c,b,a}{d,c}}=>{d,c,b,a}
             {
                 actionNum = 1;
@@ -169,7 +165,6 @@ public class Topo2
                         first.AddFirst(node.Value);
                     return false;
                 });
-                return true;
             }
             else if (actionNum == 2)
             {
@@ -178,10 +173,9 @@ public class Topo2
                         first.AddLast(node.Value);
                     return false;
                 });
-                return true;
             }
 
-            return false;
+            return actionNum != 0;
         });
 
         return peList;
