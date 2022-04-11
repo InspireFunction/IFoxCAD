@@ -30,12 +30,12 @@ public class DBTrans : IDisposable
         get
         {
             /*
-             * 1.1 
+             * 0x01
              * 事务栈上面有事务,这个事务属于当前文档,
              * 那么直接提交原本事务然后再开一个(一直把栈前面的同数据库提交清空)
              * 那不就发生跨事务读取图元了吗?....否决
              * 
-             * 1.2 
+             * 0x02
              * 跨文档事务出错 Autodesk.AutoCAD.Runtime.Exception:“eNotFromThisDocument”
              * Curves.GetEntities()会从Top获取事务(Top会new一个),此时会是当前文档;
              * 然后命令文中发生了 using var tr = new DBTrans();
@@ -62,7 +62,6 @@ public class DBTrans : IDisposable
             return trans;
         }
     }
-
     /// <summary>
     /// 文档
     /// </summary>
@@ -80,8 +79,6 @@ public class DBTrans : IDisposable
     /// </summary>
     public Database Database { get; private set; }
     #endregion
-
-
 
     #region 构造函数
     /// <summary>
