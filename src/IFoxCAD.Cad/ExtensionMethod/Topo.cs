@@ -5,7 +5,7 @@ public class Topo
     // 碰撞链集合
     List<CollisionChain> _CollisionChains;
     // 求交类(每次set自动重置,都会有个新的结果)
-    static CurveCurveIntersector3d _cci3d = new();
+    static CurveCurveIntersector3d _Cci3d = new();
     // cad容差类
     public static Tolerance CadTolerance = new(1e-6, 1e-6);
 
@@ -104,12 +104,12 @@ public class Topo
                 var gc2 = curve2.Edge.GeCurve3d;
                 var pars2 = curve2.Paramss;
 
-                _cci3d.Set(gc1, gc2, Vector3d.ZAxis);
+                _Cci3d.Set(gc1, gc2, Vector3d.ZAxis);
 
                 //计算两条曲线的交点(多个),分别放入对应的交点参数集
-                for (int k = 0; k < _cci3d.NumberOfIntersectionPoints; k++)
+                for (int k = 0; k < _Cci3d.NumberOfIntersectionPoints; k++)
                 {
-                    var pars = _cci3d.GetIntersectionParameters(k);
+                    var pars = _Cci3d.GetIntersectionParameters(k);
                     pars1.Add(pars[0]);//0是第一条曲线的交点参数
                     pars2.Add(pars[1]);//1是第二条曲线的交点参数
                 }

@@ -29,23 +29,40 @@ public class DBTrans : IDisposable
     {
         get
         {
-            DBTrans trans;
-            try
+            /*
+             * 1.1 
+             * 事务栈上面有事务,这个事务属于当前文档,
+             * 那么直接提交原本事务然后再开一个(一直把栈前面的同数据库提交清空)
+             * 那不就发生跨事务读取图元了吗?....否决
+             * 
+             * 1.2 
+             * 跨文档事务出错 Autodesk.AutoCAD.Runtime.Exception:“eNotFromThisDocument”
+             * Curves.GetEntities()会从Top获取事务(Top会new一个),此时会是当前文档;
+             * 然后命令文中发生了 using var tr = new DBTrans();
+             * 当退出命令此事务释放,但是从来不释放Top,
+             * 然后我新建了一个文档,再进行命令=>又进入Top,Top返回了前一个文档的事务
+             * 因此所以无法清理栈,所以Dispose不触发,导致无法刷新图元和Ctrl+Z出错
+             */
+
+            if (dBTrans.Count == 0)//静态获取的时候就是0
+                throw new ArgumentNullException("事务栈没有任何事务,请在调用前创建:" + nameof(DBTrans));
+
+            var db = Application.DocumentManager.MdiActiveDocument.Database;
+            var trans = dBTrans.Peek();
+            while (dBTrans.Count != 0 && trans.Database != db) //跨数据库
             {
+                if (trans._commit)
+                    trans.Commit();
+                dBTrans.Pop();
                 trans = dBTrans.Peek();
             }
-            catch (System.Exception)
-            {
+            if (dBTrans.Count == 0)
                 trans = new DBTrans();
-            }
+
             return trans;
         }
     }
 
-    /// <summary>
-    /// 数据库
-    /// </summary>
-    public Database Database { get; private set; }
     /// <summary>
     /// 文档
     /// </summary>
@@ -58,8 +75,13 @@ public class DBTrans : IDisposable
     /// 事务管理器
     /// </summary>
     public Transaction Transaction { get; private set; }
-
+    /// <summary>
+    /// 数据库
+    /// </summary>
+    public Database Database { get; private set; }
     #endregion
+
+
 
     #region 构造函数
     /// <summary>
@@ -76,9 +98,8 @@ public class DBTrans : IDisposable
         Transaction = Database.TransactionManager.StartTransaction();
         _commit = commit;
         if (doclock)
-        {
             documentLock = Document.LockDocument();
-        }
+
         dBTrans.Push(this);
     }
 
@@ -111,8 +132,9 @@ public class DBTrans : IDisposable
 #endif
         if (File.Exists(fileName))
         {
-            var doc =
-                Application.DocumentManager.Cast<Document>().FirstOrDefault(doc => doc.Name == fileName);
+            var doc = Application.DocumentManager
+                    .Cast<Document>()
+                    .FirstOrDefault(doc => doc.Name == fileName);
             if (doc is not null)
             {
                 Database = doc.Database;
@@ -123,13 +145,9 @@ public class DBTrans : IDisposable
             {
                 Database = new Database(false, true);
                 if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
-                {
                     Database.DxfIn(fileName, null);
-                }
                 else
-                {
                     Database.ReadDwgFile(fileName, FileOpenMode.OpenForReadAndWriteNoShare, true, null);
-                }
                 Database.CloseInput(true);
             }
         }

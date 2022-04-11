@@ -81,7 +81,6 @@ public static class SelectionSetEx
     #endregion
 
     #region ForEach
-
     /// <summary>
     /// 遍历选择集
     /// </summary>

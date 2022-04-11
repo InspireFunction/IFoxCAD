@@ -22,13 +22,14 @@ namespace Test
             Env.Print(dict[pt1]);
         }
 
-
-
-
         [CommandMethod("testgraph")]
         public void TestGraph1()
         {
-            var ents = Env.Editor.SSGet().Value.GetEntities<Curve>();
+            using var tr = new DBTrans();
+            var ents = Env.Editor.SSGet().Value?.GetEntities<Curve>();
+            if (ents == null)
+                return;
+
             // 新建图
             var graph = new IFoxCAD.Cad.FirstGraph.Graph();
             // 将曲线加入到图中
@@ -51,13 +52,9 @@ namespace Test
                     res.Add(tmp);
                 }
             }
-            
 
-            using var tr = new DBTrans();
             res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
             tr.CurrentSpace.AddEntity(res);
-
-
 
             //var graph = new Graph<int>();
             //graph.AddVertex(1);
@@ -81,15 +78,17 @@ namespace Test
             //graph.AddEdge(5, 3);
             //Env.Print(graph);
         }
+
     }
+
     public class TestCurve
     {
         [CommandMethod("testbreakcurve")]
         public void TestBreakCurve()
         {
+            using var tr = new DBTrans();
             var ents = Env.Editor.SSGet().Value.GetEntities<Curve>();
             var tt = CurveEx.BreakCurve(ents.ToList());
-            using var tr = new DBTrans();
             tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
             tr.CurrentSpace.AddEntity(tt);
         }
@@ -97,6 +96,7 @@ namespace Test
         [CommandMethod("testCurveCurveIntersector3d")]
         public void TestCurveCurveIntersector3d()
         {
+            using var tr = new DBTrans();
             var ents = Env.Editor.SSGet().Value.GetEntities<Curve>()
                 .Select(e => e.ToCompositeCurve3d()).ToList();
 
@@ -140,25 +140,21 @@ namespace Test
                 }
 
             }
-            //    var tt = CurveEx.Topo(ents.ToList());
-            //using var tr = new DBTrans();
+            // var tt = CurveEx.Topo(ents.ToList());
             //tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
             //tr.CurrentSpace.AddEntity(tt);
         }
 
 
-
-
         [CommandMethod("testtopo")]
         public void TestToPo()
         {
+            using var tr = new DBTrans();
             var ents = Env.Editor.SSGet().Value?.GetEntities<Curve>();
             if (ents == null)
                 return;
 
             var tt = CurveEx.Topo(ents.ToList());
-
-            using var tr = new DBTrans();
             tt.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i));
             tr.CurrentSpace.AddEntity(tt);
         }
@@ -166,10 +162,10 @@ namespace Test
         [CommandMethod("testGetEdgesAndnewCurves")]
         public void TestGetEdgesAndnewCurves()
         {
+            using var tr = new DBTrans();
             var curves = Env.Editor.SSGet().Value?.GetEntities<Curve>().ToList();
             if (curves == null)
                 return;
-            using var tr = new DBTrans();
 
             var edgesGroup = new List<List<IFoxCAD.Cad.Edge>>();
             var closedCurve3dGroup = new List<List<CompositeCurve3d>>();
