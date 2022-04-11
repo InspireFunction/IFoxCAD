@@ -1,9 +1,7 @@
 ﻿
 
-using Autodesk.AutoCAD.BoundaryRepresentation;
 
 using Exception = System.Exception;
-
 namespace IFoxCAD.Cad.FirstGraph
 {
     /// <summary>
@@ -279,7 +277,6 @@ namespace IFoxCAD.Cad.FirstGraph
         }
 
 
-
         /// <summary>
         /// 克隆此图。目测是深克隆
         /// </summary>
@@ -344,7 +341,7 @@ namespace IFoxCAD.Cad.FirstGraph
     /// 邻接表图实现的顶点。
     /// IEnumerable 枚举所有邻接点。
     /// </summary>
-    public struct GraphVertex : IGraphVertex, IEquatable<GraphVertex>, IComparable ,IComparable<IGraphVertex>
+    public class GraphVertex : IGraphVertex, IEquatable<GraphVertex>, IComparable ,IComparable<IGraphVertex>
     {
         public Point3d Data { get; private set; }
 
@@ -515,56 +512,119 @@ namespace IFoxCAD.Cad.FirstGraph
         /// </summary>
         public void FindAll()
         {
+            //var visited = new List<IGraphVertex>();
             foreach (var item in GraphVertices)
             {
-                var visited = new List<IGraphVertex>();
-                dfs(_graph, item, visited, e => {
-                    var copy = new IGraphVertex[e.Count];
-                    e.CopyTo(copy);
-                    Curve3ds.Add(copy.ToList());
-                });  
+
+                dfs(_graph, new List<IGraphVertex> { item });
+                
             }
         }
 
         /// <summary>
         /// 递归 DFS。
         /// </summary>
-        private void dfs(IGraph graph, IGraphVertex current, List<IGraphVertex> visited, Action<List<IGraphVertex>>? action)
+        private void dfs(IGraph graph, List<IGraphVertex> visited)
         {
-            
-            visited.Add(current);
-            
-           // 改造这个搜索函数，当搜索闭合的时候，将闭合链存入结果列表
-            foreach (var edge in graph.GetAdjacencyList(current))
+            var startNode = visited[0];
+            IGraphVertex nextNode;
+            var sub = new List<IGraphVertex>();
+            var adjlist = graph.GetAdjacencyList(startNode).ToList();
+            for (int i = 0; i < adjlist.Count; i++)
             {
-                if (visited.Contains(edge))
+                if (adjlist[i].Equals(startNode))
                 {
-                    if (visited[0].Equals(edge))
-                    {
-                        if (visited.Count == 2)
-                        {
-                            var cur1 = graph.GetEdge(visited[0], visited[1]);
-                            var cur2 = graph.GetEdge(visited[1], visited[0]);
-                            if (cur1 is not null && cur2 is not null && cur1.TargetEdge.IsEqualTo(cur2.TargetEdge))
-                            {
-                                continue;
-                            } // todo: 这里不太对，应该是两点的时候是两条一样就舍弃
-                            action?.Invoke(visited);
-                        }
-                        else if (visited.Count > 2)
-                        {
-                            action?.Invoke(visited);
-                        } // todo： 这里不对，应该有一种回退机制，搜索到闭合了 就回退回去上一个点继续搜才对 
-                        
-                    }
-                    
-                    continue; 
+                    nextNode = adjlist[i + 1];
                 }
-                dfs(graph, edge, visited, action);
-                
+                else
+                {
+                    nextNode = adjlist[i];
+                }
+
+                if (!visited.Contains(nextNode))
+                {
+                    sub = new List<IGraphVertex> { nextNode };
+                    sub.AddRange(visited);
+                    dfs(graph, sub);
+                }
+                else if (visited.Count > 2 && nextNode.Equals(visited[visited.Count - 1]))
+                {
+                    var cur = RotateToSmallest(visited);
+                    var inv = Invert(cur);
+                    if (IsNew(cur) && IsNew(inv))
+                    {
+                        Curve3ds.Add(cur);
+                    }
+                }
             }
+
+           // visited.Add(current);
+            
+           //// 改造这个搜索函数，当搜索闭合的时候，将闭合链存入结果列表
+           // foreach (var vertex in graph.GetAdjacencyList(current))
+           // {
+           //     if (!visited.Contains(vertex))
+           //     {
+
+           //         dfs(graph, vertex, visited);
+           //     }
+           //     else if (visited.Count > 2 && vertex.Equals(visited[0]))
+           //     {
+           //         var curcycle = RotateToSmallest(visited);
+           //         var invertcycle = Invert(curcycle);
+           //         if (!Curve3ds.Contains(curcycle) && !Curve3ds.Contains(invertcycle))
+           //         {
+           //             Curve3ds.Add(curcycle);
+           //         }
+           //     }
+                
+           // }
            
         }
+    
+    
+        private List<IGraphVertex> RotateToSmallest(List<IGraphVertex> lst)
+        {
+            var index = lst.IndexOf(lst.Min());
+            return lst.Skip(index).Concat(lst.Take(index)).ToList();
+        }
+
+        private List<IGraphVertex> Invert(List<IGraphVertex> lst)
+        {
+            var tmp = lst.ToList();
+            tmp.Reverse();
+            return RotateToSmallest(tmp);
+        }
+        private bool Equals(List<IGraphVertex> a, List<IGraphVertex> b)
+        {
+            bool ret = (a[0] == b[0]) && (a.Count == b.Count);
+
+            for (int i = 1; ret && (i < a.Count); i++)
+                if (!a[i].Equals( b[i]))
+                {
+                    ret = false;
+                }
+
+            return ret;
+        }
+
+
+        private bool IsNew(List<IGraphVertex> path)
+        {
+            bool ret = true;
+
+            foreach (var p in Curve3ds)
+                if (Equals(p, path))
+                {
+                    ret = false;
+                    break;
+                }
+
+            return ret;
+        }
+
+
+
     }
 
     
