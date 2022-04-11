@@ -492,9 +492,6 @@ public class Knot : PolyEdge//共点的边集合(交点计数就是边数)
 {
     public Point3d Point; //交点
 
-    public Knot()
-    {
-    }
     public Knot(Point3d point, Edge edge)
     {
         Point = point;

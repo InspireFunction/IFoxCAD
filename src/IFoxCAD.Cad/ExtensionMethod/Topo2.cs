@@ -101,105 +101,91 @@ public class Topo2
         {
             var knot = knots[i];
             if (knot.Count == 2)
-                HandInHandKont(peList2, knot);
+            {
+                //共点只有两个图元,它们就是手拉手,没有第三者
+                var a = knot.First!.Value;
+                var b = knot.Last!.Value;
+                peList2.Add(new PolyEdge(a, b));
+            }
             else
                 peListAll.Add(new PolyEdge(knot));
         }
 
         //遍历顺序可能导致:先有{a,b}来找{c,d}找不到,会生成一条{c,d}
         //所以需要生成完,再找一次首尾.
-        Basal.ArrayEx.Deduplication(peList2, (first, last) => {
-            byte actionNum = 0;//不执行
-            if (first.First!.Value == last.First!.Value)//{{c,b,a}{c,d}}=>{d,c,b,a}
-                actionNum = 1;
-            else if (first.Last!.Value == last.First!.Value)//{{a,b,c}{c,d}}=>{a,b,c,d}
-                actionNum = 2;
-            else if (first.First!.Value == last.Last!.Value)//{{c,b,a}{d,c}}=>{d,c,b,a}
-            {
-                actionNum = 1;
-                last.Reverse();
-            }
-            else if (first.Last!.Value == last.Last!.Value)//{{a,b,c}{d,c}}=>{a,b,c,d}
-            {
-                actionNum = 2;
-                last.Reverse();
-            }
-
-            if (actionNum == 1)
-            {
-                last.For((num, node) => {
-                    if (num != 0)//跳过第一个
-                        first.AddFirst(node.Value);
-                    return false;
-                });
-            }
-            else if (actionNum == 2)
-            {
-                last.For((num, node) => {
-                    if (num != 0)//跳过第一个
-                        first.AddLast(node.Value);
-                    return false;
-                });
-            }
-
-            return actionNum != 0;
-        });
+        T1(peList2);
 
         peListAll.AddRange(peList2);
         return peListAll;
     }
 
     /// <summary>
-    /// 共点只有两个图元,它们就是手拉手,没有第三者
+    /// PolyEdge{a,b}{b,c}=>{a,b,c}
     /// </summary>
-    void HandInHandKont(List<PolyEdge> peList, Knot knot)
+    /// <param name="list"></param>
+    void T1(List<PolyEdge> list)
     {
-        var a = knot.First!.Value;
-        var b = knot.Last!.Value;
-        peList.Add(new PolyEdge(a, b));
-    }
-    
-    /// <summary>
-    /// 共点只有两个图元,它们就是手拉手,没有第三者
-    /// </summary>
-    [Obsolete("和双重循环功能重复了",true)]
-    void HandInHandKont2(List<PolyEdge> peList, Knot knot)
-    {
-        //{{a,b}{b,c}{c,d}}=>{a,b,c}{c,d}=>{a,b,c,d}
-        //{{a,b}{b,c}{d,c}}=>{a,b,c}{d,c}=>{a,b,c,d}
-        //其中一个已经加入,就找到指定多段线,插入子段
-        var a = knot.First!.Value;
-        var b = knot.Last!.Value;
+        for (int i = 0; i < list.Count; i++)
+        {
+            var plA = list[i];
+            for (int j = list.Count - 1; j > i; j--)
+            {
+                var plB = list[j];
 
-        //多段线集合中查询子段,返回多段线
-        var pe = PolyEdge.Contains(peList, a);
-        if (pe != null)
-        {
-            //含有的话,只会有两种情况:头部尾部
-            var fi = pe.Find(a)!;
-            if (pe.First == fi)
-                pe.AddBefore(fi, b);
-            else if (pe.Last == fi)
-                pe.AddAfter(fi, b);
-        }
-        else
-        {
-            pe = PolyEdge.Contains(peList, b);
-            if (pe != null)
-            {
-                var fi = pe.Find(b)!;
-                if (pe.First == fi)
-                    pe.AddBefore(fi, a);
-                else if (pe.Last == fi)
-                    pe.AddAfter(fi, a);
-            }
-            else
-            {
-                //新建多段线加入
-                //遍历顺序可能导致:先有{a,b}来找{d,e}找不到,会生成一条{d,e},
-                //所以需要生成完,再找一次首尾.
-                peList.Add(new PolyEdge(a, b));
+                byte actionNum = 0;//不执行
+                if (plA.First!.Value == plB.First!.Value)//{{c,b,a}{c,d}}=>{d,c,b,a}
+                    actionNum = 1;
+                else if (plA.Last!.Value == plB.First!.Value)//{{a,b,c}{c,d}}=>{a,b,c,d}
+                    actionNum = 2;
+                else if (plA.First!.Value == plB.Last!.Value)//{{c,b,a}{d,c}}=>{d,c,b,a}
+                {
+                    actionNum = 1;
+                    plB.Reverse();
+                }
+                else if (plA.Last!.Value == plB.Last!.Value)//{{a,b,c}{d,c}}=>{a,b,c,d}
+                {
+                    actionNum = 2;
+                    plB.Reverse();
+                }
+
+                if (actionNum == 1)
+                {
+                    plB.For((num, node) => {
+                        if (num != 0)//跳过第一个
+                            plA.AddFirst(node.Value);
+                        return false;
+                    });
+                }
+                else if (actionNum == 2)
+                {
+                    plB.For((num, node) => {
+                        if (num != 0)//跳过第一个
+                            plA.AddLast(node.Value);
+                        return false;
+                    });
+                }
+
+                if (actionNum != 0)
+                {
+                    list.RemoveAt(j);
+                    j = list.Count - 1;//指针重拨,一旦加入就从尾开始
+                }
             }
         }
     }
+
+    //void T2(List<PolyEdge> peList2)
+    //{
+    //    var group = GroupExBy(peList2, (a, b) => {
+    //        if (a.First!.Value == b.First!.Value ||
+    //            a.First!.Value == b.Last!.Value ||
+    //            a.Last!.Value == b.First!.Value ||
+    //            a.Last!.Value == b.Last!.Value)
+    //        {
+    //            //这样就会有{a,b,b,c}四个四个为一组,而且要消重
+    //            return true;
+    //        }
+    //        return false;
+    //    });
+    //}
 }
