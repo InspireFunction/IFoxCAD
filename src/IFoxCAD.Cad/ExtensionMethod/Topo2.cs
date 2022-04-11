@@ -151,7 +151,7 @@ public class Topo2
                 if (actionNum == 1)
                 {
                     plB.For((num, node) => {
-                        if (num != 0)//跳过第一个,它是重复的
+                        if (num != 0)//跳过共元
                             plA.AddFirst(node.Value);
                         return false;
                     });
@@ -159,7 +159,7 @@ public class Topo2
                 else if (actionNum == 2)
                 {
                     plB.For((num, node) => {
-                        if (num != 0)//跳过第一个,它是重复的
+                        if (num != 0)//跳过共元
                             plA.AddLast(node.Value);
                         return false;
                     });
