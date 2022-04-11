@@ -34,7 +34,7 @@ namespace IFoxCAD.Cad.FirstGraph
         /// </summary>
         public void AddVertex(Point3d pt)
         {
-            var vertex = new GraphVertex(pt);
+            var vertex = new GraphVertex(pt, this);
             if (vertices.ContainsKey(vertex))
             {
                 throw new Exception("顶点已经存在。");
@@ -51,7 +51,7 @@ namespace IFoxCAD.Cad.FirstGraph
         /// </summary>
         public void RemoveVertex(Point3d pt)
         {
-            var vertex = new GraphVertex(pt);
+            var vertex = new GraphVertex(pt, this);
             if (!vertices.ContainsKey(vertex))
             {
                 throw new Exception("顶点不在此图中。");
@@ -87,8 +87,8 @@ namespace IFoxCAD.Cad.FirstGraph
         public void AddEdge(Curve3d value!!)
         {
             // 函数有问题,有一个端点在图里时，另一个点应该新增个顶点，
-            var start = new GraphVertex(value.StartPoint);
-            var end = new GraphVertex(value.EndPoint);
+            var start = new GraphVertex(value.StartPoint, this);
+            var end = new GraphVertex(value.EndPoint,this);
 
 
             if (vertices.ContainsKey(start) && !vertices.ContainsKey(end)) // 如果曲线的起点在邻接表字典里,终点不在
@@ -162,8 +162,8 @@ namespace IFoxCAD.Cad.FirstGraph
         /// </summary>
         public void RemoveEdge(Curve3d curve!!)
         {
-            var start = new GraphVertex(curve.StartPoint);
-            var end = new GraphVertex(curve.EndPoint);
+            var start = new GraphVertex(curve.StartPoint, this);
+            var end = new GraphVertex(curve.EndPoint, this);
 
             if (!vertices.ContainsKey(start) || !vertices.ContainsKey(end))
             {
@@ -344,14 +344,15 @@ namespace IFoxCAD.Cad.FirstGraph
     public class GraphVertex : IGraphVertex, IEquatable<GraphVertex>, IComparable ,IComparable<IGraphVertex>
     {
         public Point3d Data { get; private set; }
+        public IGraph Graph { get; private set; }
 
         //public int Index { get; set; }
-        public GraphVertex(Point3d value)
+        public GraphVertex(Point3d value, IGraph graph)
         {
             Data = value;
+            Graph = graph;
             //Index = -1;
         }
-
         public bool Equals(GraphVertex other)
         {
             return Data.IsEqualTo(other.Data, new Tolerance(1e-6,1e-6));
@@ -365,7 +366,6 @@ namespace IFoxCAD.Cad.FirstGraph
             else
                 return Equals(personObj);
         }
-
         public override int GetHashCode()
         {
             // 原来的代码 不起作用，那么就转字符串算
@@ -373,20 +373,23 @@ namespace IFoxCAD.Cad.FirstGraph
 
             return (Data.X.ToString("n6"), Data.Y.ToString("n6"), Data.Z.ToString("n6")).GetHashCode();
         }
-
         public int CompareTo(IGraphVertex other)
         {
             if (Equals(other))
             {
                 return 0;
             }
-            else if (Data.X <= other.Data.X)
-            {
-                return -1;
-            }
             else
             {
-                return 1;
+                var edges = this.Graph.GetAdjacencyList(this);
+                if (edges.Contains(other))
+                {
+                    return 1;
+                }
+                else
+                {
+                    return -1;
+                }
             }
         }
 

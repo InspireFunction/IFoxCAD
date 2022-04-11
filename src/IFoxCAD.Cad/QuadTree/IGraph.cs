@@ -74,6 +74,8 @@ namespace IFoxCAD.Cad
         /// 顶点的数据
         /// </summary>
         Point3d Data { get; }
+
+        IGraph Graph { get; }
         /// <summary>
         /// 顶点的邻接边表
         /// </summary>
