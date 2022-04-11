@@ -48,17 +48,22 @@ public class Topo2
         for (int i = knots.Count - 1; i >= 0; i--)
         {
             var kn = knots[i];
-            if (kn.Count == 0)//此条件不会触发;剔除过程不变0,因为移除了kn;剔除前也不会是0,因为必然初始化并加入;
-                knots.RemoveAt(i);
-            else if (kn.Count == 1)//孤独点容器必然储存着尾巴图元
+
+            if (kn.Count == 0)
             {
+                //此条件不会触发;剔除过程不变0,因为移除了kn;
+                //剔除前也不会是0,因为必然初始化并加入;
+                knots.RemoveAt(i);
+            }
+            else if (kn.Count == 1)
+            {
+                //孤独点容器必然储存着尾巴图元
                 //尾巴图元的头点可能有多个连接,因此尾巴图元会在其他集合中,需要移除其他集合的,
                 //而尾点只有一个
                 var fir = kn.First();
                 for (int j = 0; j < knots.Count; j++)
                     knots[j].Remove(fir);
 
-                //剔除点,减少再次进入剔除尾巴
                 knots.RemoveAt(i);
             }
         }
@@ -74,7 +79,7 @@ public class Topo2
     /// 纯化节点
     /// </summary>
     /// <param name="knots"></param>
-    private static List<PolyEdge> PureKnots(List<Knot> knots)
+    List<PolyEdge> PureKnots(List<Knot> knots)
     {
         /*
          * 纯化节点:
@@ -90,58 +95,20 @@ public class Topo2
          * 但是此操作能够使得有2就加速
          */
 
-        var peList = new List<PolyEdge>();
+        var peListAll = new List<PolyEdge>();
+        var peList2 = new List<PolyEdge>();
         for (int i = 0; i < knots.Count; i++)
         {
             var knot = knots[i];
-            if (knot.Count == 2)//共点只有两个图元,它们就是手拉手,没有第三者
-            {
-                //{{a,b}{b,c}{c,d}}=>{a,b,c}{c,d}=>{a,b,c,d}
-                //{{a,b}{b,c}{d,c}}=>{a,b,c}{d,c}=>{a,b,c,d}
-                //其中一个已经加入,就找到指定多段线,插入子段
-                var a = knot.First!.Value;
-                var b = knot.Last!.Value;
-
-                //多段线集合中查询子段,返回多段线
-                var pe = PolyEdge.Contains(peList, a);
-                if (pe != null)
-                {
-                    //含有的话,只会有两种情况:头部尾部
-                    var fi = pe.Find(a)!;
-                    if (pe.First == fi)
-                        pe.AddBefore(fi, b);
-                    else if (pe.Last == fi)
-                        pe.AddAfter(fi, b);
-                }
-                else
-                {
-                    pe = PolyEdge.Contains(peList, b);
-                    if (pe != null)
-                    {
-                        var fi = pe.Find(b)!;
-                        if (pe.First == fi)
-                            pe.AddBefore(fi, a);
-                        else if (pe.Last == fi)
-                            pe.AddAfter(fi, a);
-                    }
-                    else
-                    {
-                        //新建多段线加入
-                        //遍历顺序可能导致:先有{a,b}来找{d,e}找不到,会生成一条{d,e},
-                        //所以需要生成完,再找一次首尾.
-                        peList.Add(new PolyEdge(a, b));
-                    }
-                }
-            }
+            if (knot.Count == 2)
+                HandInHandKont(peList2, knot);
             else
-            {
-                peList.Add(new PolyEdge(knot));
-            }
+                peListAll.Add(new PolyEdge(knot));
         }
 
-        //遍历顺序可能导致:先有{a,b}来找{c,d}找不到,会生成一条{c,d};但是完成纯化之后会有{{a,b,c}{c,d}}
+        //遍历顺序可能导致:先有{a,b}来找{c,d}找不到,会生成一条{c,d}
         //所以需要生成完,再找一次首尾.
-        Basal.ArrayEx.Deduplication(peList, (first, last) => {
+        Basal.ArrayEx.Deduplication(peList2, (first, last) => {
             byte actionNum = 0;//不执行
             if (first.First!.Value == last.First!.Value)//{{c,b,a}{c,d}}=>{d,c,b,a}
                 actionNum = 1;
@@ -178,6 +145,61 @@ public class Topo2
             return actionNum != 0;
         });
 
-        return peList;
+        peListAll.AddRange(peList2);
+        return peListAll;
+    }
+
+    /// <summary>
+    /// 共点只有两个图元,它们就是手拉手,没有第三者
+    /// </summary>
+    void HandInHandKont(List<PolyEdge> peList, Knot knot)
+    {
+        var a = knot.First!.Value;
+        var b = knot.Last!.Value;
+        peList.Add(new PolyEdge(a, b));
+    }
+    
+    /// <summary>
+    /// 共点只有两个图元,它们就是手拉手,没有第三者
+    /// </summary>
+    [Obsolete("和双重循环功能重复了",true)]
+    void HandInHandKont2(List<PolyEdge> peList, Knot knot)
+    {
+        //{{a,b}{b,c}{c,d}}=>{a,b,c}{c,d}=>{a,b,c,d}
+        //{{a,b}{b,c}{d,c}}=>{a,b,c}{d,c}=>{a,b,c,d}
+        //其中一个已经加入,就找到指定多段线,插入子段
+        var a = knot.First!.Value;
+        var b = knot.Last!.Value;
+
+        //多段线集合中查询子段,返回多段线
+        var pe = PolyEdge.Contains(peList, a);
+        if (pe != null)
+        {
+            //含有的话,只会有两种情况:头部尾部
+            var fi = pe.Find(a)!;
+            if (pe.First == fi)
+                pe.AddBefore(fi, b);
+            else if (pe.Last == fi)
+                pe.AddAfter(fi, b);
+        }
+        else
+        {
+            pe = PolyEdge.Contains(peList, b);
+            if (pe != null)
+            {
+                var fi = pe.Find(b)!;
+                if (pe.First == fi)
+                    pe.AddBefore(fi, a);
+                else if (pe.Last == fi)
+                    pe.AddAfter(fi, a);
+            }
+            else
+            {
+                //新建多段线加入
+                //遍历顺序可能导致:先有{a,b}来找{d,e}找不到,会生成一条{d,e},
+                //所以需要生成完,再找一次首尾.
+                peList.Add(new PolyEdge(a, b));
+            }
+        }
     }
 }
