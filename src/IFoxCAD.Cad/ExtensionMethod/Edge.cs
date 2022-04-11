@@ -442,8 +442,7 @@ public class PolyEdge : LoopList<Edge>
 {
     public PolyEdge(params Edge[] ps)
     {
-        for (int i = 0; i < ps.Length; i++)
-            Add(ps[i]);
+        AddRange(ps);
     }
 
     public PolyEdge(Knot kn)
@@ -451,6 +450,28 @@ public class PolyEdge : LoopList<Edge>
         AddRange(kn);
     }
 
+    public List<Point3d> Points()
+    {
+        List<Point3d> pts = new();
+
+        //因为加入的时候子段是有序的,所以点序也是有序的
+        var ge = GetEnumerator();
+        while (ge.MoveNext())
+        {
+            var sp = ge.Current.GeCurve3d.StartPoint;
+            if (pts.Count == 0)
+                pts.Add(sp);
+            else if (pts[pts.Count - 1] != sp)//跳过子段重合点
+                pts.Add(sp);
+
+            var ep = ge.Current.GeCurve3d.EndPoint;
+            if (pts.Count == 0)
+                pts.Add(ep);
+            else if (pts[pts.Count - 1] != ep)
+                pts.Add(ep);
+        }
+        return pts;
+    }
 
     /// <summary>
     /// 含有子段返回多段线

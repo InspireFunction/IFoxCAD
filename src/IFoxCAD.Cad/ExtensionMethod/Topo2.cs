@@ -57,9 +57,8 @@ public class Topo2
             }
             else if (kn.Count == 1)
             {
-                //孤独点容器必然储存着尾巴图元
-                //尾巴图元的头点可能有多个连接,因此尾巴图元会在其他集合中,需要移除其他集合的,
-                //而尾点只有一个
+                //尾巴图元的尾点只有一个,因此它被孤独容器储存着;
+                //尾巴图元的头点可能有多个连接,会储存在其他容器,需要移除;
                 var fir = kn.First();
                 for (int j = 0; j < knots.Count; j++)
                     knots[j].Remove(fir);
@@ -101,29 +100,24 @@ public class Topo2
         {
             var knot = knots[i];
             if (knot.Count == 2)
-            {
-                //共点只有两个图元,它们就是手拉手,没有第三者
-                var a = knot.First!.Value;
-                var b = knot.Last!.Value;
-                peList2.Add(new PolyEdge(a, b));
-            }
+                peList2.Add(new PolyEdge(knot));
             else
                 peListAll.Add(new PolyEdge(knot));
         }
 
-        //遍历顺序可能导致:先有{a,b}来找{c,d}找不到,会生成一条{c,d}
-        //所以需要生成完,再找一次首尾.
-        T1(peList2);
+        //共点只有两个图元,它们就是手拉手,没有第三者,然后合并多段线
+        MergePolyEdge(peList2);
 
         peListAll.AddRange(peList2);
         return peListAll;
     }
 
     /// <summary>
-    /// PolyEdge{a,b}{b,c}=>{a,b,c}
+    /// 合并多段线
+    /// PolyEdge{{a,b}{b,c}..}=>{a,b,c..}
     /// </summary>
     /// <param name="list"></param>
-    void T1(List<PolyEdge> list)
+    void MergePolyEdge(List<PolyEdge> list)
     {
         for (int i = 0; i < list.Count; i++)
         {
@@ -173,19 +167,4 @@ public class Topo2
             }
         }
     }
-
-    //void T2(List<PolyEdge> peList2)
-    //{
-    //    var group = GroupExBy(peList2, (a, b) => {
-    //        if (a.First!.Value == b.First!.Value ||
-    //            a.First!.Value == b.Last!.Value ||
-    //            a.Last!.Value == b.First!.Value ||
-    //            a.Last!.Value == b.Last!.Value)
-    //        {
-    //            //这样就会有{a,b,b,c}四个四个为一组,而且要消重
-    //            return true;
-    //        }
-    //        return false;
-    //    });
-    //}
 }

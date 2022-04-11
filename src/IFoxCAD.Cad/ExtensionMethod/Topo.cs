@@ -9,8 +9,12 @@ public class Topo
     // cad容差类
     public static Tolerance CadTolerance = new(1e-6, 1e-6);
 
+
     public Topo(List<Curve> curves)
     {
+        if (curves == null || curves.Count == 0)
+            throw new ArgumentNullException(nameof(curves));
+
         List<CurveInfo> curveList = new();
 
         //提取包围盒信息
@@ -164,7 +168,7 @@ public class Topo
 
             var sp = edge.GeCurve3d.StartPoint;
             var ep = edge.GeCurve3d.EndPoint;
-        
+
             if (knots.Contains(edge.GeCurve3d.StartPoint))
             {
                 //含有就是其他曲线"共用"此交点,
@@ -198,13 +202,106 @@ public class Topo
         //这里把交点只有一条曲线通过的点过滤掉了,也就是尾巴的图元,
         //剩下的都是闭合的曲线连接了,每个点都至少有两条曲线通过
         var tmp = edges_InOut
-                .Except(closedEdges)
-                .Where(e => nums[e.StartIndex] > 1 && nums[e.EndIndex] > 1);
+                .Except(closedEdges)/*闭合多段线*/
+                .Where(e => nums[e.StartIndex] > 1 && nums[e.EndIndex] > 1)/*剪枝:尾巴多段线*/;
 
-        var tmpArr = tmp.ToArray();//Clear导致tmp失效
-        edges_InOut.Clear();
-        for (int i = 0; i < tmpArr.Length; i++)
-            edges_InOut.Add(tmpArr[i]);
+#if true2 //待测试...
+        //无第三者图元提取,并且合并多段线
+        var handInhand = tmp.Where(e => nums[e.StartIndex] == 1 && nums[e.EndIndex] == 1);
+        var gPe = GetPolyEdge(handInhand);
+        var links2 = MergePolyEdge(gPe);
+
+        //将手拉手的剔除,然后转为多段线
+        var tmpArr = tmp.Except(handInhand);
+        var links = GetPolyEdge(tmpArr);
+
+        links.AddRange(links2);
+        return links; //提供给图
+#else
+        var tmpArr = tmp.ToArray();
+         edges_InOut.Clear();
+         for (int i = 0; i < tmpArr.Length; i++)
+             edges_InOut.Add(tmpArr[i]);
+#endif
+    }
+
+    /// <summary>
+    /// 转为多段线
+    /// </summary>
+    /// <param name="edges"></param>
+    /// <returns></returns>
+    List<PolyEdge> GetPolyEdge(IEnumerable<Edge> edges)
+    {
+        var links = new List<PolyEdge>();
+        var ge = edges.GetEnumerator();
+        while (ge.MoveNext())
+            links.Add(new PolyEdge(ge.Current));
+        return links;
+    }
+
+    /// <summary>
+    /// 合并多段线
+    /// </summary>
+    /// <param name="list"></param>
+    List<PolyEdge> MergePolyEdge(List<PolyEdge> pes)
+    {
+        //然后要利用双循环,提取a和b比较共点
+        for (int i = 0; i < pes.Count; i++)
+        {
+            var plA = pes[i];
+            for (int j = pes.Count - 1; j > i; j--)
+            {
+                var plB = pes[j];
+
+                var apts = plA.Points();
+                var bpts = plB.Points();
+                var aSp = apts[0];
+                var aEp = apts[apts.Count - 1];
+                var bSp = bpts[0];
+                var bEp = bpts[apts.Count - 1];
+
+                byte actionNum = 0;//不执行
+                if (aSp == bSp)//{{c,b,a}{c,d}}=>{d,c,b,a}
+                    actionNum = 1;
+                else if (aEp == bSp)//{{a,b,c}{c,d}}=>{a,b,c,d}
+                    actionNum = 2;
+                else if (aSp == bEp)//{{c,b,a}{d,c}}=>{d,c,b,a}
+                {
+                    actionNum = 1;
+                    plB.Reverse();
+                }
+                else if (aEp == bEp)//{{a,b,c}{d,c}}=>{a,b,c,d}
+                {
+                    actionNum = 2;
+                    plB.Reverse();
+                }
+
+                if (actionNum == 1)
+                {
+                    plB.For((num, node) => {
+                        if (num != 0)//跳过共元
+                            plA.AddFirst(node.Value);
+                        return false;
+                    });
+                }
+                else if (actionNum == 2)
+                {
+                    plB.For((num, node) => {
+                        if (num != 0)//跳过共元
+                            plA.AddLast(node.Value);
+                        return false;
+                    });
+                }
+
+                if (actionNum != 0)
+                {
+                    pes.RemoveAt(j);
+                    j = pes.Count - 1;//指针重拨,一旦加入就从尾开始
+                }
+
+            }
+        }
+        return pes;
     }
 
     /// <summary>
