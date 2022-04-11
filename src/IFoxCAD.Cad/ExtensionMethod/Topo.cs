@@ -205,17 +205,17 @@ public class Topo
                 .Except(closedEdges)/*闭合多段线*/
                 .Where(e => nums[e.StartIndex] > 1 && nums[e.EndIndex] > 1)/*剪枝:尾巴多段线*/;
 
-#if true2 //待测试...
+#if true2
+        //待测试...
         //无第三者图元提取,并且合并多段线
         var handInhand = tmp.Where(e => nums[e.StartIndex] == 1 && nums[e.EndIndex] == 1);
         var gPe = GetPolyEdge(handInhand);
-        var links2 = MergePolyEdge(gPe);
+        MergePolyEdge(gPe);
 
         //将手拉手的剔除,然后转为多段线
-        var tmpArr = tmp.Except(handInhand);
-        var links = GetPolyEdge(tmpArr);
-
-        links.AddRange(links2);
+        var links = GetPolyEdge(tmp.Except(handInhand));
+        
+        links.AddRange(gPe);
         return links; //提供给图
 #else
         var tmpArr = tmp.ToArray();
@@ -243,7 +243,7 @@ public class Topo
     /// 合并多段线
     /// </summary>
     /// <param name="list"></param>
-    List<PolyEdge> MergePolyEdge(List<PolyEdge> pes)
+    void MergePolyEdge(List<PolyEdge> pes)
     {
         //然后要利用双循环,提取a和b比较共点
         for (int i = 0; i < pes.Count; i++)
@@ -301,7 +301,6 @@ public class Topo
 
             }
         }
-        return pes;
     }
 
     /// <summary>
