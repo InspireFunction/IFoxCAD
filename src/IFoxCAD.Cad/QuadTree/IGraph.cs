@@ -68,7 +68,7 @@ namespace IFoxCAD.Cad
         /// 顶点的键
         /// </summary>
         /// <value></value>
-        //int Index { get; set; }
+        int Index { get; set; }
 
         /// <summary>
         /// 顶点的数据
