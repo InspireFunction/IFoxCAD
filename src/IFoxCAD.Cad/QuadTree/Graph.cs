@@ -531,19 +531,12 @@ namespace IFoxCAD.Cad.FirstGraph
         {
             var startNode = visited[0];
             IGraphVertex nextNode;
-            var sub = new List<IGraphVertex>();
+            List<IGraphVertex> sub;
             var adjlist = graph.GetAdjacencyList(startNode).ToList();
             for (int i = 0; i < adjlist.Count; i++)
             {
-                if (adjlist[i].Equals(startNode))
-                {
-                    nextNode = adjlist[i + 1];
-                }
-                else
-                {
-                    nextNode = adjlist[i];
-                }
-
+                
+                nextNode = adjlist[i];
                 if (!visited.Contains(nextNode))
                 {
                     sub = new List<IGraphVertex> { nextNode };
