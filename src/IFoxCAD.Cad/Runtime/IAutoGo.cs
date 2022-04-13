@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace IFoxCAD.Cad;
 
@@ -94,7 +94,6 @@ public class AutoClass : IExtensionApplication
         catch (System.Exception e)
         {
             Debugger.Break();
-            Debug.WriteLine("惊惊连盒,IExtensionApplication,AutoClass.Initialize出错::" + e.Message);
         }
     }
 
@@ -111,7 +110,6 @@ public class AutoClass : IExtensionApplication
         catch (System.Exception e)
         {
             Debugger.Break();
-            Debug.WriteLine("惊惊连盒,IExtensionApplication,AutoClass.Terminate出错::" + e.Message);
         }
     }
 
@@ -126,9 +124,9 @@ public class AutoClass : IExtensionApplication
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 #if !NET35
-                //cad2021出现如下报错
-                //System.NotSupportedException:动态程序集中不支持已调用的成员
-                assemblies = assemblies.Where(p => !p.IsDynamic).ToArray();
+            //cad2021出现如下报错
+            //System.NotSupportedException:动态程序集中不支持已调用的成员
+            assemblies = assemblies.Where(p => !p.IsDynamic).ToArray();
 #endif
             //主程序域
             for (int ii = 0; ii < assemblies.Length; ii++)
