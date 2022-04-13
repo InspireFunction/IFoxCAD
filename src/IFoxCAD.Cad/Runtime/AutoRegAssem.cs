@@ -58,16 +58,14 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// </summary>
     public AutoRegAssem()
     {
-        Assembly assem = Assembly.GetCallingAssembly();
+        var assem = Assembly.GetCallingAssembly();
         _info.Loader = assem.Location;
         _info.Fullname = assem.FullName;
         _info.Name = assem.GetName().Name;
         _info.LoadType = AssemLoadType.Startting;
 
         if (!SearchForReg())
-        {
             RegApp();
-        }
     }
 
     #region RegApp
@@ -79,14 +77,13 @@ public abstract class AutoRegAssem : IExtensionApplication
 #else
         string key = HostApplicationServices.Current.MachineRegistryProductRootKey;
 #endif
-        RegistryKey ackey =
-            Registry.CurrentUser.OpenSubKey(key, true);
+        var ackey = Registry.CurrentUser.OpenSubKey(key, true);
         return ackey.CreateSubKey("Applications");
     }
 
     private bool SearchForReg()
     {
-        RegistryKey appkey = GetAcAppKey();
+        var appkey = GetAcAppKey();
         if (appkey.SubKeyCount == 0)
             return false;
 
@@ -105,8 +102,8 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// </summary>
     public void RegApp()
     {
-        RegistryKey appkey = GetAcAppKey();
-        RegistryKey rk = appkey.CreateSubKey(_info.Name);
+        var appkey = GetAcAppKey();
+        var rk = appkey.CreateSubKey(_info.Name);
         rk.SetValue("DESCRIPTION", _info.Fullname, RegistryValueKind.String);
         rk.SetValue("LOADCTRLS", _info.LoadType, RegistryValueKind.DWord);
         rk.SetValue("LOADER", _info.Loader, RegistryValueKind.String);
