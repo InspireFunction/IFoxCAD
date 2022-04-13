@@ -1,7 +1,7 @@
 ﻿#pragma warning disable CS0219 // 变量已被赋值，但从未使用过它的值
 namespace test;
 
-public class Test : AutoRegAssem
+public class Test
 {
     [CommandMethod("dbtest")]
     public void Dbtest()
@@ -82,16 +82,14 @@ public class Test : AutoRegAssem
     {
         using var tr = new DBTrans();
         tr.LayerTable.Add("1");
-        tr.LayerTable.Add("2", lt =>
-        {
+        tr.LayerTable.Add("2", lt => {
             lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 1);
             lt.LineWeight = LineWeight.LineWeight030;
 
         });
         tr.LayerTable.Remove("3");
         tr.LayerTable.Delete("0");
-        tr.LayerTable.Change("4", lt =>
-        {
+        tr.LayerTable.Change("4", lt => {
             lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 2);
         });
     }
@@ -300,10 +298,9 @@ public class Test : AutoRegAssem
         var p24 = p4 - p2;
 
 
-        const double pi90 = Math.PI / 2; 
+        const double pi90 = Math.PI / 2;
 
-        Tools.TestTimes(1000000,"对角线",() =>
-        {
+        Tools.TestTimes(1000000, "对角线", () => {
             var result = false;
             if (Math.Abs(p13.Length - p24.Length) <= 1e8)
             {
@@ -312,11 +309,10 @@ public class Test : AutoRegAssem
 
         });
 
-        Tools.TestTimes(1000000,"三次点乘", () =>
-        {
+        Tools.TestTimes(1000000, "三次点乘", () => {
             var result = false;
 
-            if (Math.Abs(p12.DotProduct(p23)) < 1e8 && 
+            if (Math.Abs(p12.DotProduct(p23)) < 1e8 &&
                 Math.Abs(p23.DotProduct(p34)) < 1e8 &&
                 Math.Abs(p34.DotProduct(p41)) < 1e8)
             {
@@ -325,8 +321,7 @@ public class Test : AutoRegAssem
 
         });
 
-        Tools.TestTimes(1000000, "三次垂直", () =>
-        {
+        Tools.TestTimes(1000000, "三次垂直", () => {
             var result = false;
             if (p12.IsParallelTo(p23) &&
                 p23.IsParallelTo(p34) &&
@@ -376,14 +371,12 @@ public class Test : AutoRegAssem
     public void TestBack()
     {
         using var tr = new DBTrans(@"C:\Users\vic\Desktop\test.dwg");
-        tr.ModelSpace.GetEntities<Circle>().ForEach(ent =>
-        {
+        tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
             ent.ForWrite(e => e.ColorIndex = 3);
         });
         tr.Database.SaveAs(@"C:\Users\vic\Desktop\test.dwg", DwgVersion.Current);
 
-        tr.ModelSpace.GetEntities<Circle>().ForEach(ent =>
-        {
+        tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
             ent.ForWrite(e => e.ColorIndex = 4);
         });
         tr.Database.SaveAs(@"C:\Users\vic\Desktop\test.dwg", DwgVersion.Current);
@@ -403,13 +396,14 @@ public class Test : AutoRegAssem
         return doc;
     }
 
-    public override void Initialize()
+    [IFoxInitialize]
+    public void Initialize()
     {
         //文档管理器将比此接口前创建,因此此句会执行
         Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nload....");
     }
-
-    public override void Terminate()
+    [IFoxInitialize(Sequence.First, false)]
+    public void Terminate()
     {
         //文档管理器将比此接口前死亡,因此此句不会执行
         Application.DocumentManager.MdiActiveDocument?.Editor.WriteMessage("\nunload....");
@@ -561,7 +555,5 @@ public class BlockImportClass
         );
     }
 }
-
-
 
 #pragma warning restore CS0219 // 变量已被赋值，但从未使用过它的值

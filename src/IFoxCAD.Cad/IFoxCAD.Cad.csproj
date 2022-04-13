@@ -69,8 +69,13 @@
         <PackagePath></PackagePath>
       </None>
     </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="Lib.Harmony" Version="2.2.1" />
+    </ItemGroup>
 	
     <ItemGroup>
       <ProjectReference Include="..\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
     </ItemGroup>
+    
 </Project>

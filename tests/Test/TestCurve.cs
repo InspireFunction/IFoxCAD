@@ -2,7 +2,6 @@
 
 namespace Test
 {
-
     public class TestGraph
     {
         [CommandMethod("testpointindict")]
@@ -25,8 +24,7 @@ namespace Test
         [CommandMethod("testgraph")]
         public void TestGraph1()
         {
-            using var tr = new DBTrans();
-            var ents = Env.Editor.SSGet().Value?.GetEntities<Curve>();
+            var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
             if (ents == null)
                 return;
 
@@ -52,8 +50,8 @@ namespace Test
                     res.Add(tmp);
                 }
             }
-
             res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
+            using var tr = new DBTrans();
             tr.CurrentSpace.AddEntity(res);
 
             //var graph = new Graph<int>();

@@ -9,8 +9,6 @@
             using var tr = new DBTrans(filename);
             tr.ModelSpace.AddCircle(new Point3d(0, 0, 0), 20);
             tr.Database.SaveAs(filename,DwgVersion.Current);
-
-            
         }
     }
 }

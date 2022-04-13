@@ -42,8 +42,10 @@ public class DBTrans : IDisposable
              * 当退出命令此事务释放,但是从来不释放Top,
              * 然后我新建了一个文档,再进行命令=>又进入Top,Top返回了前一个文档的事务
              * 因此所以无法清理栈,所以Dispose不触发,导致无法刷新图元和Ctrl+Z出错
+             * 所以用AOP方式修复
              */
-
+#if  false  
+            //不使用AOP方式修复,强迫用户先开启事务
             if (dBTrans.Count == 0)//静态获取的时候就是0
                 throw new ArgumentNullException("事务栈没有任何事务,请在调用前创建:" + nameof(DBTrans));
 
@@ -54,14 +56,42 @@ public class DBTrans : IDisposable
                 if (trans._commit)
                     trans.Commit();
                 dBTrans.Pop();
-                trans = dBTrans.Peek();
+                if (dBTrans.Count != 0)
+                    trans = dBTrans.Peek();
             }
             if (dBTrans.Count == 0)
                 trans = new DBTrans();
-
+#else
+            //使用AOP方式修复
+            DBTrans trans;
+            if (dBTrans.Count == 0)
+                trans = new DBTrans();
+            else
+                trans = dBTrans.Peek();
+#endif
             return trans;
         }
     }
+    /// <summary>
+    /// 结束此数据库的所有事务_AOP修复方案
+    /// </summary>
+    /// <param name="db"></param>
+    public static void FinishDatabase(Database db)
+    {
+        if (dBTrans.Count == 0)
+            return;
+
+        var trans = dBTrans.Peek();
+        while (dBTrans.Count != 0 && trans.Database == db) //跨数据库
+        {
+            if (trans._commit)
+                trans.Commit();
+            dBTrans.Pop();
+            if (dBTrans.Count != 0)
+                trans = dBTrans.Peek();
+        }
+    }
+
     /// <summary>
     /// 文档
     /// </summary>
@@ -416,14 +446,9 @@ public class DBTrans : IDisposable
     public void Commit()
     {
         if (_commit)
-        {
             Transaction.Commit();
-        }
         else
-        {
             Abort();
-        }
-
     }
 
     protected virtual void Dispose(bool disposing)

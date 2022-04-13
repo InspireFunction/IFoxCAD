@@ -1,32 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.Colors;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
-using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.Runtime;
-
-using IFoxCAD.Cad;
-namespace test
+﻿namespace test
 {
-
-    public class Testid : AutoRegAssem
+    public class Testid
     {
-        public override void Initialize()
-        {
-            Env.Print("\nloading...");
-        }
-
-        public override void Terminate()
-        {
-            throw new NotImplementedException();
-        }
-
         [CommandMethod("testid")]
         public void TestId()
         {
@@ -49,7 +24,6 @@ namespace test
             //    }
 
             //}
-
         }
         
         [CommandMethod("testmycommand")]
@@ -97,9 +71,6 @@ namespace test
             tr.TextStyleTable.AddWithChange("宋体1", "simfang.ttf", height: 5);
             tr.TextStyleTable.AddWithChange("仿宋体", "宋体.ttf");
             tr.TextStyleTable.AddWithChange("fsgb2312", "Romans", "gbcbig");
-
-
-
         }
     }
 }

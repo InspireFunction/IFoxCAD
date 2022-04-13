@@ -5,10 +5,6 @@ namespace Test
 {
     public class TestLoop
     {
-        
-
-
-
         [CommandMethod("testloop")]
         public void Testloop()
         {

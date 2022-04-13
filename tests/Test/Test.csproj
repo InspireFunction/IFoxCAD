@@ -1,10 +1,12 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
     <PropertyGroup>
+        <LangVersion>preview</LangVersion>
+        <!--<Nullable>enable</Nullable>-->
+        
         <TargetFrameworks>net45</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
-        <LangVersion>preview</LangVersion>
 		<PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
 

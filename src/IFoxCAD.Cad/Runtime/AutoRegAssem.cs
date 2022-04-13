@@ -25,7 +25,7 @@ public enum AssemLoadType
 /// <summary>
 /// 自动加载程序集的抽象类，继承自 IExtensionApplication 接口
 /// </summary>
-public abstract class AutoRegAssem : IExtensionApplication
+public abstract class AutoRegAssem : IAutoGo
 {
     private AssemInfo _info = new();
 
@@ -124,6 +124,8 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// 结束函数
     /// </summary>
     public abstract void Terminate();
+
+    public abstract Sequence SequenceId();
 
     #endregion IExtensionApplication 成员
 }
