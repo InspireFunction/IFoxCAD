@@ -69,7 +69,6 @@ public class RunClass
         catch (System.Exception e)
         {
             Debugger.Break();
-            Debug.WriteLine("AutoClass.RunClass.Run出错" + e.Message);
         }
     }
 }
