@@ -1,4 +1,4 @@
-﻿using IFoxCAD.Cad;
+using IFoxCAD.Cad;
 using HarmonyLib;
 
 /*
@@ -6,52 +6,6 @@ using HarmonyLib;
  */
 public class AOP
 {
-    /// <summary>
-    /// 遍历程序域下所有类型
-    /// </summary>
-    /// <param name="action"></param>
-    public static void AppDomainGetTypes(Action<Type> action)
-    {
-        var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-#if !NET35
-        //cad2021出现如下报错
-        //System.NotSupportedException:动态程序集中不支持已调用的成员
-        assemblies = assemblies.Where(p => !p.IsDynamic).ToArray();
-#endif
-        //主程序域
-        for (int ii = 0; ii < assemblies.Length; ii++)
-        {
-            try
-            {
-                var assembly = assemblies[ii];
-                //引用到test工程之后再调用
-                //if (!assembly.GetName(true).Name.Contains(nameof(IFoxCAD)))
-                //    continue;
-
-                Type[]? types = null;
-                try
-                {
-                    //获取类型集合,反射时候还依赖其他的dll就会这个错误
-                    //此通讯库要跳过,否则会报错.
-                    if (Path.GetFileName(assembly.Location) == "AcInfoCenterConn.dll")
-                        continue;
-                    types = assembly.GetTypes();
-                }
-                catch (ReflectionTypeLoadException) { continue; }
-                if (types is null)
-                    continue;
-                for (int jj = 0; jj < types.Length; jj++)
-                {
-                    var type = types[jj];
-                    if (type is not null)
-                        action(type);
-                }
-            }
-            catch
-            { }
-        }
-    }
-
     public static void Run()
     {
         Dictionary<string, (CommandMethodAttribute Cmd, Type MetType, MethodInfo MetInfo)> cmdDic = new();
