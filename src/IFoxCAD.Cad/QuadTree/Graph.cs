@@ -83,7 +83,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
 
         // 为了保证点顺序，每个点的邻接边必须按起点-终点，所以添加曲线终点时，将添加一个方向的曲线
         var curtmp = (Curve3d)curve.Clone();
-        curtmp = curtmp!.GetReverseParameterCurve(); 
+        curtmp = curtmp!.GetReverseParameterCurve();
 
         // 添加终点的邻接表和邻接边
         vertices[end].Add(start);
@@ -286,7 +286,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
         {
             var adjacents = string.Empty;
 
-            output = String.Format("{1}\r\n{0}-{2}: [",i, output, node.Key.Data.ToString());
+            output = String.Format("{1}\r\n{0}-{2}: [", i, output, node.Key.Data.ToString());
 
             foreach (var adjacentNode in node.Value)
                 adjacents = String.Format("{0}{1},", adjacents, adjacentNode.Data.ToString());
@@ -305,7 +305,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
 /// 邻接表图实现的顶点。
 /// IEnumerable 枚举所有邻接点。
 /// </summary>
-public class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable ,IComparable<IGraphVertex>
+public class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable, IComparable<IGraphVertex>
 {
     public Point3d Data { get; private set; }
     public int Index { get; set; }
@@ -318,7 +318,7 @@ public class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable ,
     {
         return Index == other.Index;
     }
-    public override bool Equals(Object obj)
+    public override bool Equals(object obj)
     {
         if (obj is null)
             return false;
@@ -334,20 +334,12 @@ public class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable ,
     public int CompareTo(IGraphVertex other)
     {
         if (Equals(other))
-        {
             return 0;
-        }
+
+        if (Index < other.Index)
+            return -1;
         else
-        {
-            if (this.Index < other.Index)
-            {
-                return -1;
-            }
-            else
-            {
-                return 1;
-            }
-        }
+            return 1;
     }
 
     int IComparable<IGraphVertex>.CompareTo(IGraphVertex other)
@@ -358,9 +350,8 @@ public class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable ,
     public int CompareTo(object obj)
     {
         if (obj is null)
-        {
             return 1;
-        }
+
         try
         {
             var other = (GraphVertex)obj;
@@ -368,26 +359,24 @@ public class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable ,
         }
         catch (Exception)
         {
-
             throw new ArgumentException("Object is not a IGraphVertex");
         }
     }
 
     public static bool operator ==(GraphVertex person1, GraphVertex person2)
     {
-        if (((object)person1) == null || ((object)person2) == null)
-            return Object.Equals(person1, person2);
+        if (person1 is null || person2 is null)
+            return Equals(person1, person2);
 
         return person1.Equals(person2);
     }
     public static bool operator !=(GraphVertex person1, GraphVertex person2)
     {
-        if (((object)person1) == null || ((object)person2) == null)
-            return !Object.Equals(person1, person2);
+        if (person1 is null || person2 is null)
+            return !Equals(person1, person2);
 
-        return !(person1.Equals(person2));
+        return !person1.Equals(person2);
     }
-
 }
 
 /// <summary>
@@ -409,12 +398,11 @@ public class GraphEdge : IEdge, IEquatable<GraphEdge>
     public bool Equals(GraphEdge other)
     {
         if (other is null)
-        {
             return false;
-        }
-        return TargetVertex == other.TargetVertex && TargetEdge == other.TargetEdge;
+        return TargetVertex == other.TargetVertex &&
+               TargetEdge == other.TargetEdge;
     }
-    public override bool Equals(Object obj)
+    public override bool Equals(object obj)
     {
         if (obj is null)
             return false;
@@ -430,20 +418,18 @@ public class GraphEdge : IEdge, IEquatable<GraphEdge>
     }
     public static bool operator ==(GraphEdge person1, GraphEdge person2)
     {
-        if (((object)person1) == null || ((object)person2) == null)
-            return Object.Equals(person1, person2);
+        if (person1 is null || person2 is null)
+            return Equals(person1, person2);
 
         return person1.Equals(person2);
     }
     public static bool operator !=(GraphEdge person1, GraphEdge person2)
     {
-        if (((object)person1) == null || ((object)person2) == null)
-            return !Object.Equals(person1, person2);
+        if (person1 is null || person2 is null)
+            return !Equals(person1, person2);
 
-        return !(person1.Equals(person2));
+        return !person1.Equals(person2);
     }
-
-
 }
 
 /// <summary>
@@ -482,10 +468,10 @@ public class DepthFirst
         {
             nextNode = adjlist[i];
             // 如果下一个点未遍历过
-            if (!visited.Contains(nextNode)) 
+            if (!visited.Contains(nextNode))
             {
                 // 将下一点加入路径集合，并进行下一次递归
-                sub = new List<IGraphVertex> { nextNode }; 
+                sub = new List<IGraphVertex> { nextNode };
                 sub.AddRange(visited);
                 Dfs(graph, sub);
             }
@@ -522,7 +508,7 @@ public class DepthFirst
     {
         var tmp = lst.ToList();
         tmp.Reverse();
-        return DepthFirst.RotateToSmallest(tmp);
+        return RotateToSmallest(tmp);
     }
     /// <summary>
     /// 比较两个列表是否相等
@@ -534,10 +520,9 @@ public class DepthFirst
     {
         bool ret = (a[0] == b[0]) && (a.Count == b.Count);
         for (int i = 1; ret && (i < a.Count); i++)
-            if (!a[i].Equals( b[i]))
-            {
+            if (!a[i].Equals(b[i]))
                 ret = false;
-            }
+
         return ret;
     }
 
