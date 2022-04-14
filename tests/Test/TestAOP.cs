@@ -21,6 +21,6 @@ public class AutoAOP
     [IFoxInitialize]
     public void Initialize()
     {
-        AOP.Run();
+        AOP.Run(nameof(Test));
     }
 }

@@ -1,14 +1,17 @@
-using HarmonyLib;
 namespace IFoxCAD.Cad;
-/*
- * 在所有的命令末尾注入清空事务栈函数
- */
+using HarmonyLib;
+
 public class AOP
 {
-    public static void Run()
+    /// <summary>
+    /// 在此命名空间下的命令末尾注入清空事务栈函数
+    /// </summary>
+    public static void Run(string nameSpace)
     {
         Dictionary<string, (CommandMethodAttribute Cmd, Type MetType, MethodInfo MetInfo)> cmdDic = new();
         AutoClass.AppDomainGetTypes(type => {
+            if (type.Namespace != nameSpace)
+                return;
             var mets = type.GetMethods();//获得它的成员函数
             for (int i = 0; i < mets.Length; i++)
             {
