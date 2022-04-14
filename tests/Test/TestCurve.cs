@@ -29,15 +29,15 @@ namespace Test
                 return;
 
             // 新建图
-            var graph = new IFoxCAD.Cad.FirstGraph.Graph();
+            var graph = new IFoxCAD.Cad.Graph();
             // 将曲线加入到图中
             ents.ForEach(ent => graph.AddEdge(ent.GetGeCurve()));
 
             Env.Print(graph.ToReadable());
             //新建 dfs
-            var dfs = new IFoxCAD.Cad.FirstGraph.DepthFirst(graph);
+            var dfs = new IFoxCAD.Cad.DepthFirst();
             // 查询全部的 闭合环
-            dfs.FindAll();
+            dfs.FindAll(graph);
             // 遍历闭合环的列表，将每个闭合环转换为实体曲线
             var res = new List<Curve>();
             foreach (var item in dfs.Curve3ds)

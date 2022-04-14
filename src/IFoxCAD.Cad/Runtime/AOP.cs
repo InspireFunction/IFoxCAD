@@ -1,6 +1,5 @@
-using IFoxCAD.Cad;
 using HarmonyLib;
-
+namespace IFoxCAD.Cad;
 /*
  * 在所有的命令末尾注入清空事务栈函数
  */
