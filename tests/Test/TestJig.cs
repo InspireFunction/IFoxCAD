@@ -1,6 +1,6 @@
 ﻿
 
-namespace test;
+namespace Test;
 
 
 using Autodesk.AutoCAD.ApplicationServices;

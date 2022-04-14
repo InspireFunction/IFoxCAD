@@ -10,7 +10,7 @@ using Autodesk.AutoCAD.DatabaseServices;
 using IFoxCAD.Cad;
 using Autodesk.AutoCAD.EditorInput;
 
-namespace test
+namespace Test
 {
     public class testselectfilter
     {

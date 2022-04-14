@@ -10,7 +10,7 @@ using IFoxCAD.Cad;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Colors;
 
-namespace test
+namespace Test
 {
     public class testConvexHull
     {

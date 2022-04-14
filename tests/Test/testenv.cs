@@ -7,7 +7,7 @@ using Autodesk.AutoCAD.Runtime;
 using Autodesk.AutoCAD.ApplicationServices;
 using Autodesk.AutoCAD.DatabaseServices;
 
-namespace test
+namespace Test
 {
     public class testenv
     {
