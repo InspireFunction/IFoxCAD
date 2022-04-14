@@ -1,6 +1,8 @@
 ﻿
 
 
+using Autodesk.AutoCAD.BoundaryRepresentation;
+
 using IFoxCAD.Basal;
 
 using Exception = System.Exception;
@@ -31,21 +33,38 @@ namespace IFoxCAD.Cad.FirstGraph
             insertCount = 0;
         }
 
+        
+
         /// <summary>
         /// 向该图添加一个新顶点，但是无边。
         /// 时间复杂度: O(E). E是边数
         /// </summary>
-        public void AddVertex(Point3d pt)
+        public IGraphVertex AddVertex(Point3d pt)
         {
-            var vertex = new GraphVertex(this, pt, insertCount++);
-            if (vertices.ContainsKey(vertex))
+            if (ContainKeyData(pt,out IGraphVertex? key))
             {
-                throw new Exception("顶点已经存在。");
+                return key!;
             }
+            var vertex = new GraphVertex(this, pt, insertCount++);
             //vertex.Index = vertices.Count;
             vertices.Add(vertex, new HashSet<IGraphVertex>());
             edges.Add(vertex, new HashSet<IEdge>());
-            
+            return vertex;
+
+        }
+
+        private bool ContainKeyData(Point3d pt, out IGraphVertex? currentKey)
+        {
+            foreach (var key in vertices.Keys)
+            {
+                if (key.Data.Equals(pt))
+                {
+                    currentKey = key;
+                    return true;
+                }
+            }
+            currentKey = null;
+            return false;
         }
 
         /// <summary>
@@ -54,33 +73,32 @@ namespace IFoxCAD.Cad.FirstGraph
         /// </summary>
         public void RemoveVertex(Point3d pt)
         {
-            // 新建个临时的顶点，所以插入的顺序号为-1
-            var vertex = new GraphVertex(this, pt, -1);
-            if (!vertices.ContainsKey(vertex))
-            {
-                throw new Exception("顶点不在此图中。");
-            }
-            // 删除邻接表里的vertex点,先删除后面的遍历可以少一轮
-            vertices.Remove(vertex);
-            // 删除其他顶点的邻接表里的vertex点
-            foreach (var item in vertices.Values)
-            {
-                item.Remove(vertex);
-            }
 
-            // 删除邻接边表里的vertex点,先删除后面的遍历可以少一轮
-            edges.Remove(vertex);
-            // 删除其他顶点的邻接边表的指向vertex的边
-            foreach (var item in edges.Values)
+            if (ContainKeyData(pt, out IGraphVertex? vertex))
             {
-                foreach (var edge in item)
+                // 删除邻接表里的vertex点,先删除后面的遍历可以少一轮
+                vertices.Remove(vertex!);
+                // 删除其他顶点的邻接表里的vertex点
+                foreach (var item in vertices.Values)
                 {
-                    if (vertex.Equals(edge.TargetVertex))
+                    item.Remove(vertex!);
+                }
+
+                // 删除邻接边表里的vertex点,先删除后面的遍历可以少一轮
+                edges.Remove(vertex!);
+                // 删除其他顶点的邻接边表的指向vertex的边
+                foreach (var item in edges.Values)
+                {
+                    foreach (var edge in item)
                     {
-                        item.Remove(edge);
+                        if (vertex!.Equals(edge.TargetVertex))
+                        {
+                            item.Remove(edge);
+                        }
                     }
                 }
             }
+
         }
 
 
@@ -88,89 +106,113 @@ namespace IFoxCAD.Cad.FirstGraph
         /// 向该图添加一个边。
         /// 时间复杂度: O(1).
         /// </summary>
-        public void AddEdge(Curve3d value!!)
+        public void AddEdge(Curve3d curve!!)
         {
-            // 新建两个临时的顶点，
-            IGraphVertex start = new GraphVertex(this, value.StartPoint, -1);
 
-            IGraphVertex end = new GraphVertex(this, value.EndPoint,-1);
+            var start = AddVertex(curve.StartPoint);
+            var end = AddVertex(curve.EndPoint);
+
+            // 添加起点的邻接表和邻接边
+            vertices[start].Add(end);
+            edges[start].Add(new GraphEdge(end, curve));
+
+            var curtmp = (Curve3d)curve.Clone();
+            curtmp = curtmp!.GetReverseParameterCurve();
+            // 添加终点的邻接表和邻接边
+            vertices[end].Add(start);
+            edges[end].Add(new GraphEdge(start, curtmp));
 
 
-            if (vertices.ContainsKey(start) && !vertices.ContainsKey(end)) 
-            {
-                // 如果曲线的起点在邻接表字典里,终点不在
-                // 那么起点直接替换为字典内的顶点，而终点的需要更新
-                start = vertices.GetKey(start)!;
-                end.Index = insertCount++;
-                var edge = new GraphEdge(end, value);
-                vertices[start].Add(end); // 邻接表加曲线的终点
-                edges[start].Add(edge); // 邻接边表加曲线
 
-                // 邻接表字典添加终点
-                vertices.Add(end, new HashSet<IGraphVertex>());
-                // 邻接表加入起点
-                vertices[end].Add(start);
-                // 邻接边表字典添加终点
-                edges.Add(end, new HashSet<IEdge>());
-                // 邻接边表加入起点
-                edges[end].Add(new GraphEdge(start, value));
+            //// 新建两个临时的顶点，
+            //IGraphVertex start = new GraphVertex(this, value.StartPoint, -1);
 
-            }
-            else if (vertices.ContainsKey(end) && !vertices.ContainsKey(start)) 
-            {
-                // 如果曲线的终点在邻接表字典里,起点不在
-                // 那么终点直接替换为字典内的顶点，而起点的需要更新
-                end = vertices.GetKey(end)!;
-                start.Index = insertCount++;
-                var edge = new GraphEdge(start, value);
-                vertices[end].Add(start); // 邻接表加曲线的起点
-                edges[end].Add(edge); // 邻接边表加曲线
+            //IGraphVertex end = new GraphVertex(this, value.EndPoint,-1);
 
-                // 邻接表字典添加起点
-                vertices.Add(start, new HashSet<IGraphVertex>());
-                // 邻接表加入终点
-                vertices[start].Add(end);
-                // 邻接边表字典添加起点
-                edges.Add(start, new HashSet<IEdge>());
-                // 邻接边表加入终点
-                edges[start].Add(new GraphEdge(end, value));
-            }
-            else if (vertices.ContainsKey(start) && vertices.ContainsKey(end)) 
-            {
-                // 起点和终点同时在, 则起点和终点都直接替换为字典内的顶点
-                start = vertices.GetKey(start)!;
-                end = vertices.GetKey(end)!;
-                var edge = new GraphEdge(end, value);
-                vertices[start].Add(end); // 邻接表加曲线的终点
-                edges[start].Add(edge); // 邻接边表加曲线
 
-                var edge1 = new GraphEdge(start, value);
-                vertices[end].Add(start); // 邻接表加曲线的起点
-                edges[end].Add(edge1); // 邻接边表加曲线
-            }
-            else
-            {
-                // 两个点都不在，则index都需要更新
-                start.Index = insertCount++;
-                end.Index = insertCount++;
-                // 邻接表字典添加起点
-                vertices.Add(start,new HashSet<IGraphVertex>());
-                // 邻接表加入终点
-                vertices[start].Add(end);
-                // 邻接边表字典添加起点
-                edges.Add(start, new HashSet<IEdge>());
-                // 邻接边表加入终点
-                edges[start].Add(new GraphEdge(end, value));
+            //if (vertices.ContainsKey(start) && !vertices.ContainsKey(end)) 
+            //{
+            //    // 如果曲线的起点在邻接表字典里,终点不在
+            //    // 那么起点直接替换为字典内的顶点，而终点的需要更新
+            //    start = vertices.GetKey(start)!;
+            //    end.Index = insertCount++;
 
-                // 邻接表字典添加终点
-                vertices.Add(end,new HashSet<IGraphVertex>());
-                // 邻接表加入起点
-                vertices[end].Add(start);
-                // 邻接边表字典添加终点
-                edges.Add(end, new HashSet<IEdge>());
-                // 邻接边表加入起点
-                edges[end].Add(new GraphEdge(start,value));
-            }
+            //    // 需要确认每个点的邻接边都是起点到终点的模式
+            //    // 这里起点存在，那么曲线的起点和start是一点，则曲线不用处理
+            //    var edge = new GraphEdge(end, value);
+            //    vertices[start].Add(end); // 邻接表加曲线的终点
+            //    edges[start].Add(edge); // 邻接边表加曲线
+
+            //    // 邻接表字典添加终点
+            //    // 这里的顶点是终点，也就是说这个顶点的邻接点的终点应该是曲线的起点
+            //    vertices.Add(end, new HashSet<IGraphVertex>());
+            //    // 邻接表加入起点
+            //    vertices[end].Add(start);
+            //    // 邻接边表字典添加终点
+            //    edges.Add(end, new HashSet<IEdge>());
+            //    // 邻接边表加入起点,进行曲线反向
+            //    edges[end].Add(new GraphEdge(start, value.GetReverseParameterCurve()));
+
+            //}
+            //else if (vertices.ContainsKey(end) && !vertices.ContainsKey(start)) 
+            //{
+            //    // 如果曲线的终点在邻接表字典里,起点不在
+            //    // 那么终点直接替换为字典内的顶点，而起点的需要更新
+            //    end = vertices.GetKey(end)!;
+            //    start.Index = insertCount++;
+            //    // 加入的是终点，所以曲线反向
+            //    var edge = new GraphEdge(start, value.GetReverseParameterCurve());
+            //    vertices[end].Add(start); // 邻接表加曲线的起点
+            //    edges[end].Add(edge); // 邻接边表加曲线
+
+            //    // 邻接表字典添加起点
+            //    vertices.Add(start, new HashSet<IGraphVertex>());
+            //    // 邻接表加入终点
+            //    vertices[start].Add(end);
+            //    // 邻接边表字典添加起点
+            //    edges.Add(start, new HashSet<IEdge>());
+            //    // 邻接边表加入终点
+            //    edges[start].Add(new GraphEdge(end, value));
+            //}
+            //else if (vertices.ContainsKey(start) && vertices.ContainsKey(end)) 
+            //{
+            //    // 起点和终点同时在, 则起点和终点都直接替换为字典内的顶点
+            //    start = vertices.GetKey(start)!;
+            //    end = vertices.GetKey(end)!;
+
+            //    var edge = new GraphEdge(end, value);
+            //    vertices[start].Add(end); // 邻接表加曲线的终点
+            //    edges[start].Add(edge); // 邻接边表加曲线
+
+            //    // 终点作为顶点时，曲线反向
+            //    var edge1 = new GraphEdge(start, value.GetReverseParameterCurve());
+            //    vertices[end].Add(start); // 邻接表加曲线的起点
+            //    edges[end].Add(edge1); // 邻接边表加曲线
+            //}
+            //else
+            //{
+            //    // 两个点都不在，则index都需要更新
+            //    start.Index = insertCount++;
+            //    end.Index = insertCount++;
+            //    // 邻接表字典添加起点
+            //    vertices.Add(start,new HashSet<IGraphVertex>());
+            //    // 邻接表加入终点
+            //    vertices[start].Add(end);
+            //    // 邻接边表字典添加起点
+            //    edges.Add(start, new HashSet<IEdge>());
+            //    // 邻接边表加入终点
+            //    edges[start].Add(new GraphEdge(end, value));
+
+
+            //    // 邻接表字典添加终点
+            //    vertices.Add(end,new HashSet<IGraphVertex>());
+            //    // 邻接表加入起点
+            //    vertices[end].Add(start);
+            //    // 邻接边表字典添加终点
+            //    edges.Add(end, new HashSet<IEdge>());
+            //    // 邻接边表加入起点,曲线反向
+            //    edges[end].Add(new GraphEdge(start,value.GetReverseParameterCurve()));
+            //}
 
         }
 
@@ -180,41 +222,43 @@ namespace IFoxCAD.Cad.FirstGraph
         /// </summary>
         public void RemoveEdge(Curve3d curve!!)
         {
-            // 只是为了删除边，所以建立两个临时顶点
-            var start = new GraphVertex(this, curve.StartPoint, -1);
-            var end = new GraphVertex(this, curve.EndPoint, -1);
+            RemoveVertex(curve.StartPoint);
+            RemoveVertex(curve.EndPoint);
+            //// 只是为了删除边，所以建立两个临时顶点
+            //var start = new GraphVertex(this, curve.StartPoint, -1);
+            //var end = new GraphVertex(this, curve.EndPoint, -1);
 
-            if (!vertices.ContainsKey(start) || !vertices.ContainsKey(end))
-            {
-                throw new Exception("源或目标顶点不在此图中。");
-            }
+            //if (!vertices.ContainsKey(start) || !vertices.ContainsKey(end))
+            //{
+            //    throw new Exception("源或目标顶点不在此图中。");
+            //}
 
-            if (!edges[start].Contains(new GraphEdge(end,curve))
-                || !edges[end].Contains(new GraphEdge(start,curve)))
-            {
-                throw new Exception("边不存在。");
-            }
-            // 曲线的起点邻接表里删除终点
-            vertices[start].Remove(end);
-            // 曲线的终点邻接表里删除起点
-            vertices[end].Remove(start);
-            // 曲线的起点邻接边表里删除终点邻接边
-            edges[start].Remove(new GraphEdge(end,curve));
-            // 曲线的终点邻接边表里删除起点邻接边
-            edges[end].Remove(new GraphEdge(start,curve));
+            //if (!edges[start].Contains(new GraphEdge(end,curve))
+            //    || !edges[end].Contains(new GraphEdge(start,curve)))
+            //{
+            //    throw new Exception("边不存在。");
+            //}
+            //// 曲线的起点邻接表里删除终点
+            //vertices[start].Remove(end);
+            //// 曲线的终点邻接表里删除起点
+            //vertices[end].Remove(start);
+            //// 曲线的起点邻接边表里删除终点邻接边
+            //edges[start].Remove(new GraphEdge(end,curve));
+            //// 曲线的终点邻接边表里删除起点邻接边
+            //edges[end].Remove(new GraphEdge(start,curve));
 
-            // 如果 邻接表的长度为0，说明为孤立的顶点就删除
-            if (vertices[start].Count == 0)
-            {
-                vertices.Remove(start);
-                edges.Remove(start);
-            }
-            if (vertices[end].Count == 0)
-            {
-                vertices.Remove(end);
-                edges.Remove(end);
+            //// 如果 邻接表的长度为0，说明为孤立的顶点就删除
+            //if (vertices[start].Count == 0)
+            //{
+            //    vertices.Remove(start);
+            //    edges.Remove(start);
+            //}
+            //if (vertices[end].Count == 0)
+            //{
+            //    vertices.Remove(end);
+            //    edges.Remove(end);
 
-            }
+            //}
 
             
         }
@@ -274,9 +318,9 @@ namespace IFoxCAD.Cad.FirstGraph
             return edges[vertex];
         }
 
-        public LoopList<Curve3d> GetCurves(List<IGraphVertex> graphVertices)
+        public List<Curve3d> GetCurves(List<IGraphVertex> graphVertices)
         {
-            var curves = new LoopList<Curve3d>();
+            var curves = new List<Curve3d>();
             for (int i = 0; i < graphVertices.Count - 1; i++)
             {
                 var cur = graphVertices[i];
@@ -284,14 +328,31 @@ namespace IFoxCAD.Cad.FirstGraph
                 var edge = GetEdge(cur, next);
                 if (edge is not null)
                 {
+                    
                     curves.Add(edge.TargetEdge);
                 }
             }
             var lastedge = GetEdge(graphVertices[graphVertices.Count - 1], graphVertices[0]);
             if (lastedge is not null)
             {
+                
                 curves.Add(lastedge.TargetEdge);
             }
+
+            // 保证曲线顺序连接，代码有问题,主要原因在于结果顶点并不是顺序的
+            //var res = new List<Curve3d>();
+            //res.Add(curves[0]);
+            //for (int i = 1; i < curves.Count; i++)
+            //{
+            //    if (res[i - 1].EndPoint.IsEqualTo(curves[i].EndPoint, new Tolerance(1e-6, 1e-6)))
+            //    {
+            //        res.Add(curves[i].GetReverseParameterCurve());
+            //    }
+            //    res.Add(curves[i]);
+            //}
+
+
+            //return res;
             return curves;
         }
 
