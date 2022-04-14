@@ -66,7 +66,7 @@ public class RunClass
         {
             _methodInfo.Invoke(_instance);
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
             Debugger.Break();
         }
@@ -90,7 +90,7 @@ public class AutoClass : IExtensionApplication
             _InitializeList = _InitializeList.OrderBy(runClass => runClass.SequenceId).ToList();
             RunFunctions(_InitializeList);
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
             Debugger.Break();
         }
@@ -106,7 +106,7 @@ public class AutoClass : IExtensionApplication
             _TerminateList = _TerminateList.OrderByDescending(runClass => runClass.SequenceId).ToList();
             RunFunctions(_TerminateList);
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
             Debugger.Break();
         }
@@ -155,10 +155,10 @@ public class AutoClass : IExtensionApplication
             }
 
         }
-        catch (System.Exception e)
+        catch (System.Exception)
         {
             Debugger.Break();
-            Debug.WriteLine($"出错:AppDomainGetTypes;计数{error};错误信息:{e.Message}");
+            //Debug.WriteLine($"出错:AppDomainGetTypes;计数{error};错误信息:{e.Message}");
         }
     }
 
