@@ -9,7 +9,7 @@ public class AOP
     public static void Run()
     {
         Dictionary<string, (CommandMethodAttribute Cmd, Type MetType, MethodInfo MetInfo)> cmdDic = new();
-        AppDomainGetTypes(type => {
+        AutoClass.AppDomainGetTypes(type => {
             var mets = type.GetMethods();//获得它的成员函数
             for (int i = 0; i < mets.Length; i++)
             {
