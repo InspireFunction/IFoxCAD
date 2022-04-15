@@ -37,12 +37,14 @@
 		<PackageReference Include="Autocad.NetApi" Version="19.0.0">
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
+		<PackageReference Include="Vanara.PInvoke.IpHlpApi" Version="3.3.15" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
 		<PackageReference Include="AutoCAD.NET" Version="20.0.1">
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
+		<PackageReference Include="IndexRange" Version="1.0.2" />
 	</ItemGroup>
 	
 	
@@ -71,6 +73,7 @@
     </ItemGroup>
     
     <ItemGroup>
+      
       <PackageReference Include="Lib.Harmony" Version="2.2.1" />
     </ItemGroup>
 	

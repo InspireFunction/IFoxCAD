@@ -75,7 +75,41 @@ public static class CurveEx
         //因为生成可能导致遗忘释放,所以这里统一生成
         return closedCurve3d.Select(e => e.ToCurve()!);
     }
+    /// <summary>
+    /// 获取曲线集所围成的封闭区域的曲线集
+    /// </summary>
+    /// <param name="curves">曲线集合</param>
+    /// <returns>所有的闭合环的曲线集合</returns>
+    public static IEnumerable<Curve> GetAllCycle(this IEnumerable<Curve> curves)
+    {
+        // 新建图
+        var graph = new Graph();
+        foreach (var curve in curves)
+        {
+#if NET35
+            graph.AddEdge(curve.ToCurve3d()!);
+#else 
+            graph.AddEdge(curve.GetGeCurve());
+#endif
 
+        }
+        //新建 dfs
+        var dfs = new DepthFirst();
+        // 查询全部的 闭合环
+        dfs.FindAll(graph);
+        // 遍历闭合环的列表，将每个闭合环转换为实体曲线
+        var res = new List<Curve>();
+        foreach (var item in dfs.Curve3ds)
+        {
+            var curve = graph.GetCurves(item).ToArray();
+            var comcur = new CompositeCurve3d(curve).ToCurve();
+            if (comcur is not null)
+            {
+                res.Add(comcur);
+            }
+        }
+        return res;
+    }
     /// <summary>
     /// 曲线打断
     /// </summary>

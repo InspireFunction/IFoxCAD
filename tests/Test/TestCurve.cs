@@ -27,29 +27,29 @@ namespace Test
             var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
             if (ents == null)
                 return;
+            var res = ents.GetAllCycle();
+            //// 新建图
+            //var graph = new IFoxCAD.Cad.Graph();
+            //// 将曲线加入到图中
+            //ents.ForEach(ent => graph.AddEdge(ent.GetGeCurve()));
 
-            // 新建图
-            var graph = new IFoxCAD.Cad.Graph();
-            // 将曲线加入到图中
-            ents.ForEach(ent => graph.AddEdge(ent.GetGeCurve()));
-
-            Env.Print(graph.ToReadable());
-            //新建 dfs
-            var dfs = new IFoxCAD.Cad.DepthFirst();
-            // 查询全部的 闭合环
-            dfs.FindAll(graph);
-            // 遍历闭合环的列表，将每个闭合环转换为实体曲线
-            var res = new List<Curve>();
-            foreach (var item in dfs.Curve3ds)
-            {
-                var curves = graph.GetCurves(item).ToArray();
-                var comcur = new CompositeCurve3d(curves);
-                var tmp = comcur.ToCurve();
-                if (tmp is not null)
-                {
-                    res.Add(tmp);
-                }
-            }
+            //Env.Print(graph.ToReadable());
+            ////新建 dfs
+            //var dfs = new IFoxCAD.Cad.DepthFirst();
+            //// 查询全部的 闭合环
+            //dfs.FindAll(graph);
+            //// 遍历闭合环的列表，将每个闭合环转换为实体曲线
+            //var res = new List<Curve>();
+            //foreach (var item in dfs.Curve3ds)
+            //{
+            //    var curves = graph.GetCurves(item).ToArray();
+            //    var comcur = new CompositeCurve3d(curves);
+            //    var tmp = comcur.ToCurve();
+            //    if (tmp is not null)
+            //    {
+            //        res.Add(tmp);
+            //    }
+            //}
             res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
             using var tr = new DBTrans();
             tr.CurrentSpace.AddEntity(res);

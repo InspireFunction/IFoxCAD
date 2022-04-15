@@ -5,7 +5,7 @@ namespace IFoxCAD.Cad;
 /// 无权无向图实现
 /// IEnumerable 枚举所有顶点。
 /// </summary>
-public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
+internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
 {
     #region 字段及属性
     /// <summary>
@@ -305,7 +305,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
 /// 邻接表图实现的顶点。
 /// IEnumerable 枚举所有邻接点。
 /// </summary>
-public class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable, IComparable<IGraphVertex>
+internal sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable ,IComparable<IGraphVertex>
 {
     public Point3d Data { get; private set; }
     public int Index { get; set; }
@@ -382,7 +382,7 @@ public class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable, 
 /// <summary>
 /// 无向图中边的定义
 /// </summary>
-public class GraphEdge : IEdge, IEquatable<GraphEdge>
+internal sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
 {
     // 这里的传入的两个参数分别为下一点和下一点之间的曲线
     public GraphEdge(IGraphVertex target, Curve3d edge)
@@ -435,7 +435,7 @@ public class GraphEdge : IEdge, IEquatable<GraphEdge>
 /// <summary>
 /// 深度优先搜索。
 /// </summary>
-public class DepthFirst
+internal sealed class DepthFirst
 {
     // 存储所有的边
     public List<List<IGraphVertex>> Curve3ds { get; } = new();
@@ -476,7 +476,7 @@ public class DepthFirst
                 Dfs(graph, sub);
             }
             // 如果下一点遍历过，并且路径大于2，说明已经找到起点
-            else if (visited.Count > 2 && nextNode.Equals(visited[visited.Count - 1]))
+            else if (visited.Count > 2 && nextNode.Equals(visited[^1]))
             {
                 // 将重复的路径进行过滤，并把新的路径存入结果
                 var cur = DepthFirst.RotateToSmallest(visited);
