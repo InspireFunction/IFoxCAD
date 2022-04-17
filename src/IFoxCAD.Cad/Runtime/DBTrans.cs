@@ -44,53 +44,37 @@ public class DBTrans : IDisposable
              * 因此所以无法清理栈,所以Dispose不触发,导致无法刷新图元和Ctrl+Z出错
              * 所以用AOP方式修复
              */
-//#if  false  
+#if true
             //不使用AOP方式修复,强迫用户先开启事务
-            if (dBTrans.Count == 0)//静态获取的时候就是0
+            if (dBTrans.Count == 0)
                 throw new ArgumentNullException("事务栈没有任何事务,请在调用前创建:" + nameof(DBTrans));
 
             var db = Application.DocumentManager.MdiActiveDocument.Database;
             var trans = dBTrans.Peek();
-            while (dBTrans.Count != 0 && trans.Database != db) //跨数据库
-            {
-                if (trans._commit)
-                    trans.Commit();
-                dBTrans.Pop();
-                if (dBTrans.Count != 0)
-                    trans = dBTrans.Peek();
-            }
+            if (trans.Database != db)
+                trans = new DBTrans();
+#else
+            //使用AOP方式修复
+            DBTrans trans;
             if (dBTrans.Count == 0)
                 trans = new DBTrans();
-            //#else
-            //            //使用AOP方式修复
-            //            DBTrans trans;
-            //            if (dBTrans.Count == 0)
-            //                trans = new DBTrans();
-            //            else
-            //                trans = dBTrans.Peek();
-            //#endif
+            else
+                trans = dBTrans.Peek();
+#endif
             return trans;
         }
     }
-    /// <summary>
-    /// 结束此数据库的所有事务_AOP修复方案
-    /// </summary>
-    /// <param name="db"></param>
-    //public static void FinishDatabase(Database db)
-    //{
-    //    if (dBTrans.Count == 0)
-    //        return;
 
-    //    var trans = dBTrans.Peek();
-    //    while (dBTrans.Count != 0 && trans.Database == db) //跨数据库
-    //    {
-    //        if (trans._commit)
-    //            trans.Commit();
-    //        dBTrans.Pop();
-    //        if (dBTrans.Count != 0)
-    //            trans = dBTrans.Peek();
-    //    }
-    //}
+    /// <summary>
+    /// 结束栈中所有事务_AOP修复方案
+    /// 此方式代表了不允许跨事务循环命令
+    /// 若有则需在此命令进行 拒绝注入AOP特性
+    /// </summary>
+    public static void FinishDatabase()
+    {
+        while (dBTrans.Count != 0)
+            dBTrans.Peek().Dispose();
+    }
 
     /// <summary>
     /// 文档
@@ -459,9 +443,12 @@ public class DBTrans : IDisposable
          */
 
         if (disposedValue)
-        {
             return;
-        }
+
+        // 释放未托管的资源(未托管的对象)并替代终结器
+        // 将大型字段设置为 null
+        disposedValue = true;
+
         if (disposing)
         {
             // 释放托管状态(托管对象)
@@ -475,19 +462,13 @@ public class DBTrans : IDisposable
         }
         // 调用 cad事务的dispose进行销毁
         if (!Transaction.IsDisposed)
-        {
             Transaction.Dispose();
-        }
+
         // 调用文档锁dispose
         documentLock?.Dispose();
 
         // 将事务栈的当前dbtrans弹栈
         dBTrans.Pop();
-
-        // 释放未托管的资源(未托管的对象)并替代终结器
-        // 将大型字段设置为 null
-        disposedValue = true;
-
     }
 
     // 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器

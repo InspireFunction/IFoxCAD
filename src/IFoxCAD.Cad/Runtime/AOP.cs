@@ -11,6 +11,24 @@ public class IFoxRefuseInjectionTransaction : Attribute
     }
 }
 
+/*
+ * 例子
+ * public class AutoAOP
+ * {
+ *      [IFoxInitialize]//自执行接口
+ *      public void Initialize()
+ *      {
+ *          AOP.Run(nameof(Test));
+ *      }
+ * }
+ *  
+ * 类库用户想侵入的命名空间是用户的,
+ * 所以需要用户手动进行AOP.Run(),
+ * 默认情况不侵入用户的命令,必须用户手动启用此功能;
+ * 启动执行策略之后,侵入命名空间下的命令,
+ * 此时有拒绝特性的策略保证括免,因为用户肯定是想少写一个事务注入的特性;
+ */
+
 public class AOP
 {
     /// <summary>
@@ -94,7 +112,6 @@ public class AOP
 
     public static void IFoxCmdAddLast()
     {
-        var db = Application.DocumentManager.MdiActiveDocument.Database;
-        DBTrans.FinishDatabase(db);
-    } 
+        DBTrans.FinishDatabase();
+    }
 }
