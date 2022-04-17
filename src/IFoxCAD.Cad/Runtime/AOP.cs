@@ -1,6 +1,16 @@
 namespace IFoxCAD.Cad;
 using HarmonyLib;
 
+public class IFoxRefuseInjectionTransaction : Attribute
+{
+    /// <summary>
+    /// 拒绝注入事务
+    /// </summary>
+    public IFoxRefuseInjectionTransaction()
+    {
+    }
+}
+
 public class AOP
 {
     /// <summary>
@@ -12,19 +22,31 @@ public class AOP
         AutoClass.AppDomainGetTypes(type => {
             if (type.Namespace != nameSpace)
                 return;
-            var mets = type.GetMethods();//获得它的成员函数
-            for (int i = 0; i < mets.Length; i++)
+            //类上面特性
+            if (type.IsClass)
             {
-                var method = mets[i];
+                var attr = type.GetCustomAttributes(true);
+                if (RefuseInjectionTransaction(attr))
+                    return;
+            }
+
+            //函数上面特性
+            var mets = type.GetMethods();//获得它的成员函数
+            for (int ii = 0; ii < mets.Length; ii++)
+            {
+                var method = mets[ii];
                 //找到特性,特性下面的方法要是Public,否则就被编译器优化掉了.
                 var attr = method.GetCustomAttributes(true);
-                for (int j = 0; j < attr.Length; j++)
-                    if (attr[j] is CommandMethodAttribute cmdAtt)
-                        cmdDic.Add(cmdAtt.GlobalName, (cmdAtt, type, method));
+                for (int jj = 0; jj < attr.Length; jj++)
+                    if (attr[jj] is CommandMethodAttribute cmdAtt)
+                    {
+                        if (!RefuseInjectionTransaction(attr))
+                            cmdDic.Add(cmdAtt.GlobalName, (cmdAtt, type, method));
+                    }
             }
         });
 
-        //运行的命令写在了Test.dll,当然不是ifox内了....
+        //运行的命令写在了Test.dll,当然不是ifox.cad类库内了....
         if (cmdDic.Count == 0)
             return;
 
@@ -45,9 +67,28 @@ public class AOP
         }
     }
 
+    /// <summary>
+    /// 拒绝注入事务
+    /// </summary>
+    /// <param name="attr">属性</param>
+    /// <returns></returns>
+    private static bool RefuseInjectionTransaction(object[] attr)
+    {
+        bool refuseInjectionTransaction = false;
+        for (int kk = 0; kk < attr.Length; kk++)
+        {
+            if (attr[kk] is IFoxRefuseInjectionTransaction)
+            {
+                refuseInjectionTransaction = true;
+                break;
+            }
+        }
+        return refuseInjectionTransaction;
+    }
+
     public static void IFoxCmdAddFirst()
     {
-        //此生命周期会在事务栈上面,被无限延长
+        //此生命周期会在静态事务栈上面,被无限延长
         var _ = DBTrans.Top;
     }
 
@@ -55,5 +96,5 @@ public class AOP
     {
         var db = Application.DocumentManager.MdiActiveDocument.Database;
         DBTrans.FinishDatabase(db);
-    }
+    } 
 }

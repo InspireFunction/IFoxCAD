@@ -24,3 +24,40 @@ public class AutoAOP
         AOP.Run(nameof(Test));
     }
 }
+
+
+namespace Test
+{
+    //拒绝注入事务,写类上,则方法全都拒绝
+    [IFoxRefuseInjectionTransaction]
+    public class MyClass2
+    {
+        //此时这个也是拒绝的..这里加特性只是无所谓
+        [IFoxRefuseInjectionTransaction]
+        [CommandMethod("IFoxRefuseInjectionTransaction2")]
+        public void TestIFoxRefuseInjectionTransaction()
+        {
+        }
+
+        [CommandMethod("InjectionTransaction2")]
+        public void InjectionTransaction()
+        {
+        }
+    }
+
+    public class MyClass
+    {
+        //类不拒绝,这里拒绝
+        [IFoxRefuseInjectionTransaction]
+        [CommandMethod("IFoxRefuseInjectionTransaction")]
+        public void TestIFoxRefuseInjectionTransaction()
+        {
+        }
+
+        //不拒绝
+        [CommandMethod("InjectionTransaction")]
+        public void InjectionTransaction()
+        {
+        }
+    }
+}
