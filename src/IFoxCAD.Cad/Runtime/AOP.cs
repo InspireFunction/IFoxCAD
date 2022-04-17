@@ -28,7 +28,7 @@ public class AOP
         if (cmdDic.Count == 0)
             return;
 
-        var harmony = new Harmony(nameof(IFoxCAD));
+        var harmony = new Harmony(nameSpace);
         var mPrefix = SymbolExtensions.GetMethodInfo(() => IFoxCmdAddFirst());//进入函数前
         var mPostfix = SymbolExtensions.GetMethodInfo(() => IFoxCmdAddLast());//进入函数后
         var mp1 = new HarmonyMethod(mPrefix);
