@@ -49,6 +49,7 @@ public static class CurveEx
     /// </summary>
     /// <param name="curves">曲线集</param>
     /// <returns>闭合的曲线集</returns>
+    [Obsolete("此函数将被废弃，请使用 GetAllCycle 代替！")]
     public static IEnumerable<Curve>? Topo(List<Curve> curves)
     {
         //闭合的曲线集合
@@ -184,7 +185,6 @@ public static class CurveEx
     /// </summary>
     /// <param name="curve">曲线</param>
     /// <returns>ge曲线</returns>
-    [Obsolete("请使用Cad自带的 GetGeCurve 函数！")]
     public static Curve3d? ToCurve3d(this Curve curve)
     {
         return curve switch
