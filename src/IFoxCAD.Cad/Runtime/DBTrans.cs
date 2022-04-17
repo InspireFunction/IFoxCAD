@@ -44,7 +44,7 @@ public class DBTrans : IDisposable
              * 因此所以无法清理栈,所以Dispose不触发,导致无法刷新图元和Ctrl+Z出错
              * 所以用AOP方式修复
              */
-#if  false  
+//#if  false  
             //不使用AOP方式修复,强迫用户先开启事务
             if (dBTrans.Count == 0)//静态获取的时候就是0
                 throw new ArgumentNullException("事务栈没有任何事务,请在调用前创建:" + nameof(DBTrans));
@@ -61,14 +61,14 @@ public class DBTrans : IDisposable
             }
             if (dBTrans.Count == 0)
                 trans = new DBTrans();
-#else
-            //使用AOP方式修复
-            DBTrans trans;
-            if (dBTrans.Count == 0)
-                trans = new DBTrans();
-            else
-                trans = dBTrans.Peek();
-#endif
+            //#else
+            //            //使用AOP方式修复
+            //            DBTrans trans;
+            //            if (dBTrans.Count == 0)
+            //                trans = new DBTrans();
+            //            else
+            //                trans = dBTrans.Peek();
+            //#endif
             return trans;
         }
     }
@@ -76,21 +76,21 @@ public class DBTrans : IDisposable
     /// 结束此数据库的所有事务_AOP修复方案
     /// </summary>
     /// <param name="db"></param>
-    public static void FinishDatabase(Database db)
-    {
-        if (dBTrans.Count == 0)
-            return;
+    //public static void FinishDatabase(Database db)
+    //{
+    //    if (dBTrans.Count == 0)
+    //        return;
 
-        var trans = dBTrans.Peek();
-        while (dBTrans.Count != 0 && trans.Database == db) //跨数据库
-        {
-            if (trans._commit)
-                trans.Commit();
-            dBTrans.Pop();
-            if (dBTrans.Count != 0)
-                trans = dBTrans.Peek();
-        }
-    }
+    //    var trans = dBTrans.Peek();
+    //    while (dBTrans.Count != 0 && trans.Database == db) //跨数据库
+    //    {
+    //        if (trans._commit)
+    //            trans.Commit();
+    //        dBTrans.Pop();
+    //        if (dBTrans.Count != 0)
+    //            trans = dBTrans.Peek();
+    //    }
+    //}
 
     /// <summary>
     /// 文档
@@ -439,41 +439,55 @@ public class DBTrans : IDisposable
 
     public void Abort()
     {
-        Transaction.Abort();
         Dispose(false);
     }
 
     public void Commit()
     {
-        if (_commit)
-            Transaction.Commit();
-        else
-            Abort();
+        Dispose(true);
     }
 
     protected virtual void Dispose(bool disposing)
     {
-        if (!disposedValue)
-        {
-            if (disposing)
-            {
-                // 释放托管状态(托管对象)
-                Commit();
-                dBTrans.Pop();
-                if (!Transaction.IsDisposed)
-                {
-                    if (Document?.IsActive == true)
-                        Transaction.TransactionManager.QueueForGraphicsFlush();
-                    Transaction.Dispose();
-                }
-                documentLock?.Dispose();
-            }
+        /* 事务dispose流程：
+         * 1. 根据传入的参数确定是否提交，true为提交，false为不提交
+         * 2. 根据disposedValue的值确定是否重复dispose，false为首次dispose
+         * 3. 如果锁文档就将文档锁dispose
+         * 4. 不管是否提交，既然进入dispose，就要将事务栈的当前事务弹出
+         *    注意这里的事务栈不是cad的事务管理器，而是dbtrans的事务
+         * 5. 清理非托管的字段
+         */
 
-            // 释放未托管的资源(未托管的对象)并替代终结器
-            // 将大型字段设置为 null
-            disposedValue = true;
+        if (disposedValue)
+        {
+            return;
         }
-        //Transaction.TransactionManager.QueueForGraphicsFlush();
+        if (disposing)
+        {
+            // 释放托管状态(托管对象)
+            // 调用cad的事务进行提交
+            Transaction.Commit();
+        }
+        else
+        {
+            // 否则取消所有的修改
+            Transaction.Abort();
+        }
+        // 调用 cad事务的dispose进行销毁
+        if (!Transaction.IsDisposed)
+        {
+            Transaction.Dispose();
+        }
+        // 调用文档锁dispose
+        documentLock?.Dispose();
+
+        // 将事务栈的当前dbtrans弹栈
+        dBTrans.Pop();
+
+        // 释放未托管的资源(未托管的对象)并替代终结器
+        // 将大型字段设置为 null
+        disposedValue = true;
+
     }
 
     // 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器
