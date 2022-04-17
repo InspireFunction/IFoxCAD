@@ -43,39 +43,11 @@ public static class CurveEx
             .GetSplitCurves(new Point3dCollection(points.ToArray()))
             .Cast<Curve>();
     }
-
+    
     /// <summary>
     /// 获取曲线集所围成的封闭区域的曲线集
     /// </summary>
-    /// <param name="curves">曲线集</param>
-    /// <returns>闭合的曲线集</returns>
-    [Obsolete("此函数将被废弃，请使用 GetAllCycle 代替！")]
-    public static IEnumerable<Curve>? Topo(List<Curve> curves)
-    {
-        //闭合的曲线集合
-        var closedCurve3d = new List<CompositeCurve3d>();
-
-        var topo = new Topo(curves);
-        topo.CollisionFor(infos => {
-            var gs = new List<Edge>();
-            var c3 = new List<CompositeCurve3d>();
-
-            topo.GetEdgesAndnewCurves(infos, gs, c3);
-            topo.AdjacencyList(gs, c3);
-            var regions = topo.GetRegions(gs);
-
-            for (int i = 0; i < regions.Count; i++)
-            {
-                var cs3ds = regions[i]
-                            .Select(e => e.GetCurve())
-                            .ToArray();
-                closedCurve3d.Add(new CompositeCurve3d(cs3ds));
-            }
-        });
-
-        //因为生成可能导致遗忘释放,所以这里统一生成
-        return closedCurve3d.Select(e => e.ToCurve()!);
-    }
+   
     /// <summary>
     /// 获取曲线集所围成的封闭区域的曲线集
     /// </summary>
