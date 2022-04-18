@@ -1,4 +1,25 @@
-﻿
+﻿/*
+* 这里必须要实现一次这个接口,才能使用特性
+*/
+public class AutoGoExtensionApplication : IExtensionApplication
+{
+    public void Initialize()
+    {
+        new AutoClass().Initialize();
+    }
+
+    public void Terminate()
+    {
+    }
+}
+
+/*
+ * 类库用户想侵入的命名空间是用户的,
+ * 所以需要用户手动进行AOP.Run(),
+ * 默认情况不侵入用户的命令,必须用户手动启用此功能;
+ * 启动执行策略之后,侵入命名空间下的命令,
+ * 此时有拒绝特性的策略保证括免,因为用户肯定是想少写一个事务注入的特性;
+ */
 public class AutoAOP
 {
     [IFoxInitialize]
@@ -7,7 +28,6 @@ public class AutoAOP
         AOP.Run(nameof(Test));
     }
 }
-
 
 namespace Test
 {
@@ -20,7 +40,7 @@ namespace Test
         //类不拒绝,这里拒绝
         [IFoxRefuseInjectionTransaction]
         [CommandMethod("IFoxRefuseInjectionTransaction")]
-        public void TestIFoxRefuseInjectionTransaction()
+        public void IFoxRefuseInjectionTransaction()
         {
         }
 
@@ -30,6 +50,8 @@ namespace Test
         {
             //怎么用事务呢?
             //直接用 DBTrans.Top
+            var dBTrans = new DBTrans();
+            dBTrans.Commit();
         }
     }
 
@@ -40,7 +62,7 @@ namespace Test
         //此时这个也是拒绝的..这里加特性只是无所谓
         [IFoxRefuseInjectionTransaction]
         [CommandMethod("IFoxRefuseInjectionTransaction2")]
-        public void TestIFoxRefuseInjectionTransaction()
+        public void IFoxRefuseInjectionTransaction2()
         {
             //拒绝注入就要自己开事务,通常用在循环提交事务上面.
             //另见 报错0x02 https://www.cnblogs.com/JJBox/p/10798940.html
@@ -48,9 +70,8 @@ namespace Test
         }
 
         [CommandMethod("InjectionTransaction2")]
-        public void InjectionTransaction()
+        public void InjectionTransaction2()
         {
         }
     }
 }
-

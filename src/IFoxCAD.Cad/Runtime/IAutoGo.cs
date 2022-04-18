@@ -73,7 +73,7 @@ public class RunClass
     }
 }
 
-public class AutoClass : IExtensionApplication
+public class AutoClass //: IExtensionApplication
 {
     static List<RunClass> _InitializeList = new(); //储存方法用于初始化
     static List<RunClass> _TerminateList = new();  //储存方法用于结束释放

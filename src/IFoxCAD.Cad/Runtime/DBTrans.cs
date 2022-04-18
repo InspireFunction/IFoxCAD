@@ -44,7 +44,7 @@ public class DBTrans : IDisposable
              * 因此所以无法清理栈,所以Dispose不触发,导致无法刷新图元和Ctrl+Z出错
              * 所以用AOP方式修复
              */
-#if true
+#if true2
             //不使用AOP方式修复,强迫用户先开启事务
             if (dBTrans.Count == 0)
                 throw new ArgumentNullException("事务栈没有任何事务,请在调用前创建:" + nameof(DBTrans));
