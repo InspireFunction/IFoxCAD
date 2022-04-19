@@ -44,7 +44,7 @@ public class DBTrans : IDisposable
              * 因此所以无法清理栈,所以Dispose不触发,导致无法刷新图元和Ctrl+Z出错
              * 所以用AOP方式修复
              */
-#if true2
+#if true
             //不使用AOP方式修复,强迫用户先开启事务
             if (dBTrans.Count == 0)
                 throw new ArgumentNullException("事务栈没有任何事务,请在调用前创建:" + nameof(DBTrans));
@@ -70,7 +70,7 @@ public class DBTrans : IDisposable
     /// 此方式代表了不允许跨事务循环命令
     /// 若有则需在此命令进行 拒绝注入AOP特性
     /// </summary>
-    public static void FinishDatabase()
+    internal static void FinishDatabase()
     {
         while (dBTrans.Count != 0)
             dBTrans.Peek().Dispose();
