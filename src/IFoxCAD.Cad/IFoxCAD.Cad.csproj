@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
-        <Version>0.3.3.1</Version>
+        <Version>0.3.3.2</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的Cad二次开发类库</Description>
@@ -15,7 +15,7 @@
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
-        <PackageReleaseNotes>增加数据结构-图及DFS.</PackageReleaseNotes>
+        <PackageReleaseNotes>注释掉AOP.</PackageReleaseNotes>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <LangVersion>preview</LangVersion>
