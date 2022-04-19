@@ -43,11 +43,7 @@ public static class CurveEx
             .GetSplitCurves(new Point3dCollection(points.ToArray()))
             .Cast<Curve>();
     }
-    
-    /// <summary>
-    /// 获取曲线集所围成的封闭区域的曲线集
-    /// </summary>
-   
+
     /// <summary>
     /// 获取曲线集所围成的封闭区域的曲线集
     /// </summary>

@@ -13,6 +13,10 @@ public class AutoGoExtensionApplication : IExtensionApplication
     }
 }
 
+
+//被注入的函数将不能使用断点,
+//因此用户要充分了解才能使用
+#if false
 /*
  * 类库用户想侵入的命名空间是用户的,
  * 所以需要用户手动进行AOP.Run(),
@@ -74,4 +78,5 @@ namespace Test
         {
         }
     }
-}
+} 
+#endif
