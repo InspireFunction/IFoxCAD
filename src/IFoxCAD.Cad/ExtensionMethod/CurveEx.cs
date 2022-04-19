@@ -45,7 +45,7 @@ public static class CurveEx
     }
 
     /// <summary>
-    /// 获取曲线集所围成的封闭区域的曲线集
+    /// 获取曲线集所围成的封闭区域的曲线集，注意此函数不能处理平行边（两个点及两条线组成的闭合环）
     /// </summary>
     /// <param name="curves">曲线集合</param>
     /// <returns>所有的闭合环的曲线集合</returns>
