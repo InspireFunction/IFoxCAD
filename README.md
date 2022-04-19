@@ -97,19 +97,20 @@
     using IFoxCAD.Cad;
     using System;
     using System.Reflection;
-    [assembly: ExtensionApplication(typeof(CadLoad.CmdINI))]
     namespace CadLoad
     {
-        internal class CmdINI : AutoRegAssem
+        public class CmdINI : AutoRegAssem
         {
             public override void Initialize()
             {
-                throw new NotImplementedException();
+                //throw new NotImplementedException();
+                //这里写用于程序初始化的代码
             }
    
             public override void Terminate()
             {
-                throw new NotImplementedException();
+                //throw new NotImplementedException();
+                //这里写程序卸载的代码，但是一般你也看不到运行，所以空着也行
             }
         }
     }
