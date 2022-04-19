@@ -18,7 +18,8 @@ namespace Test
             
             using var tr = new DBTrans();
             tr.ModelSpace.AddCircle(new Point3d(0, 0, 0), 20);
-            tr.Commit();
+            tr.Abort();
+            //tr.Commit();
         }
 
         // AOP 应用 预计示例：

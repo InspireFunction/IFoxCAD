@@ -70,11 +70,11 @@ public class DBTrans : IDisposable
     /// 此方式代表了不允许跨事务循环命令
     /// 若有则需在此命令进行 拒绝注入AOP特性
     /// </summary>
-    internal static void FinishDatabase()
-    {
-        while (dBTrans.Count != 0)
-            dBTrans.Peek().Dispose();
-    }
+    //internal static void FinishDatabase()
+    //{
+    //    while (dBTrans.Count != 0)
+    //        dBTrans.Peek().Dispose();
+    //}
 
     /// <summary>
     /// 文档
@@ -420,12 +420,16 @@ public class DBTrans : IDisposable
     #endregion
 
     #region idispose接口相关函数
-
+    /// <summary>
+    /// 取消事务
+    /// </summary>
     public void Abort()
     {
         Dispose(false);
     }
-
+    /// <summary>
+    /// 提交事务
+    /// </summary>
     public void Commit()
     {
         Dispose(true);
