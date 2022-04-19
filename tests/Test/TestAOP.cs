@@ -1,16 +1,19 @@
 ﻿/*
 * 这里必须要实现一次这个接口,才能使用特性
 */
-public class AutoGoExtensionApplication : IExtensionApplication
+public class CmdINI : AutoRegAssem
 {
-    public void Initialize()
+    public override void Initialize()
     {
-        new AutoClass().Initialize();
+        new IFoxCAD.Cad.AutoClass().Initialize();
     }
 
-    public void Terminate()
+    public override Sequence SequenceId()
     {
+        return Sequence.Last;
     }
+
+    public override void Terminate() { }
 }
 
 
