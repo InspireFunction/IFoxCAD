@@ -8,7 +8,7 @@ public enum Sequence : byte
     Last, // 最后
 }
 
-public interface IAutoGo
+public interface IFoxAutoGo
 {
     // 控制加载顺序
     Sequence SequenceId();
@@ -23,7 +23,7 @@ public class IFoxInitialize : Attribute
     internal Sequence Sequence;
     internal bool IsInitialize;
     /// <summary>
-    /// 自己制作的一个特性,放在函数上面用来初始化或者结束回收
+    /// 用于初始化和结束回收
     /// </summary>
     /// <param name="sequence">优先级</param>
     /// <param name="isInitialize"><see langword="true"/>用于初始化;<see langword="false"/>用于结束回收</param>
@@ -80,7 +80,6 @@ public class AutoClass //: IExtensionApplication
 {
     static List<RunClass> _InitializeList = new(); //储存方法用于初始化
     static List<RunClass> _TerminateList = new();  //储存方法用于结束释放
-    const string _iAutoGo = "IAutoGo";
 
     //打开cad的时候会自动执行
     public void Initialize()
@@ -124,7 +123,7 @@ public class AutoClass //: IExtensionApplication
     public static void AppDomainGetTypes(Action<Type> action)
     {
 #if DEBUG
-        int error = 0; 
+        int error = 0;
 #endif
         try
         {
@@ -156,7 +155,7 @@ public class AutoClass //: IExtensionApplication
                     if (type is not null)
                     {
 #if DEBUG
-                        ++error; 
+                        ++error;
 #endif
                         action(type);
                     }
@@ -186,7 +185,8 @@ public class AutoClass //: IExtensionApplication
             var inters = type.GetInterfaces();
             for (int ii = 0; ii < inters.Length; ii++)
             {
-                if (inters[ii].Name == _iAutoGo)//找到接口的函数
+                //找到接口名称:是否找nameof(IExtensionApplication),避免重复执行,不找
+                if (inters[ii].Name == nameof(IFoxAutoGo))
                 {
                     Sequence? sequence = null;
                     MethodInfo? initialize = null;

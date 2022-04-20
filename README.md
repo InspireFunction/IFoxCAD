@@ -111,8 +111,8 @@
        public void Initialize()
        {
            new IFoxCAD.Cad.AutoClass().Initialize();
-           //实例化了AutoClass之后会自动执行 IAutoGo 接口下面的类,以及自动执行 特性 [IFoxInitialize]
-           //而AutoRegAssem继承自IAutoGo,属于一个内部类了,用户可以不需要再处理此注册表部分.  
+           //实例化了AutoClass之后会自动执行 IFoxAutoGo 接口下面的类,以及自动执行 特性 [IFoxInitialize]
+           //而AutoRegAssem继承自IFoxAutoGo,属于一个内部类了,用户可以不需要再处理此注册表部分.  
        }
    
        public void Terminate()

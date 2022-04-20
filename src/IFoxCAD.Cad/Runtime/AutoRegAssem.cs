@@ -25,7 +25,7 @@ public enum AssemLoadType
 /// <summary>
 /// 自动加载程序集的抽象类，继承自 IExtensionApplication 接口
 /// </summary>
-public abstract class AutoRegAssem : IAutoGo
+public abstract class AutoRegAssem : IFoxAutoGo
 {
     private AssemInfo _info = new();
 
