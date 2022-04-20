@@ -94,49 +94,31 @@
 
 6. 天秀的自动加载与初始化
    
-   为了将程序集的初始化和通过写注册表的方式实现自动加载统一设置，减少每次重复的工作量，内裤提供了`AutoRegAssem`抽象类来完成此功能，只要在需要初始化的类继承`AutoRegAssem`类，然后实现`Initialize()` 和`Terminate()`两个函数就可以了。特别强调的是，一个程序集里只能有一个类继承，不管是不是同一个命名空间。
+   为了将程序集的初始化和通过写注册表的方式实现自动加载统一设置，减少每次重复的工作量，类裤提供了`AutoRegAssem`抽象类来完成此功能，只要在需要初始化的类继承`AutoRegAssem`类，然后实现`Initialize()` 和`Terminate()`两个函数就可以了。
+   特别强调的是，一个程序集里只能有一个类继承，不管是不是同一个命名空间。
+   
+   但是为了满足开闭原则，使用特性进行分段初始化是目前最佳选择
    
    ```c#
     using Autodesk.AutoCAD.Runtime;
     using IFoxCAD.Cad;
     using System;
     using System.Reflection;
-    namespace CadLoad
-    {
-        public class CmdINI : AutoRegAssem
-        {
-            public override void Initialize()
-            {
-                //throw new NotImplementedException();
-                //这里写用于程序初始化的代码
-            }
    
-            public override void Terminate()
-            {
-                //throw new NotImplementedException();
-                //这里写程序卸载的代码，但是一般你也看不到运行，所以空着也行
-            }
-        }
-    }
-   ```
-
-   使用特性进行分段初始化
-   
-   ```c#
    // 必须实现一次这个接口
-   public class CmdINI : AutoRegAssem
+   public class CmdINI : IExtensionApplication
    {
-       public override void Initialize()
+       public void Initialize()
        {
            new IFoxCAD.Cad.AutoClass().Initialize();
+           //实例化了AutoClass之后会自动执行 IAutoGo 接口下面的类,以及自动执行 特性 [IFoxInitialize]
+           //而AutoRegAssem继承自IAutoGo,属于一个内部类了,用户可以不需要再处理此注册表部分.  
        }
    
-       public override Sequence SequenceId()
+       public void Terminate()
        {
-           return Sequence.Last;
+           new IFoxCAD.Cad.AutoClass().Terminate();
        }
-   
-       public override void Terminate() { }
    }
    
    //其他的类中的函数:

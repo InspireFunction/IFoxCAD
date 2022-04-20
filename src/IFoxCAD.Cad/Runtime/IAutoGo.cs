@@ -1,6 +1,5 @@
-using System.Diagnostics;
-
 namespace IFoxCAD.Cad;
+using System.Diagnostics;
 
 [Flags]
 public enum Sequence : byte
@@ -21,17 +20,17 @@ public interface IAutoGo
 
 public class IFoxInitialize : Attribute
 {
-    public bool IsInitialize { get; private set; }
-    public Sequence Sequence { get; private set; }
+    internal Sequence Sequence;
+    internal bool IsInitialize;
     /// <summary>
     /// 自己制作的一个特性,放在函数上面用来初始化或者结束回收
     /// </summary>
     /// <param name="sequence">优先级</param>
-    /// <param name="initialize"><see cref="true"/>用于初始化,<see cref="false"/>用于结束回收</param>
-    public IFoxInitialize(Sequence sequence = Sequence.Last, bool initialize = true)
+    /// <param name="isInitialize"><see langword="true"/>用于初始化;<see langword="false"/>用于结束回收</param>
+    public IFoxInitialize(Sequence sequence = Sequence.Last, bool isInitialize = true)
     {
         Sequence = sequence;
-        IsInitialize = initialize;
+        IsInitialize = isInitialize;
     }
 }
 
@@ -73,6 +72,10 @@ public class RunClass
     }
 }
 
+/// <summary>
+/// 此类初始化要在调用类库上面进行一次,否则反射的项目不包含调用类
+/// 也就是谁引用了<see langword="IFoxCAD.Cad"/> 谁负责在 <see langword="IExtensionApplication"/> 接口上实例化 <see langword="AutoClass"/>
+/// </summary>
 public class AutoClass //: IExtensionApplication
 {
     static List<RunClass> _InitializeList = new(); //储存方法用于初始化
@@ -85,10 +88,11 @@ public class AutoClass //: IExtensionApplication
         try
         {
             GetAttributeFunctions();
-            GetInterfaceFunctions(_InitializeList, "Initialize");
+            GetInterfaceFunctions(_InitializeList, nameof(Initialize));
             //按照 SequenceId 排序_升序
             _InitializeList = _InitializeList.OrderBy(runClass => runClass.SequenceId).ToList();
             RunFunctions(_InitializeList);
+            _InitializeList.Clear();
         }
         catch (System.Exception)
         {
@@ -101,10 +105,11 @@ public class AutoClass //: IExtensionApplication
     {
         try
         {
-            GetInterfaceFunctions(_TerminateList, "Terminate");
+            GetInterfaceFunctions(_TerminateList, nameof(Terminate));
             //按照 SequenceId 排序_降序
             _TerminateList = _TerminateList.OrderByDescending(runClass => runClass.SequenceId).ToList();
             RunFunctions(_TerminateList);
+            _TerminateList.Clear();
         }
         catch (System.Exception)
         {
@@ -115,10 +120,12 @@ public class AutoClass //: IExtensionApplication
     /// <summary>
     /// 遍历程序域下所有类型
     /// </summary>
-    /// <param name="action"></param>
+    /// <param name="action">输出每个成员</param>
     public static void AppDomainGetTypes(Action<Type> action)
     {
-        int error = 0;
+#if DEBUG
+        int error = 0; 
+#endif
         try
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -148,17 +155,20 @@ public class AutoClass //: IExtensionApplication
                     var type = types[jj];
                     if (type is not null)
                     {
-                        ++error;
+#if DEBUG
+                        ++error; 
+#endif
                         action(type);
                     }
                 }
             }
-
         }
-        catch (System.Exception)
+        catch (System.Exception e)
         {
+#if DEBUG
+            Debug.WriteLine($"出错:{nameof(AppDomainGetTypes)};计数{error};错误信息:{e.Message}");
             Debugger.Break();
-            //Debug.WriteLine($"出错:AppDomainGetTypes;计数{error};错误信息:{e.Message}");
+#endif
         }
     }
 
@@ -168,7 +178,7 @@ public class AutoClass //: IExtensionApplication
     /// <param name="runClassList">储存要运行的方法</param>
     /// <param name="methodName"></param>
     /// <returns></returns>
-    void GetInterfaceFunctions(List<RunClass> runClassList, string methodName = "Initialize")
+    void GetInterfaceFunctions(List<RunClass> runClassList, string methodName = nameof(Initialize))
     {
         string JoinBoxSequenceId = nameof(Sequence) + "Id";
         AppDomainGetTypes(type => {
