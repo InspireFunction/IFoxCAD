@@ -1,6 +1,9 @@
 namespace IFoxCAD.Cad;
 using System.Diagnostics;
 
+/// <summary>
+/// 加载时优先级
+/// </summary>
 [Flags]
 public enum Sequence : byte
 {
@@ -8,6 +11,9 @@ public enum Sequence : byte
     Last, // 最后
 }
 
+/// <summary>
+/// 加载时自动执行接口
+/// </summary>
 public interface IFoxAutoGo
 {
     // 控制加载顺序
@@ -18,9 +24,18 @@ public interface IFoxAutoGo
     void Initialize();
 }
 
+/// <summary>
+/// 加载时自动执行特性
+/// </summary>
 public class IFoxInitialize : Attribute
 {
-    internal Sequence Sequence;
+    /// <summary>
+    /// 优先级
+    /// </summary>
+    internal Sequence SequenceId;
+    /// <summary>
+    /// <see langword="true"/>用于初始化;<see langword="false"/>用于结束回收
+    /// </summary>
     internal bool IsInitialize;
     /// <summary>
     /// 用于初始化和结束回收
@@ -29,31 +44,22 @@ public class IFoxInitialize : Attribute
     /// <param name="isInitialize"><see langword="true"/>用于初始化;<see langword="false"/>用于结束回收</param>
     public IFoxInitialize(Sequence sequence = Sequence.Last, bool isInitialize = true)
     {
-        Sequence = sequence;
+        SequenceId = sequence;
         IsInitialize = isInitialize;
     }
 }
 
 //为了解决IExtensionApplication在一个dll内无法多次实现接口的关系
-//所以在这里反射加载所有的IAutoGo,以达到能分开写"启动运行"函数的目的
-public class RunClass
+//所以在这里反射加载所有的 IAutoGo ,以达到能分开写"启动运行"函数的目的
+class RunClass
 {
-    public Sequence SequenceId { get; }
+    public Sequence Sequence { get; }
     MethodInfo _methodInfo;
-    object? _instance;
 
     public RunClass(MethodInfo method, Sequence sequence)
     {
         _methodInfo = method;
-        SequenceId = sequence;
-
-        var reftype = _methodInfo.ReflectedType;
-        if (reftype == null) return;
-        var fullName = reftype.FullName; //命名空间+类
-        if (fullName == null) return;
-        var type = reftype.Assembly.GetType(fullName);//通过程序集反射创建类+
-        if (type == null) return;
-        _instance = Activator.CreateInstance(type);
+        Sequence = sequence;
     }
 
     /// <summary>
@@ -63,7 +69,7 @@ public class RunClass
     {
         try
         {
-            _methodInfo.Invoke(_instance);
+            _methodInfo.Invoke();
         }
         catch (System.Exception)
         {
@@ -89,7 +95,7 @@ public class AutoClass //: IExtensionApplication
             GetAttributeFunctions();
             GetInterfaceFunctions(_InitializeList, nameof(Initialize));
             //按照 SequenceId 排序_升序
-            _InitializeList = _InitializeList.OrderBy(runClass => runClass.SequenceId).ToList();
+            _InitializeList = _InitializeList.OrderBy(runClass => runClass.Sequence).ToList();
             RunFunctions(_InitializeList);
             _InitializeList.Clear();
         }
@@ -106,7 +112,7 @@ public class AutoClass //: IExtensionApplication
         {
             GetInterfaceFunctions(_TerminateList, nameof(Terminate));
             //按照 SequenceId 排序_降序
-            _TerminateList = _TerminateList.OrderByDescending(runClass => runClass.SequenceId).ToList();
+            _TerminateList = _TerminateList.OrderByDescending(runClass => runClass.Sequence).ToList();
             RunFunctions(_TerminateList);
             _TerminateList.Clear();
         }
@@ -175,12 +181,14 @@ public class AutoClass //: IExtensionApplication
     /// 收集接口下的函数
     /// </summary>
     /// <param name="runClassList">储存要运行的方法</param>
-    /// <param name="methodName"></param>
+    /// <param name="methodName">查找方法名</param>
     /// <returns></returns>
-    void GetInterfaceFunctions(List<RunClass> runClassList, string methodName = nameof(Initialize))
+    void GetInterfaceFunctions(List<RunClass> runClassList, string methodName)
     {
-        string JoinBoxSequenceId = nameof(Sequence) + "Id";
+        const string sqid = nameof(Sequence) + "Id";
         AppDomainGetTypes(type => {
+            if (type.IsAbstract)
+                return;
             //获取接口集合
             var inters = type.GetInterfaces();
             for (int ii = 0; ii < inters.Length; ii++)
@@ -198,7 +206,7 @@ public class AutoClass //: IExtensionApplication
                         var method = mets[jj];
                         if (method.IsAbstract)
                             continue;
-                        if (method.Name == JoinBoxSequenceId)
+                        if (method.Name == sqid)
                         {
                             var obj = method.Invoke();
                             if (obj != null)
@@ -233,6 +241,8 @@ public class AutoClass //: IExtensionApplication
     void GetAttributeFunctions()
     {
         AppDomainGetTypes(type => {
+            if (type.IsAbstract)
+                return;
             var mets = type.GetMethods();//获得它的成员函数
             for (int ii = 0; ii < mets.Length; ii++)
             {
@@ -244,7 +254,7 @@ public class AutoClass //: IExtensionApplication
                 {
                     if (attr[jj] is IFoxInitialize jjAtt)
                     {
-                        var runc = new RunClass(method, jjAtt.Sequence);
+                        var runc = new RunClass(method, jjAtt.SequenceId);
                         if (jjAtt.IsInitialize)
                             _InitializeList.Add(runc);
                         else
@@ -261,10 +271,8 @@ public class AutoClass //: IExtensionApplication
     /// </summary>
     void RunFunctions(List<RunClass> runClassList)
     {
-        for (int i = runClassList.Count - 1; i >= 0; i--)
-        {
+        for (int i = 0; i < runClassList.Count; i++)
             runClassList[i].Run();
-            runClassList.RemoveAt(i);
-        }
+        runClassList.Clear();
     }
 }

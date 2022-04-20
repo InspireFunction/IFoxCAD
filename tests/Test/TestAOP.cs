@@ -1,21 +1,4 @@
-﻿/*
-* 这里必须要实现一次这个接口,才能使用特性
-*/
-public class CmdINI : IExtensionApplication
-{
-    public void Initialize()
-    {
-        new IFoxCAD.Cad.AutoClass().Initialize();
-    }
-
-    public void Terminate()
-    {
-        new IFoxCAD.Cad.AutoClass().Terminate();
-    }
-}
-
-
-//被注入的函数将不能使用断点,
+﻿//被注入的函数将不能使用断点,
 //因此用户要充分了解才能使用
 #if false
 /*

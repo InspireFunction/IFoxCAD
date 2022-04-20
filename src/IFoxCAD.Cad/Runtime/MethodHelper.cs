@@ -2,6 +2,8 @@
 
 public static class MethodInfoHelper
 {
+    static Dictionary<MethodInfo, object> methodDic = new();
+
     /// <summary>
     /// 执行函数
     /// </summary>
@@ -12,7 +14,7 @@ public static class MethodInfoHelper
         if (methodInfo == null)
             throw new ArgumentNullException(nameof(methodInfo));
 
-        object? result;
+        object? result = null;
         if (methodInfo.IsStatic)
         {
             //新函数指针进入此处
@@ -27,6 +29,10 @@ public static class MethodInfoHelper
         else
         {
             //原命令的函数指针进入此处
+            //object instance;
+            if (methodDic.ContainsKey(methodInfo))
+                instance = methodDic[methodInfo];
+
             if (instance == null)
             {
                 var reftype = methodInfo.ReflectedType;
@@ -36,8 +42,11 @@ public static class MethodInfoHelper
                 var type = reftype.Assembly.GetType(fullName);//通过程序集反射创建类+
                 if (type == null) return null;
                 instance = Activator.CreateInstance(type);
+                if (!type.IsAbstract)//无法创建抽象类成员
+                    methodDic.Add(methodInfo, instance);
             }
-            result = methodInfo.Invoke(instance, null); //非静态,调用实例化方法
+            if (instance != null)
+                result = methodInfo.Invoke(instance, null); //非静态,调用实例化方法
         }
         return result;
     }

@@ -395,19 +395,6 @@ public class Test
         var doc = Application.DocumentManager.MdiActiveDocument;
         return doc;
     }
-
-    [IFoxInitialize]
-    public void Initialize()
-    {
-        //文档管理器将比此接口前创建,因此此句会执行
-        Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nload....");
-    }
-    [IFoxInitialize(Sequence.First, false)]
-    public void Terminate()
-    {
-        //文档管理器将比此接口前死亡,因此此句不会执行
-        Application.DocumentManager.MdiActiveDocument?.Editor.WriteMessage("\nunload....");
-    }
 }
 
 

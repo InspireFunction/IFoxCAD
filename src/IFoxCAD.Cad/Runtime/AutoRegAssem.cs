@@ -1,6 +1,7 @@
 ﻿namespace IFoxCAD.Cad;
 using Registry = Microsoft.Win32.Registry;
 using RegistryKey = Microsoft.Win32.RegistryKey;
+
 /// <summary>
 /// 程序集加载类型
 /// </summary>
@@ -23,9 +24,9 @@ public enum AssemLoadType
 }
 
 /// <summary>
-/// 自动加载程序集的抽象类，继承自 IExtensionApplication 接口
+///  初始化程序集信息,并写入注册表
 /// </summary>
-public abstract class AutoRegAssem : IFoxAutoGo
+public class AutoRegAssem
 {
     private AssemInfo _info = new();
 
@@ -47,14 +48,13 @@ public abstract class AutoRegAssem : IFoxAutoGo
     public static DirectoryInfo GetDirectory(Assembly assem)
     {
         if (assem is null)
-        {
             throw new(nameof(assem));
-        }
+
         return new FileInfo(assem.Location).Directory;
     }
 
     /// <summary>
-    /// 初始化程序集信息
+    /// 初始化程序集信息,并写入注册表
     /// </summary>
     public AutoRegAssem()
     {
@@ -72,7 +72,7 @@ public abstract class AutoRegAssem : IFoxAutoGo
 
     private static RegistryKey GetAcAppKey()
     {
-#if ac2009
+#if NET35
         string key = HostApplicationServices.Current.RegistryProductRootKey;
 #else
         string key = HostApplicationServices.Current.MachineRegistryProductRootKey;
@@ -110,22 +110,5 @@ public abstract class AutoRegAssem : IFoxAutoGo
         rk.SetValue("MANAGED", 1, RegistryValueKind.DWord);
         appkey.Close();
     }
-
     #endregion RegApp
-
-    #region IExtensionApplication 成员
-
-    /// <summary>
-    /// 初始化函数
-    /// </summary>
-    public abstract void Initialize();
-
-    /// <summary>
-    /// 结束函数
-    /// </summary>
-    public abstract void Terminate();
-
-    public abstract Sequence SequenceId();
-
-    #endregion IExtensionApplication 成员
 }
