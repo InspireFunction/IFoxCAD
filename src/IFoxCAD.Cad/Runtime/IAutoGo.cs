@@ -154,7 +154,6 @@ public class AutoClass //: IExtensionApplication
             for (int ii = 0; ii < assemblies.Length; ii++)
             {
                 var assembly = assemblies[ii];
-                Type[]? types = null;
 
                 //获取类型集合,反射时候还依赖其他的dll就会这个错误
                 //此通讯库要跳过,否则会报错.
@@ -163,6 +162,8 @@ public class AutoClass //: IExtensionApplication
                     continue;
                 if (Path.GetFileName(assembly.Location) == "AcInfoCenterConn.dll")
                     continue;
+
+                Type[]? types = null;
                 try
                 {
                     types = assembly.GetTypes();
