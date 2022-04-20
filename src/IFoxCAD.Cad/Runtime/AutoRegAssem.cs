@@ -28,7 +28,7 @@ public enum AssemLoadType
 /// </summary>
 public class AutoRegAssem
 {
-    private AssemInfo _info = new();
+    public AssemInfo Info;
 
     /// <summary>
     /// 程序集的路径
@@ -59,10 +59,11 @@ public class AutoRegAssem
     public AutoRegAssem()
     {
         var assem = Assembly.GetCallingAssembly();
-        _info.Loader = assem.Location;
-        _info.Fullname = assem.FullName;
-        _info.Name = assem.GetName().Name;
-        _info.LoadType = AssemLoadType.Startting;
+        Info = new();
+        Info.Loader = assem.Location;
+        Info.Fullname = assem.FullName;
+        Info.Name = assem.GetName().Name;
+        Info.LoadType = AssemLoadType.Startting;
 
         if (!SearchForReg())
             RegApp();
@@ -88,11 +89,11 @@ public class AutoRegAssem
             return false;
 
         var regApps = appkey.GetSubKeyNames();
-        if (regApps.Contains(_info.Name))
+        if (regApps.Contains(Info.Name))
         {
             //20220409 bug:文件名相同,路径不同,需要判断路径
-            var info = appkey.OpenSubKey(_info.Name);
-            return info.GetValue("LOADER")?.ToString().ToLower() == _info.Loader.ToLower();
+            var info = appkey.OpenSubKey(Info.Name);
+            return info.GetValue("LOADER")?.ToString().ToLower() == Info.Loader.ToLower();
         }
         return false;
     }
@@ -100,13 +101,13 @@ public class AutoRegAssem
     /// <summary>
     /// 在注册表写入自动加载的程序集信息
     /// </summary>
-    public void RegApp()
+    void RegApp()
     {
         var appkey = GetAcAppKey();
-        var rk = appkey.CreateSubKey(_info.Name);
-        rk.SetValue("DESCRIPTION", _info.Fullname, RegistryValueKind.String);
-        rk.SetValue("LOADCTRLS", _info.LoadType, RegistryValueKind.DWord);
-        rk.SetValue("LOADER", _info.Loader, RegistryValueKind.String);
+        var rk = appkey.CreateSubKey(Info.Name);
+        rk.SetValue("DESCRIPTION", Info.Fullname, RegistryValueKind.String);
+        rk.SetValue("LOADCTRLS", Info.LoadType, RegistryValueKind.DWord);
+        rk.SetValue("LOADER", Info.Loader, RegistryValueKind.String);
         rk.SetValue("MANAGED", 1, RegistryValueKind.DWord);
         appkey.Close();
     }

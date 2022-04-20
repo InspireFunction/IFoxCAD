@@ -87,6 +87,16 @@ public class AutoClass //: IExtensionApplication
     static List<RunClass> _InitializeList = new(); //储存方法用于初始化
     static List<RunClass> _TerminateList = new();  //储存方法用于结束释放
 
+    string _DllName;
+    /// <summary>
+    /// 反射此特性:<see langword="IFoxInitialize"/>进行加载时自动运行
+    /// </summary>
+    /// <param name="DllName">约束在此dll进行加速</param>
+    public AutoClass(string DllName)
+    {
+        _DllName = DllName;
+    }
+
     //打开cad的时候会自动执行
     public void Initialize()
     {
@@ -125,8 +135,9 @@ public class AutoClass //: IExtensionApplication
     /// <summary>
     /// 遍历程序域下所有类型
     /// </summary>
-    /// <param name="action">输出每个成员</param>
-    public static void AppDomainGetTypes(Action<Type> action)
+    /// <param name="action">输出每个成员执行</param>
+    /// <param name="dllNameWithoutExtension">过滤此dll,不含后缀</param>
+    public static void AppDomainGetTypes(Action<Type> action, string? dllNameWithoutExtension = null)
     {
 #if DEBUG
         int error = 0;
@@ -144,15 +155,20 @@ public class AutoClass //: IExtensionApplication
             {
                 var assembly = assemblies[ii];
                 Type[]? types = null;
+
+                //获取类型集合,反射时候还依赖其他的dll就会这个错误
+                //此通讯库要跳过,否则会报错.
+                if (dllNameWithoutExtension != null &&
+                    Path.GetFileNameWithoutExtension(assembly.Location) != dllNameWithoutExtension)
+                    continue;
+                if (Path.GetFileName(assembly.Location) == "AcInfoCenterConn.dll")
+                    continue;
                 try
                 {
-                    //获取类型集合,反射时候还依赖其他的dll就会这个错误
-                    //此通讯库要跳过,否则会报错.
-                    if (Path.GetFileName(assembly.Location) == "AcInfoCenterConn.dll")
-                        continue;
                     types = assembly.GetTypes();
                 }
                 catch (ReflectionTypeLoadException) { continue; }
+
                 if (types is null)
                     continue;
                 for (int jj = 0; jj < types.Length; jj++)
@@ -232,7 +248,7 @@ public class AutoClass //: IExtensionApplication
                     break;
                 }
             }
-        });
+        },_DllName);
     }
 
     /// <summary>
@@ -263,7 +279,7 @@ public class AutoClass //: IExtensionApplication
                     }
                 }
             }
-        });
+        }, _DllName);
     }
 
     /// <summary>
