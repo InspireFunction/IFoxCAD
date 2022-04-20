@@ -157,10 +157,11 @@ public class AutoClass //: IExtensionApplication
 
                 //获取类型集合,反射时候还依赖其他的dll就会这个错误
                 //此通讯库要跳过,否则会报错.
+                var str = Path.GetFileNameWithoutExtension(assembly.Location);
                 if (dllNameWithoutExtension != null &&
-                    Path.GetFileNameWithoutExtension(assembly.Location) != dllNameWithoutExtension)
+                    str != dllNameWithoutExtension)
                     continue;
-                if (Path.GetFileName(assembly.Location) == "AcInfoCenterConn.dll")
+                if (str == "AcInfoCenterConn")
                     continue;
 
                 Type[]? types = null;
