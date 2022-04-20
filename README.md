@@ -105,19 +105,26 @@
     using System;
     using System.Reflection;
    
-   // 必须实现一次这个接口
+   /*
+    * 自动执行接口
+    * 这里必须要实现一次这个接口,才能使用特性
+    */
    public class CmdINI : IExtensionApplication
    {
+       AutoClass ac;
        public void Initialize()
        {
-           new IFoxCAD.Cad.AutoClass().Initialize();
-           //实例化了AutoClass之后会自动执行 IFoxAutoGo 接口下面的类,以及自动执行 特性 [IFoxInitialize]
-           //而AutoRegAssem继承自IFoxAutoGo,属于一个内部类了,用户可以不需要再处理此注册表部分.  
+           var ara = new AutoRegAssem();
+           ac = new AutoClass(ara.Info.Name);
+           ac.Initialize();
+           //实例化了 AutoClass 之后会自动执行 IFoxAutoGo 接口下面的类,
+           //以及自动执行特性 [IFoxInitialize]
+           //类库用户不在此处进行其他代码,而是实现特性
        }
    
        public void Terminate()
        {
-           new IFoxCAD.Cad.AutoClass().Terminate();
+           ac.Terminate();
        }
    }
    
@@ -129,6 +136,11 @@
        public void Initialize()
        { 
            //TODO 你想在加载dll之后自动执行的函数
+       }
+       [IFoxInitialize(isInitialize: false)]
+       public void Terminate()
+       {
+            //TODO 你想在关闭cad时自动执行的函数
        }
    }
    ```

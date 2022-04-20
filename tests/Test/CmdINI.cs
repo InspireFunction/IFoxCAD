@@ -7,15 +7,17 @@ public class CmdINI : IExtensionApplication
     AutoClass ac;
     public void Initialize()
     {
-        var ara = new IFoxCAD.Cad.AutoRegAssem();
+        var ara = new AutoRegAssem();
         ac = new AutoClass(ara.Info.Name);
         ac.Initialize();
-        //实例化了 AutoClass 之后会自动执行 IFoxAutoGo 接口下面的类,以及自动执行 特性 [IFoxInitialize]
+        //实例化了 AutoClass 之后会自动执行 IFoxAutoGo 接口下面的类,
+        //以及自动执行特性 [IFoxInitialize]
+        //类库用户不在此处进行其他代码,而是实现特性
     }
 
     public void Terminate()
     {
-         ac.Terminate();
+        ac.Terminate();
     }
 }
 
