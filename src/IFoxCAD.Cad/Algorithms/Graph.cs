@@ -45,7 +45,7 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// <returns>创建的顶点</returns>
     public IGraphVertex AddVertex(Point3d pt)
     {
-        var str = Graph.GetHashString(pt);
+        var str = pt.GetHashString();
         if (vertexs.ContainsKey(str))
             return vertexs[str];
 
@@ -88,7 +88,7 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// <param name="pt">点</param>
     public void RemoveVertex(Point3d pt)
     {
-        var str = Graph.GetHashString(pt);
+        var str = pt.GetHashString();
         if (vertexs.ContainsKey(str))
         {
             var vertex = vertexs[str];
@@ -258,11 +258,6 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     #endregion
 
     #region 方法
-    static string GetHashString(Point3d pt)
-    {
-        return $"{pt.X:n6}{pt.Y:n6}{pt.Z:n6}";
-    }
-
     /// <summary>
     /// 输出点的邻接表的可读字符串
     /// </summary>
