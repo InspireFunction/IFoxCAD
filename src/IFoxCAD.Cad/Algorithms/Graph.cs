@@ -17,6 +17,11 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// 邻接边表，key为顶点的类型，value为邻接边表，类型是hashset，不可重复添加边
     /// </summary>
     private readonly Dictionary<IGraphVertex, HashSet<IEdge>> edges = new();
+    /// <summary>
+    /// 为加快索引，引入hash检索
+    /// </summary>
+    private readonly Dictionary<string, IGraphVertex> vertexs = new();
+
     public int VerticesCount => vertices.Count;
     /// <summary>
     /// 目前点增加点的顺序号，这个点号不随删点而减少的
@@ -29,24 +34,10 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     {
         insertCount = 0; // 每次新建对象就将顶点顺序号归零
     }
-    /// <summary>
-    /// 邻接边里是否存在点
-    /// </summary>
-    /// <param name="pt">点</param>
-    /// <param name="currentKey">存在就返回找到的顶点，反之返回 <see langword="null"/></param>
-    /// <returns>存在点就返回 <see langword="true"/>, 反之返回 <see langword="false"/> </returns>
-    private bool ContainKeyData(Point3d pt, out IGraphVertex? currentKey)
+
+    private static string GetHashString(Point3d pt)
     {
-        foreach (var key in vertices.Keys)
-        {
-            if (key.Data.Equals(pt))
-            {
-                currentKey = key;
-                return true;
-            }
-        }
-        currentKey = null;
-        return false;
+        return $"{pt.X:n6}{pt.Y:n6}{pt.Z:n6}";
     }
     #endregion
 
@@ -58,13 +49,19 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// <returns>创建的顶点</returns>
     public IGraphVertex AddVertex(Point3d pt)
     {
-        if (ContainKeyData(pt, out IGraphVertex? key))
+
+        var str = Graph.GetHashString(pt);
+        if (vertexs.ContainsKey(str))
         {
-            return key!;
+            return vertexs[str];
         }
+
         var vertex = new GraphVertex(pt, insertCount++);
         vertices.Add(vertex, new HashSet<IGraphVertex>());
         edges.Add(vertex, new HashSet<IEdge>());
+
+        vertexs[str] = vertex;
+
         return vertex;
     }
 
@@ -89,17 +86,19 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
         vertices[end].Add(start);
         edges[end].Add(new GraphEdge(start, curtmp));
     }
-    #endregion
+#endregion
 
-    #region 删除顶点及边
+#region 删除顶点及边
     /// <summary>
     /// 从此图中删除现有顶点。
     /// </summary>
     /// <param name="pt">点</param>
     public void RemoveVertex(Point3d pt)
     {
-        if (ContainKeyData(pt, out IGraphVertex? vertex))
+        var str = Graph.GetHashString(pt);
+        if (vertexs.ContainsKey(str))
         {
+            var vertex = vertexs[str];
             // 删除邻接表里的vertex点,先删除后面的遍历可以少一轮
             vertices.Remove(vertex!);
             // 删除其他顶点的邻接表里的vertex点
@@ -121,6 +120,7 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
                     }
                 }
             }
+            vertexs.Remove(str);
         }
     }
 
@@ -133,9 +133,9 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
         RemoveVertex(curve.StartPoint);
         RemoveVertex(curve.EndPoint);
     }
-    #endregion
+#endregion
 
-    #region 是否存在及获取顶点和边
+#region 是否存在及获取顶点和边
     /// <summary>
     /// 我们在给定的来源和目的地之间是否有边？
     /// </summary>
@@ -190,9 +190,9 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     {
         return vertices.ContainsKey(value);
     }
-    #endregion
+#endregion
 
-    #region 获取邻接表和曲线
+#region 获取邻接表和曲线
     /// <summary>
     /// 获取顶点的邻接表
     /// </summary>
@@ -238,9 +238,9 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
         }
         return curves;
     }
-    #endregion
+#endregion
 
-    #region 克隆及接口实现
+#region 克隆及接口实现
     /// <summary>
     /// 克隆此图。目测是深克隆
     /// </summary>
@@ -272,7 +272,7 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
 
     public IEnumerable<IGraphVertex> VerticesAsEnumberable =>
         vertices.Select(x => x.Key);
-    #endregion
+#endregion
 
     /// <summary>
     /// 输出点的邻接表的可读字符串
