@@ -26,9 +26,10 @@ public enum AssemLoadType
 /// <summary>
 ///  初始化程序集信息,并写入注册表
 /// </summary>
-public class AutoRegAssem
+public abstract class AutoRegAssem : IExtensionApplication
 {
-    public AssemInfo Info;
+    AutoClass ac;
+    AssemInfo Info;
 
     /// <summary>
     /// 程序集的路径
@@ -67,6 +68,12 @@ public class AutoRegAssem
 
         if (!SearchForReg())
             RegApp();
+
+        //实例化了 AutoClass 之后会自动执行 IFoxAutoGo 接口下面的类,
+        //以及自动执行特性 [IFoxInitialize]
+        //类库用户不在此处进行其他代码,而是实现特性
+        ac = new AutoClass(Info.Name);
+        ac.Initialize();
     }
 
     #region RegApp
@@ -110,6 +117,15 @@ public class AutoRegAssem
         rk.SetValue("LOADER", Info.Loader, RegistryValueKind.String);
         rk.SetValue("MANAGED", 1, RegistryValueKind.DWord);
         appkey.Close();
+    }
+
+    //这里的是不会自动执行的
+    public virtual void Initialize() { }
+    public virtual void Terminate() { }
+
+    ~AutoRegAssem()
+    {
+        ac.Terminate();
     }
     #endregion RegApp
 }
