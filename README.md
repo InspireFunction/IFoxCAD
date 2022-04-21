@@ -107,7 +107,7 @@
    
    /*
     * 自动执行接口
-    * 这里必须要实现一次这个接口,才能使用特性
+    * 这里必须要实现一次这个接口,才能使用 IFoxInitialize 特性进行自动执行
     */
    public class CmdINI : AutoRegAssem
    {
@@ -122,7 +122,7 @@
    
    //其他的类中的函数:
    //实现自动接口之后,在任意一个函数上面使用此特性,减少每次改动 CmdINI 类
-   public class AutoAOP
+   public class AutoTest
    {
        [IFoxInitialize]
        public void Initialize()

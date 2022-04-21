@@ -78,7 +78,7 @@ public abstract class AutoRegAssem : IExtensionApplication
 
     #region RegApp
 
-    private static RegistryKey GetAcAppKey()
+    static RegistryKey GetAcAppKey()
     {
 #if NET35
         string key = HostApplicationServices.Current.RegistryProductRootKey;
@@ -89,7 +89,7 @@ public abstract class AutoRegAssem : IExtensionApplication
         return ackey.CreateSubKey("Applications");
     }
 
-    private bool SearchForReg()
+    bool SearchForReg()
     {
         var appkey = GetAcAppKey();
         if (appkey.SubKeyCount == 0)

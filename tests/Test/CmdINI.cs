@@ -1,6 +1,6 @@
 ﻿/*
  * 自动执行接口
- * 这里必须要实现一次这个接口,才能使用特性
+ * 这里必须要实现一次这个接口,才能使用 IFoxInitialize 特性进行自动执行
  */
 public class CmdINI : AutoRegAssem
 {
