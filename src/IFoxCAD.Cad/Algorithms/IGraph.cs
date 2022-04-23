@@ -3,7 +3,7 @@ namespace IFoxCAD.Cad;
 /// <summary>
 /// 无向图
 /// </summary>
-internal interface IGraph
+public interface IGraph
 {
     /// <summary>
     /// 顶点的数量
@@ -61,7 +61,7 @@ internal interface IGraph
 /// 无向图顶点
 /// </summary>
 /// <typeparam name="T">顶点数据类型</typeparam>
-internal interface IGraphVertex
+public interface IGraphVertex
 {
     /// <summary>
     /// 顶点的键
@@ -77,7 +77,7 @@ internal interface IGraphVertex
 /// <summary>
 /// 无向图边
 /// </summary>
-internal interface IEdge
+public interface IEdge
 {
     /// <summary>
     /// 边

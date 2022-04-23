@@ -6,7 +6,7 @@ namespace IFoxCAD.Cad;
 /// 无权无向图实现
 /// IEnumerable 枚举所有顶点;
 /// </summary>
-internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
+public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
 {
     #region 字段及属性
     /// <summary>
@@ -27,7 +27,7 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// <summary>
     /// 目前点增加点的顺序号,这个点号不随删点而减少的
     /// </summary>
-    static int insertCount;
+    public int insertCount;
     #endregion
 
     #region 构造函数
@@ -215,7 +215,7 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
             if (edge is not null)
                 curves.Add(edge.TargetEdge);
         }
-        var lastedge = GetEdge(graphVertices[graphVertices.Count - 1], graphVertices[0]);
+        var lastedge = GetEdge(graphVertices[^1], graphVertices[0]);
         if (lastedge is not null)
             curves.Add(lastedge.TargetEdge);
 
@@ -291,7 +291,7 @@ internal sealed class Graph : IGraph, IEnumerable<IGraphVertex>
 /// 邻接表图实现的顶点;
 /// IEnumerable 枚举所有邻接点;
 /// </summary>
-internal sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable, IComparable<IGraphVertex>
+public sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable, IComparable<IGraphVertex>
 {
     #region 属性
     public Point3d Data { get; set; }
@@ -386,7 +386,7 @@ internal sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, ICom
 /// <summary>
 /// 无向图中边的定义
 /// </summary>
-internal sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
+public sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
 {
     #region 属性
     public IGraphVertex TargetVertex { get; set; }
@@ -449,13 +449,16 @@ internal sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
 /// <summary>
 /// 深度优先搜索;
 /// </summary>
-internal sealed class DepthFirst
+public sealed class DepthFirst
 {
     #region 公共方法
     /// <summary>
     /// 存储所有的边
     /// </summary>
+
     public List<List<IGraphVertex>> Curve3ds { get; } = new();
+    private HashSet<string> Curved { get; } = new();
+
 
     /// <summary>
     /// 找出所有的路径
@@ -466,7 +469,7 @@ internal sealed class DepthFirst
         var ge = graph.VerticesAsEnumberable.GetEnumerator();
         while (ge.MoveNext())
             Dfs(graph, new List<IGraphVertex> { ge.Current });
-    } 
+    }
     #endregion
 
     #region 内部方法
@@ -485,6 +488,7 @@ internal sealed class DepthFirst
         for (int i = 0; i < adjlist.Count; i++)
         {
             nextNode = adjlist[i];
+
             // 如果下一个点未遍历过
             if (!visited.Contains(nextNode))
             {
@@ -493,14 +497,21 @@ internal sealed class DepthFirst
                 sub.AddRange(visited);
                 Dfs(graph, sub);
             }
+
             // 如果下一点遍历过,并且路径大于2,说明已经找到起点
             else if (visited.Count > 2 && nextNode.Equals(visited[^1]))
             {
                 // 将重复的路径进行过滤,并把新的路径存入结果
-                var cur = DepthFirst.RotateToSmallest(visited);
-                var inv = DepthFirst.Invert(cur);
-                if (IsNew(cur) && IsNew(inv))
+                var cur = RotateToSmallest(visited);
+                var inv = Invert(cur);
+
+                var curstr = Gethashstring(cur,inv);
+                //Env.Print(curstr);
+                if (Isnew(curstr))
+                {
                     Curve3ds.Add(cur);
+                    Curved.Add(curstr.Item1);
+                }
             }
         }
     }
@@ -528,40 +539,23 @@ internal sealed class DepthFirst
         return RotateToSmallest(tmp);
     }
 
-    /// <summary>
-    /// 比较两个列表是否相等
-    /// </summary>
-    /// <param name="a"></param>
-    /// <param name="b"></param>
-    /// <returns></returns>
-    static bool Equals(List<IGraphVertex> a, List<IGraphVertex> b)
+    static (string,string) Gethashstring(List<IGraphVertex> pathone, List<IGraphVertex> pathtwo)
     {
-        bool ret = (a[0] == b[0]) && (a.Count == b.Count);
-
-        for (int i = 1; ret && (i < a.Count); i++)
-            if (!a[i].Equals(b[i]))
-                ret = false;
-
-        return ret;
+        var one = new string[pathone.Count];
+        var two = new string[pathtwo.Count];
+        for (int i = 0; i < pathone.Count; i++)
+        {
+            one[i] = pathone[i].Index.ToString();
+            two[i] = pathtwo[i].Index.ToString();
+        }
+        return (string.Join("-", one), string.Join("-", two));
     }
 
-    /// <summary>
-    /// 是否已经是存在闭合环
-    /// </summary>
-    /// <param name="path"></param>
-    /// <returns></returns>
-    bool IsNew(List<IGraphVertex> path)
+    bool Isnew((string,string) path)
     {
-        bool ret = true;
-        for (int i = 0; i < Curve3ds.Count; i++)
-        {
-            if (DepthFirst.Equals(Curve3ds[i], path))
-            {
-                ret = false;
-                break;
-            }
-        }
-        return ret;
-    } 
-    #endregion
+        return !Curved.Contains(path.Item1) && !Curved.Contains(path.Item2);
+    }
+
+
+#endregion
 }

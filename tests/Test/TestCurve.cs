@@ -24,14 +24,60 @@ namespace Test
         [CommandMethod("testgraph")]
         public void TestGraph1()
         {
+            using var tr = new DBTrans();
             var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
             if (ents == null)
                 return;
             var res = ents.GetAllCycle();
             
             res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
-            using var tr = new DBTrans();
+            
             tr.CurrentSpace.AddEntity(res);
+
+        }
+
+        [CommandMethod("testgraphspeed")]
+        public void TestGraphspeed()
+        {
+            using var tr = new DBTrans();
+            var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
+            if (ents == null)
+                return;
+
+
+            var graph = new IFoxCAD.Cad.Graph(); // 为了调试先把图的访问改为internal
+
+            foreach (var curve in ents)
+            {
+
+                graph.AddEdge(curve.GetGeCurve());
+
+
+            }
+            //新建 dfs
+            var dfs = new DepthFirst();
+#if true
+            Tools.TestTimes2(100, "new", () => {
+                // 查询全部的 闭合环
+                dfs.FindAll(graph);
+            });
+            Tools.TestTimes2(1000, "new", () => {
+                // 查询全部的 闭合环
+                dfs.FindAll(graph);
+            });
+#else
+            Tools.TestTimes2(100, "old", () => {
+                // 查询全部的 闭合环
+                dfs.FindAll(graph);
+            });
+            Tools.TestTimes2(1000, "old", () => {
+                // 查询全部的 闭合环
+                dfs.FindAll(graph);
+            });
+#endif 
+            //res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
+
+            //tr.CurrentSpace.AddEntity(res);
 
         }
     }
