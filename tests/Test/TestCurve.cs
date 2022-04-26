@@ -28,11 +28,15 @@ namespace Test
             var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
             if (ents == null)
                 return;
+            Tools.TestTimes2(1, "new", () => {
+                
+           
             var res = ents.GetAllCycle();
-            
-            res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
-            
-            tr.CurrentSpace.AddEntity(res);
+
+                //res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
+                Env.Print(res.Count());
+            tr.CurrentSpace.AddEntity(res); 
+            });
 
         }
 

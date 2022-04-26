@@ -86,6 +86,9 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// </summary>
     public LoopListNode<T>? Last => First?.Previous;
 
+
+
+
     #endregion
 
     #region 构造
@@ -640,6 +643,8 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
             node = node!.Next;
         }
     }
+
+
 
     /// <summary>
     /// 获取节点的查询器

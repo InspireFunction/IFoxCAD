@@ -54,9 +54,7 @@
             Tools.TestTimes2(1000000, "eqaulspeed:", () => {
                 lst1.EqualsAll(lst2);
             });
-            Tools.TestTimes2(1000000, "eqaulspeed2:", () => {
-                lst1.EqualsAll2(lst2);
-            });
+            
 
         }
 

@@ -55,13 +55,18 @@ public interface IGraph
     /// <param name="vertex"></param>
     /// <returns></returns>
     HashSet<IEdge> GetAdjacencyEdge(IGraphVertex vertex);
+    IGraphVertex? ReferenceVertex { get; }
+
+    void RemoveVertex(Point3d pt);
+    void RemoveEdge(Curve3d curve);
+
 }
 
 /// <summary>
 /// 无向图顶点
 /// </summary>
 /// <typeparam name="T">顶点数据类型</typeparam>
-public interface IGraphVertex
+public interface IGraphVertex : IComparable
 {
     /// <summary>
     /// 顶点的键

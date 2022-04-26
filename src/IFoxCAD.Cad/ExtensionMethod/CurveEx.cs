@@ -70,7 +70,7 @@ public static class CurveEx
         var res = new List<Curve>();
         foreach (var item in dfs.Curve3ds)
         {
-            var curve = graph.GetCurves(item).ToArray();
+            var curve = graph.GetCurves(item.ToList()).ToArray();
             var comcur = new CompositeCurve3d(curve).ToCurve();
             if (comcur is not null)
             {

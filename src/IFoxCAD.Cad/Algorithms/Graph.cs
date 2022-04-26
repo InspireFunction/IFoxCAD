@@ -24,10 +24,31 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     readonly Dictionary<string, IGraphVertex> vertexs = new();
 
     public int VerticesCount => vertices.Count;
+
+    /// <summary>
+    /// Returns a reference vertex.
+    /// Time complexity: O(1).
+    /// </summary>
+    private IGraphVertex? referenceVertex
+    {
+        get
+        {
+            using (var enumerator = vertexs.GetEnumerator())
+            {
+                if (enumerator.MoveNext())
+                {
+                    return enumerator.Current.Value;
+                }
+            }
+
+            return null;
+        }
+    }
+    IGraphVertex? IGraph.ReferenceVertex => referenceVertex;
     /// <summary>
     /// 目前点增加点的顺序号,这个点号不随删点而减少的
     /// </summary>
-    public int insertCount;
+    private int insertCount;
     #endregion
 
     #region 构造函数
@@ -106,11 +127,12 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
             // 删除其他顶点的邻接边表的指向vertex的边
             foreach (var item in edges.Values)
             {
-                foreach (var edge in item)
-                {
-                    if (vertex.Equals(edge.TargetVertex))
-                        item.Remove(edge);
-                }
+                item.RemoveWhere(x => vertex.Equals(x.TargetVertex));
+                //foreach (var edge in item)
+                //{
+                //    if (vertex.Equals(edge.TargetVertex))
+                //        item.Remove(edge);
+                //}
             }
             vertexs.Remove(str);
         }
@@ -161,7 +183,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
 
         foreach (var item in edges[source])
         {
-            if (item.TargetVertex == dest)
+            if (item.TargetVertex.Equals(dest))
                 return item;
         }
         return null;
@@ -452,11 +474,14 @@ public sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
 public sealed class DepthFirst
 {
     #region 公共方法
-    /// <summary>
-    /// 存储所有的边
-    /// </summary>
-
+/// <summary>
+/// 存储所有的边
+/// </summary>
+#if true
+    public List<LinkedHashSet<IGraphVertex>> Curve3ds { get; } = new();
+#else
     public List<List<IGraphVertex>> Curve3ds { get; } = new();
+#endif
     private HashSet<string> Curved { get; } = new();
 
 
@@ -466,35 +491,86 @@ public sealed class DepthFirst
     /// <param name="graph">图</param>
     public void FindAll(IGraph graph)
     {
-        var ge = graph.VerticesAsEnumberable.GetEnumerator();
-        while (ge.MoveNext())
-            Dfs(graph, new List<IGraphVertex> { ge.Current });
-    }
-    #endregion
+        var total = new HashSet<IGraphVertex>();
+        //var graphtmp = graph.Clone();
+        foreach (var item in graph.VerticesAsEnumberable)
+        {
 
-    #region 内部方法
+        
+            Dfs(graph, new LinkedHashSet<IGraphVertex> { item },total);
+            //graph.RemoveVertex(graphtmp.ReferenceVertex!.Data);
+            total.Add(item);
+        }
+
+
+
+
+
+
+        
+    }
+#endregion
+
+#region 内部方法
     /// <summary>
     /// 递归 DFS;
     /// </summary>
     /// <param name="graph">图</param>
     /// <param name="visited">已经遍历的路径</param>
+#if true
+    void Dfs(IGraph graph, LinkedHashSet<IGraphVertex> visited, HashSet<IGraphVertex> totalVisited)
+    {
+        var adjlist = graph.GetAdjacencyList(/*startNode*/ visited.First!.Value); // O(1)
+        foreach (var nextNode in adjlist) // O(n)
+        {
+            if (totalVisited.Contains(nextNode))
+            {
+                continue;
+            }
+            // 如果下一个点未遍历过
+            if (!visited.Contains(nextNode)) // O(1)
+            {
+                // 将下一点加入路径集合,并进行下一次递归
+                var sub = new LinkedHashSet<IGraphVertex> { nextNode };
+                sub.AddRange(visited); // O(n)
+                Dfs(graph, sub,totalVisited);
+            }
+            // 如果下一点遍历过,并且路径大于2,说明已经找到起点
+            else if (visited.Count > 2 && nextNode.Equals(visited.Last!.Value))
+            {
+                // 将重复的路径进行过滤,并把新的路径存入结果
+                var curstr = Gethashstring(visited); // O(n)
+                if (Isnew(curstr)) // O(1)
+                {
+                    Curve3ds.Add(visited);
+                    Curved.Add(curstr.Item1);
+                }
+            }
+        }
+    }
+
+
+
+
+#else
+
     void Dfs(IGraph graph, List<IGraphVertex> visited)
     {
         var startNode = visited[0];
         IGraphVertex nextNode;
         List<IGraphVertex> sub;
 
-        var adjlist = graph.GetAdjacencyList(startNode).ToList();
-        for (int i = 0; i < adjlist.Count; i++)
+        var adjlist = graph.GetAdjacencyList(startNode).ToList(); // O(n)
+        for (int i = 0; i < adjlist.Count; i++) // O(n)
         {
             nextNode = adjlist[i];
 
             // 如果下一个点未遍历过
-            if (!visited.Contains(nextNode))
+            if (!visited.Contains(nextNode)) // O(n)
             {
                 // 将下一点加入路径集合,并进行下一次递归
                 sub = new List<IGraphVertex> { nextNode };
-                sub.AddRange(visited);
+                sub.AddRange(visited); // O(n)
                 Dfs(graph, sub);
             }
 
@@ -502,10 +578,10 @@ public sealed class DepthFirst
             else if (visited.Count > 2 && nextNode.Equals(visited[^1]))
             {
                 // 将重复的路径进行过滤,并把新的路径存入结果
-                var cur = RotateToSmallest(visited);
-                var inv = Invert(cur);
-
-                var curstr = Gethashstring(cur,inv);
+                var cur = RotateToSmallest(visited); // O(n)
+                var inv = Invert(cur,cur[0]); // O(n)
+                 
+                var curstr = Gethashstring(cur,inv); 
                 //Env.Print(curstr);
                 if (Isnew(curstr))
                 {
@@ -515,6 +591,14 @@ public sealed class DepthFirst
             }
         }
     }
+#endif
+
+
+
+
+
+
+
 
     /// <summary>
     /// 将列表旋转到最小的值为列表起点
@@ -532,11 +616,12 @@ public sealed class DepthFirst
     /// </summary>
     /// <param name="lst"></param>
     /// <returns></returns>
-    static List<IGraphVertex> Invert(List<IGraphVertex> lst)
+    static List<IGraphVertex> Invert(List<IGraphVertex> lst, IGraphVertex vertex)
     {
         var tmp = lst.ToList();
         tmp.Reverse();
-        return RotateToSmallest(tmp);
+        var index = tmp.IndexOf(vertex);
+        return tmp.Skip(index).Concat(lst.Take(index)).ToList();
     }
 
     static (string,string) Gethashstring(List<IGraphVertex> pathone, List<IGraphVertex> pathtwo)
@@ -550,6 +635,18 @@ public sealed class DepthFirst
         }
         return (string.Join("-", one), string.Join("-", two));
     }
+
+    static (string, string) Gethashstring(LinkedHashSet<IGraphVertex> path)
+    {
+        var one = new string[path.Count];
+        var two = new string[path.Count];
+        path.For(path.MinNode!, (i, ver1, ver2) => {
+            one[i] = ver1.Index.ToString();
+            two[i] = ver2.Index.ToString();
+        });
+        return (string.Join("-", one), string.Join("-", two));
+    }
+
 
     bool Isnew((string,string) path)
     {
