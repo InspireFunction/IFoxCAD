@@ -60,7 +60,6 @@ public static class CurveEx
 #else 
             graph.AddEdge(curve.GetGeCurve());
 #endif
-
         }
         //新建 dfs
         var dfs = new DepthFirst();
@@ -73,9 +72,7 @@ public static class CurveEx
             var curve = graph.GetCurves(item.ToList()).ToArray();
             var comcur = new CompositeCurve3d(curve).ToCurve();
             if (comcur is not null)
-            {
                 res.Add(comcur);
-            }
         }
         return res;
     }

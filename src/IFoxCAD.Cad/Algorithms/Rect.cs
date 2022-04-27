@@ -230,16 +230,12 @@ public class Rect : IEquatable<Rect>
     #region 包含
     public bool Contains(Point2d Point2d)
     {
-        return ContainsInternal(Point2d.X, Point2d.Y);
+        return Contains(Point2d.X, Point2d.Y);
     }
     public bool Contains(double x, double y)
     {
-        return ContainsInternal(x, y);
-    }
-    private bool ContainsInternal(double x, double y)
-    {
         return _X <= x && x <= _Right &&
-                _Y <= y && y <= _Top;
+               _Y <= y && y <= _Top;
     }
 
     /// <summary>

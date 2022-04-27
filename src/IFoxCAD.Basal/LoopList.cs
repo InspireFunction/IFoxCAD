@@ -1,5 +1,7 @@
 namespace IFoxCAD.Basal;
 
+#line hidden //调试的时候跳过它
+
 /// <summary>
 /// 环链表节点
 /// </summary>
@@ -171,10 +173,10 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     }
 
     /// <summary>
-    /// 从头遍历_非迭代器
+    /// 从头遍历_非迭代器(此处和通用ForEach冲突,所以内部用)
     /// </summary>
     /// <param name="action"></param>
-    public void ForEach(Func<LoopListNode<T>, bool> action)
+    void ForEach(Func<LoopListNode<T>, bool> action)
     {
         var node = First;
         if (node is null)
@@ -725,7 +727,10 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     #endregion
 
     #region ICloneable
-    /* 山人说无法分辨ICloneable接口是深浅克隆,因此不要在泛型模板实现克隆函数,让用户自己来
+    /* 山人说无法分辨ICloneable接口是深浅克隆,
+     * 因此不要在泛型模板实现克隆函数,
+     * 让用户自己来 new(xx)实现浅克隆,所以也不提供Clone()了
+     * 
      * 因此约定了:CopyTo(T,index)是深克隆;MemberwiseClone()是浅克隆;
      * public object Clone()
      * {
@@ -739,3 +744,5 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
      */
     #endregion
 }
+
+#line default
