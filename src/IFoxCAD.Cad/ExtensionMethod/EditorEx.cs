@@ -56,6 +56,9 @@ public static class EditorEx
     }
 
 
+
+
+
     public static PromptSelectionResult? SSGet(this Editor editor, string? mode = null, SelectionFilter? filter = null, string[]? messages = null, Dictionary<string, Action>? keywords = null)
     {
         var pso = new PromptSelectionOptions();
@@ -118,6 +121,127 @@ public static class EditorEx
         }
         return ss;
     }
+
+
+    /*
+     *  //定义选择集选项
+     *  var pso = new PromptSelectionOptions
+     *  {
+     *      AllowDuplicates = false,  //重复选择
+     *  };
+     *
+     *  //getai遍历全图选择块有用到
+     *  var dic = new Dictionary<string, Action>() {
+     *          { "Z,全部同名", ()=> {
+     *              getai = BlockHelper.EnumAttIdentical.AllBlockName;
+     *              SendEsc.Esc();
+     *          }},
+     *          { "X,动态块显示",  ()=> {
+     *              getai = BlockHelper.EnumAttIdentical.Display;
+     *          }},
+     *          { "V,属性值-默认", ()=> {
+     *              getai = BlockHelper.EnumAttIdentical.DisplayAndTagText;
+     *          }},
+     *          //允许以下操作,相同的会加入前面的
+     *          //{ "V,属性值-默认|X,啊啊啊啊", ()=> {
+     *
+     *          //}},
+     *  };
+     *  pso.SsgetAddKeys(dic);
+     *
+     *  //创建选择集过滤器，只选择块对象
+     *  var filList = new TypedValue[] { new TypedValue((int)DxfCode.Start, "INSERT") };
+     *  var filter = new SelectionFilter(filList);
+     *  ssPsr = ed.GetSelection(pso, filter);
+     */
+
+    /// <summary>
+    ///  添加选择集关键字和回调
+    /// </summary>
+    /// <param name="pso">选择集配置</param>
+    /// <param name="dicActions">关键字,回调委托</param>
+    /// <returns></returns>
+    public static void SsgetAddKeys(this PromptSelectionOptions pso,
+        Dictionary<string, Action> dicActions)
+    {
+        Dictionary<string, Action> tmp = new();
+        // 后缀名的|号切割,移除掉,组合成新的加入tmp
+        for (int i = dicActions.Count - 1; i >= 0; i--)
+        {
+            var pair = dicActions.ElementAt(i);
+            var key = pair.Key;
+            var keySp = key.Split('|');
+            if (keySp.Length < 2)
+                continue;
+
+            for (int j = 0; j < keySp.Length; j++)
+            {
+                var item = keySp[j];
+                // 防止多个后缀通过|符越过词典约束同名
+                // 后缀(key)含有,而且Action(value)不同,就把Action(value)累加到后面.
+                if (dicActions.ContainsKey(item))
+                {
+                    if (dicActions[item] != dicActions[key])
+                        dicActions[item] += dicActions[key];
+                }
+                else
+                    tmp.Add(item, dicActions[key]);
+            }
+            dicActions.Remove(key);
+        }
+
+        foreach (var item in tmp)
+            dicActions.Add(item.Key, item.Value);
+
+        //去除关键字重复的,把重复的执行动作移动到前面
+        for (int i = 0; i < dicActions.Count; i++)
+        {
+            var pair1 = dicActions.ElementAt(i);
+            var key1 = pair1.Key;
+
+            for (int j = dicActions.Count - 1; j > i; j--)
+            {
+                var pair2 = dicActions.ElementAt(j);
+                var key2 = pair2.Key;
+
+                if (key1.Split(',')[0] == key2.Split(',')[0])
+                {
+                    if (dicActions[key1] != dicActions[key2])
+                        dicActions[key1] += dicActions[key2];
+                    dicActions.Remove(key2);
+                }
+            }
+        }
+
+        foreach (var item in dicActions)
+        {
+            var keySplitS = item.Key.Split(new string[] { ",", "|" }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < keySplitS.Length; i += 2)
+                pso.Keywords.Add(keySplitS[i], keySplitS[i],
+                                 keySplitS[i + 1] + "(" + keySplitS[i] + ")");
+        }
+
+        //回调的时候我想用Dict的O(1)索引,
+        //但是此函数内进行new Dictionary() 在函数栈释放的时候,它被释放掉了.
+        //因此 dicActions 参数的生命周期
+        tmp = new(dicActions);
+        dicActions.Clear();
+        foreach (var item in tmp)
+            dicActions.Add(item.Key.Split(',')[0], item.Value);
+
+        var keyWords = pso.Keywords;
+        //从选择集命令中显示关键字
+        pso.MessageForAdding = keyWords.GetDisplayString(true);
+        //关键字回调事件 ssget关键字
+        pso.KeywordInput += (sender, e) => {
+            dicActions[e.Input].Invoke();
+        };
+    }
+
+
+
+
+
 
     //#region 即时选择样板
 
@@ -685,9 +809,9 @@ public static class EditorEx
 #endif
     }
 
-#endregion
+    #endregion
 
-#region 缩放
+    #region 缩放
 
     /// <summary>
     /// 缩放窗口范围
@@ -832,9 +956,9 @@ public static class EditorEx
         ed.ZoomWindow(ext.MinPoint, ext.MaxPoint, offsetDist);
     }
 
-#endregion
+    #endregion
 
-#region Get交互类
+    #region Get交互类
 
     /// <summary>
     /// 获取Point
@@ -901,17 +1025,17 @@ public static class EditorEx
         return ed.GetString(strOp);
     }
 
-#endregion Get交互类
+    #endregion Get交互类
 
-#region 执行lisp
+    #region 执行lisp
 
 #if ac2009
-        [System.Security.SuppressUnmanagedCodeSecurity]
-        [DllImport("acad.exe", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, EntryPoint = "?acedEvaluateLisp@@YAHPB_WAAPAUresbuf@@@Z")]
-        private static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
+    [System.Security.SuppressUnmanagedCodeSecurity]
+    [DllImport("acad.exe", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, EntryPoint = "?acedEvaluateLisp@@YAHPB_WAAPAUresbuf@@@Z")]
+    private static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
 
-        [DllImport("acad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
-        private static extern int AcedInvoke(IntPtr args, out IntPtr result);
+    [DllImport("acad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
+    private static extern int AcedInvoke(IntPtr args, out IntPtr result);
 #else
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, EntryPoint = "?acedEvaluateLisp@@YAHPEB_WAEAPEAUresbuf@@@Z")]
@@ -946,5 +1070,5 @@ public static class EditorEx
         return null;
     }
 
-#endregion 执行lisp
+    #endregion 执行lisp
 }
