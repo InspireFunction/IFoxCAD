@@ -75,7 +75,8 @@ public static class SelectionSetEx
         return
             ss
             .GetObjectIds()
-            .Select(id => tr.GetObject<T>(id, openMode));
+            .Select(id => tr.GetObject<T>(id, openMode))
+            .Where(ent => ent != null);
     }
 
     #endregion
