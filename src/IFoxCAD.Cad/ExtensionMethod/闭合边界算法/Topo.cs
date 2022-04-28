@@ -7,9 +7,8 @@ public class Topo
     static CurveCurveIntersector3d _Cci3d = new();
     // cad容差类
     public static Tolerance CadTolerance = new(1e-6, 1e-6);
-    #endregion
-
     public List<CurveInfo> CurveList;
+    #endregion
 
     #region 构造
     /// <summary>
@@ -258,8 +257,8 @@ public class Topo
 
                 //步骤06 + 步骤10:
                 //邻近节点(同一代的点)已经在邻接表找到了,这里遍历它们
-                我u.Neighbor.ForEach(邻v => {   //O(n)
-                    switch (邻v.Color)
+                meU.Neighbor.ForEach(meNeighborV => {   //O(n)
+                    switch (meNeighborV.Color)
                     {
                         case BoColor.白://步骤07:
                             {
