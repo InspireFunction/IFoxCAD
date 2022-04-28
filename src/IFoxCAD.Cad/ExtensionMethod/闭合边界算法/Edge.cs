@@ -38,7 +38,7 @@ public class CurveInfo : Rect
     #endregion
 
     #region 构造
-    public CurveInfo(Curve curve)
+    public CurveInfo(Curve curve!!)
     {
         Curve = curve;
         Paramss = new List<double>();
@@ -385,6 +385,12 @@ public class BoNode : IFormattable
         Edges.Add(edge);
 
         Neighbor = new();
+
+
+        Color = BoColor.白;
+        Steps = int.MaxValue;
+        Parent = null;
+        Meet?.Clear();
     }
     #endregion
 
@@ -492,6 +498,7 @@ public enum BoColor
     白,
     灰,
     黑,
+    红,
 }
 
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
@@ -518,8 +525,11 @@ public class CompositeCurve3ds : List<CompositeCurve3d>, IFormattable
             //第1个和第2个比较,反向曲线参数
             var a1 = lp!.Value.GeCurve3d;
             var a2 = lp!.Next!.Value.GeCurve3d;
-            if (!a1.EndPoint.IsEqualTo(a2.StartPoint, CadTolerance))
+
+            if (!a1.EndPoint.IsEqualTo(a2.EndPoint, CadTolerance) && //尾巴相同跳过
+                !a1.EndPoint.IsEqualTo(a2.StartPoint, CadTolerance))
                 a1 = (CompositeCurve3d)a1.GetReverseParameterCurve();
+
             c3ds.Add(a1);
             lp = lp.Next;
         } while (lp != pl.First);

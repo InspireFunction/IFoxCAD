@@ -2,7 +2,7 @@
 
 public static class PointEx
 {
-    
+
     /// <summary>
     /// 获取点的hash字符串，同时可以作为pt的字符串表示
     /// </summary>

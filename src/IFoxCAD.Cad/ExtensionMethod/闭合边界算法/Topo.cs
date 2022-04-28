@@ -1,5 +1,3 @@
-using System.Diagnostics;
-
 namespace IFoxCAD.Cad;
 
 public class Topo
@@ -11,7 +9,7 @@ public class Topo
     public static Tolerance CadTolerance = new(1e-6, 1e-6);
     #endregion
 
-    public List<CurveInfo> curveList = new();
+    public List<CurveInfo> CurveList;
 
     #region 构造
     /// <summary>
@@ -24,10 +22,10 @@ public class Topo
         if (curves == null || curves.Count == 0)
             throw new ArgumentNullException(nameof(curves));
 
-        curveList = new();
+        CurveList = new();
         //提取包围盒信息
         for (int i = 0; i < curves.Count; i++)
-            curveList.Add(new CurveInfo(curves[i]));
+            CurveList.Add(new CurveInfo(curves[i]));
     }
 
     /// <summary>
@@ -39,16 +37,13 @@ public class Topo
     {
         //闭合的曲线集合
         List<CompositeCurve3d> closedCurve3d = new();
-
         //零散的边界
         List<Edge> gs = new();
+        //邻接表
         Dictionary<string, BoNode> boNodes = new();
 
         var topo = new Topo(curves);
-
-        var infos = topo.curveList;
-
-        topo.GetEdgesAndnewCurves(infos, gs, closedCurve3d);
+        topo.GetEdgesAndnewCurves(topo.CurveList, gs, closedCurve3d);
         topo.AdjacencyList(gs, closedCurve3d, boNodes);
         var bos = boNodes.Select(a => a.Value).ToArray();
 
@@ -230,22 +225,18 @@ public class Topo
 
 
 
-
     #region 广度
     /// <summary>
     /// 广度优先算法
     /// <a href="https://www.docin.com/p-740208811.html?docfrom=rrela">论文链接</a>
     /// </summary>
-    /// <param name="boNodes">邻接表</param>
+    /// <param name="boNodes">邻接节点集合</param>
     /// <returns>多个面域</returns>
     /// <exception cref="ArgumentNullException"></exception>
     List<LoopList<BoNode>> BreadthFirstSearch(BoNode[] boNodes)
     {
         if (boNodes == null || boNodes.Length == 0)
             throw new ArgumentNullException(nameof(boNodes));
-
-        Topo.Init(boNodes);  //O(n)
-
         //同一代节点进入队列
         var queue = new Queue<BoNode>();
 
@@ -263,7 +254,7 @@ public class Topo
             while (queue.Count != 0) //O(n)
             {
                 //步骤05:
-                var 我u = queue.Dequeue();
+                var meU = queue.Dequeue();
 
                 //步骤06 + 步骤10:
                 //邻近节点(同一代的点)已经在邻接表找到了,这里遍历它们
@@ -274,17 +265,17 @@ public class Topo
                             {
                                 //把邻近点都涂灰加入队列,
                                 //下次就是=>步骤04 循环,下一代再进入=>步骤08
-                                邻v.Color = BoColor.灰;
-                                邻v.Steps = 我u.Steps + 1;
-                                邻v.Parent = 我u;
-                                queue.Enqueue(邻v);
+                                meNeighborV.Color = BoColor.灰;
+                                meNeighborV.Steps = meU.Steps + 1;
+                                meNeighborV.Parent = meU;
+                                queue.Enqueue(meNeighborV);
                             }
                             break;
                         case BoColor.灰://步骤08
                             {
-                                if (邻v.Meet == null)
-                                    邻v.Meet = new();
-                                邻v.Meet.Add(我u);
+                                if (meNeighborV.Meet == null)
+                                    meNeighborV.Meet = new();
+                                meNeighborV.Meet.Add(meU);
                             }
                             break;
                         case BoColor.黑://步骤09
@@ -303,13 +294,206 @@ public class Topo
                     }
                 });
                 //步骤11
-                我u.Color = BoColor.黑;
+                meU.Color = BoColor.黑;
             }
         }
         return Topo.MeetGetRegions(boNodes); //O(n2)
     }
 
+#if true2
+    //逆时针旋转方案,出现了找父节点可能到另一个面域内
 
+
+ 
+
+    /// <summary>
+    /// 点积,求值
+    /// <a href="https://zhuanlan.zhihu.com/p/359975221"> 1.是两个向量的长度与它们夹角余弦的积 </a>
+    /// <a href="https://www.cnblogs.com/JJBox/p/14062009.html#_label1"> 2.求四个点是否矩形使用 </a>
+    /// </summary>
+    /// <param name="a">点</param>
+    /// <param name="b">点</param>
+    /// <returns><![CDATA[>0夹角0~90度;=0相互垂直;<0夹角90~180度]]></returns>
+    public static double DotProductValue(this Point3d o, Point3d a, Point3d b)
+    {
+        var oa = o.GetVectorTo(a);
+        var ob = o.GetVectorTo(b);
+        return oa.DotProduct(ob);
+        //return (oa._X * ob._X) + (oa._Y * ob._Y) + (oa._Z * ob._Z);
+    }
+
+    public const double Tau = Math.PI * 2.0;
+
+    /// <summary>
+    /// X轴到向量的弧度,cad的获取的弧度是1PI,所以转换为2PI(上小,下大)
+    /// </summary>
+    /// <param name="ve">向量</param>
+    /// <returns>X轴到向量的弧度</returns>
+    public static double GetAngle2XAxis(this Vector2d ve, double tolerance = 1e-6)
+    {
+        //世界重合到用户 Vector3d.XAxis->两点向量
+        double al = Vector2d.XAxis.GetAngleTo(ve);
+        al = ve.Y > 0 ? al : Tau - al; //逆时针为正,大于0是上半圆,小于则是下半圆,如果-负值控制正反
+        al = Math.Abs(Tau - al) <= tolerance ? 0 : al;
+        return al;
+    }
+
+
+    /// <summary>
+    /// 叉积,二维叉乘计算
+    /// </summary>
+    /// <param name="a">传参是向量,表示原点是0,0</param>
+    /// <param name="b">传参是向量,表示原点是0,0</param>
+    /// <returns>其模为a与b构成的平行四边形面积</returns>
+    public static double Cross(Vector2d a, Vector2d b)
+    {
+        return a.X * b.Y - a.Y * b.X;
+    }
+
+    /// <summary>
+    /// 叉积,二维叉乘计算 
+    /// </summary>
+    /// <param name="o">原点</param>
+    /// <param name="a">oa向量</param>
+    /// <param name="b">ob向量,此为判断点</param>
+    /// <returns>返回值有正负,表示绕原点四象限的位置变换,也就是有向面积</returns>
+    public static double Cross(Point2d o, Point2d a, Point2d b)
+    {
+        return Cross(o.GetVectorTo(a), o.GetVectorTo(b));
+    }
+
+    /// <summary>
+    /// 叉积,逆时针方向为真
+    /// </summary>
+    /// <param name="o">直线点1</param>
+    /// <param name="a">直线点2</param>
+    /// <param name="b">判断点</param>
+    /// <returns>b点在oa的逆时针<see cref="true"/></returns>
+    public static bool CrossAclockwise(Point2d o, Point2d a, Point2d b)
+    {
+        return Cross(o, a, b) > -1e-6;//浮点数容差考虑
+    }
+
+
+
+
+    /// <summary>
+    /// 在相遇链中提取封闭的区域
+    /// </summary>
+    /// <param name="boNodes"></param>
+    static List<LoopList<BoNode>> MeetGetRegions(BoNode[] boNodes)
+    {
+        List<LoopList<BoNode>> regions = new();
+
+        //步骤13 + 步骤18:从所有节点依次取出一个点
+        for (int boNums = 0; boNums < boNodes.Length; boNums++)
+        {
+            var meetContain = boNodes[boNums];
+            //步骤14:跳过
+            if (meetContain.Meet == null)
+                continue;
+
+            //这里就是论文<2 封闭区域分离算法>
+            //步骤15:新建闭合集
+            //存在多个相遇链,论文的图4a和图4b描述这事,分别是左链和右链分享中间
+            for (int i = 0; i < meetContain.Meet.Count; i++)
+            {
+                LoopList<BoNode> region = new();
+
+                //相遇节点
+                var meetNode = meetContain.Meet[i];
+                //if (meetNode.Steps + 1 == meetContain.Steps) //步骤17:步数差1
+                //    region.Add(meetContain.Parent!);
+
+                region.Add(meetContain);
+                region.Add(meetNode);
+
+                Init(boNodes);
+                GetLink(region);
+                regions.Add(region);
+            }
+        }
+        return regions;
+    }
+
+    private static void Init(BoNode[] boNodes)
+    {
+        for (int i = 0; i < boNodes.Length; i++)
+        {
+            boNodes[i].Color = BoColor.白;
+        }
+    }
+
+
+    /// <summary>
+    /// 相遇点代表环,所以一直点乘左转,直到闭环
+    /// </summary>
+    /// <param name="region"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    static void GetLink(LoopList<BoNode> region)
+    {
+        if (region == null || region.Count == 0)
+            throw new ArgumentNullException(nameof(region));
+
+        //最后,最后的上一个
+        var a = region.Last!.Previous!.Value;
+        var centre = region.Last!.Value;//相遇点
+
+        BoNode? b;
+        do
+        {
+            //获取左转的节点
+            b = LeftTurn(a, centre);
+            if (b == null || b == region.Last!.Value)//剪枝之后这里是不会出现的
+                break;
+            if (b.Color == BoColor.红)
+            {
+                //往前寻找腰身闭环处
+                var find = region.Find(b);
+                while (region.Last != find && region.Count != 0)
+                    region.RemoveLast();
+                break;
+            }
+            b.Color = BoColor.红;//腰身闭环着色
+            region.AddFirst(b);
+            centre = a;
+            a = b;
+        } while (true);//回到相遇点就结束
+    }
+
+
+    /// <summary>
+    /// 左转算法 boNodeCentre=>boNode1=>boNode1.Neighbor
+    /// </summary>
+    /// <param name="boNode1">来源</param>
+    /// <param name="boNodeCentre">中心,x轴到它的夹角</param>
+    /// <returns>当节点邻居为1时候是空的</returns>
+    static BoNode? LeftTurn(BoNode boNode1, BoNode boNodeCentre)
+    {
+        BoNode? result = null;
+        double angle = 0.0;
+
+        var boCPt = new Point2d(boNodeCentre.Point.X, boNodeCentre.Point.Y);
+        var v1 = boCPt.GetVectorTo(new Point2d(boNode1.Point.X, boNode1.Point.Y));
+
+        for (int i = 0; i < boNode1.Neighbor.Count; i++)
+        {
+            var boNode3 = boNode1.Neighbor[i];
+            if (boNode3 == boNodeCentre)
+                continue;
+
+            var v2 = boCPt.GetVectorTo(new Point2d(boNode3.Point.X, boNode3.Point.Y));
+            //求夹角最大的,就是左转的节点
+            var tmp = PointEx.Tau - v2.GetAngle2XAxis() + v1.GetAngle2XAxis();
+            if (tmp > angle)
+            {
+                angle = tmp;
+                result = boNode3;
+            }
+        }
+        return result;
+    } 
+#else
     /// <summary>
     /// 在相遇链中提取封闭的区域
     /// </summary>
@@ -347,7 +531,7 @@ public class Topo
                 }
                 else
                 {
-                    Debugger.Break();//这里会出现意外吗?
+                    //Debugger.Break();//这里会出现意外吗?
                 }
                 GetLink(region); //O(n)
                 regions.Add(Topo.OrderByRegionLines(region)); //O(n2)
@@ -355,38 +539,6 @@ public class Topo
         }
         return regions;
     }
-
-    /// <summary>
-    /// 调整线序
-    /// </summary>
-    /// <param name="L"></param>
-    static LoopList<BoNode> OrderByRegionLines(LoopList<BoNode> L)
-    {
-        if (L == null || L.Count == 0)
-            throw new ArgumentNullException(nameof(L));
-
-        LoopList<BoNode> list = new();
-        var boNode = L.First!.Value;
-        for (int i = 0; i < L.Count; i++)//约束循环找顺序次数
-        {
-            list.Add(boNode);
-            L.For((v, item) => {
-                //循环每个节点,跳过已经是L2的
-                //邻居节点作为目标进入循环
-                var boNode2 = item.Value;
-                if (boNode2 != boNode
-                    && !list.Contains(boNode2)
-                    && boNode.Neighbor.Contains(boNode2))
-                {
-                    boNode = boNode2;//进入循环
-                    return true;
-                }
-                return false;
-            });
-        }
-        return list;
-    }
-
 
     /// <summary>
     /// 从相遇点开始往上寻找父节点并加入链中
@@ -425,22 +577,35 @@ public class Topo
         }
     }
 
-
     /// <summary>
-    /// 初始化每个节点
+    /// 调整线序
     /// </summary>
-    /// <param name="boNodes"></param>
-    static void Init(BoNode[] boNodes)
+    /// <param name="region"></param>
+    static LoopList<BoNode> OrderByRegionLines(LoopList<BoNode> region)
     {
-        //步骤02:初始化每个节点
-        for (int i = 0; i < boNodes.Length; i++)
-        {
-            boNodes[i].Color = BoColor.白;
-            boNodes[i].Steps = int.MaxValue;
-            boNodes[i].Parent = null;
-            boNodes[i].Meet?.Clear();
-        }
-    }
-    #endregion
+        if (region == null || region.Count == 0)
+            throw new ArgumentNullException(nameof(region));
 
+        LoopList<BoNode> list = new();
+        var boNode = region.First!.Value;
+        for (int i = 0; i < region.Count; i++)//约束循环找顺序次数
+        {
+            list.Add(boNode);
+            region.For((itemNum, item) => {
+                //邻居节点作为目标进入循环
+                var boNode2 = item.Value;
+                if (boNode2 != boNode
+                    && !list.Contains(boNode2)
+                    && boNode.Neighbor.Contains(boNode2))
+                {
+                    boNode = boNode2;//进入循环
+                    return true;
+                }
+                return false;
+            });
+        }
+        return list;
+    }
+#endif
+    #endregion
 }
