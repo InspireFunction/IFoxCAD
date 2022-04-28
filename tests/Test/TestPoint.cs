@@ -2,6 +2,19 @@
 {
     public class TestPoint
     {
+        [CommandMethod("TestptGethash")]
+        public void TestptGethash()
+        {
+            // test
+            var pt = Env.Editor.GetPoint("pick pt").Value;
+            //Tools.TestTimes2(1_000_000, "新语法", () => {
+            //    pt.GetHashString2();
+            //});
+            Tools.TestTimes2(1_000_000, "旧语法", () => {
+                pt.GetHashString();
+            });
+        }
+
         [CommandMethod("Testpoint3d")]
         public void TestPoint3d()
         {

@@ -9,14 +9,17 @@
             var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
             if (ents == null)
                 return;
-
-            var curves = Topo.Create(ents.ToList()!);
+            
+            Tools.TestTimes2(1, "bfs", () => {
+                var curves = Topo.Create(ents.ToList()!)!;
+           
             if (curves == null || !curves.Any())
                 return;
 
             //改颜色,生成图元
-            curves.ForEach((num, cu) => cu.ForWrite(e => e.ColorIndex = num));
-            tr.CurrentSpace.AddEntity(curves);
+            //curves.ForEach((num, cu) => cu.ForWrite(e => e.ColorIndex = num));
+            tr.CurrentSpace.AddEntity(curves); 
+            });
         }
     }
 }

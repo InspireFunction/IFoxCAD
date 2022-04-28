@@ -495,19 +495,9 @@ public sealed class DepthFirst
         //var graphtmp = graph.Clone();
         foreach (var item in graph.VerticesAsEnumberable)
         {
-
-        
             Dfs(graph, new LinkedHashSet<IGraphVertex> { item },total);
-            //graph.RemoveVertex(graphtmp.ReferenceVertex!.Data);
             total.Add(item);
         }
-
-
-
-
-
-
-        
     }
 #endregion
 

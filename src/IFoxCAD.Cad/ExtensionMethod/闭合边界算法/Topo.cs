@@ -244,13 +244,13 @@ public class Topo
         if (boNodes == null || boNodes.Length == 0)
             throw new ArgumentNullException(nameof(boNodes));
 
-        Topo.Init(boNodes);
+        Topo.Init(boNodes);  //O(n)
 
         //同一代节点进入队列
         var queue = new Queue<BoNode>();
 
         //步骤12:源点无法涉及的点,也就是独立白色的点进行处理
-        for (int ssNum = 0; ssNum < boNodes.Length; ssNum++)
+        for (int ssNum = 0; ssNum < boNodes.Length; ssNum++) //O(n)
         {
             //步骤03:源点
             var s = boNodes[ssNum];
@@ -260,14 +260,14 @@ public class Topo
 
             //步骤04:源点加入队列,进行此源点的邻近点(邻居/儿子们/同一代的点)涂色
             queue.Enqueue(s);
-            while (queue.Count != 0)
+            while (queue.Count != 0) //O(n)
             {
                 //步骤05:
                 var 我u = queue.Dequeue();
 
                 //步骤06 + 步骤10:
                 //邻近节点(同一代的点)已经在邻接表找到了,这里遍历它们
-                我u.Neighbor.ForEach(邻v => {
+                我u.Neighbor.ForEach(邻v => {   //O(n)
                     switch (邻v.Color)
                     {
                         case BoColor.白://步骤07:
@@ -306,7 +306,7 @@ public class Topo
                 我u.Color = BoColor.黑;
             }
         }
-        return Topo.MeetGetRegions(boNodes);
+        return Topo.MeetGetRegions(boNodes); //O(n2)
     }
 
 
@@ -349,8 +349,8 @@ public class Topo
                 {
                     Debugger.Break();//这里会出现意外吗?
                 }
-                GetLink(region);
-                regions.Add(Topo.OrderByRegionLines(region));
+                GetLink(region); //O(n)
+                regions.Add(Topo.OrderByRegionLines(region)); //O(n2)
             }
         }
         return regions;
