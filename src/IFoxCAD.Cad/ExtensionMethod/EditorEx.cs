@@ -56,7 +56,7 @@ public static class EditorEx
     }
 
 
-    public static PromptSelectionResult? SSGet(this Editor editor, string? mode = null, SelectionFilter? filter = null, string[]? messages = null, string[]? keywords = null)
+    public static PromptSelectionResult? SSGet(this Editor editor, string? mode = null, SelectionFilter? filter = null, string[]? messages = null, Dictionary<string, Action>? keywords = null)
     {
         var pso = new PromptSelectionOptions();
         PromptSelectionResult? ss = null;
@@ -83,7 +83,7 @@ public static class EditorEx
 
         if (keywords is not null)
         {
-            foreach (var keyword in keywords)
+            foreach (var keyword in keywords.Keys)
             {
                 pso.Keywords.Add(keyword);
             }
@@ -91,9 +91,14 @@ public static class EditorEx
             {
                 pso.MessageForAdding = "选择对象";
             }
-            pso.MessageForAdding += $"[{string.Join(" / ", keywords)}]";
-            pso.KeywordInput += (s,e) => 
-                throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.OK, e.Input);
+            pso.MessageForAdding += $"[{string.Join(" / ", keywords.Keys.ToArray())}]";
+            pso.KeywordInput += (s, e) => {
+                if (keywords.ContainsKey(e.Input))
+                {
+                    keywords[e.Input].Invoke();
+                }
+            };
+
         }
         try
         {

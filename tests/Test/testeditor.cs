@@ -51,9 +51,18 @@ public class testeditor
     [CommandMethod("testssget")]
     public void testssget()
     {
-        var ss = 
+        var action_a = () => { Env.Print("this is a"); };
+        var action_b = () => { Env.Print("this is b"); };
 
-        Env.Editor.SSGet(":S", messages: new string[2] { "get", "del" }, keywords: new string[2] { "A", "B" });
+        var keyword = new Dictionary<string, Action>
+        {
+            { "A", action_a },
+            { "B", action_b }
+        };
+
+        var ss = Env.Editor.SSGet( ":S",
+                                                    messages: new string[2] { "get", "del" },
+                                                    keywords: keyword);
 
         Env.Print(ss);
     }
