@@ -389,7 +389,16 @@ public static class Env
     /// <param name="value">变量值</param>
     public static void SetVar(string varName, object value)
     {
-        Application.SetSystemVariable(varName, value);
+        try
+        {
+            Application.SetSystemVariable(varName, value);
+        }
+        catch (System.Exception)
+        {
+
+            Env.Print($"{varName} 是不存在的变量！");
+        }
+        
     }
     /// <summary>
     /// 获取系统环境变量

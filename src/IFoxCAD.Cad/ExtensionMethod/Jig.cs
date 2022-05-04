@@ -119,9 +119,9 @@ public class Jig : DrawJig
     /// <param name="cursorType">光标绑定</param>
     /// <param name="orthomode">正交开关</param>
     public JigPromptPointOptions SetOptions(Point3d basePoint,
-        CursorType cursorType = CursorType.RubberBand,
-        string msg = "点选第二点",
-        bool orthomode = false)
+                                            CursorType cursorType = CursorType.RubberBand,
+                                            string msg = "点选第二点",
+                                            bool orthomode = false)
     {
         if (orthomode && CadSystem.Getvar(_orthomode) != "1")
         {
@@ -334,8 +334,14 @@ public class Jig : DrawJig
     #endregion
 }
 
+
+
+
 class CadSystem
 {
+/* 此类函数和env类重复
+ * todo:计划删除
+ */
     /// <summary>
     /// 获取系统变量值
     /// </summary>

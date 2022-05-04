@@ -76,6 +76,13 @@ namespace Test
 
         }
 
-        
+        [CommandMethod("TestGetVar")]
+        public void TestGetVar()
+        {
+            // test getvar
+            var a = Env.GetVar("dbmod");
+            a.Print();
+            Env.SetVar("dbmod1", 1);
+        }
     }
 }
