@@ -8,8 +8,7 @@ public class TestBlock
         using var tr = new DBTrans();
         //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.BlockTable.Add("test",
-            btr =>
-            {
+            btr => {
                 btr.Origin = new Point3d(0, 0, 0);
             },
             () => //图元
@@ -26,13 +25,11 @@ public class TestBlock
         //ObjectId objectId = tr.BlockTable.Add("a");//新建块
         //objectId.GetObject<BlockTableRecord>().AddEntity();//测试添加空实体
         tr.BlockTable.Add("test1",
-        btr =>
-        {
+        btr => {
             btr.Origin = new Point3d(0, 0, 0);
 
         },
-        () =>
-        {
+        () => {
             return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0)) ,
             new DBText{ Position = new Point3d(0,0,0),
             TextString = "123"
@@ -55,11 +52,10 @@ public class TestBlock
 
         //});
 
-        
 
 
-        tr.BlockTable.Change("test", btr =>
-        {
+
+        tr.BlockTable.Change("test", btr => {
             foreach (var id in btr)
             {
                 var ent = tr.GetObject<Entity>(id);
@@ -74,12 +70,12 @@ public class TestBlock
                     if (ent is Hatch hatch)
                     {
                         hatch.ColorIndex = 0;
-                       
+
                     }
 
 
                 }
-                
+
             }
         });
         tr.Editor.Regen();
@@ -161,7 +157,7 @@ public class TestBlock
     public void TestBlockFile()
     {
         var tr = new DBTrans();
-        var id = tr.BlockTable.GetBlockFrom(@"C:\Users\vic\Desktop\test.dwg",false);
+        var id = tr.BlockTable.GetBlockFrom(@"C:\Users\vic\Desktop\test.dwg", false);
         tr.CurrentSpace.InsertBlock(Point3d.Origin, id);
     }
 
@@ -171,8 +167,7 @@ public class TestBlock
     {
         using var tr = new DBTrans();
         tr.BlockTable.Add("test1",
-            btr =>
-            {
+            btr => {
                 btr.Origin = new Point3d(0, 0, 0);
                 btr.AddEntity(new Line(new Point3d(0, 0, 0), new Point3d(10, 10, 0)),
                     new Line(new Point3d(10, 10, 0), new Point3d(10, 0, 0))
@@ -218,10 +213,9 @@ public class TestBlock
             var blockdef = tr.BlockTable.GetBlockFrom(fullFileName, false);
 
             tr.Database.Clayer = tr.LayerTable["0"];//当前图层切换为0图层
-            tr.LayerTable.Change(tr.Database.Clayer, ltr =>
-            {
+            tr.LayerTable.Change(tr.Database.Clayer, ltr => {
                 ltr.Color = Color.FromColorIndex(ColorMethod.ByAci, 2); //ColorMethod.ByAci可以让我们使用AutoCAD ACI颜色索引……这里为2（表示黄色）
-        });
+            });
 
             ObjectId id = tr.ModelSpace.InsertBlock(Point3d.Origin, blockdef);//插入块参照
 
@@ -231,7 +225,7 @@ public class TestBlock
 
             var entTest = tr.GetObject<BlockReference>(id);
             entTest.Draw();
-    
+
         }
 
         using var tr2 = new DBTrans();
@@ -252,8 +246,7 @@ public class TestBlock
 
         var btr = tr2.BlockTable[Bref.Name];
 
-        tr2.BlockTable.Change(btr, ltr =>
-        {
+        tr2.BlockTable.Change(btr, ltr => {
 
             foreach (ObjectId OID in ltr)
             {
@@ -262,7 +255,7 @@ public class TestBlock
                 {
                     if (Ent is MText mText)
                     {
-                        switch(mText.Text)
+                        switch (mText.Text)
                         {
                             case "$$A":
                                 mText.Contents = "hahaha";
@@ -290,10 +283,10 @@ public class TestBlock
                         }
                     };
                 }
-              
+
 
             }
-           
+
         });
 
 
@@ -411,31 +404,31 @@ public class TestBlock
         using (var tr = db.TransactionManager.StartTransaction())
         {
             var ids = rss.Value.GetObjectIds();
-            var bt = tr.GetObject(db.BlockTableId,OpenMode.ForRead) as BlockTable;
+            var bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
             var btr = new BlockTableRecord();
             btr.Name = blockName;
             foreach (var item in ids)
             {
-                var ent = tr.GetObject(item,OpenMode.ForRead) as Entity;
+                var ent = tr.GetObject(item, OpenMode.ForRead) as Entity;
 
                 btr.AppendEntity(ent.Clone() as Entity);
                 ent.ForWrite(e => e.Erase(true));
             }
             bt.UpgradeOpen();
             bt.Add(btr);
-            tr.AddNewlyCreatedDBObject(btr,true);
+            tr.AddNewlyCreatedDBObject(btr, true);
             bt.DowngradeOpen();
-        //    tr.Commit();
-        //}
+            //    tr.Commit();
+            //}
 
-        //using (var tr1 = db.TransactionManager.StartTransaction())
-        //{
+            //using (var tr1 = db.TransactionManager.StartTransaction())
+            //{
             //var bt = tr1.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
             var btr1 = tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
             var br = new BlockReference(Point3d.Origin, bt[blockName]);
             br.ScaleFactors = default;
             btr1.AppendEntity(br);
-            tr.AddNewlyCreatedDBObject(br,true);
+            tr.AddNewlyCreatedDBObject(br, true);
             btr1.DowngradeOpen();
             ed.Regen();
             tr.Commit();
@@ -446,13 +439,12 @@ public class TestBlock
 
     public void TestWblock()
     {
-        Database db = new Database(false,true);
         var curdb = HostApplicationServices.WorkingDatabase;
-        var opts = new PromptSelectionOptions();
+        PromptSelectionOptions opts = new();
         opts.MessageForAdding = "选择对象";
         var ss = Env.Editor.GetSelection(opts).Value;
         var ids = new ObjectIdCollection(ss.GetObjectIds());
-        db = curdb.Wblock(ids, Point3d.Origin);
+        var db = curdb.Wblock(ids, Point3d.Origin);
         db.SaveAs(@"c:\test.dwg", DwgVersion.Current);
     }
 
@@ -461,7 +453,7 @@ public class TestBlock
         var pro = new Dictionary<string, object>();
         pro.Add("haha", 1);
         var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
-        using (var tr = new DBTrans()) 
+        using (var tr = new DBTrans())
         {
             var blockref = tr.GetObject<BlockReference>(blockid);
             blockref.ChangeBlockProperty(pro);
@@ -475,16 +467,24 @@ public class TestBlock
     [CommandMethod("TestBack")]
     public void TestBack()
     {
-        using var tr = new DBTrans(@"C:\Users\vic\Desktop\test.dwg");
+        string dir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
+        string dwg = dir + "\\test.dwg";
+        if (!File.Exists(dwg))
+        {
+            System.Windows.Forms.MessageBox.Show(dwg, "你还没有创建此文件");
+            return;
+        }
+
+        using var tr = new DBTrans(dwg);
         tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
             ent.ForWrite(e => e.ColorIndex = 3);
         });
-        tr.Database.SaveAs(@"C:\Users\vic\Desktop\test.dwg", DwgVersion.Current);
+        tr.Database.SaveAs(dwg, DwgVersion.Current);
 
         tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
             ent.ForWrite(e => e.ColorIndex = 4);
         });
-        tr.Database.SaveAs(@"C:\Users\vic\Desktop\test.dwg", DwgVersion.Current);
+        tr.Database.SaveAs(dwg, DwgVersion.Current);
 
     }
 
