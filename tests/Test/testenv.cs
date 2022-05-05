@@ -1,88 +1,78 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using IFoxCAD.Cad;
-using Autodesk.AutoCAD.Runtime;
-using Autodesk.AutoCAD.ApplicationServices;
-using Autodesk.AutoCAD.DatabaseServices;
+namespace Test;
 
-namespace Test
+public class Testenv
 {
-    public class testenv
+    [CommandMethod("testenum")]
+    public void Testenum()
     {
-        [CommandMethod("testenum")]
-        public void testenum()
-        {
-           
-            Env.CmdEcho = true;
-            
-        }
-        [CommandMethod("testenum1")]
-        public void testenum1()
-        {
-            
-            Env.CmdEcho = false;
-           
-        }
+       
+        Env.CmdEcho = true;
+        
+    }
+    [CommandMethod("testenum1")]
+    public void Testenum1()
+    {
+        
+        Env.CmdEcho = false;
+       
+    }
 
-        [CommandMethod("testdimblk")]
-        public void testdimblk()
-        {
+    [CommandMethod("testdimblk")]
+    public void testdimblk()
+    {
 
-            Env.Dimblk = Env.DimblkType.Dot;
-            Env.Dimblk = Env.DimblkType.Defult;
+        Env.Dimblk = Env.DimblkType.Dot;
+        Env.Dimblk = Env.DimblkType.Defult;
 
-        }
-        [CommandMethod("testdimblk1")]
-        public void testdimblk1()
-        {
-            var dim = Env.Dimblk;
-            Env.Editor.WriteMessage(dim.ToString());
+    }
+    [CommandMethod("testdimblk1")]
+    public void Testdimblk1()
+    {
+        var dim = Env.Dimblk;
+        Env.Editor.WriteMessage(dim.ToString());
 
-        }
+    }
 
-        [CommandMethod("testosmode")]
-        public void testosmode()
-        {
-            // 设置osmode变量，多个值用逻辑或
-            Env.OSMode = Env.OSModeType.End | Env.OSModeType.Middle;
-            // 也可以直接写数值，进行强转
-            Env.OSMode = (Env.OSModeType)5179;
-            // 追加模式
-            Env.OSMode |= Env.OSModeType.Center;
-            //检查是否有某个模式
-            var os = Env.OSMode.Include(Env.OSModeType.Center);
-            // 取消某个模式
-            Env.OSMode ^= Env.OSModeType.Center;
-            Env.Editor.WriteMessage(Env.OSMode.ToString());
-        }
-        [CommandMethod("testosmode1")]
-        public void testosmode1()
-        {
-            var dim = Env.OSMode;
-            Env.Editor.WriteMessage(dim.ToString());
+    [CommandMethod("testosmode")]
+    public void Testosmode()
+    {
+        // 设置osmode变量，多个值用逻辑或
+        Env.OSMode = Env.OSModeType.End | Env.OSModeType.Middle;
+        // 也可以直接写数值，进行强转
+        Env.OSMode = (Env.OSModeType)5179;
+        // 追加模式
+        Env.OSMode |= Env.OSModeType.Center;
+        //检查是否有某个模式
+        var os = Env.OSMode.Include(Env.OSModeType.Center);
+        // 取消某个模式
+        Env.OSMode ^= Env.OSModeType.Center;
+        Env.Editor.WriteMessage(Env.OSMode.ToString());
+    }
+    [CommandMethod("testosmode1")]
+    public void Testosmode1()
+    {
+        var dim = Env.OSMode;
+        Env.Editor.WriteMessage(dim.ToString());
 
-        }
+    }
 
-        [CommandMethod("testcadver")]
-        public void testcadver()
-        {
-            //Env.Print(AcadVersion.Versions);
-            AcadVersion.Versions.ForEach(v => Env.Print(v));
-            AcadVersion.FromApp(Application.AcadApplication).Print();
-            1.Print();
-            "1".Print();
+    [CommandMethod("testcadver")]
+    public void Testcadver()
+    {
+        //Env.Print(AcadVersion.Versions);
+        AcadVersion.Versions.ForEach(v => Env.Print(v));
+        AcadVersion.FromApp(Application.AcadApplication).Print();
+        1.Print();
+        "1".Print();
 
-        }
+    }
 
-        [CommandMethod("TestGetVar")]
-        public void TestGetVar()
-        {
-            // test getvar
-            var a = Env.GetVar("dbmod");
-            a.Print();
-            Env.SetVar("dbmod1", 1);
-        }
+    [CommandMethod("TestGetVar")]
+    public void TestGetVar()
+    {
+        // test getvar
+        var a = Env.GetVar("dbmod");
+        a.Print();
+        Env.SetVar("dbmod1", 1);
     }
 }

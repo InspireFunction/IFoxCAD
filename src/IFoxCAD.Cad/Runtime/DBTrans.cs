@@ -43,24 +43,15 @@ public class DBTrans : IDisposable
              * 然后我新建了一个文档,再进行命令=>又进入Top,Top返回了前一个文档的事务
              * 因此所以无法清理栈,所以Dispose不触发,导致无法刷新图元和Ctrl+Z出错
              * 所以用AOP方式修复
+             * 
+             * 0x03
+             * 经过艰苦卓绝的测试，aop模式由于不能断点调试，所以暂时放弃。
              */
-#if true
-            //不使用AOP方式修复,强迫用户先开启事务
+
+            // 由于大量的函数依赖本属性，强迫用户先开启事务
             if (dBTrans.Count == 0)
                 throw new ArgumentNullException("事务栈没有任何事务,请在调用前创建:" + nameof(DBTrans));
-
-            var db = Application.DocumentManager.MdiActiveDocument.Database;
             var trans = dBTrans.Peek();
-            if (trans.Database != db)
-                trans = new DBTrans();
-#else
-            //使用AOP方式修复
-            DBTrans trans;
-            if (dBTrans.Count == 0)
-                trans = new DBTrans();
-            else
-                trans = dBTrans.Peek();
-#endif
             return trans;
         }
     }
