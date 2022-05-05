@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.WPF", "src\IFoxCAD.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Basal", "src\IFoxCAD.Basal\IFoxCAD.Basal.csproj", "{40BF07C4-100A-4810-A27B-4587CFB38E6E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestConsole", "tests\TestConsole\TestConsole.csproj", "{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsole", "tests\TestConsole\TestConsole.csproj", "{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
