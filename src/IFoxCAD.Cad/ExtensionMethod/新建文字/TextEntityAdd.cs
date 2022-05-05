@@ -11,7 +11,7 @@ public static partial class EntityAdd
     /// <param name="textHigh">字体高度</param>
     /// <param name="textStyleId">文字样式</param>
     /// <param name="justify">对齐方式</param>
-    /// <param name="justifyPoint">对齐点,因样式 <see langword="textStyleId"/> 可能无效</param>
+    /// <param name="justifyPoint">对齐点,因样式 <see langword="justify"/> 可能无效</param>
     /// <returns></returns>
     public static Entity AddDBTextToEntity(this Database db,
         string textContents,
