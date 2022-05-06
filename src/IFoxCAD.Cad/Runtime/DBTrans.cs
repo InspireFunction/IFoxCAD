@@ -318,7 +318,12 @@ public class DBTrans : IDisposable
 
     #endregion
 
-    public void SaveDwgFile()
+    #region 保存文件
+    /// <summary>
+    /// 保存当前数据库的dwg文件，如果前台打开则按dwg默认版本保存，否则按version参数的版本保存
+    /// </summary>
+    /// <param name="version">dwg版本，默认为2004</param>
+    public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800)
     {
         bool flag = true;
         foreach (Document doc in Application.DocumentManager)
@@ -334,9 +339,11 @@ public class DBTrans : IDisposable
         if (flag)
         {
             // 后台开图,用数据库保存
-            Database.SaveAs(Database.Filename, Database.SecurityParameters);
+            Database.SaveAs(Database.Filename, version);
         }
     }
+    #endregion
+
 
     #region idispose接口相关函数
     /// <summary>
