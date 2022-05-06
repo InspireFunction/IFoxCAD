@@ -1,6 +1,8 @@
-﻿namespace IFoxCAD.Cad;
+﻿using System;
 
-internal class Helper
+namespace IFoxCAD.Cad;
+
+public class Helper
 {
     /*
      * id = db.GetObjectId(false, handle, 0);
@@ -81,6 +83,18 @@ internal class Helper
 #endif
         return id;
     }
+
+    //public static int GetCadFileVersion(string filename)
+    //{
+    //    var bytes = File.ReadAllBytes(filename);
+    //    var headstr = Encoding.Default.GetString(bytes)[0..6];
+    //    if (!headstr.StartsWith("AC")) return 0;
+    //    var vernum = int.Parse(headstr.Replace("AC", ""));
+    //    var a = Enum.Parse(typeof(DwgVersion), "AC1800");
+    //    Enum.TryParse()
+    //    return vernum + 986;
+        
+    //}
 }
 
 internal static class MethodInfoHelper

@@ -75,4 +75,14 @@ public class Testenv
         a.Print();
         Env.SetVar("dbmod1", 1);
     }
+
+    [CommandMethod("TestDwgVersion")]
+    public void TestDwgVersion()
+    {
+        //
+        string filename = @"C:\Users\vic\Desktop\test.dwg";
+        //var a = Helper.GetCadFileVersion(filename);
+        //a.Print();
+        //((DwgVersion)a).Print();
+    }
 }
