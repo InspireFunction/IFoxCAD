@@ -9,21 +9,7 @@ using TestConsole;
 
 
 
-// display the description attribute from the enum
-foreach (Colour type in (Colour[])Enum.GetValues(typeof(Colour)))
-{
-    Console.WriteLine(EnumExtensions.ToName(type));
-}
 
-var de = Colour.Yellow.GetAttribute<DescriptionAttribute>();
-Console.WriteLine(de);
-
-// Get the array from the description
-string xStr = "Yellow";
-Colour thisColour = EnumExtensions.FromName<Colour>(xStr);
-
-string xStr1 = "Colour Green";
-Colour thisColour1 = EnumExtensions.FromName<Colour>(xStr1);
 
 
 
