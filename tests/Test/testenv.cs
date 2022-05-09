@@ -23,6 +23,7 @@ public class Testenv
 
         Env.Dimblk = Env.DimblkType.Dot;
         Env.Dimblk = Env.DimblkType.Defult;
+        Env.Dimblk = Env.DimblkType.Oblique;
 
     }
     [CommandMethod("testdimblk1")]

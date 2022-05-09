@@ -11,4 +11,8 @@
     <ProjectReference Include="..\..\src\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+  </ItemGroup>
+
 </Project>

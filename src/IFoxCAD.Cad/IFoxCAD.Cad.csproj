@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
-        <Version>0.3.4</Version>
+        <Version>0.3.4.1</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的Cad二次开发类库</Description>
@@ -70,11 +70,6 @@
         <Pack>True</Pack>
         <PackagePath></PackagePath>
       </None>
-    </ItemGroup>
-    
-    <ItemGroup>
-      
-      <PackageReference Include="Lib.Harmony" Version="2.2.1" />
     </ItemGroup>
 	
     <ItemGroup>

@@ -1,49 +1,30 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System;
 using System.Linq;
-using IFoxCAD.Basal;
-
-Console.WriteLine("Hello, World!");
-var loop = new LoopList<int>
-            {
-                0,
-                1,
-                2,
-                3,
-                4,
-                5
-            };
-
-
-loop.SetFirst(loop.Last!);
-Console.WriteLine(loop);
-Console.WriteLine(loop.Min());
-
-//loop.SetFirst(new LoopListNode<int>(loop.Min(), loop));
-
-//Console.WriteLine(loop);
+using System.ComponentModel;
+//using IFoxCAD.Basal;
+using static TestConsole.Program;
+using TestConsole;
 
 
 
-var linkset = new LinkedHashSet<int>();
-linkset.Add(0);
-linkset.Add(1);
-linkset.Add(2);
-linkset.Add(3);
-linkset.Add(4);
-linkset.Add(5);
 
-linkset.SetFirst(linkset.Last!);
+// display the description attribute from the enum
+foreach (Colour type in (Colour[])Enum.GetValues(typeof(Colour)))
+{
+    Console.WriteLine(EnumExtensions.ToName(type));
+}
+
+var de = Colour.Yellow.GetAttribute<DescriptionAttribute>();
+Console.WriteLine(de);
+
+// Get the array from the description
+string xStr = "Yellow";
+Colour thisColour = EnumExtensions.FromName<Colour>(xStr);
+
+string xStr1 = "Colour Green";
+Colour thisColour1 = EnumExtensions.FromName<Colour>(xStr1);
 
 
-Console.WriteLine(linkset);
 
-linkset.SetFirst(linkset.MinNode!);
-
-Console.WriteLine(linkset);
-
-linkset.For(linkset.First!, (i, next, pre) => {
-    Console.WriteLine($"{i} - ({next},{pre})");
-
-});
-Console.ReadKey();
+Console.ReadLine();

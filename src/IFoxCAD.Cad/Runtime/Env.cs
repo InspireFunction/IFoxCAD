@@ -193,8 +193,55 @@ public static class Env
         /// <summary>
         /// 建筑标记
         /// </summary>
-        ArchTick,
+        ArchTick
     }
+
+    private static readonly Dictionary<string, DimblkType> dimdescdict = new()
+    {
+        { "实心闭合", DimblkType.Defult },
+        { "点", DimblkType.Dot },
+        { "小点", DimblkType.DotSmall },
+        { "空心点", DimblkType.DotBlank },
+        { "原点标记", DimblkType.Origin },
+        { "原点标记 2", DimblkType.Origin2 },
+        { "打开", DimblkType.Open },
+        { "直角", DimblkType.Open90 },
+        { "30 度角", DimblkType.Open30 },
+        { "闭合", DimblkType.Closed },
+        { "空心小点", DimblkType.Small },
+        { "无", DimblkType.None },
+        { "倾斜", DimblkType.Oblique },
+        { "实心框", DimblkType.BoxFilled },
+        { "方框", DimblkType.BoxBlank },
+        { "空心闭合", DimblkType.ClosedBlank },
+        { "实心基准三角形", DimblkType.DatumFilled },
+        { "基准三角形", DimblkType.DatumBlank },
+        { "完整标记", DimblkType.Integral },
+        { "建筑标记", DimblkType.ArchTick },
+
+        { "", DimblkType.Defult },
+        { "_DOT", DimblkType.Dot },
+        { "_DOTSMALL", DimblkType.DotSmall },
+        { "_DOTBLANK", DimblkType.DotBlank },
+        { "_ORIGIN", DimblkType.Origin },
+        { "_ORIGIN2", DimblkType.Origin2 },
+        { "_OPEN", DimblkType.Open },
+        { "_OPEN90", DimblkType.Open90 },
+        { "_OPEN30", DimblkType.Open30 },
+        { "_CLOSED", DimblkType.Closed },
+        { "_SMALL", DimblkType.Small },
+        { "_NONE", DimblkType.None },
+        { "_OBLIQUE", DimblkType.Oblique },
+        { "_BOXFILLED", DimblkType.BoxFilled },
+        { "_BOXBLANK", DimblkType.BoxBlank },
+        { "_CLOSEDBLANK", DimblkType.ClosedBlank },
+        { "_DATUMFILLED", DimblkType.DatumFilled },
+        { "_DATUMBLANK", DimblkType.DatumBlank },
+        { "_INTEGRAL", DimblkType.Integral },
+        { "_ARCHTICK", DimblkType.ArchTick },
+    };
+
+
 
     /// <summary>
     /// 标注箭头属性
@@ -203,15 +250,21 @@ public static class Env
     {
         get
         {
-            string s = (string)Application.GetSystemVariable("dimblk");
-            if (string.IsNullOrEmpty(s))
-            {
-                return DimblkType.Defult;
-            }
-            else
-            {
-                return s.ToEnum<DimblkType>();
-            }
+            string s = ((string)Application.GetSystemVariable("dimblk")).ToUpper();
+            //if (string.IsNullOrEmpty(s))
+            //{
+            //    return DimblkType.Defult;
+            //}
+            //else
+            //{
+            //    if (dimdescdict.TryGetValue(s, out DimblkType value))
+            //    {
+            //        return value;
+            //    }
+            //    return s.ToEnum<DimblkType>();
+            //    //return s.FromDescName<DimblkType>();
+            //}
+            return dimdescdict[s];
         }
         set
         {
@@ -360,25 +413,21 @@ public static class Env
     }
     #endregion OsMode
 
-    private static T ToEnum<T>(this string value)
-    {
-        return (T)Enum.Parse(typeof(T), value, true);
-    }
 
     private static string GetName<T>(this T value)
     {
         return Enum.GetName(typeof(T), value);
     }
 
-    #endregion Enum
+#endregion Enum
 
-    #region 环境变量
-    /// <summary>
-    /// 获取cad变量
-    /// </summary>
-    /// <param name="varName">变量名</param>
-    /// <returns>变量值</returns>
-    public static object GetVar(string varName)
+#region 环境变量
+/// <summary>
+/// 获取cad变量
+/// </summary>
+/// <param name="varName">变量名</param>
+/// <returns>变量值</returns>
+public static object GetVar(string varName)
     {
         return Application.GetSystemVariable(varName);
     }
