@@ -20,7 +20,7 @@
 
 #### IFoxCad 项目模版
 
-可以在vs扩展菜单-管理扩展中搜索ifoxcad，即可安装项目模板。使用项目模版可以方便的创建支持多目标多版本的使用ifoxcad类库的项目和类。
+可以在vs扩展菜单-管理扩展中搜索ifoxcad，即可安装项目模板。使用项目模版可以方便的创建支持多目标多版本的使用ifoxcad类库的项目和类。如果无法在vs的市场里下载，就去上面的QQ群里下载。
 
 #### 安装教程
 
@@ -115,13 +115,17 @@
     */
    public class CmdINI : AutoRegAssem
    {
-       public override void Initialize()
-       {
+       // 这里可以写任何普通的函数，也可以写下面 AutoTest 类里的实现了 IFoxInitialize 特性的初始化函数
+       // 继承AutoRegAssem的主要作用是写注册表用来自动加载dll，同时执行实现了 IFoxInitialize 特性的函数
+       // 注意这里的自动执行是在cad启动后，加载了dll之后执行，而不是运行命令后执行。
+
+       [IFoxInitialize]
+       public void InitOne()
+       { 
+           //TODO 你想在加载dll之后自动执行的函数
+           // 可以随便在哪里类里 可以多次实现 IFoxInitialize 特性
        }
-   
-       public override void Terminate()
-       {
-       }
+
    }
    
    //其他的类中的函数:
@@ -133,7 +137,13 @@
        { 
            //TODO 你想在加载dll之后自动执行的函数
        }
-       [IFoxInitialize(isInitialize: false)]
+       [IFoxInitialize]
+       public void InitTwo()
+       { 
+           //TODO 你想在加载dll之后自动执行的函数
+           // 可以随便在哪里类里 可以多次实现 IFoxInitialize 特性
+       }
+       [IFoxInitialize(isInitialize: false)] // 特性的参数为false的时候就表示卸载时执行的函数
        public void Terminate()
        {
             //TODO 你想在关闭cad时自动执行的函数
