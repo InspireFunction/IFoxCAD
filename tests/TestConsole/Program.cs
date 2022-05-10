@@ -3,7 +3,7 @@ using System;
 using System.Linq;
 using System.ComponentModel;
 //using IFoxCAD.Basal;
-using static TestConsole.Program;
+//using static TestConsole.Program;
 using TestConsole;
 
 

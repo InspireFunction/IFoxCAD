@@ -405,3 +405,6 @@ healthchecksdb
 #vscode
 .ionide
 .vscode
+
+#ifoxcad
+tests/TestConsole/
