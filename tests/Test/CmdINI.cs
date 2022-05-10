@@ -4,13 +4,13 @@
  */
 public class CmdINI : AutoRegAssem
 {
-    public override void Initialize()
-    {
-    }
+    //public override void Initialize()
+    //{
+    //}
 
-    public override void Terminate()
-    {
-    }
+    //public override void Terminate()
+    //{
+    //}
 }
 
 
@@ -26,6 +26,15 @@ public class Cmd_IFoxInitialize
         var doc = dm.MdiActiveDocument;
         var ed = doc.Editor;
         ed.WriteMessage("\n 开始自动执行 可以分开多个类和多个函数 \r\n");
+    }
+
+    [IFoxInitialize]
+    public void NameCasualtest()
+    {
+        var dm = Application.DocumentManager;
+        var doc = dm.MdiActiveDocument;
+        var ed = doc.Editor;
+        ed.WriteMessage("\n 开始自动执行 又一次测试 \r\n");
     }
 
     [IFoxInitialize]

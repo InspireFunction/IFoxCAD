@@ -46,7 +46,7 @@ public class Test
     }
 
     [CommandMethod("drawarc")]
-    public void drawarc()
+    public void Drawarc()
     {
         using var tr = new DBTrans();
         Arc arc1 = EntityEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));//起点，圆心，终点
@@ -57,7 +57,7 @@ public class Test
     }
 
     [CommandMethod("drawcircle")]
-    public void draCircle()
+    public void DraCircle()
     {
         using var tr = new DBTrans();
         Circle circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));                       //起点，终点
@@ -147,7 +147,7 @@ public class Test
         Line line1 = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         Line line2 = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         Line line3 = new(new Point3d(1, 1, 0), new Point3d(3, 3, 0));
-        Circle circle = new Circle(new Point3d(0, 0, 0), Vector3d.ZAxis, 10);
+        Circle circle = new(new Point3d(0, 0, 0), Vector3d.ZAxis, 10);
         tr.CurrentSpace.AddEntity(line1);
         tr.CurrentSpace.AddEntity(line2, line3, circle);
     }
@@ -157,7 +157,7 @@ public class Test
     public void AddPolyline1()
     {
         using var tr = new DBTrans();
-        Polyline pl = new Polyline();
+        Polyline pl = new();
         pl.AddVertexAt(0, new Point2d(0, 0), 0, 0, 0);
         pl.AddVertexAt(1, new Point2d(10, 10), 0, 0, 0);
         pl.AddVertexAt(2, new Point2d(20, 20), 0, 0, 0);

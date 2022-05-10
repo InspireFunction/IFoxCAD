@@ -28,7 +28,7 @@ public enum AssemLoadType
 /// </summary>
 public abstract class AutoRegAssem : IExtensionApplication
 {
-    AutoClass ac;
+    private readonly AutoClass ac;
     AssemInfo Info;
 
     /// <summary>
@@ -120,8 +120,8 @@ public abstract class AutoRegAssem : IExtensionApplication
     }
 
     //这里的是不会自动执行的
-    public virtual void Initialize() { }
-    public virtual void Terminate() { }
+    public void Initialize() { }
+    public void Terminate() { }
 
     ~AutoRegAssem()
     {

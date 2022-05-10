@@ -421,13 +421,13 @@ public static class Env
 
 #endregion Enum
 
-#region 环境变量
-/// <summary>
-/// 获取cad变量
-/// </summary>
-/// <param name="varName">变量名</param>
-/// <returns>变量值</returns>
-public static object GetVar(string varName)
+    #region 环境变量
+    /// <summary>
+    /// 获取cad变量
+    /// </summary>
+    /// <param name="varName">变量名</param>
+    /// <returns>变量值</returns>
+    public static object GetVar(string varName)
     {
         return Application.GetSystemVariable(varName);
     }

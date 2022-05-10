@@ -27,6 +27,7 @@ public interface IFoxAutoGo
 /// <summary>
 /// 加载时自动执行特性
 /// </summary>
+[AttributeUsage(AttributeTargets.Method)]
 public class IFoxInitialize : Attribute
 {
     /// <summary>
@@ -54,7 +55,8 @@ public class IFoxInitialize : Attribute
 class RunClass
 {
     public Sequence Sequence { get; }
-    MethodInfo _methodInfo;
+
+    readonly MethodInfo _methodInfo;
 
     public RunClass(MethodInfo method, Sequence sequence)
     {
@@ -87,7 +89,7 @@ public class AutoClass //: IExtensionApplication
     static List<RunClass> _InitializeList = new(); //储存方法用于初始化
     static List<RunClass> _TerminateList = new();  //储存方法用于结束释放
 
-    string _DllName;
+    readonly string _DllName;
     /// <summary>
     /// 反射此特性:<see langword="IFoxInitialize"/>进行加载时自动运行
     /// </summary>
@@ -106,7 +108,7 @@ public class AutoClass //: IExtensionApplication
             GetInterfaceFunctions(_InitializeList, nameof(Initialize));
             //按照 SequenceId 排序_升序
             _InitializeList = _InitializeList.OrderBy(runClass => runClass.Sequence).ToList();
-            RunFunctions(_InitializeList);
+            AutoClass.RunFunctions(_InitializeList);
             _InitializeList.Clear();
         }
         catch (System.Exception)
@@ -123,7 +125,7 @@ public class AutoClass //: IExtensionApplication
             GetInterfaceFunctions(_TerminateList, nameof(Terminate));
             //按照 SequenceId 排序_降序
             _TerminateList = _TerminateList.OrderByDescending(runClass => runClass.Sequence).ToList();
-            RunFunctions(_TerminateList);
+            AutoClass.RunFunctions(_TerminateList);
             _TerminateList.Clear();
         }
         catch (System.Exception)
@@ -204,31 +206,32 @@ public class AutoClass //: IExtensionApplication
     void GetInterfaceFunctions(List<RunClass> runClassList, string methodName)
     {
         const string sqid = nameof(Sequence) + "Id";
+       
         AppDomainGetTypes(type => {
             if (type.IsAbstract)
-                return;
-            //获取接口集合
-            var inters = type.GetInterfaces();
-            for (int ii = 0; ii < inters.Length; ii++)
             {
-                //找到接口名称:是否找nameof(IExtensionApplication),避免重复执行,不找
-                if (inters[ii].Name == nameof(IFoxAutoGo))
+                return;
+            }
+            foreach (var inters in type.GetInterfaces())
+            {
+                if (inters.Name == nameof(IFoxAutoGo))
                 {
                     Sequence? sequence = null;
                     MethodInfo? initialize = null;
 
-                    //获得它的成员函数
-                    var mets = type.GetMethods();
-                    for (int jj = 0; jj < mets.Length; jj++)
+                    foreach (var method in type.GetMethods())
                     {
-                        var method = mets[jj];
                         if (method.IsAbstract)
+                        {
                             continue;
+                        }
                         if (method.Name == sqid)
                         {
                             var obj = method.Invoke();
-                            if (obj != null)
+                            if (obj is not null)
+                            {
                                 sequence = (Sequence)obj;
+                            }
                             continue;
                         }
                         else if (method.Name == methodName)
@@ -236,21 +239,22 @@ public class AutoClass //: IExtensionApplication
                             initialize = method;
                         }
                         if (initialize is not null && sequence is not null)
+                        {
                             break;
+                        }
                     }
                     if (initialize is not null)
                     {
-                        RunClass runc;
-                        if (sequence is not null)
-                            runc = new RunClass(initialize, sequence.Value);
-                        else
-                            runc = new RunClass(initialize, Sequence.Last);
+                        var runc = sequence is not null ?
+                        new RunClass(initialize, sequence.Value) :
+                        new RunClass(initialize, Sequence.Last);
                         runClassList.Add(runc);
                     }
                     break;
                 }
             }
-        },_DllName);
+        }, _DllName);
+
     }
 
     /// <summary>
@@ -258,36 +262,35 @@ public class AutoClass //: IExtensionApplication
     /// </summary>
     void GetAttributeFunctions()
     {
+       
         AppDomainGetTypes(type => {
             if (type.IsAbstract)
-                return;
-            var mets = type.GetMethods();//获得它的成员函数
-            for (int ii = 0; ii < mets.Length; ii++)
             {
-                var method = mets[ii];
-
-                //找到特性,特性下面的方法要是Public,否则就被编译器优化掉了.
-                var attr = method.GetCustomAttributes(true);
-                for (int jj = 0; jj < attr.Length; jj++)
+                return;
+            }
+            foreach (var method in type.GetMethods())
+            {
+                var attr = method.GetCustomAttributes<IFoxInitialize>(true).FirstOrDefault();
+                if (attr is not null)
                 {
-                    if (attr[jj] is IFoxInitialize jjAtt)
+                    var runs = new RunClass(method, attr.SequenceId);
+                    if (attr.IsInitialize)
                     {
-                        var runc = new RunClass(method, jjAtt.SequenceId);
-                        if (jjAtt.IsInitialize)
-                            _InitializeList.Add(runc);
-                        else
-                            _TerminateList.Add(runc);
-                        break;//特性只会出现一次
+                        _InitializeList.Add(runs);
+                    }
+                    else
+                    {
+                        _TerminateList.Add(runs);
                     }
                 }
             }
-        }, _DllName);
+        },_DllName);
     }
 
     /// <summary>
     /// 执行收集到的函数
     /// </summary>
-    void RunFunctions(List<RunClass> runClassList)
+    static void RunFunctions(List<RunClass> runClassList)
     {
         for (int i = 0; i < runClassList.Count; i++)
             runClassList[i].Run();

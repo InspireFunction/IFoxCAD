@@ -18,7 +18,7 @@ public class Testenv
     }
 
     [CommandMethod("testdimblk")]
-    public void testdimblk()
+    public void Testdimblk()
     {
 
         Env.Dimblk = Env.DimblkType.Dot;
@@ -81,7 +81,7 @@ public class Testenv
     public void TestDwgVersion()
     {
         //
-        string filename = @"C:\Users\vic\Desktop\test.dwg";
+        //string filename = @"C:\Users\vic\Desktop\test.dwg";
         //var a = Helper.GetCadFileVersion(filename);
         //a.Print();
         //((DwgVersion)a).Print();
