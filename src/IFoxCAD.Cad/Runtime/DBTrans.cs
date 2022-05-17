@@ -111,7 +111,7 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="fileName">要打开的文件名</param>
     /// <param name="commit">事务是否提交</param>
-    public DBTrans(string fileName, bool commit = true)
+    public DBTrans(string fileName, bool commit = true, FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare)
     {
 #if ac2009
         if (string.IsNullOrEmpty(fileName.Trim()))
@@ -138,7 +138,7 @@ public class DBTrans : IDisposable
                 if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
                     Database.DxfIn(fileName, null);
                 else
-                    Database.ReadDwgFile(fileName, FileOpenMode.OpenForReadAndWriteNoShare, true, null);
+                    Database.ReadDwgFile(fileName, openMode, true, null);
                 Database.CloseInput(true);
             }
         }
