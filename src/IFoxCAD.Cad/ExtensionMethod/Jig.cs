@@ -7,7 +7,7 @@
  *  博客: https://www.cnblogs.com/JJBox/p/15650770.html
  *
  *  例子1:
- *  var ptjig = new Jig();
+ *  var ptjig = new JigEx();
  *  ptjig.SetOptions(Point3d.Origin);
  *  var pr = ptjig.Drag();
  *  if (pr.Status != PromptStatus.OK)
@@ -24,7 +24,7 @@
  *      return;
  *  var getPt = ppr1.Value;
  *
- *  var recEntityJig = new Jig((mousePoint, drawEntitys) => {
+ *  var recEntityJig = new JigEx((mousePoint, drawEntitys) => {
  *      #region 画柜子图形
  *      double length = Math.Abs(getPt.X - mousePoint.X);
  *      double high = Math.Abs(getPt.Y - mousePoint.Y);
@@ -62,10 +62,10 @@
 namespace IFoxCAD.Cad;
 
 using Autodesk.AutoCAD.GraphicsInterface;
-using Acap = Autodesk.AutoCAD.ApplicationServices.Application;
+using Acap = Application;
 
 public delegate void WorldDrawEvent(WorldDraw draw);
-public class Jig : DrawJig
+public class JigEx : DrawJig
 {
     #region 成员
     /// <summary>
@@ -82,11 +82,10 @@ public class Jig : DrawJig
     public Entity[] Entitys => _drawEntitys.ToArray();
 
     Autodesk.AutoCAD.Geometry.Tolerance _tolerance;
-
-    Queue<Entity> _drawEntitys;//重复生成的图元,放在这里刷新
-    Action<Point3d, Queue<Entity>>? _action;
+    readonly Queue<Entity> _drawEntitys;//重复生成的图元,放在这里刷新
+    readonly Action<Point3d, Queue<Entity>>? _action;
     JigPromptPointOptions? _options;
-    const string _orthomode = "orthomode";
+    //const string _orthomode = "orthomode";
     bool _systemVariablesOrthomode = false; //正交修改
     bool _worldDrawFlag = false; // 防止刷新过程中更改队列
     #endregion
@@ -99,7 +98,7 @@ public class Jig : DrawJig
     /// 用来频繁执行的回调: <see langword="Point3d"/>鼠标点,<see langword="List"/>加入显示图元的容器
     /// </param>
     /// <param name="tolerance">鼠标移动的容差</param>
-    public Jig(Action<Point3d, Queue<Entity>>? action = null, double tolerance = 1e-6)
+    public JigEx(Action<Point3d, Queue<Entity>>? action = null, double tolerance = 1e-6)
     {
         _action = action;
         _tolerance = new(tolerance, tolerance);
@@ -123,9 +122,10 @@ public class Jig : DrawJig
                                             string msg = "点选第二点",
                                             bool orthomode = false)
     {
-        if (orthomode && CadSystem.Getvar(_orthomode) != "1")
+        if (orthomode && Env.OrthoMode == false)
         {
-            CadSystem.Setvar(_orthomode, "1");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
+            //CadSystem.Setvar(_orthomode, "1");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
+            Env.OrthoMode = true;
             _systemVariablesOrthomode = true;
         }
         var tmp = new JigPromptPointOptions(Environment.NewLine + msg)
@@ -152,9 +152,10 @@ public class Jig : DrawJig
     /// <returns></returns>
     public JigPromptPointOptions SetOptions(string msg, Dictionary<string, string>? keywords = null, bool orthomode = false)
     {
-        if (orthomode && CadSystem.Getvar(_orthomode) != "1")
+        if (orthomode && Env.OrthoMode == false)
         {
-            CadSystem.Setvar(_orthomode, "1");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
+            //CadSystem.Setvar(_orthomode, "1");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
+            Env.OrthoMode = true;
             _systemVariablesOrthomode = true;
         }
 
@@ -202,9 +203,10 @@ public class Jig : DrawJig
         action.Invoke(tmp);
         _options = tmp;
 
-        if (orthomode && CadSystem.Getvar(_orthomode) != "1")
+        if (orthomode && Env.OrthoMode == false)
         {
-            CadSystem.Setvar(_orthomode, "1");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
+            //CadSystem.Setvar(_orthomode, "1");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
+            Env.OrthoMode = true;
             _systemVariablesOrthomode = true;
         }
     }
@@ -221,7 +223,8 @@ public class Jig : DrawJig
         var ed = doc.Editor;
         var dr = ed.Drag(this);
         if (_systemVariablesOrthomode)
-            CadSystem.Setvar(_orthomode, "0");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
+            //CadSystem.Setvar(_orthomode, "0");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
+            Env.OrthoMode = false;
         return dr;
     }
 
@@ -264,7 +267,7 @@ public class Jig : DrawJig
             return SamplerStatus.NoChange;//OK的时候拖动鼠标与否都不出现图元
 
         if (_options is null)
-            throw new ArgumentNullException(nameof(_options));
+            throw new NullReferenceException(nameof(_options));
 
         var pro = prompts.AcquirePoint(_options);
         if (pro.Status == PromptStatus.Keyword)
@@ -334,63 +337,6 @@ public class Jig : DrawJig
     #endregion
 }
 
-
-
-
-class CadSystem
-{
-/* 此类函数和env类重复
- * todo:计划删除
- */
-    /// <summary>
-    /// 获取系统变量值
-    /// </summary>
-    /// <param name="name">变量名</param>
-    /// <returns>成功获取值,失败null</returns>
-    public static string? Getvar(string name)
-    {
-        return Acap.GetSystemVariable(name).ToString();
-    }
-    /// <summary>
-    /// 设置系统或环境变量
-    /// </summary>
-    /// <param name="name">变量名</param>
-    /// <param name="parameter">变量值</param>
-    /// <returns>成功设置返回值,失败null</returns>
-    public static void Setvar(string? name, string? parameter)
-    {
-        if (name is null)
-            throw new ArgumentNullException(nameof(name));
-        if (parameter is null)
-            throw new ArgumentNullException(nameof(parameter));
-
-        try
-        {
-            //改系统变量
-            var value = Acap.GetSystemVariable(name);
-            if (value is null) return;
-            var valueTypeName = value.GetType().Name;
-            //如果出现了clayer无法设置,是没有锁文档导致的
-            switch (valueTypeName)
-            {
-                case "String":
-                    Acap.SetSystemVariable(name, parameter.Replace("\"", ""));//去掉引号
-                    break;
-                case "Double":
-                    Acap.SetSystemVariable(name, double.Parse(parameter));
-                    break;
-                case "Int16":
-                    Acap.SetSystemVariable(name, short.Parse(parameter));
-                    break;
-                case "Int32":
-                    Acap.SetSystemVariable(name, int.Parse(parameter));
-                    break;
-            }
-        }
-        catch
-        { }
-    }
-}
 
 #if false
 | UserInputControls.NullResponseAccepted           //接受空响应
