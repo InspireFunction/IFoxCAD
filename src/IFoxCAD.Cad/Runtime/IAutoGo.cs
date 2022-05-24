@@ -268,23 +268,29 @@ public class AutoClass //: IExtensionApplication
             {
                 return;
             }
-            foreach (var method in type.GetMethods())
+            var mets = type.GetMethods();
+            for (int ii = 0; ii < mets.Length; ii++)
             {
-                var attr = method.GetCustomAttributes<IFoxInitialize>(true).FirstOrDefault();
-                if (attr is not null)
+                var method = mets[ii];
+                var attr = method.GetCustomAttributes(true);
+                for (int jj = 0; jj < attr.Length; jj++)
                 {
-                    var runs = new RunClass(method, attr.SequenceId);
-                    if (attr.IsInitialize)
+                    if (attr[jj] is IFoxInitialize jjAtt)
                     {
-                        _InitializeList.Add(runs);
-                    }
-                    else
-                    {
-                        _TerminateList.Add(runs);
+                        var runc = new RunClass(method, jjAtt.SequenceId);
+                        if (jjAtt.IsInitialize)
+                        {
+                            _InitializeList.Add(runc);
+                        }
+                        else
+                        {
+                            _TerminateList.Add(runc);
+                        }
+                        break;
                     }
                 }
             }
-        },_DllName);
+        }, _DllName);
     }
 
     /// <summary>

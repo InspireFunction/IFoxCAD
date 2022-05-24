@@ -15,7 +15,7 @@
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
-        <PackageReleaseNotes>注释掉AOP.</PackageReleaseNotes>
+        <PackageReleaseNotes>优化依赖.</PackageReleaseNotes>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <LangVersion>preview</LangVersion>
@@ -29,22 +29,18 @@
 		<PackageReference Include="Autocad.NetApi" Version="17.2.0">
             <ExcludeAssets>runtime</ExcludeAssets>
         </PackageReference>
-        <!--net35 元组需要这个包-->
-        <PackageReference Include="Vanara.PInvoke.IpHlpApi" Version="3.3.15" />
     </ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
 		<PackageReference Include="Autocad.NetApi" Version="19.0.0">
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
-		<PackageReference Include="Vanara.PInvoke.IpHlpApi" Version="3.3.15" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
 		<PackageReference Include="AutoCAD.NET" Version="20.0.1">
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
-		<PackageReference Include="IndexRange" Version="1.0.2" />
 	</ItemGroup>
 	
 	
@@ -70,6 +66,10 @@
         <Pack>True</Pack>
         <PackagePath></PackagePath>
       </None>
+    </ItemGroup>
+    
+    <ItemGroup>
+      <PackageReference Include="IndexRange" Version="1.0.2" />
     </ItemGroup>
 	
     <ItemGroup>

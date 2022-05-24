@@ -4,7 +4,7 @@
         <TargetFrameworks>net35;net40;net45</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
 		<Nullable>enable</Nullable>
-        <Version>0.3.3</Version>
+        <Version>0.3.4</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的二次开发基本类库</Description>
@@ -13,8 +13,7 @@
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>IFoxCAD;C#;NET;Common;Basal</PackageTags>
-        <PackageReleaseNotes>增加字典和数组的扩展函数.</PackageReleaseNotes>
-        <!--<EnableNETAnalyzers>true</EnableNETAnalyzers>-->
+        <PackageReleaseNotes>优化依赖.</PackageReleaseNotes>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <LangVersion>preview</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -29,16 +28,10 @@
         </None>
     </ItemGroup>
 	
-	<ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
-		
-		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
+	
+	<ItemGroup>
+		<PackageReference Include="IndexRange" Version="1.0.2" />
 	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
-		
-		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
-	</ItemGroup>
-
 	
 	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 		<DefineConstants>DEBUG</DefineConstants>
