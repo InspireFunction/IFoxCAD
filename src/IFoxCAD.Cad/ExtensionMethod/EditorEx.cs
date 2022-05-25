@@ -1,6 +1,4 @@
-﻿using System.Runtime.InteropServices;
-
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 命令行扩展类
@@ -55,10 +53,6 @@ public static class EditorEx
         return res.Value;
     }
 
-
-
-
-
     public static PromptSelectionResult? SSGet(this Editor editor, string? mode = null, SelectionFilter? filter = null, string[]? messages = null, Dictionary<string, Action>? keywords = null)
     {
         var pso = new PromptSelectionOptions();
@@ -106,13 +100,9 @@ public static class EditorEx
         try
         {
             if (filter is not null)
-            {
                 ss = editor.GetSelection(pso, filter);
-            }
             else
-            {
                 ss = editor.GetSelection(pso);
-            }
         }
         catch (Autodesk.AutoCAD.Runtime.Exception e)
         {
@@ -360,7 +350,7 @@ public static class EditorEx
     public static void StreamMessage(string format, params object[] args)
     {
         StreamMessage(string.Format(format, args));
-    }//
+    }
 
     /// <summary>
     /// 带错误提示对话框的打印信息函数
@@ -379,7 +369,7 @@ public static class EditorEx
         {
             Message(ex);
         }
-    }//
+    }
 
     /// <summary>
     /// 异常信息对话框
@@ -398,7 +388,7 @@ public static class EditorEx
         catch
         {
         }
-    }//
+    }
 
     /// <summary>
     /// 提示信息对话框
@@ -419,7 +409,7 @@ public static class EditorEx
         {
             Message(ex);
         }
-    }//
+    }
 
     /// <summary>
     /// 提示信息对话框
@@ -439,7 +429,7 @@ public static class EditorEx
     public static void InfoMessageBox(string message)
     {
         InfoMessageBox("NFox.Cad", message);
-    }//
+    }
 
     /// <summary>
     /// 提示信息对话框
@@ -449,7 +439,7 @@ public static class EditorEx
     public static void InfoMessageBox(string format, params object[] args)
     {
         InfoMessageBox(string.Format(format, args));
-    }//
+    }
 
     /// <summary>
     /// 命令行打印字符串
@@ -468,7 +458,7 @@ public static class EditorEx
         {
             Message(ex);
         }
-    }//
+    }
 
     /// <summary>
     /// 命令行打印字符串
@@ -489,7 +479,7 @@ public static class EditorEx
         return Application.DocumentManager.MdiActiveDocument is not null
             && Application.DocumentManager.Count != 0
             && Application.DocumentManager.MdiActiveDocument.Editor is not null;
-    }//
+    }
 
     /// <summary>
     /// 判断是否可以打印字符串
@@ -499,7 +489,7 @@ public static class EditorEx
     {
         return HasEditor()
             && !Application.DocumentManager.MdiActiveDocument.Editor.IsDragging;
-    }//
+    }
 
     #endregion Info
 
@@ -1025,7 +1015,7 @@ public static class EditorEx
         return ed.GetString(strOp);
     }
 
-    #endregion Get交互类
+    #endregion
 
     #region 执行lisp
 
@@ -1070,5 +1060,5 @@ public static class EditorEx
         return null;
     }
 
-    #endregion 执行lisp
+    #endregion
 }
