@@ -216,8 +216,7 @@ public static class EntityEx
         List<string> strs = new();
         mt.ExplodeFragments(
             strs,
-            (f, o) =>
-            {
+            (f, o) => {
                 o.Add(f.Text);
                 return MTextFragmentCallbackStatus.Continue;
             });
@@ -238,6 +237,7 @@ public static class EntityEx
     public static Arc CreateArcSCE(Point3d startPoint, Point3d centerPoint, Point3d endPoint)
     {
         Arc arc = new();
+        arc.SetDatabaseDefaults();
         arc.Center = centerPoint;
         arc.Radius = centerPoint.DistanceTo(startPoint);
         Vector2d startVector = new(startPoint.X - centerPoint.X, startPoint.Y - centerPoint.Y);
@@ -278,6 +278,7 @@ public static class EntityEx
     public static Arc CreateArc(Point3d startPoint, Point3d centerPoint, double angle)
     {
         Arc arc = new();
+        arc.SetDatabaseDefaults();
         arc.Center = centerPoint;
         arc.Radius = centerPoint.DistanceTo(startPoint);
         Vector2d startVector = new(startPoint.X - centerPoint.X, startPoint.Y - centerPoint.Y);
@@ -286,9 +287,9 @@ public static class EntityEx
         return arc;
     }
 
-#endregion
+    #endregion
 
-#region 圆
+    #region 圆
 
     /// <summary>
     /// 两点创建圆(两点中点为圆心)
@@ -299,6 +300,7 @@ public static class EntityEx
     public static Circle CreateCircle(Point3d startPoint, Point3d endPoint)
     {
         Circle circle = new();
+        circle.SetDatabaseDefaults();
         circle.Center = startPoint.GetMidPointTo(endPoint);
         circle.Radius = startPoint.DistanceTo(endPoint) * 0.5;
         return circle;
@@ -318,23 +320,19 @@ public static class EntityEx
         Vector3d vb = pt1.GetVectorTo(pt3);
         //如两矢量夹角为0或180度（π弧度),则三点共线.
         if (va.GetAngleTo(vb) == 0 | va.GetAngleTo(vb) == Math.PI)
-        {
             return null;
-        }
-        else
-        {
-            //创建一个几何类的圆弧对象
-            CircularArc3d geArc = new(pt1, pt2, pt3);
-            geArc.ToCircle();
-            return geArc.ToCircle();
-        }
+
+        //创建一个几何类的圆弧对象
+        CircularArc3d geArc = new(pt1, pt2, pt3);
+        geArc.ToCircle();
+        return geArc.ToCircle();
     }
 
-#endregion
+    #endregion
 
-#region 块参照
+    #region 块参照
 
-#region 裁剪块参照
+    #region 裁剪块参照
 
     private const string filterDictName = "ACAD_FILTER";
     private const string spatialName = "SPATIAL";
@@ -395,14 +393,14 @@ public static class EntityEx
         dict.SetAt<SpatialFilter>(spatialName, sf);
         //SetToDictionary(dict, spatialName, sf);
     }
-#endregion
+    #endregion
 
     /// <summary>
     /// 更新动态块属性值
     /// </summary>
     /// <param name="blockReference">动态块</param>
     /// <param name="propertyNameValues">属性值字典</param>
-    public static void ChangeBlockProperty(this BlockReference blockReference, Dictionary<string,object> propertyNameValues)
+    public static void ChangeBlockProperty(this BlockReference blockReference, Dictionary<string, object> propertyNameValues)
     {
         if (blockReference.IsDynamicBlock)
         {
@@ -416,9 +414,9 @@ public static class EntityEx
                     }
                 }
             }
-            
+
         }
     }
-    
-#endregion
+
+    #endregion
 }
