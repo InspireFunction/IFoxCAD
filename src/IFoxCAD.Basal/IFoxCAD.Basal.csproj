@@ -19,6 +19,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <ItemGroup>
@@ -29,9 +30,9 @@
     </ItemGroup>
 	
 	
-	<ItemGroup>
+	<!--<ItemGroup>
 		<PackageReference Include="IndexRange" Version="1.0.2" />
-	</ItemGroup>
+	</ItemGroup>-->
 	
 	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 		<DefineConstants>DEBUG</DefineConstants>
