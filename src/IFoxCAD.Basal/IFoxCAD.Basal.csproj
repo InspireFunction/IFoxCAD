@@ -3,7 +3,7 @@
     <PropertyGroup>
         <TargetFrameworks>net35;net40;net45</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
-		<Nullable>enable</Nullable>
+        <Nullable>enable</Nullable>
         <Version>0.3.4</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
@@ -29,21 +29,21 @@
         </None>
     </ItemGroup>
 
-  <!--这个包源码已经放入 Range.cs-->
-  <!--<ItemGroup>
+    <!--这个包源码已经放入 Range.cs-->
+    <!--<ItemGroup>
 		   <PackageReference Include="IndexRange" Version="1.0.2" />
-  </ItemGroup>-->
-	
-	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
-		<DefineConstants>DEBUG</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
-		<DefineConstants>$(Configuration);ac2009</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
-		<DefineConstants>$(Configuration);ac2013</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
-		<DefineConstants>$(Configuration);ac2015</DefineConstants>
-	</PropertyGroup>
+    </ItemGroup>-->
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DefineConstants>DEBUG</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
+        <DefineConstants>$(Configuration);ac2009</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
+        <DefineConstants>$(Configuration);ac2013</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
+        <DefineConstants>$(Configuration);ac2015</DefineConstants>
+    </PropertyGroup>
 </Project>
