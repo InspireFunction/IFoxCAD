@@ -7,7 +7,7 @@ using System.ComponentModel;
 using TestConsole;
 using System.Runtime.CompilerServices;
 
-
+/*下面是元组测试*/
 var valuetuple = (1, 2);
 
 Console.WriteLine(valuetuple.ToString());

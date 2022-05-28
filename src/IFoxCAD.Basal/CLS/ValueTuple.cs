@@ -12,6 +12,7 @@ using System.Runtime.CompilerServices;
 using System.Globalization;
 using System.Numerics.Hashing;
 
+#if NET35
 namespace System.Collections
 {
     public interface IStructuralComparable
@@ -27,7 +28,8 @@ namespace System.Collections
         bool Equals(object? other, IEqualityComparer comparer);
         int GetHashCode(IEqualityComparer comparer);
     }
-}
+} 
+#endif
 
 
 namespace System.Numerics.Hashing
