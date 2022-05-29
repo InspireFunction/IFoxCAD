@@ -17,7 +17,7 @@ public class Commands
 
     [CommandMethod("loop")]
 
-     public void Loop()
+    public void Loop()
 
     {
 
@@ -29,7 +29,7 @@ public class Commands
 
         // Create and add our message filter
 
-        MyMessageFilter filter = new MyMessageFilter();
+        MyMessageFilter filter = new();
 
         System.Windows.Forms.Application.AddMessageFilter(filter);
 
@@ -128,8 +128,7 @@ public class Commands
         Database db = doc.Database;
         Editor ed = doc.Editor;
 
-        PromptStringOptions pso =
-          new PromptStringOptions("\nEnter text string");
+        PromptStringOptions pso = new("\nEnter text string");
         pso.AllowSpaces = true;
         PromptResult pr = ed.GetString(pso);
 
@@ -147,7 +146,7 @@ public class Commands
 
             // Create the text object, set its normal and contents
 
-            DBText txt = new DBText();
+            DBText txt = new();
             txt.Normal =
               ed.CurrentUserCoordinateSystem.
                 CoordinateSystem3d.Zaxis;
@@ -162,7 +161,7 @@ public class Commands
 
             // Create our jig
 
-            TextPlacementJig pj = new TextPlacementJig(tr, db, txt);
+            TextPlacementJig pj = new(tr, db, txt);
 
             // Loop as we run our jig, as we may have keywords
 
@@ -186,8 +185,8 @@ public class Commands
     {
         // Declare some internal state
 
-        Database _db;
-        Transaction _tr;
+        readonly Database _db;
+        readonly Transaction _tr;
         Point3d _position;
         double _angle, _txtSize;
 
@@ -210,7 +209,7 @@ public class Commands
             // We acquire a point but with keywords
 
             JigPromptPointOptions po =
-              new JigPromptPointOptions(
+              new(
                 "\nPosition of text"
               );
 
@@ -236,12 +235,12 @@ public class Commands
                 {
                     case "Bold":
                         {
-                            
+
                             break;
                         }
                     case "Italic":
                         {
-                          
+
 
                             break;
                         }
@@ -273,19 +272,19 @@ public class Commands
                         }
                     case "LEft":
                         {
-                            
+
 
                             break;
                         }
                     case "RIght":
                         {
-                          
+
 
                             break;
                         }
                     case "Middle":
                         {
-                            
+
 
                             break;
                         }

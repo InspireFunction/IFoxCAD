@@ -179,7 +179,9 @@ public class Edge : IEquatable<Edge>, IFormattable
     #endregion
 
     #region 方法
+#pragma warning disable CA2211 // 非常量字段应当不可见
     public static Tolerance CadTolerance = new(1e-6, 1e-6);
+#pragma warning restore CA2211 // 非常量字段应当不可见
 
     /// <summary>
     /// 消重顺序逆序 
@@ -508,8 +510,10 @@ public class CompositeCurve3ds : List<CompositeCurve3d>, IFormattable
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay => ToString();
 
+#pragma warning disable CA2211 // 非常量字段应当不可见
     // cad容差类
     public static Tolerance CadTolerance = new(1e-6, 1e-6);
+#pragma warning restore CA2211 // 非常量字段应当不可见
 
     /// <summary>
     /// 边界点序排列

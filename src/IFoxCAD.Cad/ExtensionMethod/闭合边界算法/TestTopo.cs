@@ -3,7 +3,7 @@
     public class CmdTestTopo
     {
         [CommandMethod("TestTopo")]
-        public void TestTopo()
+        public static void TestTopo()
         {
             using var tr = new DBTrans();
             var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();

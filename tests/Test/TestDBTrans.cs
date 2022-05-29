@@ -47,6 +47,7 @@ public class TestTrans
     {
         //var pt = Env.Editor.GetPoint("pick pt:").Value;
         //var pl = Env.Editor.GetEntity("pick pl").ObjectId;
+
         var tr1 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
         using var tr2 = new DBTrans();
         var tr3 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
@@ -59,6 +60,7 @@ public class TestTrans
         Env.Print(tr4.Transaction == tr5);
         Env.Print(tr5 == tr7);
         var trm = HostApplicationServices.WorkingDatabase.TransactionManager;
+
         //var ptt = tr.GetObject<Polyline>(pl).GetClosestPointTo(pt,false);
         //var pt1 = new Point3d(0, 0.00000000000001, 0);
         //var pt2 = new Point3d(0, 0.00001, 0);

@@ -5,7 +5,7 @@
 /// </summary>
 public class TolerancePoint2d : IEqualityComparer<Point2d>
 {
-    double _tolerance;
+    readonly double _tolerance;
     public TolerancePoint2d(double tolerance = 1e-6)
     {
         _tolerance = tolerance;
@@ -43,8 +43,10 @@ public class TolerancePoint2d : IEqualityComparer<Point2d>
 [StructLayout(LayoutKind.Sequential)]
 public class Rect : IEquatable<Rect>
 {
-    public static TolerancePoint2d _RectTolerance = new(1e-6);
-    public static Tolerance _cadTolerance = new(1e-6, 1e-6);
+#pragma warning disable CA2211 // 非常量字段应当不可见
+    public static TolerancePoint2d RectTolerance = new(1e-6);
+    public static Tolerance CadTolerance = new(1e-6, 1e-6);
+#pragma warning restore CA2211 // 非常量字段应当不可见
 
     #region 字段
     //这里的成员不要用{get}封装成属性,否则会导致跳转了一次函数,
@@ -268,7 +270,7 @@ public class Rect : IEquatable<Rect>
     /// <returns></returns>
     public Point2d[] GetCommonPoint(Rect other)
     {
-        return ToPoints().Intersect(other.ToPoints(), _RectTolerance).ToArray();
+        return ToPoints().Intersect(other.ToPoints(), RectTolerance).ToArray();
     }
 
     public Point2d[] ToPoints()
@@ -316,7 +318,7 @@ public class Rect : IEquatable<Rect>
         if (ptList.Count == 5)
         {
             //首尾点相同移除最后
-            if (pts[0].IsEqualTo(pts[pts.Count - 1], _cadTolerance))
+            if (pts[0].IsEqualTo(pts[^1], CadTolerance))
                 pts.RemoveAt(pts.Count - 1);
         }
         if (pts.Count != 4)
@@ -366,7 +368,7 @@ public class Rect : IEquatable<Rect>
         if (ptList.Count == 5)
         {
             //首尾点相同移除最后
-            if (pts[0].IsEqualTo(pts[pts.Count - 1], _cadTolerance))
+            if (pts[0].IsEqualTo(pts[^1], CadTolerance))
                 pts.RemoveAt(pts.Count - 1);
         }
         if (pts.Count != 4)
@@ -433,11 +435,7 @@ public class Rect : IEquatable<Rect>
         //保证是逆时针
         var isAcw = CrossAclockwise(pts[0], pts[1], pts[2]);
         if (!isAcw)
-        {
-            var tmp = pts[1];
-            pts[1] = pts[3];
-            pts[3] = tmp;
-        }
+            (pts[3], pts[1]) = (pts[1], pts[3]);
         return true;
     }
 

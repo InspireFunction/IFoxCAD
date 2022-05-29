@@ -3,10 +3,13 @@ namespace IFoxCAD.Cad;
 public class Topo
 {
     #region 成员
-    // 求交类(每次set自动重置,都会有个新的结果)
-    static CurveCurveIntersector3d _Cci3d = new();
+#pragma warning disable CA2211 // 非常量字段应当不可见
     // cad容差类
     public static Tolerance CadTolerance = new(1e-6, 1e-6);
+#pragma warning restore CA2211 // 非常量字段应当不可见
+
+    // 求交类(每次set自动重置,都会有个新的结果)
+    static readonly CurveCurveIntersector3d _Cci3d = new();
     public List<CurveInfo> CurveList;
     #endregion
 
@@ -42,12 +45,54 @@ public class Topo
         Dictionary<string, BoNode> boNodes = new();
 
         var topo = new Topo(curves);
+
+/* 项目“IFoxCAD.Cad (net40)”的未合并的更改
+在此之前:
         topo.GetEdgesAndnewCurves(topo.CurveList, gs, closedCurve3d);
+在此之后:
+        Topo.GetEdgesAndnewCurves(topo.CurveList, gs, closedCurve3d);
+*/
+
+/* 项目“IFoxCAD.Cad (net45)”的未合并的更改
+在此之前:
+        topo.GetEdgesAndnewCurves(topo.CurveList, gs, closedCurve3d);
+在此之后:
+        Topo.GetEdgesAndnewCurves(topo.CurveList, gs, closedCurve3d);
+*/
+        GetEdgesAndnewCurves(topo.CurveList, gs, closedCurve3d);
+
+/* 项目“IFoxCAD.Cad (net40)”的未合并的更改
+在此之前:
         topo.AdjacencyList(gs, closedCurve3d, boNodes);
+在此之后:
+        Topo.AdjacencyList(gs, closedCurve3d, boNodes);
+*/
+
+/* 项目“IFoxCAD.Cad (net45)”的未合并的更改
+在此之前:
+        topo.AdjacencyList(gs, closedCurve3d, boNodes);
+在此之后:
+        Topo.AdjacencyList(gs, closedCurve3d, boNodes);
+*/
+        AdjacencyList(gs, closedCurve3d, boNodes);
         var bos = boNodes.Select(a => a.Value).ToArray();
 
         //TODO Topo校验数据
+
+/* 项目“IFoxCAD.Cad (net40)”的未合并的更改
+在此之前:
         var regions = topo.BreadthFirstSearch(bos);
+在此之后:
+        var regions = Topo.BreadthFirstSearch(bos);
+*/
+
+/* 项目“IFoxCAD.Cad (net45)”的未合并的更改
+在此之前:
+        var regions = topo.BreadthFirstSearch(bos);
+在此之后:
+        var regions = Topo.BreadthFirstSearch(bos);
+*/
+        var regions = BreadthFirstSearch(bos);
         if (regions == null || regions.Count == 0)
             return null;
 
@@ -73,7 +118,7 @@ public class Topo
     /// <param name="infos_In">传入每组有碰撞的</param>
     /// <param name="edges_Out">传出不自闭的曲线集</param>
     /// <param name="closed_Out">传出自闭曲线集</param>
-    public void GetEdgesAndnewCurves(List<CurveInfo> infos_In, List<Edge> edges_Out, List<CompositeCurve3d> closed_Out)
+    public static void GetEdgesAndnewCurves(List<CurveInfo> infos_In, List<Edge> edges_Out, List<CompositeCurve3d> closed_Out)
     {
         //此处是O(n²)
         //曲线a和其他曲线n根据 交点 切割子线(第一次是自交对比)
@@ -133,18 +178,18 @@ public class Topo
     /// <summary>
     /// 创建邻接表
     /// </summary>
-    /// <param name="edges_In">传入每组有碰撞的</param>
+    /// <param name="edgesIn">传入每组有碰撞的</param>
     /// <param name="closed_Out">传出自闭曲线集</param>
     /// <param name="boNodes_Out">节点集合返回(交点坐标字符串,节点)</param>
-    public void AdjacencyList(List<Edge> edges_In, List<CompositeCurve3d> closed_Out, Dictionary<string, BoNode> boNodes_Out)
+    public static void AdjacencyList(List<Edge> edgesIn, List<CompositeCurve3d> closed_Out, Dictionary<string, BoNode> boNodes_Out)
     {
         int boNumber = 0;
         /*
          * 邻接表:不重复地将共点(交点)作为标记,然后容器加入边
          */
-        for (int i = 0; i < edges_In.Count; i++)
+        for (int i = 0; i < edgesIn.Count; i++)
         {
-            var edge = edges_In[i];
+            var edge = edgesIn[i];
             //曲线闭合直接提供出去
             if (edge.GeCurve3d.IsClosed())
             {
@@ -222,8 +267,6 @@ public class Topo
     }
     #endregion
 
-
-
     #region 广度
     /// <summary>
     /// 广度优先算法
@@ -232,7 +275,7 @@ public class Topo
     /// <param name="boNodes">邻接节点集合</param>
     /// <returns>多个面域</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    List<LoopList<BoNode>> BreadthFirstSearch(BoNode[] boNodes)
+    static List<LoopList<BoNode>> BreadthFirstSearch(BoNode[] boNodes)
     {
         if (boNodes == null || boNodes.Length == 0)
             throw new ArgumentNullException(nameof(boNodes));

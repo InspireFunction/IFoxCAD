@@ -12,12 +12,14 @@ namespace Test
             var pt3 = new Point3d(0.0255002, 0.4520001, 0);
             var pt4 = new Point3d(0.0255450, 0.45287893, 0);
             var pt5 = new Point3d(0.02554935, 0.452092375, 0);
-            var dict = new Dictionary<Point3d, int>();
-            dict.Add(pt1, 1);
-            dict.Add(pt2, 2);
-            dict.Add(pt3, 3);
-            dict.Add(pt4, 4);
-            dict.Add(pt5, 5);
+            var dict = new Dictionary<Point3d, int>
+            {
+                { pt1, 1 },
+                { pt2, 2 },
+                { pt3, 3 },
+                { pt4, 4 },
+                { pt5, 5 }
+            };
             Env.Print(dict[pt1]);
         }
 

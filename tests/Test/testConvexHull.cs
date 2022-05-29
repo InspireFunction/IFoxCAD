@@ -12,10 +12,10 @@ using Autodesk.AutoCAD.Colors;
 
 namespace Test
 {
-    public class testConvexHull
+    public class TestConvexHull
     {
         [CommandMethod("testch")]
-        public void testch()
+        public void Testch()
         {
             //using var tr = new DBTrans();
             //var pts = new List<Point3d>();

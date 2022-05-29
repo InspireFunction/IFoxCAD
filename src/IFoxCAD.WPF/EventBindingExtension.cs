@@ -39,8 +39,7 @@ public class EventBindingExtension : MarkupExtension
             throw new InvalidOperationException();
         }
 
-        var memberInfo = targetProvider.TargetProperty as MemberInfo;
-        if (memberInfo is null)
+        if (targetProvider.TargetProperty is not MemberInfo memberInfo)
         {
             throw new InvalidOperationException();
         }

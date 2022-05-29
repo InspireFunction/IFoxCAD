@@ -29,7 +29,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// Returns a reference vertex.
     /// Time complexity: O(1).
     /// </summary>
-    private IGraphVertex? referenceVertex
+    private IGraphVertex? ReferenceVertex
     {
         get
         {
@@ -44,7 +44,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
             return null;
         }
     }
-    IGraphVertex? IGraph.ReferenceVertex => referenceVertex;
+    IGraphVertex? IGraph.ReferenceVertex => ReferenceVertex;
     /// <summary>
     /// 目前点增加点的顺序号,这个点号不随删点而减少的
     /// </summary>

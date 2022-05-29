@@ -3,13 +3,7 @@
 
 //#pragma warning disable SA1141 // explicitly not using tuple syntax in tuple implementation
 
-using System.Collections;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
-using System.Runtime.InteropServices;
-using System.Runtime.CompilerServices;
-using System.Globalization;
 using System.Numerics.Hashing;
 
 #if NET35

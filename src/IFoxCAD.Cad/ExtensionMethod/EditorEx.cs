@@ -1042,7 +1042,6 @@ public static class EditorEx
     /// <returns>缓冲结果,返回值</returns>
 #pragma warning disable IDE0060 // 删除未使用的参数
     public static ResultBuffer? RunLisp(this Editor ed, string arg)
-#pragma warning restore IDE0060 // 删除未使用的参数
     {
         _ = AcedEvaluateLisp(arg, out IntPtr rb);
         if (rb != IntPtr.Zero)
@@ -1059,6 +1058,7 @@ public static class EditorEx
         }
         return null;
     }
+#pragma warning restore IDE0060 // 删除未使用的参数
 
     #endregion
 }

@@ -12,10 +12,10 @@ using Autodesk.AutoCAD.EditorInput;
 
 namespace Test
 {
-    public class testselectfilter
+    public class Testselectfilter
     {
         [CommandMethod("testfilter")]
-        public void testfilter()
+        public void Testfilter()
         {
             
             var p = new Point3d(10, 10, 0);
@@ -37,12 +37,9 @@ namespace Test
         }
 
         [CommandMethod("testselectanpoint")]
-        public void testselectanpoint()
+        public void Testselectanpoint()
         {
-
-            
             var sel2 = Env.Editor.SelectAtPoint(new Point3d(0, 0, 0));
-
             Env.Editor.WriteMessage("");
         }
     }

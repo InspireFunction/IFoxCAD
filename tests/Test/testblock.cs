@@ -229,7 +229,7 @@ public class TestBlock
         }
 
         using var tr2 = new DBTrans();
-        PromptEntityOptions PEO = new PromptEntityOptions("\n请选择一个块");
+        PromptEntityOptions PEO = new("\n请选择一个块");
         PEO.SetRejectMessage("\n对象必须是块");
         PEO.AddAllowedClass(typeof(BlockReference), true);
 
@@ -300,83 +300,81 @@ public class TestBlock
     {
         //Database db = HostApplicationServices.WorkingDatabase;
         Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
-        PromptSelectionOptions promptOpt = new PromptSelectionOptions
+        PromptSelectionOptions promptOpt = new()
         {
             MessageForAdding = "请选择需要快速制作块的对象"
         };
         string blockName = "W_BLOCK_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
         //var rss = ed.GetSelection(promptOpt);
         var rss = Env.Editor.GetSelection(promptOpt);
-        using (var tr = new DBTrans())
+        using var tr = new DBTrans();
+        if (rss.Status == PromptStatus.OK)
         {
-            if (rss.Status == PromptStatus.OK)
-            {
-                //SelectionSet ss = rss.Value;
-                //ObjectId[] ids = ss.GetObjectIds();
-                //var ents = new List<KeyValuePair<Entity, long>>();
-                //var extents = new Extents3d();
-                //foreach (var id in ids)
-                //{
-                //    Entity ent = tr.GetObject<Entity>(id);
-                //    if (ent is null)
-                //        continue;
-                //    try
-                //    {
-                //        extents.AddExtents(ent.GeometricExtents);
-                //        var order = id.Handle.Value;
-                //        var newEnt = ent.Clone() as Entity;
-                //        ents.Add(new KeyValuePair<Entity, long>(newEnt, order));
-                //        ent.UpgradeOpen();
-                //        ent.Erase();
-                //        ent.DowngradeOpen();
-                //    }
-                //    catch (System.Exception exc)
-                //    {
-                //        ed.WriteMessage(exc.Message);
-                //    }
-                //}
-                //ents = ents.OrderBy(x => x.Value).ToList();
-                var ents = rss.Value.GetEntities<Entity>();
-                //ents.ForEach(ent => extents.AddExtents(ent.GeometricExtents));
-                var extents = ents.GetExtents();
+            //SelectionSet ss = rss.Value;
+            //ObjectId[] ids = ss.GetObjectIds();
+            //var ents = new List<KeyValuePair<Entity, long>>();
+            //var extents = new Extents3d();
+            //foreach (var id in ids)
+            //{
+            //    Entity ent = tr.GetObject<Entity>(id);
+            //    if (ent is null)
+            //        continue;
+            //    try
+            //    {
+            //        extents.AddExtents(ent.GeometricExtents);
+            //        var order = id.Handle.Value;
+            //        var newEnt = ent.Clone() as Entity;
+            //        ents.Add(new KeyValuePair<Entity, long>(newEnt, order));
+            //        ent.UpgradeOpen();
+            //        ent.Erase();
+            //        ent.DowngradeOpen();
+            //    }
+            //    catch (System.Exception exc)
+            //    {
+            //        ed.WriteMessage(exc.Message);
+            //    }
+            //}
+            //ents = ents.OrderBy(x => x.Value).ToList();
+            var ents = rss.Value.GetEntities<Entity>();
+            //ents.ForEach(ent => extents.AddExtents(ent.GeometricExtents));
+            var extents = ents.GetExtents();
 
-                Point3d pt = extents.MinPoint;
-                Matrix3d matrix = Matrix3d.Displacement(Point3d.Origin - pt);
-                //var newEnts = new List<Entity>();
-                //foreach (var ent in ents)
-                //{
-                //    var newEnt = ent.Key;
-                //    newEnt.TransformBy(matrix);
-                //    newEnts.Add(newEnt);
-                //}
-                //if (tr.BlockTable.Has(blockName))
-                //{
-                //    Application.ShowAlertDialog(Environment.NewLine + "块名重复，程序退出！");
-                //    return;
-                //}
-                ents.ForEach(ent =>
-                    ent.ForWrite(e => e.TransformBy(matrix)));
-                //var newents = ents.Select(ent =>
-                //{
-                //    var maping = new IdMapping();
-                //    return ent.DeepClone(ent, maping, true) as Entity;
-                //});
-                var newents = ents.Select(ent => ent.Clone() as Entity);
+            Point3d pt = extents.MinPoint;
+            Matrix3d matrix = Matrix3d.Displacement(Point3d.Origin - pt);
+            //var newEnts = new List<Entity>();
+            //foreach (var ent in ents)
+            //{
+            //    var newEnt = ent.Key;
+            //    newEnt.TransformBy(matrix);
+            //    newEnts.Add(newEnt);
+            //}
+            //if (tr.BlockTable.Has(blockName))
+            //{
+            //    Application.ShowAlertDialog(Environment.NewLine + "块名重复，程序退出！");
+            //    return;
+            //}
+            ents.ForEach(ent =>
+                ent.ForWrite(e => e.TransformBy(matrix)));
+            //var newents = ents.Select(ent =>
+            //{
+            //    var maping = new IdMapping();
+            //    return ent.DeepClone(ent, maping, true) as Entity;
+            //});
+            var newents = ents.Select(ent => ent.Clone() as Entity);
 
-                //ents.ForEach(ent => ent.ForWrite(e => e.Erase(true))); // 删除实体就会卡死，比较奇怪，估计是Clone()函数的问题
-                // 经过测试不是删除的问题
-                var btrId = tr.BlockTable.Add(blockName, newents);
-                ents.ForEach(ent => ent.ForWrite(e => e.Erase(true)));
-                var bId = tr.CurrentSpace.InsertBlock(pt, blockName);
-                //tr.GetObject<Entity>(bId, OpenMode.ForWrite).Move(Point3d.Origin, Point3d.Origin);
-                //var ed = Application.DocumentManager.MdiActiveDocument.Editor;
-                //ed.Regen();
-                //tr.Editor.Regen();
-                // 调用regen() 卡死
-            }
-            //tr.Editor.Regen();
+            //ents.ForEach(ent => ent.ForWrite(e => e.Erase(true))); // 删除实体就会卡死，比较奇怪，估计是Clone()函数的问题
+            // 经过测试不是删除的问题
+            var btrId = tr.BlockTable.Add(blockName, newents);
+            ents.ForEach(ent => ent.ForWrite(e => e.Erase(true)));
+            var bId = tr.CurrentSpace.InsertBlock(pt, blockName);
+            //tr.GetObject<Entity>(bId, OpenMode.ForWrite).Move(Point3d.Origin, Point3d.Origin);
+            //var ed = Application.DocumentManager.MdiActiveDocument.Editor;
             //ed.Regen();
+            //tr.Editor.Regen();
+            // 调用regen() 卡死
         }
+        //tr.Editor.Regen();
+        //ed.Regen();
         //using (var tr = new DBTrans())
         //{
         //    tr.CurrentSpace.InsertBlock(Point3d.Origin, blockName);
@@ -389,7 +387,7 @@ public class TestBlock
     {
         Database db = HostApplicationServices.WorkingDatabase;
         Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
-        PromptSelectionOptions promptOpt = new PromptSelectionOptions
+        PromptSelectionOptions promptOpt = new()
         {
             MessageForAdding = "请选择需要快速制作块的对象"
         };
@@ -401,38 +399,40 @@ public class TestBlock
             return;
         }
 
-        using (var tr = db.TransactionManager.StartTransaction())
+        using var tr = db.TransactionManager.StartTransaction();
+        var ids = rss.Value.GetObjectIds();
+        var bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+        var btr = new BlockTableRecord
         {
-            var ids = rss.Value.GetObjectIds();
-            var bt = tr.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-            var btr = new BlockTableRecord();
-            btr.Name = blockName;
-            foreach (var item in ids)
-            {
-                var ent = tr.GetObject(item, OpenMode.ForRead) as Entity;
+            Name = blockName
+        };
+        foreach (var item in ids)
+        {
+            var ent = tr.GetObject(item, OpenMode.ForRead) as Entity;
 
-                btr.AppendEntity(ent.Clone() as Entity);
-                ent.ForWrite(e => e.Erase(true));
-            }
-            bt.UpgradeOpen();
-            bt.Add(btr);
-            tr.AddNewlyCreatedDBObject(btr, true);
-            bt.DowngradeOpen();
-            //    tr.Commit();
-            //}
-
-            //using (var tr1 = db.TransactionManager.StartTransaction())
-            //{
-            //var bt = tr1.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
-            var btr1 = tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
-            var br = new BlockReference(Point3d.Origin, bt[blockName]);
-            br.ScaleFactors = default;
-            btr1.AppendEntity(br);
-            tr.AddNewlyCreatedDBObject(br, true);
-            btr1.DowngradeOpen();
-            ed.Regen();
-            tr.Commit();
+            btr.AppendEntity(ent.Clone() as Entity);
+            ent.ForWrite(e => e.Erase(true));
         }
+        bt.UpgradeOpen();
+        bt.Add(btr);
+        tr.AddNewlyCreatedDBObject(btr, true);
+        bt.DowngradeOpen();
+        //    tr.Commit();
+        //}
+
+        //using (var tr1 = db.TransactionManager.StartTransaction())
+        //{
+        //var bt = tr1.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
+        var btr1 = tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
+        var br = new BlockReference(Point3d.Origin, bt[blockName])
+        {
+            ScaleFactors = default
+        };
+        btr1.AppendEntity(br);
+        tr.AddNewlyCreatedDBObject(br, true);
+        btr1.DowngradeOpen();
+        ed.Regen();
+        tr.Commit();
         //ed.Regen();
 
     }
@@ -450,18 +450,15 @@ public class TestBlock
 
     public void TestChangeDynameicBlock()
     {
-        var pro = new Dictionary<string, object>();
-        pro.Add("haha", 1);
-        var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
-        using (var tr = new DBTrans())
+        var pro = new Dictionary<string, object>
         {
-            var blockref = tr.GetObject<BlockReference>(blockid);
-            blockref.ChangeBlockProperty(pro);
-            // 这是第一个函数的用法
-        }
-
-
-
+            { "haha", 1 }
+        };
+        var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
+        using var tr = new DBTrans();
+        var blockref = tr.GetObject<BlockReference>(blockid);
+        blockref.ChangeBlockProperty(pro);
+        // 这是第一个函数的用法
     }
 
     [CommandMethod("TestBack")]
@@ -494,7 +491,7 @@ public class BlockImportClass
 {
 
     [CommandMethod("CBLL")]
-    public void cbll()
+    public void Cbll()
     {
         string filename = @"C:\Users\vic\Desktop\Drawing1.dwg";
         using var tr = new DBTrans();
@@ -502,7 +499,6 @@ public class BlockImportClass
         //tr.BlockTable.GetBlockFrom(filename, true);
         string blkdefname = SymbolUtilityServices.RepairSymbolName(SymbolUtilityServices.GetSymbolNameFromPathName(filename, "dwg"), false);
         tr.Database.Insert(blkdefname, tr1.Database, false); //插入了块定义，未插入块参照
-
     }
 
 
@@ -573,46 +569,44 @@ public class BlockImportClass
 
                     // Create a source database to load the DWG into
 
-                    using (Database db = new Database(false, true))
+                    using Database db = new(false, true);
+                    // Read the DWG into our side database
+
+                    db.ReadDwgFile(fileName, FileShare.Read, true, "");
+                    bool isAnno = db.AnnotativeDwg;
+
+                    // Insert it into the destination database as
+                    // a named block definition
+
+                    ObjectId btrId = destDb.Insert(
+                      destName,
+                      db,
+                      false
+                    );
+
+                    if (isAnno)
                     {
-                        // Read the DWG into our side database
+                        // If an annotative block, open the resultant BTR
+                        // and set its annotative definition status
 
-                        db.ReadDwgFile(fileName, FileShare.Read, true, "");
-                        bool isAnno = db.AnnotativeDwg;
-
-                        // Insert it into the destination database as
-                        // a named block definition
-
-                        ObjectId btrId = destDb.Insert(
-                          destName,
-                          db,
-                          false
-                        );
-
-                        if (isAnno)
+                        Transaction tr =
+                          destDb.TransactionManager.StartTransaction();
+                        using (tr)
                         {
-                            // If an annotative block, open the resultant BTR
-                            // and set its annotative definition status
-
-                            Transaction tr =
-                              destDb.TransactionManager.StartTransaction();
-                            using (tr)
-                            {
-                                BlockTableRecord btr =
-                                  (BlockTableRecord)tr.GetObject(
-                                    btrId,
-                                    OpenMode.ForWrite
-                                  );
-                                btr.Annotative = AnnotativeStates.True;
-                                tr.Commit();
-                            }
+                            BlockTableRecord btr =
+                              (BlockTableRecord)tr.GetObject(
+                                btrId,
+                                OpenMode.ForWrite
+                              );
+                            btr.Annotative = AnnotativeStates.True;
+                            tr.Commit();
                         }
-
-                        // Print message and increment imported block counter
-
-                        ed.WriteMessage("\nImported from \"{0}\".", fileName);
-                        imported++;
                     }
+
+                    // Print message and increment imported block counter
+
+                    ed.WriteMessage("\nImported from \"{0}\".", fileName);
+                    imported++;
                 }
                 catch (System.Exception ex)
                 {

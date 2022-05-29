@@ -1,9 +1,9 @@
 ﻿namespace Test;
 
-public class testeditor
+public class Testeditor
 {
     [CommandMethod("tested")]
-    public void tested()
+    public void Tested()
     {
         var pts = new List<Point2d>
         {
@@ -24,7 +24,7 @@ public class testeditor
         Env.Editor.WriteMessage("");
     }
     [CommandMethod("testzoom")]
-    public void testzoom()
+    public void Testzoom()
     {
         using var tr = new DBTrans();
         var res = Env.Editor.GetEntity("\npick ent:");
@@ -36,7 +36,7 @@ public class testeditor
 
     }
     [CommandMethod("testzoomextent")]
-    public void testzoomextent()
+    public void Testzoomextent()
     {
         //using var tr = new DBTrans();
         //var res = Env.Editor.GetEntity("\npick ent:");
@@ -49,7 +49,7 @@ public class testeditor
     }
 
     [CommandMethod("testssget")]
-    public void testssget()
+    public void Testssget()
     {
         var action_a = () => { Env.Print("this is a"); };
         var action_b = () => { Env.Print("this is b"); };
