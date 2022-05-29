@@ -6,7 +6,7 @@
 		<Nullable>enable</Nullable>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
-        <Version>0.3.5</Version>
+        <Version>0.3.5.1</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的Cad二次开发类库</Description>
@@ -15,7 +15,7 @@
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
         <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
-        <PackageReleaseNotes>优化依赖.</PackageReleaseNotes>
+        <PackageReleaseNotes>直接集成元组和索引切片.</PackageReleaseNotes>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <LangVersion>preview</LangVersion>
