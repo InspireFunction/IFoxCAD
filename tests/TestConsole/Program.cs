@@ -18,5 +18,8 @@ Console.WriteLine(lastElement);
 int midElement = someArray[^3];
 Console.WriteLine(midElement);
 var range = someArray[1..3];
-
+foreach (var item in range)
+{
+    Console.WriteLine(item);
+}         
 Console.ReadLine();

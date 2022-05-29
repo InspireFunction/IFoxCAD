@@ -56,13 +56,13 @@ public readonly struct Range : IEquatable<Range>
     }
 
     /// <summary>Create a Range object starting from start index to the end of the collection.</summary>
-    public static Range StartAt(Index start) => new Range(start, Index.End);
+    public static Range StartAt(Index start) => new(start, Index.End);
 
     /// <summary>Create a Range object starting from first element in the collection to the end Index.</summary>
-    public static Range EndAt(Index end) => new Range(Index.Start, end);
+    public static Range EndAt(Index end) => new(Index.Start, end);
 
     /// <summary>Create a Range object starting from first element to the end.</summary>
-    public static Range All => new Range(Index.Start, Index.End);
+    public static Range All => new(Index.Start, Index.End);
 
     /// <summary>Calculate the start offset and length of range object using a collection length.</summary>
     /// <param name="length">The length of the collection that the range will be used with. length has to be a positive value.</param>
@@ -74,7 +74,7 @@ public readonly struct Range : IEquatable<Range>
 #if NET45
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-    [CLSCompliant(false)]
+    //[CLSCompliant(false)]
     public (int Offset, int Length) GetOffsetAndLength(int length)
     {
         int start;

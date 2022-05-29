@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-#pragma warning disable SA1141 // explicitly not using tuple syntax in tuple implementation
+//#pragma warning disable SA1141 // explicitly not using tuple syntax in tuple implementation
 
 using System.Collections;
 using System.Collections.Generic;
@@ -19,16 +19,12 @@ namespace System.Collections
     {
         int CompareTo(object? other, IComparer comparer);
     }
-}
-
-namespace System.Collections
-{
     public interface IStructuralEquatable
     {
         bool Equals(object? other, IEqualityComparer comparer);
         int GetHashCode(IEqualityComparer comparer);
     }
-} 
+}
 #endif
 
 
@@ -103,7 +99,7 @@ namespace System
             return true;
         }
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
         {
             return other is ValueTuple;
         }
@@ -112,7 +108,7 @@ namespace System
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple))
+            if (other is not ValueTuple)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -133,11 +129,11 @@ namespace System
             return 0;
         }
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
+        int IStructuralComparable.CompareTo(object? other, IComparer comparer)
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple))
+            if (other is not ValueTuple)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -183,15 +179,13 @@ namespace System
 
         /// <summary>Creates a new struct 0-tuple.</summary>
         /// <returns>A 0-tuple.</returns>
-        public static ValueTuple Create() =>
-            new ValueTuple();
+        public static ValueTuple Create() => new();
 
         /// <summary>Creates a new struct 1-tuple, or singleton.</summary>
         /// <typeparam name="T1">The type of the first component of the tuple.</typeparam>
         /// <param name="item1">The value of the first component of the tuple.</param>
         /// <returns>A 1-tuple (singleton) whose value is (item1).</returns>
-        public static ValueTuple<T1> Create<T1>(T1 item1) =>
-            new ValueTuple<T1>(item1);
+        public static ValueTuple<T1> Create<T1>(T1 item1) => new(item1);
 
         /// <summary>Creates a new struct 2-tuple, or pair.</summary>
         /// <typeparam name="T1">The type of the first component of the tuple.</typeparam>
@@ -199,8 +193,7 @@ namespace System
         /// <param name="item1">The value of the first component of the tuple.</param>
         /// <param name="item2">The value of the second component of the tuple.</param>
         /// <returns>A 2-tuple (pair) whose value is (item1, item2).</returns>
-        public static ValueTuple<T1, T2> Create<T1, T2>(T1 item1, T2 item2) =>
-            new ValueTuple<T1, T2>(item1, item2);
+        public static ValueTuple<T1, T2> Create<T1, T2>(T1 item1, T2 item2) => new(item1, item2);
 
         /// <summary>Creates a new struct 3-tuple, or triple.</summary>
         /// <typeparam name="T1">The type of the first component of the tuple.</typeparam>
@@ -211,7 +204,7 @@ namespace System
         /// <param name="item3">The value of the third component of the tuple.</param>
         /// <returns>A 3-tuple (triple) whose value is (item1, item2, item3).</returns>
         public static ValueTuple<T1, T2, T3> Create<T1, T2, T3>(T1 item1, T2 item2, T3 item3) =>
-            new ValueTuple<T1, T2, T3>(item1, item2, item3);
+            new(item1, item2, item3);
 
         /// <summary>Creates a new struct 4-tuple, or quadruple.</summary>
         /// <typeparam name="T1">The type of the first component of the tuple.</typeparam>
@@ -224,7 +217,7 @@ namespace System
         /// <param name="item4">The value of the fourth component of the tuple.</param>
         /// <returns>A 4-tuple (quadruple) whose value is (item1, item2, item3, item4).</returns>
         public static ValueTuple<T1, T2, T3, T4> Create<T1, T2, T3, T4>(T1 item1, T2 item2, T3 item3, T4 item4) =>
-            new ValueTuple<T1, T2, T3, T4>(item1, item2, item3, item4);
+            new(item1, item2, item3, item4);
 
         /// <summary>Creates a new struct 5-tuple, or quintuple.</summary>
         /// <typeparam name="T1">The type of the first component of the tuple.</typeparam>
@@ -239,7 +232,7 @@ namespace System
         /// <param name="item5">The value of the fifth component of the tuple.</param>
         /// <returns>A 5-tuple (quintuple) whose value is (item1, item2, item3, item4, item5).</returns>
         public static ValueTuple<T1, T2, T3, T4, T5> Create<T1, T2, T3, T4, T5>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5) =>
-            new ValueTuple<T1, T2, T3, T4, T5>(item1, item2, item3, item4, item5);
+            new(item1, item2, item3, item4, item5);
 
         /// <summary>Creates a new struct 6-tuple, or sextuple.</summary>
         /// <typeparam name="T1">The type of the first component of the tuple.</typeparam>
@@ -256,7 +249,7 @@ namespace System
         /// <param name="item6">The value of the sixth component of the tuple.</param>
         /// <returns>A 6-tuple (sextuple) whose value is (item1, item2, item3, item4, item5, item6).</returns>
         public static ValueTuple<T1, T2, T3, T4, T5, T6> Create<T1, T2, T3, T4, T5, T6>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6) =>
-            new ValueTuple<T1, T2, T3, T4, T5, T6>(item1, item2, item3, item4, item5, item6);
+            new(item1, item2, item3, item4, item5, item6);
 
         /// <summary>Creates a new struct 7-tuple, or septuple.</summary>
         /// <typeparam name="T1">The type of the first component of the tuple.</typeparam>
@@ -275,7 +268,7 @@ namespace System
         /// <param name="item7">The value of the seventh component of the tuple.</param>
         /// <returns>A 7-tuple (septuple) whose value is (item1, item2, item3, item4, item5, item6, item7).</returns>
         public static ValueTuple<T1, T2, T3, T4, T5, T6, T7> Create<T1, T2, T3, T4, T5, T6, T7>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7) =>
-            new ValueTuple<T1, T2, T3, T4, T5, T6, T7>(item1, item2, item3, item4, item5, item6, item7);
+            new(item1, item2, item3, item4, item5, item6, item7);
 
         /// <summary>Creates a new struct 8-tuple, or octuple.</summary>
         /// <typeparam name="T1">The type of the first component of the tuple.</typeparam>
@@ -296,7 +289,7 @@ namespace System
         /// <param name="item8">The value of the eighth component of the tuple.</param>
         /// <returns>An 8-tuple (octuple) whose value is (item1, item2, item3, item4, item5, item6, item7, item8).</returns>
         public static ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>> Create<T1, T2, T3, T4, T5, T6, T7, T8>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, T8 item8) =>
-            new ValueTuple<T1, T2, T3, T4, T5, T6, T7, ValueTuple<T8>>(item1, item2, item3, item4, item5, item6, item7, ValueTuple.Create(item8));
+            new(item1, item2, item3, item4, item5, item6, item7, ValueTuple.Create(item8));
 
         internal static int CombineHashCodes(int h1, int h2)
         {
@@ -368,7 +361,7 @@ namespace System
         /// </remarks>
         public override bool Equals(object obj)
         {
-            return obj is ValueTuple<T1> && Equals((ValueTuple<T1>)obj);
+            return obj is ValueTuple<T1> tuple && Equals(tuple);
         }
 
         /// <summary>
@@ -386,9 +379,9 @@ namespace System
             return EqualityComparer<T1>.Default.Equals(Item1, other.Item1);
         }
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
         {
-            if (other == null || !(other is ValueTuple<T1>)) return false;
+            if (other == null || other is not ValueTuple<T1>) return false;
 
             var objTuple = (ValueTuple<T1>)other;
 
@@ -399,7 +392,7 @@ namespace System
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1>))
+            if (other is not ValueTuple<T1>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -422,11 +415,11 @@ namespace System
             return Comparer<T1>.Default.Compare(Item1, other.Item1);
         }
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
+        int IStructuralComparable.CompareTo(object? other, IComparer comparer)
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1>))
+            if (other is not ValueTuple<T1>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -522,7 +515,7 @@ namespace System
         /// </remarks>
         public override bool Equals(object obj)
         {
-            return obj is ValueTuple<T1, T2> && Equals((ValueTuple<T1, T2>)obj);
+            return obj is ValueTuple<T1, T2> tuple && Equals(tuple);
         }
 
         /// <summary>
@@ -558,9 +551,9 @@ namespace System
         ///  <see cref="IEqualityComparer.Equals"/> implementation. If this method call returns <see langword="true"/>, the method is
         ///  called again and passed the <see cref="Item2"/> values of the two <see cref="ValueTuple{T1, T2}"/> instances.
         /// </remarks>
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
         {
-            if (other == null || !(other is ValueTuple<T1, T2>)) return false;
+            if (other is null or not ValueTuple<T1, T2>) return false;
 
             var objTuple = (ValueTuple<T1, T2>)other;
 
@@ -572,7 +565,7 @@ namespace System
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2>))
+            if (other is not ValueTuple<T1, T2>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -596,11 +589,11 @@ namespace System
             return Comparer<T2>.Default.Compare(Item2, other.Item2);
         }
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
+        int IStructuralComparable.CompareTo(object? other, IComparer comparer)
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2>))
+            if (other is not ValueTuple<T1, T2>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -712,7 +705,7 @@ namespace System
         /// </remarks>
         public override bool Equals(object obj)
         {
-            return obj is ValueTuple<T1, T2, T3> && Equals((ValueTuple<T1, T2, T3>)obj);
+            return obj is ValueTuple<T1, T2, T3> tuple && Equals(tuple);
         }
 
         /// <summary>
@@ -732,9 +725,9 @@ namespace System
                 && EqualityComparer<T3>.Default.Equals(Item3, other.Item3);
         }
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
         {
-            if (other == null || !(other is ValueTuple<T1, T2, T3>)) return false;
+            if (other == null || other is not ValueTuple<T1, T2, T3>) return false;
 
             var objTuple = (ValueTuple<T1, T2, T3>)other;
 
@@ -747,7 +740,7 @@ namespace System
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3>))
+            if (other is not ValueTuple<T1, T2, T3>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -774,11 +767,11 @@ namespace System
             return Comparer<T3>.Default.Compare(Item3, other.Item3);
         }
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
+        int IStructuralComparable.CompareTo(object? other, IComparer comparer)
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3>))
+            if (other is not ValueTuple<T1, T2, T3>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -900,7 +893,7 @@ namespace System
         /// </remarks>
         public override bool Equals(object obj)
         {
-            return obj is ValueTuple<T1, T2, T3, T4> && Equals((ValueTuple<T1, T2, T3, T4>)obj);
+            return obj is ValueTuple<T1, T2, T3, T4> tuple && Equals(tuple);
         }
 
         /// <summary>
@@ -921,9 +914,9 @@ namespace System
                 && EqualityComparer<T4>.Default.Equals(Item4, other.Item4);
         }
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
         {
-            if (other == null || !(other is ValueTuple<T1, T2, T3, T4>)) return false;
+            if (other == null || other is not ValueTuple<T1, T2, T3, T4>) return false;
 
             var objTuple = (ValueTuple<T1, T2, T3, T4>)other;
 
@@ -937,7 +930,7 @@ namespace System
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3, T4>))
+            if (other is not ValueTuple<T1, T2, T3, T4>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -967,11 +960,11 @@ namespace System
             return Comparer<T4>.Default.Compare(Item4, other.Item4);
         }
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
+        int IStructuralComparable.CompareTo(object? other, IComparer comparer)
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3, T4>))
+            if (other is not ValueTuple<T1, T2, T3, T4>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -1105,7 +1098,7 @@ namespace System
         /// </remarks>
         public override bool Equals(object obj)
         {
-            return obj is ValueTuple<T1, T2, T3, T4, T5> && Equals((ValueTuple<T1, T2, T3, T4, T5>)obj);
+            return obj is ValueTuple<T1, T2, T3, T4, T5> tuple && Equals(tuple);
         }
 
         /// <summary>
@@ -1127,9 +1120,9 @@ namespace System
                 && EqualityComparer<T5>.Default.Equals(Item5, other.Item5);
         }
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
         {
-            if (other == null || !(other is ValueTuple<T1, T2, T3, T4, T5>)) return false;
+            if (other == null || other is not ValueTuple<T1, T2, T3, T4, T5>) return false;
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5>)other;
 
@@ -1144,7 +1137,7 @@ namespace System
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3, T4, T5>))
+            if (other is not ValueTuple<T1, T2, T3, T4, T5>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -1177,11 +1170,11 @@ namespace System
             return Comparer<T5>.Default.Compare(Item5, other.Item5);
         }
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
+        int IStructuralComparable.CompareTo(object? other, IComparer comparer)
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3, T4, T5>))
+            if (other is not ValueTuple<T1, T2, T3, T4, T5>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -1327,7 +1320,7 @@ namespace System
         /// </remarks>
         public override bool Equals(object obj)
         {
-            return obj is ValueTuple<T1, T2, T3, T4, T5, T6> && Equals((ValueTuple<T1, T2, T3, T4, T5, T6>)obj);
+            return obj is ValueTuple<T1, T2, T3, T4, T5, T6> tuple && Equals(tuple);
         }
 
         /// <summary>
@@ -1350,9 +1343,9 @@ namespace System
                 && EqualityComparer<T6>.Default.Equals(Item6, other.Item6);
         }
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
         {
-            if (other == null || !(other is ValueTuple<T1, T2, T3, T4, T5, T6>)) return false;
+            if (other == null || other is not ValueTuple<T1, T2, T3, T4, T5, T6>) return false;
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5, T6>)other;
 
@@ -1368,7 +1361,7 @@ namespace System
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6>))
+            if (other is not ValueTuple<T1, T2, T3, T4, T5, T6>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -1404,11 +1397,11 @@ namespace System
             return Comparer<T6>.Default.Compare(Item6, other.Item6);
         }
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
+        int IStructuralComparable.CompareTo(object? other, IComparer comparer)
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6>))
+            if (other is not ValueTuple<T1, T2, T3, T4, T5, T6>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -1566,7 +1559,7 @@ namespace System
         /// </remarks>
         public override bool Equals(object obj)
         {
-            return obj is ValueTuple<T1, T2, T3, T4, T5, T6, T7> && Equals((ValueTuple<T1, T2, T3, T4, T5, T6, T7>)obj);
+            return obj is ValueTuple<T1, T2, T3, T4, T5, T6, T7> tuple && Equals(tuple);
         }
 
         /// <summary>
@@ -1590,9 +1583,9 @@ namespace System
                 && EqualityComparer<T7>.Default.Equals(Item7, other.Item7);
         }
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
         {
-            if (other == null || !(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7>)) return false;
+            if (other == null || other is not ValueTuple<T1, T2, T3, T4, T5, T6, T7>) return false;
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5, T6, T7>)other;
 
@@ -1609,7 +1602,7 @@ namespace System
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7>))
+            if (other is not ValueTuple<T1, T2, T3, T4, T5, T6, T7>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -1648,11 +1641,11 @@ namespace System
             return Comparer<T7>.Default.Compare(Item7, other.Item7);
         }
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
+        int IStructuralComparable.CompareTo(object? other, IComparer comparer)
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7>))
+            if (other is not ValueTuple<T1, T2, T3, T4, T5, T6, T7>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -1798,7 +1791,7 @@ namespace System
         /// <param name="rest">The value of the tuple's eight component.</param>
         public ValueTuple(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest)
         {
-            if (!(rest is ITupleInternal))
+            if (rest is not ITupleInternal)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleLastArgumentNotAValueTuple);
             }
@@ -1828,7 +1821,7 @@ namespace System
         /// </remarks>
         public override bool Equals(object obj)
         {
-            return obj is ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> && Equals((ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>)obj);
+            return obj is ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> tuple && Equals(tuple);
         }
 
         /// <summary>
@@ -1853,9 +1846,9 @@ namespace System
                 && EqualityComparer<TRest>.Default.Equals(Rest, other.Rest);
         }
 
-        bool IStructuralEquatable.Equals(object other, IEqualityComparer comparer)
+        bool IStructuralEquatable.Equals(object? other, IEqualityComparer comparer)
         {
-            if (other == null || !(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>)) return false;
+            if (other == null || other is not ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>) return false;
 
             var objTuple = (ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>)other;
 
@@ -1873,7 +1866,7 @@ namespace System
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>))
+            if (other is not ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -1915,11 +1908,11 @@ namespace System
             return Comparer<TRest>.Default.Compare(Rest, other.Rest);
         }
 
-        int IStructuralComparable.CompareTo(object other, IComparer comparer)
+        int IStructuralComparable.CompareTo(object? other, IComparer comparer)
         {
             if (other == null) return 1;
 
-            if (!(other is ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>))
+            if (other is not ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>)
             {
                 throw new ArgumentException(SR.ArgumentException_ValueTupleIncorrectType, nameof(other));
             }
@@ -1957,8 +1950,7 @@ namespace System
         public override int GetHashCode()
         {
             // We want to have a limited hash in this case.  We'll use the last 8 elements of the tuple
-            ITupleInternal rest = Rest as ITupleInternal;
-            if (rest == null)
+            if (Rest is not ITupleInternal rest)
             {
                 return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
                                                    EqualityComparer<T2>.Default.GetHashCode(Item2),
@@ -2033,12 +2025,16 @@ namespace System
         private int GetHashCodeCore(IEqualityComparer comparer)
         {
             // We want to have a limited hash in this case.  We'll use the last 8 elements of the tuple
-            ITupleInternal rest = Rest as ITupleInternal;
-            if (rest == null)
+            if (Rest is not ITupleInternal rest)
             {
-                return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item1), comparer.GetHashCode(Item2), comparer.GetHashCode(Item3),
-                                                   comparer.GetHashCode(Item4), comparer.GetHashCode(Item5), comparer.GetHashCode(Item6),
-                                                   comparer.GetHashCode(Item7));
+                return ValueTuple.CombineHashCodes(
+                    comparer.GetHashCode(Item1),
+                    comparer.GetHashCode(Item2),
+                    comparer.GetHashCode(Item3),
+                    comparer.GetHashCode(Item4),
+                    comparer.GetHashCode(Item5),
+                    comparer.GetHashCode(Item6),
+                    comparer.GetHashCode(Item7));
             }
 
             int size = rest.Size;
@@ -2091,8 +2087,7 @@ namespace System
         /// </remarks>
         public override string ToString()
         {
-            ITupleInternal rest = Rest as ITupleInternal;
-            if (rest == null)
+            if (Rest is not ITupleInternal rest)
             {
                 return "(" + Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ", " + Item5?.ToString() + ", " + Item6?.ToString() + ", " + Item7?.ToString() + ", " + Rest.ToString() + ")";
             }
@@ -2104,8 +2099,7 @@ namespace System
 
         string ITupleInternal.ToStringEnd()
         {
-            ITupleInternal rest = Rest as ITupleInternal;
-            if (rest == null)
+            if (Rest is not ITupleInternal rest)
             {
                 return Item1?.ToString() + ", " + Item2?.ToString() + ", " + Item3?.ToString() + ", " + Item4?.ToString() + ", " + Item5?.ToString() + ", " + Item6?.ToString() + ", " + Item7?.ToString() + ", " + Rest.ToString() + ")";
             }
@@ -2119,8 +2113,9 @@ namespace System
         {
             get
             {
-                ITupleInternal rest = Rest as ITupleInternal;
-                return rest == null ? 8 : 7 + rest.Size;
+                //ITupleInternal? rest = Rest as ITupleInternal;
+                //return rest == null ? 8 : 7 + rest.Size;
+                return Rest is not ITupleInternal rest ? 8 : 7 + rest.Size;
             }
         }
     }
