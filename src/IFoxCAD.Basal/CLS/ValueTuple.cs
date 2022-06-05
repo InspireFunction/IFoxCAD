@@ -22,6 +22,8 @@ namespace System.Collections
 #endif
 
 
+
+
 namespace System.Numerics.Hashing
 {
     internal static class HashHelpers
@@ -34,6 +36,9 @@ namespace System.Numerics.Hashing
             {
                 // RyuJIT optimizes this to use the ROL instruction
                 // Related GitHub pull request: dotnet/coreclr#1830
+
+                // RyuJIT 对此进行了优化以使用 ROL 指令
+                // 相关 GitHub 拉取请求：dotnet/coreclr#1830
                 uint rol5 = ((uint)h1 << 5) | ((uint)h1 >> 27);
                 return ((int)rol5 + h1) ^ h2;
             }
@@ -44,18 +49,19 @@ namespace System.Numerics.Hashing
 
 
 
-
-
 namespace System
 {
     internal static class SR
     {
-        public const string ArgumentException_ValueTupleIncorrectType = "The parameter should be a ValueTuple type of appropriate arity.";
-        public const string ArgumentException_ValueTupleLastArgumentNotAValueTuple = "The TRest type argument of ValueTuple`8 must be a ValueTuple.";
+        // public const string ArgumentException_ValueTupleIncorrectType = "The parameter should be a ValueTuple type of appropriate arity.";
+        // public const string ArgumentException_ValueTupleLastArgumentNotAValueTuple = "The TRest type argument of ValueTuple`8 must be a ValueTuple."; 
+        public const string ArgumentException_ValueTupleIncorrectType = "该参数应该是适当数量的 ValueTuple 类型.";
+        public const string ArgumentException_ValueTupleLastArgumentNotAValueTuple = "ValueTuple`8 的 TREST 类型参数必须是 ValueTuple.";
     }
 
+    // Helper so we can call some tuple methods recursively without knowing the underlying types.
     /// <summary>
-    /// Helper so we can call some tuple methods recursively without knowing the underlying types.
+    /// 帮助器,因此我们可以在不知道底层类型的情况下递归调用一些元组方法.
     /// </summary>
     internal interface ITupleInternal
     {
@@ -64,13 +70,20 @@ namespace System
         string ToStringEnd();
     }
 
+
+    // The ValueTuple types (from arity 0 to 8) comprise the runtime implementation that underlies tuples in C# and struct tuples in F#.
+    // Aside from created via language syntax, they are most easily created via the ValueTuple.Create factory methods.
+    // The System.ValueTuple types differ from the System.Tuple types in that:
+    // - they are structs rather than classes,
+    // - they are mutable rather than readonly, and
+    // - their members (such as Item1, Item2, etc) are fields rather than properties.
     /// <summary>
-    /// The ValueTuple types (from arity 0 to 8) comprise the runtime implementation that underlies tuples in C# and struct tuples in F#.
-    /// Aside from created via language syntax, they are most easily created via the ValueTuple.Create factory methods.
-    /// The System.ValueTuple types differ from the System.Tuple types in that:
-    /// - they are structs rather than classes,
-    /// - they are mutable rather than readonly, and
-    /// - their members (such as Item1, Item2, etc) are fields rather than properties.
+    /// ValueTuple 类型(从 arity 0 到 8)包含运行时实现,它是 C# 中的元组和 F# 中的结构元组的基础.
+    /// 除了通过语言语法创建之外,它们最容易通过 ValueTuple.Create 工厂方法创建.
+    /// System.ValueTuple 类型与 System.Tuple 类型的不同之处在于：
+    /// - 它们是结构而不是类,
+    /// - 它们是可变的而不是只读的,并且
+    /// - 它们的成员（例如 Item1、Item2 等）是字段而不是属性.
     /// </summary>
     public struct ValueTuple
         : IEquatable<ValueTuple>, IStructuralEquatable, IStructuralComparable, IComparable, IComparable<ValueTuple>, ITupleInternal
