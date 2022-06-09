@@ -136,13 +136,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// <param name="node2">第二个节点</param>
     public void Swap(LoopListNode<T> node1, LoopListNode<T> node2)
     {
-#if NET35
-        var value = node1.Value;
-        node1.Value = node2.Value;
-        node2.Value = value;
-#else
         (node2.Value, node1.Value) = (node1.Value, node2.Value);
-#endif
     }
 
     /// <summary>
