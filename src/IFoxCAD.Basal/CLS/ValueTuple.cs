@@ -3,8 +3,19 @@
 
 //#pragma warning disable SA1141 // explicitly not using tuple syntax in tuple implementation
 
+
 using System.Diagnostics;
 using System.Numerics.Hashing;
+/*
+ * 惊惊:
+ * 首先是因为有人想要编译的时候只形成一个dll,然后把元组塞入IFox,同时也补充了net35没有元组的遗憾.
+ * 而利用nuget元组包必然会形成依赖地狱.
+ * 
+ * 如果你的工程使用了nuget元组包,就造成了必须要剔除IFox.
+ * 
+ * 改IFox的元组命名空间倒是可以分离两者,但是 vs编译器 无法识别带其他命名空间的元组.
+ * 所以元组本身就是冲突的,需要把其他元组卸载掉,由IFox提供.
+ */
 
 #if NET35
 namespace System.Collections
@@ -20,7 +31,6 @@ namespace System.Collections
     }
 }
 #endif
-
 
 
 
