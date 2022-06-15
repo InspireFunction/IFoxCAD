@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
 public static class PointEx
 {
@@ -19,6 +19,27 @@ public static class PointEx
             2 => $"({pt.X.ToString(de)},{pt.Y.ToString(de)})",
             _ => $"({pt.X.ToString(de)},{pt.Y.ToString(de)},{pt.Z.ToString(de)})"
         };
+    }
+    /// <summary>
+    /// 两点计算弧度范围0到2Pi
+    /// </summary>
+    /// <param name="startPoint">起点</param>
+    /// <param name="endPoint">终点</param>
+    /// <param name="direction">方向</param>
+    /// <returns>弧度值</returns>
+    public static double GetAngle(this Point3d startPoint, Point3d endPoint, Vector3d? direction = null)
+    {
+        return startPoint.GetVectorTo(endPoint).AngleOnPlane(new Plane(Point3d.Origin, direction ?? Vector3d.ZAxis));
+    }
+    /// <summary>
+    /// 两点计算弧度范围0到2Pi
+    /// </summary>
+    /// <param name="startPoint">起点</param>
+    /// <param name="endPoint">终点</param>
+    /// <returns>弧度值</returns>
+    public static double GetAngle(this Point2d startPoint, Point2d endPoint)
+    {
+        return startPoint.GetVectorTo(endPoint).Angle;
     }
 
 
