@@ -14,7 +14,7 @@ namespace IFoxCAD.Cad
             var tick = DateTime.Now.Ticks;
 
             /*
-             *                                                           |             高位               |              低位             |
+             *                                                           |             高位64位            |          低位32位             |
              * Convert.ToString(int.MaxValue, 2)输出二进制                                                 "1111111111111111111111111111111" 31个;最高位是符号位,所以少1位
              * Convert.ToString(long.MaxValue,2)输出二进制,刚好长一倍      "11111111111111111111111111111111 1111111111111111111111111111111" 63个;最高位是符号位,所以少1位
              * Convert.ToString(0xffffffffL,  2)int.MaxValue再按位多1                                    "1 1111111111111111111111111111111" 32个;前面的0不会打印出来
@@ -25,7 +25,8 @@ namespace IFoxCAD.Cad
              * Convert.ToString(a >> 32,2);
              *
              * (&是尽可能为0) (|是尽可能为1)
-             * 64位的1位尽可能为0;这31位就保持不变;再右移高位31位过来低位,尽可能保持低位为1
+             * 32位符号位尽可能为0;再右移高位来低位,使得低位尽可能为1...那它含义何在呢?随机数尽可能大值?
+             * 
              */
             var tickSeeds = (int)(tick & 0xffffffffL) | (int)(tick >> 32);
             return new Random(tickSeeds);
