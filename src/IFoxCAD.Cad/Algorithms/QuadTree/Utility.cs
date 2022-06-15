@@ -24,10 +24,13 @@ namespace IFoxCAD.Cad
              * var a = Convert.ToInt64("101111111111111111111111111111111111111111111111111111111111111", 2);
              * Convert.ToString(a >> 32,2);
              *
-             * (&是尽可能为0) (|是尽可能为1)
-             * 32位符号位尽可能为0;再右移高位来低位,使得低位尽可能为1...那它含义何在呢?随机数尽可能大值?
-             * 
+             * 按位与&是保证符号位肯定是1,其他尽可能为0,高位被去掉只是max&0的原因,强转才是去掉高位...带来第一次随机性
+             * (int)(long.MaxValue & 0xffffffffL) | (int)(long.MaxValue >> 32);
+             * Convert.ToString(long.MaxValue & 0xffffffffL, 2)//去掉高位:"11111111111111111111111111111111" 32个,再强转int
+             * Convert.ToString((long.MaxValue >> 32), 2)      //去掉低位: "1111111111111111111111111111111" 31个,再强转int
+             * 按位或|是尽可能为1...带来第二次随机性
              */
+
             var tickSeeds = (int)(tick & 0xffffffffL) | (int)(tick >> 32);
             return new Random(tickSeeds);
         }
