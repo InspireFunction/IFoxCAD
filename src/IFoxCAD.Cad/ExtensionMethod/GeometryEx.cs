@@ -608,6 +608,16 @@ public static class GeometryEx
     {
         return new Point3d(pt.X, pt.Y, 0);
     }
+    /// <summary>
+    /// 将二维点转换为三维点
+    /// </summary>
+    /// <param name="pt">二维点</param>
+    /// <param name="z">Z值</param>
+    /// <returns>三维点</returns>
+    public static Point3d Point3d(this Point2d pt,double z)
+    {
+        return new Point3d(pt.X, pt.Y, z);
+    }
 
     /// <summary>
     /// 获取两个点之间的中点
