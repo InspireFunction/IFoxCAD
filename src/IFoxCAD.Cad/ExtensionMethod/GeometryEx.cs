@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
 using System.Drawing;
 using IFoxCAD.Basal;
@@ -645,5 +645,17 @@ public static class GeometryEx
     public static Point3d Polar(this Point3d pt, double ang, double len)
     {
         return pt + Vector3d.XAxis.RotateBy(ang, Vector3d.ZAxis) * len;
+    }
+    /// <summary>
+    /// 计算指定距离和角度的点
+    /// </summary>
+    /// <remarks>本函数仅适用于x-y平面</remarks>
+    /// <param name="pt">基点</param>
+    /// <param name="ang">角度，x轴正向逆时针弧度</param>
+    /// <param name="len">距离</param>
+    /// <returns>目标点</returns>
+    public static Point2d Polar(this Point2d pt, double ang, double len)
+    {
+        return pt + Vector2d.XAxis.RotateBy(ang) * len;
     }
 }
