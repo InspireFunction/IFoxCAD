@@ -12,15 +12,21 @@ namespace IFoxCAD.Cad
         public static Random GetRandom()
         {
             var tick = DateTime.Now.Ticks;
-            // Convert.ToString(int.MaxValue, 2)输出二进制
-            // Convert.ToString(long.MaxValue, 2)输出二进制,刚好长一倍
-            // Convert.ToString(0xffffffffL, 2)就是int.MaxValue再按位多1;
 
-            // Convert.ToString(0xffffffffL>>2, 2)就是截断了0xffffffffL的位范围,63-32=31位数量;
-            // 64位少最高位(符号)和最低位>>到32位范围
-            // (&是尽可能为0) (|是尽可能为1)
-
-            //64位的1位尽可能为0;这31位就保持不变;再右移高位31位过来低位,尽可能保持低位为1
+            /*
+             *                                                           |             高位               |              低位             |
+             * Convert.ToString(int.MaxValue, 2)输出二进制                                                 "1111111111111111111111111111111" 31个;最高位是符号位,所以少1位
+             * Convert.ToString(long.MaxValue,2)输出二进制,刚好长一倍      "11111111111111111111111111111111 1111111111111111111111111111111" 63个;最高位是符号位,所以少1位
+             * Convert.ToString(0xffffffffL,  2)int.MaxValue再按位多1                                    "1 1111111111111111111111111111111" 32个;前面的0不会打印出来
+             *
+             * Convert.ToString(long.MaxValue>>32, 2)相当于平移高位的到低位范围,也就是上面少打印的二进制
+             * 验证右移是不是高位保留,答案是
+             * var a = Convert.ToInt64("101111111111111111111111111111111111111111111111111111111111111", 2);
+             * Convert.ToString(a >> 32,2);
+             *
+             * (&是尽可能为0) (|是尽可能为1)
+             * 64位的1位尽可能为0;这31位就保持不变;再右移高位31位过来低位,尽可能保持低位为1
+             */
             var tickSeeds = (int)(tick & 0xffffffffL) | (int)(tick >> 32);
             return new Random(tickSeeds);
         }
