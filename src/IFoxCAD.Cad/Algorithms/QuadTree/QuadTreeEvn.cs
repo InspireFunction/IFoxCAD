@@ -1,4 +1,5 @@
-﻿namespace IFoxCAD.Cad
+﻿#pragma warning disable CA2211 // 非常量字段应当不可见
+namespace IFoxCAD.Cad
 {
     public class QuadTreeEvn
     {
@@ -23,3 +24,4 @@
         public static int QuadTreeContentsCountSplit = 20;
     }
 }
+#pragma warning restore CA2211 // 非常量字段应当不可见

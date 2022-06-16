@@ -130,6 +130,13 @@ public class Rect : IEquatable<Rect>
     #region 构造
     public Rect() { }
 
+    /// <summary>
+    /// 矩形类
+    /// </summary>
+    /// <param name="left">左</param>
+    /// <param name="bottom">下</param>
+    /// <param name="right">右</param>
+    /// <param name="top">上</param>
     public Rect(double left, double bottom, double right, double top)
     {
         _X = left;

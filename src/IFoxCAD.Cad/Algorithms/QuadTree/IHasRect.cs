@@ -9,7 +9,7 @@
         /// <summary>
         /// 颜色
         /// </summary>
-        public System.Drawing.Color Color;
+        //public System.Drawing.Color Color;
 
         /// <summary>
         /// 是一个点
