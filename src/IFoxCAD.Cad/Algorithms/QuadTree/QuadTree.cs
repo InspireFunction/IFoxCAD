@@ -27,7 +27,7 @@ namespace IFoxCAD.Cad
     /// 根节点控制器
     /// </summary>
     /// <typeparam name="TEntity">类型接口约束必须有正交矩形</typeparam>
-    public class QuadTree<TEntity> where TEntity : IHasRect
+    public class QuadTree<TEntity> where TEntity : QuadEntity
     {
         #region 成员
         /// <summary>

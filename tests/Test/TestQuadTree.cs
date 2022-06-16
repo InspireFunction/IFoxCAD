@@ -1,19 +1,25 @@
 ﻿namespace Test;
 
+/*
+ * 这里必须要继承它,再提供给四叉树
+ * 主要是用户可以扩展属性
+ */
 public class CadEntity : QuadEntity
 {
     //这里加入其他字段
-    public int MyProperty { get; set; }
     public List<QuadEntity>? Link;//碰撞链...这里外面自己封装去
-    public System.Drawing.Color Color { get; set; }
+    public System.Drawing.Color Color;
     public CadEntity(ObjectId objectId, Rect box) : base(objectId, box)
     {
-
+        
     }
 }
 
 public class TestQuadTree
 {
+    QuadTree<CadEntity> _quadTreeRoot;
+
+
     [CommandMethod("Test_QuadTree")]
     public void Test_QuadTree()
     {
@@ -36,7 +42,7 @@ public class TestQuadTree
         }
 
         //创建四叉树
-        var _quadTreeRoot = new QuadTree<CadEntity>(dbExt);
+        _quadTreeRoot = new QuadTree<CadEntity>(dbExt);
 
         //数据库边界
         var pl = dbExt.ToPoints();
@@ -53,7 +59,7 @@ public class TestQuadTree
 
         //随机图元生成
         List<CadEntity> ces = new();  //用于随机获取图元
-        var allTime = Timer.RunTime(() => {
+        Timer.RunTime(() => {
             //生成外边界和随机圆形 
             var grc = GenerateRandomCircle(maximumItems, dbExt);
             foreach (var ent in grc)
@@ -64,18 +70,20 @@ public class TestQuadTree
                 //四叉树数据
                 var entRect = new Rect(edge.MinPoint.X, edge.MinPoint.Y, edge.MaxPoint.X, edge.MaxPoint.Y);
                 var entId = tr.CurrentSpace.AddEntity(ent);
-                var ce = new CadEntity(entId, entRect);
-                ce.Color = Utility.RandomColor;
+                var ce = new CadEntity(entId, entRect)
+                {
+                    Color = Utility.RandomColor
+                };
                 ces.Add(ce);
             }
-        });
+        }, msg: "画圆消耗时间:");
 
         //测试只加入四叉树的时间
-        var insertTime = Timer.RunTime(() => {
+        Timer.RunTime(() => {
             _quadTreeRoot.Insert(ces);
-        });
+        }, msg: "插入四叉树时间:");
 
-        tr.Editor.WriteMessage($"\n加入图元数量:{maximumItems}, 插入四叉树时间:{insertTime / 1000.0}秒, 画圆消耗时间:{allTime / 1000.0}秒");
+        tr.Editor.WriteMessage($"\n加入图元数量:{maximumItems}");
     }
 
     /// <summary>
@@ -99,4 +107,70 @@ public class TestQuadTree
         }
     }
 
+
+    #region 四叉树查询节点
+    //选择范围改图元颜色
+    [CommandMethod("CmdTest_QuadTree3")]
+    public void CmdTest_QuadTree3()
+    {
+        Ssget(QuadTreeSelectMode.IntersectsWith);
+    }
+
+    [CommandMethod("CmdTest_QuadTree4")]
+    public void CmdTest_QuadTree4()
+    {
+        Ssget(QuadTreeSelectMode.Contains);
+    }
+
+    /// <summary>
+    /// 改颜色
+    /// </summary>
+    /// <param name="mode"></param>
+    void Ssget(QuadTreeSelectMode mode)
+    {
+        using var tr = new DBTrans();
+
+        if (_quadTreeRoot is null)
+            return;
+        var rect = GetCorner(tr.Editor);
+        if (rect is null)
+            return;
+
+        tr.Editor.WriteMessage("选择模式:" + mode);
+
+        //仿选择集
+        var ces = _quadTreeRoot.Query(rect, mode);
+        ces.ForEach(item => {
+            var ent = tr.GetObject<Entity>(item.ObjectId, OpenMode.ForWrite);
+            ent.Color = Color.FromColor(item.Color);
+            ent.DowngradeOpen();
+            ent.Dispose();
+        });
+    }
+
+    /// <summary>
+    /// 交互获取
+    /// </summary>
+    /// <param name="ed"></param>
+    /// <returns></returns>
+    public Rect? GetCorner(Editor ed)
+    {
+        var optionsA = new PromptPointOptions($"{Environment.NewLine}起点位置:");
+        var pprA = ed.GetPoint(optionsA);
+        if (pprA.Status != PromptStatus.OK)
+            return null;
+        var optionsB = new PromptCornerOptions(Environment.NewLine + "输入矩形角点2:", pprA.Value)
+        {
+            UseDashedLine = true,//使用虚线
+            AllowNone = true,//回车
+        };
+        var pprB = ed.GetCorner(optionsB);
+        if (pprB.Status != PromptStatus.OK)
+            return null;
+
+        return new Rect(new Point2d(pprA.Value.X, pprA.Value.Y), 
+                        new Point2d(pprB.Value.X, pprB.Value.Y),
+                        true);
+    }
+    #endregion
 }

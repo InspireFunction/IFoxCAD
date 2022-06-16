@@ -10,7 +10,7 @@ namespace IFoxCAD.Cad
     /// <typeparam name="TEntity"></typeparam>
     public class QuadTreeNode<TEntity> 
         : Rect 
-        where TEntity : IHasRect
+        where TEntity : QuadEntity
     {
         #region 成员
         /// <summary>

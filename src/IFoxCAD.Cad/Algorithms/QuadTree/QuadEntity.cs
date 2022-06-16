@@ -1,12 +1,22 @@
 ﻿namespace IFoxCAD.Cad;
 
+/*
+ * 这个类存在的意义是为了不暴露Rect类字段
+ * 同时利用了Rect类字段的快速
+ * 提供到外面去再继承
+ */
+
 /// <summary>
 /// 四叉树图元
 /// </summary>
-public class QuadEntity : IHasRect, IComparable<QuadEntity>
+public class QuadEntity : Rect, IComparable<QuadEntity>
 {
     public ObjectId ObjectId;
-    public new bool IsPoint => Area == 0;
+    /// <summary>
+    /// 是一个点
+    /// </summary>
+    public bool IsPoint => Area == 0;
+
     //public List<QuadEntity>? Link;//碰撞链...这里外面自己封装去
 
     /// <summary>
