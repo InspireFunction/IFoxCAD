@@ -328,6 +328,18 @@ public static class EntityEx
         return geArc.ToCircle();
     }
 
+    /// <summary>
+    /// 通过圆心,半径绘制圆形
+    /// </summary>
+    /// <param name="db">图形数据库</param>
+    /// <param name="center">圆心</param>
+    /// <param name="radius">半径</param>
+    /// <returns>图形的ObjectId</returns>
+    public static Circle? CreateCircle(Point3d center, double radius, double vex = 0, double vey = 0, double vez = 1)
+    {
+        return new Circle(center, new Vector3d(vex, vey, vez), radius);//平面法向量XY方向
+    }
+
     #endregion
 
     #region 块参照

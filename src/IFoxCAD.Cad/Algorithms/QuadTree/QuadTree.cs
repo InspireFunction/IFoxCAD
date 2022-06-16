@@ -104,14 +104,13 @@ namespace IFoxCAD.Cad
                         sq_Botton -= _rootNode.Height;
                     }
                 }
+                //扩大2次方
                 var rectSquare = new Rect(sq_Left, sq_Botton, sq_Right, sq_Top);
 
                 //四叉树的旧根要作为四分之一插入
-                //初始化根节点
-                var newRoot = new QuadTreeNode<TEntity>(rectSquare, null, 0);
-
                 //新根中计算原根
                 //把 旧根节点 连接到 新根节点 上面,然后新根成为根
+                var newRoot = new QuadTreeNode<TEntity>(rectSquare, null, 0);
                 var insert = newRoot.Insert(_rootNode);
                 if (insert is null)
                     throw new ArgumentException("新根尺寸不对");

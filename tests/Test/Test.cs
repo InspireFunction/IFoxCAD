@@ -158,6 +158,7 @@ public class Test
     {
         using var tr = new DBTrans();
         Polyline pl = new();
+        pl.SetDatabaseDefaults();
         pl.AddVertexAt(0, new Point2d(0, 0), 0, 0, 0);
         pl.AddVertexAt(1, new Point2d(10, 10), 0, 0, 0);
         pl.AddVertexAt(2, new Point2d(20, 20), 0, 0, 0);

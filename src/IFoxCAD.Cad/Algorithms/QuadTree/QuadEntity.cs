@@ -3,18 +3,18 @@
 /// <summary>
 /// 四叉树图元
 /// </summary>
-public class CadEntity : IHasRect, IComparable<CadEntity>
+public class QuadEntity : IHasRect, IComparable<QuadEntity>
 {
     public ObjectId ObjectId;
     public new bool IsPoint => Area == 0;
-    public List<CadEntity>? Link;//碰撞链
+    //public List<QuadEntity>? Link;//碰撞链...这里外面自己封装去
 
     /// <summary>
     /// 四叉树图元
     /// </summary>
     /// <param name="objectId">图元id</param>
     /// <param name="box">包围盒</param>
-    public CadEntity(ObjectId objectId, Rect box)
+    public QuadEntity(ObjectId objectId, Rect box)
     {
         ObjectId = objectId;
         _X = box._X;
@@ -22,7 +22,7 @@ public class CadEntity : IHasRect, IComparable<CadEntity>
         _Top = box._Top;
         _Right = box._Right;
     }
-    public int CompareTo(CadEntity other)
+    public int CompareTo(QuadEntity other)
     {
         return ObjectId.GetHashCode() ^ other.ObjectId.GetHashCode();
     }
