@@ -13,7 +13,8 @@ namespace IFoxCAD.Cad
         {
             var tick = DateTime.Now.Ticks;
 
-            /*
+            /* 
+             * 知识准备:
              *                                                           |             高位64位            |          低位32位             |
              * Convert.ToString(int.MaxValue, 2)输出二进制                                                 "1111111111111111111111111111111" 31个;最高位是符号位,所以少1位
              * Convert.ToString(long.MaxValue,2)输出二进制,刚好长一倍      "11111111111111111111111111111111 1111111111111111111111111111111" 63个;最高位是符号位,所以少1位
@@ -24,9 +25,12 @@ namespace IFoxCAD.Cad
              * var a = Convert.ToInt64("101111111111111111111111111111111111111111111111111111111111111", 2);
              * Convert.ToString(a >> 32,2);
              *
-             * 按位与&是保证符号位肯定是1,其他尽可能为0,高位被去掉只是MaxValue&0的原因,强转才是去掉高位..."尽可能"一词带来第一次随机性
+             * 解释代码:
+             * 0x01:
              * (int)(long.MaxValue & 0xffffffffL) | (int)(long.MaxValue >> 32);
              * Convert.ToString(long.MaxValue & 0xffffffffL, 2)//去掉高位:"11111111111111111111111111111111" 32个,再强转int
+             * 按位与&是保证符号位肯定是1,其他尽可能为0,高位被去掉只是MaxValue&0的原因,强转才是去掉高位..."尽可能"一词带来第一次随机性
+             * 0x02:
              * Convert.ToString((long.MaxValue >> 32), 2)      //去掉低位: "1111111111111111111111111111111" 31个,再强转int
              * 按位或|是尽可能为1..."尽可能"一词带来第二次随机性
              * 
