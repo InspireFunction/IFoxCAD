@@ -15,6 +15,7 @@ public class TolerancePoint2d : IEqualityComparer<Point2d>
 
     public bool Equals(Point2d a, Point2d b)//Point3d是struct不会为null
     {
+        /*默认规则是==是0容差,Eq是有容差*/
         // 方形限定
         // 在 0~1e-6 范围实现 圆形限定 则计算部分在浮点数6位后,没有啥意义
         // 在 0~1e-6 范围实现 从时间和CPU消耗来说,圆形限定 都没有 方形限定 的好
@@ -184,7 +185,7 @@ public class Rect : IEquatable<Rect>
     }
     public bool Equals(Rect? b)
     {
-        return this.Equals(b, 1e-6);
+        return this.Equals(b, 1e-6);/*默认规则是==是0容差,Eq是有容差*/
     }
     public static bool operator !=(Rect? a, Rect? b)
     {

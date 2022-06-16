@@ -103,11 +103,11 @@ public class Edge : IEquatable<Edge>, IFormattable
     #region 重载运算符_比较
     public override bool Equals(object? obj)
     {
-        return this == obj as Edge;
+        return this.Equals(obj as Edge);
     }
     public bool Equals(Edge? b)
     {
-        return this == b;
+        return this.Equals(b, 1e-6);/*默认规则是==是0容差,Eq是有容差*/
     }
     public static bool operator !=(Edge? a, Edge? b)
     {
@@ -123,7 +123,25 @@ public class Edge : IEquatable<Edge>, IFormattable
         if (ReferenceEquals(a, b))//同一对象
             return true;
 
-        return a.GeCurve3d == b.GeCurve3d;
+        return a.Equals(b, 0);
+    }
+
+    /// <summary>
+    /// 比较核心
+    /// </summary>
+    public bool Equals(Edge? b, double tolerance = 1e-6)
+    {
+        if (b is null)
+            return false;
+        if (ReferenceEquals(this, b)) //同一对象
+            return true;
+
+        if (tolerance == 0)
+            return GeCurve3d == b.GeCurve3d;
+
+        var tol = new Tolerance(tolerance, tolerance);
+        return GeCurve3d.StartPoint.IsEqualTo(b.GeCurve3d.StartPoint, tol) &&
+               GeCurve3d.EndPoint.IsEqualTo(b.GeCurve3d.EndPoint, tol);
     }
 
     public override int GetHashCode()
