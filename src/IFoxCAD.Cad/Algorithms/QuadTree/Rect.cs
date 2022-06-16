@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using System.Diagnostics;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// Linq Distinct 消重比较两点在容差范围内就去除
@@ -41,8 +43,13 @@ public class TolerancePoint2d : IEqualityComparer<Point2d>
 
 [Serializable]
 [StructLayout(LayoutKind.Sequential)]
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(Rect))]
 public class Rect : IEquatable<Rect>
 {
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => ToString("f4");
+
 #pragma warning disable CA2211 // 非常量字段应当不可见
     public static TolerancePoint2d RectTolerance = new(1e-6);
     public static Tolerance CadTolerance = new(1e-6, 1e-6);
@@ -173,11 +180,11 @@ public class Rect : IEquatable<Rect>
     #region 重载运算符_比较
     public override bool Equals(object? obj)
     {
-        return this == obj as Rect;
+        return this.Equals(obj as Rect);
     }
     public bool Equals(Rect? b)
     {
-        return this == b;
+        return this.Equals(b, 1e-6);
     }
     public static bool operator !=(Rect? a, Rect? b)
     {
@@ -214,26 +221,8 @@ public class Rect : IEquatable<Rect>
 
     public override int GetHashCode()
     {
-        return (int)_X ^ (int)_Y ^ (int)_Right ^ (int)_Top;
+        return (((int)_X ^ (int)_Y).GetHashCode() ^ (int)_Right).GetHashCode() ^ (int)_Top;
     }
-    #endregion
-
-    #region 转换类型
-#if !WinForm
-    // 隐式转换(相当于是重载赋值运算符)
-    public static implicit operator Rect(System.Windows.Rect rect)
-    {
-        return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);
-    }
-    public static implicit operator Rect(System.Drawing.RectangleF rect)
-    {
-        return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);
-    }
-    public static implicit operator Rect(System.Drawing.Rectangle rect)
-    {
-        return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);
-    }
-#endif
     #endregion
 
     #region 包含
@@ -552,4 +541,46 @@ public class Rect : IEquatable<Rect>
     }
 
     #endregion
+
+    #region 转换类型
+#if !WinForm
+    // 隐式转换(相当于是重载赋值运算符)
+    public static implicit operator Rect(System.Windows.Rect rect)
+    {
+        return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);
+    }
+    public static implicit operator Rect(System.Drawing.RectangleF rect)
+    {
+        return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);
+    }
+    public static implicit operator Rect(System.Drawing.Rectangle rect)
+    {
+        return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);
+    }
+#endif
+
+    #region ToString
+    public sealed override string ToString()
+    {
+        return ToString(null, null);
+    }
+    public string ToString(IFormatProvider? provider)
+    {
+        return ToString(null, provider);
+    }
+    public string ToString(string? format = null, IFormatProvider? formatProvider = null)
+    {
+        return $"({_X.ToString(format, formatProvider)},{_Y.ToString(format, formatProvider)})," +
+               $"({_Right.ToString(format, formatProvider)},{_Top.ToString(format, formatProvider)})";
+
+        // return $"X={_X.ToString(format, formatProvider)}," +
+        //        $"Y={_Y.ToString(format, formatProvider)}," +
+        //        $"Right={_Right.ToString(format, formatProvider)}," +
+        //        $"Top={_Top.ToString(format, formatProvider)}";
+    }
+    #endregion
+
+    #endregion
+
+
 }
