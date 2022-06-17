@@ -181,7 +181,7 @@
                         timeNameZn = " 纳秒";
                         break;
                 }
-                Console.WriteLine(msg + " " + time + timeNameZn);
+                Env.Print(msg + " " + time + timeNameZn);
             }
             return time;
         }

@@ -1,17 +1,18 @@
 ﻿namespace Test;
 
 /*
- * 这里必须要继承它,再提供给四叉树
+ * 这里属于用户调用例子,
+ * 调用时候必须要继承它,再提供给四叉树
  * 主要是用户可以扩展属性
  */
 public class CadEntity : QuadEntity
 {
     //这里加入其他字段
-    public List<QuadEntity>? Link;//碰撞链...这里外面自己封装去
+    public List<QuadEntity>? Link;//碰撞链
     public System.Drawing.Color Color;
     public CadEntity(ObjectId objectId, Rect box) : base(objectId, box)
     {
-        
+
     }
 }
 
@@ -27,7 +28,8 @@ public class TestQuadTree
 
         Rect dbExt;
         //使用数据库边界来进行
-        if (!tr.Database.GetValidExtents3d(out Extents3d dbExtent))
+        var dbExtent = tr.Database.GetValidExtents3d();
+        if (dbExtent == null)
         {
             //throw new ArgumentException("画一个矩形");
 
@@ -36,8 +38,8 @@ public class TestQuadTree
         }
         else
         {
-            var a = new Point2d(dbExtent.MinPoint.X, dbExtent.MinPoint.Y);
-            var b = new Point2d(dbExtent.MaxPoint.X, dbExtent.MaxPoint.Y);
+            var a = new Point2d(dbExtent.Value.MinPoint.X, dbExtent.Value.MinPoint.Y);
+            var b = new Point2d(dbExtent.Value.MaxPoint.X, dbExtent.Value.MaxPoint.Y);
             dbExt = new Rect(a, b);
         }
 
@@ -55,7 +57,7 @@ public class TestQuadTree
             };
         tr.CurrentSpace.AddPline(databaseBoundary);
 
-        int maximumItems = 1_0000; //生成多少个图元,30万图元±0.5秒,导致cad会令undo出错(八叉树深度过大 treemax)
+        int maximumItems = 30_0000; //生成多少个图元,导致cad会令undo出错(八叉树深度过大 treemax)
 
         //随机图元生成
         List<CadEntity> ces = new();  //用于随机获取图元
@@ -76,12 +78,12 @@ public class TestQuadTree
                 };
                 ces.Add(ce);
             }
-        }, msg: "画圆消耗时间:");
+        }, Timer.TimeEnum.Millisecond, "画圆消耗时间:");//30万图元±3秒.cad2021
 
         //测试只加入四叉树的时间
         Timer.RunTime(() => {
             _quadTreeRoot.Insert(ces);
-        }, msg: "插入四叉树时间:");
+        }, Timer.TimeEnum.Millisecond, "插入四叉树时间:");//30万图元±0.7秒.cad2021
 
         tr.Editor.WriteMessage($"\n加入图元数量:{maximumItems}");
     }
@@ -168,7 +170,7 @@ public class TestQuadTree
         if (pprB.Status != PromptStatus.OK)
             return null;
 
-        return new Rect(new Point2d(pprA.Value.X, pprA.Value.Y), 
+        return new Rect(new Point2d(pprA.Value.X, pprA.Value.Y),
                         new Point2d(pprB.Value.X, pprB.Value.Y),
                         true);
     }

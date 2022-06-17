@@ -20,16 +20,12 @@ public class TolerancePoint2d : IEqualityComparer<Point2d>
         // 在 0~1e-6 范围实现 圆形限定 则计算部分在浮点数6位后,没有啥意义
         // 在 0~1e-6 范围实现 从时间和CPU消耗来说,圆形限定 都没有 方形限定 的好
         if (_tolerance <= 1e-6)
-        {
             return Math.Abs(a.X - b.X) <= _tolerance && Math.Abs(a.Y - b.Y) <= _tolerance;
-        }
-        else
-        {
-            // 圆形限定
-            // DistanceTo 分别对XYZ进行了一次乘法,也是总数3次乘法,然后求了一次平方根
-            // (X86.CPU.FSQRT指令用的牛顿迭代法/软件层面可以使用快速平方根....我还以为CPU会采取快速平方根这样的取表操作)
-            return a.IsEqualTo(b, new Tolerance(_tolerance, _tolerance));
-        }
+
+        // 圆形限定
+        // DistanceTo 分别对XYZ进行了一次乘法,也是总数3次乘法,然后求了一次平方根
+        // (X86.CPU.FSQRT指令用的牛顿迭代法/软件层面可以使用快速平方根....我还以为CPU会采取快速平方根这样的取表操作)
+        return a.IsEqualTo(b, new Tolerance(_tolerance, _tolerance));
     }
 
     public int GetHashCode(Point2d obj)

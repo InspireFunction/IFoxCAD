@@ -11,7 +11,11 @@
 /// </summary>
 public class QuadEntity : Rect, IComparable<QuadEntity>
 {
+    /// <summary>
+    /// cad图元id
+    /// </summary>
     public ObjectId ObjectId;
+
     /// <summary>
     /// 是一个点
     /// </summary>
@@ -32,8 +36,12 @@ public class QuadEntity : Rect, IComparable<QuadEntity>
         _Top = box._Top;
         _Right = box._Right;
     }
-    public int CompareTo(QuadEntity other)
+
+    public int CompareTo(QuadEntity? other)
     {
-        return ObjectId.GetHashCode() ^ other.ObjectId.GetHashCode();
+        if (other == null)
+            return -1;
+
+        return (base.GetHashCode(), IsPoint).GetHashCode() ^ other.GetHashCode();
     }
 }

@@ -898,22 +898,22 @@ public static class EditorEx
     /// 获取有效的数据库范围
     /// </summary>
     /// <param name="db">数据库</param>
-    /// <param name="dbExtent">范围</param>
-    /// <returns>数据库没有图元返回 true, 反之返回 false</returns>
-    public static bool GetValidExtents3d(this Database db, out Extents3d dbExtent)
+    /// <param name="extention">容差值:图元包围盒会超过数据库边界,用此参数扩大边界</param>
+    /// <returns></returns>
+    public static Extents3d? GetValidExtents3d(this Database db, double extention = 1e-6)
     {
-        dbExtent = new Extents3d(Point3d.Origin, new Point3d(1, 1, 0));
-        //数据库没有图元的时候,min是大,max是小,导致新建出错
+        db.UpdateExt(true);//更新当前模型空间的范围
+        var ve = new Vector3d(extention, extention, extention);
+        // 数据库没有图元的时候,min是大,max是小,导致新建出错
+        // 数据如下:
+        // min.X == 1E20 && min.Y == 1E20 && min.Z == 1E20 &&
+        // max.X == -1E20 && max.Y == -1E20 && max.Z == -1E20)
         var a = db.Extmin;
         var b = db.Extmax;
-        var ve = new Vector3d(1, 1, 0);
-        if (!(a.X == 1E20 && a.Y == 1E20 && a.Z == 1E20 &&
-              b.X == -1E20 && b.Y == -1E20 && b.Z == -1E20))
-        {
-            dbExtent = new Extents3d(db.Extmin - ve, db.Extmax + ve);
-            return true;
-        }
-        return false;
+        if (a.X < b.X && a.Y < b.Y)
+            return new Extents3d(db.Extmin - ve, db.Extmax + ve);
+
+        return null;
     }
 
     /// <summary>
@@ -924,14 +924,12 @@ public static class EditorEx
     public static void ZoomExtents(this Editor ed, double offsetDist = 0.00)
     {
         Database db = ed.Document.Database;
-        db.UpdateExt(true);
-
-        if (db.GetValidExtents3d(out Extents3d extents3D))
-        {
-            ed.ZoomWindow(extents3D.MinPoint, extents3D.MaxPoint, offsetDist);
-            return;
-        }
-        ed.ZoomWindow(db.Extmin, db.Extmax, offsetDist);
+        // db.UpdateExt(true); //GetValidExtents3d内提供了
+        var dbExtent = db.GetValidExtents3d();
+        if (dbExtent == null)
+            ed.ZoomWindow(Point3d.Origin, new Point3d(1, 1, 0), offsetDist);
+        else
+            ed.ZoomWindow(db.Extmin, db.Extmax, offsetDist);
     }
 
     /// <summary>
