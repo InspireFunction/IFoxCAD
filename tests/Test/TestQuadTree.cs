@@ -1,4 +1,4 @@
-﻿namespace Test;
+namespace Test;
 
 /*
  * 这里属于用户调用例子,
@@ -176,3 +176,59 @@ public class TestQuadTree
     }
     #endregion
 }
+
+public void tt6()
+        {
+            using var tr = new DBTrans();
+            var ed = tr.Editor;
+            //创建四叉树,默认参数无所谓
+            var TreeRoot = new QuadTree<CadEntity>(new Rect(0, 0, 32525, 32525));
+
+            var fil = OpFilter.Bulid(e => e.Dxf(0) == "LINE");
+            var psr = ed.SSGet("\n 选择需要连接的直线", fil);
+            if (psr.Status != PromptStatus.OK) return;
+            var LineEnts = new List<Line>(psr.Value.GetEntities<Line>(OpenMode.ForWrite)!);
+            //将实体插入到四岔树
+            foreach (var line in LineEnts)
+            {
+                var edge = line.GeometricExtents;
+                var entRect = new Rect(edge.MinPoint.X, edge.MinPoint.Y, edge.MaxPoint.X, edge.MaxPoint.Y);
+                var ce = new CadEntity(line.Id, entRect)
+                {
+                    //四叉树数据
+                    Angle = line.Angle
+                };
+                TreeRoot.Insert(ce);
+            }
+
+            var ppo = new PromptPointOptions(Environment.NewLine + "\n指定标注点:<空格退出>")
+            {
+                AllowArbitraryInput = true,//任意输入
+                AllowNone = true //允许回车
+            };
+            var ppr = ed.GetPoint(ppo);//用户点选
+            if (ppr.Status != PromptStatus.OK)
+                return;
+            var rect = new Rect(ppr.Value.Point2d(),100,100);
+            tr.CurrentSpace.AddEntity(rect.ToPolyLine());//显示选择靶标范围
+
+            var nent = TreeRoot.FindNearEntity(rect);//查询最近实体，按逆时针
+            var ent = tr.GetObject<Entity>(nent.ObjectId, OpenMode.ForWrite);//打开实体
+            ent.ColorIndex = Utility.GetRandom().Next(1, 256);//1~256随机色
+            ent.DowngradeOpen();//实体降级
+            ent.Dispose();
+
+            var res = TreeRoot.Query(rect, QuadTreeSelectMode.IntersectsWith);//查询选择靶标范围相碰的ID
+            res.ForEach(item =>
+            {
+                if (item.Angle == 0|| item.Angle == Math.PI) //过滤直线角度为0或180的直线
+                {
+                    var ent = tr.GetObject<Entity>(item.ObjectId, OpenMode.ForWrite);
+                    ent.ColorIndex = Utility.GetRandom().Next(1, 7);
+                    ent.DowngradeOpen();
+                    ent.Dispose();
+                }
+
+            });
+
+        }
