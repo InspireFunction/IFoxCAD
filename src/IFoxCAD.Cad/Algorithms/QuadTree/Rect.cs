@@ -132,9 +132,8 @@ public class Rect : IEquatable<Rect>
 
     /// <summary>
     /// 是一个点
+    /// 水平或垂直直线包围盒是面积是0,所以面积是0不一定是点
     /// </summary>
-    /// 面积是0不一定是点,所以需要这样判断,
-    /// 因为可能是水平或者垂直的直线,没有斜率的时候是包围盒面积是0
     public bool IsPoint => Math.Abs(_X - _Right) < 1e-10 && Math.Abs(_Y - _Top) < 1e-10;
     #endregion
 
