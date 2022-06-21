@@ -19,7 +19,9 @@ public class QuadEntity : Rect, IComparable<QuadEntity>
     /// <summary>
     /// 是一个点
     /// </summary>
-    public bool IsPoint => Area == 0;
+    /// 面积是0不一定是点,所以需要这样判断,
+    /// 因为可能是水平或者垂直的直线,没有斜率的时候是包围盒面积是0
+    public bool IsPoint => Math.Abs(_X - _Right) < 1e-10 && Math.Abs(_Y - _Top) < 1e-10;
 
     //public List<QuadEntity>? Link;//碰撞链...这里外面自己封装去
 
