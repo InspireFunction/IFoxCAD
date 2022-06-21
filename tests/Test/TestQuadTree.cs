@@ -7,13 +7,24 @@ namespace Test;
  */
 public class CadEntity : QuadEntity
 {
+    public ObjectId ObjectId;
     //这里加入其他字段
     public List<QuadEntity>? Link;//碰撞链
     public System.Drawing.Color Color;
     public double Angle;
-    public CadEntity(ObjectId objectId, Rect box) : base(objectId, box)
+    public CadEntity(ObjectId objectId, Rect box) : base(box)
     {
-
+        ObjectId = objectId;
+    }
+    public int CompareTo(CadEntity? other)
+    {
+        if (other == null)
+            return -1;
+        return GetHashCode() ^ other.GetHashCode();
+    }
+    public override int GetHashCode()
+    {
+        return (base.GetHashCode(), ObjectId.GetHashCode()).GetHashCode();
     }
 }
 
