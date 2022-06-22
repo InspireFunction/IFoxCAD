@@ -169,14 +169,14 @@ namespace IFoxCAD.Cad
                 return null;
             }
 
-            if (ent.IsPoint)
-            {
-                //找到最后一层包含它的节点,然后加入它
-                //因此是跳过分裂矩形的,以免造成无限递归
-                var minNode = GetMinNode(ent);
-                minNode.Contents.Add(ent);
-                return minNode;
-            }
+            // if (ent.IsPoint)
+            // {
+            //     //找到最后一层包含它的节点,然后加入它
+            //     //因此是跳过分裂矩形的,以免造成无限递归
+            //     var minNode = GetMinNode(ent);
+            //     minNode.Contents.Add(ent);
+            //     return minNode;
+            // }
 
 #if true2
             //方案二:
@@ -772,27 +772,27 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 所有的点归类到最小包围它的空间
         /// </summary>
-        public void PointsToMinNode()
-        {
-            ForEach(node =>
-            {
-                for (int i = 0; i < node.Contents.Count; i++)
-                {
-                    var ent = node.Contents[i];
-                    if (ent.IsPoint)
-                    {
-                        //如果最小包含!=当前,就是没有放在最适合的位置
-                        var queryNode = GetMinNode(ent);
-                        if (queryNode != node)
-                        {
-                            node.Remove(ent);
-                            queryNode.Contents.Add(ent);
-                        }
-                    }
-                }
-                return false;
-            });
-        }
+        //public void PointsToMinNode()
+        //{
+        //    ForEach(node =>
+        //    {
+        //        for (int i = 0; i < node.Contents.Count; i++)
+        //        {
+        //            var ent = node.Contents[i];
+        //            if (ent.IsPoint)
+        //            {
+        //                //如果最小包含!=当前,就是没有放在最适合的位置
+        //                var queryNode = GetMinNode(ent);
+        //                if (queryNode != node)
+        //                {
+        //                    node.Remove(ent);
+        //                    queryNode.Contents.Add(ent);
+        //                }
+        //            }
+        //        }
+        //        return false;
+        //    });
+        //}
         #endregion
 
         #region 方法

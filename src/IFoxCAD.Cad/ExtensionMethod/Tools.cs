@@ -24,7 +24,7 @@
         /// 纳秒计时器
         /// </summary>
         public static void TestTimes(int count, string message, Action action,
-            Timer.TimeEnum timeEnum = Timer.TimeEnum.Nanosecond)
+            Timer.TimeEnum timeEnum = Timer.TimeEnum.Millisecond)
         {
             double time = Timer.RunTime(() => {
                 for (int i = 0; i < count; i++)

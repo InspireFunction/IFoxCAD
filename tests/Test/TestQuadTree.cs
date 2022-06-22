@@ -28,7 +28,7 @@ public class CadEntity : QuadEntity
     }
 }
 
-public partial class  TestQuadTree
+public partial class TestQuadTree
 {
     QuadTree<CadEntity> _quadTreeRoot;
 
@@ -69,7 +69,9 @@ public partial class  TestQuadTree
             };
         tr.CurrentSpace.AddPline(databaseBoundary);
 
-        int maximumItems = 30_0000; //生成多少个图元,导致cad会令undo出错(八叉树深度过大 treemax)
+        //生成多少个图元,导致cad会令undo出错(八叉树深度过大 treemax)
+        //int maximumItems = 30_0000;
+        int maximumItems = 1000;
 
         //随机图元生成
         List<CadEntity> ces = new();  //用于随机获取图元
@@ -89,12 +91,24 @@ public partial class  TestQuadTree
                     Color = Utility.RandomColor
                 };
                 ces.Add(ce);
+                /*加入随机点*/
+                var p = edge.MinPoint + edge.MinPoint.GetAsVector();
+                entRect = new Rect(p.Point2d(), p.Point2d());
+                entId = tr.CurrentSpace.AddEntity(new DBPoint(p));
+                var dbPointCe = new CadEntity(entId, entRect)
+                {
+                    Color = Utility.RandomColor
+                };
+                ces.Add(dbPointCe);
             }
         }, Timer.TimeEnum.Millisecond, "画圆消耗时间:");//30万图元±3秒.cad2021
 
         //测试只加入四叉树的时间
         Timer.RunTime(() => {
-            _quadTreeRoot.Insert(ces);
+            for (int i = 0; i < ces.Count; i++)
+            {
+                _quadTreeRoot.Insert(ces[i]);
+            }
         }, Timer.TimeEnum.Millisecond, "插入四叉树时间:");//30万图元±0.7秒.cad2021
 
         tr.Editor.WriteMessage($"\n加入图元数量:{maximumItems}");

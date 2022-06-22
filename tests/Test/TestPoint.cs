@@ -1,7 +1,42 @@
-﻿namespace Test
+﻿using System.Diagnostics;
+
+namespace Test
 {
     public class TestPoint
     {
+        /// <summary>
+        /// 红黑树排序点集
+        /// </summary>
+        [CommandMethod("TestptSortedSet")]
+        public void TestptSortedSet()
+        {
+            var ss1 = new SortedSet<Point2d>();
+            ss1.Add(new Point2d(1, 1));
+            ss1.Add(new Point2d(4.6, 2));
+            ss1.Add(new Point2d(8, 3));
+            ss1.Add(new Point2d(4, 3));
+            ss1.Add(new Point2d(5, 40));
+            ss1.Add(new Point2d(6, 5));
+            ss1.Add(new Point2d(1, 6));
+            ss1.Add(new Point2d(7, 6));
+            ss1.Add(new Point2d(9, 6));
+
+            /*判断区间,超过就中断*/
+            foreach (var item in ss1)
+            {
+                if (item.X > 3 && item.X < 7)
+                {
+                    Debug.WriteLine(item);
+                }
+                else if (item.X >= 7)
+                {
+                    break;
+                }
+            }
+        }
+
+
+
         [CommandMethod("TestptGethash")]
         public void TestptGethash()
         {

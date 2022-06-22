@@ -23,6 +23,35 @@ using System.Collections.Generic;
  */
 namespace IFoxCAD.Cad
 {
+    class EntityPoint<TEntity>: IComparable<EntityPoint<TEntity>>
+    {
+        public double _X;
+        public double _Y;
+        public TEntity Entity;/*这样岂不是红黑树不允许共点的点?*/
+
+        public EntityPoint(double x, double y, TEntity entity)
+        {
+            _X = x;
+            _Y = y;
+            Entity = entity;
+        }
+
+        public int CompareTo(EntityPoint<TEntity> pt)
+        {
+            if (pt == null)
+                return -1;
+            if (_X < pt._X)
+                return -1;
+            else if (_X > pt._X)
+                return 1;
+            else if (_Y < pt._Y)/*x是一样的*/
+                return -1;
+            else if (_Y > pt._Y)
+                return 1;
+            return 0;/*全部一样*/
+        }
+    }
+
     /// <summary>
     /// 根节点控制器
     /// </summary>
@@ -39,6 +68,11 @@ namespace IFoxCAD.Cad
         /// 四叉树节点的数目
         /// </summary>
         public int Count { get => _rootNode.CountSubTree; }
+
+        /// <summary>
+        /// 点容器(红黑树)
+        /// </summary>
+        SortedSet<EntityPoint<TEntity>> _points;
         #endregion
 
         #region 构造
@@ -46,10 +80,10 @@ namespace IFoxCAD.Cad
         /// 四叉树根节点控制器
         /// </summary>
         /// <param name="rect">四叉树矩形范围</param>
-        /// <param name="minArea">最后一个节点有最小面积</param>
         public QuadTree(Rect rect)
         {
             _rootNode = new QuadTreeNode<TEntity>(rect, null, 0);//初始化根节点
+            _points = new();
         }
         #endregion
 
@@ -60,6 +94,15 @@ namespace IFoxCAD.Cad
         /// <param name="ent"></param>
         public void Insert(TEntity ent)
         {
+            /*
+             * 图元点 是不分裂空间的,加入一个红黑树内部.
+             */
+            if (ent.IsPoint)
+            {
+                _points.Add(new(ent._X, ent._Y, ent));
+                return;
+            }
+
             while (!_rootNode.Contains(ent))
             {
                 /*
@@ -138,8 +181,7 @@ namespace IFoxCAD.Cad
                 var depth = insert.Depth;
                 if (depth == 0)
                     throw new ArgumentNullException("插入节点是0,造成错误");
-                _rootNode.ForEach(node =>
-                {
+                _rootNode.ForEach(node => {
                     node.Depth += depth;
                     return false;
                 });
@@ -151,31 +193,6 @@ namespace IFoxCAD.Cad
             _rootNode.Insert(ent);
         }
 
-        /// <summary>
-        /// 通过根节点插入数据项
-        /// </summary>
-        /// <param name="ent"></param>
-        public void Insert(List<TEntity> ents)
-        {
-            /*
-             * 图元点 是不分裂空间的,应该插入到目前对应的最小空间.
-             * 因此插入时候,先让其他图元插入时候分裂节点,
-             * 最后再把 图元点 们插入.
-             */
-            var pointEntityNum = new List<int>();
-            for (int i = 0; i < ents.Count; i++)
-            {
-                var ent = ents[i];
-                if (ent.IsPoint)
-                {
-                    pointEntityNum.Add(i);
-                    continue;
-                }
-                Insert(ent);
-            }
-            for (int i = 0; i < pointEntityNum.Count; i++)
-                Insert(ents[pointEntityNum[i]]);
-        }
 
         /// <summary>
         /// 查询四叉树,返回给定区域的数据项
@@ -185,8 +202,29 @@ namespace IFoxCAD.Cad
         public List<TEntity> Query(Rect rect, QuadTreeSelectMode selectMode = QuadTreeSelectMode.IntersectsWith)
         {
             QuadTreeEvn.SelectMode = selectMode;
+
             var results = new List<TEntity>();
+
+            //选择图元
             _rootNode.Query(rect, results);
+
+            //选择点
+            var ptge = _points.GetEnumerator();
+            switch (selectMode)
+            {
+                case QuadTreeSelectMode.IntersectsWith:
+                case QuadTreeSelectMode.Contains:
+                    while (ptge.MoveNext())
+                    {
+                        var cur = ptge.Current;
+                        if (rect._X <= cur._X  && cur._X <= rect._Right &&
+                            rect._Y <= cur._Y && cur._Y <= rect.Top)
+                            results.Add(cur.Entity);
+                    }
+                    break;
+                default:
+                    throw new ArgumentException(null, nameof(selectMode));
+            }
             return results;
         }
 
