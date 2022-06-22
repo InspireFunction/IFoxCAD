@@ -42,7 +42,7 @@ public class TolerancePoint2d : IEqualityComparer<Point2d>
 [StructLayout(LayoutKind.Sequential)]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(Rect))]
-public class Rect : IEquatable<Rect>
+public class Rect : IEquatable<Rect>, IComparable<Rect>
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay => ToString("f4");
@@ -247,7 +247,7 @@ public class Rect : IEquatable<Rect>
     public bool Contains(Rect rect)
     {
         return _X <= rect._X && rect._Right <= _Right &&
-                _Y <= rect._Y && rect._Top <= _Top;
+               _Y <= rect._Y && rect._Top <= _Top;
     }
 
     /// <summary>
@@ -580,6 +580,22 @@ public class Rect : IEquatable<Rect>
         //        $"Y={_Y.ToString(format, formatProvider)}," +
         //        $"Right={_Right.ToString(format, formatProvider)}," +
         //        $"Top={_Top.ToString(format, formatProvider)}";
+    }
+
+    /*为了红黑树,加入这个*/
+    public int CompareTo(Rect rect)
+    {
+        if (rect == null)
+            return -1;
+        if (_X < rect._X)
+            return -1;
+        else if (_X > rect._X)
+            return 1;
+        else if (_Y < rect._Y)/*x是一样的*/
+            return -1;
+        else if (_Y > rect._Y)
+            return 1;
+        return 0;/*全部一样*/
     }
     #endregion
 

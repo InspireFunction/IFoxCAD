@@ -23,35 +23,6 @@ using System.Collections.Generic;
  */
 namespace IFoxCAD.Cad
 {
-    class EntityPoint<TEntity>: IComparable<EntityPoint<TEntity>>
-    {
-        public double _X;
-        public double _Y;
-        public TEntity Entity;/*这样岂不是红黑树不允许共点的点?*/
-
-        public EntityPoint(double x, double y, TEntity entity)
-        {
-            _X = x;
-            _Y = y;
-            Entity = entity;
-        }
-
-        public int CompareTo(EntityPoint<TEntity> pt)
-        {
-            if (pt == null)
-                return -1;
-            if (_X < pt._X)
-                return -1;
-            else if (_X > pt._X)
-                return 1;
-            else if (_Y < pt._Y)/*x是一样的*/
-                return -1;
-            else if (_Y > pt._Y)
-                return 1;
-            return 0;/*全部一样*/
-        }
-    }
-
     /// <summary>
     /// 根节点控制器
     /// </summary>
@@ -72,7 +43,7 @@ namespace IFoxCAD.Cad
         /// <summary>
         /// 点容器(红黑树)
         /// </summary>
-        SortedSet<EntityPoint<TEntity>> _points;
+        SortedSet<TEntity> _points;
         #endregion
 
         #region 构造
@@ -99,7 +70,7 @@ namespace IFoxCAD.Cad
              */
             if (ent.IsPoint)
             {
-                _points.Add(new(ent._X, ent._Y, ent));
+                _points.Add(ent);
                 return;
             }
 
@@ -220,7 +191,7 @@ namespace IFoxCAD.Cad
                         if (rect._X <= ptEnt._X && ptEnt._X <= rect._Right)
                         {
                             if (rect._Y <= ptEnt._Y && ptEnt._Y <= rect.Top)
-                                results.Add(ptEnt.Entity);
+                                results.Add(ptEnt);
                         }
                         else if (ptEnt._X > rect._Right)
                             break;//超过后面范围就break,因为红黑树已经排序
