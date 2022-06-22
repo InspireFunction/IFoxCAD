@@ -216,10 +216,14 @@ namespace IFoxCAD.Cad
                 case QuadTreeSelectMode.Contains:
                     while (ptge.MoveNext())
                     {
-                        var cur = ptge.Current;
-                        if (rect._X <= cur._X  && cur._X <= rect._Right &&
-                            rect._Y <= cur._Y && cur._Y <= rect.Top)
-                            results.Add(cur.Entity);
+                        var ptEnt = ptge.Current;
+                        if (rect._X <= ptEnt._X && ptEnt._X <= rect._Right)
+                        {
+                            if (rect._Y <= ptEnt._Y && ptEnt._Y <= rect.Top)
+                                results.Add(ptEnt.Entity);
+                        }
+                        else if (ptEnt._X > rect._Right)
+                            break;//超过后面范围就break,因为红黑树已经排序
                     }
                     break;
                 default:

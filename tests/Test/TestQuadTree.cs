@@ -92,13 +92,10 @@ public partial class TestQuadTree
                 };
                 ces.Add(ce);
                 /*加入随机点*/
-                var p = edge.MinPoint + edge.MinPoint.GetAsVector();
+                var p = edge.MinPoint + new Vector3d(10, 10, 0);
                 entRect = new Rect(p.Point2d(), p.Point2d());
                 entId = tr.CurrentSpace.AddEntity(new DBPoint(p));
-                var dbPointCe = new CadEntity(entId, entRect)
-                {
-                    Color = Utility.RandomColor
-                };
+                var dbPointCe = new CadEntity(entId, entRect);
                 ces.Add(dbPointCe);
             }
         }, Timer.TimeEnum.Millisecond, "画圆消耗时间:");//30万图元±3秒.cad2021
