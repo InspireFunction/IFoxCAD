@@ -41,6 +41,9 @@
 		<PackageReference Include="AutoCAD.NET" Version="20.0.1">
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
+		<PackageReference Include="System.Collections">
+		  <Version>4.3.0</Version>
+		</PackageReference>
 	</ItemGroup>
 	
 	
