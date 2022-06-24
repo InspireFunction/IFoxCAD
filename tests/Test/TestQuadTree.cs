@@ -47,8 +47,11 @@ public partial class TestQuadTree
         {
             //throw new ArgumentException("画一个矩形");
 
-            //测试时候画个矩形,在矩形内画随机坐标的圆形
-            dbExt = new Rect(0, 0, 32525, 32525);
+            //这个初始值的矩形是很有意义,
+            //它可以把所有的扩展都弄成2次幂,尤其是Rect类型是long,直接可以位移膨胀
+            //但是因为啊惊懒的原因,并没有单独制作这样的矩形,而且非常糟糕的是,c#不支持值类型作为泛型传参.
+            //还是换c++去搞四叉树吧
+            dbExt = new Rect(0, 0, 1 << 10, 1 << 10);
         }
         else
         {
