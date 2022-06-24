@@ -1,4 +1,7 @@
 ﻿#if NET35
+#pragma warning disable IDE0059 // 不需要赋值
+#pragma warning disable CS8600 // 将 null 字面量或可能为 null 的值转换为非 null 类型。
+
 namespace System
 {
     // This file defines an internal class used to throw exceptions in BCL code.
@@ -374,5 +377,6 @@ namespace System
     }
 }
 
-
+#pragma warning restore CS8600 // 将 null 字面量或可能为 null 的值转换为非 null 类型。
+#pragma warning restore IDE0059 // 不需要赋值
 #endif

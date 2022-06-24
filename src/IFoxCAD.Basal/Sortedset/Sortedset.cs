@@ -1,4 +1,12 @@
 ﻿#if NET35
+#pragma warning disable CS8603 // 可能返回 null 引用。
+#pragma warning disable CS8601 // 引用类型赋值可能为 null。
+#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
+#pragma warning disable IDE0059 // 不需要赋值
+#pragma warning disable CS8600 // 将 null 字面量或可能为 null 的值转换为非 null 类型。
+#pragma warning disable CS8602 // 解引用可能出现空引用。
+#pragma warning disable CS8604 // 引用类型参数可能为 null。
 // #define USING_HASH_SET
 // ==++==
 // 
@@ -199,6 +207,7 @@ namespace System.Collections.Generic
 
 
 #if !FEATURE_NETCORE
+
         protected SortedSet(SerializationInfo info, StreamingContext context)
         {
             siInfo = info;
@@ -2662,6 +2671,7 @@ namespace System.Collections.Generic
             private void Intialize()
             {
 
+
                 current = null;
                 SortedSet<T>.Node node = tree.root;
                 Node next = null, other = null;
@@ -2705,6 +2715,7 @@ namespace System.Collections.Generic
 
                 current = stack.Pop();
                 SortedSet<T>.Node node = (reverse ? current.Left : current.Right);
+
                 Node next = null, other = null;
                 while (node != null)
                 {
@@ -2909,5 +2920,16 @@ namespace System.Collections.Generic
 
     }
 
-} 
+}
+
+
+
+#pragma warning restore CS8604 // 引用类型参数可能为 null。
+#pragma warning restore CS8602 // 解引用可能出现空引用。
+#pragma warning restore CS8600 // 将 null 字面量或可能为 null 的值转换为非 null 类型。
+#pragma warning restore IDE0059 // 不需要赋值
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
+#pragma warning restore CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+#pragma warning restore CS8601 // 引用类型赋值可能为 null。
+#pragma warning restore CS8603 // 可能返回 null 引用。
 #endif

@@ -127,9 +127,9 @@ namespace IFoxCAD.Cad
                 var newRoot = new QuadTreeNode<TEntity>(rectSquare, null, 0);
                 var insert = newRoot.Insert(_rootNode);
                 if (insert is null)
-                    throw new ArgumentException("新根尺寸不对");
+                    throw new("四叉树:新根尺寸不对");
                 if (!insert.Equals(_rootNode))
-                    throw new ArgumentNullException("新旧节点大小不一致,无法连接");
+                    throw new("四叉树:新旧节点大小不一致,无法连接");
 
                 var insPar = insert.Parent;
                 _rootNode.Parent = insPar;
@@ -145,13 +145,13 @@ namespace IFoxCAD.Cad
                 else if (_rootNode.Equals(insPar.LeftTopTree))
                     insPar.LeftTopTree = _rootNode;
                 else
-                    throw new ArgumentNullException("新节点不对,无法连接");
+                    throw new("四叉树:新节点不对,无法连接");
 
                 //其后的子节点层数全部增加层数,
                 //要加多少层取决于当前根边界属于新根边界的所在层
                 var depth = insert.Depth;
                 if (depth == 0)
-                    throw new ArgumentNullException("插入节点是0,造成错误");
+                    throw new("四叉树:插入节点是0,造成错误");
                 _rootNode.ForEach(node => {
                     node.Depth += depth;
                     return false;
@@ -202,7 +202,7 @@ namespace IFoxCAD.Cad
                     }
                     break;
                 default:
-                    throw new(nameof(selectMode));
+                    throw new("四叉树:" + nameof(selectMode));
             }
             return results;
         }

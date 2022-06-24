@@ -1,5 +1,6 @@
 namespace Test;
 
+#pragma warning disable CS8632 // 只能在 "#nullable" 注释上下文内的代码中使用可为 null 的引用类型的注释。
 /*
  * 这里属于用户调用例子,
  * 调用时候必须要继承它,再提供给四叉树
@@ -27,6 +28,7 @@ public class CadEntity : QuadEntity
         return (base.GetHashCode(), ObjectId.GetHashCode()).GetHashCode();
     }
 }
+#pragma warning restore CS8632 // 只能在 "#nullable" 注释上下文内的代码中使用可为 null 的引用类型的注释。
 
 public partial class TestQuadTree
 {
@@ -367,6 +369,7 @@ public partial class TestQuadTree
     /// </summary>
     /// <param name="ed"></param>
     /// <returns></returns>
+#pragma warning disable CS8632 // 只能在 "#nullable" 注释上下文内的代码中使用可为 null 的引用类型的注释。
     public static Rect? GetCorner(Editor ed)
     {
         var optionsA = new PromptPointOptions($"{Environment.NewLine}起点位置:");
@@ -380,12 +383,14 @@ public partial class TestQuadTree
         };
         var pprB = ed.GetCorner(optionsB);
         if (pprB.Status != PromptStatus.OK)
-            return null;
+            return null!;
 
         return new Rect(new Point2d(pprA.Value.X, pprA.Value.Y),
                         new Point2d(pprB.Value.X, pprB.Value.Y),
                         true);
     }
+#pragma warning restore CS8632 // 只能在 "#nullable" 注释上下文内的代码中使用可为 null 的引用类型的注释。
+
     #endregion
 }
 

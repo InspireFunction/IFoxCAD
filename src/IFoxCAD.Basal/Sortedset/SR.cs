@@ -1,4 +1,5 @@
 ﻿#if NET35
+#pragma warning disable CS8603 // 可能返回 null 引用。
 namespace System;
 
 
@@ -82,7 +83,9 @@ internal sealed class SRDisplayNameAttribute : DisplayNameAttribute
 /// </summary>
 internal sealed partial class SR
 {
+#pragma warning disable CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
     static SR loader = null;
+#pragma warning restore CS8625 // 无法将 null 字面量转换为非 null 的引用类型。
     ResourceManager resources;
 
     internal SR()
@@ -898,5 +901,7 @@ internal sealed partial class SR
     internal const string Error_InvalidElementFoundForType = "Error_InvalidElementFoundForType";
     internal const string Error_ActivitySaveLoadNotCalled = "Error_ActivitySaveLoadNotCalled";
     internal const string Error_CanNotBindProperty = "Error_CanNotBindProperty";
-} 
+}
+#pragma warning restore CS8603 // 可能返回 null 引用。
+
 #endif
