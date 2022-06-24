@@ -175,16 +175,20 @@ namespace IFoxCAD.Cad
             QuadTreeEvn.SelectMode = selectMode;
 
             var results = new List<TEntity>();
-
             //选择图元
             _rootNode.Query(rect, results);
-
             //选择点
             var ptge = _points.GetEnumerator();
             switch (selectMode)
             {
                 case QuadTreeSelectMode.IntersectsWith:
                 case QuadTreeSelectMode.Contains:
+                    /* 由于红黑树的方法 _points.GetViewBetween()
+                     * 过滤只能过滤X区间,Y区间还是要过滤,
+                     * 那么我就只能用这样的方法加速了
+                     * 
+                     * 而更好的方式是不用红黑树,去加入一个点云数据来进行,可谓是编程无极限....
+                     */
                     while (ptge.MoveNext())
                     {
                         var ptEnt = ptge.Current;
@@ -198,7 +202,7 @@ namespace IFoxCAD.Cad
                     }
                     break;
                 default:
-                    throw new ArgumentException(null, nameof(selectMode));
+                    throw new(nameof(selectMode));
             }
             return results;
         }
