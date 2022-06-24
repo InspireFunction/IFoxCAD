@@ -30,10 +30,13 @@ public class CadEntity : QuadEntity
 }
 #pragma warning restore CS8632 // 只能在 "#nullable" 注释上下文内的代码中使用可为 null 的引用类型的注释。
 
+
+
+
+
 public partial class TestQuadTree
 {
     QuadTree<CadEntity> _quadTreeRoot;
-
     #region 四叉树创建并加入
     [CommandMethod("Test_QuadTree")]
     public void Test_QuadTree()
@@ -52,7 +55,8 @@ public partial class TestQuadTree
             //接着想了一下,Rect可以是int,long,这样可以利用位运算它扩展和缩小,
             //最小就是1,并且可以控制四叉树深度,不至于无限递归.
             //而且指针长度跟值是一样的,所以就不需要复用了,毕竟跳转一个函数地址挺麻烦的.
-            //但是因为啊惊懒的原因,并没有单独制作这样的矩形,而且非常糟糕的是,c#不支持值类型作为泛型传参.
+            //但是因为啊惊懒的原因,并没有单独制作这样的矩形,
+            //而且非常糟糕的是,c#不支持模板约束运算符,使得值类型之间需要通过一层接口来委婉处理,拉低了效率..引用类型倒是无所谓..
             //要么忍着,要么换c++去搞四叉树吧
             dbExt = new Rect(0, 0, 1 << 10, 1 << 10);
         }
