@@ -140,7 +140,7 @@
         public double Microsecond => _Second * 1000000.0;
         public double Nanosecond => _Second * 1000000000.0;
 
-        public static double RunTime(Action action, TimeEnum timeEnum = TimeEnum.Nanosecond, string? msg = null)
+        public static double RunTime(Action action, TimeEnum timeEnum = TimeEnum.Millisecond, string? msg = null)
         {
             var nanoSecond = new Timer();
             nanoSecond.Start();
