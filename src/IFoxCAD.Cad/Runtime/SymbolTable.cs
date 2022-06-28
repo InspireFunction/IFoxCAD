@@ -269,7 +269,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         if (table is null)
         {
-            throw new ArgumentNullException(nameof(table),"对象为null");
+            throw new ArgumentNullException(nameof(table), "对象为null");
         }
 
         ObjectId rid = this[name];
@@ -309,13 +309,13 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">要运行的委托</param>
-    public void ForEach(Action<TRecord> action)
+    public void ForEach(Action<TRecord> action, OpenMode openMode = OpenMode.ForRead)
     {
         //GetRecords().ForEach(re => action(re));
-       
+
         foreach (var item in this)
         {
-            var record = GetRecord(item);
+            var record = GetRecord(item, openMode);
             if (record is not null)
             {
                 action(record);
