@@ -1036,7 +1036,6 @@ public static class EditorEx
     [System.Security.SuppressUnmanagedCodeSecurity]
     static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
 
-
 #if NET35
     [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "ads_queueexpr")]
@@ -1080,20 +1079,20 @@ public static class EditorEx
          *        (setq thisdrawing (vla-get-activedocument (vlax-get-acad-object)))(vla-SendCommand thisdrawing "CmdTest_RunLisp1 ")
          *   0x02 使用 Ads_queueexpr 接口
          */
-        if (flag == RunLispFlag.AdsQueueexpr)
+        if ((flag & RunLispFlag.AdsQueueexpr) == RunLispFlag.AdsQueueexpr)
         {
             // 这个在08/12发送lisp不会出错,但是发送bo命令出错了.
             // 0x01 设置 CommandFlags.Session 可以同步,
             // 0x02 自执行发送lisp都是异步,(用来发送 含有(command)的lisp的)
             _ = Ads_queueexpr(lispCode + "\n");
         }
-        if (flag == RunLispFlag.AcedEvaluateLisp)
+        if ((flag & RunLispFlag.AcedEvaluateLisp) == RunLispFlag.AcedEvaluateLisp)
         {
             _ = AcedEvaluateLisp(lispCode, out IntPtr rb);
             if (rb != IntPtr.Zero)
                 return DisposableWrapper.Create(typeof(ResultBuffer), rb, true) as ResultBuffer;
         }
-        if (flag == RunLispFlag.SendStringToExecute)
+        if ((flag & RunLispFlag.SendStringToExecute) == RunLispFlag.SendStringToExecute)
         {
             var dm = Application.DocumentManager;
             var doc = dm.MdiActiveDocument;
@@ -1106,9 +1105,16 @@ public static class EditorEx
 
 
 #region __发送lisp接口测试
-#if true
+#if true2
 public class TestSendLisp
 {
+    [LispFunction("LispTest_RunLisp")]
+    public static object LispTest_RunLisp(ResultBuffer rb)
+    {
+        CmdTest_RunLisp();
+        return null;
+    }
+
     [CommandMethod("CmdTest_RunLisp1", CommandFlags.Modal)]
     [CommandMethod("CmdTest_RunLisp2", CommandFlags.Transparent)]
     [CommandMethod("CmdTest_RunLisp3", CommandFlags.UsePickSet)]
@@ -1134,13 +1140,15 @@ public class TestSendLisp
 #if !NET35
     [CommandMethod("CmdTest_RunLisp23", CommandFlags.NoInferConstraint)]
     [CommandMethod("CmdTest_RunLisp24", CommandFlags.TempShowDynDimension)]
-#endif
+#endif 
     public static void CmdTest_RunLisp()
     {
+        // 测试方法1: (command "CmdTest_RunLisp1")
+        // 测试方式2: (LispTest_RunLisp)
+
         var dm = Application.DocumentManager;
         var doc = dm.MdiActiveDocument;
         var ed = doc.Editor;
-        //(command "CmdTest_RunLisp1")
         var option = new PromptIntegerOptions("输入RunLispFlag枚举值");
         var ppr = ed.GetInteger(option);
         if (ppr.Status != PromptStatus.OK)
@@ -1155,29 +1163,29 @@ public class TestSendLisp
             Env.Editor.RunLisp("(princ a)",
                 EditorEx.RunLispFlag.AdsQueueexpr);//成功输出 
         }
-
-        if (flag == EditorEx.RunLispFlag.AcedEvaluateLisp)
+        else if (flag == EditorEx.RunLispFlag.AcedEvaluateLisp)
         {
             // 使用(command "CmdTest_RunLisp1")发送,然后 !a 查看变量,acad08是有值的,高版本是null
-            var strlisp0 = "(setq a 20)";
+            var strlisp0 = "(setq b 20)";
             var res0 = Env.Editor.RunLisp(strlisp0,
                 EditorEx.RunLispFlag.AcedEvaluateLisp); //有lisp的返回值
 
-            var strlisp1 = "(defun aaa( / )( princ \"aa\" ))";
+            var strlisp1 = "(defun f1( / )(princ \"aa\"))";
             var res1 = Env.Editor.RunLisp(strlisp1,
                 EditorEx.RunLispFlag.AcedEvaluateLisp); //有lisp的返回值
 
-            var strlisp2 = "(defun bbb( / )( command \"line\" ))";
+            var strlisp2 = "(defun f2( / )(command \"line\"))";
             var res2 = Env.Editor.RunLisp(strlisp2,
                 EditorEx.RunLispFlag.AcedEvaluateLisp); //有lisp的返回值
         }
-      
-        if (flag == EditorEx.RunLispFlag.SendStringToExecute)
+        else if (flag == EditorEx.RunLispFlag.SendStringToExecute)
         {
-            var str = "(setq b 40)(princ)";
+            //测试异步
+            //(command "CmdTest_RunLisp1")和(LispTest_RunLisp)4都是异步
+            var str = "(setq c 40)(princ)";
             Env.Editor.RunLisp(str,
                 EditorEx.RunLispFlag.SendStringToExecute); //异步,后发送
-            Env.Editor.RunLisp("(princ b)",
+            Env.Editor.RunLisp("(princ c)",
                 EditorEx.RunLispFlag.AdsQueueexpr); //同步,先发送了,输出是null 
         }
     }
