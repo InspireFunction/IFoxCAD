@@ -1017,91 +1017,96 @@ public static class EditorEx
 
     #region 执行lisp
 
-#if NET35 
-    [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("acad.exe", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, EntryPoint = "?acedEvaluateLisp@@YAHPB_WAAPAUresbuf@@@Z")]
-    private static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
-
+#if NET35
     [DllImport("acad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
-    private static extern int AcedInvoke(IntPtr args, out IntPtr result);
 #else
-    /// <summary>
-    /// 高版本此接口不能使用lisp(command "xx"),但是可以直接在自动运行接口上
-    /// </summary>
-    /// <param name="lispLine"></param>
-    /// <param name="result"></param>
-    /// <returns></returns>
-    [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, EntryPoint = "?acedEvaluateLisp@@YAHPEB_WAEAPEAUresbuf@@@Z")]
-    private static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
-
     [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
-    private static extern int AcedInvoke(IntPtr args, out IntPtr result);
 #endif
+    static extern int AcedInvoke(IntPtr args, out IntPtr result);
 
-#pragma warning disable IDE0060 // 删除未使用的参数
-    /// <summary>
-    /// 发送lisp语句字符串到cad执行
-    /// </summary>
-    /// <param name="ed">编辑器对象</param>
-    /// <param name="arg">lisp语句</param>
-    /// <returns>缓冲结果,返回值</returns>
-    public static ResultBuffer? RunLisp(this Editor ed, string arg)
-    {
-        /*
-         * bug:
-         *    cad08调用成功,但是高版本调用时候没有运行成功,使得 !a 没有值
-         *    调用方式:(command "CmdTest_RunLisp1")
-         *    
-         * [CommandMethod("CmdTest_RunLisp")]
-         * public static void CmdTest_RunLisp()
-         * {
-         *     var res = SendLisp.RunLisp("(setq a 10)");
-         * }
-         * 
-         * 解决方案:
-         *   0x01 用异步接口,但是这样是显式调用了:
-         *        (setq thisdrawing (vla-get-activedocument (vlax-get-acad-object)))(vla-SendCommand thisdrawing "CmdTest_RunLisp1 ")
-         *   0x02 使用 Ads_queueexpr 接口
-         */
-        _ = AcedEvaluateLisp(arg, out IntPtr rb);
-        if (rb != IntPtr.Zero)
-            return DisposableWrapper.Create(typeof(ResultBuffer), rb, true) as ResultBuffer;
-        return null;
-    }
-#pragma warning restore IDE0060 // 删除未使用的参数
+
+#if NET35
+    [DllImport("acad.exe", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "?acedEvaluateLisp@@YAHPB_WAAPAUresbuf@@@Z")]
+#else
+    // 高版本此接口不能使用lisp(command "xx"),但是可以直接在自动运行接口上
+    [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "?acedEvaluateLisp@@YAHPEB_WAEAPEAUresbuf@@@Z")]
+#endif
+    [System.Security.SuppressUnmanagedCodeSecurity]
+    static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
 
 
 #if NET35
     [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "ads_queueexpr")]
-    static extern int Ads_queueexpr(string strExpr);
 #else
     [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "ads_queueexpr")]
-    static extern int Ads_queueexpr(string strExpr);
 #endif
+    static extern int Ads_queueexpr(string strExpr);
+
+    public enum RunLispFlag : byte
+    {
+        AdsQueueexpr = 1,
+        AcedEvaluateLisp = 2,
+        SendStringToExecute = 4,
+    }
 
     /// <summary>
-    /// 发送命令
-    /// (用来发送 含有(command)的lisp的)自执行发送lisp都是异步
+    /// 发送lisp语句字符串到cad执行
     /// </summary>
-    public static void SendString(this Editor ed, string str)
+    /// <param name="ed">编辑器对象</param>
+    /// <param name="lispCode">lisp语句</param>
+    /// <returns>缓冲结果,返回值</returns>
+#pragma warning disable IDE0060 // 删除未使用的参数
+    public static ResultBuffer? RunLisp(this Editor ed, string lispCode, RunLispFlag flag = RunLispFlag.AdsQueueexpr)
+#pragma warning restore IDE0060 // 删除未使用的参数
     {
-        // 这个在08/12发送lisp不会出错,但是发送bo命令出错了.
-        // 设置 CommandFlags.Session 可以同步,
-        // 发送lisp是异步,在自动执行函数上面会异步
-        _ = Ads_queueexpr(str + "\n");
-
-        // var dm = Application.DocumentManager;
-        // var doc = dm.MdiActiveDocument;
-        // doc.SendStringToExecute(str + "\n", false, false, false);
+        /*
+         * 测试命令:
+         *   [CommandMethod("CmdTest_RunLisp")]
+         *   public static void CmdTest_RunLisp()
+         *   {
+         *       var res = SendLisp.RunLisp("(setq a 10)");
+         *   }
+         * 调用方式:
+         *    (command "CmdTest_RunLisp1")
+         * bug说明: 
+         *    AcedEvaluateLisp接口在高版本调用时候没有运行成功,使得 !a 没有值
+         *    经过测试,cad08调用成功,此bug与CommandFlags无关
+         * 解决方案:
+         *   0x01 用异步接口,但是这样是显式调用了:
+         *        (setq thisdrawing (vla-get-activedocument (vlax-get-acad-object)))(vla-SendCommand thisdrawing "CmdTest_RunLisp1 ")
+         *   0x02 使用 Ads_queueexpr 接口
+         */
+        if (flag == RunLispFlag.AdsQueueexpr)
+        {
+            // 这个在08/12发送lisp不会出错,但是发送bo命令出错了.
+            // 0x01 设置 CommandFlags.Session 可以同步,
+            // 0x02 自执行发送lisp都是异步,(用来发送 含有(command)的lisp的)
+            _ = Ads_queueexpr(lispCode + "\n");
+        }
+        if (flag == RunLispFlag.AcedEvaluateLisp)
+        {
+            _ = AcedEvaluateLisp(lispCode, out IntPtr rb);
+            if (rb != IntPtr.Zero)
+                return DisposableWrapper.Create(typeof(ResultBuffer), rb, true) as ResultBuffer;
+        }
+        if (flag == RunLispFlag.SendStringToExecute)
+        {
+            var dm = Application.DocumentManager;
+            var doc = dm.MdiActiveDocument;
+            doc.SendStringToExecute(lispCode + "\n", false, false, false);
+        }
+        return null;
     }
     #endregion
 }
 
 
-#if __发送lisp接口测试
+#region __发送lisp接口测试
+#if true
 public class TestSendLisp
 {
     [CommandMethod("CmdTest_RunLisp1", CommandFlags.Modal)]
@@ -1128,39 +1133,54 @@ public class TestSendLisp
     [CommandMethod("CmdTest_RunLisp22", CommandFlags.ActionMacro)]
 #if !NET35
     [CommandMethod("CmdTest_RunLisp23", CommandFlags.NoInferConstraint)]
-    [CommandMethod("CmdTest_RunLisp24", CommandFlags.TempShowDynDimension)] 
+    [CommandMethod("CmdTest_RunLisp24", CommandFlags.TempShowDynDimension)]
 #endif
-    /*
-     * bug:
-     *    acad08没有
-     *    在高版本使用(command "CmdTest_RunLisp1") AcedEvaluateLisp 接口不会正确运行,使得定义lisp变量失效
-     * 
-     * 经过测试,此bug与CommandFlags无关
-     * 
-     */
     public static void CmdTest_RunLisp()
     {
-#if NET35
-        // 使用(command "CmdTest_RunLisp1")发送,然后 !a 查看变量,acad08是有值的,高版本是null
-        var strlisp0 = "(setq a 10)";
-        var res0 = Env.Editor.RunLisp(strlisp0); //有lisp的返回值
-
-        var strlisp1 = "(defun aaa( / )( princ \"aa\" ))";
-        var res1 = Env.Editor.RunLisp(strlisp1); //有lisp的返回值
-
-        var strlisp2 = "(defun bbb( / )( command \"line\" ))";
-        var res2 = Env.Editor.RunLisp(strlisp2); //有lisp的返回值
-#else
-        // 同步
-        Env.Editor.SendString("(setq a 10)(princ)"); 
-        Env.Editor.SendString("(princ a)");//成功输出
-
         var dm = Application.DocumentManager;
         var doc = dm.MdiActiveDocument;
-        var str = "(setq b 10)(princ)";
-        doc.SendStringToExecute(str + "\n", false, false, false);//异步,后发送
-        Env.Editor.SendString("(princ b)"); //同步,先发送了,输出是null
-#endif
+        var ed = doc.Editor;
+        //(command "CmdTest_RunLisp1")
+        var option = new PromptIntegerOptions("输入RunLispFlag枚举值");
+        var ppr = ed.GetInteger(option);
+        if (ppr.Status != PromptStatus.OK)
+            return;
+        var flag = (EditorEx.RunLispFlag)ppr.Value;
+
+        if (flag == EditorEx.RunLispFlag.AdsQueueexpr)
+        {
+            // 同步
+            Env.Editor.RunLisp("(setq a 10)(princ)",
+                EditorEx.RunLispFlag.AdsQueueexpr);
+            Env.Editor.RunLisp("(princ a)",
+                EditorEx.RunLispFlag.AdsQueueexpr);//成功输出 
+        }
+
+        if (flag == EditorEx.RunLispFlag.AcedEvaluateLisp)
+        {
+            // 使用(command "CmdTest_RunLisp1")发送,然后 !a 查看变量,acad08是有值的,高版本是null
+            var strlisp0 = "(setq a 20)";
+            var res0 = Env.Editor.RunLisp(strlisp0,
+                EditorEx.RunLispFlag.AcedEvaluateLisp); //有lisp的返回值
+
+            var strlisp1 = "(defun aaa( / )( princ \"aa\" ))";
+            var res1 = Env.Editor.RunLisp(strlisp1,
+                EditorEx.RunLispFlag.AcedEvaluateLisp); //有lisp的返回值
+
+            var strlisp2 = "(defun bbb( / )( command \"line\" ))";
+            var res2 = Env.Editor.RunLisp(strlisp2,
+                EditorEx.RunLispFlag.AcedEvaluateLisp); //有lisp的返回值
+        }
+      
+        if (flag == EditorEx.RunLispFlag.SendStringToExecute)
+        {
+            var str = "(setq b 40)(princ)";
+            Env.Editor.RunLisp(str,
+                EditorEx.RunLispFlag.SendStringToExecute); //异步,后发送
+            Env.Editor.RunLisp("(princ b)",
+                EditorEx.RunLispFlag.AdsQueueexpr); //同步,先发送了,输出是null 
+        }
     }
-} 
+}
 #endif
+#endregion
