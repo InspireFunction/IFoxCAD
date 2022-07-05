@@ -1016,7 +1016,6 @@ public static class EditorEx
     #endregion
 
     #region 执行lisp
-
 #if NET35
     [DllImport("acad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
 #else
@@ -1033,7 +1032,7 @@ public static class EditorEx
     [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "?acedEvaluateLisp@@YAHPEB_WAEAPEAUresbuf@@@Z")]
 #endif
-    [System.Security.SuppressUnmanagedCodeSecurity]
+    [System.Security.SuppressUnmanagedCodeSecurity]//初始化默认值
     static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
 
 #if NET35
@@ -1067,12 +1066,12 @@ public static class EditorEx
          *   [CommandMethod("CmdTest_RunLisp")]
          *   public static void CmdTest_RunLisp()
          *   {
-         *       var res = SendLisp.RunLisp("(setq a 10)");
+         *       var res = SendLisp.RunLisp("(setq abc 10)");
          *   }
          * 调用方式:
          *    (command "CmdTest_RunLisp1")
          * bug说明: 
-         *    AcedEvaluateLisp接口在高版本调用时候没有运行成功,使得 !a 没有值
+         *    AcedEvaluateLisp接口在高版本调用时候没有运行成功,使得 !abc 没有值
          *    经过测试,cad08调用成功,此bug与CommandFlags无关
          * 解决方案:
          *   0x01 用异步接口,但是这样是显式调用了:
@@ -1165,7 +1164,7 @@ public class TestSendLisp
         }
         else if (flag == EditorEx.RunLispFlag.AcedEvaluateLisp)
         {
-            // 使用(command "CmdTest_RunLisp1")发送,然后 !a 查看变量,acad08是有值的,高版本是null
+            // 使用(command "CmdTest_RunLisp1")发送,然后 !b 查看变量,acad08是有值的,高版本是null
             var strlisp0 = "(setq b 20)";
             var res0 = Env.Editor.RunLisp(strlisp0,
                 EditorEx.RunLispFlag.AcedEvaluateLisp); //有lisp的返回值
