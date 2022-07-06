@@ -1113,33 +1113,56 @@ public class TestSendLisp
         CmdTest_RunLisp();
         return null;
     }
-
+    // 发出的命令是模式的，只有当CAD发出命令提示或当前没有其他的命令或程序活动的时候才可以被触发
     [CommandMethod("CmdTest_RunLisp1", CommandFlags.Modal)]
+    //命令是透明的，可以在一个命令提示输入的时候触发例如正交切换、zoom等
     [CommandMethod("CmdTest_RunLisp2", CommandFlags.Transparent)]
+    //命令执行前已经选中部分实体、命令将可以使用这些实体
     [CommandMethod("CmdTest_RunLisp3", CommandFlags.UsePickSet)]
+    // 命令执行前已选中部分实体、在命令执行过程中这些标记不会被清除
     [CommandMethod("CmdTest_RunLisp4", CommandFlags.Redraw)]
+    //命令不能在透视图中使用
     [CommandMethod("CmdTest_RunLisp5", CommandFlags.NoPerspective)]
+    //命令不能通过MULTIPLE命令重复触发
     [CommandMethod("CmdTest_RunLisp6", CommandFlags.NoMultiple)]
-    [CommandMethod("CmdTest_RunLisp7", CommandFlags.NoTileMode)]/*不允许模型使用命令*/
-    [CommandMethod("CmdTest_RunLisp8", CommandFlags.NoPaperSpace)]/*不允许布局使用命令*/
+    //不允许在模型空间使用命令
+    [CommandMethod("CmdTest_RunLisp7", CommandFlags.NoTileMode)]
+    //不允许在布局空间使用命令
+    [CommandMethod("CmdTest_RunLisp8", CommandFlags.NoPaperSpace)]
+    //命令不能在OEM产品中使用
     [CommandMethod("CmdTest_RunLisp9", CommandFlags.NoOem)]
-    [CommandMethod("CmdTest_RunLisp10", CommandFlags.Undefined)]/*不允许调用*/
-    [CommandMethod("CmdTest_RunLisp11", CommandFlags.Defun)]/*不允许调用*/
+    //不能直接使用命令名调用，必须使用   组名.全局名  调用
+    [CommandMethod("CmdTest_RunLisp10", CommandFlags.Undefined)]
+    // 定义lisp方法。已废弃   请使用lispfunction
+    [CommandMethod("CmdTest_RunLisp11", CommandFlags.Defun)]
+    //命令不会被存储在新的命令堆上
     [CommandMethod("CmdTest_RunLisp12", CommandFlags.NoNewStack)]
+    //命令不能被内部锁定
     [CommandMethod("CmdTest_RunLisp13", CommandFlags.NoInternalLock)]
+    //调用命令的文档将会被锁定为只读
     [CommandMethod("CmdTest_RunLisp14", CommandFlags.DocReadLock)]
+    //调用命令的文档将会被锁定，类似document.lockdocument
     [CommandMethod("CmdTest_RunLisp15", CommandFlags.DocExclusiveLock)]
+    //命令在CAD运行期间都能使用，而不只是在当前文档
     [CommandMethod("CmdTest_RunLisp16", CommandFlags.Session)]
+    //获取用户输入时，可以与属性面板之类的交互
     [CommandMethod("CmdTest_RunLisp17", CommandFlags.Interruptible)]
+    //命令不会被记录在命令历史记录
     [CommandMethod("CmdTest_RunLisp18", CommandFlags.NoHistory)]
+    //命令不会被UNDO取消
     [CommandMethod("CmdTest_RunLisp19", CommandFlags.NoUndoMarker)]
+    //不能在参照块中使用命令
     [CommandMethod("CmdTest_RunLisp20", CommandFlags.NoBlockEditor)]
+    //不会被动作录制器 捕捉到
     [CommandMethod("CmdTest_RunLisp21", CommandFlags.NoActionRecording)]
+    //会被动作录制器捕捉
     [CommandMethod("CmdTest_RunLisp22", CommandFlags.ActionMacro)]
 #if !NET35
+    //推断约束时不能使用命令
     [CommandMethod("CmdTest_RunLisp23", CommandFlags.NoInferConstraint)]
+    //命令允许在选择图元时临时显示动态尺寸
     [CommandMethod("CmdTest_RunLisp24", CommandFlags.TempShowDynDimension)]
-#endif 
+#endif
     public static void CmdTest_RunLisp()
     {
         // 测试方法1: (command "CmdTest_RunLisp1")
