@@ -30,8 +30,8 @@ public class JigEx : DrawJig
     /// </summary>
     public Entity[] Entitys => _drawEntitys.ToArray();
 
-    Action<Point3d, Queue<Entity>>? _action;
-    Autodesk.AutoCAD.Geometry.Tolerance _tolerance;
+    readonly Action<Point3d, Queue<Entity>>? _action;
+    readonly Autodesk.AutoCAD.Geometry.Tolerance _tolerance;
 
     readonly Queue<Entity> _drawEntitys;//重复生成的图元,放在这里刷新
     JigPromptPointOptions? _options;
