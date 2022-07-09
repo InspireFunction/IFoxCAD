@@ -1,62 +1,11 @@
 ﻿/*  封装jig
+ *  20220710 修改SetOption()的空格结束,并添加例子到IFox
  *  20220503 cad22需要防止刷新过程中更改队列,08不会有.
  *  20220326 重绘图元的函数用错了,现在修正过来
  *  20211216 加入块表时候做一个差集,剔除临时图元
  *  20211209 补充正交变量设置和回收设置
  *  作者: 惊惊⎛⎝◕⏝⏝◕｡⎠⎞ ⎛⎝≥⏝⏝0⎠⎞ ⎛⎝⓿⏝⏝⓿｡⎠⎞ ⎛⎝≥⏝⏝≤⎠⎞
  *  博客: https://www.cnblogs.com/JJBox/p/15650770.html
- *
- *  例子1:
- *  var ptjig = new JigEx();
- *  ptjig.SetOptions(Point3d.Origin);
- *  var pr = ptjig.Drag();
- *  if (pr.Status != PromptStatus.OK)
- *      return null;
- *
- *  例子2:
- *  var ppo1 = new PromptPointOptions(Environment.NewLine + "输入矩形角点1:<空格退出>")
- *  {
- *      AllowArbitraryInput = true,//任意输入
- *      AllowNone           = true //允许回车
- *  };
- *  var ppr1 = ed.GetPoint(ppo1);//用户点选
- *  if (ppr1.Status != PromptStatus.OK)
- *      return;
- *  var getPt = ppr1.Value;
- *
- *  var recEntityJig = new JigEx((mousePoint, drawEntitys) => {
- *      #region 画柜子图形
- *      double length = Math.Abs(getPt.X - mousePoint.X);
- *      double high = Math.Abs(getPt.Y - mousePoint.Y);
- *      var ent = AddRecToEntity(Point3d.Origin, new Point3d(length, high, 0));
- *      drawEntitys.Enqueue(ent);
- *      #endregion
- *  });
- *  recEntityJig.SetOptions("指定矩形角点:", new Dictionary<string, string>() { { "Z", "中间(Z)" } );
- *
- *  bool flag = true;
- *  while (flag)
- *  {
- *      var pr = recEntityJig.Drag();
- *      if (string.IsNullOrEmpty(pr.StringResult))//在无输入的时候会等于空
- *          flag = false;
- *      else
- *      {
- *          switch (pr.StringResult.ToUpper()) //注意cad保留 https://www.cnblogs.com/JJBox/p/10224631.html
- *          {
- *              case "Z":
- *                  ed.WriteMessage("\n您触发了z关键字");
- *                  break;
- *              case " ":
- *                  flag = false;//空格结束
- *                  break;
- *          }
- *      }
- *  }
- *  //开启事务之后,图元加入数据库
- *  db.Action(tr=>{
- *     recEntityJig.AddEntityToMsPs(tr);
- *  });
  */
 
 namespace IFoxCAD.Cad;
@@ -69,7 +18,7 @@ public class JigEx : DrawJig
 {
     #region 成员
     /// <summary>
-    /// 事件:默认是图元刷新,其余的:亮显/暗显等等工作自由补充
+    /// 事件:亮显/暗显会被刷新冲刷掉,所以这个事件用于补充非刷新的工作
     /// </summary>
     public event WorldDrawEvent? WorldDrawEvent;
     /// <summary>
@@ -81,9 +30,10 @@ public class JigEx : DrawJig
     /// </summary>
     public Entity[] Entitys => _drawEntitys.ToArray();
 
-    readonly Autodesk.AutoCAD.Geometry.Tolerance _tolerance;
+    Action<Point3d, Queue<Entity>>? _action;
+    Autodesk.AutoCAD.Geometry.Tolerance _tolerance;
+
     readonly Queue<Entity> _drawEntitys;//重复生成的图元,放在这里刷新
-    readonly Action<Point3d, Queue<Entity>>? _action;
     JigPromptPointOptions? _options;
     //const string _orthomode = "orthomode";
     bool _systemVariablesOrthomode = false; //正交修改
@@ -94,22 +44,28 @@ public class JigEx : DrawJig
     /// <summary>
     /// 在界面绘制图元
     /// </summary>
+    public JigEx()
+    {
+        _drawEntitys = new();
+    }
+
+    /// <summary>
+    /// 在界面绘制图元
+    /// </summary>
     /// <param name="action">
-    /// 用来频繁执行的回调: <see langword="Point3d"/>鼠标点,<see langword="List"/>加入显示图元的容器
+    /// 用来频繁执行的回调:
+    /// <see langword="Point3d"/>鼠标点;
+    /// <see langword="Queue"/>加入显示图元的容器(此处会Dispose图元的new Entity,已在数据库图元利用事件加入)
     /// </param>
     /// <param name="tolerance">鼠标移动的容差</param>
-    public JigEx(Action<Point3d, Queue<Entity>>? action = null, double tolerance = 1e-6)
+    public JigEx(Action<Point3d, Queue<Entity>>? action = null, double tolerance = 1e-6) : this()
     {
         _action = action;
         _tolerance = new(tolerance, tolerance);
-        _drawEntitys = new();
     }
     #endregion
 
     #region 方法
-
-
-
     /// <summary>
     /// 鼠标配置:基点
     /// </summary>
@@ -128,18 +84,11 @@ public class JigEx : DrawJig
             Env.OrthoMode = true;
             _systemVariablesOrthomode = true;
         }
-        var tmp = new JigPromptPointOptions(Environment.NewLine + msg)
-        {
-            Cursor = cursorType,   //光标绑定
-            UseBasePoint = true,   //基点打开
-            BasePoint = basePoint, //基点设定
-
-            //用户输入控件:  由UCS探测用 | 接受三维坐标
-            UserInputControls =
-                UserInputControls.GovernedByUCSDetect |
-                UserInputControls.Accept3dCoordinates
-        };
-        _options = tmp;
+        _options = JigPointOptions();
+        _options.Message = Environment.NewLine + msg;
+        _options.Cursor = cursorType;   //光标绑定
+        _options.UseBasePoint = true;   //基点打开
+        _options.BasePoint = basePoint; //基点设定
         return _options;
     }
 
@@ -158,14 +107,8 @@ public class JigEx : DrawJig
             Env.OrthoMode = true;
             _systemVariablesOrthomode = true;
         }
-
-        var tmp = new JigPromptPointOptions(Environment.NewLine + msg)
-        {
-            //用户输入控件:  由UCS探测用 | 接受三维坐标
-            UserInputControls =
-                  UserInputControls.GovernedByUCSDetect |
-                  UserInputControls.Accept3dCoordinates
-        };
+        _options = JigPointOptions();
+        _options.Message = Environment.NewLine + msg;
 
         //加入关键字,加入时候将空格内容放到最后
         string spaceValue = string.Empty;
@@ -178,17 +121,16 @@ public class JigEx : DrawJig
                 if (ge.Current.Key == spaceKey)
                     spaceValue = ge.Current.Value;
                 else
-                    tmp.Keywords.Add(ge.Current.Key, ge.Current.Key, ge.Current.Value);
+                    _options.Keywords.Add(ge.Current.Key, ge.Current.Key, ge.Current.Value);
             }
         }
 
         //要放最后,才能优先触发其他关键字
         if (spaceValue != string.Empty)
-            tmp.Keywords.Add(spaceKey, spaceKey, spaceValue);
+            _options.Keywords.Add(spaceKey, spaceKey, spaceValue);
         else
-            tmp.Keywords.Add(spaceKey, spaceKey, "<空格退出>");
+            _options.Keywords.Add(spaceKey, spaceKey, "<空格退出>");
 
-        _options = tmp;
         return _options;
     }
 
@@ -199,9 +141,8 @@ public class JigEx : DrawJig
     /// <param name="orthomode">正交开关</param>
     public void SetOptions(Action<JigPromptPointOptions> action, bool orthomode = false)
     {
-        var tmp = new JigPromptPointOptions();
-        action.Invoke(tmp);
-        _options = tmp;
+        _options = new JigPromptPointOptions();
+        action.Invoke(_options);
 
         if (orthomode && Env.OrthoMode == false)
         {
@@ -257,7 +198,7 @@ public class JigEx : DrawJig
 
     #region 重写
     /// <summary>
-    /// 鼠标频繁采点
+    /// 鼠标采样器
     /// </summary>
     /// <param name="prompts"></param>
     /// <returns>返回状态:令频繁刷新结束</returns>
@@ -335,11 +276,27 @@ public class JigEx : DrawJig
         return true;
     }
     #endregion
+
+    static JigPromptPointOptions JigPointOptions()
+    {
+        /* 用户输入控制:
+         * 结束jig的设置,若此时也设置了空格关键字,
+         * 空格时为 jig.Drag().Status == PromptStatus.None,而不是关键字,
+         * 所以设计的时候,可以不使用空格关键字.
+         */
+        return new JigPromptPointOptions()
+        {
+            UserInputControls =
+                  UserInputControls.GovernedByUCSDetect     //由UCS探测用
+                | UserInputControls.Accept3dCoordinates     //接受三维坐标
+                | UserInputControls.NullResponseAccepted    //输入了鼠标右键,结束jig
+                | UserInputControls.AnyBlankTerminatesInput //空格或回车,结束jig;
+        };
+    }
 }
 
 
 #if false
-| UserInputControls.NullResponseAccepted           //接受空响应
 | UserInputControls.DoNotEchoCancelForCtrlC        //不要取消CtrlC的回音
 | UserInputControls.DoNotUpdateLastPoint           //不要更新最后一点
 | UserInputControls.NoDwgLimitsChecking            //没有Dwg限制检查
@@ -347,8 +304,8 @@ public class JigEx : DrawJig
 | UserInputControls.NoNegativeResponseAccepted     //不否定回复已被接受
 | UserInputControls.Accept3dCoordinates            //返回点的三维坐标,是转换坐标系了?
 | UserInputControls.AcceptMouseUpAsPoint           //接受释放按键时的点而不是按下时
-| UserInputControls.AnyBlankTerminatesInput        //任何空白终止输入
-| UserInputControls.InitialBlankTerminatesInput    //初始空白终止输入
+
+| UserInputControls.InitialBlankTerminatesInput    //初始 空格或回车,结束jig
 | UserInputControls.AcceptOtherInputString         //接受其他输入字符串
 | UserInputControls.NoZDirectionOrtho              //无方向正射,直接输入数字时以基点到当前点作为方向
 | UserInputControls.UseBasePointElevation          //使用基点高程,基点的Z高度探测
