@@ -60,11 +60,13 @@ public abstract class AutoRegAssem : IExtensionApplication
     public AutoRegAssem()
     {
         var assem = Assembly.GetCallingAssembly();
-        Info = new();
-        Info.Loader = assem.Location;
-        Info.Fullname = assem.FullName;
-        Info.Name = assem.GetName().Name;
-        Info.LoadType = AssemLoadType.Startting;
+        Info = new()
+        {
+            Loader = assem.Location,
+            Fullname = assem.FullName,
+            Name = assem.GetName().Name,
+            LoadType = AssemLoadType.Startting
+        };
 
         if (!SearchForReg())
             RegApp();

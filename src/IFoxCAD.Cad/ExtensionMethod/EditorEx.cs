@@ -139,7 +139,7 @@ public static class EditorEx
      *  };
      *  pso.SsgetAddKeys(dic);
      *
-     *  //创建选择集过滤器，只选择块对象
+     *  //创建选择集过滤器,只选择块对象
      *  var filList = new TypedValue[] { new TypedValue((int)DxfCode.Start, "INSERT") };
      *  var filter = new SelectionFilter(filList);
      *  ssPsr = ed.GetSelection(pso, filter);
@@ -423,7 +423,7 @@ public static class EditorEx
     }
 
     /// <summary>
-    /// 提示信息对话框，默认标题为NFox.Cad
+    /// 提示信息对话框,默认标题为NFox.Cad
     /// </summary>
     /// <param name="message">对话框文本</param>
     public static void InfoMessageBox(string message)
@@ -473,7 +473,7 @@ public static class EditorEx
     /// <summary>
     /// 判断是否有活动的编辑器对象
     /// </summary>
-    /// <returns><see langword="true"/>有，<see langword="false"/>没有</returns>
+    /// <returns><see langword="true"/>有,<see langword="false"/>没有</returns>
     public static bool HasEditor()
     {
         return Application.DocumentManager.MdiActiveDocument is not null
@@ -484,7 +484,7 @@ public static class EditorEx
     /// <summary>
     /// 判断是否可以打印字符串
     /// </summary>
-    /// <returns><see langword="true"/>可以打印，<see langword="false"/>不可以打印</returns>
+    /// <returns><see langword="true"/>可以打印,<see langword="false"/>不可以打印</returns>
     public static bool Acceptable()
     {
         return HasEditor()
@@ -499,7 +499,7 @@ public static class EditorEx
     /// 根据点表返回矢量线的列表
     /// </summary>
     /// <param name="pnts">点表</param>
-    /// <param name="isClosed">是否闭合，<see langword="true"/> 为闭合，<see langword="false"/> 为不闭合</param>
+    /// <param name="isClosed">是否闭合,<see langword="true"/> 为闭合,<see langword="false"/> 为不闭合</param>
     /// <returns></returns>
     public static List<TypedValue> GetLines(IEnumerable<Point2d> pnts, bool isClosed)
     {
@@ -537,7 +537,7 @@ public static class EditorEx
     /// <param name="editor">编辑器对象</param>
     /// <param name="pnts">点表</param>
     /// <param name="colorIndex">颜色码</param>
-    /// <param name="isClosed">是否闭合，<see langword="true"/> 为闭合，<see langword="false"/> 为不闭合</param>
+    /// <param name="isClosed">是否闭合,<see langword="true"/> 为闭合,<see langword="false"/> 为不闭合</param>
     public static void DrawVectors(this Editor editor, IEnumerable<Point2d> pnts, short colorIndex, bool isClosed)
     {
         var rlst =
@@ -1056,9 +1056,12 @@ public static class EditorEx
     /// </summary>
     /// <param name="ed">编辑器对象</param>
     /// <param name="lispCode">lisp语句</param>
+    /// <param name="flag">运行方式</param>
     /// <returns>缓冲结果,返回值</returns>
 #pragma warning disable IDE0060 // 删除未使用的参数
-    public static ResultBuffer? RunLisp(this Editor ed, string lispCode, RunLispFlag flag = RunLispFlag.AdsQueueexpr)
+    public static ResultBuffer? RunLisp(this Editor ed,
+        string lispCode,
+        RunLispFlag flag = RunLispFlag.AdsQueueexpr)
 #pragma warning restore IDE0060 // 删除未使用的参数
     {
         /*
@@ -1101,116 +1104,3 @@ public static class EditorEx
     }
     #endregion
 }
-
-
-#region __发送lisp接口测试
-#if true2
-public class TestSendLisp
-{
-    [LispFunction("LispTest_RunLisp")]
-    public static object LispTest_RunLisp(ResultBuffer rb)
-    {
-        CmdTest_RunLisp();
-        return null;
-    }
-    // 发出的命令是模式的，只有当CAD发出命令提示或当前没有其他的命令或程序活动的时候才可以被触发
-    [CommandMethod("CmdTest_RunLisp1", CommandFlags.Modal)]
-    //命令是透明的，可以在一个命令提示输入的时候触发例如正交切换、zoom等
-    [CommandMethod("CmdTest_RunLisp2", CommandFlags.Transparent)]
-    //命令执行前已经选中部分实体、命令将可以使用这些实体
-    [CommandMethod("CmdTest_RunLisp3", CommandFlags.UsePickSet)]
-    // 命令执行前已选中部分实体、在命令执行过程中这些标记不会被清除
-    [CommandMethod("CmdTest_RunLisp4", CommandFlags.Redraw)]
-    //命令不能在透视图中使用
-    [CommandMethod("CmdTest_RunLisp5", CommandFlags.NoPerspective)]
-    //命令不能通过MULTIPLE命令重复触发
-    [CommandMethod("CmdTest_RunLisp6", CommandFlags.NoMultiple)]
-    //不允许在模型空间使用命令
-    [CommandMethod("CmdTest_RunLisp7", CommandFlags.NoTileMode)]
-    //不允许在布局空间使用命令
-    [CommandMethod("CmdTest_RunLisp8", CommandFlags.NoPaperSpace)]
-    //命令不能在OEM产品中使用
-    [CommandMethod("CmdTest_RunLisp9", CommandFlags.NoOem)]
-    //不能直接使用命令名调用，必须使用   组名.全局名  调用
-    [CommandMethod("CmdTest_RunLisp10", CommandFlags.Undefined)]
-    // 定义lisp方法。已废弃   请使用lispfunction
-    [CommandMethod("CmdTest_RunLisp11", CommandFlags.Defun)]
-    //命令不会被存储在新的命令堆上
-    [CommandMethod("CmdTest_RunLisp12", CommandFlags.NoNewStack)]
-    //命令不能被内部锁定
-    [CommandMethod("CmdTest_RunLisp13", CommandFlags.NoInternalLock)]
-    //调用命令的文档将会被锁定为只读
-    [CommandMethod("CmdTest_RunLisp14", CommandFlags.DocReadLock)]
-    //调用命令的文档将会被锁定，类似document.lockdocument
-    [CommandMethod("CmdTest_RunLisp15", CommandFlags.DocExclusiveLock)]
-    //命令在CAD运行期间都能使用，而不只是在当前文档
-    [CommandMethod("CmdTest_RunLisp16", CommandFlags.Session)]
-    //获取用户输入时，可以与属性面板之类的交互
-    [CommandMethod("CmdTest_RunLisp17", CommandFlags.Interruptible)]
-    //命令不会被记录在命令历史记录
-    [CommandMethod("CmdTest_RunLisp18", CommandFlags.NoHistory)]
-    //命令不会被UNDO取消
-    [CommandMethod("CmdTest_RunLisp19", CommandFlags.NoUndoMarker)]
-    //不能在参照块中使用命令
-    [CommandMethod("CmdTest_RunLisp20", CommandFlags.NoBlockEditor)]
-    //不会被动作录制器 捕捉到
-    [CommandMethod("CmdTest_RunLisp21", CommandFlags.NoActionRecording)]
-    //会被动作录制器捕捉
-    [CommandMethod("CmdTest_RunLisp22", CommandFlags.ActionMacro)]
-#if !NET35
-    //推断约束时不能使用命令
-    [CommandMethod("CmdTest_RunLisp23", CommandFlags.NoInferConstraint)]
-    //命令允许在选择图元时临时显示动态尺寸
-    [CommandMethod("CmdTest_RunLisp24", CommandFlags.TempShowDynDimension)]
-#endif
-    public static void CmdTest_RunLisp()
-    {
-        // 测试方法1: (command "CmdTest_RunLisp1")
-        // 测试方式2: (LispTest_RunLisp)
-
-        var dm = Application.DocumentManager;
-        var doc = dm.MdiActiveDocument;
-        var ed = doc.Editor;
-        var option = new PromptIntegerOptions("输入RunLispFlag枚举值");
-        var ppr = ed.GetInteger(option);
-        if (ppr.Status != PromptStatus.OK)
-            return;
-        var flag = (EditorEx.RunLispFlag)ppr.Value;
-
-        if (flag == EditorEx.RunLispFlag.AdsQueueexpr)
-        {
-            // 同步
-            Env.Editor.RunLisp("(setq a 10)(princ)",
-                EditorEx.RunLispFlag.AdsQueueexpr);
-            Env.Editor.RunLisp("(princ a)",
-                EditorEx.RunLispFlag.AdsQueueexpr);//成功输出 
-        }
-        else if (flag == EditorEx.RunLispFlag.AcedEvaluateLisp)
-        {
-            // 使用(command "CmdTest_RunLisp1")发送,然后 !b 查看变量,acad08是有值的,高版本是null
-            var strlisp0 = "(setq b 20)";
-            var res0 = Env.Editor.RunLisp(strlisp0,
-                EditorEx.RunLispFlag.AcedEvaluateLisp); //有lisp的返回值
-
-            var strlisp1 = "(defun f1( / )(princ \"aa\"))";
-            var res1 = Env.Editor.RunLisp(strlisp1,
-                EditorEx.RunLispFlag.AcedEvaluateLisp); //有lisp的返回值
-
-            var strlisp2 = "(defun f2( / )(command \"line\"))";
-            var res2 = Env.Editor.RunLisp(strlisp2,
-                EditorEx.RunLispFlag.AcedEvaluateLisp); //有lisp的返回值
-        }
-        else if (flag == EditorEx.RunLispFlag.SendStringToExecute)
-        {
-            //测试异步
-            //(command "CmdTest_RunLisp1")和(LispTest_RunLisp)4都是异步
-            var str = "(setq c 40)(princ)";
-            Env.Editor.RunLisp(str,
-                EditorEx.RunLispFlag.SendStringToExecute); //异步,后发送
-            Env.Editor.RunLisp("(princ c)",
-                EditorEx.RunLispFlag.AdsQueueexpr); //同步,先发送了,输出是null 
-        }
-    }
-}
-#endif
-#endregion
