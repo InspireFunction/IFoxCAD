@@ -12,6 +12,7 @@ using IFoxCAD.Basal;
 //    Console.WriteLine((byte)enumItem);
 
 var sb = new StringBuilder();
+/*因为 net framework 没写好的原因,导致直接使用迭代器反而更慢,到了net60就迭代器比foreach更快*/
 var enums = Enum.GetValues(typeof(Season)).GetEnumerator();
 while (enums.MoveNext())
 {
