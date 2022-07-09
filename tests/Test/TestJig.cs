@@ -41,42 +41,40 @@ public class Commands_Jig
                 break;
         }
     }
-     
 
-    //已在数据库的图元如何进入jig
+
+    //不在数据库的图元如何进入jig
     [CommandMethod("TestCmd_Jig44")]
     public void TestCmd_Jig44()
     {
         using var tr = new DBTrans();
         var per = Env.Editor.GetEntity("\n请选择一条多段线:");
-        if (per.Status != PromptStatus.OK) 
+        if (per.Status != PromptStatus.OK)
             return;
         var ent = tr.GetObject<Entity>(per.ObjectId, OpenMode.ForWrite);
-        if (ent is not Polyline pl) 
+        if (ent is not Polyline pl)
             return;
 
+        /*
+         * 鼠标采样器执行时修改鼠标基点
+         * 原因: 多段线与鼠标垂直点作为 BasePoint ,jig鼠标点为确定点
+         * 所以需要先声明再传入指针,但是我发现null也可以.
+         */
         JigEx jig = null;
         jig = new JigEx((mousePoint, drawEntitys) => {
             var closestPt = pl.GetClosestPointTo(mousePoint, false);
 
-            /*
-             * 鼠标采样器执行时修改鼠标基点
-             * 原因: 多段线与鼠标垂直点作为BasePoint,jig鼠标点为确定点
-             */
             var sop = jig.SetOptions(closestPt);
             sop.Keywords.Add("A");
-            sop.Keywords.Add(" ");/*这里是无效的,因为jig.SetOptions()内部设置*/
+            sop.Keywords.Add(" ");/*这里是无效的,因为jig.SetOptions()内部设置,但是这里设置了会显示,最好注释掉*/
 
-            var dbtext = new DBText();
-            dbtext.SetDatabaseDefaults();
-            dbtext.TextString = (pl.GetDistAtPoint(closestPt) * 0.001).ToString("0.00");
-            dbtext.Position = closestPt + new Vector3d(0, 300, 0);
-            dbtext.HorizontalMode = TextHorizontalMode.TextCenter;
-            dbtext.VerticalMode = TextVerticalMode.TextVerticalMid;
-            dbtext.AlignmentPoint = closestPt + new Vector3d(0, 300, 0);
-            dbtext.Height = 200;
+            //生成文字
+            var dictString = (pl.GetDistAtPoint(closestPt) * 0.001).ToString("0.00");
+            var acText = new TextInfo(dictString, closestPt, AttachmentPoint.BaseLeft, textHeight: 200)
+                        .AddDBTextToEntity();
 
-            drawEntitys.Enqueue(dbtext);
+            //加入刷新队列
+            drawEntitys.Enqueue(acText);
         });
         jig.SetOptions(per.PickedPoint);
 
@@ -93,21 +91,18 @@ public class Commands_Jig
                         flag = false;
                         break;
                     case " ":
-                        tr.Editor.WriteMessage("\n 此句永远不会执行,另见:jig.SetOptions()的JigPPO()内注释");
+                        tr.Editor.WriteMessage("\n 此句永远不会执行,另见: jig.SetOptions()的 JigPointOptions()内注释");
                         flag = false;
                         break;
                 }
             }
-            else if (pr.Status != PromptStatus.OK)/*右键空格回车都在这里结束*/
-                 return;
-            else 
-            {
+            else if (pr.Status != PromptStatus.OK)//右键,空格,回车,都在这里结束
+                return;
+            else
                 flag = false;
-            }
         }
-
         tr.CurrentSpace.AddEntity(jig.Entitys);
-    } 
+    }
 
     [CommandMethod("TestCmd_loop")]
     public void TestCmd_loop()
@@ -167,9 +162,11 @@ public class Commands_Jig
           Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
         Database db = doc.Database;
         Editor ed = doc.Editor;
-        PromptStringOptions pso = new("\nEnter text string");
-        pso.AllowSpaces = true;
-        PromptResult pr = ed.GetString(pso);
+        PromptStringOptions pso = new("\nEnter text string")
+        {
+            AllowSpaces = true
+        };
+        var pr = ed.GetString(pso);
         if (pr.Status != PromptStatus.OK)
             return;
         Transaction tr =
@@ -181,18 +178,18 @@ public class Commands_Jig
                 db.CurrentSpaceId, OpenMode.ForWrite
               );
             // Create the text object, set its normal and contents
-            DBText txt = new();
-            txt.Normal =
-              ed.CurrentUserCoordinateSystem.
-                CoordinateSystem3d.Zaxis;
-            txt.TextString = pr.StringResult;
-            // We'll add the text to the database before jigging
-            // it - this allows alignment adjustments to be
-            // reflected
-            btr.AppendEntity(txt);
-            tr.AddNewlyCreatedDBObject(txt, true);
+
+            var acText = new TextInfo(pr.StringResult, 
+                             Point3d.Origin, 
+                             AttachmentPoint.BaseLeft, textHeight: 200)
+                             .AddDBTextToEntity();
+          
+            acText.Normal = ed.CurrentUserCoordinateSystem.CoordinateSystem3d.Zaxis;
+            btr.AppendEntity(acText);
+            tr.AddNewlyCreatedDBObject(acText, true);
+
             // Create our jig
-            TextPlacementJig pj = new(tr, db, txt);
+            TextPlacementJig pj = new(tr, db, acText);
             // Loop as we run our jig, as we may have keywords
             PromptStatus stat = PromptStatus.Keyword;
             while (stat == PromptStatus.Keyword)

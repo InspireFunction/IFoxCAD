@@ -5,16 +5,16 @@
 /// </summary>
 public class TextInfo
 {
-    Database? Database;
-    string? Contents;
-    Point3d Position;
+    readonly Database? Database;
+    readonly string? Contents;
+    readonly Point3d Position;
 
     public string TextJustifyCn => AttachmentPointHelper.Get(TextJustify);
-    AttachmentPoint TextJustify;
-    Point3d? AlignmentPoint;
+    readonly AttachmentPoint TextJustify;
+    readonly Point3d? AlignmentPoint;
 
-    double TextHeight;
-    ObjectId? TextStyleId;
+    readonly double TextHeight;
+    readonly ObjectId? TextStyleId;
 
     /// <summary>
     /// 文字信息类
@@ -22,14 +22,14 @@ public class TextInfo
     /// <param name="contents">内容</param>
     /// <param name="position">基点</param>
     /// <param name="justify">对齐方式</param>
-    /// <param name="justifyPoint">对齐点(对齐方式是左,此参数无效)</param>
+    /// <param name="justifyPoint">对齐点(对齐方式是左,此参数无效,为null不为左就报错)</param>
     /// <param name="textStyleId">文字样式id</param>
     /// <param name="textHeight">文字高度</param>
     /// <param name="database">数据库</param>
     public TextInfo(string? contents,
         Point3d position,
         AttachmentPoint justify,
-        Point3d? justifyPoint,
+        Point3d? justifyPoint = null,
         ObjectId? textStyleId = null,
         double textHeight = 2.5,
         Database? database = null)
@@ -37,6 +37,10 @@ public class TextInfo
         Contents = contents;
         Position = position;
         TextJustify = justify;
+
+        if (justifyPoint is null && TextJustify != AttachmentPoint.BaseLeft)
+            throw new ArgumentNullException(nameof(justifyPoint));
+
         AlignmentPoint = justifyPoint;
         TextHeight = textHeight;
         TextStyleId = textStyleId;
@@ -64,6 +68,7 @@ public class TextInfo
         acText.TextString = Contents; //内容
         acText.Position = Position; //插入点(一定要先设置)
         acText.Justify = TextJustify; //使他们对齐
+        //acText.HorizontalMode
 
         if (AlignmentPoint is not null)
             acText.AlignmentPoint = AlignmentPoint.Value;

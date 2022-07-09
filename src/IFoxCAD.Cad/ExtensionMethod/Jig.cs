@@ -44,7 +44,7 @@ public class JigEx : DrawJig
     /// <summary>
     /// 在界面绘制图元
     /// </summary>
-    public JigEx()
+    private JigEx()
     {
         _drawEntitys = new();
     }

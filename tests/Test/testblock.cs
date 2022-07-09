@@ -30,10 +30,11 @@ public class TestBlock
 
         },
         () => {
-            return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0)) ,
-            new DBText{ Position = new Point3d(0,0,0),
-            TextString = "123"
-            } };
+            var acText = new TextInfo("123", Point3d.Origin, AttachmentPoint.BaseLeft);
+            return new List<Entity> {
+                new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0)),
+                acText.AddDBTextToEntity()
+            };
         });
     }
     //修改块定义
