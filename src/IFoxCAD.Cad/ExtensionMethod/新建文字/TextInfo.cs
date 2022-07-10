@@ -64,10 +64,10 @@ public class TextInfo
         if (TextStyleId is not null)
             acText.SetTextStyleId(TextStyleId.Value);
 
-        acText.Height = TextHeight; //高度
-        acText.TextString = Contents; //内容
-        acText.Position = Position; //插入点(一定要先设置)
-        acText.Justify = TextJustify; //使他们对齐
+        acText.Height = TextHeight;     //高度
+        acText.TextString = Contents;   //内容
+        acText.Position = Position;     //插入点(一定要先设置)
+        acText.Justify = TextJustify;   //使他们对齐
         //acText.HorizontalMode
 
         if (AlignmentPoint is not null)
@@ -99,8 +99,8 @@ public class TextInfo
             mText.SetTextStyleId(TextStyleId.Value);
 
         mText.TextHeight = TextHeight; //高度
-        mText.Contents = Contents; //内容
-        mText.Location = Position; //插入点(一定要先设置)
+        mText.Contents = Contents;     //内容
+        mText.Location = Position;     //插入点(一定要先设置)
 
         //mText.SetAttachmentMovingLocation(TextJustify);
         mText.Attachment = TextJustify;//使他们对齐

@@ -1,5 +1,6 @@
 ﻿using System.Windows.Forms;
 
+
 namespace Test;
 
 public class Commands_Jig
@@ -158,10 +159,11 @@ public class Commands_Jig
     [CommandMethod("TestCmd_QuickText")]
     static public void TestCmd_QuickText()
     {
-        Document doc =
-          Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager.MdiActiveDocument;
-        Database db = doc.Database;
-        Editor ed = doc.Editor;
+        var dm = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager;
+        var doc = dm.MdiActiveDocument;
+        var db = doc.Database;
+        var ed = doc.Editor;
+
         PromptStringOptions pso = new("\nEnter text string")
         {
             AllowSpaces = true
@@ -169,8 +171,8 @@ public class Commands_Jig
         var pr = ed.GetString(pso);
         if (pr.Status != PromptStatus.OK)
             return;
-        Transaction tr =
-          doc.TransactionManager.StartTransaction();
+
+        var tr = doc.TransactionManager.StartTransaction();
         using (tr)
         {
             BlockTableRecord btr =
@@ -179,17 +181,17 @@ public class Commands_Jig
               );
             // Create the text object, set its normal and contents
 
-            var acText = new TextInfo(pr.StringResult, 
-                             Point3d.Origin, 
+            var acText = new TextInfo(pr.StringResult,
+                             Point3d.Origin,
                              AttachmentPoint.BaseLeft, textHeight: 200)
                              .AddDBTextToEntity();
-          
+
             acText.Normal = ed.CurrentUserCoordinateSystem.CoordinateSystem3d.Zaxis;
             btr.AppendEntity(acText);
             tr.AddNewlyCreatedDBObject(acText, true);
 
             // Create our jig
-            TextPlacementJig pj = new(tr, db, acText);
+            var pj = new TextPlacementJig(tr, db, acText);
             // Loop as we run our jig, as we may have keywords
             PromptStatus stat = PromptStatus.Keyword;
             while (stat == PromptStatus.Keyword)
