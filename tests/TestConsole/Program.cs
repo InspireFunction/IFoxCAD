@@ -4,7 +4,8 @@ using System.Text;
 
 
 //表达式树例子
-TestConsole.Expression.Demo();
+TestConsole.Test_Expression.Demo3();
+//TestConsole.Test_Expression.Demo1();
 
 #region 元组测试
 var valuetuple = (1, 2);
