@@ -99,17 +99,18 @@ public class AutoClass //: IExtensionApplication
         _DllName = DllName;
     }
 
-    //打开cad的时候会自动执行
+    //启动cad的时候会自动执行
     public void Initialize()
     {
         try
         {
-            GetAttributeFunctions();
+            //收集特性,包括启动时和关闭时
+            GetAttributeFunctions(_InitializeList,_TerminateList);
+
             GetInterfaceFunctions(_InitializeList, nameof(Initialize));
             //按照 SequenceId 排序_升序
             _InitializeList = _InitializeList.OrderBy(runClass => runClass.Sequence).ToList();
             AutoClass.RunFunctions(_InitializeList);
-            _InitializeList.Clear();
         }
         catch (System.Exception)
         {
@@ -126,7 +127,6 @@ public class AutoClass //: IExtensionApplication
             //按照 SequenceId 排序_降序
             _TerminateList = _TerminateList.OrderByDescending(runClass => runClass.Sequence).ToList();
             AutoClass.RunFunctions(_TerminateList);
-            _TerminateList.Clear();
         }
         catch (System.Exception)
         {
@@ -163,7 +163,7 @@ public class AutoClass //: IExtensionApplication
                 if (dllNameWithoutExtension != null &&
                     str != dllNameWithoutExtension)
                     continue;
-                if (str == "AcInfoCenterConn")
+                if (str == "AcInfoCenterConn")//通讯库
                     continue;
 
                 Type[]? types = null;
@@ -206,52 +206,44 @@ public class AutoClass //: IExtensionApplication
     void GetInterfaceFunctions(List<RunClass> runClassList, string methodName)
     {
         const string sqid = nameof(Sequence) + "Id";
-       
+
         AppDomainGetTypes(type => {
             if (type.IsAbstract)
-            {
                 return;
-            }
+
             foreach (var inters in type.GetInterfaces())
             {
-                if (inters.Name == nameof(IFoxAutoGo))
-                {
-                    Sequence? sequence = null;
-                    MethodInfo? initialize = null;
+                if (inters.Name != nameof(IFoxAutoGo))
+                    continue;
 
-                    foreach (var method in type.GetMethods())
+                Sequence? sequence = null;
+                MethodInfo? initialize = null;
+
+                foreach (var method in type.GetMethods())
+                {
+                    if (method.IsAbstract)
+                        continue;
+                    if (method.Name == sqid)
                     {
-                        if (method.IsAbstract)
-                        {
-                            continue;
-                        }
-                        if (method.Name == sqid)
-                        {
-                            var obj = method.Invoke();
-                            if (obj is not null)
-                            {
-                                sequence = (Sequence)obj;
-                            }
-                            continue;
-                        }
-                        else if (method.Name == methodName)
-                        {
-                            initialize = method;
-                        }
-                        if (initialize is not null && sequence is not null)
-                        {
-                            break;
-                        }
+                        var obj = method.Invoke();
+                        if (obj is not null)
+                            sequence = (Sequence)obj;
+                        continue;
                     }
-                    if (initialize is not null)
-                    {
-                        var runc = sequence is not null ?
-                        new RunClass(initialize, sequence.Value) :
-                        new RunClass(initialize, Sequence.Last);
-                        runClassList.Add(runc);
-                    }
-                    break;
+                    else if (method.Name == methodName)
+                        initialize = method;
+                    if (initialize is not null && sequence is not null)
+                        break;
                 }
+
+                if (initialize is not null)
+                {
+                    var runc = sequence is not null ?
+                    new RunClass(initialize, sequence.Value) :
+                    new RunClass(initialize, Sequence.Last);
+                    runClassList.Add(runc);
+                }
+                break;
             }
         }, _DllName);
 
@@ -260,14 +252,12 @@ public class AutoClass //: IExtensionApplication
     /// <summary>
     /// 收集特性下的函数
     /// </summary>
-    void GetAttributeFunctions()
+    void GetAttributeFunctions(List<RunClass> initialize, List<RunClass> terminate)
     {
-       
         AppDomainGetTypes(type => {
             if (type.IsAbstract)
-            {
                 return;
-            }
+
             var mets = type.GetMethods();
             for (int ii = 0; ii < mets.Length; ii++)
             {
@@ -279,13 +269,9 @@ public class AutoClass //: IExtensionApplication
                     {
                         var runc = new RunClass(method, jjAtt.SequenceId);
                         if (jjAtt.IsInitialize)
-                        {
-                            _InitializeList.Add(runc);
-                        }
+                            initialize.Add(runc);
                         else
-                        {
-                            _TerminateList.Add(runc);
-                        }
+                            terminate.Add(runc);
                         break;
                     }
                 }

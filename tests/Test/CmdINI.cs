@@ -2,15 +2,24 @@
  * 自动执行接口
  * 这里必须要实现一次这个接口,才能使用 IFoxInitialize 特性进行自动执行
  */
+
+/// <summary>
+/// 初始化注册表及反射
+/// 运行顺序
+/// 1: <see cref="AutoRegAssem"/>构造函数
+/// 2: <see cref="IFoxInitialize"/>特性..多个
+/// 3: <see cref="IFoxAutoGo"/>接口..多个
+/// 4: <see cref="CmdINI"/>构造函数
+/// </summary>
 public class CmdINI : AutoRegAssem
 {
-    //public override void Initialize()
-    //{
-    //}
-
-    //public override void Terminate()
-    //{
-    //}
+    public CmdINI()
+    {
+        var dm = Application.DocumentManager;
+        var doc = dm.MdiActiveDocument;
+        var ed = doc.Editor;
+        ed.WriteMessage($"\n 开始自动执行{nameof(CmdINI)} \r\n");
+    }
 }
 
 

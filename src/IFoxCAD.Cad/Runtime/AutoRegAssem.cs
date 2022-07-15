@@ -28,8 +28,8 @@ public enum AssemLoadType
 /// </summary>
 public abstract class AutoRegAssem : IExtensionApplication
 {
-    private readonly AutoClass ac;
-    AssemInfo Info;
+    readonly AutoClass ac;
+    readonly AssemInfo Info;
 
     /// <summary>
     /// 程序集的路径
@@ -46,7 +46,7 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// </summary>
     /// <param name="assem">程序集</param>
     /// <returns>路径对象</returns>
-    public static DirectoryInfo GetDirectory(Assembly assem)
+    public static DirectoryInfo GetDirectory(Assembly? assem)
     {
         if (assem is null)
             throw new(nameof(assem));
