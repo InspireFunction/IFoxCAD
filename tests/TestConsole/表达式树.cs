@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Linq.Expressions;
 
@@ -28,6 +29,7 @@ namespace TestConsole
             Console.Read();
         }
 
+
         public static void Demo2()
         {
             // 这里是会报错的!! 原因就是体内有多个例子需要分解!!
@@ -37,51 +39,74 @@ namespace TestConsole
             // ParameterExpression param = exprTree.Parameters[0];// x
             // BinaryExpression operation = (BinaryExpression)exprTree.Body;//函数体 {((x > 5) AndAlso (x < 50))}
             // 
-            // ParameterExpression left = (ParameterExpression)operation.Left;//左节点
-            // ConstantExpression right = (ConstantExpression)operation.Right;//右表达式
+            // ParameterExpression left = (ParameterExpression)operation.Left;//左节点.......这里报错
+            // ConstantExpression right = (ConstantExpression)operation.Right;//右表达式.....这里报错
             // 
             // Console.WriteLine("表达式树例子: {0} => {1} {2} {3}",
             //                   param.Name, left.Name, operation.NodeType, right.Value);
         }
+
 
         //博客园例子,表达式体内有多个式子
         public static void Demo3()
         {
             List<string> names = new() { "Cai", "Edward", "Beauty" };
 
+            Console.WriteLine("******************一个表达式");
+            Expression<Func<string, bool>> lambda2 = name => name.Length > 2 && name.Length < 4;
+            var method2 = ReBuildExpression(lambda2);
+            var query2 = names.Where(method2);
+            foreach (string n in query2)
+                Console.WriteLine(n);
+
+            Console.WriteLine("******************二个表达式");
             Expression<Func<string, bool>> lambda0 = item => item.Length > 2;
             Expression<Func<string, bool>> lambda1 = item => item.Length < 4;
-            Expression<Func<string, bool>> lambda2 = name => name.Length > 2 && name.Length < 3;
-
             var method = ReBuildExpression(lambda0, lambda1);
             var query = names.Where(method);
             foreach (string n in query)
                 Console.WriteLine(n);
-
+            Console.WriteLine("******************表达式结束");
             Console.Read();
         }
 
-        /// <summary>
-        /// 重构表达式
-        /// </summary>
-        /// <param name="lambd0"></param>
-        /// <param name="lambd1"></param>
-        /// <returns></returns>
-        static Func<string, bool> ReBuildExpression(Expression<Func<string, bool>> lambd0,
-                                                    Expression<Func<string, bool>> lambd1)
+
+        static Func<string, bool> ReBuildExpression(Expression<Func<string, bool>> lambda)
         {
             MyExpressionVisitor my = new()
             {
                 Parameter = Expression.Parameter(typeof(string), "name")
             };
 
-            Expression left = my.Modify(lambd0.Body);
-            Expression right = my.Modify(lambd1.Body);
-            BinaryExpression expression = Expression.AndAlso(left, right);//就是 &&
+            Expression left = my.Modify(lambda.Body);
+            //构造一个新的表达式
+            var newLambda = Expression.Lambda<Func<string, bool>>(left, my.Parameter);
+            return newLambda.Compile();
+        }
+
+
+
+        /// <summary>
+        /// 重构表达式_合并
+        /// </summary>
+        /// <param name="lambda0">匿名函数表达式1</param>
+        /// <param name="lambda1">匿名函数表达式2</param>
+        /// <returns></returns>
+        static Func<string, bool> ReBuildExpression(Expression<Func<string, bool>> lambda0,
+                                                    Expression<Func<string, bool>> lambda1)
+        {
+            MyExpressionVisitor my = new()
+            {
+                Parameter = Expression.Parameter(typeof(string), "name")
+            };
+
+            Expression left = my.Modify(lambda0.Body);
+            Expression right = my.Modify(lambda1.Body);
+            var expression = Expression.AndAlso(left, right);//就是 && 合并两个匿名函数
 
             //构造一个新的表达式
-            var lambda = Expression.Lambda<Func<string, bool>>(expression, my.Parameter);
-            return lambda.Compile();
+            var newLambda = Expression.Lambda<Func<string, bool>>(expression, my.Parameter);
+            return newLambda.Compile();
         }
     }
 
@@ -103,7 +128,7 @@ namespace TestConsole
         /// <returns></returns>
         public Expression Modify(Expression exp)
         {
-            return this.Visit(exp);
+            return Visit(exp);
         }
         /// <summary>
         /// 重写参数
