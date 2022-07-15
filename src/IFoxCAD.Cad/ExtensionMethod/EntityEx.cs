@@ -198,8 +198,8 @@ public static class EntityEx
     /// <param name="mt">多行文字</param>
     /// <param name="obj">存储对象变量</param>
     /// <param name="mTextFragmentCallback">回调函数，用于处理炸散之后的对象
-    /// <para>MTextFragment -- 多行文字炸散后的对象</para>
-    /// <para>MTextFragmentCallbackStatus -- 回调函数处理的结果</para>
+    /// <para><see cref="MTextFragment"/>多行文字炸散后的对象</para>
+    /// <para><see cref="MTextFragmentCallbackStatus"/>回调函数处理的结果</para>
     /// </param>
     public static void ExplodeFragments<T>(this MText mt, T obj, Func<MTextFragment, T, MTextFragmentCallbackStatus> mTextFragmentCallback)
     {
@@ -227,9 +227,8 @@ public static class EntityEx
     #region 圆弧
 
     /// <summary>
-    /// 根据圆心、起点和终点来创建圆弧(二维)
+    /// 根据圆心、起点、终点来创建圆弧(二维)
     /// </summary>
-    /// <param name="arc">圆弧对象</param>
     /// <param name="startPoint">起点</param>
     /// <param name="centerPoint">圆心</param>
     /// <param name="endPoint">终点</param>
@@ -260,7 +259,7 @@ public static class EntityEx
         //创建一个几何类的圆弧对象
         CircularArc3d geArc = new(startPoint, pointOnArc, endPoint);
         //将几何类圆弧对象的圆心和半径赋值给圆弧
-#if ac2009
+#if NET35
         return (Arc)geArc.ToCurve();
 #else
         return (Arc)Curve.CreateFromGeCurve(geArc);
@@ -331,7 +330,6 @@ public static class EntityEx
     /// <summary>
     /// 通过圆心,半径绘制圆形
     /// </summary>
-    /// <param name="db">图形数据库</param>
     /// <param name="center">圆心</param>
     /// <param name="radius">半径</param>
     /// <returns>图形的ObjectId</returns>
@@ -414,19 +412,15 @@ public static class EntityEx
     /// <param name="propertyNameValues">属性值字典</param>
     public static void ChangeBlockProperty(this BlockReference blockReference, Dictionary<string, object> propertyNameValues)
     {
-        if (blockReference.IsDynamicBlock)
+        if (!blockReference.IsDynamicBlock)
+            return;
+        using (blockReference.ForWrite())
         {
-            using (blockReference.ForWrite())
+            foreach (DynamicBlockReferenceProperty item in blockReference.DynamicBlockReferencePropertyCollection)
             {
-                foreach (DynamicBlockReferenceProperty item in blockReference.DynamicBlockReferencePropertyCollection)
-                {
-                    if (propertyNameValues.ContainsKey(item.PropertyName))
-                    {
-                        item.Value = propertyNameValues[item.PropertyName];
-                    }
-                }
+                if (propertyNameValues.ContainsKey(item.PropertyName))
+                    item.Value = propertyNameValues[item.PropertyName];
             }
-
         }
     }
 

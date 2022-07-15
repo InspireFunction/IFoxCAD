@@ -1,15 +1,12 @@
-﻿/*
- * 自动执行接口
- * 这里必须要实现一次这个接口,才能使用 IFoxInitialize 特性进行自动执行
- */
-
-/// <summary>
-/// 初始化注册表及反射
-/// 运行顺序
-/// 1: <see cref="AutoRegAssem"/>构造函数
-/// 2: <see cref="IFoxInitialize"/>特性..多个
-/// 3: <see cref="IFoxAutoGo"/>接口..多个
-/// 4: <see cref="CmdINI"/>构造函数
+﻿/// <summary>
+/// 自动执行接口:
+/// <para>用于启动cad后初始化注册表及反射调用以下特性和接口</para>
+/// <para>netload的工程必须继承<see cref="AutoRegAssem"/>虚函数后才能使用<see cref="IFoxInitialize"/>特性和<see cref="IFoxAutoGo"/>接口</para>
+/// <para>运行顺序:</para>
+/// <para>1:<see cref="AutoRegAssem"/>构造函数</para>
+/// <para>2:<see cref="IFoxInitialize"/>特性..多个</para>
+/// <para>3:<see cref="IFoxAutoGo"/>接口..多个</para>
+/// <para>4:本类的构造函数</para>    
 /// </summary>
 public class CmdINI : AutoRegAssem
 {

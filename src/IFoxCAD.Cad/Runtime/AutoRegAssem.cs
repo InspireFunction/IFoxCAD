@@ -24,7 +24,7 @@ public enum AssemLoadType
 }
 
 /// <summary>
-///  初始化程序集信息,并写入注册表
+/// 初始化程序集信息写入注册表并反射<see cref="IFoxInitialize"/>特性和<see cref="IFoxAutoGo"/>接口
 /// </summary>
 public abstract class AutoRegAssem : IExtensionApplication
 {
