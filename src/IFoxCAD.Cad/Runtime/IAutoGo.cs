@@ -81,10 +81,12 @@ class RunClass
 }
 
 /// <summary>
-/// 此类初始化要在调用类库上面进行一次,否则反射的项目不包含调用类
-/// 也就是谁引用了<see langword="IFoxCAD.Cad"/> 谁负责在 <see langword="IExtensionApplication"/> 接口上实例化 <see langword="AutoClass"/>
+/// 此类作为加载后cad自动运行接口的一部分,用于反射特性和接口
+/// <para>启动cad后的执行顺序为:</para>
+/// <para>1:<see cref="IFoxInitialize"/>特性..(多个)</para>
+/// <para>2:<see cref="IFoxAutoGo"/>接口..(多个)</para>
 /// </summary>
-public class AutoClass //: IExtensionApplication
+class AutoClass
 {
     static List<RunClass> _InitializeList = new(); //储存方法用于初始化
     static List<RunClass> _TerminateList = new();  //储存方法用于结束释放

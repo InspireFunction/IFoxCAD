@@ -25,6 +25,10 @@ public enum AssemLoadType
 
 /// <summary>
 /// 初始化程序集信息写入注册表并反射<see cref="IFoxInitialize"/>特性和<see cref="IFoxAutoGo"/>接口
+/// <para>启动cad后的执行顺序为:</para>
+/// <para>1:<see cref="AutoRegAssem"/>构造函数</para>
+/// <para>2:<see cref="IFoxInitialize"/>特性..(多个)</para>
+/// <para>3:<see cref="IFoxAutoGo"/>接口..(多个)</para>
 /// </summary>
 public abstract class AutoRegAssem : IExtensionApplication
 {
