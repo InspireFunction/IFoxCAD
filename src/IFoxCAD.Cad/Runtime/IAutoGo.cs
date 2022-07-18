@@ -69,14 +69,7 @@ class RunClass
     /// </summary>
     public void Run()
     {
-        try
-        {
-            _methodInfo.Invoke();
-        }
-        catch (System.Exception)
-        {
-            Debugger.Break();
-        }
+        _methodInfo.Invoke();
     }
 }
 
@@ -86,19 +79,24 @@ class RunClass
 /// <para>1:<see cref="IFoxInitialize"/>特性..(多个)</para>
 /// <para>2:<see cref="IFoxAutoGo"/>接口..(多个)</para>
 /// </summary>
-class AutoClass
+public class AutoReflection
 {
     static List<RunClass> _InitializeList = new(); //储存方法用于初始化
     static List<RunClass> _TerminateList = new();  //储存方法用于结束释放
 
-    readonly string _DllName;
+    readonly string _dllName;
+    readonly AutoRegConfig _autoRegConfig;
+
     /// <summary>
-    /// 反射此特性:<see langword="IFoxInitialize"/>进行加载时自动运行
+    /// 反射执行
+    /// <para>1.特性:<see cref="IFoxInitialize"/></para>
+    /// <para>2.接口:<see cref="IFoxAutoGo"/></para>
     /// </summary>
-    /// <param name="DllName">约束在此dll进行加速</param>
-    public AutoClass(string DllName)
+    /// <param name="dllName">约束在此dll进行加速</param>
+    public AutoReflection(string dllName, AutoRegConfig configInfo)
     {
-        _DllName = DllName;
+        _dllName = dllName;
+        _autoRegConfig = configInfo;
     }
 
     //启动cad的时候会自动执行
@@ -107,12 +105,18 @@ class AutoClass
         try
         {
             //收集特性,包括启动时和关闭时
-            GetAttributeFunctions(_InitializeList,_TerminateList);
+            if ((_autoRegConfig & AutoRegConfig.ReflectionAttribute) == AutoRegConfig.ReflectionAttribute)
+                GetAttributeFunctions(_InitializeList, _TerminateList);
 
-            GetInterfaceFunctions(_InitializeList, nameof(Initialize));
-            //按照 SequenceId 排序_升序
-            _InitializeList = _InitializeList.OrderBy(runClass => runClass.Sequence).ToList();
-            AutoClass.RunFunctions(_InitializeList);
+            if ((_autoRegConfig & AutoRegConfig.ReflectionInterface) == AutoRegConfig.ReflectionInterface)
+                GetInterfaceFunctions(_InitializeList, nameof(Initialize));
+
+            if (_InitializeList.Count > 0)
+            {
+                //按照 SequenceId 排序_升序
+                _InitializeList = _InitializeList.OrderBy(runClass => runClass.Sequence).ToList();
+                RunFunctions(_InitializeList);
+            }
         }
         catch (System.Exception)
         {
@@ -125,10 +129,15 @@ class AutoClass
     {
         try
         {
-            GetInterfaceFunctions(_TerminateList, nameof(Terminate));
-            //按照 SequenceId 排序_降序
-            _TerminateList = _TerminateList.OrderByDescending(runClass => runClass.Sequence).ToList();
-            AutoClass.RunFunctions(_TerminateList);
+            if ((_autoRegConfig & AutoRegConfig.ReflectionInterface) == AutoRegConfig.ReflectionInterface)
+                GetInterfaceFunctions(_TerminateList, nameof(Terminate));
+
+            if (_TerminateList.Count > 0)
+            {
+                //按照 SequenceId 排序_降序
+                _TerminateList = _TerminateList.OrderByDescending(runClass => runClass.Sequence).ToList();
+                RunFunctions(_TerminateList);
+            }
         }
         catch (System.Exception)
         {
@@ -213,18 +222,23 @@ class AutoClass
             if (type.IsAbstract)
                 return;
 
-            foreach (var inters in type.GetInterfaces())
+            var ints = type.GetInterfaces();
+            for (int sss = 0; sss < ints.Length; sss++)
             {
+                var inters = ints[sss];
                 if (inters.Name != nameof(IFoxAutoGo))
                     continue;
 
                 Sequence? sequence = null;
                 MethodInfo? initialize = null;
 
-                foreach (var method in type.GetMethods())
+                var mets = type.GetMethods();
+                for (int jj = 0; jj < mets.Length; jj++)
                 {
+                    var method = mets[jj];
                     if (method.IsAbstract)
                         continue;
+
                     if (method.Name == sqid)
                     {
                         var obj = method.Invoke();
@@ -234,20 +248,19 @@ class AutoClass
                     }
                     else if (method.Name == methodName)
                         initialize = method;
+
                     if (initialize is not null && sequence is not null)
                         break;
                 }
 
-                if (initialize is not null)
-                {
-                    var runc = sequence is not null ?
-                    new RunClass(initialize, sequence.Value) :
-                    new RunClass(initialize, Sequence.Last);
-                    runClassList.Add(runc);
-                }
+                if (initialize is null)
+                    continue;
+
+                var seq = sequence is null ? Sequence.Last : sequence.Value;
+                runClassList.Add(new RunClass(initialize, seq));
                 break;
             }
-        }, _DllName);
+        }, _dllName);
 
     }
 
@@ -278,7 +291,7 @@ class AutoClass
                     }
                 }
             }
-        }, _DllName);
+        }, _dllName);
     }
 
     /// <summary>
