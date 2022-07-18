@@ -3,49 +3,6 @@ using Registry = Microsoft.Win32.Registry;
 using RegistryKey = Microsoft.Win32.RegistryKey;
 
 /// <summary>
-/// 程序集加载类型
-/// </summary>
-public enum AssemLoadType
-{
-    /// <summary>
-    /// 启动
-    /// </summary>
-    Startting = 2,
-
-    /// <summary>
-    /// 随命令
-    /// </summary>
-    ByCommand = 12,
-
-    /// <summary>
-    /// 无效
-    /// </summary>
-    Disabled = 20
-}
-
-
-/// <summary>
-/// 注册中心配置信息
-/// </summary>
-public enum AutoRegConfig
-{
-    /// <summary>
-    /// 注册表
-    /// </summary>
-    Regedit = 1,
-    /// <summary>
-    /// 反射特性
-    /// </summary>
-    ReflectionAttribute = 2,
-    /// <summary>
-    /// 反射接口
-    /// </summary>
-    ReflectionInterface = 4,
-
-    All = Regedit | ReflectionAttribute | ReflectionInterface,
-}
-
-/// <summary>
 /// 注册中心
 /// <para>初始化程序集信息写入注册表并反射<see cref="IFoxInitialize"/>特性和<see cref="IFoxAutoGo"/>接口</para>
 /// <para>启动cad后的执行顺序为:</para>
@@ -117,16 +74,59 @@ public abstract class AutoRegAssem : IExtensionApplication
 
     #region RegApp
 
-    static RegistryKey GetAcAppKey()
+    /// <summary>
+    /// 获取当前cad注册表位置
+    /// </summary>
+    /// <param name="writable">打开权限</param>
+    /// <returns></returns>
+    public static RegistryKey GetAcAppKey(bool writable = true)
     {
+        RegistryKey? ackey = null;
+
 #if NET35
-        string key = HostApplicationServices.Current.RegistryProductRootKey;
-#else
-        string key = HostApplicationServices.Current.MachineRegistryProductRootKey;
+        string key = HostApplicationServices.Current.RegistryProductRootKey; //这里浩辰读出来是""
+#elif !HC2020
+        string key = HostApplicationServices.Current.UserRegistryProductRootKey;
 #endif
-        var ackey = Registry.CurrentUser.OpenSubKey(key, true);
+
+#if !HC2020
+        ackey = Registry.CurrentUser.OpenSubKey(key, writable);
+#else
+        //浩辰
+        var s =  GrxCAD.DatabaseServices.HostApplicationServices.Current.RegistryProductRootKey;//浩辰奇怪的空值
+        string str = CadSystem.Getvar("ACADVER");
+        str = Regex.Replace(str, @"[^\d.\d]", "");
+        double.TryParse(str, out double a);
+        // string regedit = @"Software\Gstarsoft\GstarCAD\R" + a.ToString() + @"\zh-CN"; //2019
+        // string regedit = @"Software\Gstarsoft\GstarCAD\B" + a.ToString() + @"\zh-CN";//2020 这里是
+        string regedit = @"Software\Gstarsoft\GstarCAD\B20\zh-CN";//2020 这里是
+
+        ackey = Registry.CurrentUser.OpenSubKey(regedit, writable);
+#endif
         return ackey.CreateSubKey("Applications");
     }
+
+    /// <summary>
+    /// 卸载自动运行注册表
+    /// </summary>
+    public bool UnAcAppKey()
+    {
+        var appkey = GetAcAppKey();
+        if (appkey.SubKeyCount == 0)
+            return false;
+
+        var regApps = appkey.GetSubKeyNames();
+        foreach (var item in regApps)
+        {
+            if (item == _info.Name)
+            {
+                appkey.DeleteSubKey(item, false);
+                break;
+            }
+        }
+        return true;
+    }
+
 
     bool SearchForReg()
     {

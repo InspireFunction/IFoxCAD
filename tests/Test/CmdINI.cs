@@ -17,6 +17,15 @@ public class CmdINI : AutoRegAssem
         var ed = doc.Editor;
         ed.WriteMessage($"\n 开始自动执行{nameof(CmdINI)} \r\n");
     }
+
+    /// <summary>
+    /// 卸载注册表信息
+    /// </summary>
+    [CommandMethod("IFoxUnLoad")]
+    public void IFoxUnLoad()
+    {
+        base.UnAcAppKey();
+    }
 }
 
 

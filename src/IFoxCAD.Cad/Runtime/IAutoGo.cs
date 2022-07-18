@@ -55,7 +55,6 @@ public class IFoxInitialize : Attribute
 class RunClass
 {
     public Sequence Sequence { get; }
-
     readonly MethodInfo _methodInfo;
 
     public RunClass(MethodInfo method, Sequence sequence)
