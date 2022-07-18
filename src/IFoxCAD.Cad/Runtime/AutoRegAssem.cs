@@ -41,8 +41,10 @@ public enum AutoRegConfig
     /// 反射接口
     /// </summary>
     ReflectionInterface = 4,
+
+    All = Regedit | ReflectionAttribute | ReflectionInterface,
 }
- 
+
 /// <summary>
 /// 注册中心
 /// <para>初始化程序集信息写入注册表并反射<see cref="IFoxInitialize"/>特性和<see cref="IFoxAutoGo"/>接口</para>
@@ -67,7 +69,7 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// <summary>
     /// 程序集的目录
     /// </summary>
-    public static DirectoryInfo CurrDirectory => Location.Directory;  
+    public static DirectoryInfo CurrDirectory => Location.Directory;
 
     /// <summary>
     /// 获取程序集的目录
@@ -88,12 +90,9 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// 注册中心
     /// </summary>
     /// <param name="autoRegConfig">配置项目</param>
-    public AutoRegAssem(AutoRegConfig autoRegConfig/* =
-                             AutoRegConfig.Regedit |
-                             AutoRegConfig.ReflectionInterface |
-                             AutoRegConfig.ReflectionAttribute*/)
+    public AutoRegAssem(AutoRegConfig autoRegConfig)
     {
-         var assem = Assembly.GetCallingAssembly();
+        var assem = Assembly.GetCallingAssembly();
         _info = new()
         {
             Loader = assem.Location,

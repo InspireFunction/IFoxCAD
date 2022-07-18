@@ -10,9 +10,7 @@
 /// </summary>
 public class CmdINI : AutoRegAssem
 {
-    public CmdINI() : base(AutoRegConfig.Regedit |
-                           AutoRegConfig.ReflectionInterface |
-                           AutoRegConfig.ReflectionAttribute)
+    public CmdINI() : base(AutoRegConfig.All)
     {
         var dm = Application.DocumentManager;
         var doc = dm.MdiActiveDocument;
