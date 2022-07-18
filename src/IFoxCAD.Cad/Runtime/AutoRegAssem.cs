@@ -116,18 +116,18 @@ public abstract class AutoRegAssem : IExtensionApplication
             return false;
 
         var regApps = appkey.GetSubKeyNames();
-        foreach (var item in regApps)
+        if (regApps.Contains(_info.Name))
         {
-            if (item == _info.Name)
-            {
-                appkey.DeleteSubKey(item, false);
-                break;
-            }
+            appkey.DeleteSubKey(_info.Name, false);
+            return true;
         }
-        return true;
+        return false;
     }
 
-
+    /// <summary>
+    /// 是否已经存在注册表
+    /// </summary>
+    /// <returns></returns>
     bool SearchForReg()
     {
         var appkey = GetAcAppKey();
@@ -147,7 +147,7 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// <summary>
     /// 在注册表写入自动加载的程序集信息
     /// </summary>
-    void RegApp()
+    public void RegApp()
     {
         var appkey = GetAcAppKey();
         var rk = appkey.CreateSubKey(_info.Name);
