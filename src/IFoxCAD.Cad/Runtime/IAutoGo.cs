@@ -161,7 +161,8 @@ public class AutoReflection
 #if !NET35
             //cad2021出现如下报错
             //System.NotSupportedException:动态程序集中不支持已调用的成员
-            assemblies = assemblies.Where(p => !p.IsDynamic).ToArray();
+            //assemblies = assemblies.Where(p => !p.IsDynamic).ToArray();//这个要容器类型转换
+            assemblies = Array.FindAll(assemblies, p => !p.IsDynamic);
 #endif
             //主程序域
             for (int ii = 0; ii < assemblies.Length; ii++)
@@ -170,11 +171,10 @@ public class AutoReflection
 
                 //获取类型集合,反射时候还依赖其他的dll就会这个错误
                 //此通讯库要跳过,否则会报错.
-                var str = Path.GetFileNameWithoutExtension(assembly.Location);
-                if (dllNameWithoutExtension != null &&
-                    str != dllNameWithoutExtension)
+                var location = Path.GetFileNameWithoutExtension(assembly.Location);
+                if (dllNameWithoutExtension != null && location != dllNameWithoutExtension)
                     continue;
-                if (str == "AcInfoCenterConn")//通讯库
+                if (location == "AcInfoCenterConn")//通讯库
                     continue;
 
                 Type[]? types = null;
@@ -186,6 +186,7 @@ public class AutoReflection
 
                 if (types is null)
                     continue;
+
                 for (int jj = 0; jj < types.Length; jj++)
                 {
                     var type = types[jj];
