@@ -1,9 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>
+
         <TargetFrameworks>net35;net40;net45</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
-        <Nullable>enable</Nullable>
         <Version>0.3.5.1</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
@@ -15,7 +17,6 @@
         <PackageTags>IFoxCAD;C#;NET;Common;Basal</PackageTags>
         <PackageReleaseNotes>直接集成元组和索引切片.</PackageReleaseNotes>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <LangVersion>preview</LangVersion>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
@@ -48,21 +49,21 @@
         <DefineConstants>$(Configuration);ac2015</DefineConstants>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net35|AnyCPU'">
-      <NoWarn>1701;1702;</NoWarn>
+        <NoWarn>1701;1702;</NoWarn>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net35|AnyCPU'">
-      <NoWarn>1701;1702;</NoWarn>
+        <NoWarn>1701;1702;</NoWarn>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net40|AnyCPU'">
-      <NoWarn>1701;1702;</NoWarn>
+        <NoWarn>1701;1702;</NoWarn>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net40|AnyCPU'">
-      <NoWarn>1701;1702;</NoWarn>
+        <NoWarn>1701;1702;</NoWarn>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
-      <NoWarn>1701;1702;</NoWarn>
+        <NoWarn>1701;1702;</NoWarn>
     </PropertyGroup>
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
-      <NoWarn>1701;1702;</NoWarn>
+        <NoWarn>1701;1702;</NoWarn>
     </PropertyGroup>
 </Project>
