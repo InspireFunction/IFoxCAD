@@ -1,5 +1,5 @@
 ﻿namespace IFoxCAD.Cad;
- 
+
 using System;
 using System.Diagnostics;
 using System.IO;
@@ -13,7 +13,6 @@ public static class Log
     /// <para>当资源处于写入模式时,其他线程写入需要等待本次写入结束之后才能继续写入</para>
     /// </summary>
     static readonly ReaderWriterLockSlim _logWriteLock = new();
-    static readonly object _syncObject = new();
 
     /// <summary>
     /// 日志文件完整路径
@@ -22,8 +21,10 @@ public static class Log
 
     static Log()
     {
-        lock (_syncObject)
+        try
         {
+            _logWriteLock.EnterWriteLock();
+
             //调用静态方法的时候才会到构造函数,而且仅第一次时候才执行一次
             var sb = new StringBuilder();
             sb.Append(Environment.CurrentDirectory);
@@ -42,6 +43,10 @@ public static class Log
             sb.Append(".log");
             _logAddress = sb.ToString();
         }
+        finally
+        {
+            _logWriteLock.ExitWriteLock();
+        }
     }
 
 
@@ -59,27 +64,24 @@ public static class Log
         {
             _logWriteLock.EnterWriteLock();
 
-            lock (_syncObject)
-            {
-                var logtxt = new LogTxt(ex, remarks);
-                //var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
-                var logtxtJson = logtxt.ToString();
+            var logtxt = new LogTxt(ex, remarks);
+            //var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
+            var logtxtJson = logtxt.ToString();
 
-                //把异常信息输出到文件
-                var sw = new StreamWriter(_logAddress, true/*当天日志文件存在就追加,否则就创建*/);
-                sw.Write(logtxtJson);
-                sw.Flush();
-                sw.Close();
-                sw.Dispose();
+            //把异常信息输出到文件
+            var sw = new StreamWriter(_logAddress, true/*当天日志文件存在就追加,否则就创建*/);
+            sw.Write(logtxtJson);
+            sw.Flush();
+            sw.Close();
+            sw.Dispose();
 #if DEBUG
-                Debug.WriteLine("错误日志: " + _logAddress);
-                Debug.Write(logtxtJson);
-                return logtxtJson;
-                //Debugger.Break(); 
-                //Debug.Assert(false, "终止进程");
+            Debug.WriteLine("错误日志: " + _logAddress);
+            Debug.Write(logtxtJson);
+            return logtxtJson;
+            //Debugger.Break(); 
+            //Debug.Assert(false, "终止进程");
 #endif
-            }
-        }
+        } 
         finally
         {
             _logWriteLock.ExitWriteLock();
