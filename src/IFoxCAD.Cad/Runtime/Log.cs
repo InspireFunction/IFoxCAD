@@ -10,8 +10,9 @@ using System.Threading;
 //https://zhuanlan.zhihu.com/p/338492989
 public abstract class LogBase
 {
-    public abstract void WriteLog(string? message);
-    public abstract void WriteLog(Exception? ex);
+    public abstract void ReadLog(string message);
+    public abstract void WriteLog(string message);
+    public abstract void DeleteLog(string message);
 }
 
 /// <summary>
@@ -38,6 +39,16 @@ public enum LogTarget
 /// </summary>
 public class FileLogger : LogBase
 {
+    public override void DeleteLog(string message)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void ReadLog(string message)
+    {
+        throw new NotImplementedException();
+    }
+
     public override void WriteLog(string? message)
     {
         //把异常信息输出到文件
@@ -47,11 +58,6 @@ public class FileLogger : LogBase
         sw.Close();
         sw.Dispose();
     }
-
-    public override void WriteLog(Exception? ex)
-    {
-
-    }
 }
 
 /// <summary>
@@ -59,34 +65,66 @@ public class FileLogger : LogBase
 /// </summary>
 public class DBLogger : LogBase
 {
-    public override void WriteLog(string? message)
+    public override void DeleteLog(string message)
     {
         throw new NotImplementedException();
     }
-    public override void WriteLog(Exception? ex)
+
+    public override void ReadLog(string message)
+    {
+        throw new NotImplementedException();
+    }
+
+    public override void WriteLog(string? message)
     {
         throw new NotImplementedException();
     }
 }
 
 /// <summary>
-/// 写入到win日志(暂时不支持)
+/// 写入到win日志
 /// </summary>
 public class EventLogger : LogBase
 {
-    public override void WriteLog(string? message)
+    // https://docs.microsoft.com/en-us/answers/questions/526018/windows-event-log-with-net-5.html
+    // net50要加 <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
+    // 需要win权限
+
+    public string LogName = "IFoxCadLog";
+    public override void DeleteLog(string message)
     {
-        throw new NotImplementedException();
-        //var eventLog = new EventLog("")
-        //{
-        //    Source = "IDGEventLog"
-        //};
-        //eventLog.WriteEntry(message);
+#if !NET5_0 && !NET6_0
+        if (EventLog.Exists(LogName))
+            EventLog.Delete(LogName);
+#endif
     }
 
-    public override void WriteLog(Exception? ex)
+    public override void ReadLog(string message)
     {
-        throw new NotImplementedException();
+#if !NET5_0 && !NET6_0
+        EventLog eventLog = new();
+        eventLog.Log = LogName;
+        foreach (EventLogEntry entry in eventLog.Entries)
+        {
+            //Write your custom code here
+        }
+#endif
+    }
+
+    public override void WriteLog(string? message)
+    {
+#if !NET5_0 && !NET6_0
+        try
+        {
+            EventLog eventLog = new();
+            eventLog.Source = LogName;
+            eventLog.WriteEntry(message, EventLogEntryType.Information);
+        }
+        catch (System.Security.SecurityException e)
+        {
+            throw new Exception("您没有权限写入win日志中");
+        }
+#endif
     }
 }
 
