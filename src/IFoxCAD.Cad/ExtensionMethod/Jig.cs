@@ -1,4 +1,5 @@
 ﻿/*  封装jig
+ *  20220726 隐藏事件,利用函数进行数据库图元重绘
  *  20220710 修改SetOption()的空格结束,并添加例子到IFox
  *  20220503 cad22需要防止刷新过程中更改队列,08不会有.
  *  20220326 重绘图元的函数用错了,现在修正过来
@@ -31,13 +32,27 @@ public class JigEx : DrawJig
     public Entity[] Entitys => _drawEntitys.ToArray();
 
     readonly Action<Point3d, Queue<Entity>>? _action;
-    readonly Autodesk.AutoCAD.Geometry.Tolerance _tolerance;
+    readonly Tolerance _tolerance;
 
     readonly Queue<Entity> _drawEntitys;//重复生成的图元,放在这里刷新
     JigPromptPointOptions? _options;
-    //const string _orthomode = "orthomode";
-    bool _systemVariablesOrthomode = false; //正交修改
     bool _worldDrawFlag = false; // 防止刷新过程中更改队列
+
+    bool _systemVariables_Orthomode = false; //正交修改
+    /// <summary>
+    /// 正交修改还原
+    /// </summary>
+    bool SystemVariables_Orthomode
+    {
+        get => _systemVariables_Orthomode;
+        set
+        {
+            //1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
+            if (Env.OrthoMode != value)
+                Env.OrthoMode = _systemVariables_Orthomode = value;
+        }
+    }
+
     #endregion
 
     #region 构造
@@ -70,20 +85,17 @@ public class JigEx : DrawJig
     /// 鼠标配置:基点
     /// </summary>
     /// <param name="basePoint">基点</param>
-    /// <param name="msg">提示信息</param>
     /// <param name="cursorType">光标绑定</param>
+    /// <param name="msg">提示信息</param>
     /// <param name="orthomode">正交开关</param>
     public JigPromptPointOptions SetOptions(Point3d basePoint,
                                             CursorType cursorType = CursorType.RubberBand,
                                             string msg = "点选第二点",
                                             bool orthomode = false)
     {
-        if (orthomode && Env.OrthoMode == false)
-        {
-            //CadSystem.Setvar(_orthomode, "1");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
-            Env.OrthoMode = true;
-            _systemVariablesOrthomode = true;
-        }
+        if (orthomode)
+            SystemVariables_Orthomode = true;
+
         _options = JigPointOptions();
         _options.Message = Environment.NewLine + msg;
         _options.Cursor = cursorType;   //光标绑定
@@ -99,15 +111,13 @@ public class JigEx : DrawJig
     /// <param name="keywords">关键字</param>
     /// <param name="orthomode">正交开关</param>
     /// <returns></returns>
-    public JigPromptPointOptions SetOptions(string msg, 
+    public JigPromptPointOptions SetOptions(string msg,
         Dictionary<string, string>? keywords = null,
         bool orthomode = false)
     {
-        if (orthomode && Env.OrthoMode == false)
-        {
-            Env.OrthoMode = true;
-            _systemVariablesOrthomode = true;
-        }
+        if (orthomode)
+            SystemVariables_Orthomode = true;
+
         _options = JigPointOptions();
         _options.Message = Environment.NewLine + msg;
 
@@ -126,7 +136,7 @@ public class JigEx : DrawJig
             }
         }
 
-        //要放最后,才能优先触发其他关键字
+        ///要放最后,才能优先触发其他关键字
         ///因为<see cref="JigPointOptions">此处空格是无效的
         if (spaceValue != string.Empty)
             _options.Keywords.Add(spaceKey, spaceKey, spaceValue);
@@ -143,11 +153,9 @@ public class JigEx : DrawJig
     /// <param name="orthomode">正交开关</param>
     public void SetOptions(Action<JigPromptPointOptions> action, bool orthomode = false)
     {
-        if (orthomode && Env.OrthoMode == false)
-        {
-            Env.OrthoMode = true;
-            _systemVariablesOrthomode = true;
-        }
+        if (orthomode)
+            SystemVariables_Orthomode = true;
+
         _options = new JigPromptPointOptions();
         action.Invoke(_options);
     }
@@ -164,8 +172,8 @@ public class JigEx : DrawJig
         var ed = doc.Editor;
         var dr = ed.Drag(this);
 
-        if (_systemVariablesOrthomode)
-            Env.OrthoMode = !Env.OrthoMode;
+        if (SystemVariables_Orthomode)
+            SystemVariables_Orthomode = !SystemVariables_Orthomode;
         return dr;
     }
 
@@ -237,6 +245,23 @@ public class JigEx : DrawJig
         return SamplerStatus.OK;
     }
 
+    /// <summary>
+    /// 重绘已在数据库的图元 
+    /// <para> 0x01 此处不加入newEntity的,它们在构造函数的参数回调处加入,它们会进行频繁new和Dispose从而避免遗忘释放</para>
+    /// <para> 0x02 此处用于重绘已经在数据的图元</para>
+    /// <para> 0x03 此处用于图元亮显暗显,因为会被重绘冲刷掉所以独立出来不重绘,它们也往往已经存在数据库的</para>
+    /// </summary>
+    /// <remarks>
+    /// newEntity只会存在一个图元队列中,而数据库图元可以分多个集合
+    /// <para> 例如: 集合A亮显时 集合B暗显/集合B亮显时 集合A暗显,所以我没有设计多个"数据库图元集合"存放,而是由用户在构造函数外自行创建</para>
+    /// </remarks>
+    /// <param name="action"></param>
+    public void DatabaseEntityDraw(WorldDrawEvent action)
+    {
+        WorldDrawEvent = action;
+    }
+
+
     /* WorldDraw 封装外的操作说明:
      * 0x01
      * 我有一个业务是一次性生成四个方向的箭头,因为cad08缺少瞬时图元,
@@ -261,19 +286,6 @@ public class JigEx : DrawJig
      * 所以只能重绘结束的时候才允许鼠标采集,采集过程的时候不会触发重绘,
      * 这样才可以保证容器在重绘中不被更改.
      */
-
-    /// <summary>
-    /// 已经在数据库的图元在此进行重绘
-    /// <para> 0x01 此处不加入newEntity的,它们通常是在构造函数的回调上面加入,它们会进行频繁new和Dispose,避免遗忘释放</para>
-    /// <para> 0x02 此处用于重绘已经在数据的图元</para>
-    /// <para> 0x03 此处用于图元亮显暗显,因为会被重绘冲刷掉所以独立出来不重绘,它们也往往已经存在数据库的</para>
-    /// </summary>
-    /// <param name="action"></param>
-    public void DatabaseEntityDraw(WorldDrawEvent action)
-    {
-        WorldDrawEvent = action;
-    }
-
     /// <summary>
     /// 重绘图形
     /// </summary>

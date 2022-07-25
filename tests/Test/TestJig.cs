@@ -1,7 +1,5 @@
-﻿using System.Windows.Forms;
-
-
-namespace Test;
+﻿namespace Test;
+using System.Windows.Forms;
 
 public class Commands_Jig
 {
@@ -28,14 +26,9 @@ public class Commands_Jig
             //所以此处不加入已经在数据库的图元,而是加入new Entity的.
             //drawEntitys.Enqueue(cir);
         });
-        moveJig.SetOptions(cir.GeometricExtents.MinPoint);
+        moveJig.SetOptions(cir.GeometricExtents.MinPoint, orthomode: true);
 
-        /// <summary>
-        /// 已经在数据库的图元在此进行重绘
-        /// <para> 0x01 此处不加入newEntity的,它们通常是在构造函数的回调上面加入,它们会进行频繁new和Dispose,避免遗忘释放</para>
-        /// <para> 0x02 此处用于重绘已经在数据的图元</para>
-        /// <para> 0x03 此处用于图元亮显暗显,因为会被重绘冲刷掉所以独立出来不重绘,它们也往往已经存在数据库的</para>
-        /// </summary>
+        //此处详见方法注释
         moveJig.DatabaseEntityDraw(draw => {
             draw.RawGeometry.Draw(cir);
         });
@@ -63,7 +56,7 @@ public class Commands_Jig
 
         /*
          * 鼠标采样器执行时修改鼠标基点
-         * 原因: 多段线与鼠标垂直点作为 BasePoint ,jig鼠标点为确定点
+         * 原因: 多段线与鼠标垂直点作为 BasePoint,jig鼠标点为确定点
          * 所以需要先声明再传入指针,但是我发现null也可以.
          */
         JigEx jig = null;
