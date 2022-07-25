@@ -16,8 +16,10 @@ public class Commands_Jig
             return;
         cir = tr.GetObject<Circle>(per.ObjectId, OpenMode.ForWrite);
 
+        var oldSp = cir.StartPoint;
         JigEx moveJig = null;
         moveJig = new JigEx((mousePoint, drawEntitys) => {
+            moveJig.SetOptions(oldSp);//回调过程中也可以修改基点
             //cir.UpgradeOpen();//已经提权了,所以这里不需要提权
             cir.Move(cir.StartPoint, mousePoint);
             //cir.DowngradeOpen();
@@ -28,12 +30,15 @@ public class Commands_Jig
         });
         moveJig.SetOptions(cir.GeometricExtents.MinPoint);
 
-        //此处不会Dispose图元,
-        //0x01 此处加入已经在数据的图元
-        //0x02 加入不刷新的图元,例如亮显会被刷新冲刷掉
-        moveJig.WorldDrawEvent += draw => {
+        /// <summary>
+        /// 已经在数据库的图元在此进行重绘
+        /// <para> 0x01 此处不加入newEntity的,它们通常是在构造函数的回调上面加入,它们会进行频繁new和Dispose,避免遗忘释放</para>
+        /// <para> 0x02 此处用于重绘已经在数据的图元</para>
+        /// <para> 0x03 此处用于不刷新的图元进行亮显暗显,因为会被重绘冲刷掉</para>
+        /// </summary>
+        moveJig.DatabaseEntityDraw(draw => {
             draw.RawGeometry.Draw(cir);
-        };
+        });
 
         while (true)
         {
@@ -78,6 +83,7 @@ public class Commands_Jig
             drawEntitys.Enqueue(acText);
         });
         jig.SetOptions(per.PickedPoint);
+        // moveJig.SetOptions("测试关键字重载", new Dictionary<string, string> { { "Z", "中间(Z)" } });
 
         bool flag = true;
         while (flag)
@@ -97,8 +103,11 @@ public class Commands_Jig
                         break;
                 }
             }
-            else if (pr.Status != PromptStatus.OK)//右键,空格,回车,都在这里结束
+            else if (pr.Status != PromptStatus.OK)//PromptStatus.None == 右键,空格,回车,都在这里结束
+            {
+                tr.Editor.WriteMessage(Environment.NewLine + pr.Status.ToString());
                 return;
+            }
             else
                 flag = false;
         }

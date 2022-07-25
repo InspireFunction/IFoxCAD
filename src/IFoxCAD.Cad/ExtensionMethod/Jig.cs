@@ -20,7 +20,7 @@ public class JigEx : DrawJig
     /// <summary>
     /// 事件:亮显/暗显会被刷新冲刷掉,所以这个事件用于补充非刷新的工作
     /// </summary>
-    public event WorldDrawEvent? WorldDrawEvent;
+    event WorldDrawEvent? WorldDrawEvent;
     /// <summary>
     /// 最后的鼠标点,用来确认长度
     /// </summary>
@@ -54,8 +54,8 @@ public class JigEx : DrawJig
     /// </summary>
     /// <param name="action">
     /// 用来频繁执行的回调:
-    /// <see langword="Point3d"/>鼠标点;
-    /// <see langword="Queue"/>加入新建的图元,鼠标采样期间会Dispose图元的;所以已经在数据库图元利用事件加入,不要在此加入;
+    /// <see cref="Point3d"/>鼠标点;
+    /// <see cref="Queue"/>加入新建的图元,鼠标采样期间会Dispose图元的;所以已经在数据库图元利用事件加入,不要在此加入;
     /// </param>
     /// <param name="tolerance">鼠标移动的容差</param>
     public JigEx(Action<Point3d, Queue<Entity>>? action = null, double tolerance = 1e-6) : this()
@@ -99,11 +99,12 @@ public class JigEx : DrawJig
     /// <param name="keywords">关键字</param>
     /// <param name="orthomode">正交开关</param>
     /// <returns></returns>
-    public JigPromptPointOptions SetOptions(string msg, Dictionary<string, string>? keywords = null, bool orthomode = false)
+    public JigPromptPointOptions SetOptions(string msg, 
+        Dictionary<string, string>? keywords = null,
+        bool orthomode = false)
     {
         if (orthomode && Env.OrthoMode == false)
         {
-            //CadSystem.Setvar(_orthomode, "1");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
             Env.OrthoMode = true;
             _systemVariablesOrthomode = true;
         }
@@ -126,6 +127,7 @@ public class JigEx : DrawJig
         }
 
         //要放最后,才能优先触发其他关键字
+        ///因为<see cref="JigPointOptions">此处空格是无效的
         if (spaceValue != string.Empty)
             _options.Keywords.Add(spaceKey, spaceKey, spaceValue);
         else
@@ -141,15 +143,13 @@ public class JigEx : DrawJig
     /// <param name="orthomode">正交开关</param>
     public void SetOptions(Action<JigPromptPointOptions> action, bool orthomode = false)
     {
-        _options = new JigPromptPointOptions();
-        action.Invoke(_options);
-
         if (orthomode && Env.OrthoMode == false)
         {
-            //CadSystem.Setvar(_orthomode, "1");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
             Env.OrthoMode = true;
             _systemVariablesOrthomode = true;
         }
+        _options = new JigPromptPointOptions();
+        action.Invoke(_options);
     }
 
     /// <summary>
@@ -163,9 +163,9 @@ public class JigEx : DrawJig
         var doc = dm.MdiActiveDocument;
         var ed = doc.Editor;
         var dr = ed.Drag(this);
+
         if (_systemVariablesOrthomode)
-            //CadSystem.Setvar(_orthomode, "0");//1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
-            Env.OrthoMode = false;
+            Env.OrthoMode = !Env.OrthoMode;
         return dr;
     }
 
@@ -261,6 +261,18 @@ public class JigEx : DrawJig
      * 所以只能重绘结束的时候才允许鼠标采集,采集过程的时候不会触发重绘,
      * 这样才可以保证容器在重绘中不被更改.
      */
+
+    /// <summary>
+    /// 已经在数据库的图元在此进行重绘
+    /// <para> 0x01 此处不加入newEntity的,它们通常是在构造函数的回调上面加入,它们会进行频繁new和Dispose,避免遗忘释放</para>
+    /// <para> 0x02 此处用于重绘已经在数据的图元</para>
+    /// <para> 0x03 此处用于不刷新的图元进行亮显暗显,因为会被重绘冲刷掉</para>
+    /// </summary>
+    /// <param name="action"></param>
+    public void DatabaseEntityDraw(WorldDrawEvent action)
+    {
+        WorldDrawEvent = action;
+    }
 
     /// <summary>
     /// 重绘图形
