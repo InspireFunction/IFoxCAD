@@ -296,12 +296,10 @@ public static class LinqEx
         }
 
         #region IComparer<T> 成员
-
         public int Compare(T x, T y)
         {
             return _comp(x, y);
         }
-
         #endregion IComparer<T> 成员
     }
 

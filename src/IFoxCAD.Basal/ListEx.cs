@@ -18,10 +18,8 @@ public static class ListEx
         comparer ??= EqualityComparer<T>.Default;
 
         for (int i = 0; i < a.Count; i++)
-        {
             if (!comparer.Equals(a[i], b[i]))
                 return false;
-        }
         return true;
     }
 }
