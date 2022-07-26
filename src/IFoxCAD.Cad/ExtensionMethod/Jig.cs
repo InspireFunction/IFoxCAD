@@ -121,7 +121,7 @@ public class JigEx : DrawJig
         //加入关键字,加入时候将空格内容放到最后
         string spaceValue = string.Empty;
         const string spaceKey = " ";
-     
+
         if (keywords != null)
             foreach (var item in keywords)
                 if (item.Key == spaceKey)
@@ -297,13 +297,13 @@ public class JigEx : DrawJig
     }
     #endregion
 
+    /// <summary>
+    /// 用户输入控制默认配置
+    /// <para>令jig.Drag().Status == <see cref="PromptStatus.None"/></para>
+    /// </summary>
+    /// <returns></returns>
     static JigPromptPointOptions JigPointOptions()
     {
-        /* 用户输入控制:
-         * 结束jig的设置,若此时也设置了空格关键字,
-         * 空格时为 jig.Drag().Status == PromptStatus.None,而不是关键字,
-         * 所以设计的时候,可以不使用空格关键字.
-         */
         return new JigPromptPointOptions()
         {
             UserInputControls =
@@ -313,8 +313,23 @@ public class JigEx : DrawJig
                 | UserInputControls.AnyBlankTerminatesInput //空格或回车,结束jig;
         };
     }
-}
 
+    /// <summary>
+    /// 空格默认是<see cref="PromptStatus.None"/>,
+    /// <para>将它设置为<see cref="PromptStatus.Keyword"/></para>
+    /// </summary>
+    public void SetSpaceIsKeyword()
+    {
+        var opt = _options;
+        if (opt == null)
+            throw new ArgumentNullException(nameof(_options));
+
+        if ((opt.UserInputControls & UserInputControls.NullResponseAccepted) == UserInputControls.NullResponseAccepted)
+            opt.UserInputControls ^= UserInputControls.NullResponseAccepted; //输入了鼠标右键,结束jig
+        if ((opt.UserInputControls & UserInputControls.AnyBlankTerminatesInput) == UserInputControls.AnyBlankTerminatesInput)
+            opt.UserInputControls ^= UserInputControls.AnyBlankTerminatesInput; //空格或回车,结束jig
+    }
+}
 
 #if false
 | UserInputControls.DoNotEchoCancelForCtrlC        //不要取消CtrlC的回音
