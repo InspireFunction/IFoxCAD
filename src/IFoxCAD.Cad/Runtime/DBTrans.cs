@@ -1,5 +1,8 @@
 ﻿namespace IFoxCAD.Cad;
 
+/// <summary>
+/// 事务栈,隐匿事务在数据库其中担任的角色
+/// </summary>
 public class DBTrans : IDisposable
 {
     #region 私有字段
@@ -45,10 +48,10 @@ public class DBTrans : IDisposable
              * 所以用AOP方式修复
              * 
              * 0x03
-             * 经过艰苦卓绝的测试，aop模式由于不能断点调试，所以暂时放弃。
+             * 经过艰苦卓绝的测试,aop模式由于不能断点调试,所以暂时放弃。
              */
 
-            // 由于大量的函数依赖本属性，强迫用户先开启事务
+            // 由于大量的函数依赖本属性,强迫用户先开启事务
             if (dBTrans.Count == 0)
                 throw new ArgumentNullException("事务栈没有任何事务,请在调用前创建:" + nameof(DBTrans));
             var trans = dBTrans.Peek();
@@ -76,7 +79,8 @@ public class DBTrans : IDisposable
 
     #region 构造函数
     /// <summary>
-    /// 默认构造函数，默认为打开当前文档，默认提交事务
+    /// 事务栈
+    /// <para>默认构造函数,默认为打开当前文档,默认提交事务</para>
     /// </summary>
     /// <param name="doc">要打开的文档</param>
     /// <param name="commit">事务是否提交</param>
@@ -95,7 +99,8 @@ public class DBTrans : IDisposable
     }
 
     /// <summary>
-    /// 构造函数，打开数据库，默认提交事务
+    /// 事务栈
+    /// <para>打开数据库,默认提交事务</para>
     /// </summary>
     /// <param name="database">要打开的数据库</param>
     /// <param name="commit">事务是否提交</param>
@@ -106,21 +111,23 @@ public class DBTrans : IDisposable
         _commit = commit;
         dBTrans.Push(this);
     }
+
     /// <summary>
-    /// 构造函数，打开文件，默认提交事务
+    /// 事务栈
+    /// <para>打开文件,默认提交事务</para>
     /// </summary>
     /// <param name="fileName">要打开的文件名</param>
     /// <param name="commit">事务是否提交</param>
     public DBTrans(string fileName, bool commit = true, FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare)
     {
-#if ac2009
-        if (string.IsNullOrEmpty(fileName.Trim()))
-            throw new ArgumentNullException(nameof(fileName));
+#if NET35
+        if (string.IsNullOrEmpty(fileName?.Trim()))
 #else
-
         if (string.IsNullOrWhiteSpace(fileName))
-            throw new ArgumentNullException(nameof(fileName));
 #endif
+            throw new ArgumentNullException(nameof(fileName));
+
+
         if (File.Exists(fileName))
         {
             var doc = Application.DocumentManager
@@ -290,10 +297,10 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <typeparam name="T">要获取的图元对象的类型</typeparam>
     /// <param name="id">对象id</param>
-    /// <param name="mode">打开模式，默认为只读</param>
-    /// <param name="openErased">是否打开已删除对象，默认为不打开</param>
-    /// <param name="forceOpenOnLockedLayer">是否打开锁定图层对象，默认为不打开</param>
-    /// <returns>图元对象，类型不匹配时返回 <see langword="null"/> </returns>
+    /// <param name="mode">打开模式,默认为只读</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="forceOpenOnLockedLayer">是否打开锁定图层对象,默认为不打开</param>
+    /// <returns>图元对象,类型不匹配时返回 <see langword="null"/> </returns>
     public T? GetObject<T>(ObjectId id,
                           OpenMode mode = OpenMode.ForRead,
                           bool openErased = false,
@@ -320,9 +327,9 @@ public class DBTrans : IDisposable
 
     #region 保存文件
     /// <summary>
-    /// 保存当前数据库的dwg文件，如果前台打开则按dwg默认版本保存，否则按version参数的版本保存
+    /// 保存当前数据库的dwg文件,如果前台打开则按dwg默认版本保存,否则按version参数的版本保存
     /// </summary>
-    /// <param name="version">dwg版本，默认为2004</param>
+    /// <param name="version">dwg版本,默认为2004</param>
     public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800)
     {
         bool flag = true;
@@ -364,11 +371,11 @@ public class DBTrans : IDisposable
     protected virtual void Dispose(bool disposing)
     {
         /* 事务dispose流程：
-         * 1. 根据传入的参数确定是否提交，true为提交，false为不提交
-         * 2. 根据disposedValue的值确定是否重复dispose，false为首次dispose
+         * 1. 根据传入的参数确定是否提交,true为提交,false为不提交
+         * 2. 根据disposedValue的值确定是否重复dispose,false为首次dispose
          * 3. 如果锁文档就将文档锁dispose
-         * 4. 不管是否提交，既然进入dispose，就要将事务栈的当前事务弹出
-         *    注意这里的事务栈不是cad的事务管理器，而是dbtrans的事务
+         * 4. 不管是否提交,既然进入dispose,就要将事务栈的当前事务弹出
+         *    注意这里的事务栈不是cad的事务管理器,而是dbtrans的事务
          * 5. 清理非托管的字段
          */
 
@@ -381,8 +388,7 @@ public class DBTrans : IDisposable
 
         if (disposing)
         {
-            // 释放托管状态(托管对象)
-            // 调用cad的事务进行提交
+            // 调用cad的事务进行提交,释放托管状态(托管对象)
             Transaction.Commit();
         }
         else
