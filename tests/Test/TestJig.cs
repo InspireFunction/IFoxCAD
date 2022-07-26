@@ -76,7 +76,7 @@ public class Commands_Jig
                     contains = true;
                     break;
                 }
-            if (contains)//避免重复加入同一个关键字
+            if (!contains)//避免重复加入同一个关键字
                 options.Keywords.Add("A");
 
             //生成文字
