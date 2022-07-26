@@ -14,6 +14,8 @@ public class Commands_Jig
             return;
         cir = tr.GetObject<Circle>(per.ObjectId, OpenMode.ForWrite);
 
+        if (cir == null)
+            return;
         var oldSp = cir.StartPoint;
         JigEx moveJig = null;
         moveJig = new JigEx((mousePoint, drawEntitys) => {
@@ -60,12 +62,22 @@ public class Commands_Jig
          * 所以需要先声明再传入指针,但是我发现null也可以.
          */
         JigEx jig = null;
+        JigPromptPointOptions options = null;
         jig = new JigEx((mousePoint, drawEntitys) => {
             var closestPt = pl.GetClosestPointTo(mousePoint, false);
 
-            var sop = jig.SetOptions(closestPt);
-            sop.Keywords.Add("A");
-            sop.Keywords.Add(" ");/*这里是无效的,因为jig.SetOptions()内部设置,但是这里设置了会显示,最好注释掉*/
+            //回调过程中SetOptions会覆盖配置,所以如果想增加关键字或者修改基点,
+            //不要这样做: jig.SetOptions(closestPt) 而是使用底层暴露
+            options.BasePoint = closestPt;
+            bool contains = false;
+            for (int i = 0; i < options.Keywords.Count; i++)
+                if (options.Keywords[i].GlobalName == "A")
+                {
+                    contains = true;
+                    break;
+                }
+            if (contains)//避免重复加入同一个关键字
+                options.Keywords.Add("A");
 
             //生成文字
             var dictString = (pl.GetDistAtPoint(closestPt) * 0.001).ToString("0.00");
@@ -75,8 +87,16 @@ public class Commands_Jig
             //加入刷新队列
             drawEntitys.Enqueue(acText);
         });
-        jig.SetOptions(per.PickedPoint);
-        // moveJig.SetOptions("测试关键字重载", new Dictionary<string, string> { { "Z", "中间(Z)" } });
+
+        options = jig.SetOptions(per.PickedPoint);
+
+        // 如果没有这个,那么空格只会是 PromptStatus.None 而不是 PromptStatus.Keyword
+        // 减去配置之后就可以触发空格关键字了
+        // options.Keywords.Add(" ", " ", "空格结束啊");
+        // if ((options.UserInputControls & UserInputControls.NullResponseAccepted) == UserInputControls.NullResponseAccepted)
+        //     options.UserInputControls ^= UserInputControls.NullResponseAccepted; //输入了鼠标右键,结束jig
+        // if ((options.UserInputControls & UserInputControls.AnyBlankTerminatesInput) == UserInputControls.AnyBlankTerminatesInput)
+        //     options.UserInputControls ^= UserInputControls.AnyBlankTerminatesInput; //空格或回车,结束jig
 
         bool flag = true;
         while (flag)
@@ -91,7 +111,7 @@ public class Commands_Jig
                         flag = false;
                         break;
                     case " ":
-                        tr.Editor.WriteMessage("\n 此句永远不会执行,另见: jig.SetOptions()的 JigPointOptions()内注释");
+                        tr.Editor.WriteMessage("\n 触发关键字空格");
                         flag = false;
                         break;
                 }

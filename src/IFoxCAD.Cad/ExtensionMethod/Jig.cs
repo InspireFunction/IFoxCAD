@@ -1,7 +1,7 @@
 ﻿/*  封装jig
  *  20220726 隐藏事件,利用函数进行数据库图元重绘
  *  20220710 修改SetOption()的空格结束,并添加例子到IFox
- *  20220503 cad22需要防止刷新过程中更改队列,08不会有.
+ *  20220503 cad22需要防止刷新过程中更改队列,是因为允许函数重入导致,08不会有.
  *  20220326 重绘图元的函数用错了,现在修正过来
  *  20211216 加入块表时候做一个差集,剔除临时图元
  *  20211209 补充正交变量设置和回收设置
@@ -31,18 +31,16 @@ public class JigEx : DrawJig
     /// </summary>
     public Entity[] Entitys => _drawEntitys.ToArray();
 
-    readonly Action<Point3d, Queue<Entity>>? _action;
-    readonly Tolerance _tolerance;
+
+    readonly Action<Point3d, Queue<Entity>>? _mouseAction;
+    readonly Tolerance _tolerance;//容差
 
     readonly Queue<Entity> _drawEntitys;//重复生成的图元,放在这里刷新
-    JigPromptPointOptions? _options;
-    bool _worldDrawFlag = false; // 防止刷新过程中更改队列
+    JigPromptPointOptions? _options;//jig鼠标配置
+    bool _worldDrawFlag = false; // 20220503
 
-    bool _systemVariables_Orthomode = false; //正交修改
-    /// <summary>
-    /// 正交修改还原
-    /// </summary>
-    bool SystemVariables_Orthomode
+    bool _systemVariables_Orthomode = false;
+    bool SystemVariables_Orthomode // 正交修改还原
     {
         get => _systemVariables_Orthomode;
         set
@@ -52,7 +50,6 @@ public class JigEx : DrawJig
                 Env.OrthoMode = _systemVariables_Orthomode = value;
         }
     }
-
     #endregion
 
     #region 构造
@@ -75,7 +72,7 @@ public class JigEx : DrawJig
     /// <param name="tolerance">鼠标移动的容差</param>
     public JigEx(Action<Point3d, Queue<Entity>>? action = null, double tolerance = 1e-6) : this()
     {
-        _action = action;
+        _mouseAction = action;
         _tolerance = new(tolerance, tolerance);
     }
     #endregion
@@ -124,25 +121,27 @@ public class JigEx : DrawJig
         //加入关键字,加入时候将空格内容放到最后
         string spaceValue = string.Empty;
         const string spaceKey = " ";
+     
         if (keywords != null)
-        {
-            var ge = keywords.GetEnumerator();
-            while (ge.MoveNext())
-            {
-                if (ge.Current.Key == spaceKey)
-                    spaceValue = ge.Current.Value;
+            foreach (var item in keywords)
+                if (item.Key == spaceKey)
+                    spaceValue = item.Value;
                 else
-                    _options.Keywords.Add(ge.Current.Key, ge.Current.Key, ge.Current.Value);
-            }
-        }
+                    _options.Keywords.Add(item.Key, item.Key, item.Value);
 
+        ///因为默认配置函数<see cref="JigPointOptions">导致此处空格触发是无效的,
+        ///但是用户如果想触发,就需要在外部减去默认UserInputControls配置
         ///要放最后,才能优先触发其他关键字
-        ///因为<see cref="JigPointOptions">此处空格是无效的
         if (spaceValue != string.Empty)
             _options.Keywords.Add(spaceKey, spaceKey, spaceValue);
         else
             _options.Keywords.Add(spaceKey, spaceKey, "<空格退出>");
 
+        // 外部设置减去配置
+        // _options.UserInputControls =
+        //         _options.UserInputControls
+        //         ^ UserInputControls.NullResponseAccepted     //输入了鼠标右键,结束jig
+        //         ^ UserInputControls.AnyBlankTerminatesInput; //空格或回车,结束jig;
         return _options;
     }
 
@@ -186,22 +185,19 @@ public class JigEx : DrawJig
     public IEnumerable<ObjectId>? AddEntityToMsPs(DBTrans tr,
         IEnumerable<Entity>? removeEntity = null)
     {
-        var ents = Entitys;
-        if (ents.Length == 0)
+        if (Entitys.Length == 0)
             return null;
 
         var ids = new List<ObjectId>();
-        IEnumerable<Entity> es = ents;
+        IEnumerable<Entity> es = Entitys;
         if (removeEntity != null)
-            es = es.Except(removeEntity);
+            es = es.Except(removeEntity);//差集
 
-        var ge = es.GetEnumerator();
-        while (ge.MoveNext())
-            ids.Add(tr.CurrentSpace.AddEntity(ge.Current));
+        foreach (var item in es)
+            ids.Add(tr.CurrentSpace.AddEntity(item));
 
         return ids;
     }
-
     #endregion
 
     #region 重写
@@ -239,7 +235,7 @@ public class JigEx : DrawJig
             _drawEntitys.Dequeue().Dispose();
 
         //委托把容器扔出去接收新创建的图元,然后给重绘更新
-        _action?.Invoke(mousePointWcs, _drawEntitys);
+        _mouseAction?.Invoke(mousePointWcs, _drawEntitys);
         MousePointWcsLast = mousePointWcs;
 
         return SamplerStatus.OK;

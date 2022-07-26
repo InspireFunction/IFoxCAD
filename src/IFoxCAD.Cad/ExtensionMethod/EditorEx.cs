@@ -81,19 +81,13 @@ public static class EditorEx
         if (keywords is not null)
         {
             foreach (var keyword in keywords.Keys)
-            {
                 pso.Keywords.Add(keyword);
-            }
             if (pso.MessageForRemoval is null)
-            {
                 pso.MessageForAdding = "选择对象";
-            }
             pso.MessageForAdding += $"[{string.Join(" / ", keywords.Keys.ToArray())}]";
             pso.KeywordInput += (s, e) => {
                 if (keywords.ContainsKey(e.Input))
-                {
                     keywords[e.Input].Invoke();
-                }
             };
 
         }
