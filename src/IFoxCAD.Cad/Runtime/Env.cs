@@ -428,7 +428,7 @@ public static class Env
         return Enum.GetName(typeof(T), value);
     }
 
-#endregion Enum
+    #endregion Enum
 
     #region 环境变量
     /// <summary>
@@ -456,7 +456,7 @@ public static class Env
 
             Env.Print($"{varName} 是不存在的变量！");
         }
-        
+
     }
     /// <summary>
     /// 获取系统环境变量
@@ -486,4 +486,9 @@ public static class Env
     /// </summary>
     /// <param name="message">要打印的对象</param>
     public static void Print(object message) => Editor.WriteMessage($"{message}\n");
+    /// <summary>
+    /// 判断当前是否在UCS坐标下
+    /// </summary>
+    /// <returns>Bool</returns>
+    public static bool IsUcs() => (short)GetVar("WORLDUCS") == 0;
 }
