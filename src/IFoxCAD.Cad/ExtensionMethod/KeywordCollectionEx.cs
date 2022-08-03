@@ -12,7 +12,7 @@ public static class KeywordCollectionEx
     /// <summary>
     /// 含有关键字
     /// </summary>
-    /// <param name="collection">集合</param>
+    /// <param name="collection">关键字集合</param>
     /// <param name="name">关键字</param>
     /// <param name="keywordName">关键字容器字段名</param>
     /// <returns>true含有</returns>
@@ -53,8 +53,8 @@ public static class KeywordCollectionEx
     }
 
     /// <summary>
-    /// 获取词典,
-    /// KeywordCollection是允许重复关键字的,没有哈希索引,在重复判断时候要遍历,所以生成一个词典
+    /// 获取词典<see langword="(GlobalName"/>,<see langword="DisplayName)"/>
+    /// <para>KeywordCollection是允许重复关键字的,没有哈希索引,在多次判断时候会遍历多次O(n),所以生成一个词典进行O(1)</para>
     /// </summary>
     /// <param name="collection"></param>
     /// <returns></returns>
