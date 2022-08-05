@@ -179,10 +179,10 @@ public class JigEx : DrawJig
     /// <summary>
     /// 最后一次的图元加入数据库
     /// </summary>
-    /// <param name="tr">事务</param>
+    /// <param name="btrOfAddEntitySpace">加入此空间</param>
     /// <param name="removeEntity">不生成的图元用于排除,例如刷新时候的提示文字</param>
     /// <returns></returns>
-    public IEnumerable<ObjectId>? AddEntityToMsPs(DBTrans tr,
+    public IEnumerable<ObjectId>? AddEntityToMsPs(BlockTableRecord btrOfAddEntitySpace,
         IEnumerable<Entity>? removeEntity = null)
     {
         if (Entitys.Length == 0)
@@ -192,8 +192,7 @@ public class JigEx : DrawJig
         if (removeEntity != null)
             es = es.Except(removeEntity);//差集
 
-        //若用户需要指定空间生成,那么利用 Entitys 在仿照此函数进行
-        return tr.CurrentSpace.AddEntity(es);
+        return btrOfAddEntitySpace.AddEntity(es);
     }
     #endregion
 

@@ -189,12 +189,11 @@ public class HatchEx
     /// <summary>
     /// 构建
     /// </summary>
-    /// <param name="tr">事务</param>
-    /// <param name="db">数据库</param>
-    public ObjectId Build(DBTrans tr)
+    /// <param name="btrOfAddEntitySpace">将填充加入此空间</param>
+    public ObjectId Build(BlockTableRecord btrOfAddEntitySpace)
     {
         //加入数据库
-        var hatchId = tr.CurrentSpace.AddEntity(_hatch);
+        var hatchId = btrOfAddEntitySpace.AddEntity(_hatch);
 
         //设置模式:渐变/填充
         if (_hatch.HatchObjectType == HatchObjectType.GradientObject)
@@ -238,7 +237,7 @@ public class HatchEx
     /// <summary>
     /// 删除边界图元
     /// </summary>
-    public HatchEx EraseBoundary(DBTrans tr)
+    public HatchEx EraseBoundary()
     {
         for (int i = 0; i < _boundaryIds.Count; i++)
             _boundaryIds[i].Erase();
@@ -250,7 +249,6 @@ public class HatchEx
     /// </summary>
     /// <param name="boundaryIds">边界id</param>
     /// <param name="hatchLoopTypes">加入方式</param>
-    /// <returns></returns>
     void AppendLoop(IEnumerable<ObjectId> boundaryIds,
                     HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
@@ -271,18 +269,17 @@ public class HatchEx
     /// </summary>
     /// <param name="pts">点集</param>
     /// <param name="bluges">凸度集</param>
-    /// <param name="tr">事务</param>
-    /// <param name="db">数据库</param>
+    /// <param name="btrOfAddEntitySpace">加入此空间</param>
     /// <param name="hatchLoopTypes">加入方式</param>
     /// <returns></returns>
     public HatchEx AppendLoop(Point2dCollection pts!!,
                              DoubleCollection bluges,
-                             DBTrans tr,
+                             BlockTableRecord btrOfAddEntitySpace,
                              HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
         var ptsEnd2End = pts.End2End();
 #if NET35
-        _boundaryIds.Add(CreateAddBoundary(ptsEnd2End, bluges, tr));
+        _boundaryIds.Add(CreateAddBoundary(ptsEnd2End, bluges, btrOfAddEntitySpace));
 #else
         //2011新增API,可以不生成图元的情况下加入边界,
         //通过这里进入的话,边界 _boundaryIds 是空的,那么 Build() 时候就需要过滤空的
@@ -297,9 +294,11 @@ public class HatchEx
     /// </summary>
     /// <param name="pts">点集</param>
     /// <param name="bluges">凸度集</param>
-    /// <param name="tr">事务</param>
+    /// <param name="btrOfAddEntitySpace">加入此空间</param>
     /// <returns>多段线id</returns>
-    static ObjectId CreateAddBoundary(Point2dCollection? pts, DoubleCollection? bluges, DBTrans tr)
+    static ObjectId CreateAddBoundary(Point2dCollection? pts,
+        DoubleCollection? bluges,
+        BlockTableRecord btrOfAddEntitySpace)
     {
         if (pts is null)
             throw new ArgumentException(null, nameof(pts));
@@ -313,7 +312,7 @@ public class HatchEx
         while (itor1.MoveNext() && itor2.MoveNext())
             bvws.Add(new BulgeVertexWidth(itor1.Current, itor2.Current));
 
-        return tr.CurrentSpace.AddPline(bvws);
+        return btrOfAddEntitySpace.AddPline(bvws);
     }
 #endif
     #endregion
