@@ -157,6 +157,38 @@ public static class SymbolTableRecordEx
     /// 在指定的绘图空间添加轻多段线
     /// </summary>
     /// <param name="btr">绘图空间</param>
+    /// <param name="bvws">多段线信息</param>
+    /// <param name="constantWidth">线宽</param>
+    /// <param name="isClosed">是否闭合</param>
+    /// <param name="action">轻多段线属性设置委托</param>
+    /// <param name="trans">事务管理器</param>
+    /// <returns>轻多段线id</returns>
+    public static ObjectId AddPline(this BlockTableRecord btr,
+        List<BulgeVertexWidth> bvws,
+        double? constantWidth = null,
+        bool isClosed = true,
+        Action<Polyline>? action = default,
+        Transaction? trans = default)
+    {
+        var pl = new Polyline();
+        pl.SetDatabaseDefaults();
+        if (constantWidth is not null)
+        {
+            for (int i = 0; i < bvws.Count; i++)
+                pl.AddVertexAt(i, bvws[i].Vertex, bvws[i].Bulge, constantWidth.Value, constantWidth.Value);
+        }
+        else
+        {
+            for (int i = 0; i < bvws.Count; i++)
+                pl.AddVertexAt(i, bvws[i].Vertex, bvws[i].Bulge, bvws[i].StartWidth, bvws[i].EndWidth);
+        }
+        pl.Closed = isClosed;//闭合
+        return btr.AddEnt(pl, action, trans);
+    }
+    /// <summary>
+    /// 在指定的绘图空间添加轻多段线
+    /// </summary>
+    /// <param name="btr">绘图空间</param>
     /// <param name="pts">端点表</param>
     /// <param name="bulges">凸度表</param>
     /// <param name="startWidths">端点的起始宽度</param>
@@ -172,15 +204,15 @@ public static class SymbolTableRecordEx
                                     Action<Polyline>? action = default,
                                     Transaction? trans = default)
     {
-        bulges ??= new List<double>(new double[pts.Count]);
-        startWidths ??= new List<double>(new double[pts.Count]);
-        endWidths ??= new List<double>(new double[pts.Count]);
+        bulges ??= new(new double[pts.Count]);
+        startWidths ??= new(new double[pts.Count]);
+        endWidths ??= new(new double[pts.Count]);
+
         Polyline pl = new();
         pl.SetDatabaseDefaults();
+
         for (int i = 0; i < pts.Count; i++)
-        {
             pl.AddVertexAt(i, pts[i].Point2d(), bulges[i], startWidths[i], endWidths[i]);
-        }
         return btr.AddEnt(pl, action, trans);
     }
 

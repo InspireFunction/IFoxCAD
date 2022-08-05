@@ -43,4 +43,39 @@ public static class PointEx
     }
 
 
+
+    #region 首尾相连
+    /// <summary>
+    /// 首尾相连
+    /// </summary>
+    public static Point2dCollection End2End(this Point2dCollection ptcol!!)
+    {
+        if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))//首尾相同直接返回
+            return ptcol;
+
+        //首尾不同,去加一个到最后
+        var lst = new Point2d[ptcol.Count + 1];
+        for (int i = 0; i < lst.Length; i++)
+            lst[i] = ptcol[i];
+        lst[^1] = lst[0];
+
+        return new(lst);
+    }
+    /// <summary>
+    /// 首尾相连
+    /// </summary>
+    public static Point3dCollection End2End(this Point3dCollection ptcol!!)
+    {
+        if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))//首尾相同直接返回
+            return ptcol;
+
+        //首尾不同,去加一个到最后
+        var lst = new Point3d[ptcol.Count + 1];
+        for (int i = 0; i < lst.Length; i++)
+            lst[i] = ptcol[i];
+        lst[^1] = lst[0];
+
+        return new(lst);
+    }
+    #endregion
 }
