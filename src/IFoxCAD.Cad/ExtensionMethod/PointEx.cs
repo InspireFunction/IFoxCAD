@@ -29,7 +29,8 @@ public static class PointEx
     /// <returns>弧度值</returns>
     public static double GetAngle(this Point3d startPoint, Point3d endPoint, Vector3d? direction = null)
     {
-        return startPoint.GetVectorTo(endPoint).AngleOnPlane(new Plane(Point3d.Origin, direction ?? Vector3d.ZAxis));
+        return startPoint.GetVectorTo(endPoint)
+              .AngleOnPlane(new Plane(Point3d.Origin, direction ?? Vector3d.ZAxis));
     }
     /// <summary>
     /// 两点计算弧度范围0到2Pi
@@ -42,6 +43,46 @@ public static class PointEx
         return startPoint.GetVectorTo(endPoint).Angle;
     }
 
+    /// <summary>
+    /// 获取中点
+    /// </summary>
+    /// <param name="a"></param>
+    /// <param name="b"></param>
+    /// <returns></returns>
+    public static Point2d GetCenter(this Point2d a, Point2d b)
+    {
+        // (p1 + p2) / 2; //溢出风险
+        return new Point2d(a.X * 0.5 + b.X * 0.5,
+                           a.Y * 0.5 + b.Y * 0.5);
+    }
+     
+    /// http://www.lee-mac.com/bulgeconversion.html
+    /// <summary>
+    /// 求凸度,判断三点是否一条直线上
+    /// </summary>
+    /// <param name="arc1">圆弧起点</param>
+    /// <param name="arc2">圆弧腰点</param>
+    /// <param name="arc3">圆弧尾点</param>
+    /// <returns>逆时针为正,顺时针为负</returns>
+    public static double GetArcBulge(this Point2d arc1, Point2d arc2, Point2d arc3, double tol = 1e-10)
+    {
+        double dStartAngle = arc2.GetAngle(arc1);
+        double dEndAngle = arc2.GetAngle(arc3);
+        //求的P1P2与P1P3夹角
+        var talAngle = (Math.PI - dStartAngle + dEndAngle) / 2;
+        //凸度==拱高/半弦长==拱高比值/半弦长比值
+        //有了比值就不需要拿到拱高值和半弦长值了,因为接下来是相除得凸度
+        double bulge = Math.Sin(talAngle) / Math.Cos(talAngle);
+
+        //处理精度
+        if (bulge > 0.9999 && bulge < 1.0001)
+            bulge = 1;
+        else if (bulge < -0.9999 && bulge > -1.0001)
+            bulge = -1;
+        else if (Math.Abs(bulge) < tol)
+            bulge = 0;
+        return bulge;
+    }
 
 
     #region 首尾相连

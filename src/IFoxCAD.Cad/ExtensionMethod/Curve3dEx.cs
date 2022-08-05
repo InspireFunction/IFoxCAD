@@ -29,9 +29,8 @@ public static class Curve3dEx
         CurveCurveIntersector3d cci = new(c3d, c3d, Vector3d.ZAxis);
         List<double> pars = new();
         for (int i = 0; i < cci.NumberOfIntersectionPoints; i++)
-        {
             pars.AddRange(cci.GetIntersectionParameters(i));
-        }
+
         pars.Sort();
         return pars;
     }
@@ -174,16 +173,16 @@ public static class Curve3dEx
                 {
                     pars[0] = inter.LowerBound;
                     //又包含终点，去除终点
-                    if (Tolerance.Global.IsEqualPoint(pars[pars.Count - 1], inter.UpperBound))
+                    if (Tolerance.Global.IsEqualPoint(pars[^1], inter.UpperBound))
                     {
                         pars.RemoveAt(pars.Count - 1);
                         if (pars.Count == 1)
                             return new List<CompositeCurve3d>();
                     }
                 }
-                else if (Tolerance.Global.IsEqualPoint(pars[pars.Count - 1], inter.UpperBound))
+                else if (Tolerance.Global.IsEqualPoint(pars[^1], inter.UpperBound))
                 {
-                    pars[pars.Count - 1] = inter.UpperBound;
+                    pars[^1] = inter.UpperBound;
                 }
                 //加入第一点以支持反向打断
                 pars.Add(pars[0]);
@@ -200,8 +199,8 @@ public static class Curve3dEx
                 pars[0] = inter.LowerBound;
             else
                 pars.Insert(0, inter.LowerBound);
-            if (Tolerance.Global.IsEqualPoint(pars[pars.Count - 1], inter.UpperBound))
-                pars[pars.Count - 1] = inter.UpperBound;
+            if (Tolerance.Global.IsEqualPoint(pars[^1], inter.UpperBound))
+                pars[^1] = inter.UpperBound;
             else
                 pars.Add(inter.UpperBound);
         }
@@ -245,7 +244,7 @@ public static class Curve3dEx
             var cus1 = curves[curves.Count - 1].GetCurves();
             var cus2 = curves[0].GetCurves();
             var cs = cus1.Combine2(cus2);
-            curves[curves.Count - 1] = new CompositeCurve3d(cs);
+            curves[^1] = new CompositeCurve3d(cs);
             curves.RemoveAt(0);
         }
         return curves;
@@ -260,38 +259,30 @@ public static class Curve3dEx
     {
         Curve3d[] cs = curve.GetCurves();
         if (cs.Length == 0)
-        {
             return null;
-        }
-        else if (cs.Length == 1)
-        {
+        if (cs.Length == 1)
             return ToCurve(cs[0]);
-        }
-        else
-        {
-            bool hasNurb = false;
 
-            for (int i = 0; i < cs.Length; i++)
+        bool hasNurb = false;
+
+        for (int i = 0; i < cs.Length; i++)
+        {
+            var c = cs[i];
+            if (c is NurbCurve3d || c is EllipticalArc3d)
             {
-                var c = cs[i];
-                if (c is NurbCurve3d || c is EllipticalArc3d)
-                {
-                    hasNurb = true;
-                    break;
-                }
-            }
-            if (hasNurb)
-            {
-                var nc3d = cs[0].ToNurbCurve3d();
-                for (int i = 1; i < cs.Length; i++)
-                    nc3d?.JoinWith(cs[i].ToNurbCurve3d());
-                return nc3d?.ToCurve();
-            }
-            else
-            {
-                return ToPolyline(curve);
+                hasNurb = true;
+                break;
             }
         }
+        if (hasNurb)
+        {
+            var nc3d = cs[0].ToNurbCurve3d();
+            for (int i = 1; i < cs.Length; i++)
+                nc3d?.JoinWith(cs[i].ToNurbCurve3d());
+            return nc3d?.ToCurve();
+        }
+
+        return ToPolyline(curve);
     }
 
     /// <summary>
@@ -301,10 +292,10 @@ public static class Curve3dEx
     /// <returns>实体类多段线</returns>
     public static Polyline ToPolyline(this CompositeCurve3d cc3d)
     {
-        Polyline pl = new()
-        {
-            Elevation = cc3d.StartPoint[2]
-        };
+        Polyline pl = new();
+        pl.SetDatabaseDefaults();
+        pl.Elevation = cc3d.StartPoint[2];
+
         Plane plane = pl.GetPlane();
         Point2d endver = Point2d.Origin;
         int i = 0;

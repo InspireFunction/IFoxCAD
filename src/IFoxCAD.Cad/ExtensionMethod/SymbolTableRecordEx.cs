@@ -7,6 +7,39 @@ public static class SymbolTableRecordEx
 {
     #region 块表记录
 
+    #region 克隆实体id
+    /// <summary>
+    /// 克隆id(不允许是未添加数据库的图元)到块表记录(原地克隆)
+    /// </summary>
+    /// <param name="btr">
+    /// <para>克隆到当前块表记录,相当于原地克隆</para>
+    /// <para>克隆到目标块表记录内,相当于制作新块</para>
+    /// </param>
+    /// <param name="objIds">id集合,注意所有成员都要在同一个空间中</param>
+    /// <returns>克隆后的id词典</returns>
+    public static IdMapping EntityClone(this BlockTableRecord btr,
+                                        ObjectIdCollection objIds)
+    {
+        if (objIds is null || objIds.Count == 0)
+            throw new ArgumentNullException(nameof(objIds));
+
+        var db = objIds[0].Database;
+        IdMapping mapping = new();
+        using (btr.ForWrite())
+        {
+            try
+            {
+                //深度克隆
+                db.DeepCloneObjects(objIds, btr.ObjectId, mapping, false);
+                //foreach (ObjectId item in blockIds)
+                //    result.Add(mapping[item].Value);  //获取克隆键值对(旧块名,新块名)
+            }
+            catch { }
+        }
+        return mapping;
+    }
+    #endregion
+
     #region 添加实体
     /// <summary>
     /// 添加实体对象
@@ -97,9 +130,8 @@ public static class SymbolTableRecordEx
         //transaction ??= DBTrans.Top.Transaction;
         var ent = action.Invoke();
         if (ent is null)
-        {
             return ObjectId.Null;
-        }
+
         return btr.AddEntity(ent, transaction);
     }
 
@@ -148,9 +180,8 @@ public static class SymbolTableRecordEx
         var circle = EntityEx.CreateCircle(p0, p1, p2);
         //return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
         if (circle is null)
-        {
             throw new ArgumentNullException(nameof(circle), "对象为 null");
-        }
+
         return btr.AddEnt(circle, action, trans);
     }
     /// <summary>
@@ -170,7 +201,7 @@ public static class SymbolTableRecordEx
         Action<Polyline>? action = default,
         Transaction? trans = default)
     {
-        var pl = new Polyline();
+        Polyline pl = new();
         pl.SetDatabaseDefaults();
         if (constantWidth is not null)
         {

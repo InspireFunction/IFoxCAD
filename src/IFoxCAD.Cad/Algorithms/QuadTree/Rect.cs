@@ -474,7 +474,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     }
 
 #if !WinForm
-    public Autodesk.AutoCAD.DatabaseServices.Entity ToPolyLine()
+    public Entity ToPolyLine()
     {
         var bv = new List<BulgeVertex>();
         var pts = ToPoints();

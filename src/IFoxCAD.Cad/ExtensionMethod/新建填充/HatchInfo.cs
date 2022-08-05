@@ -1,18 +1,9 @@
-#if !HC2020
+namespace IFoxCAD.Cad;
 using Autodesk.AutoCAD.DatabaseServices;
 using Autodesk.AutoCAD.Geometry;
 using Autodesk.AutoCAD.Colors;
-#else
-using GrxCAD.DatabaseServices;
-using GrxCAD.Geometry;
-using GrxCAD.Colors;
-#endif
 using System.Collections.Generic;
 using System;
-using IFoxCAD.Cad;
-
-namespace IFoxCAD;
-
 /*
  *  添加的第一个边界必须是外边界,即用于定义图案填充最外面的边界。
  *  要添加外部边界,请使用添加环的类型为 HatchLoopTypes.Outermost 常量的 AppendLoop 方法,
@@ -26,7 +17,7 @@ namespace IFoxCAD;
 /// <summary>
 /// 图案填充
 /// </summary>
-public class HatchEx
+public class HatchInfo
 {
     #region 成员
     /// <summary>
@@ -64,7 +55,7 @@ public class HatchEx
     #endregion
 
     #region 构造
-    HatchEx()
+    HatchInfo()
     {
         _hatch = new Hatch();
         _hatch.SetDatabaseDefaults();
@@ -78,7 +69,7 @@ public class HatchEx
     /// <param name="hatchOrigin">填充原点</param>
     /// <param name="hatchScale">比例</param>
     /// <param name="hatchAngle">角度</param>
-    public HatchEx(bool boundaryAssociative = true,
+    public HatchInfo(bool boundaryAssociative = true,
                      Point2d? hatchOrigin = null,
                      double hatchScale = 1,
                      double hatchAngle = 0) : this()
@@ -102,7 +93,7 @@ public class HatchEx
     /// <param name="hatchOrigin">填充原点</param>
     /// <param name="hatchScale">比例</param>
     /// <param name="hatchAngle">角度</param>
-    public HatchEx(IEnumerable<ObjectId> boundaryIds,
+    public HatchInfo(IEnumerable<ObjectId> boundaryIds,
                      bool boundaryAssociative = true,
                      Point2d? hatchOrigin = null,
                      double hatchScale = 1,
@@ -118,7 +109,7 @@ public class HatchEx
     /// <summary>
     /// 模式1:预定义
     /// </summary>
-    public HatchEx Mode1PreDefined(string name)
+    public HatchInfo Mode1PreDefined(string name)
     {
         _hatchName = name;
         _hatch.HatchObjectType = HatchObjectType.HatchObject; //对象类型(填充/渐变)
@@ -130,7 +121,7 @@ public class HatchEx
     /// 模式2:用户定义
     /// </summary>
     /// <param name="patternDouble">是否双向</param>
-    public HatchEx Mode2UserDefined(bool patternDouble = true)
+    public HatchInfo Mode2UserDefined(bool patternDouble = true)
     {
         _hatchName = "_USER";
         _hatch.HatchObjectType = HatchObjectType.HatchObject; //对象类型(填充/渐变)
@@ -145,7 +136,7 @@ public class HatchEx
     /// 模式3:自定义
     /// </summary>
     /// <param name="name"></param>
-    public HatchEx Mode3UserDefined(string name)
+    public HatchInfo Mode3UserDefined(string name)
     {
         _hatchName = name;
         _hatch.HatchObjectType = HatchObjectType.HatchObject; //对象类型(填充/渐变)
@@ -162,7 +153,7 @@ public class HatchEx
     /// <param name="gradientShift">渐变移动</param>
     /// <param name="shadeTintValue">色调值</param>
     /// <param name="gradientOneColorMode">单色<see langword="true"/>双色<see langword="false"/></param>
-    public HatchEx Mode4Gradient(GradientName name, Color colorStart, Color colorEnd,
+    public HatchInfo Mode4Gradient(GradientName name, Color colorStart, Color colorEnd,
         float gradientShift = 0,
         float shadeTintValue = 0,
         bool gradientOneColorMode = false)
@@ -219,7 +210,7 @@ public class HatchEx
     /// 执行图元的属性修改
     /// </summary>
     /// <param name="action">扔出填充实体</param>
-    public HatchEx Action(Action<Hatch> action)
+    public HatchInfo Action(Action<Hatch> action)
     {
         action(_hatch);
         return this;
@@ -228,7 +219,7 @@ public class HatchEx
     /// <summary>
     /// 清空边界集合
     /// </summary>
-    public HatchEx ClearBoundary()
+    public HatchInfo ClearBoundary()
     {
         _boundaryIds.Clear();
         return this;
@@ -237,7 +228,7 @@ public class HatchEx
     /// <summary>
     /// 删除边界图元
     /// </summary>
-    public HatchEx EraseBoundary()
+    public HatchInfo EraseBoundary()
     {
         for (int i = 0; i < _boundaryIds.Count; i++)
             _boundaryIds[i].Erase();
@@ -272,7 +263,7 @@ public class HatchEx
     /// <param name="btrOfAddEntitySpace">加入此空间</param>
     /// <param name="hatchLoopTypes">加入方式</param>
     /// <returns></returns>
-    public HatchEx AppendLoop(Point2dCollection pts!!,
+    public HatchInfo AppendLoop(Point2dCollection pts!!,
                              DoubleCollection bluges,
                              BlockTableRecord btrOfAddEntitySpace,
                              HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)

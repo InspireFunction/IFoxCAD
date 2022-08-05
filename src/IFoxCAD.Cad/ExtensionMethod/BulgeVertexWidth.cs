@@ -90,5 +90,5 @@ public class BulgeVertexWidth
     public BulgeVertex ToBulgeVertex()
     {
         return new BulgeVertex(Vertex, Bulge);
-    }
+    } 
 }
