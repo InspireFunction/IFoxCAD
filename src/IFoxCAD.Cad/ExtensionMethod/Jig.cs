@@ -188,15 +188,12 @@ public class JigEx : DrawJig
         if (Entitys.Length == 0)
             return null;
 
-        var ids = new List<ObjectId>();
         IEnumerable<Entity> es = Entitys;
         if (removeEntity != null)
             es = es.Except(removeEntity);//差集
 
-        foreach (var item in es)
-            ids.Add(tr.CurrentSpace.AddEntity(item));
-
-        return ids;
+        //若用户需要指定空间生成,那么利用 Entitys 在仿照此函数进行
+        return tr.CurrentSpace.AddEntity(es);
     }
     #endregion
 

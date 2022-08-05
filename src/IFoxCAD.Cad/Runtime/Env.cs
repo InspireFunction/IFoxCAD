@@ -453,10 +453,8 @@ public static class Env
         }
         catch (System.Exception)
         {
-
             Env.Print($"{varName} 是不存在的变量！");
         }
-
     }
     /// <summary>
     /// 获取系统环境变量
