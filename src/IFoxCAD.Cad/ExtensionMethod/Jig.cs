@@ -10,7 +10,6 @@
  */
 
 namespace IFoxCAD.Cad;
-
 using Autodesk.AutoCAD.GraphicsInterface;
 using Acap = Application;
 
@@ -181,14 +180,15 @@ public class JigEx : DrawJig
     /// </summary>
     /// <param name="btrOfAddEntitySpace">加入此空间</param>
     /// <param name="removeEntity">不生成的图元用于排除,例如刷新时候的提示文字</param>
-    /// <returns></returns>
+    /// <returns>加入数据库的id集合</returns>
     public IEnumerable<ObjectId>? AddEntityToMsPs(BlockTableRecord btrOfAddEntitySpace,
-        IEnumerable<Entity>? removeEntity = null)
+                                                  IEnumerable<Entity>? removeEntity = null)
     {
-        if (Entitys.Length == 0)
+        //内部用 _drawEntitys 外部用 Entitys,减少一层转换
+        if (_drawEntitys.Count == 0)
             return null;
 
-        IEnumerable<Entity> es = Entitys;
+        IEnumerable<Entity> es = _drawEntitys;
         if (removeEntity != null)
             es = es.Except(removeEntity);//差集
 
@@ -252,7 +252,6 @@ public class JigEx : DrawJig
     {
         WorldDrawEvent = action;
     }
-
 
     /* WorldDraw 封装外的操作说明:
      * 0x01
