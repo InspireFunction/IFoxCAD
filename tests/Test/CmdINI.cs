@@ -15,7 +15,7 @@ public class CmdINI : AutoRegAssem
         var dm = Application.DocumentManager;
         var doc = dm.MdiActiveDocument;
         var ed = doc.Editor;
-        ed.WriteMessage($"\n 开始自动执行{nameof(CmdINI)} \r\n");
+        ed.WriteMessage($"\n {nameof(CmdINI)}构造函数,开始自动执行\r\n");
     }
 
     ///如果netload之后用 <see cref="IFoxRemoveReg"/> 删除注册表,
@@ -25,6 +25,11 @@ public class CmdINI : AutoRegAssem
     public void IFoxAddReg()
     {
         base.RegApp();
+
+        var dm = Application.DocumentManager;
+        var doc = dm.MdiActiveDocument;
+        var ed = doc.Editor;
+        ed.WriteMessage($"\n 加入注册表");
     }
 
     /// <summary>
@@ -33,7 +38,13 @@ public class CmdINI : AutoRegAssem
     [CommandMethod("IFoxRemoveReg")]
     public void IFoxRemoveReg()
     {
-        base.UnAcAppKey();
+        //执行命令的时候会再次执行构造函数(导致初始化两次),但是再次执行就不会了
+        base.UnRegApp(); 
+
+        var dm = Application.DocumentManager;
+        var doc = dm.MdiActiveDocument;
+        var ed = doc.Editor;
+        ed.WriteMessage($"\n 卸载注册表");
     }
 }
 

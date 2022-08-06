@@ -107,9 +107,9 @@ public abstract class AutoRegAssem : IExtensionApplication
     }
 
     /// <summary>
-    /// 卸载自动运行注册表
+    /// 卸载注册表信息
     /// </summary>
-    public bool UnAcAppKey()
+    public bool UnRegApp()
     {
         var appkey = GetAcAppKey();
         if (appkey.SubKeyCount == 0)
