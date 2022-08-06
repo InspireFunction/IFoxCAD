@@ -20,6 +20,9 @@ public static class PointEx
             _ => $"({pt.X.ToString(de)},{pt.Y.ToString(de)},{pt.Z.ToString(de)})"
         };
     }
+
+    //为了频繁触发所以弄个全局变量
+    static Plane? _Plane;
     /// <summary>
     /// 两点计算弧度范围0到2Pi
     /// </summary>
@@ -29,8 +32,11 @@ public static class PointEx
     /// <returns>弧度值</returns>
     public static double GetAngle(this Point3d startPoint, Point3d endPoint, Vector3d? direction = null)
     {
-        return startPoint.GetVectorTo(endPoint)
-              .AngleOnPlane(new Plane(Point3d.Origin, direction ?? Vector3d.ZAxis));
+        if (direction != null)
+            _Plane = new Plane(Point3d.Origin, direction.Value);
+        if (_Plane == null)
+            _Plane = new Plane(Point3d.Origin, Vector3d.ZAxis);
+        return startPoint.GetVectorTo(endPoint).AngleOnPlane(_Plane);
     }
     /// <summary>
     /// 两点计算弧度范围0到2Pi
@@ -55,7 +61,7 @@ public static class PointEx
         return new Point2d(a.X * 0.5 + b.X * 0.5,
                            a.Y * 0.5 + b.Y * 0.5);
     }
-     
+
     /// http://www.lee-mac.com/bulgeconversion.html
     /// <summary>
     /// 求凸度,判断三点是否一条直线上
