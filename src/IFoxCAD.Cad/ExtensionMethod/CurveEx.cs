@@ -12,8 +12,7 @@ public static class CurveEx
     /// <returns>长度</returns>
     public static double GetLength(this Curve curve)
     {
-        return
-            curve.GetDistanceAtParameter(curve.EndParam);
+        return curve.GetDistanceAtParameter(curve.EndParam);
     }
 
     /// <summary>
