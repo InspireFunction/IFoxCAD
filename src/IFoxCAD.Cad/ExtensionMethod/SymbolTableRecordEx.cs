@@ -9,7 +9,7 @@ public static class SymbolTableRecordEx
 
     #region 克隆实体id
     /// <summary>
-    /// 克隆id到块表记录
+    /// 深度克隆id到块表记录
     /// <para>0x01 此方法不允许是未添加数据库的图元,因此它是id</para>
     /// <para>0x02 若为未添加数据库图元,则利用entity.Clone();同时不需要考虑动态块属性,可以使用entity.GetTransformedCopy</para>
     /// </summary>
@@ -30,18 +30,17 @@ public static class SymbolTableRecordEx
         {
             try
             {
-                //深度克隆
                 db.DeepCloneObjects(objIds, btr.ObjectId, mapping, false);
 
-                //不在此提取,为了此函数高频使用
-                //获取克隆键值对(旧块名,新块名)
-                //foreach (ObjectId item in blockIds)
-                //    result.Add(mapping[item].Value);  
+                // 不在此提取,为了此函数被高频调用
+                // 获取克隆键值对(旧块名,新块名)
+                // foreach (ObjectId item in blockIds)
+                //     result.Add(mapping[item].Value);  
             }
             catch (System.Exception e)
             {
                 LogHelper.FlagOutVsOutput = true;
-                e.WriteLog();
+                e.WriteLog("深度克隆出错了");
             }
         }
         return mapping;
