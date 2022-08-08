@@ -23,7 +23,7 @@ public static class SymbolTableRecordEx
     {
         if (objIds is null || objIds.Count == 0)
             throw new ArgumentNullException(nameof(objIds));
-
+       
         var db = objIds[0].Database;
         IdMapping mapping = new();
         using (btr.ForWrite())
@@ -40,6 +40,7 @@ public static class SymbolTableRecordEx
             }
             catch (System.Exception e)
             {
+                LogHelper.FlagOutVsOutput = true;
                 e.WriteLog();
             }
         }

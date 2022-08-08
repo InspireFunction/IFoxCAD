@@ -116,8 +116,10 @@ public class EventLogger : LogBase
 #if !NET5_0 && !NET6_0
         try
         {
-            EventLog eventLog = new();
-            eventLog.Source = LogName;
+            EventLog eventLog = new()
+            {
+                Source = LogName
+            };
             eventLog.WriteEntry(message, EventLogEntryType.Information);
         }
         catch (System.Security.SecurityException e)
@@ -133,18 +135,27 @@ public class EventLogger : LogBase
 #region 静态方法
 public static class LogHelper
 {
+#pragma warning disable CA2211 // 非常量字段应当不可见
+    /// <summary>
+    /// 日志文件完整路径
+    /// </summary>
+    public static string? LogAddress;
+    /// <summary>
+    /// 输出错误信息到日志文件的开关
+    /// </summary>
+    public static bool FlagOutFile = false;
+    /// <summary>
+    /// 输出错误信息到vs输出窗口的开关
+    /// </summary>
+    public static bool FlagOutVsOutput = true;
+
+#pragma warning restore CA2211 // 非常量字段应当不可见
+
     /// <summary>
     /// <a href="https://www.cnblogs.com/Tench/p/CSharpSimpleFileWriteLock.html">读写锁</a>
     /// <para>当资源处于写入模式时,其他线程写入需要等待本次写入结束之后才能继续写入</para>
     /// </summary>
     static readonly ReaderWriterLockSlim _logWriteLock = new();
-
-    /// <summary>
-    /// 日志文件完整路径
-    /// </summary>
-#pragma warning disable CA2211 // 非常量字段应当不可见
-    public static string? LogAddress;
-#pragma warning restore CA2211 // 非常量字段应当不可见
 
     /// <summary>
     /// 提供给外部设置log文件保存路径
@@ -186,39 +197,32 @@ public static class LogHelper
     }
 
     public static string WriteLog(this string? message,
-                                LogTarget target = LogTarget.File,
-                                bool printDebugWindow = true)
+                                 LogTarget target = LogTarget.File)
     {
         if (message == null)
             return string.Empty;
-        return LogAction(null, message, target, printDebugWindow);
+        return LogAction(null, message, target);
     }
 
     public static string WriteLog(this Exception? exception,
-                                LogTarget target = LogTarget.File,
-                                bool printDebugWindow = true)
+                                  LogTarget target = LogTarget.File)
     {
         if (exception == null)
             return string.Empty;
-        return LogAction(exception, null, target, printDebugWindow);
+        return LogAction(exception, null, target);
     }
 
-    public static string WriteLog(this Exception? exception,
-                                string? message,
-                                LogTarget target = LogTarget.File,
-                                bool printDebugWindow = true)
+    public static string WriteLog(this Exception? exception, string? message,
+                                  LogTarget target = LogTarget.File)
     {
         if (exception == null)
             return string.Empty;
-        return LogAction(exception, message, target, printDebugWindow);
+        return LogAction(exception, message, target);
     }
 
 
 
-    static string LogAction(Exception? ex,
-                          string? message,
-                          LogTarget target,
-                          bool printDebugWindow)
+    static string LogAction(Exception? ex, string? message, LogTarget target)
     {
         if (ex == null && message == null)
             return string.Empty;
@@ -236,29 +240,30 @@ public static class LogHelper
             if (logtxtJson == null)
                 return string.Empty;
 
-            LogBase? logger;
-            switch (target)
+            if (FlagOutFile)
             {
-                case LogTarget.File:
-                    logger = new FileLogger();
-                    logger.WriteLog(logtxtJson);
-                    break;
-                case LogTarget.Database:
-                    logger = new DBLogger();
-                    logger.WriteLog(logtxtJson);
-                    break;
-                case LogTarget.EventLog:
-                    logger = new EventLogger();
-                    logger.WriteLog(logtxtJson);
-                    break;
+                LogBase? logger;
+                switch (target)
+                {
+                    case LogTarget.File:
+                        logger = new FileLogger();
+                        logger.WriteLog(logtxtJson);
+                        break;
+                    case LogTarget.Database:
+                        logger = new DBLogger();
+                        logger.WriteLog(logtxtJson);
+                        break;
+                    case LogTarget.EventLog:
+                        logger = new EventLogger();
+                        logger.WriteLog(logtxtJson);
+                        break;
+                }
             }
 
-            if (printDebugWindow)
+            if (FlagOutVsOutput)
             {
                 Debug.WriteLine("错误日志: " + LogAddress);
                 Debug.Write(logtxtJson);
-                //Debugger.Break(); 
-                //Debug.Assert(false, "终止进程");
             }
             return logtxtJson;
         }
