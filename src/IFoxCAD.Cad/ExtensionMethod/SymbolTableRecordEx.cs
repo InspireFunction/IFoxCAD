@@ -19,7 +19,7 @@ public static class SymbolTableRecordEx
     /// </param>
     /// <param name="objIds">图元id集合,注意所有成员都要在同一个空间中</param>
     /// <returns>克隆后的id词典</returns>
-    public static IdMapping EntityClone(this BlockTableRecord btr, ObjectIdCollection objIds)
+    public static IdMapping DeepClone(this BlockTableRecord btr, ObjectIdCollection objIds)
     {
         if (objIds is null || objIds.Count == 0)
             throw new ArgumentNullException(nameof(objIds));

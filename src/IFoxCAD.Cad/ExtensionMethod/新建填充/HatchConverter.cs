@@ -320,7 +320,7 @@ public class HatchConverter
          * 那么它的平移后的基点在哪里呢?
          */
 
-        var newHatchId = btrOfAddEntitySpace.EntityClone(new ObjectIdCollection(new ObjectId[] { OldHatchId })).GetValues()[0];
+        var newHatchId = btrOfAddEntitySpace.DeepClone(new ObjectIdCollection(new ObjectId[] { OldHatchId })).GetValues()[0];
         trans ??= DBTrans.Top.Transaction;
         var hatchEnt = trans.GetObject(newHatchId, OpenMode.ForWrite) as Hatch;
         if (hatchEnt != null)
