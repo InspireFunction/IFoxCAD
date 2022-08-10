@@ -18,6 +18,9 @@ global using Autodesk.AutoCAD.Colors;
 global using Autodesk.AutoCAD.DatabaseServices;
 global using Autodesk.AutoCAD.Geometry;
 global using Autodesk.AutoCAD.Runtime;
+global using Acap = Autodesk.AutoCAD.ApplicationServices.Application;
 
+global using Autodesk.AutoCAD.DatabaseServices.Filters;
+ 
 /// ifoxcad.basal 引用
 global using IFoxCAD.Basal;

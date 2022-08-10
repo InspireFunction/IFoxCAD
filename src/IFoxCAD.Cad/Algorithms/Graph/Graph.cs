@@ -1,6 +1,5 @@
-﻿using Exception = System.Exception;
-namespace IFoxCAD.Cad;
-
+﻿namespace IFoxCAD.Cad;
+using Exception = System.Exception;
 
 /// <summary>
 /// 无权无向图实现

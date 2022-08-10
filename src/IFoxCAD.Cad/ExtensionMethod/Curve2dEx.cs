@@ -3,7 +3,6 @@
 /// <summary>
 /// 二维解析类曲线转换为二维实体曲线扩展类
 /// </summary>
-
 public static class Curve2dEx
 {
     #region Curve2d

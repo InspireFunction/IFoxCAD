@@ -17,6 +17,8 @@ public class LispList : TypedValueList
     /// <param name="values">TypedValue 迭代器</param>
     public LispList(IEnumerable<TypedValue> values) : base(values) { }
     #endregion
+
+    #region 重写
     /// <summary>
     /// lisp 列表的值
     /// </summary>
@@ -32,7 +34,8 @@ public class LispList : TypedValueList
             value.InsertRange(1, this);
             return value;
         }
-    }
+    } 
+    #endregion
 
     #region 添加数据
     /// <summary>

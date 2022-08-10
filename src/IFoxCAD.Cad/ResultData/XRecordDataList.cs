@@ -5,10 +5,18 @@
 /// </summary>
 public class XRecordDataList : TypedValueList
 {
-    public XRecordDataList()
-    {
-    }
+    #region 构造函数
+    /// <summary>
+    /// 扩展字典数据封装类
+    /// </summary>
+    public XRecordDataList() { }
+
+    /// <summary>
+    /// 扩展字典数据封装类
+    /// </summary>
     public XRecordDataList(IEnumerable<TypedValue> values) : base(values) { }
+    #endregion
+
     #region 添加数据
     /// <summary>
     /// 添加数据

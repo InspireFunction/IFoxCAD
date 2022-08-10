@@ -1,7 +1,7 @@
 ﻿namespace IFoxCAD.Cad;
 
 /// <summary>
-/// lisp 点对表的数据封装类
+/// lisp点对表的数据封装类
 /// </summary>
 public class LispDottedPair : LispList
 {
@@ -32,6 +32,7 @@ public class LispDottedPair : LispList
     }
     #endregion
 
+    #region 重写
     /// <summary>
     /// 点对表的值
     /// </summary>
@@ -47,7 +48,8 @@ public class LispDottedPair : LispList
             value.InsertRange(1, this);
             return value;
         }
-    }
+    } 
+    #endregion
 
     #region 转换器
 

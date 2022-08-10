@@ -49,9 +49,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         get
         {
             if (Has(key))
-            {
                 return CurrentSymbolTable[key];
-            }
             return ObjectId.Null;
         }
     }
@@ -104,17 +102,15 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         ObjectId id = this[name];
         if (id.IsNull)
+            return id;
+
+        var record = new TRecord()
         {
-            var record = new TRecord()
-            {
-                Name = name
-            };
-            id = Add(record);
-            using (record.ForWrite())
-            {
-                action?.Invoke(record);
-            }
-        }
+            Name = name
+        };
+        id = Add(record);
+        using (record.ForWrite())
+            action?.Invoke(record);
         return id;
     }
     #endregion
@@ -127,10 +123,9 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     private static void Remove(TRecord record)
     {
         using (record.ForWrite())
-        {
             record.Erase();
-        }
     }
+
     /// <summary>
     /// 删除符号表记录
     /// </summary>
@@ -139,11 +134,9 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         var record = GetRecord(name);
         if (record is not null)
-        {
             Remove(record);
-        }
-
     }
+
     /// <summary>
     /// 删除符号表记录
     /// </summary>
@@ -152,12 +145,8 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         var record = GetRecord(id);
         if (record is not null)
-        {
             Remove(record);
-        }
     }
-
-
     #endregion
 
     #region 修改符号表记录
@@ -317,9 +306,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         {
             var record = GetRecord(item, openMode);
             if (record is not null)
-            {
                 action(record);
-            }
         }
     }
     #endregion
@@ -328,11 +315,8 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
 
     public IEnumerator<ObjectId> GetEnumerator()
     {
-
         foreach (var id in CurrentSymbolTable)
-        {
             yield return id;
-        }
     }
 
     IEnumerator IEnumerable.GetEnumerator()

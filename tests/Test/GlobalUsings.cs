@@ -19,6 +19,7 @@ global using Autodesk.AutoCAD.DatabaseServices;
 global using Autodesk.AutoCAD.Geometry;
 global using Autodesk.AutoCAD.Runtime;
 global using acgi =  Autodesk.AutoCAD.GraphicsInterface;
+global using acap = Autodesk.AutoCAD.ApplicationServices.Application;
 
 /// ifoxcad
 global using IFoxCAD.Cad;

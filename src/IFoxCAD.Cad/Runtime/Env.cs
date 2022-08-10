@@ -1,6 +1,7 @@
-using Autodesk.AutoCAD.GraphicsSystem;
-
 namespace IFoxCAD.Cad;
+
+//此命名空间容易引起Polyline等等重义,因此不放入全局空间
+using Autodesk.AutoCAD.GraphicsSystem;
 
 /// <summary>
 /// 系统管理类

@@ -1,13 +1,4 @@
-﻿#if !HC2020
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Geometry;
-#else
-using GrxCAD.DatabaseServices;
-using GrxCAD.Geometry;
-#endif
-using System;
-
-namespace IFoxCAD;
+﻿namespace IFoxCAD;
 
 /// <summary>
 /// 多段线的顶点,凸度,头宽,尾宽

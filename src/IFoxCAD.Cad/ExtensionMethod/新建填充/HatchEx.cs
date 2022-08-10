@@ -1,9 +1,4 @@
-﻿namespace IFoxCAD.Cad;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Geometry;
-using Acap = Autodesk.AutoCAD.ApplicationServices.Application;
-using System;
-using System.Collections.Generic;
+﻿namespace IFoxCAD.Cad; 
 
 public static class HatchEx
 {

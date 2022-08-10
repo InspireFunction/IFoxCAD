@@ -5,11 +5,17 @@
 /// </summary>
 public class XDataList : TypedValueList
 {
-    public XDataList()
-    {
-    }
+    #region 构造函数
+    /// <summary>
+    /// 扩展数据封装类
+    /// </summary>
+    public XDataList() { }
 
+    /// <summary>
+    /// 扩展数据封装类
+    /// </summary>
     public XDataList(IEnumerable<TypedValue> values) : base(values) { }
+    #endregion
 
     #region 添加数据
     /// <summary>
@@ -20,9 +26,8 @@ public class XDataList : TypedValueList
     public override void Add(int code, object obj)
     {
         if (code < 1000 || code > 1071)
-        {
-            throw new System.Exception("传入的组码值不是XData有效范围！");
-        }
+            throw new System.Exception("传入的组码值不是XData有效范围!");
+
         Add(new TypedValue(code, obj));
     }
 
@@ -33,7 +38,6 @@ public class XDataList : TypedValueList
     /// <param name="obj">组码值</param>
     public void Add(DxfCode code, object obj)
     {
-
         Add((int)code, obj);
     }
 

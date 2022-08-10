@@ -1,4 +1,5 @@
 ﻿namespace Test;
+
 public class TestTrans
 {
     [CommandMethod("testtr")]

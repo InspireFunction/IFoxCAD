@@ -2,8 +2,6 @@
 
 using System;
 using System.Diagnostics;
-using System.IO;
-using System.Text;
 using System.Threading;
 
 #region 写入日志到不同的环境中
@@ -124,7 +122,7 @@ public class EventLogger : LogBase
         }
         catch (System.Security.SecurityException e)
         {
-            throw new Exception("您没有权限写入win日志中");
+            throw new Exception("您没有权限写入win日志中" + e.Message);
         }
 #endif
     }

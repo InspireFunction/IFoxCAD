@@ -15,7 +15,6 @@ public class TypedValueList : List<TypedValue>
     /// </summary>
     /// <param name="values"></param>
     public TypedValueList(IEnumerable<TypedValue> values) : base(values) { }
-
     #endregion
 
     #region 添加数据

@@ -1,10 +1,4 @@
 ﻿namespace IFoxCAD.Cad;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.Colors;
-using System.Collections.Generic;
-using System;
-
 using PointV = Point2d;
 
 /// <summary>

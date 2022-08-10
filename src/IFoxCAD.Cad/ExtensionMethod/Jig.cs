@@ -10,8 +10,9 @@
  */
 
 namespace IFoxCAD.Cad;
+
+//此命名空间容易引起Polyline等等重义,因此不放入全局空间
 using Autodesk.AutoCAD.GraphicsInterface;
-using Acap = Application;
 
 public delegate void WorldDrawEvent(WorldDraw draw);
 public class JigEx : DrawJig

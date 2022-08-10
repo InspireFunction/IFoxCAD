@@ -1,6 +1,5 @@
-﻿using Group = Autodesk.AutoCAD.DatabaseServices.Group;
-
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
+using Group = Autodesk.AutoCAD.DatabaseServices.Group;
 
 /// <summary>
 /// 字典扩展类
@@ -21,9 +20,7 @@ public static class DBDictionaryEx
         {
             var ent = trans.GetObject<T>(e.Value);
             if (ent is not null)
-            {
                 yield return ent;
-            }
         }
     }
 
@@ -42,9 +39,7 @@ public static class DBDictionaryEx
         {
             ObjectId id = dict.GetAt(key);
             if (!id.IsNull)
-            {
                 return trans.GetObject<T>(id);
-            }
         }
         return null;
     }
@@ -281,19 +276,15 @@ public static class DBDictionaryEx
     public static ObjectId AddGroup(this DBDictionary dict, string name, ObjectIdCollection ids)
     {
         if (dict.Contains(name))
-        {
             return ObjectId.Null;
-        }
-        else
+
+        using (dict.ForWrite())
         {
-            using (dict.ForWrite())
-            {
-                Group g = new();
-                g.Append(ids);
-                dict.SetAt(name, g);
-                DBTrans.Top.Transaction.AddNewlyCreatedDBObject(g, true);
-                return g.ObjectId;
-            }
+            Group g = new();
+            g.Append(ids);
+            dict.SetAt(name, g);
+            DBTrans.Top.Transaction.AddNewlyCreatedDBObject(g, true);
+            return g.ObjectId;
         }
     }
 
@@ -306,9 +297,8 @@ public static class DBDictionaryEx
     public static ObjectId AddGroup(this DBDictionary dict, string name, IEnumerable<ObjectId> ids)
     {
         if (dict.Contains(name))
-        {
             return ObjectId.Null;
-        }
+
         return dict.AddGroup(name, new ObjectIdCollection(ids.ToArray()));
     }
 
@@ -321,10 +311,8 @@ public static class DBDictionaryEx
     /// <returns>编组集合</returns>
     public static IEnumerable<Group> GetGroups(this DBDictionary dict, Func<Group, bool> func)
     {
-        return
-            dict
-            .GetAllObjects<Group>()
-            .Where(func);
+        return dict.GetAllObjects<Group>()
+                   .Where(func);
     }
 
     /// <summary>
@@ -334,11 +322,10 @@ public static class DBDictionaryEx
     /// <returns>编组集合</returns>
     public static IEnumerable<Group> GetGroups(this Entity ent)
     {
-        return
-            ent.GetPersistentReactorIds()
-            .Cast<ObjectId>()
-            .Select(id => id.GetObject<Group>())
-            .OfType<Group>();
+        return ent.GetPersistentReactorIds()
+                  .Cast<ObjectId>()
+                  .Select(id => id.GetObject<Group>())
+                  .OfType<Group>();
     }
 
     /// <summary>
@@ -353,9 +340,7 @@ public static class DBDictionaryEx
         {
             names.Add(g.Name);
             using (g.ForWrite())
-            {
                 g.Erase();
-            }
         }
         return names;
     }
@@ -376,9 +361,7 @@ public static class DBDictionaryEx
             {
                 names.Add(g.Name);
                 using (g.ForWrite())
-                {
                     g.Erase();
-                }
             }
         }
         return names;

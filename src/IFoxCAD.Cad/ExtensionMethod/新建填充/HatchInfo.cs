@@ -1,9 +1,5 @@
 namespace IFoxCAD.Cad;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Geometry;
-using Autodesk.AutoCAD.Colors;
-using System.Collections.Generic;
-using System;
+
 /*
  *  添加的第一个边界必须是外边界,即用于定义图案填充最外面的边界。
  *  要添加外部边界,请使用添加环的类型为 HatchLoopTypes.Outermost 常量的 AppendLoop 方法,

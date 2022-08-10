@@ -1,6 +1,5 @@
 ﻿namespace IFoxCAD.Cad;
 
-using Autodesk.AutoCAD.DatabaseServices.Filters;
 
 /// <summary>
 /// 实体图元类扩展函数
@@ -354,14 +353,6 @@ public static class EntityEx
     /// <param name="pt3ds">裁剪多边形点表</param>
     public static void ClipBlockRef(this BlockReference bref, IEnumerable<Point3d> pt3ds)
     {
-        //if (bref is null)
-        //{
-        //    throw new ArgumentNullException(nameof(bref));
-        //}
-        //if (pt3ds is null)
-        //{
-        //    throw new ArgumentNullException(nameof(pt3ds));
-        //}
         Matrix3d mat = bref.BlockTransform.Inverse();
         var pts =
             pt3ds
@@ -384,13 +375,10 @@ public static class EntityEx
     /// <param name="pt2">第二角点</param>
     public static void ClipBlockRef(this BlockReference bref, Point3d pt1, Point3d pt2)
     {
-        //if (bref is null)
-        //{
-        //    throw new ArgumentNullException(nameof(bref));
-        //}
         Matrix3d mat = bref.BlockTransform.Inverse();
         pt1 = pt1.TransformBy(mat);
         pt2 = pt2.TransformBy(mat);
+
         Point2dCollection pts = new()
         {
             new Point2d(Math.Min(pt1.X, pt2.X), Math.Min(pt1.Y, pt2.Y)),
@@ -410,19 +398,18 @@ public static class EntityEx
     /// </summary>
     /// <param name="blockReference">动态块</param>
     /// <param name="propertyNameValues">属性值字典</param>
-    public static void ChangeBlockProperty(this BlockReference blockReference, Dictionary<string, object> propertyNameValues)
+    public static void ChangeBlockProperty(this BlockReference blockReference,
+                                           Dictionary<string, object> propertyNameValues)
     {
         if (!blockReference.IsDynamicBlock)
             return;
+
         using (blockReference.ForWrite())
         {
             foreach (DynamicBlockReferenceProperty item in blockReference.DynamicBlockReferencePropertyCollection)
-            {
                 if (propertyNameValues.ContainsKey(item.PropertyName))
                     item.Value = propertyNameValues[item.PropertyName];
-            }
         }
     }
-
     #endregion
 }
