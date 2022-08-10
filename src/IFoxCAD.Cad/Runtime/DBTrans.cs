@@ -118,7 +118,9 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="fileName">要打开的文件名</param>
     /// <param name="commit">事务是否提交</param>
-    public DBTrans(string fileName, bool commit = true, FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare)
+    public DBTrans(string fileName,
+                   bool commit = true,
+                   FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare)
     {
 #if NET35
         if (string.IsNullOrEmpty(fileName?.Trim()))
@@ -350,7 +352,6 @@ public class DBTrans : IDisposable
         }
     }
     #endregion
-
 
     #region idispose接口相关函数
     /// <summary>
