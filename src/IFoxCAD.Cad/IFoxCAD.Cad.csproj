@@ -1,27 +1,30 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-	<PropertyGroup>
-		<!--永远支持最新语法 preview,默认是latestMajor-->
-		<LangVersion>preview</LangVersion>
-		<Nullable>enable</Nullable>
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
-		<TargetFrameworks>net35;net40;net45</TargetFrameworks>
-		<GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
-		<Version>0.1.3</Version>
-		<Company>InspireFunction</Company>
-		<Authors>xsfhlzh;vicwjb</Authors>
-		<Description>基于.NET的Cad二次开发类库</Description>
-		<Copyright>InspireFunction</Copyright>
-		<PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
-		<RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
-		<RepositoryType>git</RepositoryType>
-		<PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
-		<PackageReleaseNotes>Optimize and add multiple functions.</PackageReleaseNotes>
-		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-		<PackageLicenseFile>LICENSE</PackageLicenseFile>
-		<PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-	</PropertyGroup>
+    <PropertyGroup>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>
+
+        <TargetFrameworks>net35;net40;net45</TargetFrameworks>
+        <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+        <Version>0.3.6.1</Version>
+        <Company>InspireFunction</Company>
+        <Authors>xsfhlzh;vicwjb</Authors>
+        <Description>基于.NET的Cad二次开发类库</Description>
+        <Copyright>InspireFunction</Copyright>
+        <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
+        <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
+        <PackageReleaseNotes>增加四叉树测试.</PackageReleaseNotes>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <PlatformTarget>x64</PlatformTarget>
+    </PropertyGroup>
 
 
     <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
@@ -51,25 +54,37 @@
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
         <DefineConstants>$(Configuration);ac2015</DefineConstants>
     </PropertyGroup>
-
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net35|AnyCPU'">
+        <NoWarn>1701;1702;CS1685</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net35|AnyCPU'">
+        <NoWarn>1701;1702;CS1685</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net40|AnyCPU'">
+        <NoWarn>1701;1702;CS1685</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net40|AnyCPU'">
+        <NoWarn>1701;1702;CS1685</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
+        <NoWarn>1701;1702;CS1685</NoWarn>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
+        <NoWarn>1701;1702;CS1685</NoWarn>
+    </PropertyGroup>
 
     <ItemGroup>
-		<None Include="..\..\LICENSE">
-			<Pack>True</Pack>
-			<PackagePath></PackagePath>
-		</None>
-	</ItemGroup>
+        <None Include="..\..\LICENSE">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
+    </ItemGroup>
 
-	<ItemGroup>
-		<Folder Include="ResultData\" />
-	</ItemGroup>
+    <!--<ItemGroup>
+      <PackageReference Include="IndexRange" Version="1.0.2" />
+    </ItemGroup>-->
 
-	<ItemGroup>
-	  <ProjectReference Include="..\..\..\acad_IFoxCAD3\src\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
-	</ItemGroup>
-
-	<ItemGroup>
-		<Reference Include="System.Windows.Forms" />
-	</ItemGroup>
-
+    <ItemGroup>
+        <ProjectReference Include="..\..\..\acad_IFoxCAD3\src\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
+    </ItemGroup>
 </Project>
