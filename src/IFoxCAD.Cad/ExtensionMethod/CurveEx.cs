@@ -85,16 +85,16 @@ public static class CurveEx
         var geCurves = new List<CompositeCurve3d>(); // 存储曲线转换后的复合曲线
         var paramss = new List<List<double>>();      // 存储每个曲线的交点参数值
 
-        foreach (var curve in curves)
+        for (int i = 0; i < curves.Count; i++)
         {
-            var cc3d = curve.ToCompositeCurve3d();
+            var cc3d = curves[i].ToCompositeCurve3d();
             if (cc3d is not null)
             {
                 geCurves.Add(cc3d);
                 paramss.Add(new List<double>());
             }
         }
-
+      
         //var oldCurves = new List<Curve>();
         var newCurves = new List<Curve>();
         var cci3d = new CurveCurveIntersector3d();
@@ -123,13 +123,13 @@ public static class CurveEx
                 var c3ds = gc1.GetSplitCurves(pars1);
                 if (c3ds.Count > 1)
                 {
-                    foreach (CompositeCurve3d c3d in c3ds)
+                    foreach (var c3d in c3ds)
                     {
-                        var c = c3d.ToCurve();
-                        if (c is not null)
+                        var c3dCur = c3d.ToCurve();
+                        if (c3dCur is not null)
                         {
-                            c.SetPropertiesFrom(curves[i]);
-                            newCurves.Add(c);
+                            c3dCur.SetPropertiesFrom(curves[i]);
+                            newCurves.Add(c3dCur);
                         }
                     }
                     //oldCurves.Add(curves[i]);
