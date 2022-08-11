@@ -12,56 +12,59 @@
     {
         using var tr = new DBTrans(file, openMode: FileOpenMode.OpenForReadAndReadShare);
 
-        tr.BlockTable.Change(tr.ModelSpace.ObjectId, ms => {
-            foreach (ObjectId entId in ms)
+        tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
+            foreach (ObjectId entId in modelSpace)
             {
-                var text = tr.GetObject<DBText>(entId, OpenMode.ForRead)!;
-                if (text is null)
+                var dbText = tr.GetObject<DBText>(entId, OpenMode.ForRead)!;
+                if (dbText is null)
                     continue;
 
-                text.UpgradeOpen();
-                var pos = text.Position;
+                dbText.UpgradeOpen();
+                var pos = dbText.Position;
                 //text.Move(pos, Point3d.Origin);
                 //Y轴
-                text.Mirror(Point3d.Origin, new Point3d(0, 1, 0));
+                dbText.Mirror(Point3d.Origin, new Point3d(0, 1, 0));
                 //text.Move(Point3d.Origin, pos);
-                text.DowngradeOpen();
+                dbText.DowngradeOpen();
             }
         });
         tr.Database.SaveAs(fileSave, DwgVersion.AC1021/*AC1021 AutoCAD 2007/2008/2009.*/);
     }
 
-
+    /// <summary>
+    /// 测试:后台设置 dbText.IsMirroredInX 属性会令文字偏移
+    /// 答案:存在,并提出解决方案
+    /// </summary>
     [CommandMethod("CmdTest_MirrorFile2")]
     public static void CmdTest_MirrorFile2()
     {
         using var tr = new DBTrans(file, openMode: FileOpenMode.OpenForReadAndReadShare);
 
         tr.Database.DBTextDeviation(() => {
-            tr.BlockTable.Change(tr.ModelSpace.ObjectId, ms => {
-                foreach (ObjectId entId in ms)
+
+            var yaxis = new Point3d(0, 1, 0);
+            tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
+                foreach (ObjectId entId in modelSpace)
                 {
                     var entity = tr.GetObject<Entity>(entId, OpenMode.ForWrite)!;
-                    if (entity is DBText text)
+                    if (entity is DBText dbText)
                     {
-                        text.Mirror(Point3d.Origin, new Point3d(0, 1, 0));
-                        text.IsMirroredInX = true;   //这句将导致文字偏移
+                        dbText.Mirror(Point3d.Origin, yaxis);
+                        dbText.IsMirroredInX = true;   //这句将导致文字偏移
 
-                        if (text.VerticalMode == TextVerticalMode.TextBase)
-                            text.VerticalMode = TextVerticalMode.TextBottom;
+                        //指定文字的垂直对齐方式
+                        if (dbText.VerticalMode == TextVerticalMode.TextBase)
+                            dbText.VerticalMode = TextVerticalMode.TextBottom;
 
-                        text.HorizontalMode = text.HorizontalMode switch
+                        //指定文字的水平对齐方式
+                        dbText.HorizontalMode = dbText.HorizontalMode switch
                         {
                             TextHorizontalMode.TextLeft => TextHorizontalMode.TextRight,
                             TextHorizontalMode.TextRight => TextHorizontalMode.TextLeft,
-                            _ => text.HorizontalMode
+                            _ => dbText.HorizontalMode
                         };
-                        //Point3d pos = text.GeometricExtents.MidMidPoint();
-                        //text.Mirror(pos, pos.Polar(text.Rotation+PI/2, 100));
-                        text.AdjustAlignment(tr.Database);
-                        continue;
+                        dbText.AdjustAlignment(tr.Database);
                     }
-                    entity.Mirror(Point3d.Origin, new Point3d(0, 1, 0));
                 }
             });
         });

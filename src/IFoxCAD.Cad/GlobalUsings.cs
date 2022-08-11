@@ -21,6 +21,11 @@ global using Autodesk.AutoCAD.Runtime;
 global using Acap = Autodesk.AutoCAD.ApplicationServices.Application;
 
 global using Autodesk.AutoCAD.DatabaseServices.Filters;
- 
+
+
+global using System.Collections.Specialized;
+global using Registry = Microsoft.Win32.Registry;
+global using RegistryKey = Microsoft.Win32.RegistryKey;
+
 /// ifoxcad.basal 引用
 global using IFoxCAD.Basal;

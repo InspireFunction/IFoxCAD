@@ -548,10 +548,10 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     #region 转换类型
 #if !WinForm
     // 隐式转换(相当于是重载赋值运算符)
-    public static implicit operator Rect(System.Windows.Rect rect)
-    {
-        return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);
-    }
+    //public static implicit operator Rect(System.Windows.Rect rect)
+    //{
+    //    return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);
+    //}
     public static implicit operator Rect(System.Drawing.RectangleF rect)
     {
         return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);

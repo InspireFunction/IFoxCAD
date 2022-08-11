@@ -1,5 +1,4 @@
 ﻿namespace IFoxCAD.Cad;
-using Registry = Microsoft.Win32.Registry;
 
 /// <summary>
 /// cad版本号类

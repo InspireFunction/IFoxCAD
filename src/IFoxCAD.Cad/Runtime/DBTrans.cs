@@ -118,23 +118,25 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="fileName">要打开的文件名</param>
     /// <param name="commit">事务是否提交</param>
+    /// <param name="openMode">开图模式</param>
+    /// <param name="password">密码</param>
     public DBTrans(string fileName,
                    bool commit = true,
-                   FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare)
+#pragma warning disable CS0436 // 类型与导入类型冲突
+                   FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare,
+#pragma warning restore CS0436 // 类型与导入类型冲突
+                   string? password = null)
     {
-#if NET35
         if (string.IsNullOrEmpty(fileName?.Trim()))
-#else
-        if (string.IsNullOrWhiteSpace(fileName))
-#endif
             throw new ArgumentNullException(nameof(fileName));
 
-
-        if (File.Exists(fileName))
+        if (!File.Exists(fileName))
+            Database = new Database(true, false);
+        else
         {
-            var doc = Application.DocumentManager
-                    .Cast<Document>()
-                    .FirstOrDefault(doc => doc.Name == fileName);
+            var doc = Acap.DocumentManager
+                     .Cast<Document>()
+                     .FirstOrDefault(doc => doc.Name == fileName);
             if (doc is not null)
             {
                 Database = doc.Database;
@@ -147,13 +149,26 @@ public class DBTrans : IDisposable
                 if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
                     Database.DxfIn(fileName, null);
                 else
-                    Database.ReadDwgFile(fileName, openMode, true, null);
+                {
+#if ac2008
+                    //此处没有一一对应的关系
+#pragma warning disable CS0436 // 类型与导入类型冲突
+                    var sf = openMode switch
+                    {
+                        FileOpenMode.OpenTryForReadShare => FileShare.Read,
+                        FileOpenMode.OpenForReadAndAllShare => FileShare.ReadWrite,
+                        FileOpenMode.OpenForReadAndWriteNoShare => FileShare.None,
+                        FileOpenMode.OpenForReadAndReadShare => FileShare.ReadWrite,
+                        _ => FileShare.ReadWrite,
+                    };
+#pragma warning restore CS0436 // 类型与导入类型冲突
+                    Database.ReadDwgFile(fileName, sf, true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
+#else
+                    Database.ReadDwgFile(fileName, openMode, true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
+#endif
+                }
                 Database.CloseInput(true);
             }
-        }
-        else
-        {
-            Database = new Database(true, false);
         }
 
         Transaction = Database.TransactionManager.StartTransaction();

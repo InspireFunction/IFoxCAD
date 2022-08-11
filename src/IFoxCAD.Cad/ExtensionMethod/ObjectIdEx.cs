@@ -46,11 +46,20 @@ public static class ObjectIdEx
     public static IEnumerable<ObjectId> OfType<T>(this IEnumerable<ObjectId> ids) where T : DBObject
     {
         string dxfName = RXClass.GetClass(typeof(T)).DxfName;
-        return
-            ids
-            .Where(id => id.ObjectClass.DxfName == dxfName);
+        return ids.Where(id => id.ObjectClass().DxfName == dxfName);
     }
     #endregion GetObject
+	
+    //Acad08缺少 id.ObjectClass 如何补偿?
+    public static RXClass ObjectClass(this ObjectId id)
+    {
+#if NET35
+        return RXClass.GetClass(id.GetType());
+#else
+        return id.ObjectClass;
+#endif
+    }
+
     /// <summary>
     /// id是否有效,未被删除
     /// </summary>
@@ -60,6 +69,7 @@ public static class ObjectIdEx
     {
         return !id.IsNull && id.IsValid && !id.IsErased && !id.IsEffectivelyErased && id.IsResident;
     }
+
     /// <summary>
     /// 删除id代表的对象
     /// </summary>

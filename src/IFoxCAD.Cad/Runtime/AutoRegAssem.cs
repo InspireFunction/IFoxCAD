@@ -1,6 +1,5 @@
 ﻿namespace IFoxCAD.Cad;
-using Registry = Microsoft.Win32.Registry;
-using RegistryKey = Microsoft.Win32.RegistryKey;
+
 
 /// <summary>
 /// 注册中心

@@ -18,16 +18,13 @@ global using Autodesk.AutoCAD.Colors;
 global using Autodesk.AutoCAD.DatabaseServices;
 global using Autodesk.AutoCAD.Geometry;
 global using Autodesk.AutoCAD.Runtime;
-global using acgi =  Autodesk.AutoCAD.GraphicsInterface;
-global using acap = Autodesk.AutoCAD.ApplicationServices.Application;
+global using Acgi =  Autodesk.AutoCAD.GraphicsInterface;
+global using Acap = Autodesk.AutoCAD.ApplicationServices.Application;
+
+global using Registry = Microsoft.Win32.Registry;
+global using RegistryKey = Microsoft.Win32.RegistryKey;
 
 /// ifoxcad
 global using IFoxCAD.Cad;
 global using IFoxCAD.WPF;
 global using IFoxCAD.Basal;
-
-
-namespace System.Runtime.CompilerServices
-{
-    internal static class IsExternalInit { }
-}

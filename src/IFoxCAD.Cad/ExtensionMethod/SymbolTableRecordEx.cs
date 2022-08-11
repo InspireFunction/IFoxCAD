@@ -347,7 +347,7 @@ public static class SymbolTableRecordEx
     {
         string dxfName = RXClass.GetClass(typeof(T)).DxfName;
         return btr.Cast<ObjectId>()
-            .Where(id => id.ObjectClass.DxfName == dxfName);
+            .Where(id => id.ObjectClass().DxfName == dxfName);
     }
 
     /// <summary>
@@ -360,7 +360,7 @@ public static class SymbolTableRecordEx
         return
             btr
             .Cast<ObjectId>()
-            .GroupBy(id => id.ObjectClass.DxfName);
+            .GroupBy(id => id.ObjectClass().DxfName);
     }
 
     /// <summary>

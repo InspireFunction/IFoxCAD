@@ -1,4 +1,5 @@
 namespace IFoxCAD.Cad;
+
 using System.Diagnostics;
 
 /// <summary>
