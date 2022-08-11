@@ -82,17 +82,7 @@
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
         <NoWarn>1701;1702;CS1685</NoWarn>
     </PropertyGroup>
-    <ItemGroup>
-      <Compile Remove="ExtensionMethod\旧代码\**" />
-      <Compile Remove="闭合边界算法\旧代码\Topo命令说明\**" />
-      <EmbeddedResource Remove="ExtensionMethod\旧代码\**" />
-      <EmbeddedResource Remove="闭合边界算法\旧代码\Topo命令说明\**" />
-      <None Remove="ExtensionMethod\旧代码\**" />
-      <None Remove="闭合边界算法\旧代码\Topo命令说明\**" />
-      <Page Remove="ExtensionMethod\旧代码\**" />
-      <Page Remove="闭合边界算法\旧代码\Topo命令说明\**" />
-    </ItemGroup>
-
+  
     <ItemGroup>
         <None Include="..\..\LICENSE">
             <Pack>True</Pack>
