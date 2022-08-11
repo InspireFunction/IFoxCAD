@@ -59,7 +59,7 @@ using (DBTrans tr = new DBTrans()) // 第一步，开启事务
 -  **向符号表里添加元素** 
 
   ```c#
-  using (DBTransaction tr = new DBTransaction()) 
+  using (DBTrans tr = new DBTrans()) 
   { // 第一步，开启事务
     	var layerTable = tr.LayerTable;
     // 第二步，获取图层表
@@ -75,7 +75,7 @@ using (DBTrans tr = new DBTrans()) // 第一步，开启事务
   想要添加和获取符号表内的某个元素非常的简单：
 
   ```c#
-  using (DBTransaction tr = new DBTransaction()) // 第一步，开启事务
+  using (DBTrans tr = new DBTrans()) // 第一步，开启事务
   { 
     var layerTable = tr.LayerTable; // 第二步，获取图层表
     layerTable.Add("1"); // 第三步，添加名为“1”的图层，即新建图层

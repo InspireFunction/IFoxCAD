@@ -1,37 +1,28 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
     <PropertyGroup>
-        <!--永远支持最新语法 preview,默认是latestMajor-->
         <LangVersion>preview</LangVersion>
-		<Nullable>enable</Nullable>
+        <!--<Nullable>enable</Nullable>-->
 
-        <!--版本号迭代-->
-        <AssemblyVersion>1.0.0.*</AssemblyVersion>
-        <FileVersion>1.0.0.0</FileVersion>
-        <Deterministic>False</Deterministic>
-        <RepositoryType>git</RepositoryType>
-
-		<!--<TargetFrameworks>NET35;NET40;NET45;NET46;NET47;NET48</TargetFrameworks>-->
-		<TargetFrameworks>NET45;</TargetFrameworks>
+        <TargetFrameworks>net45</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
+        <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
-	</ItemGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
+        <NoWarn>1701;1702;CS1685</NoWarn>
+    </PropertyGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
-		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
-	</ItemGroup>
-
-	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
-		<PackageReference Include="System.ValueTuple" Version="4.5.0" />
-	</ItemGroup>
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Release|net45|AnyCPU'">
+        <NoWarn>1701;1702;CS1685</NoWarn>
+    </PropertyGroup>
 
     <ItemGroup>
         <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Cad.csproj" />
         <ProjectReference Include="..\..\src\IFoxCAD.WPF\IFoxCAD.WPF.csproj" />
     </ItemGroup>
+
 
 
 </Project>
