@@ -21,11 +21,17 @@
         }
 
         /// <summary>
-        /// 一维数组消重
+        /// 一维数组消重,此函数建议更改为:
+        /// <![CDATA[
+        ///  HashSet<T> set = new();
+        ///  foreach (var item in listInOut)
+        ///      set.Add(item);
+        /// ]]>
         /// </summary>
         /// <typeparam name="T"></typeparam>
         /// <param name="listInOut">传入有重复成员的数组,传出没有重复的</param>
         /// <param name="func">传出参数1:数组开头;传出参数2:数组结尾;返回值比较结尾为<see langword="true"/>就移除</param>
+        [Obsolete]
         public static void Deduplication<T>(List<T> listInOut, Func<T, T, bool> func)
         {
             for (int i = 0; i < listInOut.Count; i++)
