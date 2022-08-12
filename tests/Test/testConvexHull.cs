@@ -1,20 +1,4 @@
-<<<<<<< HEAD
-﻿namespace Test
-=======
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Autodesk.AutoCAD.Runtime;
-using Autodesk.AutoCAD.Geometry;
-using IFoxCAD.Cad;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Colors;
-
 namespace Test
->>>>>>> a9efe02fa01a7a5fba5f84c0714e4331f823d916
 {
     public class TestConvexHull
     {
