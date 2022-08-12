@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>
+
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net45</TargetFramework>
+        <Nullable>enable</Nullable>
+        <LangVersion>preview</LangVersion>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
+    </ItemGroup>
+
+
+
+
+
+
+</Project>

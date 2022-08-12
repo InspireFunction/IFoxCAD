@@ -1,21 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Autodesk.AutoCAD.Runtime;
-using Autodesk.AutoCAD.Geometry;
-using IFoxCAD.Cad;
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Colors;
-
-namespace test
+﻿namespace Test
 {
-    public class testConvexHull
+    public class TestConvexHull
     {
         [CommandMethod("testch")]
-        public void testch()
+        public void Testch()
         {
             //using var tr = new DBTrans();
             //var pts = new List<Point3d>();
@@ -23,7 +11,7 @@ namespace test
             //while (flag)
             //{
             //    var pt = tr.Editor.GetPoint("qudian");
-            //    if (pt.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK)
+            //    if (pt.Status == PromptStatus.OK)
             //    {
             //        pts.Add(pt.Value);
             //        tr.CurrentSpace.AddEntity(new DBPoint(pt.Value));

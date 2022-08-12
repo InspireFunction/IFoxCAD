@@ -7,10 +7,10 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
 ## 一、组织结构图
 
 - IFoxCAD
-    - IFoxCAD.Cad - cad相关的类库
+    - IFoxCAD.Basal - cad以外常用的类库
         - LinqEx - linq扩展类
         - LoopList - 环链表
-    - IFoxCAD.Basal - cad以外常用的类库
+    - IFoxCAD.Cad - cad相关的类库
         - Runtime - 包含系统级别的功能
             - AcadVersion - cad版本号类
             - AssemInfo - 程序集信息
@@ -45,7 +45,7 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
 
 ### 2.2 关于DBTrans类的具体构成元素的意义
 
-DBTrans类里基本的封装就是Transaction，然后是Document、Database、Editor、符号表、命名字典等，而抓这些其实都是cad二次开发关于图元操作经常打交道的概念。
+DBTrans类里基本的封装就是Transaction，然后是Document、Database、Editor、符号表、命名字典等，而这些其实都是cad二次开发关于图元操作经常打交道的概念。
 
 DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的相关类库，通过这些属性就可以对数据进行相应的操作。特别是符号表中最常用的就是块表，通过对块表的操作来实现添加图元等。
 
@@ -109,7 +109,7 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 - Has --- 判断符号表是否有符号表记录的函数
 - 。。。
 
-特殊说明：当符号表为块表时，上述函数实际操作的是块定义、属性定义等。所以为了添加图元，需要特殊写法。
+特殊说明：当符号表为块表时，上述函数实际操作的是块定义、属性定义等。所以为了添加图元，需要特殊写法，原因在于cad的实体都是存在符号表记录里的，通常为模型这个块表记录。
 
 # 慢慢完善，想到哪写到哪。。。
 
