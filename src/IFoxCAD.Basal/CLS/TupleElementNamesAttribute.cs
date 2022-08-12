@@ -2,6 +2,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using IFoxCAD.Basal;
+
 namespace System.Runtime.CompilerServices;
 
 /// <summary>
@@ -34,8 +36,11 @@ public sealed class TupleElementNamesAttribute : Attribute
     /// <c>transformNames</c> value of <c>{ "name1", "name2", null, null,
     /// null }</c>.
     /// </remarks>
-    public TupleElementNamesAttribute(string[] transformNames!!)
+    public TupleElementNamesAttribute(string[] transformNames)
     {
+        if (transformNames == null)
+            throw new ArgumentNullException(nameof(transformNames));
+                
         _transformNames = transformNames;
     }
 

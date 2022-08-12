@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
 public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     where TTable : SymbolTable

@@ -14,34 +14,30 @@ public static class AcadVersion
     {
         get
         {
-            
-            string[] copys =
-                Registry.LocalMachine
-                .OpenSubKey(@"SOFTWARE\Autodesk\Hardcopy")
-                .GetValueNames();
+            string[] copys = Registry.LocalMachine
+                            .OpenSubKey(@"SOFTWARE\Autodesk\Hardcopy")
+                            .GetValueNames();
+
             var _versions = new List<CadVersion>();
             foreach (var rootkey in copys)
             {
-                if (Regex.IsMatch(rootkey, _pattern))
+                if (!Regex.IsMatch(rootkey, _pattern))
+                    continue;
+
+                var gs = Regex.Match(rootkey, _pattern).Groups;
+                var ver = new CadVersion
                 {
-                    var gs = Regex.Match(rootkey, _pattern).Groups;
-                    var ver =
-                        new CadVersion
-                        {
-                            ProductRootKey = rootkey,
-                            ProductName =
-                                Registry.LocalMachine
+                    ProductRootKey = rootkey,
+                    ProductName = Registry.LocalMachine
                                 .OpenSubKey("SOFTWARE")
                                 .OpenSubKey(rootkey)
                                 .GetValue("ProductName")
                                 .ToString(),
 
-                            Major = int.Parse(gs[1].Value),
-                            Minor = int.Parse(gs[2].Value),
-                        };
-
-                    _versions.Add(ver);
-                }
+                    Major = int.Parse(gs[1].Value),
+                    Minor = int.Parse(gs[2].Value),
+                };
+                _versions.Add(ver);
             }
             return _versions;
         }
@@ -50,16 +46,18 @@ public static class AcadVersion
     /// <summary>已打开的cad的版本号</summary>
     /// <param name="app">已打开cad的application对象</param>
     /// <returns>cad版本号对象</returns>
-    public static CadVersion? FromApp(object app!!)
+    public static CadVersion? FromApp(object app)
     {
-        string acver =
-            app.GetType()
-                .InvokeMember(
-                "Version",
-                BindingFlags.GetProperty,
-                null,
-                app,
-                new object[0]).ToString();
+        if (app == null)
+            throw new ArgumentNullException(nameof(app));
+
+        string acver = app.GetType()
+                        .InvokeMember(
+                            "Version",
+                            BindingFlags.GetProperty,
+                            null,
+                            app,
+                            new object[0]).ToString();
 
         var gs = Regex.Match(acver, @"(\d+)\.(\d+).*?").Groups;
         int major = int.Parse(gs[1].Value);

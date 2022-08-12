@@ -10,8 +10,11 @@ public static class RuntimeHelpers
     /// <summary>
     /// Slices the specified array using the specified range.
     /// </summary>
-    public static T[] GetSubArray<T>(T[] array!!, Range range)
+    public static T[] GetSubArray<T>(T[] array, Range range)
     {
+        if (array == null)
+            throw new ArgumentNullException(nameof(array));
+
         (int offset, int length) = range.GetOffsetAndLength(array.Length);
 
         if (default(T)! != null || typeof(T[]) == array.GetType()) // TODO-NULLABLE: default(T) == null warning (https://github.com/dotnet/roslyn/issues/34757)

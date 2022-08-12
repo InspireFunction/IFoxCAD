@@ -259,11 +259,14 @@ public class HatchInfo
     /// <param name="btrOfAddEntitySpace">加入此空间</param>
     /// <param name="hatchLoopTypes">加入方式</param>
     /// <returns></returns>
-    public HatchInfo AppendLoop(Point2dCollection pts!!,
-                             DoubleCollection bluges,
-                             BlockTableRecord btrOfAddEntitySpace,
-                             HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
+    public HatchInfo AppendLoop(Point2dCollection pts,
+                                DoubleCollection bluges,
+                                BlockTableRecord btrOfAddEntitySpace,
+                                HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
+        if (pts == null)
+            throw new ArgumentNullException(nameof(pts));
+
         var ptsEnd2End = pts.End2End();
 #if NET35
         _boundaryIds.Add(CreateAddBoundary(ptsEnd2End, bluges, btrOfAddEntitySpace));

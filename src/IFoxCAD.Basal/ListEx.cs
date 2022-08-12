@@ -5,13 +5,18 @@ public static class ListEx
 {
     public static bool EqualsAll<T>(this IList<T> a, IList<T> b)
     {
-        return EqualsAll(a, b, null); 
+        return EqualsAll(a, b, null);
         // there is a slight performance gain in passing null here.
         // It is how it is done in other parts of the framework.
     }
 
-    public static bool EqualsAll<T>(this IList<T> a!!, IList<T> b!!, IEqualityComparer<T>? comparer)
+    public static bool EqualsAll<T>(this IList<T> a, IList<T> b, IEqualityComparer<T>? comparer)
     {
+        if (a == null)
+            return b == null;
+        else if (b == null)
+            return false;
+
         if (a.Count != b.Count)
             return false;
 
