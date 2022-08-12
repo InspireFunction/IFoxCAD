@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 实体类曲线扩展类
@@ -20,15 +20,45 @@ public static class CurveEx
     /// </summary>
     /// <param name="curve">曲线</param>
     /// <param name="pars">打断参数表</param>
+    /// <param name="func">参数表排序委托
+    /// <para>
+    /// 默认：<see langword="null"/> 按所提供的参数表进行分割打断<br/>
+    /// 否则：按委托排序后的参数表进行分割打断
+    /// </para>
+    /// </param>
     /// <returns>打断后曲线的集合</returns>
-    public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<double> pars)
+    public static IEnumerable<Curve> GetSplitCurves(this Curve curve,
+                                                    IEnumerable<double> pars,
+                                                    Func<IEnumerable<double>, IEnumerable<double>> func = null)
     {
+        if (func != null)
+            pars = func.Invoke(pars);
         return
             curve
             .GetSplitCurves(new DoubleCollection(pars.ToArray()))
             .Cast<Curve>();
     }
-
+ 
+    /// <summary>
+    /// 获取分割曲线集合
+    /// </summary>
+    /// <param name="curve">曲线</param>
+    /// <param name="pars">打断参数表</param>
+    /// <param name="isOrder">对参数表是否进行排序
+    /// <para>
+    /// <see langword="true"/>：按参数值升序排序；<br/>
+    /// <see langword="false"/>：不排序，默认值
+    /// </para>
+    /// </param>
+    /// <returns>打断后曲线的集合</returns>
+    public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<double> pars, bool isOrder = false)
+    {
+        return
+            curve
+            .GetSplitCurves(new DoubleCollection(isOrder ? pars.OrderBy(x => x).ToArray() : pars.ToArray()))
+            .Cast<Curve>();
+    }
+ 
     /// <summary>
     /// 获取分割曲线集合
     /// </summary>
@@ -37,6 +67,31 @@ public static class CurveEx
     /// <returns>打断后曲线的集合</returns>
     public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<Point3d> points)
     {
+        return
+            curve
+            .GetSplitCurves(new Point3dCollection(points.ToArray()))
+            .Cast<Curve>();
+    }
+ 
+    /// <summary>
+    /// 获取分割曲线集合
+    /// </summary>
+    /// <param name="curve">曲线</param>
+    /// <param name="points">打断点表</param>
+    /// <param name="isOrder">对点表是否进行排序
+    /// <para>
+    /// <see langword="true"/>：按参数值升序排序；<br/>
+    /// <see langword="false"/>：不排序，默认值
+    /// </para>
+    /// </param>
+    /// <returns>打断后曲线的集合</returns>
+    public static IEnumerable<Curve> GetSplitCurves(this Curve curve,
+                                                    IEnumerable<Point3d> points,
+                                                    bool isOrder = false)
+    {
+        if (isOrder)
+            points = points.OrderBy(point => curve.GetParameterAtPoint(
+                curve.GetClosestPointTo(point, false)));
         return
             curve
             .GetSplitCurves(new Point3dCollection(points.ToArray()))
