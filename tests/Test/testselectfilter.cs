@@ -1,4 +1,20 @@
+<<<<<<< HEAD
 ﻿namespace Test
+=======
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.Runtime;
+using Autodesk.AutoCAD.DatabaseServices;
+using IFoxCAD.Cad;
+using Autodesk.AutoCAD.EditorInput;
+
+namespace Test
+>>>>>>> a9efe02fa01a7a5fba5f84c0714e4331f823d916
 {
     public class Testselectfilter
     {

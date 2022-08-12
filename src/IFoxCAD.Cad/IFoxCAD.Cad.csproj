@@ -86,5 +86,6 @@
 
     <ItemGroup>
         <ProjectReference Include="..\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
+        <ProjectReference Include="..\..\..\acad_IFoxCAD3\src\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
     </ItemGroup>
 </Project>
