@@ -1,5 +1,4 @@
 ﻿namespace IFoxCAD.Cad;
-using Group = Autodesk.AutoCAD.DatabaseServices.Group;
 
 /// <summary>
 /// 字典扩展类

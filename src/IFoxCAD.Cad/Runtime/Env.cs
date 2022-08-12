@@ -1,8 +1,5 @@
 namespace IFoxCAD.Cad;
 
-//此命名空间容易引起Polyline等等重义,因此不放入全局空间
-using Autodesk.AutoCAD.GraphicsSystem;
-
 /// <summary>
 /// 系统管理类
 /// <para>封装了一些系统 osmode、cmdecho、dimblk 系统变量</para>

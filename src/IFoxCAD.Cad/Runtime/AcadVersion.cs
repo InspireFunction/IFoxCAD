@@ -1,6 +1,4 @@
-﻿using Autodesk.AutoCAD.Windows.ToolPalette;
-
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// cad版本号类
@@ -16,34 +14,30 @@ public static class AcadVersion
     {
         get
         {
-            
-            string[] copys =
-                Registry.LocalMachine
-                .OpenSubKey(@"SOFTWARE\Autodesk\Hardcopy")
-                .GetValueNames();
+            string[] copys = Registry.LocalMachine
+                            .OpenSubKey(@"SOFTWARE\Autodesk\Hardcopy")
+                            .GetValueNames();
+
             var _versions = new List<CadVersion>();
             foreach (var rootkey in copys)
             {
-                if (Regex.IsMatch(rootkey, _pattern))
+                if (!Regex.IsMatch(rootkey, _pattern))
+                    continue;
+
+                var gs = Regex.Match(rootkey, _pattern).Groups;
+                var ver = new CadVersion
                 {
-                    var gs = Regex.Match(rootkey, _pattern).Groups;
-                    var ver =
-                        new CadVersion
-                        {
-                            ProductRootKey = rootkey,
-                            ProductName =
-                                Registry.LocalMachine
+                    ProductRootKey = rootkey,
+                    ProductName = Registry.LocalMachine
                                 .OpenSubKey("SOFTWARE")
                                 .OpenSubKey(rootkey)
                                 .GetValue("ProductName")
                                 .ToString(),
 
-                            Major = int.Parse(gs[1].Value),
-                            Minor = int.Parse(gs[2].Value),
-                        };
-
-                    _versions.Add(ver);
-                }
+                    Major = int.Parse(gs[1].Value),
+                    Minor = int.Parse(gs[2].Value),
+                };
+                _versions.Add(ver);
             }
             return _versions;
         }
@@ -57,7 +51,7 @@ public static class AcadVersion
         if (app == null)
             throw new ArgumentNullException(nameof(app));
 
-        string acver =  app.GetType()
+        string acver = app.GetType()
                         .InvokeMember(
                             "Version",
                             BindingFlags.GetProperty,

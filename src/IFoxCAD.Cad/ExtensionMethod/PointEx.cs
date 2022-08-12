@@ -1,5 +1,3 @@
-using Autodesk.AutoCAD.DatabaseServices;
-
 namespace IFoxCAD.Cad;
 
 public static class PointEx

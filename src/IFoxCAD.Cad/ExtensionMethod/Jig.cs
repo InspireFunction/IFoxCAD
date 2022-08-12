@@ -1,4 +1,6 @@
-﻿/*  封装jig
+﻿namespace IFoxCAD.Cad;
+
+/*  封装jig
  *  20220726 隐藏事件,利用函数进行数据库图元重绘
  *  20220710 修改SetOption()的空格结束,并添加例子到IFox
  *  20220503 cad22需要防止刷新过程中更改队列,是因为允许函数重入导致,08不会有.
@@ -8,11 +10,6 @@
  *  作者: 惊惊⎛⎝◕⏝⏝◕｡⎠⎞ ⎛⎝≥⏝⏝0⎠⎞ ⎛⎝⓿⏝⏝⓿｡⎠⎞ ⎛⎝≥⏝⏝≤⎠⎞
  *  博客: https://www.cnblogs.com/JJBox/p/15650770.html
  */
-
-namespace IFoxCAD.Cad;
-
-//此命名空间容易引起Polyline等等重义,因此不放入全局空间
-using Autodesk.AutoCAD.GraphicsInterface;
 
 public delegate void WorldDrawEvent(WorldDraw draw);
 public class JigEx : DrawJig
@@ -264,7 +261,7 @@ public class JigEx : DrawJig
      * 在jig使用淡显ent.Unhighlight和亮显ent.Highlight()
      * 需要绕过重绘,否则重绘将导致图元频闪,令这两个操作失效,
      * 此时需要自定义一个集合 EntityList (不使用本函数的_drawEntitys)
-     * 再将 EntityList 传给 WorldDrawEvent 事件,事件内实现亮显和淡显.
+     * 再将 EntityList 传给 WorldDrawEvent 事件,事件内实现亮显和淡显(事件已经利用 DatabaseEntityDraw函数进行提供).
      * 0x03
      * draw.Geometry.Draw(_drawEntitys[i]);
      * 此函数有问题,acad08克隆一份数组也可以用来刷新,

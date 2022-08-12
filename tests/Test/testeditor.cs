@@ -28,7 +28,7 @@ public class Testeditor
     {
         using var tr = new DBTrans();
         var res = Env.Editor.GetEntity("\npick ent:");
-        if (res.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK)
+        if (res.Status == PromptStatus.OK)
         {
             Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>());
         }
@@ -40,7 +40,7 @@ public class Testeditor
     {
         //using var tr = new DBTrans();
         //var res = Env.Editor.GetEntity("\npick ent:");
-        //if (res.Status == Autodesk.AutoCAD.EditorInput.PromptStatus.OK)
+        //if (res.Status == PromptStatus.OK)
         //{
         //    Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>());
         //}

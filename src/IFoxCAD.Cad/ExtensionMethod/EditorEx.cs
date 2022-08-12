@@ -98,9 +98,8 @@ public static class EditorEx
             else
                 ss = editor.GetSelection(pso);
         }
-        catch (Autodesk.AutoCAD.Runtime.Exception e)
-        {
-
+        catch (Exception e)
+        { 
             editor.WriteMessage($"\nKey is {e.Message}");
         }
         return ss;
@@ -664,13 +663,13 @@ public static class EditorEx
     public static Matrix3d GetMatrixFromMDcsToPDcs(this Editor editor)
     {
         if ((short)Env.GetVar("TILEMODE") == 1)
-            throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.InvalidInput, "Espace papier uniquement");
+            throw new ArgumentException("TILEMODE == 1..Espace papier uniquement");
 
         Database db = editor.Document.Database;
         Matrix3d mat;
         using (Transaction tr = db.TransactionManager.StartTransaction())
         {
-            Viewport? vp = tr.GetObject(editor.CurrentViewportObjectId, OpenMode.ForRead) as Viewport;
+            var vp = tr.GetObject(editor.CurrentViewportObjectId, OpenMode.ForRead) as Viewport;
             if (vp?.Number == 1)
             {
                 try
@@ -681,7 +680,7 @@ public static class EditorEx
                 }
                 catch
                 {
-                    throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.InvalidInput, "Aucun fenêtre active");
+                    throw new Exception("Aucun fenêtre active...ErrorStatus.InvalidInput");
                 }
             }
             Point3d vCtr = new(vp!.ViewCenter.X, vp.ViewCenter.Y, 0.0);
@@ -725,9 +724,7 @@ public static class EditorEx
                         return editor.GetMatrixFromMDcsToWcs();
 
                     case CoordinateSystemCode.PDcs:
-                        throw new Autodesk.AutoCAD.Runtime.Exception(
-                            ErrorStatus.InvalidInput,
-                            "To be used only with DCS");
+                        throw new Exception("To be used only with DCS...ErrorStatus.InvalidInput");
                 }
                 break;
             case CoordinateSystemCode.Ucs:
@@ -740,9 +737,7 @@ public static class EditorEx
                         return editor.GetMatrixFromUcsToWcs() * editor.GetMatrixFromWcsToMDcs();
 
                     case CoordinateSystemCode.PDcs:
-                        throw new Autodesk.AutoCAD.Runtime.Exception(
-                            ErrorStatus.InvalidInput,
-                            "To be used only with DCS");
+                        throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
                 }
                 break;
             case CoordinateSystemCode.MDcs:
@@ -762,13 +757,9 @@ public static class EditorEx
                 switch (to)
                 {
                     case CoordinateSystemCode.Wcs:
-                        throw new Autodesk.AutoCAD.Runtime.Exception(
-                            ErrorStatus.InvalidInput,
-                            "To be used only with DCS");
+                        throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
                     case CoordinateSystemCode.Ucs:
-                        throw new Autodesk.AutoCAD.Runtime.Exception(
-                            ErrorStatus.InvalidInput,
-                            "To be used only with DCS");
+                        throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
                     case CoordinateSystemCode.MDcs:
                         return editor.GetMatrixFromPDcsToMDcs();
                 }
@@ -787,7 +778,7 @@ public static class EditorEx
             (CoordinateSystemCode.MDcs, CoordinateSystemCode.PDcs) => editor.GetMatrixFromMDcsToPDcs(),
             (CoordinateSystemCode.PDcs, CoordinateSystemCode.MDcs) => editor.GetMatrixFromPDcsToMDcs(),
             (CoordinateSystemCode.PDcs, CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs)
-            or (CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs, CoordinateSystemCode.PDcs) => throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.InvalidInput, "To be used only with DCS"),
+            or (CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs, CoordinateSystemCode.PDcs) => throw new Exception("To be used only with DCS...ErrorStatus.InvalidInput"),
             (_, _) => Matrix3d.Identity
         };
 #endif

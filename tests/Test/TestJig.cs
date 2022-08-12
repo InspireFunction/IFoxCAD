@@ -121,8 +121,7 @@ public class Commands_Jig
     [CommandMethod("TestCmd_loop")]
     public void TestCmd_loop()
     {
-        DocumentCollection dm =
-          Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager;
+        DocumentCollection dm = Acap.DocumentManager;
         Editor ed = dm.MdiActiveDocument.Editor;
         // Create and add our message filter
         MyMessageFilter filter = new();
@@ -172,7 +171,7 @@ public class Commands_Jig
     [CommandMethod("TestCmd_QuickText")]
     static public void TestCmd_QuickText()
     {
-        var dm = Autodesk.AutoCAD.ApplicationServices.Application.DocumentManager;
+        var dm = Acap.DocumentManager;
         var doc = dm.MdiActiveDocument;
         var db = doc.Database;
         var ed = doc.Editor;
