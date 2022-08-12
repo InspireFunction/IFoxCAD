@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using Autodesk.AutoCAD.Windows.ToolPalette;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// cad版本号类
@@ -50,16 +52,18 @@ public static class AcadVersion
     /// <summary>已打开的cad的版本号</summary>
     /// <param name="app">已打开cad的application对象</param>
     /// <returns>cad版本号对象</returns>
-    public static CadVersion? FromApp(object app!!)
+    public static CadVersion? FromApp(object app)
     {
-        string acver =
-            app.GetType()
-                .InvokeMember(
-                "Version",
-                BindingFlags.GetProperty,
-                null,
-                app,
-                new object[0]).ToString();
+        if (app == null)
+            throw new ArgumentNullException(nameof(app));
+
+        string acver =  app.GetType()
+                        .InvokeMember(
+                            "Version",
+                            BindingFlags.GetProperty,
+                            null,
+                            app,
+                            new object[0]).ToString();
 
         var gs = Regex.Match(acver, @"(\d+)\.(\d+).*?").Groups;
         int major = int.Parse(gs[1].Value);

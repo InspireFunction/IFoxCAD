@@ -82,8 +82,11 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// 向该图添加一个边;
     /// </summary>
     /// <param name="curve"></param>
-    public void AddEdge(Curve3d curve!!)
+    public void AddEdge(Curve3d curve)
     {
+        if (curve == null)
+            throw new ArgumentNullException(nameof(curve));
+
         var start = AddVertex(curve.StartPoint);
         var end = AddVertex(curve.EndPoint);
 
@@ -141,8 +144,11 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// 从此图中删除一条边;
     /// </summary>
     /// <param name="curve">曲线</param>
-    public void RemoveEdge(Curve3d curve!!)
+    public void RemoveEdge(Curve3d curve)
     {
+        if (curve == null)
+            throw new ArgumentNullException(nameof(curve));
+
         RemoveVertex(curve.StartPoint);
         RemoveVertex(curve.EndPoint);
     }
@@ -303,7 +309,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
             i++;
         }
         return output;
-    } 
+    }
     #endregion
 }
 
@@ -473,9 +479,9 @@ public sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
 public sealed class DepthFirst
 {
     #region 公共方法
-/// <summary>
-/// 存储所有的边
-/// </summary>
+    /// <summary>
+    /// 存储所有的边
+    /// </summary>
 #if true
     public List<LinkedHashSet<IGraphVertex>> Curve3ds { get; } = new();
 #else
@@ -494,13 +500,13 @@ public sealed class DepthFirst
         //var graphtmp = graph.Clone();
         foreach (var item in graph.VerticesAsEnumberable)
         {
-            Dfs(graph, new LinkedHashSet<IGraphVertex> { item },total);
+            Dfs(graph, new LinkedHashSet<IGraphVertex> { item }, total);
             total.Add(item);
         }
     }
-#endregion
+    #endregion
 
-#region 内部方法
+    #region 内部方法
     /// <summary>
     /// 递归 DFS;
     /// </summary>
@@ -522,7 +528,7 @@ public sealed class DepthFirst
                 // 将下一点加入路径集合,并进行下一次递归
                 var sub = new LinkedHashSet<IGraphVertex> { nextNode };
                 sub.AddRange(visited); // O(n)
-                Dfs(graph, sub,totalVisited);
+                Dfs(graph, sub, totalVisited);
             }
             // 如果下一点遍历过,并且路径大于2,说明已经找到起点
             else if (visited.Count > 2 && nextNode.Equals(visited.Last!.Value))
@@ -613,7 +619,7 @@ public sealed class DepthFirst
         return tmp.Skip(index).Concat(lst.Take(index)).ToList();
     }
 
-    static (string,string) Gethashstring(List<IGraphVertex> pathone, List<IGraphVertex> pathtwo)
+    static (string, string) Gethashstring(List<IGraphVertex> pathone, List<IGraphVertex> pathtwo)
     {
         var one = new string[pathone.Count];
         var two = new string[pathtwo.Count];
@@ -637,11 +643,11 @@ public sealed class DepthFirst
     }
 
 
-    bool Isnew((string,string) path)
+    bool Isnew((string, string) path)
     {
         return !Curved.Contains(path.Item1) && !Curved.Contains(path.Item2);
     }
 
 
-#endregion
+    #endregion
 }

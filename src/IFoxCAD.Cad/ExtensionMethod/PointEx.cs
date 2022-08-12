@@ -1,3 +1,5 @@
+using Autodesk.AutoCAD.DatabaseServices;
+
 namespace IFoxCAD.Cad;
 
 public static class PointEx
@@ -95,8 +97,11 @@ public static class PointEx
     /// <summary>
     /// 首尾相连
     /// </summary>
-    public static Point2dCollection End2End(this Point2dCollection ptcol!!)
+    public static Point2dCollection End2End(this Point2dCollection ptcol)
     {
+        if (ptcol == null)
+            throw new ArgumentNullException(nameof(ptcol));
+
         if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))//首尾相同直接返回
             return ptcol;
 
@@ -111,8 +116,11 @@ public static class PointEx
     /// <summary>
     /// 首尾相连
     /// </summary>
-    public static Point3dCollection End2End(this Point3dCollection ptcol!!)
+    public static Point3dCollection End2End(this Point3dCollection ptcol)
     {
+        if (ptcol == null)
+            throw new ArgumentNullException(nameof(ptcol));
+
         if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))//首尾相同直接返回
             return ptcol;
 
