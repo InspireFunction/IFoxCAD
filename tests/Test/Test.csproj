@@ -19,10 +19,8 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Cad.csproj" />
+        <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Acad09plus.csproj" />
         <ProjectReference Include="..\..\src\IFoxCAD.WPF\IFoxCAD.WPF.csproj" />
     </ItemGroup>
-
-
 
 </Project>

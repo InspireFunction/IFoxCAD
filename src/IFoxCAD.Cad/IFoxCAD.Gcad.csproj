@@ -87,4 +87,8 @@
     <ItemGroup>
         <ProjectReference Include="..\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
     </ItemGroup>
+
+    <Import Project="..\..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared" />
+
+    <Import Project="..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared" />
 </Project>
