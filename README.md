@@ -18,9 +18,9 @@
 由于vs2022抛弃了某几个net版本，所以我们同时安装vs2019和vs2022，然后使用vs2022;
 其中的原因是vs2019拥有全部net版本,而vs2022拥有最新的分析器和语法.
 
-#### 让IFox作为您的子模块
+#### 让 IFox 作为您的子模块
 
-在IFox的jing分支里面有一个多工程分支,您可以利用此作为您的[git项目子模块](https://www.cnblogs.com/JJBox/p/13876501.html#_label13).
+IFox的`jing分支`是一个多cad版本分支,您可以利用此作为您的[git项目子模块](https://www.cnblogs.com/JJBox/p/13876501.html#_label13).
 
 子模块是以`共享工程`的方式加入到您的工程的,其为`IFoxCAD.Cad.Shared`:
 
