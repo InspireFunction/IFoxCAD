@@ -102,15 +102,15 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         ObjectId id = this[name];
         if (id.IsNull)
-            return id;
-
-        var record = new TRecord()
         {
-            Name = name
-        };
-        id = Add(record);
-        using (record.ForWrite())
-            action?.Invoke(record);
+            var record = new TRecord()
+            {
+                Name = name
+            };
+            id = Add(record);
+            using (record.ForWrite())
+                action?.Invoke(record);
+        }
         return id;
     }
     #endregion
