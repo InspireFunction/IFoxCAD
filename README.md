@@ -18,6 +18,22 @@
 由于vs2022抛弃了某几个net版本，所以我们同时安装vs2019和vs2022，然后使用vs2022;
 其中的原因是vs2019拥有全部net版本,而vs2022拥有最新的分析器和语法.
 
+#### 让IFox作为您的子模块
+
+在IFox的jing分支里面有一个多工程分支,您可以利用此作为您的[git项目子模块](https://www.cnblogs.com/JJBox/p/13876501.html#_label13).
+
+子模块是以`共享工程`的方式加入到您的工程的,其为`IFoxCAD.Cad.Shared`:
+
+1. 千万不要用`IFoxCAD.Cad`内的工程作为引用,否则您将遭遇cad加载失效.
+
+2. 一些全局命名空间的缺少,我们也建议您使用全局命名空间来补充,
+   您只需要按照`IFoxCAD.Cad`的`GlobalUsings.cs`文件一样添加就好了.
+3. 若您使用acad08版本,需要在您的工程中设置`ac2008`和`ac2009`(大小写敏感)两个预定义标签.
+   方能启用08工程中缺少的09工程才有的类.
+   同时我们在`IFoxCAD.Cad`中提供了这两个例子.
+
+
+
 #### IFoxCad 项目模版
 
 可以在vs扩展菜单-管理扩展中搜索ifoxcad，即可安装项目模板。使用项目模版可以方便的创建支持多目标多版本的使用ifoxcad类库的项目和类。如果无法在vs的市场里下载，就去上面的QQ群里下载。
@@ -51,7 +67,7 @@
    
    - 右键项目文件，选择管理nuget程序包。![](./docs/png/nuget1.png)
    
-   - 在nuget程序里搜索**ifoxcad**，直接选择最新的版本（如果你是 **net40** 或者 **net35** 的用户，可以安装 **0.1.6** 版本），然后点击安装**IFoxCAD.Cad**，nuget会自动安装ifoxcad依赖的库。(按下图绿色框框里选择浏览，程序包来源选择nuget.org，安装IFoxCAD.Cad包。IFoxCAD.Basal是IFoxCAD.Cad的依赖项会自动安装，如果要开发wpf界面的话，可以安装IFoxCAD.WPF，提供了简单的mvvm支持)![](./docs/png/nuget.png)
+   - 在nuget程序里搜索**ifoxcad**，直接选择最新的版本（如果您是 **net40** 或者 **net35** 的用户，可以安装 **0.1.6** 版本），然后点击安装**IFoxCAD.Cad**，nuget会自动安装ifoxcad依赖的库。(按下图绿色框框里选择浏览，程序包来源选择nuget.org，安装IFoxCAD.Cad包。IFoxCAD.Basal是IFoxCAD.Cad的依赖项会自动安装，如果要开发wpf界面的话，可以安装IFoxCAD.WPF，提供了简单的mvvm支持)![](./docs/png/nuget.png)
    
    - 添加引用
    
@@ -73,7 +89,7 @@
     using var tr = new DBTrans();
     var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
     tr.CurrentSpace.AddEntity(line1);
-    // 如果你没有添加<LangVersion>preview</LangVersion>到项目文件里的话：按如下旧语法：
+    // 如果您没有添加<LangVersion>preview</LangVersion>到项目文件里的话：按如下旧语法：
     // using(var tr = new DBTrans())
     // {
     //     var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
@@ -118,14 +134,14 @@
        // 这里可以写任何普通的函数，也可以写下面 AutoTest 类里的实现了 IFoxInitialize 特性的初始化函数
        // 继承AutoRegAssem的主要作用是写注册表用来自动加载dll，同时执行实现了 IFoxInitialize 特性的函数
        // 注意这里的自动执行是在cad启动后，加载了dll之后执行，而不是运行命令后执行。
-
+   
        [IFoxInitialize]
        public void InitOne()
        { 
-           //TODO 你想在加载dll之后自动执行的函数
+           //TODO 您想在加载dll之后自动执行的函数
            // 可以随便在哪里类里 可以多次实现 IFoxInitialize 特性
        }
-
+   
    }
    
    //其他的类中的函数:
@@ -135,18 +151,18 @@
        [IFoxInitialize]
        public void Initialize()
        { 
-           //TODO 你想在加载dll之后自动执行的函数
+           //TODO 您想在加载dll之后自动执行的函数
        }
        [IFoxInitialize]
        public void InitTwo()
        { 
-           //TODO 你想在加载dll之后自动执行的函数
+           //TODO 您想在加载dll之后自动执行的函数
            // 可以随便在哪里类里 可以多次实现 IFoxInitialize 特性
        }
        [IFoxInitialize(isInitialize: false)] // 特性的参数为false的时候就表示卸载时执行的函数
        public void Terminate()
        {
-            //TODO 你想在关闭cad时自动执行的函数
+            //TODO 您想在关闭cad时自动执行的函数
        }
    }
    ```
