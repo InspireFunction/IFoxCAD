@@ -122,8 +122,9 @@ public class Commands_Jig
     [CommandMethod("TestCmd_loop")]
     public void TestCmd_loop()
     {
-        DocumentCollection dm = Acap.DocumentManager;
-        Editor ed = dm.MdiActiveDocument.Editor;
+        var dm = Acap.DocumentManager;
+        var ed = dm.MdiActiveDocument.Editor;
+
         // Create and add our message filter
         MyMessageFilter filter = new();
         System.Windows.Forms.Application.AddMessageFilter(filter);
@@ -156,9 +157,7 @@ public class Commands_Jig
                 // Check for the Escape keypress
                 Keys kc = (Keys)(int)m.WParam & Keys.KeyCode;
                 if (m.Msg == WM_KEYDOWN && kc == Keys.Escape)
-                {
                     bCanceled = true;
-                }
                 Key = kc;
                 // Return true to filter all keypresses
                 return true;
@@ -185,72 +184,63 @@ public class Commands_Jig
         if (pr.Status != PromptStatus.OK)
             return;
 
-        var tr = doc.TransactionManager.StartTransaction();
-        using (tr)
+        using var tr = doc.TransactionManager.StartTransaction();
+        var btr = (BlockTableRecord)tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite);
+        // Create the text object, set its normal and contents
+
+        var acText = new TextInfo(pr.StringResult,
+                         Point3d.Origin,
+                         AttachmentPoint.BaseLeft, textHeight: 200)
+                         .AddDBTextToEntity();
+
+        acText.Normal = ed.CurrentUserCoordinateSystem.CoordinateSystem3d.Zaxis;
+        btr.AppendEntity(acText);
+        tr.AddNewlyCreatedDBObject(acText, true);
+
+        // Create our jig
+        var pj = new TextPlacementJig(tr, db, acText);
+        // Loop as we run our jig, as we may have keywords
+        var state = PromptStatus.Keyword;
+        while (state == PromptStatus.Keyword)
         {
-            BlockTableRecord btr =
-              (BlockTableRecord)tr.GetObject(
-                db.CurrentSpaceId, OpenMode.ForWrite
-              );
-            // Create the text object, set its normal and contents
-
-            var acText = new TextInfo(pr.StringResult,
-                             Point3d.Origin,
-                             AttachmentPoint.BaseLeft, textHeight: 200)
-                             .AddDBTextToEntity();
-
-            acText.Normal = ed.CurrentUserCoordinateSystem.CoordinateSystem3d.Zaxis;
-            btr.AppendEntity(acText);
-            tr.AddNewlyCreatedDBObject(acText, true);
-
-            // Create our jig
-            var pj = new TextPlacementJig(tr, db, acText);
-            // Loop as we run our jig, as we may have keywords
-            PromptStatus stat = PromptStatus.Keyword;
-            while (stat == PromptStatus.Keyword)
-            {
-                PromptResult res = ed.Drag(pj);
-                stat = res.Status;
-                if (
-                  stat != PromptStatus.OK &&
-                  stat != PromptStatus.Keyword
-                )
-                    return;
-            }
-            tr.Commit();
+            var res = ed.Drag(pj);
+            state = res.Status;
+            if (state != PromptStatus.OK && state != PromptStatus.Keyword)
+                return;
         }
+        tr.Commit();
     }
+
+#if true
     class TextPlacementJig : EntityJig
     {
         // Declare some internal state
         readonly Database _db;
         readonly Transaction _tr;
+
         Point3d _position;
         double _angle, _txtSize;
+
         // Constructor
-        public TextPlacementJig(
-          Transaction tr, Database db, Entity ent
-        ) : base(ent)
+        public TextPlacementJig(Transaction tr, Database db, Entity ent) : base(ent)
         {
             _db = db;
             _tr = tr;
             _angle = 0;
             _txtSize = 1;
         }
-        protected override SamplerStatus Sampler(
-          JigPrompts jp
-        )
+
+        protected override SamplerStatus Sampler(JigPrompts jp)
         {
             // We acquire a point but with keywords
-            JigPromptPointOptions po =
-              new(
-                "\nPosition of text"
-              );
-            po.UserInputControls =
-              (UserInputControls.Accept3dCoordinates |
+            JigPromptPointOptions po = new("\nPosition of text")
+            {
+                UserInputControls =
+                UserInputControls.Accept3dCoordinates |
                 UserInputControls.NullResponseAccepted |
                 UserInputControls.NoNegativeResponseAccepted |
-                UserInputControls.GovernedByOrthoMode);
+                UserInputControls.GovernedByOrthoMode
+            };
             po.SetMessageAndKeywords(
               "\nSpecify position of text or " +
               "[Bold/Italic/LArger/Smaller/" +
@@ -258,19 +248,16 @@ public class Commands_Jig
               "Bold Italic LArger Smaller " +
               "ROtate90 LEft Middle RIght"
             );
+
             PromptPointResult ppr = jp.AcquirePoint(po);
             if (ppr.Status == PromptStatus.Keyword)
             {
                 switch (ppr.StringResult)
                 {
                     case "Bold":
-                        {
-                            break;
-                        }
+                        break;
                     case "Italic":
-                        {
-                            break;
-                        }
+                        break;
                     case "LArger":
                         {
                             // Multiple the text size by two
@@ -295,33 +282,26 @@ public class Commands_Jig
                             break;
                         }
                     case "LEft":
-                        {
-                            break;
-                        }
+                        break;
                     case "RIght":
-                        {
-                            break;
-                        }
+                        break;
                     case "Middle":
-                        {
-                            break;
-                        }
+                        break;
                 }
                 return SamplerStatus.OK;
             }
             else if (ppr.Status == PromptStatus.OK)
             {
                 // Check if it has changed or not (reduces flicker)
-                if (
-                  _position.DistanceTo(ppr.Value) <
-                    Tolerance.Global.EqualPoint
-                )
+                if (_position.DistanceTo(ppr.Value) < Tolerance.Global.EqualPoint)
                     return SamplerStatus.NoChange;
+
                 _position = ppr.Value;
                 return SamplerStatus.OK;
             }
             return SamplerStatus.Cancel;
         }
+
         protected override bool Update()
         {
             // Set properties on our text object
@@ -331,5 +311,6 @@ public class Commands_Jig
             txt.Rotation = _angle;
             return true;
         }
-    }
+    } 
+#endif
 }

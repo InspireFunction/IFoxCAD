@@ -104,7 +104,7 @@ public class Timer
     static extern bool QueryPerformanceFrequency(out long lpFrequency);
 
     long _startTime, _stopTime;
-    long _freq;
+    readonly long _freq;
 
     public Timer()
     {

@@ -257,7 +257,7 @@ public class QuadTreeNode<TEntity>
     /// </summary>
     /// <param name="box"></param>
     /// <returns></returns>
-    Rect[] RectSplit(Rect box)
+    static Rect[] RectSplit(Rect box)
     {
         var halfWidth = box.Width / 2.0;
         var halfHeight = box.Height / 2.0;
@@ -602,7 +602,9 @@ public class QuadTreeNode<TEntity>
     /// <param name="findMode">查找方向</param>
     /// <param name="queryNode">查找节点</param>
     /// <returns></returns>
-    TEntity? GetNearestNeighbor(QuadTreeNode<TEntity> queryNode, QuadTreeFindMode findMode, Rect queryArea)
+    static TEntity? GetNearestNeighbor(QuadTreeNode<TEntity> queryNode,
+                                       QuadTreeFindMode findMode,
+                                       Rect queryArea)
     {
         TEntity? results = default;
 

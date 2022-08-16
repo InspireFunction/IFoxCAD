@@ -433,8 +433,10 @@ public class TestBlock
     public void TestWblock()
     {
         var curdb = HostApplicationServices.WorkingDatabase;
-        PromptSelectionOptions opts = new();
-        opts.MessageForAdding = "选择对象";
+        PromptSelectionOptions opts = new()
+        {
+            MessageForAdding = "选择对象"
+        };
         var ss = Env.Editor.GetSelection(opts).Value;
         var ids = new ObjectIdCollection(ss.GetObjectIds());
         var db = curdb.Wblock(ids, Point3d.Origin);

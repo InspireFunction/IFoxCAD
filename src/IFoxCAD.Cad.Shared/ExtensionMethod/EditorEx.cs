@@ -1020,6 +1020,7 @@ public static class EditorEx
     [System.Security.SuppressUnmanagedCodeSecurity]//初始化默认值
     static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
 
+#pragma warning disable CA2101 // 指定对 P/Invoke 字符串参数进行封送处理
 #if NET35
     [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "ads_queueexpr")]
@@ -1027,6 +1028,7 @@ public static class EditorEx
     [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "ads_queueexpr")]
 #endif
+#pragma warning restore CA2101 // 指定对 P/Invoke 字符串参数进行封送处理
     static extern int Ads_queueexpr(string strExpr);
 
     public enum RunLispFlag : byte
