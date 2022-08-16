@@ -55,8 +55,6 @@ public class TestBlock
         //});
 
 
-
-
         tr.BlockTable.Change("test", btr => {
             foreach (var id in btr)
             {
@@ -68,16 +66,9 @@ public class TestBlock
                         dBText.DimensionText = "234";
                         dBText.RecomputeDimensionBlock(true);
                     }
-
                     if (ent is Hatch hatch)
-                    {
                         hatch.ColorIndex = 0;
-
-                    }
-
-
                 }
-
             }
         });
         tr.Editor.Regen();

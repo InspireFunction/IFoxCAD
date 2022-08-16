@@ -25,8 +25,7 @@ global using Acap = Autodesk.AutoCAD.ApplicationServices.Application;
 global using Autodesk.AutoCAD.DatabaseServices.Filters;
 global using Autodesk.AutoCAD;
 
-//jig此命名空间容易引起Polyline等等重义,因此不放入全局空间
-//using Autodesk.AutoCAD.GraphicsInterface;
+//jig命名空间会引起Viewport/Polyline等等重义,最好逐个引入 using Autodesk.AutoCAD.GraphicsInterface
 global using WorldDraw = Autodesk.AutoCAD.GraphicsInterface.WorldDraw;
 global using Manager = Autodesk.AutoCAD.GraphicsSystem.Manager;
 

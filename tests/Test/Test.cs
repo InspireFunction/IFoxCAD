@@ -279,7 +279,11 @@ public class Test
         {
             tr.Editor.WriteMessage(layerRecord.Name);
         }
-
+        foreach (var layerRecord in tr.LayerTable.GetRecords())
+        {
+            tr.Editor.WriteMessage(layerRecord.Name);
+            break;
+        }
     }
 
 

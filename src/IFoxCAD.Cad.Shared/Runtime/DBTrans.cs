@@ -122,9 +122,7 @@ public class DBTrans : IDisposable
     /// <param name="password">密码</param>
     public DBTrans(string fileName,
                    bool commit = true,
-#pragma warning disable CS0436 // 类型与导入类型冲突
                    FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare,
-#pragma warning restore CS0436 // 类型与导入类型冲突
                    string? password = null)
     {
         if (string.IsNullOrEmpty(fileName?.Trim()))
@@ -337,9 +335,6 @@ public class DBTrans : IDisposable
         //return Database.GetObjectId(false, hanle, 0);
         return Helper.TryGetObjectId(Database, hanle);
     }
-
-
-
     #endregion
 
     #region 保存文件
