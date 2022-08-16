@@ -150,7 +150,6 @@ public class DBTrans : IDisposable
                 {
 #if ac2008
                     //此处没有一一对应的关系
-#pragma warning disable CS0436 // 类型与导入类型冲突
                     var sf = openMode switch
                     {
                         FileOpenMode.OpenTryForReadShare => FileShare.Read,
@@ -159,7 +158,6 @@ public class DBTrans : IDisposable
                         FileOpenMode.OpenForReadAndReadShare => FileShare.ReadWrite,
                         _ => FileShare.ReadWrite,
                     };
-#pragma warning restore CS0436 // 类型与导入类型冲突
                     Database.ReadDwgFile(fileName, sf, true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
 #else
                     Database.ReadDwgFile(fileName, openMode, true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);

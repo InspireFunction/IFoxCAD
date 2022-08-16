@@ -42,7 +42,7 @@ public static class Env
     /// <returns>对象</returns>
     public static object GetCurrentProfileProperty(string subSectionName, string propertyName)
     {
-        UserConfigurationManager ucm = Application.UserConfigurationManager;
+        UserConfigurationManager ucm = Acap.UserConfigurationManager;
         IConfigurationSection cpf = ucm.OpenCurrentProfile();
         IConfigurationSection ss = cpf.OpenSubsection(subSectionName);
         return ss.ReadProperty(propertyName, "");
@@ -55,7 +55,7 @@ public static class Env
     /// <returns>配置项</returns>
     public static IConfigurationSection GetDialogSection(object dialog)
     {
-        UserConfigurationManager ucm = Application.UserConfigurationManager;
+        UserConfigurationManager ucm = Acap.UserConfigurationManager;
         IConfigurationSection ds = ucm.OpenDialogSection(dialog);
         return ds;
     }
@@ -67,7 +67,7 @@ public static class Env
     /// <returns>配置项</returns>
     public static IConfigurationSection GetGlobalSection(string propertyName)
     {
-        UserConfigurationManager ucm = Application.UserConfigurationManager;
+        UserConfigurationManager ucm = Acap.UserConfigurationManager;
         IConfigurationSection gs = ucm.OpenGlobalSection();
         IConfigurationSection ss = gs.OpenSubsection(propertyName);
         return ss;
@@ -82,8 +82,8 @@ public static class Env
     /// </summary>
     public static bool CmdEcho
     {
-        get => Convert.ToInt16(Application.GetSystemVariable("cmdecho")) == 1;
-        set => Application.SetSystemVariable("cmdecho", Convert.ToInt16(value));
+        get => Convert.ToInt16(Acap.GetSystemVariable("cmdecho")) == 1;
+        set => Acap.SetSystemVariable("cmdecho", Convert.ToInt16(value));
     }
 
     /// <summary>
@@ -91,8 +91,8 @@ public static class Env
     /// </summary>
     public static bool OrthoMode
     {
-        get => Convert.ToInt16(Application.GetSystemVariable("ORTHOMODE")) == 1;
-        set => Application.SetSystemVariable("ORTHOMODE", Convert.ToInt16(value));
+        get => Convert.ToInt16(Acap.GetSystemVariable("ORTHOMODE")) == 1;
+        set => Acap.SetSystemVariable("ORTHOMODE", Convert.ToInt16(value));
     }
 
     #region Dimblk
@@ -257,7 +257,7 @@ public static class Env
     {
         get
         {
-            string s = ((string)Application.GetSystemVariable("dimblk")).ToUpper();
+            string s = ((string)Acap.GetSystemVariable("dimblk")).ToUpper();
             //if (string.IsNullOrEmpty(s))
             //{
             //    return DimblkType.Defult;
@@ -276,7 +276,7 @@ public static class Env
         set
         {
             string s = GetDimblkName(value);
-            Application.SetSystemVariable("dimblk", s);
+            Acap.SetSystemVariable("dimblk", s);
         }
     }
 
@@ -401,11 +401,11 @@ public static class Env
     {
         get
         {
-            return (OSModeType)Convert.ToInt16(Application.GetSystemVariable("osmode"));
+            return (OSModeType)Convert.ToInt16(Acap.GetSystemVariable("osmode"));
         }
         set
         {
-            Application.SetSystemVariable("osmode", (int)value);
+            Acap.SetSystemVariable("osmode", (int)value);
         }
     }
     /// <summary>
@@ -436,7 +436,7 @@ public static class Env
     /// <returns>变量值</returns>
     public static object GetVar(string varName)
     {
-        return Application.GetSystemVariable(varName);
+        return Acap.GetSystemVariable(varName);
     }
     /// <summary>
     /// 设置cad变量
@@ -447,7 +447,7 @@ public static class Env
     {
         try
         {
-            Application.SetSystemVariable(varName, value);
+            Acap.SetSystemVariable(varName, value);
         }
         catch (System.Exception)
         {

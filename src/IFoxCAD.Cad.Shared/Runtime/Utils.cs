@@ -45,7 +45,7 @@ public class Helper
     static int GetAcDbObjectId(IntPtr db, Handle handle, out ObjectId id, bool createIfNotFound = false, uint reserved = 0)
     {
         id = ObjectId.Null;
-        switch (Application.Version.Major)
+        switch (Acap.Version.Major)
         {
             case 17:
                 {

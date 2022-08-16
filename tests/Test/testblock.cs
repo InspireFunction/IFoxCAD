@@ -343,7 +343,7 @@ public class TestBlock
             //}
             //if (tr.BlockTable.Has(blockName))
             //{
-            //    Application.ShowAlertDialog(Environment.NewLine + "块名重复，程序退出！");
+            //    Acap.ShowAlertDialog(Environment.NewLine + "块名重复，程序退出！");
             //    return;
             //}
             ents.ForEach(ent =>

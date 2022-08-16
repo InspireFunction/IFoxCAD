@@ -66,7 +66,7 @@ public class TestLisp
     {
         // 测试方法1: (command "CmdTest_RunLisp1")
         // 测试方式2: (LispTest_RunLisp)
-        var dm = Application.DocumentManager;
+        var dm = Acap.DocumentManager;
         var doc = dm.MdiActiveDocument;
         var ed = doc.Editor;
 
