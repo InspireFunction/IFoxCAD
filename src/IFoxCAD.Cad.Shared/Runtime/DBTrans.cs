@@ -87,7 +87,7 @@ public class DBTrans : IDisposable
     /// <param name="doclock">是否锁文档</param>
     public DBTrans(Document? doc = null, bool commit = true, bool doclock = false)
     {
-        Document = doc ?? Application.DocumentManager.MdiActiveDocument;
+        Document = doc ?? Acap.DocumentManager.MdiActiveDocument;
         Database = Document.Database;
         Editor = Document.Editor;
         Transaction = Database.TransactionManager.StartTransaction();
@@ -345,7 +345,7 @@ public class DBTrans : IDisposable
     public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800)
     {
         bool flag = true;
-        foreach (Document doc in Application.DocumentManager)
+        foreach (Document doc in Acap.DocumentManager)
         {
             // 前台开图,使用命令保存
             if (doc.Database.Filename == this.Database.Filename)

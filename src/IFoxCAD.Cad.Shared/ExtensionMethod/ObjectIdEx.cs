@@ -49,7 +49,7 @@ public static class ObjectIdEx
         return ids.Where(id => id.ObjectClass().DxfName == dxfName);
     }
     #endregion GetObject
-	
+
     //Acad08缺少 id.ObjectClass 如何补偿?
     public static RXClass ObjectClass(this ObjectId id)
     {

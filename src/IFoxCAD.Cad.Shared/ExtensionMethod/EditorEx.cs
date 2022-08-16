@@ -443,7 +443,7 @@ public static class EditorEx
         try
         {
             if (Acceptable())
-                Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n" + message);
+                Acap.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n" + message);
             else
                 return;
         }
@@ -469,9 +469,9 @@ public static class EditorEx
     /// <returns><see langword="true"/>有,<see langword="false"/>没有</returns>
     public static bool HasEditor()
     {
-        return Application.DocumentManager.MdiActiveDocument is not null
-            && Application.DocumentManager.Count != 0
-            && Application.DocumentManager.MdiActiveDocument.Editor is not null;
+        return Acap.DocumentManager.MdiActiveDocument is not null
+            && Acap.DocumentManager.Count != 0
+            && Acap.DocumentManager.MdiActiveDocument.Editor is not null;
     }
 
     /// <summary>
@@ -481,7 +481,7 @@ public static class EditorEx
     public static bool Acceptable()
     {
         return HasEditor()
-            && !Application.DocumentManager.MdiActiveDocument.Editor.IsDragging;
+            && !Acap.DocumentManager.MdiActiveDocument.Editor.IsDragging;
     }
 
     #endregion Info
@@ -1081,7 +1081,7 @@ public static class EditorEx
         }
         if ((flag & RunLispFlag.SendStringToExecute) == RunLispFlag.SendStringToExecute)
         {
-            var dm = Application.DocumentManager;
+            var dm = Acap.DocumentManager;
             var doc = dm.MdiActiveDocument;
             doc.SendStringToExecute(lispCode + "\n", false, false, false);
         }

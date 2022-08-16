@@ -18,7 +18,7 @@ public static class Env
     /// <summary>
     /// 当前文档
     /// </summary>
-    public static Document Document => Application.DocumentManager.MdiActiveDocument;
+    public static Document Document => Acap.DocumentManager.MdiActiveDocument;
 
     /// <summary>
     /// 编辑器对象

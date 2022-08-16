@@ -1,8 +1,6 @@
 ﻿namespace Test;
 
-
 using IFoxCAD.Basal;
-
 using System.Diagnostics.CodeAnalysis;
 
 public class TestLoop
@@ -20,9 +18,6 @@ public class TestLoop
             5
         };
 
-        
-
-
         Env.Print(loop);
 
         loop.SetFirst(loop.Last);
@@ -30,8 +25,6 @@ public class TestLoop
         Env.Print(loop.Min());
         loop.SetFirst(new LoopListNode<int> (loop.Min() ,loop));
         Env.Print(loop);
-
-
 
     }
 }

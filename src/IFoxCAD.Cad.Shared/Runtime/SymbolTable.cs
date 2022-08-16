@@ -294,7 +294,10 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="name">符号表记录名</param>
     /// <param name="over">是否覆盖，<see langword="true"/> 为覆盖，<see langword="false"/> 为不覆盖</param>
     /// <returns>对象id</returns>
-    internal ObjectId GetRecordFrom(Func<DBTrans, SymbolTable<TTable, TRecord>> tableSelector, string fileName, string name, bool over)
+    internal ObjectId GetRecordFrom(Func<DBTrans, SymbolTable<TTable, TRecord>> tableSelector,
+                                    string fileName, 
+                                    string name, 
+                                    bool over)
     {
         using var tr = new DBTrans(fileName);
         return GetRecordFrom(tableSelector(tr), name, over);

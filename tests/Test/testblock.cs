@@ -292,7 +292,7 @@ public class TestBlock
     public void QuickBlockDef()
     {
         //Database db = HostApplicationServices.WorkingDatabase;
-        Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
+        Editor ed = Acap.DocumentManager.MdiActiveDocument.Editor;
         PromptSelectionOptions promptOpt = new()
         {
             MessageForAdding = "请选择需要快速制作块的对象"
@@ -361,7 +361,7 @@ public class TestBlock
             ents.ForEach(ent => ent.ForWrite(e => e.Erase(true)));
             var bId = tr.CurrentSpace.InsertBlock(pt, blockName);
             //tr.GetObject<Entity>(bId, OpenMode.ForWrite).Move(Point3d.Origin, Point3d.Origin);
-            //var ed = Application.DocumentManager.MdiActiveDocument.Editor;
+            //var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
             //ed.Regen();
             //tr.Editor.Regen();
             // 调用regen() 卡死
@@ -379,7 +379,7 @@ public class TestBlock
     public void TestQuickBlockDef()
     {
         Database db = HostApplicationServices.WorkingDatabase;
-        Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
+        Editor ed = Acap.DocumentManager.MdiActiveDocument.Editor;
         PromptSelectionOptions promptOpt = new()
         {
             MessageForAdding = "请选择需要快速制作块的对象"
@@ -499,7 +499,7 @@ public class BlockImportClass
     public void CombineBlocksIntoLibrary()
     {
         Document doc =
-            Application.DocumentManager.MdiActiveDocument;
+            Acap.DocumentManager.MdiActiveDocument;
         Editor ed = doc.Editor;
         Database destDb = doc.Database;
 

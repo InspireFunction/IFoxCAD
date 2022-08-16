@@ -11,11 +11,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Basal", "src\IFoxCA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsole", "tests\TestConsole\TestConsole.csproj", "{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Acad08", "src\IFoxCAD.Cad\IFoxCAD.Aacad08\IFoxCAD.Acad08.csproj", "{36F87D06-88B3-45E3-A2A8-0FC737B25428}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cad", "Cad", "{465C4E39-FBA2-417A-AB31-BDC01601F420}"
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IFoxCAD.Cad.Shared", "src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.shproj", "{82FB8450-B971-4E30-859F-4B2DDB81F590}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Acad08", "src\IFoxCAD.Cad\IFoxCAD.Aacad08\IFoxCAD.Acad08.csproj", "{36F87D06-88B3-45E3-A2A8-0FC737B25428}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Acad09plus", "src\IFoxCAD.Cad\IFoxCAD.Aacad09plus\IFoxCAD.Acad09plus.csproj", "{CC46E4E2-90DF-48F5-B3D7-83FAFED58F2A}"
 EndProject
@@ -53,13 +53,13 @@ Global
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {31D6C754-CF6B-4AB0-9861-6923DD312350}
+	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{82FB8450-B971-4E30-859F-4B2DDB81F590} = {465C4E39-FBA2-417A-AB31-BDC01601F420}
 		{36F87D06-88B3-45E3-A2A8-0FC737B25428} = {465C4E39-FBA2-417A-AB31-BDC01601F420}
 		{CC46E4E2-90DF-48F5-B3D7-83FAFED58F2A} = {465C4E39-FBA2-417A-AB31-BDC01601F420}
-	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {31D6C754-CF6B-4AB0-9861-6923DD312350}
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems*{36f87d06-88b3-45e3-a2a8-0fc737b25428}*SharedItemsImports = 5

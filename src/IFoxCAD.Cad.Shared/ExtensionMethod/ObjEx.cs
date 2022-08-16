@@ -8,7 +8,7 @@ public static class ObjEx
     /// <param name="obj"></param>
     public static void Print(this object obj)
     {
-        Application.DocumentManager.MdiActiveDocument.Editor.WriteMessage($"{obj}\n");
+        Acap.DocumentManager.MdiActiveDocument.Editor.WriteMessage($"{obj}\n");
     }
     /// <summary>
     /// 系统的打印

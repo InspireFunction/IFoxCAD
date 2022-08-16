@@ -52,12 +52,12 @@ public class TestTrans
         var tr1 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
         using var tr2 = new DBTrans();
         var tr3 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
-        var tr6 = Application.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
+        var tr6 = Acap.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
         Env.Print(tr2.Transaction == tr3);
         Env.Print(tr3 == tr6);
         using var tr4 = new DBTrans();
         var tr5 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
-        var tr7 = Application.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
+        var tr7 = Acap.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
         Env.Print(tr4.Transaction == tr5);
         Env.Print(tr5 == tr7);
         var trm = HostApplicationServices.WorkingDatabase.TransactionManager;
