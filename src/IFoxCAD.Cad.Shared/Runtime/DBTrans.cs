@@ -192,7 +192,8 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 块表
     /// </summary>
-    public SymbolTable<BlockTable, BlockTableRecord> BlockTable => new(this, Database.BlockTableId);
+    public SymbolTable<BlockTable, BlockTableRecord> BlockTable => _BlockTable ??= new(this, Database.BlockTableId);
+    SymbolTable<BlockTable, BlockTableRecord>? _BlockTable;
     /// <summary>
     /// 当前绘图空间
     /// </summary>
@@ -208,41 +209,45 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 层表
     /// </summary>
-    public SymbolTable<LayerTable, LayerTableRecord> LayerTable => new(this, Database.LayerTableId);
+    public SymbolTable<LayerTable, LayerTableRecord> LayerTable => _LayerTable ??= new(this, Database.LayerTableId);
+    SymbolTable<LayerTable, LayerTableRecord>? _LayerTable;
     /// <summary>
     /// 文字样式表
     /// </summary>
-    public SymbolTable<TextStyleTable, TextStyleTableRecord> TextStyleTable => new(this, Database.TextStyleTableId);
-
+    public SymbolTable<TextStyleTable, TextStyleTableRecord> TextStyleTable => _TextStyleTable ??= new(this, Database.TextStyleTableId);
+    SymbolTable<TextStyleTable, TextStyleTableRecord>? _TextStyleTable;
     /// <summary>
     /// 注册应用程序表
     /// </summary>
-    public SymbolTable<RegAppTable, RegAppTableRecord> RegAppTable => new(this, Database.RegAppTableId);
+    public SymbolTable<RegAppTable, RegAppTableRecord> RegAppTable => _RegAppTable ??= new(this, Database.RegAppTableId);
+    SymbolTable<RegAppTable, RegAppTableRecord>? _RegAppTable;
 
     /// <summary>
     /// 标注样式表
     /// </summary>
-    public SymbolTable<DimStyleTable, DimStyleTableRecord> DimStyleTable => new(this, Database.DimStyleTableId);
+    public SymbolTable<DimStyleTable, DimStyleTableRecord> DimStyleTable => _DimStyleTable ??= new(this, Database.DimStyleTableId);
+    SymbolTable<DimStyleTable, DimStyleTableRecord>? _DimStyleTable;
 
     /// <summary>
     /// 线型表
     /// </summary>
-    public SymbolTable<LinetypeTable, LinetypeTableRecord> LinetypeTable => new(this, Database.LinetypeTableId);
-
+    public SymbolTable<LinetypeTable, LinetypeTableRecord> LinetypeTable => _LinetypeTable ??= new(this, Database.LinetypeTableId);
+    SymbolTable<LinetypeTable, LinetypeTableRecord>? _LinetypeTable;
     /// <summary>
     /// 用户坐标系表
     /// </summary>
-    public SymbolTable<UcsTable, UcsTableRecord> UcsTable => new(this, Database.UcsTableId);
-
+    public SymbolTable<UcsTable, UcsTableRecord> UcsTable => _UcsTable ??= new(this, Database.UcsTableId);
+    SymbolTable<UcsTable, UcsTableRecord>? _UcsTable;
     /// <summary>
     /// 视图表
     /// </summary>
-    public SymbolTable<ViewTable, ViewTableRecord> ViewTable => new(this, Database.ViewTableId);
-
+    public SymbolTable<ViewTable, ViewTableRecord> ViewTable => _ViewTable ??= new(this, Database.ViewTableId);
+    SymbolTable<ViewTable, ViewTableRecord>? _ViewTable;
     /// <summary>
     /// 视口表
     /// </summary>
-    public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => new(this, Database.ViewportTableId);
+    public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => _ViewportTable ??= new(this, Database.ViewportTableId);
+    SymbolTable<ViewportTable, ViewportTableRecord>? _ViewportTable;
     #endregion
 
     #region 字典

@@ -1,6 +1,6 @@
-﻿using System;
+﻿namespace IFoxCAD.Cad;
 
-namespace IFoxCAD.Cad;
+using System;
 
 public class Helper
 {
