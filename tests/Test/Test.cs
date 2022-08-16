@@ -1,5 +1,5 @@
-﻿#pragma warning disable CS0219 // 变量已被赋值，但从未使用过它的值
-namespace Test;
+﻿namespace Test;
+#pragma warning disable CS0219 // 变量已被赋值，但从未使用过它的值
 
 public class Test
 {

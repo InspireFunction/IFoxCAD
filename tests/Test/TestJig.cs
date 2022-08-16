@@ -1,4 +1,5 @@
 ﻿namespace Test;
+
 using System.Windows.Forms;
 
 public class Commands_Jig

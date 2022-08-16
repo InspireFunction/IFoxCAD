@@ -1,4 +1,6 @@
-﻿/// <summary>
+﻿namespace Test;
+
+/// <summary>
 /// 注册中心(自动执行接口):
 /// <para>用于启动cad后写入启动注册表及反射调用以下特性和接口</para>
 /// <para>netload的工程必须继承<see cref="AutoRegAssem"/>虚函数后才能使用<see cref="IFoxInitialize"/>特性和<see cref="IFoxAutoGo"/>接口</para>
