@@ -20,7 +20,7 @@
 
 #### 让 IFox 作为您的子模块
 
-IFox的`jing分支`是一个多cad版本分支,您可以利用此作为您的[git项目子模块](https://www.cnblogs.com/JJBox/p/13876501.html#_label13).
+IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一个多cad版本分支,您可以利用此作为您的[git项目子模块](https://www.cnblogs.com/JJBox/p/13876501.html#_label13).
 
 子模块是以`共享工程`的方式加入到您的工程的,其为`IFoxCAD.Cad.Shared`:
 
