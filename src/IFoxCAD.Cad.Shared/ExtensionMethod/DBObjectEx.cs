@@ -17,28 +17,21 @@ public static class DBObjectEx
         if (obj.XData == null)
             return;
         XDataList data = obj.XData;
-        var indexlst = new List<int>();
-        bool flag = false;
-
-        // TODO 惊惊:山人来解决 1逻辑错误ifB是ifA的取反 2flag无用 3考虑用forr倒序删除片段
+        bool appNameIdentical = false;
         for (int i = 0; i < data.Count; i++)
         {
-            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName &&
-                data[i].Value.ToString() == appName)
-                flag = true;
-
-            if (flag)
+            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName)
             {
-                if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName &&
-                    data[i].Value.ToString() != appName)
-                    break;
-                if (data[i].TypeCode == (int)dxfCode)
-                    indexlst.Add(i);
+                appNameIdentical = data[i].Value.ToString() == appName;
+                break;
             }
         }
-        foreach (var item in indexlst)
-            data.RemoveAt(item);
+        if (!appNameIdentical)
+            return;
 
+        for (int i = data.Count - 1; i >= 0; i--)
+            if (data[i].TypeCode == (int)dxfCode)
+                data.RemoveAt(i);
         using (obj.ForWrite())
             obj.XData = data;
     }
@@ -54,25 +47,21 @@ public static class DBObjectEx
         if (obj.XData == null)
             return;
         XDataList data = obj.XData;
-        bool flag = false;
-
-        // TODO 惊惊:山人来解决 1逻辑错误ifB是ifA的取反 2flag无用
+        bool appNameIdentical = false;
         for (int i = 0; i < data.Count; i++)
         {
-            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName &&
-                data[i].Value.ToString() == appName)
-                flag = true;
-
-            if (flag)
+            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName)
             {
-                if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName &&
-                    data[i].Value.ToString() != appName)
-                    break;
-                if (data[i].TypeCode == (int)dxfCode)
-                    data[i] = new TypedValue((int)dxfCode, newvalue);
+                appNameIdentical = data[i].Value.ToString() == appName;
+                break;
             }
         }
+        if (!appNameIdentical)
+            return;
 
+        for (int i = data.Count - 1; i >= 0; i--)
+            if (data[i].TypeCode == (int)dxfCode)
+                data[i] = new TypedValue((int)dxfCode, newvalue);
         using (obj.ForWrite())
             obj.XData = data;
     }
