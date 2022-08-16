@@ -1,5 +1,5 @@
-﻿
-namespace IFoxCAD.Basal;
+﻿namespace IFoxCAD.Basal;
+
 
 public static class ListEx
 {
@@ -12,9 +12,9 @@ public static class ListEx
 
     public static bool EqualsAll<T>(this IList<T> a, IList<T> b, IEqualityComparer<T>? comparer)
     {
-        if (a == null)
-            return b == null;
-        else if (b == null)
+        if (a is null)
+            return b is null;
+        else if (b is null)
             return false;
 
         if (a.Count != b.Count)

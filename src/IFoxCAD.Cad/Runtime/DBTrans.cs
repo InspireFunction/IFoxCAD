@@ -87,7 +87,7 @@ public class DBTrans : IDisposable
     /// <param name="doclock">是否锁文档</param>
     public DBTrans(Document? doc = null, bool commit = true, bool doclock = false)
     {
-        Document = doc ?? Application.DocumentManager.MdiActiveDocument;
+        Document = doc ?? Acap.DocumentManager.MdiActiveDocument;
         Database = Document.Database;
         Editor = Document.Editor;
         Transaction = Database.TransactionManager.StartTransaction();
@@ -122,9 +122,7 @@ public class DBTrans : IDisposable
     /// <param name="password">密码</param>
     public DBTrans(string fileName,
                    bool commit = true,
-#pragma warning disable CS0436 // 类型与导入类型冲突
                    FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare,
-#pragma warning restore CS0436 // 类型与导入类型冲突
                    string? password = null)
     {
         if (string.IsNullOrEmpty(fileName?.Trim()))
@@ -337,9 +335,6 @@ public class DBTrans : IDisposable
         //return Database.GetObjectId(false, hanle, 0);
         return Helper.TryGetObjectId(Database, hanle);
     }
-
-
-
     #endregion
 
     #region 保存文件
@@ -350,7 +345,7 @@ public class DBTrans : IDisposable
     public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800)
     {
         bool flag = true;
-        foreach (Document doc in Application.DocumentManager)
+        foreach (Document doc in Acap.DocumentManager)
         {
             // 前台开图,使用命令保存
             if (doc.Database.Filename == this.Database.Filename)

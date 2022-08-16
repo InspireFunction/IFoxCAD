@@ -14,34 +14,26 @@ public static class DBObjectEx
     /// <param name="dxfCode">要删除数据的组码</param>
     public static void RemoveXData(this DBObject obj, string appName, DxfCode dxfCode)
     {
+        if (obj.XData == null)
+            return;
         XDataList data = obj.XData;
-        var indexlst = new List<int>();
-        bool flag = false;
+        bool appNameIdentical = false;
         for (int i = 0; i < data.Count; i++)
         {
-            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName && data[i].Value.ToString() == appName)
+            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName)
             {
-                flag = true;
-            }
-            if (flag)
-            {
-                if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName && data[i].Value.ToString() != appName)
-                    break;
-                if (data[i].TypeCode == (int)dxfCode)
-                {
-                    indexlst.Add(i);
-                }
+                appNameIdentical = data[i].Value.ToString() == appName;
+                break;
             }
         }
-        foreach (var item in indexlst)
-        {
-            data.RemoveAt(item);
-        }
+        if (!appNameIdentical)
+            return;
 
+        for (int i = data.Count - 1; i >= 0; i--)
+            if (data[i].TypeCode == (int)dxfCode)
+                data.RemoveAt(i);
         using (obj.ForWrite())
-        {
             obj.XData = data;
-        }
     }
     /// <summary>
     /// 修改扩展数据
@@ -52,29 +44,26 @@ public static class DBObjectEx
     /// <param name="newvalue">新的数据</param>
     public static void ChangeXData(this DBObject obj, string appName, DxfCode dxfCode, object newvalue)
     {
+        if (obj.XData == null)
+            return;
         XDataList data = obj.XData;
-        bool flag = false;
+        bool appNameIdentical = false;
         for (int i = 0; i < data.Count; i++)
         {
-            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName && data[i].Value.ToString() == appName)
+            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName)
             {
-                flag = true;
-            }
-            if (flag)
-            {
-                if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName && data[i].Value.ToString() != appName)
-                    break;
-                if (data[i].TypeCode == (int)dxfCode)
-                {
-                    data[i] = new TypedValue((int)dxfCode, newvalue);
-                }
+                appNameIdentical = data[i].Value.ToString() == appName;
+                break;
             }
         }
+        if (!appNameIdentical)
+            return;
 
+        for (int i = data.Count - 1; i >= 0; i--)
+            if (data[i].TypeCode == (int)dxfCode)
+                data[i] = new TypedValue((int)dxfCode, newvalue);
         using (obj.ForWrite())
-        {
             obj.XData = data;
-        }
     }
     #endregion
 
@@ -91,22 +80,16 @@ public static class DBObjectEx
         var _isNotifyEnabled = obj.IsNotifyEnabled;
         var _isWriteEnabled = obj.IsWriteEnabled;
         if (_isNotifyEnabled)
-        {
             obj.UpgradeFromNotify();
-        }
         else if (!_isWriteEnabled)
-        {
             obj.UpgradeOpen();
-        }
+
         action?.Invoke(obj);
+
         if (_isNotifyEnabled)
-        {
             obj.DowngradeToNotify(_isWriteEnabled);
-        }
         else if (!_isWriteEnabled)
-        {
             obj.DowngradeOpen();
-        }
     }
 
     /// <summary>

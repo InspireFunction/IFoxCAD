@@ -11,6 +11,11 @@ public abstract class OpFilter
     public abstract string Name { get; }
 
     /// <summary>
+    /// 只读属性，表示这个过滤器取反
+    /// </summary>
+    public OpFilter Not => new OpNot(this);
+
+    /// <summary>
     /// 获取TypedValue类型的值的迭代器的抽象方法，子类必须重写
     /// </summary>
     /// <returns>TypedValue迭代器</returns>
@@ -24,14 +29,6 @@ public abstract class OpFilter
     public static OpFilter operator !(OpFilter item)
     {
         return item.Not;
-    }
-
-    /// <summary>
-    /// 只读属性，表示这个过滤器取反
-    /// </summary>
-    public OpFilter Not
-    {
-        get { return new OpNot(this); }
     }
 
     /// <summary>
@@ -61,10 +58,10 @@ public abstract class OpFilter
     /// <returns>字符串</returns>
     public override string ToString()
     {
-        string s = "";
+        var sb = new StringBuilder();
         foreach (var value in GetValues())
-            s += value.ToString();
-        return s;
+            sb.Append(value);
+        return sb.ToString();
     }
 
     /// <summary>
@@ -76,12 +73,12 @@ public abstract class OpFilter
     /// <![CDATA[
     /// 例子1：
     /// var p = new Point3d(10, 10, 0);
-    /// var f = OpFilter.Bulid(
+    /// var f = OpFilter.Build(
     ///         e =>!(e.Dxf(0) == "line" & e.Dxf(8) == "0")
     ///         | e.Dxf(0) != "circle" & e.Dxf(8) == "2" & e.Dxf(10) >= p);
     ///
     /// 例子2：
-    /// var f2 = OpFilter.Bulid(
+    /// var f2 = OpFilter.Build(
     ///         e => e.Or(
     ///                 !e.And(e.Dxf(0) == "line", e.Dxf(8) == "0"),
     ///                 e.And(e.Dxf(0) != "circle", e.Dxf(8) == "2",
@@ -90,7 +87,7 @@ public abstract class OpFilter
     /// </code></example>
     /// <param name="func">构建过滤器的函数委托</param>
     /// <returns>过滤器</returns>
-    public static OpFilter Bulid(Func<Op, Op> func)
+    public static OpFilter Build(Func<Op, Op> func)
     {
         return func(new Op()).Filter!;
     }
@@ -107,9 +104,7 @@ public abstract class OpFilter
         /// </summary>
         internal OpFilter? Filter { get; private set; }
 
-        internal Op()
-        {
-        }
+        internal Op() { }
 
         private Op(OpFilter filter)
         {

@@ -1,4 +1,6 @@
-﻿public class MirrorFile
+﻿namespace Test;
+
+public class MirrorFile
 {
     const string file = "D:/JX.dwg";
     const string fileSave = "D:/JX222.dwg";

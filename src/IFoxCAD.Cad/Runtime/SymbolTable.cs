@@ -1,5 +1,20 @@
 namespace IFoxCAD.Cad;
 
+/// <summary>
+/// 委托执行状态
+/// </summary>
+public enum DelegateState
+{
+    /// <summary>
+    /// 继续执行
+    /// </summary>
+    Go,
+    /// <summary>
+    /// 中断执行
+    /// </summary>
+    Break
+}
+
 public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     where TTable : SymbolTable
     where TRecord : SymbolTableRecord, new()
@@ -158,12 +173,11 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     private static void Change(TRecord record, Action<TRecord> action)
     {
         using (record.ForWrite())
-        {
             action.Invoke(record);
-        }
         // 调用regen()函数可能会导致卡顿
         //Env.Editor.Regen();
     }
+
     /// <summary>
     /// 修改符号表
     /// </summary>
@@ -173,10 +187,9 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         var record = GetRecord(name);
         if (record is not null)
-        {
             Change(record, action);
-        }
     }
+
     /// <summary>
     /// 修改符号表
     /// </summary>
@@ -186,9 +199,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         var record = GetRecord(id);
         if (record is not null)
-        {
             Change(record, action);
-        }
     }
     #endregion
 
@@ -219,9 +230,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         {
             var record = GetRecord(item);
             if (record is not null)
-            {
                 yield return record;
-            }
         }
     }
 
@@ -241,9 +250,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         {
             var record = GetRecord(item);
             if (record is not null && filter.Invoke(record))
-            {
                 yield return record.Name;
-            }
         }
     }
 
@@ -257,9 +264,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     public ObjectId GetRecordFrom(SymbolTable<TTable, TRecord> table, string name, bool over)
     {
         if (table is null)
-        {
             throw new ArgumentNullException(nameof(table), "对象为null");
-        }
 
         ObjectId rid = this[name];
         bool has = rid != ObjectId.Null;
@@ -269,7 +274,12 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
             using IdMapping idm = new();
             using (ObjectIdCollection ids = new() { id })
             {
-                table.Database.WblockCloneObjects(ids, CurrentSymbolTable.Id, idm, DuplicateRecordCloning.Replace, false);
+                table.Database.
+                    WblockCloneObjects(ids, 
+                                       CurrentSymbolTable.Id,
+                                       idm,
+                                       DuplicateRecordCloning.Replace, 
+                                       false);
             }
             rid = idm[id].Value;
         }
@@ -284,7 +294,10 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="name">符号表记录名</param>
     /// <param name="over">是否覆盖，<see langword="true"/> 为覆盖，<see langword="false"/> 为不覆盖</param>
     /// <returns>对象id</returns>
-    internal ObjectId GetRecordFrom(Func<DBTrans, SymbolTable<TTable, TRecord>> tableSelector, string fileName, string name, bool over)
+    internal ObjectId GetRecordFrom(Func<DBTrans, SymbolTable<TTable, TRecord>> tableSelector,
+                                    string fileName, 
+                                    string name, 
+                                    bool over)
     {
         using var tr = new DBTrans(fileName);
         return GetRecordFrom(tableSelector(tr), name, over);

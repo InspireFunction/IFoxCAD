@@ -16,7 +16,7 @@ public class Testeditor
         var res1 = EditorEx.GetLines(pts, true);
         var res2 = pts.Select(pt => new TypedValue((int)LispDataType.Point2d, pt)).ToList();
 
-        Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
+        Editor ed = Acap.DocumentManager.MdiActiveDocument.Editor;
         var pt = ed.GetPoint("qudiam", new Point3d(0, 0, 0));
         var d = ed.GetDouble("qudoule");
         var i = ed.GetInteger("quint");

@@ -27,11 +27,13 @@ public static class CurveEx
     /// </para>
     /// </param>
     /// <returns>打断后曲线的集合</returns>
-    public static IEnumerable<Curve> GetSplitCurves(this Curve curve, 
-                                                        IEnumerable<double> pars, 
-                                                        Func<IEnumerable<double>, 
-                                                        IEnumerable<double>>? func = null)
+    public static IEnumerable<Curve> GetSplitCurves(this Curve curve,
+                                                    IEnumerable<double> pars,
+                                                    Func<IEnumerable<double>, IEnumerable<double>>? func = null)
     {
+        if (pars == null)
+            throw new ArgumentNullException(nameof(pars));
+
         if (func != null)
             pars = func.Invoke(pars);
         return
@@ -39,7 +41,7 @@ public static class CurveEx
             .GetSplitCurves(new DoubleCollection(pars.ToArray()))
             .Cast<Curve>();
     }
- 
+
     /// <summary>
     /// 获取分割曲线集合
     /// </summary>
@@ -59,7 +61,7 @@ public static class CurveEx
             .GetSplitCurves(new DoubleCollection(isOrder ? pars.OrderBy(x => x).ToArray() : pars.ToArray()))
             .Cast<Curve>();
     }
- 
+
     /// <summary>
     /// 获取分割曲线集合
     /// </summary>
@@ -73,7 +75,7 @@ public static class CurveEx
             .GetSplitCurves(new Point3dCollection(points.ToArray()))
             .Cast<Curve>();
     }
- 
+
     /// <summary>
     /// 获取分割曲线集合
     /// </summary>
@@ -150,7 +152,7 @@ public static class CurveEx
                 paramss.Add(new List<double>());
             }
         }
-      
+
         //var oldCurves = new List<Curve>();
         var newCurves = new List<Curve>();
         var cci3d = new CurveCurveIntersector3d();

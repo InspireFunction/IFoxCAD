@@ -1,5 +1,5 @@
-﻿#pragma warning disable CS0219 // 变量已被赋值，但从未使用过它的值
-namespace Test;
+﻿namespace Test;
+#pragma warning disable CS0219 // 变量已被赋值，但从未使用过它的值
 
 public class Test
 {
@@ -219,7 +219,7 @@ public class Test
     [CommandMethod("getxdata")]
     public void GetXdata()
     {
-        var doc = Application.DocumentManager.MdiActiveDocument;
+        var doc = Acap.DocumentManager.MdiActiveDocument;
         var ed = doc.Editor;
         using var tr = new DBTrans();
         tr.RegAppTable.ForEach(id =>
@@ -241,7 +241,7 @@ public class Test
     [CommandMethod("changexdata")]
     public void Changexdata()
     {
-        var doc = Application.DocumentManager.MdiActiveDocument;
+        var doc = Acap.DocumentManager.MdiActiveDocument;
         var ed = doc.Editor;
         var appname = "myapp";
         var res = ed.GetEntity("\n select the entity:");
@@ -257,7 +257,7 @@ public class Test
     [CommandMethod("removexdata")]
     public void Removexdata()
     {
-        var doc = Application.DocumentManager.MdiActiveDocument;
+        var doc = Acap.DocumentManager.MdiActiveDocument;
         var ed = doc.Editor;
         var appname = "myapp";
         var res = ed.GetEntity("\n select the entity:");
@@ -279,7 +279,11 @@ public class Test
         {
             tr.Editor.WriteMessage(layerRecord.Name);
         }
-
+        foreach (var layerRecord in tr.LayerTable.GetRecords())
+        {
+            tr.Editor.WriteMessage(layerRecord.Name);
+            break;
+        }
     }
 
 
@@ -332,29 +336,18 @@ public class Test
             }
 
         });
-
-
     }
-
-
-
-
-
 
     public Database Getdb()
     {
-        var db = Application.DocumentManager.MdiActiveDocument.Database;
+        var db = Acap.DocumentManager.MdiActiveDocument.Database;
         return db;
     }
 
-
     public Document Getdoc()
     {
-        var doc = Application.DocumentManager.MdiActiveDocument;
+        var doc = Acap.DocumentManager.MdiActiveDocument;
         return doc;
     }
 }
-
-
-
 #pragma warning restore CS0219 // 变量已被赋值，但从未使用过它的值

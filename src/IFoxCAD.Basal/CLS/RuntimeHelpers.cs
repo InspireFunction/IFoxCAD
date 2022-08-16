@@ -5,7 +5,10 @@
 
 namespace System.Runtime.CompilerServices;
 
+//编译提示多个程序集中定义,屏蔽不了,但是不影响编译
+//#pragma warning disable CS1685 // 类型与导入类型冲突
 public static class RuntimeHelpers
+//#pragma warning restore CS1685 // 类型与导入类型冲突
 {
     /// <summary>
     /// Slices the specified array using the specified range.
@@ -38,7 +41,5 @@ public static class RuntimeHelpers
             return dest;
         }
     }
-
-
 }
 //#endif

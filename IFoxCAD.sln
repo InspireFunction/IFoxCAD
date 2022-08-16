@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32113.165
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Cad", "src\IFoxCAD.Cad\IFoxCAD.Cad.csproj", "{D5FAED7C-A99B-4BEE-A745-45442DC44971}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Test", "tests\Test\Test.csproj", "{B1602568-F023-46C7-B635-3CB281F1EC00}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.WPF", "src\IFoxCAD.WPF\IFoxCAD.WPF.csproj", "{D820D629-1AB3-4BE3-A772-CB753D98CCB8}"
@@ -13,16 +11,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Basal", "src\IFoxCA
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsole", "tests\TestConsole\TestConsole.csproj", "{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Cad", "src\IFoxCAD.Cad\IFoxCAD.Cad.csproj", "{D5FAED7C-A99B-4BEE-A745-45442DC44971}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B1602568-F023-46C7-B635-3CB281F1EC00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B1602568-F023-46C7-B635-3CB281F1EC00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B1602568-F023-46C7-B635-3CB281F1EC00}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -39,6 +35,10 @@ Global
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D5FAED7C-A99B-4BEE-A745-45442DC44971}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
