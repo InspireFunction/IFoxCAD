@@ -23,7 +23,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <PlatformTarget>x64</PlatformTarget>
+        <!--<PlatformTarget>x64</PlatformTarget>-->
     </PropertyGroup>
 
 
