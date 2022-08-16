@@ -74,7 +74,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <None Include="..\..\LICENSE">
+        <None Include="..\..\..\LICENSE">
             <Pack>True</Pack>
             <PackagePath></PackagePath>
         </None>
@@ -85,10 +85,8 @@
     </ItemGroup>-->
 
     <ItemGroup>
-        <ProjectReference Include="..\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
+        <ProjectReference Include="..\..\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
     </ItemGroup>
 
     <Import Project="..\..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared" />
-
-    <Import Project="..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared" />
 </Project>
