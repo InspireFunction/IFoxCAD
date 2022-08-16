@@ -413,7 +413,7 @@ public partial class TestQuadTree
 //        //创建四叉树,默认参数无所谓
 //        var TreeRoot = new QuadTree<CadEntity>(new Rect(0, 0, 32525, 32525));
 
-//        var fil = OpFilter.Bulid(e => e.Dxf(0) == "LINE");
+//        var fil = OpFilter.Build(e => e.Dxf(0) == "LINE");
 //        var psr = ed.SSGet("\n 选择需要连接的直线", fil);
 //        if (psr.Status != PromptStatus.OK) return;
 //        var LineEnts = new List<Line>(psr.Value.GetEntities<Line>(OpenMode.ForWrite)!);

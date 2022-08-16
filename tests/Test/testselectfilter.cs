@@ -7,12 +7,12 @@ namespace Test
         {
             
             var p = new Point3d(10, 10, 0);
-            var f = OpFilter.Bulid(
+            var f = OpFilter.Build(
             e =>!(e.Dxf(0) == "line" & e.Dxf(8) == "0")
                     | e.Dxf(0) != "circle" & e.Dxf(8) == "2" & e.Dxf(10) >= p);
             
            
-            var f2 = OpFilter.Bulid(
+            var f2 = OpFilter.Build(
             e => e.Or(
             !e.And(e.Dxf(0) == "line", e.Dxf(8) == "0"),
             e.And(e.Dxf(0) != "circle", e.Dxf(8) == "2",

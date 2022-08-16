@@ -76,12 +76,12 @@ public abstract class OpFilter
     /// <![CDATA[
     /// 例子1：
     /// var p = new Point3d(10, 10, 0);
-    /// var f = OpFilter.Bulid(
+    /// var f = OpFilter.Build(
     ///         e =>!(e.Dxf(0) == "line" & e.Dxf(8) == "0")
     ///         | e.Dxf(0) != "circle" & e.Dxf(8) == "2" & e.Dxf(10) >= p);
     ///
     /// 例子2：
-    /// var f2 = OpFilter.Bulid(
+    /// var f2 = OpFilter.Build(
     ///         e => e.Or(
     ///                 !e.And(e.Dxf(0) == "line", e.Dxf(8) == "0"),
     ///                 e.And(e.Dxf(0) != "circle", e.Dxf(8) == "2",
@@ -90,7 +90,7 @@ public abstract class OpFilter
     /// </code></example>
     /// <param name="func">构建过滤器的函数委托</param>
     /// <returns>过滤器</returns>
-    public static OpFilter Bulid(Func<Op, Op> func)
+    public static OpFilter Build(Func<Op, Op> func)
     {
         return func(new Op()).Filter!;
     }
