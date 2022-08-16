@@ -11,6 +11,11 @@ public abstract class OpFilter
     public abstract string Name { get; }
 
     /// <summary>
+    /// 只读属性，表示这个过滤器取反
+    /// </summary>
+    public OpFilter Not => new OpNot(this);
+
+    /// <summary>
     /// 获取TypedValue类型的值的迭代器的抽象方法，子类必须重写
     /// </summary>
     /// <returns>TypedValue迭代器</returns>
@@ -24,14 +29,6 @@ public abstract class OpFilter
     public static OpFilter operator !(OpFilter item)
     {
         return item.Not;
-    }
-
-    /// <summary>
-    /// 只读属性，表示这个过滤器取反
-    /// </summary>
-    public OpFilter Not
-    {
-        get { return new OpNot(this); }
     }
 
     /// <summary>
@@ -61,10 +58,10 @@ public abstract class OpFilter
     /// <returns>字符串</returns>
     public override string ToString()
     {
-        string s = "";
+        var sb = new StringBuilder();
         foreach (var value in GetValues())
-            s += value.ToString();
-        return s;
+            sb.Append(value);
+        return sb.ToString();
     }
 
     /// <summary>
@@ -107,9 +104,7 @@ public abstract class OpFilter
         /// </summary>
         internal OpFilter? Filter { get; private set; }
 
-        internal Op()
-        {
-        }
+        internal Op() { }
 
         private Op(OpFilter filter)
         {
