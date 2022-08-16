@@ -38,10 +38,7 @@ public sealed class TupleElementNamesAttribute : Attribute
     /// </remarks>
     public TupleElementNamesAttribute(string[] transformNames)
     {
-        if (transformNames == null)
-            throw new ArgumentNullException(nameof(transformNames));
-                
-        _transformNames = transformNames;
+        _transformNames = transformNames ?? throw new ArgumentNullException(nameof(transformNames));
     }
 
     /// <summary>

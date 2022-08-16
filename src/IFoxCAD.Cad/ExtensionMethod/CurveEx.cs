@@ -27,9 +27,10 @@ public static class CurveEx
     /// </para>
     /// </param>
     /// <returns>打断后曲线的集合</returns>
-    public static IEnumerable<Curve> GetSplitCurves(this Curve curve,
-                                                    IEnumerable<double> pars,
-                                                    Func<IEnumerable<double>, IEnumerable<double>> func = null)
+    public static IEnumerable<Curve> GetSplitCurves(this Curve curve, 
+                                                        IEnumerable<double> pars, 
+                                                        Func<IEnumerable<double>, 
+                                                        IEnumerable<double>>? func = null)
     {
         if (func != null)
             pars = func.Invoke(pars);
