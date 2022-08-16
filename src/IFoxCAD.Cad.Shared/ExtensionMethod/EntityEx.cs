@@ -393,6 +393,7 @@ public static class EntityEx
     }
     #endregion
 
+    #region 属性
     /// <summary>
     /// 更新动态块属性值
     /// </summary>
@@ -411,5 +412,118 @@ public static class EntityEx
                     item.Value = propertyNameValues[item.PropertyName];
         }
     }
+    #endregion
+
+    #region 包围盒
+    /// <summary>
+    /// 切割符号
+    /// </summary>
+    static string? _GetBoundingBoxLogAddress;
+    public static string GetBoundingBoxLogAddress
+    {
+        get
+        {
+            if (_GetBoundingBoxLogAddress == null)
+            {
+                var sb = new StringBuilder();
+                sb.Append(Environment.CurrentDirectory);
+                sb.Append("\\ErrorLog\\" + nameof(GetBoundingBoxEx));
+                //新建文件夹
+                var path = sb.ToString();
+                if (!Directory.Exists(path))
+                {
+                    Directory.CreateDirectory(path)
+                             .Attributes = FileAttributes.Normal; //设置文件夹属性为普通
+                }
+                sb.Append('\\');
+                sb.Append(nameof(GetBoundingBoxEx));
+                sb.Append(".config");
+                _GetBoundingBoxLogAddress = sb.ToString();
+            }
+            return _GetBoundingBoxLogAddress;
+        }
+    }
+
+    static readonly HashSet<string> _typeNames;
+    static EntityEx()
+    {
+        _typeNames = new();
+
+        if (!File.Exists(GetBoundingBoxLogAddress))
+            return;
+
+        var old = LogHelper.LogAddress;
+        LogHelper.OptionFile(GetBoundingBoxLogAddress);
+        var LogTxts = new FileLogger().ReadLog();
+        LogHelper.LogAddress = old;
+
+        foreach (var line in LogTxts)
+        {
+            if (line.Contains("备注信息"))
+            {
+                var s = line.IndexOf(":") + 1;
+                var msg = line.Substring(s, line.Length - s).Replace("\"", string.Empty).Trim();
+                _typeNames.Add(msg);
+            }
+        }
+    }
+
+    /// <summary>
+    /// 获取图元包围盒
+    /// </summary>
+    /// <param name="ent"></param>
+    /// <returns>返回包围盒点,若相同,则表示类型不存在包围盒</returns>
+    /// 异常:
+    ///   会将包围盒类型记录到所属路径中,以此查询
+    public static (Point3d min, Point3d max) GetBoundingBoxEx(this Entity ent)
+    {
+        //提前处理错误类型
+        if (ent is AttributeDefinition) //属性定义没有包围盒
+            return (Point3d.Origin, Point3d.Origin);
+
+        if (ent is Xline xline)//参照线
+            return (xline.BasePoint, xline.BasePoint);
+        if (ent is Ray ray)//射线
+            return (ray.BasePoint, ray.BasePoint);
+
+        try
+        {
+            if (ent is BlockReference brf)
+            {
+                try
+                {
+                    var box = brf.GeometryExtentsBestFit();
+                    return (box.MinPoint, box.MaxPoint);
+                }
+                catch
+                {
+                    //如果是两条参照线的块,将导致无法获取包围盒就会报错
+                    //是否需要进入块内,然后拿到每个图元的BasePoint再计算中点??感觉过于复杂
+                    //这个时候拿基点走就算了
+                    return (brf.Position, brf.Position);
+                }
+            }
+
+            //var type = ent.GetType();
+            //if (_typeNames.Contains(type))
+            //    return null;
+            return (ent.GeometricExtents.MinPoint, ent.GeometricExtents.MaxPoint);
+        }
+        catch (Exception e)
+        {
+            //无法处理的错误类型将被记录
+            var old = LogHelper.LogAddress;
+            var old2 = LogHelper.FlagOutFile;
+
+            LogHelper.FlagOutFile = true;
+            LogHelper.OptionFile(GetBoundingBoxLogAddress);
+            e.WriteLog(ent.GetType().Name, LogTarget.FileNotException);
+
+            LogHelper.LogAddress = old;
+            LogHelper.FlagOutFile = old2;
+        }
+        return (Point3d.Origin, Point3d.Origin);
+    }
+    #endregion
     #endregion
 }

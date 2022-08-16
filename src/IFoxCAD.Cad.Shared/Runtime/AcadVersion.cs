@@ -63,10 +63,8 @@ public static class AcadVersion
         int major = int.Parse(gs[1].Value);
         int minor = int.Parse(gs[2].Value);
         foreach (var ver in Versions)
-        {
             if (ver.Major == major && ver.Minor == minor)
                 return ver;
-        }
         return null;
     }
 }

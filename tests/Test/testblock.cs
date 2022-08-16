@@ -2,9 +2,23 @@
 
 public class TestBlock
 {
+    [CommandMethod("Test_GetBoundingBoxEx")]
+    public void Test_GetBoundingBoxEx()
+    {
+        using var tr = new DBTrans();
+        var ents = Env.Editor.SSGet()?.Value?.GetEntities<Entity>();
+        if (ents == null)
+            return;
+        foreach (var item in ents)
+        {
+            var box = item.GetBoundingBoxEx();
+            Env.Print("min:" + box.min + ";max" + box.max);
+        }
+    }
+
     //块定义
-    [CommandMethod("blockdef")]
-    public void BlockDef()
+    [CommandMethod("Test_blockdef")]
+    public void Test_BlockDef()
     {
         using var tr = new DBTrans();
         //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
@@ -39,8 +53,8 @@ public class TestBlock
         });
     }
     //修改块定义
-    [CommandMethod("blockdefchange")]
-    public void BlockDefChange()
+    [CommandMethod("Test_blockdefchange")]
+    public void Test_BlockDefChange()
     {
         using var tr = new DBTrans();
         //var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
@@ -74,8 +88,8 @@ public class TestBlock
         tr.Editor.Regen();
     }
 
-    [CommandMethod("insertblockdef")]
-    public void InsertBlockDef()
+    [CommandMethod("Test_insertblockdef")]
+    public void Test_InsertBlockDef()
     {
         using var tr = new DBTrans();
         var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
@@ -119,8 +133,8 @@ public class TestBlock
         tr.CurrentSpace.InsertBlock(new Point3d(-10, 0, 0), "test44");
     }
 
-    [CommandMethod("addattsdef")]
-    public void AddAttsDef()
+    [CommandMethod("Test_addattsdef")]
+    public void Test_AddAttsDef()
     {
         using var tr = new DBTrans();
         var blockid = Env.Editor.GetEntity("pick block:").ObjectId;
@@ -132,8 +146,8 @@ public class TestBlock
         tr.BlockTable.AddAttsToBlocks(blockref, new List<AttributeDefinition> { att1, att2 });
     }
 
-    [CommandMethod("testblocknullbug")]
-    public void TestBlockNullBug()
+    [CommandMethod("test_blocknullbug")]
+    public void Test_BlockNullBug()
     {
         using var tr = new DBTrans();
 
@@ -147,7 +161,7 @@ public class TestBlock
     }
 
     [CommandMethod("test_block_file")]
-    public void TestBlockFile()
+    public void Test_BlockFile()
     {
         var tr = new DBTrans();
         var id = tr.BlockTable.GetBlockFrom(@"C:\Users\vic\Desktop\test.dwg", false);
@@ -155,8 +169,8 @@ public class TestBlock
     }
 
 
-    [CommandMethod("testclip")]
-    public void TestClipBlock()
+    [CommandMethod("test_clip")]
+    public void Test_ClipBlock()
     {
         using var tr = new DBTrans();
         tr.BlockTable.Add("test1",
@@ -183,7 +197,7 @@ public class TestBlock
     /// 给用户的测试程序，不知道对错
     /// </summary>
     [CommandMethod("test_block_ej")]
-    public void EJ()
+    public void test_block_ej()
     {
         using (var tr = new DBTrans())
         {
@@ -375,8 +389,8 @@ public class TestBlock
         //}
     }
 
-    [CommandMethod("testquickblockdef")]
-    public void TestQuickBlockDef()
+    [CommandMethod("test_quickblockdef")]
+    public void Test_QuickBlockDef()
     {
         Database db = HostApplicationServices.WorkingDatabase;
         Editor ed = Acap.DocumentManager.MdiActiveDocument.Editor;
@@ -484,9 +498,8 @@ public class TestBlock
 
 public class BlockImportClass
 {
-
-    [CommandMethod("CBLL")]
-    public void Cbll()
+    [CommandMethod("Test_CBLL")]
+    public void Test_Cbll()
     {
         string filename = @"C:\Users\vic\Desktop\Drawing1.dwg";
         using var tr = new DBTrans();
@@ -497,8 +510,8 @@ public class BlockImportClass
     }
 
 
-    [CommandMethod("CBL")]
-    public void CombineBlocksIntoLibrary()
+    [CommandMethod("Test_CombineBlocksIntoLibrary")]
+    public void Test_CombineBlocksIntoLibrary()
     {
         Document doc =
             Acap.DocumentManager.MdiActiveDocument;
