@@ -417,6 +417,9 @@ public static class EntityEx
     #endregion
 
     #region 包围盒
+    /// <summary>
+    /// 错误信息保存路径
+    /// </summary>
     static string? _BoxLogAddress;
     /// <summary>
     /// 包围盒错误文件路径
@@ -432,23 +435,76 @@ public static class EntityEx
     }
 
     static readonly HashSet<string> _typeNames;
+    /// <summary>
+    /// 
+    /// 为了保证更好的性能,
+    /// 只是在第一次调用此功能的时候进行读取,
+    /// 免得高频调用时候高频触发磁盘
+    /// </summary>
     static EntityEx()
     {
         _typeNames = new();
-
         if (!File.Exists(BoxLogAddress))
             return;
+        ExceptionToHashSet();
+    }
 
-        var old = LogHelper.LogAddress;
+    /// <summary>
+    /// 获取图元包围盒
+    /// </summary>
+    /// <param name="ent"></param>
+    /// <returns>(左下角,右上角,是否有效)</returns>
+    /// 异常:
+    ///   会将包围盒类型记录到所属路径中,以此查询
+    public static (Point3d min, Point3d max, bool IsEffective) GetBoundingBoxEx(this Entity ent)
+    {
+        //错误类型处理
+        // if (ent is AttributeDefinition) //属性定义
+        //     return (Point3d.Origin, Point3d.Origin, false);
+        // else if (ent is Xline xline)//参照线
+        //     return (xline.BasePoint, xline.BasePoint, true);
+        // else if (ent is Ray ray)//射线
+        //     return (ray.BasePoint, ray.BasePoint, true);
+
+        //指定类型处理
+        if (ent is BlockReference brf)
+            try
+            {
+                var box = brf.GeometryExtentsBestFit();
+                return (box.MinPoint, box.MaxPoint, true);
+            }
+            catch
+            {
+                //如果是一条参照线的组块,将导致获取包围盒时报错
+                //0x01 是否需要进入块内,然后拿到每个图元的BasePoint再计算中点?感觉过于复杂.
+                //0x02 这个时候拿基点走就算了
+                return (brf.Position, brf.Position, true);
+            }
+        else if (ent is MText mText)
+        {
+            //return GetMTextExtents(mText);
+        }
+        else if (!_typeNames.Contains(ent.GetType().Name))  //屏蔽天正等等缺失包围盒的类型
+            try
+            {
+                return (ent.GeometricExtents.MinPoint, ent.GeometricExtents.MaxPoint, true);
+            }
+            catch (Exception e) { ExceptionToLog(e, ent); }
+        return (Point3d.Origin, Point3d.Origin, false);
+    }
+
+
+    static void ExceptionToHashSet()
+    {
+        var old_LogAddress = LogHelper.LogAddress;
         try
         {
             LogHelper.OptionFile(BoxLogAddress);
-            var LogTxts = new FileLogger().ReadLog();
-
-            for (int i = 0; i < LogTxts.Length; i++)
+            var logTxts = new FileLogger().ReadLog();
+            for (int i = 0; i < logTxts.Length; i++)
             {
-                var line = LogTxts[i];
-                if (line.Contains("备注信息"))
+                var line = logTxts[i];
+                if (line.Contains(nameof(LogTxt.备注信息)))
                 {
                     int index = line.IndexOf(":");
                     index = line.IndexOf("\"", index) + 1;//1是"\""
@@ -460,63 +516,98 @@ public static class EntityEx
         }
         finally
         {
-            LogHelper.LogAddress = old;
+            LogHelper.LogAddress = old_LogAddress;
+        }
+    }
+
+    static void ExceptionToLog(Exception e, Entity ent)
+    {
+        //无法处理的错误类型将被记录
+        //如果错误无法try,而是cad直接致命错误,那么此处也不会被写入,
+        //这种情况无法避免程序安全性,总不能写了日志再去删除日志词条,这样会造成频繁IO的
+        //遇到一个不认识的类型再去写入?然后记录它是否可以写入?
+        var old_LogAddress = LogHelper.LogAddress;
+        var old_FlagOutFile = LogHelper.FlagOutFile;
+        try
+        {
+            LogHelper.FlagOutFile = true;
+            LogHelper.OptionFile(BoxLogAddress);
+            e.WriteLog(ent.GetType().Name, LogTarget.FileNotException);
+        }
+        finally
+        {
+            LogHelper.LogAddress = old_LogAddress;
+            LogHelper.FlagOutFile = old_FlagOutFile;
         }
     }
 
     /// <summary>
-    /// 获取图元包围盒
+    /// 获取图元包围框
     /// </summary>
-    /// <param name="ent"></param>
-    /// <returns>返回包围盒点,若相同,则表示类型不存在包围盒</returns>
-    /// 异常:
-    ///   会将包围盒类型记录到所属路径中,以此查询
-    public static (Point3d min, Point3d max) GetBoundingBoxEx(this Entity ent)
+    /// <param name="mtxt">多行文字对象</param>
+    static Extents3d GetMTextExtents(MText mtxt)
     {
-        //提前处理错误类型
-        if (ent is AttributeDefinition) //属性定义
-            return (Point3d.Origin, Point3d.Origin);
-        else if (ent is Xline xline)//参照线
-            return (xline.BasePoint, xline.BasePoint);
-        else if (ent is Ray ray)//射线
-            return (ray.BasePoint, ray.BasePoint);
+        double width = mtxt.ActualWidth;
+        double height = mtxt.ActualHeight;
+        double wl = 0.0;
+        double hb = 0.0;
 
-        try
+        //对齐方式
+        switch (mtxt.Attachment)
         {
-            if (ent is BlockReference brf)
-            {
-                try
-                {
-                    var box = brf.GeometryExtentsBestFit();
-                    return (box.MinPoint, box.MaxPoint);
-                }
-                catch
-                {
-                    //如果是两条参照线的块,将导致无法获取包围盒就会报错
-                    //是否需要进入块内,然后拿到每个图元的BasePoint再计算中点??感觉过于复杂
-                    //这个时候拿基点走就算了
-                    return (brf.Position, brf.Position);
-                }
-            }
-
-            if (!_typeNames.Contains(ent.GetType().Name))
-                return (ent.GeometricExtents.MinPoint, ent.GeometricExtents.MaxPoint);
+            case AttachmentPoint.TopCenter:
+            case AttachmentPoint.MiddleCenter:
+            case AttachmentPoint.BottomCenter:
+                wl = width * -0.5;
+                break;
+            case AttachmentPoint.TopRight:
+            case AttachmentPoint.MiddleRight:
+            case AttachmentPoint.BottomRight:
+                wl = -width;
+                break;
         }
-        catch (Exception e)
+        switch (mtxt.Attachment)
         {
-            //无法处理的错误类型将被记录
-            var old = LogHelper.LogAddress;
-            var old2 = LogHelper.FlagOutFile;
-
-            LogHelper.FlagOutFile = true;
-            LogHelper.OptionFile(BoxLogAddress);
-            e.WriteLog(ent.GetType().Name, LogTarget.FileNotException);
-
-            LogHelper.LogAddress = old;
-            LogHelper.FlagOutFile = old2;
+            case AttachmentPoint.TopLeft:
+            case AttachmentPoint.TopCenter:
+            case AttachmentPoint.TopRight:
+                hb = -height;//下边线到插入点的距离
+                break;
+            case AttachmentPoint.MiddleLeft:
+            case AttachmentPoint.MiddleCenter:
+            case AttachmentPoint.MiddleRight:
+                hb = height * -0.5;
+                break;
         }
-        return (Point3d.Origin, Point3d.Origin);
+
+        double wr = width + wl;
+        double ht = height + hb;
+        double degree = mtxt.Rotation;
+        Point3d center = mtxt.Location;
+        Point2d ptlb = new(center.X + wl, center.Y + hb);
+        Point2d ptrt = new(center.X + wr, center.Y + ht);
+
+        //声明多段线
+        Polyline pline = new();
+        pline.SetDatabaseDefaults();
+        //计算矩形的四个顶点
+        Point2d p1 = new(Math.Min(ptlb.X, ptrt.X), Math.Min(ptlb.Y, ptrt.Y));
+        Point2d p2 = new(Math.Max(ptlb.X, ptrt.X), Math.Min(ptlb.Y, ptrt.Y));
+        Point2d p3 = new(Math.Max(ptlb.X, ptrt.X), Math.Max(ptlb.Y, ptrt.Y));
+        Point2d p4 = new(Math.Min(ptlb.X, ptrt.X), Math.Max(ptlb.Y, ptrt.Y));
+        //添加多段线的顶点
+        pline.AddVertexAt(0, p1, 0, 0, 0);
+        pline.AddVertexAt(1, p2, 0, 0, 0);
+        pline.AddVertexAt(2, p3, 0, 0, 0);
+        pline.AddVertexAt(3, p4, 0, 0, 0);
+        //闭合多段线
+        pline.Closed = true;
+        pline.TransformBy(Matrix3d.Rotation(degree, Vector3d.ZAxis, center));
+        return pline.GeometricExtents;
     }
+
+
     #endregion
+
     #endregion
 }
