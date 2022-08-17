@@ -20,22 +20,12 @@ public static class CurveEx
     /// </summary>
     /// <param name="curve">曲线</param>
     /// <param name="pars">打断参数表</param>
-    /// <param name="func">参数表排序委托
-    /// <para>
-    /// 默认：<see langword="null"/>按所提供的参数表进行分割打断<br/>
-    /// 否则：按委托排序后的参数表进行分割打断
-    /// </para>
-    /// </param>
     /// <returns>打断后曲线的集合</returns>
-    public static IEnumerable<Curve> GetSplitCurves(this Curve curve,
-                                                    IEnumerable<double> pars,
-                                                    Func<IEnumerable<double>, IEnumerable<double>>? func = null)
+    public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<double> pars)
     {
-        if (pars == null)
+        if (pars is null)
             throw new ArgumentNullException(nameof(pars));
 
-        if (func != null)
-            pars = func.Invoke(pars);
         return
             curve
             .GetSplitCurves(new DoubleCollection(pars.ToArray()))
@@ -56,9 +46,14 @@ public static class CurveEx
     /// <returns>打断后曲线的集合</returns>
     public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<double> pars, bool isOrder = false)
     {
+        if (pars is null)
+            throw new ArgumentNullException(nameof(pars));
+        if (isOrder)
+            pars = pars.OrderBy(x => x);
+
         return
             curve
-            .GetSplitCurves(new DoubleCollection(isOrder ? pars.OrderBy(x => x).ToArray() : pars.ToArray()))
+            .GetSplitCurves(new DoubleCollection(pars.ToArray()))
             .Cast<Curve>();
     }
 
@@ -70,6 +65,8 @@ public static class CurveEx
     /// <returns>打断后曲线的集合</returns>
     public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<Point3d> points)
     {
+        if (points is null)
+            throw new ArgumentNullException(nameof(points));
         return
             curve
             .GetSplitCurves(new Point3dCollection(points.ToArray()))
@@ -88,13 +85,13 @@ public static class CurveEx
     /// </para>
     /// </param>
     /// <returns>打断后曲线的集合</returns>
-    public static IEnumerable<Curve> GetSplitCurves(this Curve curve,
-                                                    IEnumerable<Point3d> points,
-                                                    bool isOrder = false)
+    public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<Point3d> points, bool isOrder = false)
     {
+        if (points is null)
+            throw new ArgumentNullException(nameof(points));
         if (isOrder)
             points = points.OrderBy(point => curve.GetParameterAtPoint(
-                curve.GetClosestPointTo(point, false)));
+                                             curve.GetClosestPointTo(point, false)));
         return
             curve
             .GetSplitCurves(new Point3dCollection(points.ToArray()))
@@ -108,6 +105,9 @@ public static class CurveEx
     /// <returns>所有的闭合环的曲线集合</returns>
     public static IEnumerable<Curve> GetAllCycle(this IEnumerable<Curve> curves)
     {
+        if (curves is null)
+            throw new ArgumentNullException(nameof(curves));
+
         // 新建图
         var graph = new Graph();
         foreach (var curve in curves)
@@ -140,6 +140,9 @@ public static class CurveEx
     /// <returns>打断后的曲线列表</returns>
     public static List<Curve> BreakCurve(this List<Curve> curves)
     {
+        if (curves is null)
+            throw new ArgumentNullException(nameof(curves));
+
         var geCurves = new List<CompositeCurve3d>(); // 存储曲线转换后的复合曲线
         var paramss = new List<List<double>>();      // 存储每个曲线的交点参数值
 
@@ -707,7 +710,7 @@ public static class CurveEx
 
         //将结果Ge曲线转为Db曲线,并将相关的数值反映到原曲线
         var plTemp = c3ds[0].ToCurve() as Polyline;
-        if (plTemp == null)
+        if (plTemp is null)
             return;
         polyline.RemoveVertexAt(index);
         polyline.AddVertexAt(index, plTemp.GetPoint2dAt(1), plTemp.GetBulgeAt(1), 0, 0);
@@ -716,5 +719,5 @@ public static class CurveEx
 
     #endregion Polyline
 
-    #endregion Curve
+    #endregion
 }
