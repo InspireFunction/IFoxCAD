@@ -2,9 +2,11 @@ namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 系统管理类
-/// <para>封装了一些系统 osmode、cmdecho、dimblk 系统变量</para>
-/// <para>封装了常用的 文档 编辑器 数据库等对象为静态变量</para>
-/// <para>封装了配置页面的注册表信息获取函数</para>
+/// <para>
+/// 封装了一些系统 osmode;cmdecho;dimblk 系统变量<br/>
+/// 封装了常用的 文档 编辑器 数据库等对象为静态变量<br/>
+/// 封装了配置页面的注册表信息获取函数
+/// </para>
 /// </summary>
 public static class Env
 {

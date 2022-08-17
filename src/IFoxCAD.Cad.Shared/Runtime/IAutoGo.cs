@@ -75,9 +75,11 @@ class RunClass
 
 /// <summary>
 /// 此类作为加载后cad自动运行接口的一部分,用于反射特性和接口
-/// <para>启动cad后的执行顺序为:</para>
-/// <para>1:<see cref="IFoxInitialize"/>特性..(多个)</para>
-/// <para>2:<see cref="IFoxAutoGo"/>接口..(多个)</para>
+/// <para>
+/// 启动cad后的执行顺序为:<br/>
+/// 1:<see cref="IFoxInitialize"/>特性..(多个)<br/>
+/// 2:<see cref="IFoxAutoGo"/>接口..(多个)
+/// </para>
 /// </summary>
 public class AutoReflection
 {
@@ -89,8 +91,10 @@ public class AutoReflection
 
     /// <summary>
     /// 反射执行
-    /// <para>1.特性:<see cref="IFoxInitialize"/></para>
-    /// <para>2.接口:<see cref="IFoxAutoGo"/></para>
+    /// <para>
+    /// 1.特性:<see cref="IFoxInitialize"/><br/>
+    /// 2.接口:<see cref="IFoxAutoGo"/>
+    /// </para>
     /// </summary>
     /// <param name="dllName">约束在此dll进行加速</param>
     public AutoReflection(string dllName, AutoRegConfig configInfo)

@@ -22,7 +22,7 @@ public static class CurveEx
     /// <param name="pars">打断参数表</param>
     /// <param name="func">参数表排序委托
     /// <para>
-    /// 默认：<see langword="null"/> 按所提供的参数表进行分割打断<br/>
+    /// 默认：<see langword="null"/>按所提供的参数表进行分割打断<br/>
     /// 否则：按委托排序后的参数表进行分割打断
     /// </para>
     /// </param>
@@ -49,8 +49,8 @@ public static class CurveEx
     /// <param name="pars">打断参数表</param>
     /// <param name="isOrder">对参数表是否进行排序
     /// <para>
-    /// <see langword="true"/>：按参数值升序排序；<br/>
-    /// <see langword="false"/>：不排序，默认值
+    /// <see langword="true"/>按参数值升序排序<br/>
+    /// <see langword="false"/>不排序,默认值
     /// </para>
     /// </param>
     /// <returns>打断后曲线的集合</returns>
@@ -83,8 +83,8 @@ public static class CurveEx
     /// <param name="points">打断点表</param>
     /// <param name="isOrder">对点表是否进行排序
     /// <para>
-    /// <see langword="true"/>：按参数值升序排序；<br/>
-    /// <see langword="false"/>：不排序，默认值
+    /// <see langword="true"/>按参数值升序排序<br/>
+    /// <see langword="false"/>不排序,默认值
     /// </para>
     /// </param>
     /// <returns>打断后曲线的集合</returns>

@@ -3,11 +3,13 @@
 
 /// <summary>
 /// 注册中心
-/// <para>初始化程序集信息写入注册表并反射<see cref="IFoxInitialize"/>特性和<see cref="IFoxAutoGo"/>接口</para>
-/// <para>启动cad后的执行顺序为:</para>
-/// <para>1:<see cref="AutoRegAssem"/>程序集配置中心构造函数</para>
-/// <para>2:<see cref="IFoxInitialize"/>特性..(多个)</para>
-/// <para>3:<see cref="IFoxAutoGo"/>接口..(多个)</para>
+/// <para>
+/// 初始化程序集信息写入注册表并反射<see cref="IFoxInitialize"/>特性和<see cref="IFoxAutoGo"/>接口<br/>
+/// 启动cad后的执行顺序为:<br/>
+/// 1:<see cref="AutoRegAssem"/>程序集配置中心构造函数<br/>
+/// 2:<see cref="IFoxInitialize"/>特性..(多个)<br/>
+/// 3:<see cref="IFoxAutoGo"/>接口..(多个)<br/>
+/// </para>
 /// </summary>
 public abstract class AutoRegAssem : IExtensionApplication
 {

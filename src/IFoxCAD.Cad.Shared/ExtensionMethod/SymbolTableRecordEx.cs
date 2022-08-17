@@ -10,12 +10,16 @@ public static class SymbolTableRecordEx
     #region 克隆实体id
     /// <summary>
     /// 深度克隆id到块表记录
-    /// <para>0x01 此方法不允许是未添加数据库的图元,因此它是id</para>
-    /// <para>0x02 若为未添加数据库图元,则利用entity.Clone();同时不需要考虑动态块属性,可以使用entity.GetTransformedCopy</para>
+    /// <para>
+    /// 0x01 此方法不允许是未添加数据库的图元,因此它是id<br/>
+    /// 0x02 若为未添加数据库图元,则利用entity.Clone();同时不需要考虑动态块属性,可以使用entity.GetTransformedCopy
+    /// </para>
     /// </summary>
     /// <param name="btr">
-    /// <para>克隆到当前块表记录,相当于原地克隆</para>
-    /// <para>克隆到目标块表记录内,相当于制作新块</para>
+    /// <para>
+    /// 克隆到当前块表记录,相当于原地克隆<br/>
+    /// 克隆到目标块表记录内,相当于制作新块
+    /// </para>
     /// </param>
     /// <param name="objIds">图元id集合,注意所有成员都要在同一个空间中</param>
     /// <returns>克隆后的id词典</returns>

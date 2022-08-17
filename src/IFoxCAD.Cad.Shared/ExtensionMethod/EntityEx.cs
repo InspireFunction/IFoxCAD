@@ -197,8 +197,10 @@ public static class EntityEx
     /// <param name="mt">多行文字</param>
     /// <param name="obj">存储对象变量</param>
     /// <param name="mTextFragmentCallback">回调函数，用于处理炸散之后的对象
-    /// <para><see cref="MTextFragment"/>多行文字炸散后的对象</para>
-    /// <para><see cref="MTextFragmentCallbackStatus"/>回调函数处理的结果</para>
+    /// <para>
+    /// <see cref="MTextFragment"/>多行文字炸散后的对象<br/>
+    /// <see cref="MTextFragmentCallbackStatus"/>回调函数处理的结果
+    /// </para>
     /// </param>
     public static void ExplodeFragments<T>(this MText mt, T obj, Func<MTextFragment, T, MTextFragmentCallbackStatus> mTextFragmentCallback)
     {
