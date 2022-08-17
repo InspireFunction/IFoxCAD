@@ -1,4 +1,4 @@
-﻿namespace LoadEx;
+﻿namespace IFoxCAD.LoadEx;
 
 internal class CSharpUtils
 {

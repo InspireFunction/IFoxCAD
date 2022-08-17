@@ -1,4 +1,4 @@
-namespace LoadEx;
+namespace IFoxCAD.LoadEx;
 
 public class AssemblyHelper
 {

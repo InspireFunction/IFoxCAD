@@ -19,7 +19,7 @@ Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IFoxCAD.Cad.Shared", "src\I
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Acad09plus", "src\IFoxCAD.Cad\IFoxCAD.Aacad09plus\IFoxCAD.Acad09plus.csproj", "{CC46E4E2-90DF-48F5-B3D7-83FAFED58F2A}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.LoadForm", "src\IFoxCAD.LoadForm\IFoxCAD.LoadForm.csproj", "{05FE8BF6-0C54-4114-9626-A2F76483BE20}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.LoadEx", "src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj", "{05FE8BF6-0C54-4114-9626-A2F76483BE20}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

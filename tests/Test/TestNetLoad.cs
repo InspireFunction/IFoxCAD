@@ -5,7 +5,7 @@ public class NetLoad
     [CommandMethod("Test_NetLoad")]
     public static void Test_NetLoad()
     {
-        LoadEx.LoaderForm form = new();
+        IFoxCAD.LoadEx.LoaderForm form = new();
         Acap.ShowModalDialog(form);
     }
 }

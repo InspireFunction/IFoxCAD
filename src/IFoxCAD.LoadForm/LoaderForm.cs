@@ -1,4 +1,4 @@
-﻿namespace LoadEx;
+﻿namespace IFoxCAD.LoadEx;
 
 using System.Windows.Forms;
 

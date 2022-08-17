@@ -1,4 +1,4 @@
-﻿namespace LoadEx;
+﻿namespace IFoxCAD.LoadEx;
 
 partial class LoaderForm
 {

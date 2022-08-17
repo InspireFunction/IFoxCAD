@@ -1,4 +1,4 @@
-﻿namespace LoadEx;
+﻿namespace IFoxCAD.LoadEx;
 
 /// <summary>
 /// 加载程序集和加载状态
