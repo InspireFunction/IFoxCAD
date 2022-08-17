@@ -415,33 +415,18 @@ public static class EntityEx
     #endregion
 
     #region 包围盒
+    static string? _BoxLogAddress;
     /// <summary>
-    /// 切割符号
+    /// 包围盒错误文件路径
     /// </summary>
-    static string? _GetBoundingBoxLogAddress;
-    public static string GetBoundingBoxLogAddress
+    public static string BoxLogAddress
     {
         get
         {
-            if (_GetBoundingBoxLogAddress == null)
-            {
-                var sb = new StringBuilder();
-                sb.Append(Environment.CurrentDirectory);
-                sb.Append("\\ErrorLog\\" + nameof(GetBoundingBoxEx));
-                //新建文件夹
-                var path = sb.ToString();
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path)
-                             .Attributes = FileAttributes.Normal; //设置文件夹属性为普通
-                }
-                sb.Append('\\');
-                sb.Append(nameof(GetBoundingBoxEx));
-                sb.Append(".config");
-                _GetBoundingBoxLogAddress = sb.ToString();
-            }
-            return _GetBoundingBoxLogAddress;
+            _BoxLogAddress ??= LogHelper.GetDefaultOption(nameof(GetBoundingBoxEx) + ".config");
+            return _BoxLogAddress;
         }
+        set { _BoxLogAddress = value; }
     }
 
     static readonly HashSet<string> _typeNames;
@@ -449,25 +434,31 @@ public static class EntityEx
     {
         _typeNames = new();
 
-        if (!File.Exists(GetBoundingBoxLogAddress))
+        if (!File.Exists(BoxLogAddress))
             return;
 
         var old = LogHelper.LogAddress;
-        LogHelper.OptionFile(GetBoundingBoxLogAddress);
-        var LogTxts = new FileLogger().ReadLog();
-        LogHelper.LogAddress = old;
-
-        for (int i = 0; i < LogTxts.Length; i++)
+        try
         {
-            var line = LogTxts[i];
-            if (line.Contains("备注信息"))
+            LogHelper.OptionFile(BoxLogAddress);
+            var LogTxts = new FileLogger().ReadLog();
+
+            for (int i = 0; i < LogTxts.Length; i++)
             {
-                int index = line.IndexOf(":");
-                index = line.IndexOf("\"", index) + 1;//1是"\""
-                int index2 = line.IndexOf("\"", index);
-                var msg = line.Substring(index, index2 - index);
-                _typeNames.Add(msg);
+                var line = LogTxts[i];
+                if (line.Contains("备注信息"))
+                {
+                    int index = line.IndexOf(":");
+                    index = line.IndexOf("\"", index) + 1;//1是"\""
+                    int index2 = line.IndexOf("\"", index);
+                    var msg = line.Substring(index, index2 - index);
+                    _typeNames.Add(msg);
+                }
             }
+        }
+        finally
+        {
+            LogHelper.LogAddress = old;
         }
     }
 
@@ -516,7 +507,7 @@ public static class EntityEx
             var old2 = LogHelper.FlagOutFile;
 
             LogHelper.FlagOutFile = true;
-            LogHelper.OptionFile(GetBoundingBoxLogAddress);
+            LogHelper.OptionFile(BoxLogAddress);
             e.WriteLog(ent.GetType().Name, LogTarget.FileNotException);
 
             LogHelper.LogAddress = old;

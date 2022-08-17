@@ -173,7 +173,7 @@ public static class LogHelper
     /// <summary>
     /// 提供给外部设置log文件保存路径
     /// </summary>
-    /// <param name="newlogAddress">空的话就为运行的dll旁边的一个文件夹上</param>
+    /// <param name="newlogAddress">null就生成默认配置</param>
     public static void OptionFile(string? newlogAddress = null)
     {
         _logWriteLock.EnterWriteLock();// 写模式锁定 读写锁
@@ -181,32 +181,43 @@ public static class LogHelper
         {
             LogAddress = newlogAddress;
             if (string.IsNullOrEmpty(LogAddress))
-            {
-                //微软回复:静态构造函数只会被调用一次,
-                //并且在它执行完成之前,任何其它线程都不能创建这个类的实例或使用这个类的静态成员
-                //https://blog.csdn.net/weixin_34204722/article/details/90095812
-                var sb = new StringBuilder();
-                sb.Append(Environment.CurrentDirectory);
-                sb.Append("\\ErrorLog");
-
-                //新建文件夹
-                var path = sb.ToString();
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path)
-                             .Attributes = FileAttributes.Normal; //设置文件夹属性为普通
-                }
-
-                sb.Append('\\');
-                sb.Append(DateTime.Now.ToString("yy-MM-dd"));
-                sb.Append(".log");
-                LogAddress = sb.ToString();
-            }
+                LogAddress = GetDefaultOption(DateTime.Now.ToString("yy-MM-dd") + ".log");
         }
         finally
         {
             _logWriteLock.ExitWriteLock();// 解锁 读写锁
         }
+    }
+
+    /// <summary>
+    /// 输入文件名,获取保存路径的完整路径
+    /// </summary>
+    /// <param name="fileName">文件名,null获取默认路径</param>
+    /// <param name="createDirectory">创建路径</param>
+    /// <returns>完整路径</returns>
+    public static string GetDefaultOption(string fileName, bool createDirectory = true)
+    {
+        //微软回复:静态构造函数只会被调用一次,
+        //并且在它执行完成之前,任何其它线程都不能创建这个类的实例或使用这个类的静态成员
+        //https://blog.csdn.net/weixin_34204722/article/details/90095812
+        var sb = new StringBuilder();
+        sb.Append(Environment.CurrentDirectory);
+        sb.Append("\\ErrorLog");
+
+        //新建文件夹
+        if (createDirectory)
+        {
+            var path = sb.ToString();
+            if (!Directory.Exists(path))
+            {
+                //设置文件夹属性为普通
+                Directory.CreateDirectory(path)
+                         .Attributes = FileAttributes.Normal;
+            }
+        }
+        sb.Append('\\');
+        sb.Append(fileName);
+        return sb.ToString();
     }
 
     public static string WriteLog(this string? message,
