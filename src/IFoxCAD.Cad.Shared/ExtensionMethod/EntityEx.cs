@@ -457,12 +457,15 @@ public static class EntityEx
         var LogTxts = new FileLogger().ReadLog();
         LogHelper.LogAddress = old;
 
-        foreach (var line in LogTxts)
+        for (int i = 0; i < LogTxts.Length; i++)
         {
+            var line = LogTxts[i];
             if (line.Contains("备注信息"))
             {
-                var s = line.IndexOf(":") + 1;
-                var msg = line.Substring(s, line.Length - s).Replace("\"", string.Empty).Trim();
+                int index = line.IndexOf(":");
+                index = line.IndexOf("\"", index) + 1;//1是"\""
+                int index2 = line.IndexOf("\"", index);
+                var msg = line.Substring(index, index2 - index);
                 _typeNames.Add(msg);
             }
         }
@@ -478,12 +481,11 @@ public static class EntityEx
     public static (Point3d min, Point3d max) GetBoundingBoxEx(this Entity ent)
     {
         //提前处理错误类型
-        if (ent is AttributeDefinition) //属性定义没有包围盒
+        if (ent is AttributeDefinition) //属性定义
             return (Point3d.Origin, Point3d.Origin);
-
-        if (ent is Xline xline)//参照线
+        else if (ent is Xline xline)//参照线
             return (xline.BasePoint, xline.BasePoint);
-        if (ent is Ray ray)//射线
+        else if (ent is Ray ray)//射线
             return (ray.BasePoint, ray.BasePoint);
 
         try
@@ -504,10 +506,8 @@ public static class EntityEx
                 }
             }
 
-            //var type = ent.GetType();
-            //if (_typeNames.Contains(type))
-            //    return null;
-            return (ent.GeometricExtents.MinPoint, ent.GeometricExtents.MaxPoint);
+            if (!_typeNames.Contains(ent.GetType().Name))
+                return (ent.GeometricExtents.MinPoint, ent.GeometricExtents.MaxPoint);
         }
         catch (Exception e)
         {
