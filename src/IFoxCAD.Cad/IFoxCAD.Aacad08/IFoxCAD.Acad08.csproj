@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
+    
     <PropertyGroup>
-        <TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
+        <TargetFrameworks>NET35</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
@@ -30,34 +30,18 @@
         <!--<PackageReference Include="Autocad.NetApi" Version="17.2.0"  ExcludeAssets="runtime"/>-->
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
-        <PackageReference Include="JJBox.Acad2013" Version="1.0.0" ExcludeAssets="runtime" />
-        <!--<PackageReference Include="Autocad.NetApi" Version="19.0.0"  ExcludeAssets="runtime"/>-->
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
-        <PackageReference Include="JJBox.Acad2015" Version="1.0.0" ExcludeAssets="runtime" />
-        <!--<PackageReference Include="AutoCAD.NET" Version="20.0.1"  ExcludeAssets="runtime"/>-->
-    </ItemGroup>
-
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>DEBUG</DefineConstants>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
         <DefineConstants>$(Configuration);ac2008;ac2009</DefineConstants>
     </PropertyGroup>
-    <PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
-        <DefineConstants>$(Configuration);ac2013</DefineConstants>
-    </PropertyGroup>
-    <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
-        <DefineConstants>$(Configuration);ac2015</DefineConstants>
-    </PropertyGroup>
- 
+
     <ItemGroup>
-      <None Include="..\..\..\LICENSE" Link="LICENSE">
-        <Pack>True</Pack>
-        <PackagePath></PackagePath>
-      </None>
+        <None Include="..\..\..\LICENSE" Link="LICENSE">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
     </ItemGroup>
 
     <!--<ItemGroup>
