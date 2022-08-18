@@ -1,6 +1,4 @@
-﻿using System.Windows.Forms;
-
-namespace Test;
+﻿namespace Test;
 
 public class NetLoad
 {
@@ -12,6 +10,7 @@ public class NetLoad
 
         if (!_form.Visible)
             _form.Visible = true;
+
 
         _form.Show();
         //Acap.ShowModalDialog(_form);
