@@ -131,6 +131,7 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// <returns></returns>
     bool SearchForReg()
     {
+        //在使用netloadx的时候,此处注册表是失效的,具体原因要进行netloadx测试
         var appkey = GetAcAppKey();
         if (appkey.SubKeyCount == 0)
             return false;

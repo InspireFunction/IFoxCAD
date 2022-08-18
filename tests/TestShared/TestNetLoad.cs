@@ -2,7 +2,7 @@
 
 public class NetLoad
 {
-    [CommandMethod("Test_NetLoad")]
+    [CommandMethod("netloadx")]
     public static void Test_NetLoad()
     {
         IFoxCAD.LoadEx.LoaderForm form = new();

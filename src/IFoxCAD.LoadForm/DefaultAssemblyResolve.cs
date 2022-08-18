@@ -18,28 +18,32 @@ public class AssemblyHelper
     /// <returns>程序集如果为空就不会调用</returns>
     public static Assembly? DefaultAssemblyResolve(object sender, ResolveEventArgs args)
     {
+        Assembly? result = null;
         var cadAss = AppDomain.CurrentDomain.GetAssemblies();
 
         //名称和版本号都一致的,调用它
-        var load = cadAss.FirstOrDefault(ass => ass.GetName().FullName == args.Name);
-        if (load != null)
-            return load;
+        result = cadAss.FirstOrDefault(ass => ass.GetName().FullName == args.Name);
+        if (result != null)
+            return result;
 
         //获取名称一致,但是版本号不同的,调用最后的可用版本
-        var ag = args.Name.Substring(args.Name.IndexOf(','));
-        //var ag = args.Name.Split(',')[0];
+        var ag = GetAssemblyName(args.Name);
 
         //获取最后一个符合条件的,
-        //否则a.dll引用b.dll函数的时候,b.dll修改重生成之后,加载进去会调用第一个版本的b.dll
-        foreach (var item in cadAss)
+        //否则a.dll引用b.dll函数的时候,b.dll修改重生成之后,
+        //加载进去会调用第一个版本的b.dll,
+        //vs会迭代程序版本号的*,所以最后的可用就是循环到最后的.
+        for (int i = 0; i < cadAss.Length; i++)
         {
-            if (item.GetName().FullName.Split(',')[0] != ag)
+            if (GetAssemblyName(cadAss[i].GetName().FullName) != ag)
                 continue;
-
-            //为什么加载的程序版本号最后要是*
-            //因为vs会帮你迭代这个版本号,所以最后的可用就是循环到最后的.
-            load = item;
+            result = cadAss[i];
         }
-        return load;
+        return result;
+    }
+
+    static string GetAssemblyName(string argString)
+    {
+        return argString.Substring(argString.IndexOf(','));
     }
 }
