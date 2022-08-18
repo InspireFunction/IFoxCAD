@@ -4,7 +4,7 @@
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
 
-        <TargetFrameworks>net45</TargetFrameworks>
+        <TargetFrameworks>NET45</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -22,7 +22,7 @@
         <PackageReleaseNotes>开启可空类型.</PackageReleaseNotes>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|net45|AnyCPU'">
+    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|NET45|AnyCPU'">
         <DefineConstants>DEBUG;TRACE</DefineConstants>
     </PropertyGroup>
 

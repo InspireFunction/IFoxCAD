@@ -8,7 +8,7 @@ using System.Diagnostics;
 using System.Numerics.Hashing;
 /*
  * 惊惊:
- * 首先是因为有人想要编译的时候只形成一个dll,然后把元组塞入IFox,同时也补充了net35没有元组的遗憾.
+ * 首先是因为有人想要编译的时候只形成一个dll,然后把元组塞入IFox,同时也补充了NET35没有元组的遗憾.
  * 而利用nuget元组包必然会形成依赖地狱.
  * 
  * 如果你的工程使用了nuget元组包,就造成了必须要剔除IFox.

@@ -5,7 +5,7 @@
         <Nullable>enable</Nullable>
 
         <OutputType>Exe</OutputType>
-        <TargetFramework>net45</TargetFramework>
+        <TargetFramework>NET45</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
     </PropertyGroup>
@@ -13,10 +13,5 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
     </ItemGroup>
-
-
-
-
-
-
+ 
 </Project>

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
-        <TargetFrameworks>net35;net40;net45</TargetFrameworks>
+        <TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
