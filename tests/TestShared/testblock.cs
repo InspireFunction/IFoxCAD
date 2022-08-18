@@ -11,6 +11,8 @@ public class TestBlock
             return;
         foreach (var item in ents)
         {
+            if(item is null)
+                continue;
             var box = item.GetBoundingBoxEx();
             Env.Print("min:" + box.min + ";max" + box.max);
         }
@@ -73,7 +75,7 @@ public class TestBlock
             foreach (var id in btr)
             {
                 var ent = tr.GetObject<Entity>(id);
-                using (ent.ForWrite())
+                using (ent!.ForWrite())
                 {
                     if (ent is Dimension dBText)
                     {
@@ -85,7 +87,7 @@ public class TestBlock
                 }
             }
         });
-        tr.Editor.Regen();
+        tr.Editor?.Regen();
     }
 
     [CommandMethod("Test_insertblockdef")]
@@ -138,7 +140,7 @@ public class TestBlock
     {
         using var tr = new DBTrans();
         var blockid = Env.Editor.GetEntity("pick block:").ObjectId;
-        var blockref = tr.GetObject<BlockReference>(blockid).BlockTableRecord;
+        var blockref = tr.GetObject<BlockReference>(blockid)!.BlockTableRecord;
 
         var att1 = new AttributeDefinition() { Position = new Point3d(20, 20, 0), Tag = "addtagTest1", Height = 1, TextString = "valueTest1" };
         var att2 = new AttributeDefinition() { Position = new Point3d(10, 12, 0), Tag = "tagTest2", Height = 1, TextString = "valueTest2" };
@@ -183,14 +185,13 @@ public class TestBlock
             );
         //tr.BlockTable.Add("hah");
         var id = tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test1");
-        var bref = tr.GetObject<BlockReference>(id);
+        var bref = tr.GetObject<BlockReference>(id)!;
         var pts = new List<Point3d> { new Point3d(3, 3, 0), new Point3d(7, 3, 0), new Point3d(7, 7, 0), new Point3d(3, 7, 0) };
         bref.ClipBlockRef(pts);
 
         var id1 = tr.CurrentSpace.InsertBlock(new Point3d(20, 20, 0), "test1");
         var bref1 = tr.GetObject<BlockReference>(id);
-
-        bref1.ClipBlockRef(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
+        bref1?.ClipBlockRef(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
     }
 
     /// <summary>
@@ -224,15 +225,9 @@ public class TestBlock
                 ltr.Color = Color.FromColorIndex(ColorMethod.ByAci, 2); //ColorMethod.ByAci可以让我们使用AutoCAD ACI颜色索引……这里为2（表示黄色）
             });
 
-            ObjectId id = tr.ModelSpace.InsertBlock(Point3d.Origin, blockdef);//插入块参照
-
-
-
-
-
+            var id = tr.ModelSpace.InsertBlock(Point3d.Origin, blockdef);//插入块参照
             var entTest = tr.GetObject<BlockReference>(id);
-            entTest.Draw();
-
+            entTest?.Draw();
         }
 
         using var tr2 = new DBTrans();
@@ -246,7 +241,7 @@ public class TestBlock
             return;
         }
 
-        var Bref = tr2.GetObject<BlockReference>(PER.ObjectId);
+        var Bref = tr2.GetObject<BlockReference>(PER.ObjectId)!;
         //var BTR = tr.GetObject<BlockTableRecord>(Bref.BlockTableRecord, OpenMode.ForWrite);
         ////如果知道块名字BTRName
         //BlockTableRecord BTR = tr.GetObject<BlockTableRecord>(tr.BlockTable[blockName], OpenMode.ForWrite);
@@ -257,10 +252,10 @@ public class TestBlock
 
             foreach (ObjectId OID in ltr)
             {
-                var Ent = tr2.GetObject<Entity>(OID);
-                using (Ent.ForWrite())
+                var ent = tr2.GetObject<Entity>(OID);
+                using (ent!.ForWrite())
                 {
-                    if (Ent is MText mText)
+                    if (ent is MText mText)
                     {
                         switch (mText.Text)
                         {
@@ -274,10 +269,9 @@ public class TestBlock
                                 ;
                                 break;
                         }
-
-                    };
-                    if (Ent is DBText dBText) { dBText.TextString = "haha"; };
-                    if (Ent is Dimension dimension)
+                    }
+                    else if (ent is DBText dBText) { dBText.TextString = "haha"; }
+                    else if (ent is Dimension dimension)
                     {
                         switch (dimension.DimensionText)
                         {
@@ -288,18 +282,12 @@ public class TestBlock
                             default:
                                 break;
                         }
-                    };
+                    }
                 }
-
-
             }
-
         });
 
-
-        tr2.Editor.Regen();
-
-
+        tr2.Editor?.Regen();
     }
 
     [CommandMethod("W_KSZK")]
@@ -344,8 +332,7 @@ public class TestBlock
             //ents = ents.OrderBy(x => x.Value).ToList();
             var ents = rss.Value.GetEntities<Entity>();
             //ents.ForEach(ent => extents.AddExtents(ent.GeometricExtents));
-            var extents = ents.GetExtents();
-
+            var extents = ents!.GetExtents();
             Point3d pt = extents.MinPoint;
             Matrix3d matrix = Matrix3d.Displacement(Point3d.Origin - pt);
             //var newEnts = new List<Entity>();
@@ -361,18 +348,18 @@ public class TestBlock
             //    return;
             //}
             ents.ForEach(ent =>
-                ent.ForWrite(e => e.TransformBy(matrix)));
+                ent?.ForWrite(e => e?.TransformBy(matrix)));
             //var newents = ents.Select(ent =>
             //{
             //    var maping = new IdMapping();
             //    return ent.DeepClone(ent, maping, true) as Entity;
             //});
-            var newents = ents.Select(ent => ent.Clone() as Entity);
+            var newents = ents.Select(ent => ent?.Clone() as Entity);
 
             //ents.ForEach(ent => ent.ForWrite(e => e.Erase(true))); // 删除实体就会卡死，比较奇怪，估计是Clone()函数的问题
             // 经过测试不是删除的问题
-            var btrId = tr.BlockTable.Add(blockName, newents);
-            ents.ForEach(ent => ent.ForWrite(e => e.Erase(true)));
+            var btrId = tr.BlockTable.Add(blockName, newents!);
+            ents.ForEach(ent => ent?.ForWrite(e => e?.Erase(true)));
             var bId = tr.CurrentSpace.InsertBlock(pt, blockName);
             //tr.GetObject<Entity>(bId, OpenMode.ForWrite).Move(Point3d.Origin, Point3d.Origin);
             //var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
@@ -416,11 +403,10 @@ public class TestBlock
         foreach (var item in ids)
         {
             var ent = tr.GetObject(item, OpenMode.ForRead) as Entity;
-
-            btr.AppendEntity(ent.Clone() as Entity);
+            btr.AppendEntity(ent!.Clone() as Entity);
             ent.ForWrite(e => e.Erase(true));
         }
-        bt.UpgradeOpen();
+        bt!.UpgradeOpen();
         bt.Add(btr);
         tr.AddNewlyCreatedDBObject(btr, true);
         bt.DowngradeOpen();
@@ -435,7 +421,7 @@ public class TestBlock
         {
             ScaleFactors = default
         };
-        btr1.AppendEntity(br);
+        btr1!.AppendEntity(br);
         tr.AddNewlyCreatedDBObject(br, true);
         btr1.DowngradeOpen();
         ed.Regen();
@@ -465,7 +451,7 @@ public class TestBlock
         };
         var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
         using var tr = new DBTrans();
-        var blockref = tr.GetObject<BlockReference>(blockid);
+        var blockref = tr.GetObject<BlockReference>(blockid)!;
         blockref.ChangeBlockProperty(pro);
         // 这是第一个函数的用法
     }
@@ -509,7 +495,7 @@ public class BlockImportClass
         tr.Database.Insert(blkdefname, tr1.Database, false); //插入了块定义，未插入块参照
     }
 
-
+#if !NET35
     [CommandMethod("Test_CombineBlocksIntoLibrary")]
     public void Test_CombineBlocksIntoLibrary()
     {
@@ -634,5 +620,6 @@ public class BlockImportClass
           failed > 0 ? " (" + failed + " failed)" : "",
           pathName
         );
-    }
+    } 
+#endif
 }

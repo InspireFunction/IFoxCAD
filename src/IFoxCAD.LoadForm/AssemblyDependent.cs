@@ -19,7 +19,7 @@ public struct LoadState
 [HarmonyPatch("Autodesk.AutoCAD.ApplicationServices.ExtensionLoader", "OnAssemblyLoad")]
 public class AssemblyDependent : IDisposable
 {
-    #region 公共
+    #region 字段和事件
     /// <summary>
     /// 当前域加载事件,运行时出错的话,就靠这个事件来解决
     /// </summary>
@@ -28,13 +28,7 @@ public class AssemblyDependent : IDisposable
         add { AppDomain.CurrentDomain.AssemblyResolve += value; }
         remove { AppDomain.CurrentDomain.AssemblyResolve -= value; }
     }
-
-
-    #endregion
-
-    #region 字段
-
-
+  
     /// <summary>
     /// cad程序域依赖_内存区(不可以卸载)
     /// </summary>

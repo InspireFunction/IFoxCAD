@@ -20,7 +20,7 @@ public class TestLoop
 
         Env.Print(loop);
 
-        loop.SetFirst(loop.Last);
+        loop.SetFirst(loop.Last!);
         Env.Print(loop);
         Env.Print(loop.Min());
         loop.SetFirst(new LoopListNode<int> (loop.Min() ,loop));

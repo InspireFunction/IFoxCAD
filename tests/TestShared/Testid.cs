@@ -34,7 +34,7 @@ public class Testid
 
         var l1 = new Line(new Point3d(0, 0, 0), new Point3d(100, 100, 0));
         var blkred = trans.GetObject(Env.Database.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
-        blkred.AppendEntity(l1);
+        blkred?.AppendEntity(l1);
         trans.AddNewlyCreatedDBObject(l1, true);
         trans.Commit();
         //dbtrans.Dispose();

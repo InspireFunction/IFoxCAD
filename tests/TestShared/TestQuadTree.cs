@@ -36,7 +36,7 @@ public class CadEntity : QuadEntity
 
 public partial class TestQuadTree
 {
-    QuadTree<CadEntity> _quadTreeRoot;
+    QuadTree<CadEntity>? _quadTreeRoot;
     #region 四叉树创建并加入
     [CommandMethod("Test_QuadTree")]
     public void Test_QuadTree()
@@ -93,7 +93,7 @@ public partial class TestQuadTree
             foreach (var ent in grc)
             {
                 //初始化图元颜色
-                ent.ColorIndex = 1; //Color.FromRgb(0, 0, 0);//黑色
+                ent!.ColorIndex = 1; //Color.FromRgb(0, 0, 0);//黑色
                 var edge = ent.GeometricExtents;
                 //四叉树数据
                 var entRect = new Rect(edge.MinPoint.X, edge.MinPoint.Y, edge.MaxPoint.X, edge.MaxPoint.Y);
@@ -115,12 +115,10 @@ public partial class TestQuadTree
         //测试只加入四叉树的时间
         Timer.RunTime(() => {
             for (int i = 0; i < ces.Count; i++)
-            {
                 _quadTreeRoot.Insert(ces[i]);
-            }
         }, Timer.TimeEnum.Millisecond, "插入四叉树时间:");//30万图元±0.7秒.cad2021
 
-        tr.Editor.WriteMessage($"\n加入图元数量:{maximumItems}");
+        tr.Editor?.WriteMessage($"\n加入图元数量:{maximumItems}");
     }
 
     /// <summary>
@@ -128,7 +126,7 @@ public partial class TestQuadTree
     /// </summary>
     /// <param name="createNumber">创建数量</param>
     /// <param name="dbExt">数据库边界</param>
-    static IEnumerable<Entity> GenerateRandomCircle(int createNumber, Rect dbExt)
+    static IEnumerable<Entity?> GenerateRandomCircle(int createNumber, Rect dbExt)
     {
         var x1 = (int)dbExt.X;
         var x2 = (int)(dbExt.X + dbExt.Width);
@@ -354,9 +352,11 @@ public partial class TestQuadTree
     /// <param name="mode"></param>
     void Ssget(QuadTreeSelectMode mode)
     {
-        using var tr = new DBTrans();
-
         if (_quadTreeRoot is null)
+            return;
+
+        using var tr = new DBTrans();
+        if (tr.Editor is null)
             return;
         var rect = GetCorner(tr.Editor);
         if (rect is null)
@@ -368,7 +368,7 @@ public partial class TestQuadTree
         var ces = _quadTreeRoot.Query(rect, mode);
         ces.ForEach(item => {
             var ent = tr.GetObject<Entity>(item.ObjectId, OpenMode.ForWrite);
-            ent.Color = Color.FromColor(item.Color);
+            ent!.Color = Color.FromColor(item.Color);
             ent.DowngradeOpen();
             ent.Dispose();
         });

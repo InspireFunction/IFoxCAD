@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+    <PropertyGroup>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>
+
+        <TargetFrameworks>net35</TargetFrameworks>
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+        <PlatformTarget>x86</PlatformTarget>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Aacad08\IFoxCAD.Acad08.csproj" />
+        <ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />
+    </ItemGroup>
+
+    <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
+</Project>

@@ -30,7 +30,8 @@ public class MirrorFile
                 dbText.DowngradeOpen();
             }
         });
-        tr.Database.SaveAs(fileSave, DwgVersion.AC1021/*AC1021 AutoCAD 2007/2008/2009.*/);
+        var ver = (DwgVersion)27;/*AC1021 AutoCAD 2007/2008/2009.*/
+        tr.Database.SaveAs(fileSave, ver);
     }
 
     /// <summary>
@@ -70,6 +71,6 @@ public class MirrorFile
                 }
             });
         });
-        tr.Database.SaveAs(fileSave, DwgVersion.AC1021/*AC1021 AutoCAD 2007/2008/2009.*/);
+        tr.Database.SaveAs(fileSave, (DwgVersion)27 /*AC1021 AutoCAD 2007/2008/2009.*/);
     }
 }

@@ -9,11 +9,9 @@ public class TestEnt
 
         using var tr = new DBTrans();
         tr.CurrentSpace.AddEntity(line);
-        var line2 = line.Clone() as Line;
+        var line2 = (Line)line.Clone();
         tr.CurrentSpace.AddEntity(line2);
         line2.Rotation(new(100, 0, 0), Math.PI / 2);
-
-
     }
 
 

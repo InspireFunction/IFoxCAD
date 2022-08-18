@@ -62,10 +62,9 @@ public class Testenv
     {
         //Env.Print(AcadVersion.Versions);
         AcadVersion.Versions.ForEach(v => Env.Print(v));
-        AcadVersion.FromApp(Acap.AcadApplication).Print();
+        AcadVersion.FromApp(Acap.AcadApplication)?.Print();
         1.Print();
         "1".Print();
-
     }
 
     [CommandMethod("TestGetVar")]

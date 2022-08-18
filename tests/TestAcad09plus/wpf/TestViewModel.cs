@@ -6,18 +6,16 @@ using System.Windows.Input;
 
 class TestViewModel : ViewModelBase
 {
-
-    private string name;
-
-    public string Name
+    string? name;
+    public string? Name
     {
         get { return name; }
         set { Set(ref name, value); }
     }
 
-    private RelayCommand clickCommand;
+    private RelayCommand? clickCommand;
 
-    public RelayCommand ClickCommand
+    public RelayCommand? ClickCommand
     {
         get
         {
@@ -35,15 +33,15 @@ class TestViewModel : ViewModelBase
         set { Set(ref receiveMouseMove, value); }
     }
 
-    private string tipText;
-    public string TipText
+    private string? tipText;
+    public string? TipText
     {
         get { return tipText; }
         set { Set(ref tipText, value); }
     }
 
-    private RelayCommand loadedCommand;
-    public RelayCommand LoadCommand
+    private RelayCommand? loadedCommand;
+    public RelayCommand? LoadCommand
     {
         get
         {
@@ -52,8 +50,8 @@ class TestViewModel : ViewModelBase
         }
     }
 
-    private RelayCommand<MouseEventArgs> mouseMoveCommand;
-    public RelayCommand<MouseEventArgs> MouseMoveCommand
+    private RelayCommand<MouseEventArgs>? mouseMoveCommand;
+    public RelayCommand<MouseEventArgs>? MouseMoveCommand
     {
         get
         {

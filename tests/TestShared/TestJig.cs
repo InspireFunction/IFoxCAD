@@ -8,19 +8,17 @@ public class Commands_Jig
     [CommandMethod("TestCmd_jig33")]
     public static void TestCmd_jig33()
     {
-        Circle cir;
         using var tr = new DBTrans();
-        var per = tr.Editor.GetEntity("\n点选圆形:");
-        if (per.Status != PromptStatus.OK)
+        var per = tr.Editor?.GetEntity("\n点选圆形:");
+        if (per?.Status != PromptStatus.OK)
             return;
-        cir = tr.GetObject<Circle>(per.ObjectId, OpenMode.ForWrite);
-
+        var cir = tr.GetObject<Circle>(per.ObjectId, OpenMode.ForWrite);
         if (cir == null)
             return;
         var oldSp = cir.StartPoint;
-        JigEx moveJig = null;
+        JigEx? moveJig = null;
         moveJig = new JigEx((mousePoint, drawEntitys) => {
-            moveJig.SetOptions(oldSp);//回调过程中也可以修改基点
+            moveJig!.SetOptions(oldSp);//回调过程中也可以修改基点
             //cir.UpgradeOpen();//已经提权了,所以这里不需要提权
             cir.Move(cir.StartPoint, mousePoint);
             //cir.DowngradeOpen();
@@ -62,14 +60,14 @@ public class Commands_Jig
          * 原因: 多段线与鼠标垂直点作为 BasePoint,jig鼠标点为确定点
          * 所以需要先声明再传入指针,但是我发现null也可以.
          */
-        JigEx jig = null;
-        JigPromptPointOptions options = null;
+        JigEx? jig = null;
+        JigPromptPointOptions? options = null;
         jig = new JigEx((mousePoint, drawEntitys) => {
             var closestPt = pl.GetClosestPointTo(mousePoint, false);
 
             //回调过程中SetOptions会覆盖配置,所以如果想增加关键字或者修改基点,
             //不要这样做: jig.SetOptions(closestPt) 而是使用底层暴露
-            options.BasePoint = closestPt;
+            options!.BasePoint = closestPt;
 
             //需要避免重复加入同一个关键字
             if (!options.Keywords.Contains("A"))
@@ -99,18 +97,18 @@ public class Commands_Jig
                 switch (pr.StringResult)
                 {
                     case "A":
-                        tr.Editor.WriteMessage($"\n 您触发了关键字{pr.StringResult}");
+                        tr.Editor?.WriteMessage($"\n 您触发了关键字{pr.StringResult}");
                         flag = false;
                         break;
                     case " ":
-                        tr.Editor.WriteMessage("\n 触发关键字空格");
+                        tr.Editor?.WriteMessage("\n 触发关键字空格");
                         flag = false;
                         break;
                 }
             }
             else if (pr.Status != PromptStatus.OK)//PromptStatus.None == 右键,空格,回车,都在这里结束
             {
-                tr.Editor.WriteMessage(Environment.NewLine + pr.Status.ToString());
+                tr.Editor?.WriteMessage(Environment.NewLine + pr.Status.ToString());
                 return;
             }
             else

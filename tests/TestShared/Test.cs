@@ -7,6 +7,8 @@ public class Test
     public void Dbtest()
     {
         using var tr = new DBTrans();
+        if (tr.Editor is null)
+            return;
         tr.Editor.WriteMessage("\n测试 Editor 属性是否工作！");
         tr.Editor.WriteMessage("\n----------开始测试--------------");
         tr.Editor.WriteMessage("\n测试document属性是否工作");
@@ -60,19 +62,19 @@ public class Test
     public void DraCircle()
     {
         using var tr = new DBTrans();
-        Circle circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));                       //起点，终点
-        Circle circle2 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(2, 0, 0), new Point3d(0, 2, 0));//三点画圆，成功
-        Circle circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0));//起点，圆心，终点，失败
-        tr.CurrentSpace.AddEntity(circle1, circle2);
+        var circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));                       //起点，终点
+        var circle2 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(2, 0, 0), new Point3d(0, 2, 0));//三点画圆，成功
+        var circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0));//起点，圆心，终点，失败
+        tr.CurrentSpace.AddEntity(circle1, circle2!);
         if (circle3 is not null)
         {
             tr.CurrentSpace.AddEntity(circle3);
         }
         else
         {
-            tr.Editor.WriteMessage("三点画圆失败");
+            tr.Editor?.WriteMessage("三点画圆失败");
         }
-        tr.CurrentSpace.AddEntity(circle3);
+        tr.CurrentSpace.AddEntity(circle3!);
         tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));//三点画圆，成功
         tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 2, 0));//起点，圆上一点，终点(共线)
     }
@@ -223,7 +225,7 @@ public class Test
         var ed = doc.Editor;
         using var tr = new DBTrans();
         tr.RegAppTable.ForEach(id =>
-            id.GetObject<RegAppTableRecord>().Name.Print());
+            id.GetObject<RegAppTableRecord>()?.Name.Print());
         tr.RegAppTable.GetRecords().ForEach(rec => rec.Name.Print());
         tr.RegAppTable.GetRecordNames().ForEach(name => name.Print());
         tr.RegAppTable.ForEach(re => re.Name.Print());
@@ -248,7 +250,7 @@ public class Test
         if (res.Status == PromptStatus.OK)
         {
             using var tr = new DBTrans();
-            var data = tr.GetObject<Entity>(res.ObjectId);
+            var data = tr.GetObject<Entity>(res.ObjectId)!;
             data.ChangeXData(appname, DxfCode.ExtendedDataAsciiString, "change");
 
             ed.WriteMessage(data.XData.ToString());
@@ -265,9 +267,8 @@ public class Test
         {
             using var tr = new DBTrans();
             var data = tr.GetObject<Entity>(res.ObjectId);
-            data.RemoveXData(appname, DxfCode.ExtendedDataAsciiString);
-
-            ed.WriteMessage(data.XData.ToString());
+            data?.RemoveXData(appname, DxfCode.ExtendedDataAsciiString);
+            ed.WriteMessage(data?.XData.ToString());
         }
     }
 
@@ -277,11 +278,11 @@ public class Test
         using var tr = new DBTrans();
         foreach (var layerRecord in tr.LayerTable.GetRecords())
         {
-            tr.Editor.WriteMessage(layerRecord.Name);
+            tr.Editor?.WriteMessage(layerRecord.Name);
         }
         foreach (var layerRecord in tr.LayerTable.GetRecords())
         {
-            tr.Editor.WriteMessage(layerRecord.Name);
+            tr.Editor?.WriteMessage(layerRecord.Name);
             break;
         }
     }

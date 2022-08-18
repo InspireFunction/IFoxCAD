@@ -98,12 +98,10 @@ public class TestPoint
     {
         var lst1 = new List<int> { 1, 2, 3, 4 };
         var lst2 = new List<int> { 1, 2, 3, 4};
-        lst1.EqualsAll(null);
+        lst1.EqualsAll(null!);
         Tools.TestTimes2(1000000, "eqaulspeed:", () => {
             lst1.EqualsAll(lst2);
         });
-        
-
     }
 
     [CommandMethod("Testcontains")]

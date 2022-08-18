@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Test": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Program Files (x86)\\AutoCAD 2008\\acad.exe",
+      "commandLineArgs": "/nologo",
+      "nativeDebugging": false
+    }
+  }
+}

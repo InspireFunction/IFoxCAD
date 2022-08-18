@@ -10,13 +10,14 @@ public partial class LoaderForm : Form
         InitializeComponent();
     }
 
-    static void LoadDll(string path)
+    static string? LoadDll(string path)
     {
-        var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
+        //var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
         var ad = new AssemblyDependent();
         var ls = new List<LoadState>();
         ad.Load(path, ls);
-        ed.WriteMessage(AssemblyDependent.PrintMessage(ls));
+        //ed.WriteMessage(AssemblyDependent.PrintMessage(ls));
+        return AssemblyDependent.PrintMessage(ls);
     }
 
     void TextBox1_TextChanged(object sender, EventArgs e)

@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
     <PropertyGroup>
         <LangVersion>preview</LangVersion>
-        <!--<Nullable>enable</Nullable>-->
+        <Nullable>enable</Nullable>
 
         <TargetFrameworks>net45</TargetFrameworks>
         <UseWPF>true</UseWPF>
@@ -14,4 +14,18 @@
         <ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />
         <ProjectReference Include="..\..\src\IFoxCAD.WPF\IFoxCAD.WPF.csproj" />
     </ItemGroup>
+
+    <ItemGroup>
+      <Compile Update="wpf\TestView.xaml.cs">
+        <DependentUpon>TestView.xaml</DependentUpon>
+      </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+      <Page Update="wpf\TestView.xaml">
+        <SubType>Designer</SubType>
+      </Page>
+    </ItemGroup>
+
+    <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
 </Project>
