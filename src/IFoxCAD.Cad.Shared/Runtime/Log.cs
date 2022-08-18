@@ -94,7 +94,7 @@ public class EventLogger : LogBase
 {
     // 需要win权限
     // https://blog.csdn.net/weixin_38208401/article/details/77870909
-    // net50要加 <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
+    // NET50要加 <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
     // https://docs.microsoft.com/en-us/answers/questions/526018/windows-event-log-with-net-5.html
 
     public string LogName = "IFoxCadLog";
