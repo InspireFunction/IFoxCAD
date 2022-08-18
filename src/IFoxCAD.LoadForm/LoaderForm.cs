@@ -12,11 +12,9 @@ public partial class LoaderForm : Form
 
     static string? LoadDll(string path)
     {
-        //var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
         var ad = new AssemblyDependent();
         var ls = new List<LoadState>();
         ad.Load(path, ls);
-        //ed.WriteMessage(AssemblyDependent.PrintMessage(ls));
         return AssemblyDependent.PrintMessage(ls);
     }
 
@@ -78,6 +76,12 @@ public partial class LoaderForm : Form
             e.Effect = DragDropEffects.All;
         else
             e.Effect = DragDropEffects.None;
+    }
+
+    private void Button2_KeyDown(object sender, KeyEventArgs e)
+    {
+        if (e.KeyCode == Keys.Enter)
+            Button2_Click(sender, e);
     }
 }
 

@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.LoadEx;
+﻿using Mono.Cecil.Cil;
+
+namespace IFoxCAD.LoadEx;
 
 /*
  * 因为此处引用了 HarmonyPatch
@@ -6,7 +8,6 @@
  * 免得污染了cad工程的纯洁
  */
 
-[HarmonyPatch("Autodesk.AutoCAD.ApplicationServices.ExtensionLoader", "OnAssemblyLoad")]
 public class AssemblyDependent : IDisposable
 {
     #region 字段和事件
@@ -198,15 +199,25 @@ public class AssemblyDependent : IDisposable
         var byteRef = File.ReadAllBytes(dllFullName);
         if (PatchExtensionLoader)
         {
-            //QQ1548253108:这里会报错,但是我测试不出来它报错.
-            //他提供了解决方案如下:
-            //var accAsb = typeof(Document).Assembly;
+            //QQ1548253108:这里会报错,但是我测试不出来它报错.他提供了解决方案.
+            /* 方案一:
+             * 在类上面加 [HarmonyPatch("Autodesk.AutoCAD.ApplicationServices.ExtensionLoader", "OnAssemblyLoad")]
+             * const string ext = "Autodesk.AutoCAD.ApplicationServices.ExtensionLoader";
+             * Harmony hm = new(ext);
+             * hm.PatchAll();
+             * assemblyAsRef = Assembly.ReflectionOnlyLoad(byteRef);
+             * hm.UnpatchAll(ext);
+             */
+
+            //方案二:
             const string ext = "Autodesk.AutoCAD.ApplicationServices.ExtensionLoader";
             Harmony hm = new(ext);
-            hm.PatchAll();
+            hm.Patch(typeof(Document).Assembly
+                    .GetType(ext)
+                    .GetMethod("OnAssemblyLoad"),
+                    new HarmonyMethod(GetType(), "Dummy"));
             assemblyAsRef = Assembly.ReflectionOnlyLoad(byteRef);
             hm.UnpatchAll(ext);
-            //CSharpUtils.RestoreMethod();
         }
         else
         {
