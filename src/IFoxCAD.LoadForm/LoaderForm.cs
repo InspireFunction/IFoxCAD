@@ -5,30 +5,44 @@ using System.Windows.Forms;
 public partial class LoaderForm : Form
 {
     string? _dllPath;
+    AssemblyDependent _ad;
     public LoaderForm()
     {
+        //Owner = form;
+        //MdiParent = form;
+        StartPosition = FormStartPosition.CenterScreen;//在当前屏幕中央
         InitializeComponent();
+        _ad = new AssemblyDependent();
     }
 
-    static string? LoadDll(string path)
+    void LoaderForm_Load(object sender, EventArgs e)
     {
-        var ad = new AssemblyDependent();
+        // if (_dllPath != null)
+        //     textBox1.Text = _dllPath;
+#if NET35
+        textBox1.Text = "G:\\K01.惊惊连盒\\net35\\JoinBoxAcad.dll";
+#else
+        textBox1.Text = "G:\\K01.惊惊连盒\\net48\\JoinBoxAcad.dll";
+#endif
+
+    }
+
+    string? LoadDll(string path)
+    {
         var ls = new List<LoadState>();
-        ad.Load(path, ls);
+        _ad.Load(path, ls);
         return AssemblyDependent.PrintMessage(ls);
     }
 
     void TextBox1_TextChanged(object sender, EventArgs e)
     {
         _dllPath = textBox1.Text;
+        if (string.IsNullOrEmpty(_dllPath?.Trim()))
+            return;
         toolTip1.SetToolTip(textBox1, Path.GetFullPath(textBox1.Text));
     }
 
-    void LoaderForm_Load(object sender, EventArgs e)
-    {
-        if (_dllPath != null)
-            textBox1.Text = _dllPath;
-    }
+
 
     void Button1_Click(object sender, EventArgs e)
     {
@@ -48,8 +62,11 @@ public partial class LoaderForm : Form
             return;
         }
 
-        LoadDll(textBox1.Text);
-        MessageBox.Show("加载完毕!");
+        var msg = LoadDll(textBox1.Text);
+        if (msg != null)
+            MessageBox.Show(msg, "加载完毕!");
+        else
+            MessageBox.Show("无任何信息", "加载出现问题!");
     }
 
     void LoaderForm_DragDrop(object sender, DragEventArgs e)

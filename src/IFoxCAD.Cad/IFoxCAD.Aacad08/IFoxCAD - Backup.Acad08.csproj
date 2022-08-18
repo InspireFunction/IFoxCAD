@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>NET35</TargetFramework>
+        <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+        <Nullable>enable</Nullable>
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+        <Version>0.3.7</Version>
+        <Company>InspireFunction</Company>
+        <Authors>xsfhlzh;vicwjb;liuqihong</Authors>
+        <Description>基于.NET的Cad二次开发类库</Description>
+        <Copyright>InspireFunction</Copyright>
+        <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
+        <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
+        <PackageReleaseNotes>增加很多东西.</PackageReleaseNotes>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <LangVersion>preview</LangVersion>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <!--<PlatformTarget>x64</PlatformTarget>-->
+    </PropertyGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
+        <PackageReference Include="JJBox.Acad2008" Version="1.0.0" ExcludeAssets="runtime" />
+        <!--<PackageReference Include="Autocad.NetApi" Version="17.2.0"  ExcludeAssets="runtime"/>-->
+    </ItemGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DefineConstants>DEBUG</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
+        <DefineConstants>$(Configuration);ac2008;ac2009</DefineConstants>
+    </PropertyGroup>
+ 
+    <ItemGroup>
+      <None Include="..\..\..\LICENSE" Link="LICENSE">
+        <Pack>True</Pack>
+        <PackagePath></PackagePath>
+      </None>
+    </ItemGroup>
+
+    <!--<ItemGroup>
+      <PackageReference Include="IndexRange" Version="1.0.2" />
+    </ItemGroup>-->
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
+    </ItemGroup>
+
+    <Import Project="..\..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared" />
+</Project>

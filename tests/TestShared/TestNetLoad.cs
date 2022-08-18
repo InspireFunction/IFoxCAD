@@ -6,14 +6,15 @@ public class NetLoad
     [CommandMethod("netloadx")]
     public static void Test_NetLoad()
     {
-        _form ??= new();
+        if (_form == null || _form.IsDisposed)
+            _form = new();
 
         if (!_form.Visible)
             _form.Visible = true;
 
-
         _form.Show();
-        //Acap.ShowModalDialog(_form);
         _form.Focus();
+
+        //Acap.ShowModalDialog(_form);
     }
 }

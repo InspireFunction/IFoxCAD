@@ -114,7 +114,8 @@ partial class LoaderForm
             this.MaximizeBox = false;
             this.MinimizeBox = false;
             this.Name = "LoaderForm";
-            this.Text = ".net dll 加载器";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
+            this.Text = "netloadx .net dll 加载器";
             this.Load += new System.EventHandler(this.LoaderForm_Load);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.LoaderForm_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.LoaderForm_DragEnter);

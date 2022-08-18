@@ -1,4 +1,5 @@
-﻿using Mono.Cecil.Cil;
+﻿#define HarmonyPatch
+#define HarmonyPatch_1
 
 namespace IFoxCAD.LoadEx;
 
@@ -8,8 +9,17 @@ namespace IFoxCAD.LoadEx;
  * 免得污染了cad工程的纯洁
  */
 
+#if HarmonyPatch_1
+[HarmonyPatch("Autodesk.AutoCAD.ApplicationServices.ExtensionLoader", "OnAssemblyLoad")]
+#endif
 public class AssemblyDependent : IDisposable
 {
+#if HarmonyPatch
+    //这个是不能删除的,否则就不执行了
+    //HarmonyPatch hook method 返回 false 表示拦截原函数
+    public static bool Prefix() { return false; }
+#endif
+
     #region 字段和事件
     /// <summary>
     /// 当前域加载事件,运行时出错的话,就靠这个事件来解决
@@ -19,14 +29,7 @@ public class AssemblyDependent : IDisposable
         add { AppDomain.CurrentDomain.AssemblyResolve += value; }
         remove { AppDomain.CurrentDomain.AssemblyResolve -= value; }
     }
-    /// <summary>
-    /// cad程序域依赖_内存区(不可以卸载)
-    /// </summary>
-    readonly Assembly[] _cadAssembly;
-    /// <summary>
-    /// cad程序域依赖_映射区(不可以卸载)
-    /// </summary>
-    readonly Assembly[] _cadAssemblyRef;
+
     /// <summary>
     /// 拦截cad的Loader异常:默认是<paramref name="false"/>
     /// </summary>
@@ -39,9 +42,7 @@ public class AssemblyDependent : IDisposable
     /// </summary>
     public AssemblyDependent()
     {
-        //初始化一次,反复load,所以这里只放公共元素
-        _cadAssembly = AppDomain.CurrentDomain.GetAssemblies();
-        _cadAssemblyRef = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies();
+        //初始化一次,反复load      
         CurrentDomainAssemblyResolveEvent += AssemblyHelper.DefaultAssemblyResolve;
     }
     #endregion
@@ -59,12 +60,6 @@ public class AssemblyDependent : IDisposable
     /// </returns>
     public bool Load(string dllFullName, List<LoadState> loadStates, bool byteLoad = true)
     {
-        //var accAsb = typeof(Document).Assembly;
-        //CSharpUtils.ReplaceMethod(
-        //            accAsb.GetType("Autodesk.AutoCAD.ApplicationServices.ExtensionLoader"),
-        //            "OnAssemblyLoad", typeof(AssemblyDependent), "OnAssemblyLoad",
-        //            BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Static | BindingFlags.Instance);
-
         if (dllFullName == null)
             throw new ArgumentNullException(nameof(dllFullName));
 
@@ -72,8 +67,13 @@ public class AssemblyDependent : IDisposable
         if (!File.Exists(dllFullName))
             throw new ArgumentException("路径不存在");
 
+        //程序集数组要动态获取(每次Load的时候),
+        //否则会变成一个固定数组,造成加载了之后也不会出现成员
+        var cadAssembly = AppDomain.CurrentDomain.GetAssemblies();
+        var cadAssemblyRef = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies();
+
         List<string> allRefs = new();
-        GetAllRefPaths(dllFullName, allRefs);
+        GetAllRefPaths(cadAssembly, cadAssemblyRef, dllFullName, allRefs);
 
         bool dllFullNameLoadOk = false;
 
@@ -81,34 +81,32 @@ public class AssemblyDependent : IDisposable
         //这里有问题,从尾巴开始的,就一定是没有任何引用吗?
         for (int i = allRefs.Count - 1; i >= 0; i--)
         {
-            var path = allRefs[i];
+            var allRef = allRefs[i];
 
             //路径转程序集名
-            var an = AssemblyName.GetAssemblyName(path).FullName;
-            var assembly = _cadAssembly.FirstOrDefault(a => a.FullName == an);
+            var an = AssemblyName.GetAssemblyName(allRef).FullName;
+            var assembly = cadAssembly.FirstOrDefault(a => a.FullName == an);
             if (assembly != null)
             {
-                loadStates.Add(new LoadState(path, false));//版本号没变不加载
+                loadStates.Add(new LoadState(allRef, false));//版本号没变不加载
                 continue;
             }
 
             //有一次true,就是true 
-            if (path == dllFullName)
+            if (allRef == dllFullName)
                 dllFullNameLoadOk = true;
 
             try
             {
-                var ass = GetPdbAssembly(path, byteLoad);
+                var ass = GetPdbAssembly(allRef);
                 if (ass == null)
-                {
                     if (byteLoad)
-                        ass = Assembly.Load(File.ReadAllBytes(path));
+                        ass = Assembly.Load(File.ReadAllBytes(allRef));
                     else
-                        ass = Assembly.LoadFile(path);
-                }
-                loadStates.Add(new LoadState(path, true, ass));/*加载成功*/
+                        ass = Assembly.LoadFile(allRef);
+                loadStates.Add(new LoadState(allRef, true, ass));/*加载成功*/
             }
-            catch { loadStates.Add(new LoadState(path, false));/*错误造成*/ }
+            catch { loadStates.Add(new LoadState(allRef, false));/*错误造成*/ }
         }
         return dllFullNameLoadOk;
     }
@@ -119,7 +117,7 @@ public class AssemblyDependent : IDisposable
     /// <param name="path"></param>
     /// <param name="byteLoad"></param>
     /// <returns></returns>
-    Assembly? GetPdbAssembly(string path, bool byteLoad)
+    Assembly? GetPdbAssembly(string path)
     {
 #if DEBUG
         //为了实现Debug时候出现断点,见链接,加依赖
@@ -129,7 +127,7 @@ public class AssemblyDependent : IDisposable
         var dir = Path.GetDirectoryName(path);
         var pdbName = Path.GetFileNameWithoutExtension(path) + ".pdb";
         var pdbFullName = Path.Combine(dir, pdbName);
-        if (File.Exists(pdbFullName) && byteLoad)
+        if (File.Exists(pdbFullName))
             return Assembly.Load(File.ReadAllBytes(path), File.ReadAllBytes(pdbFullName));
 #endif
         return null;
@@ -138,16 +136,21 @@ public class AssemblyDependent : IDisposable
     /// <summary>
     /// 递归获取加载链
     /// </summary>
+    /// <param name="cadAssembly">程序集_内存区</param>
+    /// <param name="cadAssemblyRef">程序集_映射区</param>
     /// <param name="dllFullName">dll文件位置</param>
     /// <param name="dllFullNamesOut">返回的集合</param>
     /// <returns></returns>
-    void GetAllRefPaths(string dllFullName, List<string> dllFullNamesOut)
+    void GetAllRefPaths(Assembly[] cadAssembly,
+                        Assembly[] cadAssemblyRef,
+                        string dllFullName,
+                        List<string> dllFullNamesOut)
     {
         if (dllFullNamesOut.Contains(dllFullName) || !File.Exists(dllFullName))
             return;
         dllFullNamesOut.Add(dllFullName);
 
-        var assemblyAsRef = GetAssembly(dllFullName);
+        var assemblyAsRef = GetAssembly(cadAssembly, cadAssemblyRef, dllFullName);
         if (assemblyAsRef == null)
             return;
 
@@ -167,22 +170,25 @@ public class AssemblyDependent : IDisposable
                 path + ".exe"
             };
             for (int j = 0; j < paths.Length; j++)
-                GetAllRefPaths(paths[j], dllFullNamesOut);
+                GetAllRefPaths(cadAssembly, cadAssemblyRef, paths[j], dllFullNamesOut);
         }
     }
 
     /// <summary>
     /// 在内存区和映射区找已经加载的程序集
     /// </summary>
-    /// <param name="dllFullName"></param>
-    /// <param name="patchExtensionLoader"></param>
+    /// <param name="cadAssembly">程序集_内存区</param>
+    /// <param name="cadAssemblyRef">程序集_映射区</param>
+    /// <param name="dllFullName">dll文件位置</param>
     /// <returns></returns>
-    Assembly? GetAssembly(string dllFullName)
+    Assembly? GetAssembly(Assembly[] cadAssembly,
+                          Assembly[] cadAssemblyRef,
+                          string dllFullName)
     {
         //路径转程序集名
         var assName = AssemblyName.GetAssemblyName(dllFullName).FullName;
         //在当前程序域的 assemblyAs内存区 和 assemblyAsRef映射区 找这个程序集名
-        var assemblyAs = _cadAssembly.FirstOrDefault(ass => ass.FullName == assName);
+        var assemblyAs = cadAssembly.FirstOrDefault(ass => ass.FullName == assName);
 
         //内存区有表示加载过
         //映射区有表示查找过,但没有加载(一般来说不存在.只是debug会注释掉 Assembly.Load 的时候用来测试)
@@ -190,7 +196,7 @@ public class AssemblyDependent : IDisposable
             return assemblyAs;
 
         //映射区
-        var assemblyAsRef = _cadAssemblyRef.FirstOrDefault(ass => ass.FullName == assName);
+        var assemblyAsRef = cadAssemblyRef.FirstOrDefault(ass => ass.FullName == assName);
 
         //内存区和映射区都没有的话就把dll加载到映射区,用来找依赖表
         if (assemblyAsRef != null)
@@ -199,30 +205,44 @@ public class AssemblyDependent : IDisposable
         var byteRef = File.ReadAllBytes(dllFullName);
         if (PatchExtensionLoader)
         {
-            //QQ1548253108:这里会报错,但是我测试不出来它报错.他提供了解决方案.
-            /* 方案一:
+#if HarmonyPatch_1
+            /* QQ1548253108:这里会报错,他提供了解决方案.
+             * 方案一:
              * 在类上面加 [HarmonyPatch("Autodesk.AutoCAD.ApplicationServices.ExtensionLoader", "OnAssemblyLoad")]
-             * const string ext = "Autodesk.AutoCAD.ApplicationServices.ExtensionLoader";
-             * Harmony hm = new(ext);
-             * hm.PatchAll();
-             * assemblyAsRef = Assembly.ReflectionOnlyLoad(byteRef);
-             * hm.UnpatchAll(ext);
              */
-
-            //方案二:
             const string ext = "Autodesk.AutoCAD.ApplicationServices.ExtensionLoader";
             Harmony hm = new(ext);
-            hm.Patch(typeof(Document).Assembly
-                    .GetType(ext)
-                    .GetMethod("OnAssemblyLoad"),
-                    new HarmonyMethod(GetType(), "Dummy"));
+            hm.PatchAll();
             assemblyAsRef = Assembly.ReflectionOnlyLoad(byteRef);
             hm.UnpatchAll(ext);
+#endif
+#if HarmonyPatch_2
+            //方案二:跟cad耦合了
+            const string ext = "Autodesk.AutoCAD.ApplicationServices.ExtensionLoader";
+            var docAss = typeof(Autodesk.AutoCAD.ApplicationServices.Document).Assembly;
+            var a = docAss.GetType(ext);//这里会空
+            var b = a?.GetMethod("OnAssemblyLoad");
+            Harmony hm = new(ext);
+            hm.Patch(b, new HarmonyMethod(GetType(), "Dummy"));
+            assemblyAsRef = Assembly.ReflectionOnlyLoad(byteRef);
+            hm.UnpatchAll(ext);
+#endif
         }
         else
         {
-            // assemblyAsRef = Assembly.ReflectionOnlyLoad(dllFullName); //没有依赖会直接报错
-            assemblyAsRef = Assembly.ReflectionOnlyLoad(byteRef);
+            /*
+             * 0x01 没有依赖会直接报错 assemblyAsRef = Assembly.ReflectionOnlyLoad(dllFullName);
+             * 0x02 重复加载无修改的同一个dll,会出现如下异常:
+             *      System.IO.FileLoadException:
+             *      “API 限制: 程序集“”已从其他位置加载。无法从同一个 Appdomain 中的另一新位置加载该程序集。”
+             *      catch 兜不住的,仍然会在cad上面打印,原因是程序集数组要动态获取
+             */
+            try
+            {
+                assemblyAsRef = Assembly.ReflectionOnlyLoad(byteRef);
+            }
+            catch (System.IO.FileLoadException)
+            { }
         }
         return assemblyAsRef;
     }
@@ -236,25 +256,30 @@ public class AssemblyDependent : IDisposable
             return null;
 
         var sb = new StringBuilder();
-        bool flag = true;
-        foreach (var item in loadStates)
+        var ok = loadStates.FindAll(a => a.State);
+        var no = loadStates.FindAll(a => !a.State);
+
+        if (ok.Count != 0)
         {
-            if (!item.State)
+            sb.Append("** 这些文件加载成功!");
+            foreach (var item in ok)
             {
                 sb.Append(Environment.NewLine);
-                sb.Append("** ");
+                sb.Append("++ ");
                 sb.Append(item.DllFullName);
-                sb.Append(Environment.NewLine);
-                sb.Append("** 此文件已加载,同时重复名称和版本号,跳过!");
-                sb.Append(Environment.NewLine);
-                flag = false;
             }
+            sb.Append(Environment.NewLine);
+            sb.Append(Environment.NewLine);
         }
-        if (flag)
+        if (no.Count != 0)
         {
-            sb.Append(Environment.NewLine);
-            sb.Append("** 链式加载成功!");
-            sb.Append(Environment.NewLine);
+            sb.Append("** 这些文件已被加载过,同时重复名称和版本号,跳过!");
+            foreach (var item in no)
+            {
+                sb.Append(Environment.NewLine);
+                sb.Append("-- ");
+                sb.Append(item.DllFullName);
+            }
         }
         return sb.ToString();
     }
