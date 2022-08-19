@@ -1,7 +1,4 @@
 ﻿#define Debug_Cause_Error
-
-using System.Windows;
-
 namespace IFoxCAD.Cad;
 
 /// <summary>
