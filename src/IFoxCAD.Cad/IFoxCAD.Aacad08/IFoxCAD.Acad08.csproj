@@ -33,6 +33,7 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>DEBUG</DefineConstants>
     </PropertyGroup>
+	
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
         <DefineConstants>$(Configuration);ac2008;ac2009</DefineConstants>
     </PropertyGroup>
