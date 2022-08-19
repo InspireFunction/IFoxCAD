@@ -3,11 +3,17 @@
 public class NetLoad
 {
     static IFoxCAD.LoadEx.LoaderForm? _form;
-    [CommandMethod("netloadx")]
-    public static void Test_NetLoad()
+    [CommandMethod("loadx")]
+    public static void Test_NetLoadx()
     {
         if (_form == null || _form.IsDisposed)
             _form = new();
+
+#if NET35
+        _form.DllPath = "G:\\K01.惊惊连盒\\net35\\JoinBoxAcad.dll";
+#else
+        _form.DllPath = "G:\\K01.惊惊连盒\\net48\\JoinBoxAcad.dll";
+#endif
 
         if (!_form.Visible)
             _form.Visible = true;

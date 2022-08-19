@@ -220,8 +220,8 @@ public class AssemblyDependent : IDisposable
             //方案二:跟cad耦合了
             const string ext = "Autodesk.AutoCAD.ApplicationServices.ExtensionLoader";
             var docAss = typeof(Autodesk.AutoCAD.ApplicationServices.Document).Assembly;
-            var a = docAss.GetType(ext);//这里会空
-            var b = a?.GetMethod("OnAssemblyLoad");
+            var a = docAss.GetType(ext);
+            var b = a.GetMethod("OnAssemblyLoad");
             Harmony hm = new(ext);
             hm.Patch(b, new HarmonyMethod(GetType(), "Dummy"));
             assemblyAsRef = Assembly.ReflectionOnlyLoad(byteRef);
@@ -449,16 +449,7 @@ public class FileEx
 
         //目标目录不存在则创建
         if (!Directory.Exists(destPath))
-        {
-            try
-            {
-                Directory.CreateDirectory(destPath);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("创建目标目录失败：" + ex.Message);
-            }
-        }
+            Directory.CreateDirectory(destPath);
 
         if (ContainFileName(sourcePathOrFile))
         {
@@ -490,18 +481,9 @@ public class FileEx
     /// <param name="destPath">目标文件夹</param>
     static void MoveFolder2(string sourcePath, string destPath)
     {
+        //目标目录不存在则创建
         if (!Directory.Exists(destPath))
-        {
-            //目标目录不存在则创建
-            try
-            {
-                Directory.CreateDirectory(destPath);
-            }
-            catch (Exception ex)
-            {
-                throw new Exception("创建目标目录失败：" + ex.Message);
-            }
-        }
+            Directory.CreateDirectory(destPath);
 
         //获得源文件下所有文件
         var files = new List<string>(Directory.GetFiles(sourcePath));

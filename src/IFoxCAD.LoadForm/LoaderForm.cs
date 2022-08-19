@@ -4,45 +4,31 @@ using System.Windows.Forms;
 
 public partial class LoaderForm : Form
 {
-    string? _dllPath;
-    AssemblyDependent _ad;
+    public string? DllPath;
+    readonly AssemblyDependent _ad;
+
     public LoaderForm()
     {
         //Owner = form;
         //MdiParent = form;
-        StartPosition = FormStartPosition.CenterScreen;//在当前屏幕中央
         InitializeComponent();
         _ad = new AssemblyDependent();
     }
 
     void LoaderForm_Load(object sender, EventArgs e)
     {
-        // if (_dllPath != null)
-        //     textBox1.Text = _dllPath;
-#if NET35
-        textBox1.Text = "G:\\K01.惊惊连盒\\net35\\JoinBoxAcad.dll";
-#else
-        textBox1.Text = "G:\\K01.惊惊连盒\\net48\\JoinBoxAcad.dll";
-#endif
-
-    }
-
-    string? LoadDll(string path)
-    {
-        var ls = new List<LoadState>();
-        _ad.Load(path, ls);
-        return AssemblyDependent.PrintMessage(ls);
+        StartPosition = FormStartPosition.CenterScreen;//在当前屏幕中央
+        if (DllPath != null)
+            textBox1.Text = DllPath;
     }
 
     void TextBox1_TextChanged(object sender, EventArgs e)
     {
-        _dllPath = textBox1.Text;
-        if (string.IsNullOrEmpty(_dllPath?.Trim()))
+        DllPath = textBox1.Text;
+        if (string.IsNullOrEmpty(DllPath?.Trim()))
             return;
         toolTip1.SetToolTip(textBox1, Path.GetFullPath(textBox1.Text));
     }
-
-
 
     void Button1_Click(object sender, EventArgs e)
     {
@@ -61,32 +47,49 @@ public partial class LoaderForm : Form
             MessageBox.Show($"文件 {textBox1.Text} 不存在!", "提示", MessageBoxButtons.OK);
             return;
         }
+        LoadDlls(new() { textBox1.Text });
+    }
 
-        var msg = LoadDll(textBox1.Text);
+    //鼠标拖拽文件到窗口
+    void LoaderForm_DragDrop(object sender, DragEventArgs e)
+    {
+        var paths = (string[])e.Data.GetData(DataFormats.FileDrop);
+
+        var pathHash = new HashSet<string>();
+        for (int i = 0; i < paths.Length; i++)
+        {
+            if (!paths[i].EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                continue;
+            pathHash.Add(paths[i]);
+        }
+
+        if (pathHash.Count == 0)
+            return;
+
+        DllPath = textBox1.Text = pathHash.First();
+        LoadDlls(pathHash);
+    }
+
+    /// <summary>
+    /// 加载插件
+    /// </summary>
+    /// <param name="paths"></param>
+    void LoadDlls(HashSet<string> paths)
+    {
+        if (paths.Count == 0)
+            return;
+      
+        var ls = new List<LoadState>();
+        foreach (var item in paths)
+            _ad.Load(item, ls);
+        var msg = AssemblyDependent.PrintMessage(ls);
         if (msg != null)
             MessageBox.Show(msg, "加载完毕!");
         else
             MessageBox.Show("无任何信息", "加载出现问题!");
     }
 
-    void LoaderForm_DragDrop(object sender, DragEventArgs e)
-    {
-        int i = 0;
-        var dllPaths = (string[])e.Data.GetData(DataFormats.FileDrop);
-        foreach (var item in dllPaths)
-            if (item.EndsWith(".dll"))
-            {
-                LoadDll(item);
-                i++;
-                if (i == 1)
-                {
-                    textBox1.Text = item;
-                    _dllPath = item;
-                }
-            }
-        MessageBox.Show("加载完毕!");
-    }
-
+    //鼠标样式修改
     void LoaderForm_DragEnter(object sender, DragEventArgs e)
     {
         if (e.Data.GetDataPresent(DataFormats.FileDrop))
@@ -95,7 +98,7 @@ public partial class LoaderForm : Form
             e.Effect = DragDropEffects.None;
     }
 
-    private void Button2_KeyDown(object sender, KeyEventArgs e)
+    void LoaderForm_KeyDown(object sender, KeyEventArgs e)
     {
         if (e.KeyCode == Keys.Enter)
             Button2_Click(sender, e);

@@ -78,7 +78,6 @@ partial class LoaderForm
             this.button2.Text = "加载";
             this.button2.UseVisualStyleBackColor = true;
             this.button2.Click += new System.EventHandler(this.Button2_Click);
-            this.button2.KeyDown += new System.Windows.Forms.KeyEventHandler(this.Button2_KeyDown);
             // 
             // label2
             // 
@@ -119,6 +118,7 @@ partial class LoaderForm
             this.Load += new System.EventHandler(this.LoaderForm_Load);
             this.DragDrop += new System.Windows.Forms.DragEventHandler(this.LoaderForm_DragDrop);
             this.DragEnter += new System.Windows.Forms.DragEventHandler(this.LoaderForm_DragEnter);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.LoaderForm_KeyDown);
             this.ResumeLayout(false);
             this.PerformLayout();
 
