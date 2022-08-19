@@ -4,7 +4,7 @@
 namespace IFoxCAD.LoadEx;
 
 /*
- * 因为此处引用了 HarmonyPatch
+ * 因为此处引用了 nuget的 Lib.Harmony
  * 所以单独分一个工程出来作为cad工程的引用
  * 免得污染了cad工程的纯洁
  */
@@ -42,7 +42,7 @@ public class AssemblyDependent : IDisposable
     /// </summary>
     public AssemblyDependent()
     {
-        //初始化一次,反复load      
+        //初始化一次,反复load
         CurrentDomainAssemblyResolveEvent += AssemblyHelper.DefaultAssemblyResolve;
     }
     #endregion
@@ -58,7 +58,7 @@ public class AssemblyDependent : IDisposable
     /// <returns> 参数 <paramref name="dllFullName"/> 加载成功标识
     /// <code> 链条后面的不再理会,因为相同的dll引用辨识无意义 </code>
     /// </returns>
-    public bool Load(string dllFullName, List<LoadState> loadStates, bool byteLoad = true)
+    public bool Load(string? dllFullName, List<LoadState> loadStates, bool byteLoad = true)
     {
         if (dllFullName == null)
             throw new ArgumentNullException(nameof(dllFullName));
@@ -117,7 +117,7 @@ public class AssemblyDependent : IDisposable
     /// <param name="path"></param>
     /// <param name="byteLoad"></param>
     /// <returns></returns>
-    Assembly? GetPdbAssembly(string path)
+    Assembly? GetPdbAssembly(string? path)
     {
 #if DEBUG
         //为了实现Debug时候出现断点,见链接,加依赖
@@ -143,9 +143,12 @@ public class AssemblyDependent : IDisposable
     /// <returns></returns>
     void GetAllRefPaths(Assembly[] cadAssembly,
                         Assembly[] cadAssemblyRef,
-                        string dllFullName,
+                        string? dllFullName,
                         List<string> dllFullNamesOut)
     {
+        if (dllFullName == null)
+            throw new ArgumentNullException(nameof(dllFullName));
+
         if (dllFullNamesOut.Contains(dllFullName) || !File.Exists(dllFullName))
             return;
         dllFullNamesOut.Add(dllFullName);
@@ -183,7 +186,7 @@ public class AssemblyDependent : IDisposable
     /// <returns></returns>
     Assembly? GetAssembly(Assembly[] cadAssembly,
                           Assembly[] cadAssemblyRef,
-                          string dllFullName)
+                          string? dllFullName)
     {
         //路径转程序集名
         var assName = AssemblyName.GetAssemblyName(dllFullName).FullName;
@@ -231,11 +234,12 @@ public class AssemblyDependent : IDisposable
         else
         {
             /*
-             * 0x01 没有依赖会直接报错 assemblyAsRef = Assembly.ReflectionOnlyLoad(dllFullName);
+             * 0x01 此句没有依赖会直接报错 
+             *      assemblyAsRef = Assembly.ReflectionOnlyLoad(dllFullName);
              * 0x02 重复加载无修改的同一个dll,会出现如下异常:
              *      System.IO.FileLoadException:
              *      “API 限制: 程序集“”已从其他位置加载。无法从同一个 Appdomain 中的另一新位置加载该程序集。”
-             *      catch 兜不住的,仍然会在cad上面打印,原因是程序集数组要动态获取
+             *      catch 兜不住的,仍然会在cad上面打印,原因是程序集数组要动态获取(已改)
              */
             try
             {
@@ -310,53 +314,47 @@ public class AssemblyDependent : IDisposable
 
     #region 移动文件
     /// <summary>
-    /// 临时文件夹_pdb的,无论是否创建这里都应该进行删除
-    /// </summary>
-    string? Temp_Pdb_dest;
-    string? Temp_Pdb_source;
-    string? Temp_Obj_dest;
-    string? Temp_Obj_source;
-    const string Temp = "Temp";
-
-    /// <summary>
     /// Debug的时候移动obj目录,防止占用
     /// </summary>
-    public void DebugMoveObjFiles(string dllFullName, Action action)
+    public void DebugMoveObjFiles(string? dllFullName, Action action)
     {
-        var filename = Path.GetFileNameWithoutExtension(dllFullName);
-        var path = Path.GetDirectoryName(dllFullName);
+        // 临时文件夹_pdb的,无论是否创建这里都应该进行删除
+        const string Temp = "Temp";
 
+        string? temp_Pdb_dest = null;
+        string? temp_Pdb_source = null;
+        string? temp_Obj_dest = null; ;
+        string? temp_Obj_source = null;
         try
         {
+            var filename = Path.GetFileNameWithoutExtension(dllFullName);
+            var path = Path.GetDirectoryName(dllFullName);
+
             //新建文件夹_临时目录
-            Temp_Pdb_dest = path + $"\\{Temp}\\";
+            temp_Pdb_dest = path + $"\\{Temp}\\";
             //移动文件进去
-            Temp_Pdb_source = path + "\\" + filename + ".pdb";
-            FileEx.MoveFolder(Temp_Pdb_source, Temp_Pdb_dest);
+            temp_Pdb_source = path + "\\" + filename + ".pdb";
+            FileEx.MoveFolder(temp_Pdb_source, temp_Pdb_dest);
 
             //检查是否存在obj文件夹,有就递归移动
             var list = path.Split('\\');
             if (list[list.Length - 1] == "Debug" && list[list.Length - 2] == "bin")
             {
-                var bin = path.LastIndexOf("bin");
-                var proj = path.Substring(0, bin);
-                Temp_Obj_source = proj + "obj";
-                Temp_Obj_dest = proj + $"{Temp}";
-                FileEx.MoveFolder(Temp_Obj_source, Temp_Obj_dest);
+                var proj = path.Substring(0, path.LastIndexOf("bin"));
+                temp_Obj_source = proj + "obj";
+                temp_Obj_dest = proj + $"{Temp}";
+                FileEx.MoveFolder(temp_Obj_source, temp_Obj_dest);
             }
+            action.Invoke();
         }
-        catch { }
-
-        try { action.Invoke(); }
         finally
         {
-            /// 还原移动
-            FileEx.MoveFolder(Temp_Pdb_dest, Temp_Pdb_source);
-            FileEx.DeleteFolder(Temp_Pdb_dest);
+            // 还原移动
+            FileEx.MoveFolder(temp_Pdb_dest, temp_Pdb_source);
+            FileEx.DeleteFolder(temp_Pdb_dest);
 
-            FileEx.MoveFolder(Temp_Obj_dest, Temp_Obj_source);
-            FileEx.DeleteFolder(Temp_Obj_dest);
-
+            FileEx.MoveFolder(temp_Obj_dest, temp_Obj_source);
+            FileEx.DeleteFolder(temp_Obj_dest);
         }
     }
     #endregion
@@ -393,7 +391,6 @@ public class AssemblyDependent : IDisposable
         Disposed = true;//让类型知道自己已经被释放
 
         CurrentDomainAssemblyResolveEvent -= AssemblyHelper.DefaultAssemblyResolve;
-        GC.Collect();
     }
     #endregion
 }
@@ -421,7 +418,7 @@ public class FileEx
     /// 判断含有文件名和后缀
     /// </summary>
     /// <param name="pathOrFile">路径或者完整文件路径</param>
-    static bool ContainFileName(string pathOrFile)
+    static bool ContainFileName(string? pathOrFile)
     {
         // 判断输入的是单文件,它可能不存在
         var a = Path.GetDirectoryName(pathOrFile);
@@ -436,7 +433,6 @@ public class FileEx
     /// </summary>
     /// <param name="sourcePathOrFile">源文件夹</param>
     /// <param name="destPath">目标文件夹</param>
-
     public static void MoveFolder(string? sourcePathOrFile, string? destPath)
     {
         if (sourcePathOrFile is null)
@@ -470,7 +466,6 @@ public class FileEx
             if (!Directory.Exists(sourcePathOrFile))
                 throw new DirectoryNotFoundException("源目录不存在！");
         }
-
         MoveFolder2(sourcePathOrFile, destPath);
     }
 
@@ -516,10 +511,8 @@ public class FileEx
     {
         if (dir is null)
             throw new ArgumentException(nameof(dir));
-
         if (!Directory.Exists(dir)) //如果存在这个文件夹删除之
             return;
-
         foreach (string d in Directory.GetFileSystemEntries(dir))
         {
             if (File.Exists(d))

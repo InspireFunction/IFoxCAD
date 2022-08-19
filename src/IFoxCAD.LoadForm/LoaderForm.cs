@@ -12,7 +12,7 @@ public partial class LoaderForm : Form
         //Owner = form;
         //MdiParent = form;
         InitializeComponent();
-        _ad = new AssemblyDependent();
+        _ad = new();
     }
 
     void LoaderForm_Load(object sender, EventArgs e)
@@ -78,8 +78,8 @@ public partial class LoaderForm : Form
     {
         if (paths.Count == 0)
             return;
-      
-        var ls = new List<LoadState>();
+
+        List<LoadState> ls = new();
         foreach (var item in paths)
             _ad.Load(item, ls);
         var msg = AssemblyDependent.PrintMessage(ls);

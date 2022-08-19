@@ -14,7 +14,7 @@ public class TestBlock
             if(item is null)
                 continue;
             var box = item.GetBoundingBoxEx();
-            Env.Print("min:" + box.min + ";max" + box.max);
+            Env.Print("min:" + box.Min + ";max" + box.Max);
         }
     }
 

@@ -77,9 +77,7 @@ public static class GeometryEx
 
         var ls3ds = new List<LineSegment3d>();
         foreach (var node in ptlst.GetNodes())
-        {
             ls3ds.Add(new LineSegment3d(node.Value, node.Next!.Value));
-        }
         var cc3d = new CompositeCurve3d(ls3ds.ToArray());
 
         //在多边形上?
@@ -190,16 +188,15 @@ public static class GeometryEx
             //获取各组合下三点的最小包围圆
             var secondNode = firstNode.Next;
             var thirdNode = secondNode!.Next;
-            CircularArc2d tca2d = GetMinCircle(firstNode.Value, secondNode.Value, thirdNode!.Value, out LoopList<Point2d> tptlst);
+            var tca2d = GetMinCircle(firstNode.Value, secondNode.Value, thirdNode!.Value, out LoopList<Point2d> tptlst);
 
             //如果另一点属于该圆,并且半径小于当前值就把它做为候选解
-            if (tca2d.IsIn(firstNode.Previous!.Value))
+            if (!tca2d.IsIn(firstNode.Previous!.Value))
+                continue;
+            if (ca2d is null || tca2d.Radius < ca2d.Radius)
             {
-                if (ca2d is null || tca2d.Radius < ca2d.Radius)
-                {
-                    ca2d = tca2d;
-                    ptlst = tptlst;
-                }
+                ca2d = tca2d;
+                ptlst = tptlst;
             }
         }
 
@@ -216,7 +213,7 @@ public static class GeometryEx
     /// <returns>三点围成的三角形的有向面积</returns>
     private static double CalArea(Point2d ptBase, Point2d pt1, Point2d pt2)
     {
-        return (pt2 - ptBase).DotProduct((pt1 - ptBase).GetPerpendicularVector()) / 2;
+        return (pt2 - ptBase).DotProduct((pt1 - ptBase).GetPerpendicularVector()) * 0.5;
     }
     /// <summary>
     /// 计算三点围成的三角形的真实面积
@@ -239,10 +236,8 @@ public static class GeometryEx
     /// <returns>OrientationType 类型值</returns>
     public static OrientationType IsClockWise(this Point2d ptBase, Point2d pt1, Point2d pt2)
     {
-
         return CalArea(ptBase, pt1, pt2) switch
         {
-
             > 0 => OrientationType.CounterClockWise,
             < 0 => OrientationType.ClockWise,
             _ => OrientationType.Parallel
@@ -296,10 +291,10 @@ public static class GeometryEx
     /// <returns>有向面积</returns>
     private static double CalArea(IEnumerable<Point2d> pnts)
     {
-        IEnumerator<Point2d> itor = pnts.GetEnumerator();
+        var itor = pnts.GetEnumerator();
         if (!itor.MoveNext())
             throw new ArgumentNullException(nameof(pnts));
-        Point2d start = itor.Current;
+        var start = itor.Current;
         Point2d p1, p2 = start;
         double area = 0;
 
@@ -368,9 +363,9 @@ public static class GeometryEx
         }
 
         //按前三点计算最小包围圆
-        Point2d[] tpnts = new Point2d[4];
+        var tpnts = new Point2d[4];
         pnts.CopyTo(0, tpnts, 0, 3);
-        CircularArc2d? ca2d = GetMinCircle(tpnts[0], tpnts[1], tpnts[2], out ptlst);
+        var ca2d = GetMinCircle(tpnts[0], tpnts[1], tpnts[2], out ptlst);
 
         //找到点集中距离圆心的最远点为第四点
         tpnts[3] = pnts.FindByMax(pnt => ca2d.Center.GetDistanceTo(pnt));
@@ -614,7 +609,7 @@ public static class GeometryEx
     /// <param name="pt">二维点</param>
     /// <param name="z">Z值</param>
     /// <returns>三维点</returns>
-    public static Point3d Point3d(this Point2d pt,double z)
+    public static Point3d Point3d(this Point2d pt, double z)
     {
         return new Point3d(pt.X, pt.Y, z);
     }
@@ -629,7 +624,7 @@ public static class GeometryEx
     {
         return new Point3d((pt1.X + pt2.X) * 0.5, (pt1.Y + pt2.Y) * 0.5, (pt1.Z + pt2.Z) * 0.5);
     }
-    
+
     /// <summary>
     /// 获取两个点之间的中点
     /// </summary>
