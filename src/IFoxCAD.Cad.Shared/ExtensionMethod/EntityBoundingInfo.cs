@@ -1,5 +1,7 @@
 ﻿#define Debug_Cause_Error
 
+using System.Windows;
+
 namespace IFoxCAD.Cad;
 
 /// <summary>
@@ -27,8 +29,8 @@ public struct BoundingInfo
     public Extents2d Extents2d => new(MinX, MinY, MaxX, MaxY);
 
     public BoundingInfo(double minX, double minY, double minZ,
-                   double maxX, double maxY, double maxZ,
-                   bool isEffective, double angle = 0)
+                        double maxX, double maxY, double maxZ,
+                        bool isEffective, double angle = 0)
     {
         MinX = minX;
         MinY = minY;
@@ -46,23 +48,21 @@ public struct BoundingInfo
             isEffective, angle)
     { }
 
-    public BoundingInfo(Rect rect, double angle = 0)
-    {
-        MinX = rect.X;
-        MinY = rect.Y;
-        MaxX = rect.Right;
-        MaxY = rect.Top;
-        Angle = angle;
-    }
+    //public BoundingInfo(Rect rect, double angle = 0)
+    //{
+    //    MinX = rect.X;
+    //    MinY = rect.Y;
+    //    MinZ = 0;
+    //    MaxX = rect.Right;
+    //    MaxY = rect.Top;
+    //    MaxZ = 0;
+    //    Angle = angle;
+    //}
 }
 
 public class EntityBoundingInfo
 {
     #region 保存异常类型的日志
-    /// <summary>
-    /// 错误信息保存路径
-    /// </summary>
-    static string? _BoxLogAddress;
     /// <summary>
     /// 包围盒错误文件路径
     /// </summary>
@@ -75,9 +75,9 @@ public class EntityBoundingInfo
         }
         set { _BoxLogAddress = value; }
     }
+    static string? _BoxLogAddress;
     static readonly HashSet<string> _typeNames;
     /// <summary>
-    /// 
     /// 为了保证更好的性能,
     /// 只是在第一次调用此功能的时候进行读取,
     /// 免得高频调用时候高频触发磁盘
@@ -185,7 +185,8 @@ public class EntityBoundingInfo
     {
         try
         {
-            var fit = brf.GeometryExtentsBestFit();//这个获取是原点附近,需要平移到块基点
+            //这个获取是原点附近,需要平移到块基点
+            var fit = brf.GeometryExtentsBestFit();
             var minX = fit.MinPoint.X + brf.Position.X;
             var minY = fit.MinPoint.Y + brf.Position.Y;
             var minZ = fit.MinPoint.Z + brf.Position.Z;
@@ -258,9 +259,9 @@ public class EntityBoundingInfo
         double ht = height + hb;
 
         Point3d center = mtxt.Location;
-        Point3d ptMin = new(center.X + wl, center.Y + hb, 0);
-        Point3d ptMax = new(center.X + wr, center.Y + ht, 0);
-
-        return new(ptMin, ptMax, true, mtxt.Rotation);
+        return new(center.X + wl, center.Y + hb, 0,
+                   center.X + wr, center.Y + ht, 0,
+                   true,
+                   mtxt.Rotation);
     }
 }
