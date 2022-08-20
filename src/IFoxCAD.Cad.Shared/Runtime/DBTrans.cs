@@ -357,16 +357,10 @@ public class DBTrans : IDisposable
                 break;
             }
         }
-        if (doca == null)
-        {
-            // 后台开图,用数据库保存
+        if (doca == null) // 后台开图,用数据库保存
             Database.SaveAs(Database.Filename, version);
-        }
-        else
-        {
-            // 前台开图,使用命令保存;不需要切换文档
+        else // 前台开图,使用命令保存;不需要切换文档
             doca.SendStringToExecute("_qsave\n", false, true, true);
-        }
     }
     #endregion
 
