@@ -1,7 +1,8 @@
 ﻿namespace IFoxCAD.Cad;
 
 /// <summary>
-/// 事务栈,隐匿事务在数据库其中担任的角色
+/// 事务栈
+/// <para>隐匿事务在数据库其中担任的角色</para>
 /// </summary>
 public class DBTrans : IDisposable
 {
@@ -219,13 +220,11 @@ public class DBTrans : IDisposable
     /// </summary>
     public SymbolTable<RegAppTable, RegAppTableRecord> RegAppTable => _RegAppTable ??= new(this, Database.RegAppTableId);
     SymbolTable<RegAppTable, RegAppTableRecord>? _RegAppTable;
-
     /// <summary>
     /// 标注样式表
     /// </summary>
     public SymbolTable<DimStyleTable, DimStyleTableRecord> DimStyleTable => _DimStyleTable ??= new(this, Database.DimStyleTableId);
     SymbolTable<DimStyleTable, DimStyleTableRecord>? _DimStyleTable;
-
     /// <summary>
     /// 线型表
     /// </summary>

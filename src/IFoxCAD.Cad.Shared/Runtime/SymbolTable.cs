@@ -1,5 +1,8 @@
 namespace IFoxCAD.Cad;
 
+using Autodesk.AutoCAD.DatabaseServices;
+using System.Windows.Documents;
+
 /// <summary>
 /// 委托执行状态
 /// </summary>
@@ -44,11 +47,23 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// </summary>
     /// <param name="tr">事务管理器</param>
     /// <param name="tableId">符号表id</param>
-    internal SymbolTable(DBTrans tr, ObjectId tableId)
+    /// <param name="defaultBehavior">默认行为:例如打开隐藏图层</param>
+    internal SymbolTable(DBTrans tr, ObjectId tableId, bool defaultBehavior = true)
     {
         DTrans = tr;
         Database = tr.Database;
         CurrentSymbolTable = DTrans.GetObject<TTable>(tableId)!;
+
+        if (defaultBehavior)
+        {
+            if (CurrentSymbolTable is LayerTable layer)
+            {
+                //层表包含隐藏的,全部显示出来
+                layer = layer.IncludingHidden;
+                if (layer is TTable tt)
+                    CurrentSymbolTable = tt;
+            }
+        }
     }
 
     #endregion
@@ -239,6 +254,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// </summary>
     /// <returns>记录的名字集合</returns>
     public IEnumerable<string> GetRecordNames() => GetRecords().Select(record => record.Name);
+
     /// <summary>
     /// 获取符合过滤条件的符号表记录名字集合
     /// </summary>
@@ -275,10 +291,10 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
             using (ObjectIdCollection ids = new() { id })
             {
                 table.Database.
-                    WblockCloneObjects(ids, 
+                    WblockCloneObjects(ids,
                                        CurrentSymbolTable.Id,
                                        idm,
-                                       DuplicateRecordCloning.Replace, 
+                                       DuplicateRecordCloning.Replace,
                                        false);
             }
             rid = idm[id].Value;
@@ -295,8 +311,8 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="over">是否覆盖，<see langword="true"/> 为覆盖，<see langword="false"/> 为不覆盖</param>
     /// <returns>对象id</returns>
     internal ObjectId GetRecordFrom(Func<DBTrans, SymbolTable<TTable, TRecord>> tableSelector,
-                                    string fileName, 
-                                    string name, 
+                                    string fileName,
+                                    string name,
                                     bool over)
     {
         using var tr = new DBTrans(fileName);
@@ -308,18 +324,30 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <summary>
     /// 遍历集合的迭代器，执行action委托
     /// </summary>
-    /// <typeparam name="T">集合值的类型</typeparam>
-    /// <param name="source">集合</param>
     /// <param name="action">要运行的委托</param>
-    public void ForEach(Action<TRecord> action, OpenMode openMode = OpenMode.ForRead)
+    /// <param name="openMode">打开模式,默认为只读</param>
+    /// <param name="checkIdOk">检查id是否删除,默认false</param>
+    public void ForEach(Action<TRecord> action, OpenMode openMode = OpenMode.ForRead, bool checkIdOk = false)
     {
-        //GetRecords().ForEach(re => action(re));
-
-        foreach (var item in this)
+        if (checkIdOk)
         {
-            var record = GetRecord(item, openMode);
-            if (record is not null)
-                action(record);
+            foreach (var id in this)
+            {
+                if (!id.IsOk())
+                    continue;
+                var record = GetRecord(id, openMode);
+                if (record is not null)
+                    action(record);
+            }
+        }
+        else
+        {
+            foreach (var id in this)
+            {
+                var record = GetRecord(id, openMode);
+                if (record is not null)
+                    action(record);
+            }
         }
     }
     #endregion
