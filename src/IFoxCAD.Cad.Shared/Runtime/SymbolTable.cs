@@ -1,23 +1,5 @@
 namespace IFoxCAD.Cad;
 
-using Autodesk.AutoCAD.DatabaseServices;
-using System.Windows.Documents;
-
-/// <summary>
-/// 委托执行状态
-/// </summary>
-public enum DelegateState
-{
-    /// <summary>
-    /// 继续执行
-    /// </summary>
-    Go,
-    /// <summary>
-    /// 中断执行
-    /// </summary>
-    Break
-}
-
 public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     where TTable : SymbolTable
     where TRecord : SymbolTableRecord, new()
@@ -348,11 +330,11 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="action">要执行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="checkIdOk">检查id是否删除,默认false</param>
-    public void ForEach(Action<TRecord, DelegateState> action,
+    public void ForEach(Action<TRecord, LoopState> action,
                         OpenMode openMode = OpenMode.ForRead,
                         bool checkIdOk = false)
     {
-        DelegateState state = DelegateState.Go;/*这种方式比Action改Func更友好*/
+        LoopState state = LoopState.Go;/*这种方式比Action改Func更友好*/
         foreach (var id in this)
         {
             if (checkIdOk && !id.IsOk())
@@ -360,7 +342,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
             var record = GetRecord(id, openMode);
             if (record is not null)
                 action(record, state);
-            if (state == DelegateState.Break)
+            if (state == LoopState.Break)
                 break;
         }
     }

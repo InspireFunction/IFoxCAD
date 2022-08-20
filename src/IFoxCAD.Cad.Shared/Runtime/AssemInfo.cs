@@ -75,3 +75,5 @@ public enum AutoRegConfig
 
     All = Regedit | ReflectionAttribute | ReflectionInterface,
 }
+
+
