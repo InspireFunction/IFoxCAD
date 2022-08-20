@@ -322,34 +322,50 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
 
     #region 遍历
     /// <summary>
-    /// 遍历集合的迭代器，执行action委托
+    /// 遍历集合的迭代器,执行action委托
     /// </summary>
     /// <param name="action">要运行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="checkIdOk">检查id是否删除,默认false</param>
-    public void ForEach(Action<TRecord> action, OpenMode openMode = OpenMode.ForRead, bool checkIdOk = false)
+    public void ForEach(Action<TRecord> action,
+                        OpenMode openMode = OpenMode.ForRead,
+                        bool checkIdOk = false)
     {
-        if (checkIdOk)
+        foreach (var id in this)
         {
-            foreach (var id in this)
-            {
-                if (!id.IsOk())
-                    continue;
-                var record = GetRecord(id, openMode);
-                if (record is not null)
-                    action(record);
-            }
-        }
-        else
-        {
-            foreach (var id in this)
-            {
-                var record = GetRecord(id, openMode);
-                if (record is not null)
-                    action(record);
-            }
+            if (checkIdOk && !id.IsOk())
+                continue;
+            var record = GetRecord(id, openMode);
+            if (record is not null)
+                action(record);
         }
     }
+
+
+    /// <summary>
+    /// 遍历集合的迭代器,执行action委托
+    /// </summary>
+    /// <param name="action">要执行的委托</param>
+    /// <param name="openMode">打开模式,默认为只读</param>
+    /// <param name="checkIdOk">检查id是否删除,默认false</param>
+    public void ForEach(Action<TRecord, DelegateState> action,
+                        OpenMode openMode = OpenMode.ForRead,
+                        bool checkIdOk = false)
+    {
+        DelegateState state = DelegateState.Go;/*这种方式比Action改Func更友好*/
+        foreach (var id in this)
+        {
+            if (checkIdOk && !id.IsOk())
+                continue;
+            var record = GetRecord(id, openMode);
+            if (record is not null)
+                action(record, state);
+            if (state == DelegateState.Break)
+                break;
+        }
+    }
+
+
     #endregion
 
     #region IEnumerable<ObjectId> 成员
