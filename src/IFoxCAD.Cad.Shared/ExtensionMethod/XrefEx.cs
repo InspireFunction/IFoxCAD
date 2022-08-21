@@ -320,9 +320,9 @@ public static class XrefEx
         xbindAction?.Invoke(xbindXrefsIds);
 
         //嵌套参照被卸载则进行重载,才能进行绑定
-        var keys = nested.Keys.ToArray();
-        if (keys.Length > 0)
-            tr.Database.ReloadXrefs(new ObjectIdCollection(keys));
+        var keys = nested.Keys;
+        if (keys.Count > 0)
+            tr.Database.ReloadXrefs(new ObjectIdCollection(keys.ToArray()));
 
         //切勿交换,若交换秩序,则会绑定无效
         if (xbindXrefsIds.Count > 0)
@@ -405,13 +405,13 @@ public class XrefPath
         //相对路径==".\\AA.dwg"
         //无路径=="AA.dwg"
         PathSave = btRec.PathName;
-        
+
         if ((!string.IsNullOrEmpty(PathSave) && PathSave[0] == '.') || File.Exists(PathSave))
         {
             //相对路径||绝对路径
             PathDescribe = PathSave;
         }
-        else 
+        else
         {
             //无路径
             var db = btRec.GetXrefDatabase(true);
@@ -627,12 +627,11 @@ public static class DBTransEx
                              where TTable : SymbolTable
                              where TRecord : SymbolTableRecord, new()
     {
-        var idArray = symbolTable.Select(id => id)?.ToArray();
-        if (idArray != null && idArray.Length > 0)
-        {
-            var ids = new ObjectIdCollection(idArray);
-            while (ids.Count > 0)
-                db.Purge(ids);
-        }
+        var idArray = symbolTable.Select(id => id);
+        if (!idArray.Any())
+            return;
+        var ids = new ObjectIdCollection(idArray.ToArray());
+        while (ids.Count > 0)
+            db.Purge(ids);
     }
 }
