@@ -344,7 +344,7 @@ public class XrefPath
     /// <summary>
     /// 基础路径
     /// </summary>
-    readonly string? _directory;
+    public string CurrentDatabasePath;
     /// <summary>
     /// 是否外部参照
     /// </summary>
@@ -370,14 +370,14 @@ public class XrefPath
     /// 绝对路径
     /// </summary>
     public string? PathComplete => _PathComplete ??=
-           PathConverter(_directory, PathDescribe, PathConverterModes.Complete);
+           PathConverter(CurrentDatabasePath, PathDescribe, PathConverterModes.Complete);
 
     string? _PathRelative;
     /// <summary>
     /// 相对路径
     /// </summary>
     public string? PathRelative => _PathRelative ??=
-           PathConverter(_directory, PathComplete, PathConverterModes.Relative);
+           PathConverter(CurrentDatabasePath, PathComplete, PathConverterModes.Relative);
     #endregion
 
     #region 构造
@@ -392,11 +392,11 @@ public class XrefPath
         if (brf == null)
             throw new ArgumentNullException(nameof(brf));
 
+        CurrentDatabasePath = Path.GetDirectoryName(tr.Database.Filename);
+
         var btRec = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);//块表记录
         if (btRec == null)
             return;
-
-        _directory = Path.GetDirectoryName(tr.Database.Filename);
 
         IsFromExternalReference = btRec.IsFromExternalReference;
         if (!IsFromExternalReference)
