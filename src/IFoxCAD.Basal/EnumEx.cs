@@ -6,18 +6,15 @@ using System.Linq;
 public static class EnumEx
 {
     /// <summary>
-    /// 打印枚举的特性<see cref="DescriptionAttribute"/>注释内容
+    /// 清理缓存
     /// </summary>
-    public static string? PrintNote(this Enum e, bool noDescrToString = true)
+    public static void CleanCache()
     {
-        var hash = GetAttribute<DescriptionAttribute>(e, noDescrToString);
-        if (hash != null)
-            return string.Join("|", hash.ToArray());
-        return null;
+        _cache.Clear();
     }
-
-    //缓存
-    static readonly Dictionary<string, HashSet<string>> _enumDict = new();
+     
+    //(类型完整名,描述组合)
+    static readonly Dictionary<string, HashSet<string>> _cache = new();
 
     /// <summary>
     /// 打印枚举的特性<see cref="DescriptionAttribute"/>注释内容
@@ -28,68 +25,63 @@ public static class EnumEx
         where T : DescriptionAttribute
     {
         var eType = e.GetType();
-        string eFullName = GetDisplayName(e);
+        string eFullName = eType.FullName + "." + e.ToString();
 
-        if (_enumDict.ContainsKey(eFullName))
-            return _enumDict[eFullName];
+        if (_cache.ContainsKey(eFullName))
+            return _cache[eFullName];
 
         var fieldInfo = eType.GetField(Enum.GetName(eType, e));
         if (fieldInfo == null)
             return null!;
 
-        var attribute = Attribute.GetCustomAttribute(fieldInfo, typeof(T)) as T;
-        if (attribute != null)
+        if (Attribute.GetCustomAttribute(fieldInfo, typeof(T)) is T attribute)
         {
             var res = new HashSet<string>() { attribute.Description };
-            _enumDict.Add(eFullName, res);
+            _cache.Add(eFullName, res);
             return res;
         }
 
-        //如果就是空的,就尝试去遍历所有的字段进行组合
-        List<Enum> enums = new();
-        foreach (Enum item in Enum.GetValues(eType)) //遍历这个枚举类型
+        //注释存放的容器
+        HashSet<string> nodes = new();
+
+        //通常到这里的就是 ALL = A | B | C
+        //遍历所有的枚举,组合每个注释
+        List<Enum> enumHas = new();
+        foreach (Enum enumItem in Enum.GetValues(eType)) //遍历这个枚举类型
         {
-            if ((e.GetHashCode() & item.GetHashCode()) == item.GetHashCode() &&
-                 e.GetHashCode() != item.GetHashCode())
-                enums.Add(item);
+            if ((e.GetHashCode() & enumItem.GetHashCode()) == enumItem.GetHashCode() &&
+                 e.GetHashCode() != enumItem.GetHashCode())
+                enumHas.Add(enumItem);
+        }
+        for (int i = 0; i < enumHas.Count; i++)
+        {
+            var atts = GetAttribute<T>(enumHas[i], noDescrToString);//递归
+            if (atts == null)
+                continue;
+            foreach (var item in atts)
+                nodes.Add(item);//递归时候可能存在重复的元素
         }
 
-        HashSet<string> eNames = new();
-        if (enums.Count > 0)
-        {
-            for (int i = 0; i < enums.Count; i++)
-            {
-                var key = enums[i];
-                var tname = GetDisplayName(key);
-                if (_enumDict.ContainsKey(tname))
-                {
-                    foreach (var item in _enumDict[tname])
-                        eNames.Add(item);
-                }
-                else
-                {
-                    var get = GetAttribute<T>(key, noDescrToString);
-                    if (get != null)
-                        foreach (var item in get)  //没有缓存就递归
-                            eNames.Add(item);
-                }
-            }
-        }
+        if (nodes.Count == 0 && noDescrToString)
+            nodes.Add(e.ToString());
 
-        if (eNames.Count == 0 && noDescrToString)
-            eNames.Add(e.ToString());
-
-        _enumDict.Add(eFullName, eNames);
-        return eNames;
+        _cache.Add(eFullName, nodes);
+        return nodes;
     }
-
-    static string GetDisplayName(Enum e)
+  
+    /// <summary>
+    /// 打印枚举的特性<see cref="DescriptionAttribute"/>注释内容
+    /// </summary>
+    public static string? PrintNote(this Enum e, bool noDescToString = true)
     {
-        return e.GetType().FullName + "." + e.ToString();
+        var hash = GetAttribute<DescriptionAttribute>(e, noDescToString);
+        if (hash != null)
+            return string.Join("|", hash.ToArray());
+        return null;
     }
 
 
-    //这个完全被上面替代了
+    //TODO 山人审核代码之后可以删除,这个完全被上面替代了
     public static string GetDesc(this Enum val)
     {
         var type = val.GetType();
@@ -102,4 +94,3 @@ public static class EnumEx
         return ((DescriptionAttribute)attributes.Single()).Description;
     }
 }
-
