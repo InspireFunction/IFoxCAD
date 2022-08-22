@@ -12,7 +12,7 @@ public static class EnumEx
     {
         _cache.Clear();
     }
-     
+
     //(类型完整名,描述组合)
     static readonly Dictionary<string, HashSet<string>> _cache = new();
 
@@ -34,32 +34,40 @@ public static class EnumEx
         if (fieldInfo == null)
             return null!;
 
-        if (Attribute.GetCustomAttribute(fieldInfo, typeof(T)) is T attribute)
-        {
-            var res = new HashSet<string>() { attribute.Description };
-            _cache.Add(eFullName, res);
-            return res;
-        }
-
         //注释存放的容器
         HashSet<string> nodes = new();
+        if (Attribute.GetCustomAttribute(fieldInfo, typeof(T)) is T attribute)
+        {
+            nodes.Add(attribute.Description);
+            _cache.Add(eFullName, nodes);
+            return nodes;
+        }
 
         //通常到这里的就是 ALL = A | B | C
         //遍历所有的枚举,组合每个注释
         List<Enum> enumHas = new();
-        foreach (Enum enumItem in Enum.GetValues(eType)) //遍历这个枚举类型
+        foreach (Enum em in Enum.GetValues(eType)) //遍历这个枚举类型
         {
-            if ((e.GetHashCode() & enumItem.GetHashCode()) == enumItem.GetHashCode() &&
-                 e.GetHashCode() != enumItem.GetHashCode())
-                enumHas.Add(enumItem);
+            if ((e.GetHashCode() & em.GetHashCode()) == em.GetHashCode() &&
+                 e.GetHashCode() != em.GetHashCode())
+                enumHas.Add(em);
         }
-        for (int i = 0; i < enumHas.Count; i++)
+
+        //采取的行为是:注释的行为是特殊的,就按照注释的,否则,遍历子元素提取注释
+        //大的在前面才能判断是否包含后面的,后面的就是要移除的
+        enumHas = enumHas.OrderByDescending(a => a.GetHashCode()).ToList();
+        ArrayEx.Deduplication(enumHas, (a, b) => {
+            return (a.GetHashCode() & b.GetHashCode()) == b.GetHashCode();
+        });
+
+        //逆序仅仅为排序了逆向,不一定和书写顺序一样,尤其是递归可能存在重复的元素
+        for (int i = enumHas.Count - 1; i >= 0; i--)
         {
             var atts = GetAttribute<T>(enumHas[i], noDescrToString);//递归
             if (atts == null)
                 continue;
             foreach (var item in atts)
-                nodes.Add(item);//递归时候可能存在重复的元素
+                nodes.Add(item);
         }
 
         if (nodes.Count == 0 && noDescrToString)
@@ -68,7 +76,7 @@ public static class EnumEx
         _cache.Add(eFullName, nodes);
         return nodes;
     }
-  
+
     /// <summary>
     /// 打印枚举的特性<see cref="DescriptionAttribute"/>注释内容
     /// </summary>

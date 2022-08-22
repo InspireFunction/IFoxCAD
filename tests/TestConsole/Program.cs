@@ -3,6 +3,7 @@ using System;
 using System.Text;
 using TestConsole;
 
+//乱序
 Console.WriteLine(PlugIn.JoinBox.PrintNote());
 Console.WriteLine(PlugIn.Lisp.PrintNote());//这里先交换顺序来试试能不能成功
 Console.WriteLine(PlugIn.IMinCad.PrintNote());
@@ -10,8 +11,16 @@ Console.WriteLine(PlugIn.YuanQuan.PrintNote());
 Console.WriteLine(PlugIn.All.PrintNote());
 Console.WriteLine(PlugIn.DOCBAR.PrintNote());
 Console.WriteLine(PlugIn.DUOTAB.PrintNote());
+Console.WriteLine("***************************************************");
+//乱序2
+Console.WriteLine(PlugIn2.JoinBox.PrintNote());
+Console.WriteLine(PlugIn2.Lisp.PrintNote());//这里先交换顺序来试试能不能成功
+Console.WriteLine(PlugIn2.IMinCad.PrintNote());
+Console.WriteLine(PlugIn2.YuanQuan.PrintNote());
+Console.WriteLine(PlugIn2.All.PrintNote());
+Console.WriteLine(PlugIn2.DOCBAR.PrintNote());
+Console.WriteLine(PlugIn2.DUOTAB.PrintNote());
 
-Console.WriteLine("测试工程");
 
 //表达式树例子
 TestConsole.Test_Expression.Demo3();
