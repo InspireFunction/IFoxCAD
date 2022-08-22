@@ -308,26 +308,27 @@ public class XrefFactory : XrefBindModes
 
     /// <summary>
     /// 双重绑定参照
-    /// <see href="https://www.cnblogs.com/SHUN-ONCET/p/16593360.html">参考链接</a>
+    /// <a href="https://www.cnblogs.com/SHUN-ONCET/p/16593360.html">参考链接</a>
     /// </summary>
     void DoubleBind()
     {
         Dictionary<ObjectId, string> nested = new();
         var detachXrefIds = GetDetachIds(nested);
-        //拆离未参照的文件
+
+        //拆离:未参照的文件
         if (detachXref)
         {
             for (int i = 0; i < detachXrefIds.Count; i++)
                 tr.Database.DetachXref(detachXrefIds[i]);
         }
-        //嵌套参照被卸载则进行重载,才能进行绑定
+        //重载:嵌套参照已卸载了,需要重载之后才能进行绑定
         var keys = nested.Keys;
         if (keys.Count > 0)
             tr.Database.ReloadXrefs(new ObjectIdCollection(keys.ToArray()));
 
+        //绑定:切勿交换,否则会绑定无效
         var bindIds = GetBindIds();
         var xbindIds = GetXBindIds();
-        //切勿交换,否则会绑定无效
         if (xbindIds.Count > 0)
             tr.Database.XBindXrefs(xbindIds, true);
         if (bindIds.Count > 0)
