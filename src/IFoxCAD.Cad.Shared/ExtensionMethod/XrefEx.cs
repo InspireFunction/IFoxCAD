@@ -1,5 +1,5 @@
 ﻿//#define error_demo
-//#define test_demo
+#define test_demo
 
 namespace IFoxCAD.Cad;
 
@@ -28,68 +28,116 @@ public class TestCmd_BindXrefs
 }
 #endif
 
-#region 参照绑定类
-public static class XrefEx
+#region 参照工厂
+public interface XrefBindModes
 {
     /// <summary>
-    /// 外部参照
+    /// 卸载
     /// </summary>
-    /// <param name="tr"></param>
-    /// <param name="xrefModes">处理参照的枚举</param>
+    public void Unload();
+    /// <summary>
+    /// 重载
+    /// </summary>
+    public void Reload();
+    /// <summary>
+    /// 拆离
+    /// </summary>
+    public void Detach();
+    /// <summary>
+    /// 绑定
+    /// </summary>
+    public void Bind();
+}
+
+public class XrefFactory : XrefBindModes
+{
+    #region 私有字段
+    readonly DBTrans tr;
+    /// <summary>
     /// <param name="xrefNames">要处理的参照名称,<see langword="null"/>就处理所有</param>
-    /// <param name="xrefModesBind">
-    /// <para>
-    /// 参数<paramref name="xrefModes"/>==<see cref="XrefModes.Bind"/>才触发<br/>
-    /// 需要绑定的符号表:请保持默认<br/>
+    /// </summary>
+    readonly HashSet<string>? xrefNames;
+    #endregion
+
+    #region 公开字段
+    /// <summary>
+    /// 解析外部参照:
+    /// 线性引擎,会在cad命令历史打印一些AEC信息,并导致绑定慢一点...具体作用不详
+    /// </summary>
+    public bool useThreadEngine = false;
+
+    /// <summary>
+    /// 解析外部参照:仅处理 Unresolved_未融入(未解析)的参照
+    /// </summary>
+    public bool doNewOnly = false;
+
+    /// <summary>
+    /// 解析外部参照:包含僵尸参照
+    /// </summary>
+    public bool includeGhosts = true;
+
+
+
+    /// <summary>
+    /// bind时候是否拆离参照,默认true:学官方的绑定后自动拆离
+    /// </summary>
+    public bool detachXref = true;
+
+    /// <summary>
+    /// bind时候是否删除被卸载的嵌套参照,默认true
+    /// </summary>
+    public bool eraseNested = true;
+     
+    /// <summary>
+    /// bind时候控制绑定的符号表:请保持默认<br/>
     /// 目前仅推荐用于<see cref="SymModes.LayerTable"/>项<br/>
     /// 其他项有异常: eWasOpenForNotify<br/>
-    /// </para>
-    /// </param>
-    public static void XrefFactory(this DBTrans tr,
-                                   XrefModes xrefModes,
-                                   HashSet<string>? xrefNames = null,
-                                   SymModes xrefModesBind = SymModes.LayerTable)
+    /// </summary>
+    public SymModes xrefModesBind = SymModes.LayerTable;
+    #endregion
+
+    /// <summary>
+    /// 参照工厂
+    /// </summary>
+    /// <param name="tr"></param>
+    /// <param name="xrefNames">要处理的参照名称,<see langword="null"/>就处理所有</param>
+    public XrefFactory(DBTrans tr, HashSet<string>? xrefNames = null)
     {
-        DatabaseEx.DBTextDeviation(tr.Database, () => {
-
-            switch (xrefModes)
-            {
-                case XrefModes.Unload:
-                {
-                    var xrefIds = GetXrefNode(tr.Database, xrefNames);
-                    if (xrefIds.Count > 0)
-                        tr.Database.UnloadXrefs(xrefIds);
-                }
-                break;
-                case XrefModes.Reload:
-                {
-                    var xrefIds = GetXrefNode(tr.Database, xrefNames);
-                    if (xrefIds.Count > 0)
-                        tr.Database.ReloadXrefs(xrefIds);
-                }
-                break;
-                case XrefModes.Detach:
-                {
-                    var xrefIds = GetXrefNode(tr.Database, xrefNames);
-                    foreach (ObjectId id in xrefIds)
-                        tr.Database.DetachXref(id);
-                }
-                break;
-                case XrefModes.Bind:
-                {
-                    //此功能有绑定出错的问题
-                    //db.BindXrefs(xrefIds, true);
-
-                    //绑定后会自动拆离
-                    //此功能修补了上面缺失
-                    BindXrefsEx(tr, xrefNames, xrefModesBind);
-                }
-                break;
-                default:
-                break;
-            }
-        });
+        this.tr = tr;
+        this.xrefNames = xrefNames;
     }
+
+    public void Bind()
+    {
+        //此功能有绑定出错的问题
+        //db.BindXrefs(xrefIds, true);
+
+        //绑定后会自动拆离
+        //此功能修补了上面缺失
+        DoubleBind();
+    }
+
+    public void Detach()
+    {
+        var xrefIds = GetXrefNode();
+        foreach (ObjectId id in xrefIds)
+            tr.Database.DetachXref(id);
+    }
+
+    public void Reload()
+    {
+        var xrefIds = GetXrefNode();
+        if (xrefIds.Count > 0)
+            tr.Database.ReloadXrefs(xrefIds);
+    }
+
+    public void Unload()
+    {
+        var xrefIds = GetXrefNode();
+        if (xrefIds.Count > 0)
+            tr.Database.UnloadXrefs(xrefIds);
+    }
+
 
     /// <summary>
     /// 获取参照
@@ -97,13 +145,13 @@ public static class XrefEx
     /// <param name="db"></param>
     /// <param name="names">过滤名称</param>
     /// <returns></returns>
-    static ObjectIdCollection GetXrefNode(Database db, HashSet<string>? names)
+    ObjectIdCollection GetXrefNode()
     {
         //储存要处理的参照id
         var xrefIds = new ObjectIdCollection();
-        XrefNodeForEach(db, (xNodeName, xNodeId, xNodeStatus, xNodeIsNested) => {
+        XrefNodeForEach((xNodeName, xNodeId, xNodeStatus, xNodeIsNested) => {
             //为空的时候全部加入 || 有内容时候含有目标
-            if (names is null || names.Contains(xNodeName))
+            if (xrefNames is null || xrefNames.Contains(xNodeName))
                 xrefIds.Add(xNodeId);
         });
         return xrefIds;
@@ -112,19 +160,19 @@ public static class XrefEx
     /// <summary>
     /// 遍历参照
     /// </summary>
-    /// <param name="db"></param>
     /// <param name="action">(参照名,参照块表记录id,参照状态,是否嵌入)</param>
-    static void XrefNodeForEach(Database db, Action<string, ObjectId, XrefStatus, bool> action)
+    void XrefNodeForEach(Action<string, ObjectId, XrefStatus, bool> action)
     {
         // btRec.IsFromOverlayReference 是覆盖
         // btRec.GetXrefDatabase(true) 外部参照数据库
 
-        //解析外部参照:此功能不能锁定文档
-        //useThreadEngine==true,线性引擎,会在cad命令历史打印一些AEC信息,并导致绑定慢一点...具体作用不详
-        //doNewOnly==true,仅处理 Unresolved_未融入(未解析)的参照
-        db.ResolveXrefs(useThreadEngine: false, doNewOnly: false);
+        if (action == null)
+            return;
 
-        var xg = db.GetHostDwgXrefGraph(true);//参数:包含僵尸参照
+        //解析外部参照:此功能不能锁定文档
+        tr.Database.ResolveXrefs(useThreadEngine, doNewOnly);
+
+        var xg = tr.Database.GetHostDwgXrefGraph(includeGhosts);
         for (int i = 0; i < xg.NumNodes; i++)
         {
             var xNode = xg.GetXrefNode(i);
@@ -138,99 +186,7 @@ public static class XrefEx
         }
     }
 
-
-    /// <summary>
-    /// 双重绑定参照
-    /// <see href="https://www.cnblogs.com/SHUN-ONCET/p/16593360.html">参考链接</a>
-    /// </summary>
-    /// <param name="tr"></param>
-    /// <param name="xrefNames">要处理的参照名称,<see langword="null"/>就处理所有</param>
-    /// <param name="xrefModesBind">
-    /// <para>
-    /// 参数<paramref name="xrefModes"/>==<see cref="XrefModes.Bind"/>才触发<br/>
-    /// 需要绑定的符号表:请保持默认<br/>
-    /// 目前仅推荐用于<see cref="SymModes.LayerTable"/>项<br/>
-    /// 其他项有异常: eWasOpenForNotify<br/>
-    /// </para>
-    /// </param>
-    /// <param name="detachXref">是否拆离参照,默认true:学官方的绑定后自动拆离</param>
-    /// <param name="eraseNested">是否删除被卸载的嵌套参照,默认true</param>
-    static void BindXrefsEx(DBTrans tr,
-                            HashSet<string>? xrefNames = null,
-                            SymModes xrefModesBind = SymModes.LayerTable,
-                            bool detachXref = true,
-                            bool eraseNested = true)
-    {
-        //嵌套参照(块表记录id,名称)
-        Dictionary<ObjectId, string> nested = new();
-        DoubleBind(tr, nested, (xbindXrefsIds) => {
-
-            // 起初测试是将九大符号表记录均加入的,但经实测不行...(为什么?存疑)
-            #region Option1
-            if ((xrefModesBind & SymModes.LayerTable) == SymModes.LayerTable)
-                AddedxbindIds(xbindXrefsIds, tr.LayerTable);
-
-            if ((xrefModesBind & SymModes.TextStyleTable) == SymModes.TextStyleTable)
-                AddedxbindIds(xbindXrefsIds, tr.TextStyleTable);
-
-            if ((xrefModesBind & SymModes.RegAppTable) == SymModes.RegAppTable)
-                AddedxbindIds(xbindXrefsIds, tr.RegAppTable);
-
-            if ((xrefModesBind & SymModes.DimStyleTable) == SymModes.DimStyleTable)
-                AddedxbindIds(xbindXrefsIds, tr.DimStyleTable);
-
-            if ((xrefModesBind & SymModes.LinetypeTable) == SymModes.LinetypeTable)
-                AddedxbindIds(xbindXrefsIds, tr.LinetypeTable);
-            #endregion
-
-            #region Option2
-            if ((xrefModesBind & SymModes.UcsTable) == SymModes.UcsTable)
-                AddedxbindIds(xbindXrefsIds, tr.UcsTable);
-
-            if ((xrefModesBind & SymModes.ViewTable) == SymModes.ViewTable)
-                AddedxbindIds(xbindXrefsIds, tr.ViewTable);
-
-            if ((xrefModesBind & SymModes.ViewportTable) == SymModes.ViewportTable)
-                AddedxbindIds(xbindXrefsIds, tr.ViewportTable);
-            #endregion
-
-        }, xrefNames, detachXref);
-
-
-        // 内部删除嵌套参照的块操作
-        if (eraseNested)
-        {
-#if ac2008
-            //因为Acad08索引器存在会暴露isErase的(桌子底层的原因),
-            //也就是可能获取两个名称一样的,只能用遍历的方式进行
-            HashSet<string> namess = new();
-            foreach (var item in nested)
-                namess.Add(item.Value);
-
-            //遍历全图,找到参照名称一样的删除
-            tr.BlockTable.ForEach(btr => {
-                if (btr.IsLayout)
-                    return;
-                if (namess.Contains(btr.Name))
-                {
-                    btr.UpgradeOpen();
-                    btr.Erase();
-                    btr.DowngradeOpen();
-                    btr.Dispose();
-                }
-            }, checkIdOk: true);
-#else
-            foreach (var item in nested)
-            {
-                var name = item.Value;
-                if (tr.BlockTable.Has(name))
-                    tr.GetObject<BlockTableRecord>(tr.BlockTable[name], OpenMode.ForWrite)?
-                      .Erase();
-            }
-#endif
-        }
-    }
-
+  
     /// <summary>
     /// 符号表记录加入容器
     /// </summary>
@@ -245,19 +201,8 @@ public static class XrefEx
         }, checkIdOk: true);
     }
 
-    /// <summary>
-    /// 双重绑定
-    /// </summary>
-    static void DoubleBind(DBTrans tr,
-                           Dictionary<ObjectId, string> nested,
-                           Action<ObjectIdCollection> xbindAction,
-                           HashSet<string>? xrefNames = null,
-                           bool detachXref = true)
+    ObjectIdCollection GetBindIds()
     {
-        //xbind
-        //0x01 它是用来绑其他符号表,绑块表会有异常
-        //0x02 集合若有问题,就会出现eWrongObjectType
-        var xbindXrefsIds = new ObjectIdCollection();
         //bind 只绑块表
         var bindXrefsIds = new ObjectIdCollection();
 
@@ -267,11 +212,60 @@ public static class XrefEx
                 bindXrefsIds.Add(btr.ObjectId);
         }, checkIdOk: true);
 
+        return bindXrefsIds;
+    }
+
+    ObjectIdCollection GetXBindIds()
+    {
+        //xbind
+        //0x01 它是用来绑其他符号表,绑块表会有异常
+        //0x02 集合若有问题,就会出现eWrongObjectType
+        var xbindXrefsIds = new ObjectIdCollection();
+
+        // 起初测试是将九大符号表记录均加入的,但经实测不行...(为什么?存疑)
+        #region Option1
+        if ((xrefModesBind & SymModes.LayerTable) == SymModes.LayerTable)
+            AddedxbindIds(xbindXrefsIds, tr.LayerTable);
+
+        if ((xrefModesBind & SymModes.TextStyleTable) == SymModes.TextStyleTable)
+            AddedxbindIds(xbindXrefsIds, tr.TextStyleTable);
+
+        if ((xrefModesBind & SymModes.RegAppTable) == SymModes.RegAppTable)
+            AddedxbindIds(xbindXrefsIds, tr.RegAppTable);
+
+        if ((xrefModesBind & SymModes.DimStyleTable) == SymModes.DimStyleTable)
+            AddedxbindIds(xbindXrefsIds, tr.DimStyleTable);
+
+        if ((xrefModesBind & SymModes.LinetypeTable) == SymModes.LinetypeTable)
+            AddedxbindIds(xbindXrefsIds, tr.LinetypeTable);
+        #endregion
+
+        #region Option2
+        if ((xrefModesBind & SymModes.UcsTable) == SymModes.UcsTable)
+            AddedxbindIds(xbindXrefsIds, tr.UcsTable);
+
+        if ((xrefModesBind & SymModes.ViewTable) == SymModes.ViewTable)
+            AddedxbindIds(xbindXrefsIds, tr.ViewTable);
+
+        if ((xrefModesBind & SymModes.ViewportTable) == SymModes.ViewportTable)
+            AddedxbindIds(xbindXrefsIds, tr.ViewportTable);
+        #endregion
+
+        return xbindXrefsIds;
+    }
+
+    /// <summary>
+    /// 获取可以拆离的ids
+    /// </summary>
+    /// <param name="nested">返回已卸载中含有嵌套的参照,要重载之后才能绑定</param>
+    /// <returns>返回未参照中嵌套的参照,直接拆离</returns>
+    List<ObjectId> GetDetachIds(Dictionary<ObjectId, string> nested)
+    {
         // 直接拆离的id
         List<ObjectId> detachXrefIds = new();
-
+         
         //收集要处理的id
-        XrefNodeForEach(tr.Database, (xNodeName, xNodeId, xNodeStatus, xNodeIsNested) => {
+        XrefNodeForEach((xNodeName, xNodeId, xNodeStatus, xNodeIsNested) => {
             switch (xNodeStatus)
             {
                 case XrefStatus.Unresolved://未融入_ResolveXrefs参数2
@@ -309,26 +303,120 @@ public static class XrefEx
                 break;
             }
         });
+        return detachXrefIds;
+    }
 
+    /// <summary>
+    /// 双重绑定参照
+    /// <see href="https://www.cnblogs.com/SHUN-ONCET/p/16593360.html">参考链接</a>
+    /// </summary>
+    void DoubleBind()
+    {
+        Dictionary<ObjectId, string> nested = new();
+        var detachXrefIds = GetDetachIds(nested);
         //拆离未参照的文件
         if (detachXref)
         {
             for (int i = 0; i < detachXrefIds.Count; i++)
                 tr.Database.DetachXref(detachXrefIds[i]);
         }
-
-        xbindAction?.Invoke(xbindXrefsIds);
-
         //嵌套参照被卸载则进行重载,才能进行绑定
         var keys = nested.Keys;
         if (keys.Count > 0)
             tr.Database.ReloadXrefs(new ObjectIdCollection(keys.ToArray()));
 
-        //切勿交换,若交换秩序,则会绑定无效
-        if (xbindXrefsIds.Count > 0)
-            tr.Database.XBindXrefs(xbindXrefsIds, true);
-        if (bindXrefsIds.Count > 0)
-            tr.Database.BindXrefs(bindXrefsIds, true);
+        var bindIds = GetBindIds();
+        var xbindIds = GetXBindIds();
+        //切勿交换,否则会绑定无效
+        if (xbindIds.Count > 0)
+            tr.Database.XBindXrefs(xbindIds, true);
+        if (bindIds.Count > 0)
+            tr.Database.BindXrefs(bindIds, true);
+
+
+        // 内部删除嵌套参照的块操作
+        if (eraseNested)
+        {
+#if ac2008
+            //因为Acad08索引器存在会暴露isErase的(桌子底层的原因),
+            //也就是可能获取两个名称一样的,只能用遍历的方式进行
+            HashSet<string> namess = new();
+            foreach (var item in nested)
+                namess.Add(item.Value);
+
+            //遍历全图,找到参照名称一样的删除
+            tr.BlockTable.ForEach(btr => {
+                if (btr.IsLayout)
+                    return;
+                if (namess.Contains(btr.Name))
+                {
+                    btr.UpgradeOpen();
+                    btr.Erase();
+                    btr.DowngradeOpen();
+                    btr.Dispose();
+                }
+            }, checkIdOk: true);
+#else
+            foreach (var item in nested)
+            {
+                var name = item.Value;
+                if (tr.BlockTable.Has(name))
+                    tr.GetObject<BlockTableRecord>(tr.BlockTable[name], OpenMode.ForWrite)?
+                      .Erase();
+            }
+#endif
+        }
+    }
+}
+
+
+
+public static class XrefEx
+{
+    /// <summary>
+    /// 外部参照工厂
+    /// </summary>
+    /// <param name="tr"></param>
+    /// <param name="xrefModes">处理参照的枚举</param>
+    /// <param name="xrefNames">要处理的参照名称,<see langword="null"/>就处理所有</param>
+    /// <param name="isDBTextDeviation">处理单行文字偏移</param>
+    public static void XrefFactory(this DBTrans tr,
+                                   XrefModes xrefModes,
+                                   HashSet<string>? xrefNames = null,
+                                   bool isDBTextDeviation = true)
+    {
+        var xf = new XrefFactory(tr, xrefNames);
+        if (isDBTextDeviation)
+        {
+            DatabaseEx.DBTextDeviation(tr.Database, () => {
+                SetXrefBind(xrefModes, xf);
+            });
+        }
+        else
+        {
+            SetXrefBind(xrefModes, xf);
+        }
+    }
+
+    static void SetXrefBind(XrefModes xrefModes, XrefFactory xf)
+    {
+        switch (xrefModes)
+        {
+            case XrefModes.Unload:
+            xf.Unload();
+            break;
+            case XrefModes.Reload:
+            xf.Reload();
+            break;
+            case XrefModes.Detach:
+            xf.Detach();
+            break;
+            case XrefModes.Bind:
+            xf.Bind();
+            break;
+            default:
+            break;
+        }
     }
 }
 
@@ -429,9 +517,7 @@ public class XrefPath
     /// <param name="fileRelations">相对路径或者绝对路径</param>
     /// <param name="converterModes">依照枚举返回对应的字符串</param>
     /// <returns></returns>
-    public static string? PathConverter(string? directory,
-                                        string? fileRelations,
-                                        PathConverterModes converterModes)
+    public static string? PathConverter(string? directory, string? fileRelations, PathConverterModes converterModes)
     {
         if (directory == null)
             throw new ArgumentNullException(nameof(directory));
