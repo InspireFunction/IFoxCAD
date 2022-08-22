@@ -1,6 +1,6 @@
-﻿using System.Windows.Controls;
+﻿namespace IFoxCAD.Cad;
 
-namespace IFoxCAD.Cad;
+using System.Diagnostics;
 
 /// <summary>
 /// 事务栈
@@ -152,16 +152,31 @@ public class DBTrans : IDisposable
                 else
                 {
 #if ac2008
-                    //此处没有一一对应的关系
-                    var sf = openMode switch
+                    FileAccess fileAccess = FileAccess.Read;
+                    FileShare fileShare = FileShare.Read;
+                    switch (openMode)
                     {
-                        FileOpenMode.OpenTryForReadShare => FileShare.Read,
-                        FileOpenMode.OpenForReadAndAllShare => FileShare.ReadWrite,
-                        FileOpenMode.OpenForReadAndWriteNoShare => FileShare.None,
-                        FileOpenMode.OpenForReadAndReadShare => FileShare.ReadWrite,
-                        _ => FileShare.ReadWrite,
-                    };
-                    Database.ReadDwgFile(fileName, sf, true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
+                        case FileOpenMode.OpenTryForReadShare://这个是什么状态??
+                        fileAccess = FileAccess.ReadWrite;
+                        fileShare = FileShare.ReadWrite;
+                        break;
+                        case FileOpenMode.OpenForReadAndAllShare://完美匹配
+                        fileAccess = FileAccess.ReadWrite;
+                        fileShare = FileShare.ReadWrite;
+                        break;
+                        case FileOpenMode.OpenForReadAndWriteNoShare://完美匹配
+                        fileAccess = FileAccess.ReadWrite;
+                        fileShare = FileShare.None;
+                        break;
+                        case FileOpenMode.OpenForReadAndReadShare://完美匹配
+                        fileAccess = FileAccess.Read;
+                        fileShare = FileShare.Read;
+                        break;
+                        default:
+                        break;
+                    }
+                    using FileStream fileStream = new(fileName, FileMode.Open, fileAccess, fileShare);
+                    Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(), true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
 #else
                     Database.ReadDwgFile(fileName, openMode, true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
 #endif
@@ -358,7 +373,15 @@ public class DBTrans : IDisposable
             }
         }
         if (doca == null) // 后台开图,用数据库保存
+        {
+            //用了不存在的文件进行后台打开,并且设置保存,这个时候就软处理
+            if (string.IsNullOrEmpty(Database.Filename))
+            {
+                Debug.WriteLine("**** 此数据没有保存路径,无法保存!");
+                return;
+            }
             Database.SaveAs(Database.Filename, version);
+        }
         else // 前台开图,使用命令保存;不需要切换文档
             doca.SendStringToExecute("_qsave\n", false, true, true);
     }
