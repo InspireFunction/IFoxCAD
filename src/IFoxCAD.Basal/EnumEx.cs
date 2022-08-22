@@ -46,21 +46,22 @@ public static class EnumEx
         //通常到这里的就是 ALL = A | B | C
         //遍历所有的枚举,组合每个注释
         List<Enum> enumHas = new();
-        foreach (Enum em in Enum.GetValues(eType)) //遍历这个枚举类型
-        {
+
+        //遍历这个枚举类型,获取枚举按位包含的成员
+        foreach (Enum em in Enum.GetValues(eType))
             if ((e.GetHashCode() & em.GetHashCode()) == em.GetHashCode() &&
                  e.GetHashCode() != em.GetHashCode())
                 enumHas.Add(em);
-        }
+
 
         //采取的行为是:注释的行为是特殊的,就按照注释的,否则,遍历子元素提取注释
-        //大的在前面才能判断是否包含后面的,后面的就是要移除的
+        //大的在前面才能判断是否按位包含后面的,后面的就是要移除的
         enumHas = enumHas.OrderByDescending(a => a.GetHashCode()).ToList();
         ArrayEx.Deduplication(enumHas, (a, b) => {
             return (a.GetHashCode() & b.GetHashCode()) == b.GetHashCode();
         });
 
-        //逆序仅仅为排序了逆向,不一定和书写顺序一样,尤其是递归可能存在重复的元素
+        //逆序仅仅为排序后处理,不一定和书写顺序一样,尤其是递归可能存在重复的元素
         for (int i = enumHas.Count - 1; i >= 0; i--)
         {
             var atts = GetAttribute<T>(enumHas[i], noDescrToString);//递归

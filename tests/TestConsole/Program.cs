@@ -21,6 +21,7 @@ Console.WriteLine(PlugIn2.All.PrintNote());
 Console.WriteLine(PlugIn2.DOCBAR.PrintNote());
 Console.WriteLine(PlugIn2.DUOTAB.PrintNote());
 
+EnumEx.CleanCache();
 
 //表达式树例子
 TestConsole.Test_Expression.Demo3();
