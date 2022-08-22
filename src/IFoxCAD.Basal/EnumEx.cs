@@ -87,4 +87,19 @@ public static class EnumEx
     {
         return e.GetType().FullName + "." + e.ToString();
     }
+
+
+    //这个完全被上面替代了
+    public static string GetDesc(this Enum val)
+    {
+        var type = val.GetType();
+        var memberInfo = type.GetMember(val.ToString());
+        var attributes = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
+        //如果没有定义描述,就把当前枚举值的对应名称返回
+        if (attributes is null || attributes.Length != 1)
+            return val.ToString();
+
+        return ((DescriptionAttribute)attributes.Single()).Description;
+    }
 }
+
