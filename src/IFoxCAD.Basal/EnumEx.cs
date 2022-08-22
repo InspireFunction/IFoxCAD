@@ -1,33 +1,48 @@
 ﻿namespace IFoxCAD.Basal;
 
 using System.ComponentModel;
+using System.Linq;
 
 public static class EnumEx
 {
+    /// <summary>
+    /// 打印枚举的特性<see cref="DescriptionAttribute"/>注释内容
+    /// </summary>
+    public static string? PrintNote(this Enum e, bool noDescrToString = true)
+    {
+        var hash = GetAttribute<DescriptionAttribute>(e, noDescrToString);
+        if (hash != null)
+            return string.Join("|", hash.ToArray());
+        return null;
+    }
+
     //缓存
-    static readonly Dictionary<Enum, string?> _enumDict = new();
+    static readonly Dictionary<string, HashSet<string>> _enumDict = new();
 
     /// <summary>
     /// 打印枚举的特性<see cref="DescriptionAttribute"/>注释内容
     /// </summary>
     /// <param name="e">枚举</param>
     /// <returns>注释内容</returns>
-    public static string? PrintDescription(this Enum e)
+    public static HashSet<string>? GetAttribute<T>(this Enum e, bool noDescrToString = true)
+        where T : DescriptionAttribute
     {
-        if (_enumDict.ContainsKey(e))
-            return _enumDict[e];
-
         var eType = e.GetType();
+        string eFullName = GetDisplayName(e);
+
+        if (_enumDict.ContainsKey(eFullName))
+            return _enumDict[eFullName];
+
         var fieldInfo = eType.GetField(Enum.GetName(eType, e));
         if (fieldInfo == null)
-            return null;
+            return null!;
 
-        var attribute = Attribute.GetCustomAttribute(fieldInfo,
-               typeof(DescriptionAttribute)) as DescriptionAttribute;
+        var attribute = Attribute.GetCustomAttribute(fieldInfo, typeof(T)) as T;
         if (attribute != null)
         {
-            _enumDict.Add(e, attribute.Description);
-            return attribute.Description;
+            var res = new HashSet<string>() { attribute.Description };
+            _enumDict.Add(eFullName, res);
+            return res;
         }
 
         //如果就是空的,就尝试去遍历所有的字段进行组合
@@ -39,17 +54,37 @@ public static class EnumEx
                 enums.Add(item);
         }
 
-        string? result = null;
+        HashSet<string> eNames = new();
         if (enums.Count > 0)
         {
-            List<string> eNames = new();
             for (int i = 0; i < enums.Count; i++)
-                if (_enumDict.ContainsKey(enums[i]))
-                    eNames.Add(_enumDict[enums[i]]!);
-
-            result = string.Join("|", eNames.ToArray());
+            {
+                var key = enums[i];
+                var tname = GetDisplayName(key);
+                if (_enumDict.ContainsKey(tname))
+                {
+                    foreach (var item in _enumDict[tname])
+                        eNames.Add(item);
+                }
+                else
+                {
+                    var get = GetAttribute<T>(key, noDescrToString);
+                    if (get != null)
+                        foreach (var item in get)  //没有缓存就递归
+                            eNames.Add(item);
+                }
+            }
         }
-        _enumDict.Add(e, result);
-        return _enumDict[e];
+
+        if (eNames.Count == 0 && noDescrToString)
+            eNames.Add(e.ToString());
+
+        _enumDict.Add(eFullName, eNames);
+        return eNames;
+    }
+
+    static string GetDisplayName(Enum e)
+    {
+        return e.GetType().FullName + "." + e.ToString();
     }
 }

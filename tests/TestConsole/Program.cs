@@ -1,7 +1,17 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System;
 using System.Text;
+using TestConsole;
 
+Console.WriteLine(PlugIn.JoinBox.PrintNote());
+Console.WriteLine(PlugIn.Lisp.PrintNote());//这里先交换顺序来试试能不能成功
+Console.WriteLine(PlugIn.IMinCad.PrintNote());
+Console.WriteLine(PlugIn.YuanQuan.PrintNote());
+Console.WriteLine(PlugIn.All.PrintNote());
+Console.WriteLine(PlugIn.DOCBAR.PrintNote());
+Console.WriteLine(PlugIn.DUOTAB.PrintNote());
+
+Console.WriteLine("测试工程");
 
 //表达式树例子
 TestConsole.Test_Expression.Demo3();
