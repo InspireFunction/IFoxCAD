@@ -152,33 +152,42 @@ public class DBTrans : IDisposable
                 else
                 {
 #if ac2008
-                    FileAccess fileAccess = FileAccess.Read;
+                    //FileAccess fileAccess = FileAccess.Read;
                     FileShare fileShare = FileShare.Read;
                     switch (openMode)
                     {
                         case FileOpenMode.OpenTryForReadShare://这个是什么状态??
-                        fileAccess = FileAccess.ReadWrite;
+                        //fileAccess = FileAccess.ReadWrite;
                         fileShare = FileShare.ReadWrite;
                         break;
                         case FileOpenMode.OpenForReadAndAllShare://完美匹配
-                        fileAccess = FileAccess.ReadWrite;
+                        //fileAccess = FileAccess.ReadWrite;
                         fileShare = FileShare.ReadWrite;
                         break;
                         case FileOpenMode.OpenForReadAndWriteNoShare://完美匹配
-                        fileAccess = FileAccess.ReadWrite;
+                        //fileAccess = FileAccess.ReadWrite;
                         fileShare = FileShare.None;
                         break;
                         case FileOpenMode.OpenForReadAndReadShare://完美匹配
-                        fileAccess = FileAccess.Read;
+                        //fileAccess = FileAccess.Read;
                         fileShare = FileShare.Read;
                         break;
                         default:
                         break;
                     }
-                    using FileStream fileStream = new(fileName, FileMode.Open, fileAccess, fileShare);
-                    Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(), true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
+
+                    //这个会致命错误
+                    //using FileStream fileStream = new(fileName, FileMode.Open, fileAccess, fileShare);
+                    //Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(),
+                    //      true/*控制读入一个与系统编码不相同的文件时的转换操作*/,password);
+
+
+                    Database.ReadDwgFile(fileName, fileShare,
+                            true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
+
 #else
-                    Database.ReadDwgFile(fileName, openMode, true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
+                    Database.ReadDwgFile(fileName, openMode,
+                            true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
 #endif
                 }
                 Database.CloseInput(true);
