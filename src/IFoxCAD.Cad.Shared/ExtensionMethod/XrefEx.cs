@@ -375,37 +375,25 @@ public static class XrefEx
                                    HashSet<string>? xrefNames = null)
     {
         var xf = new XrefFactory(tr, xrefNames);
-        if (tr.Document == null)//判断是后台
-        {
-            DatabaseEx.DBTextDeviation(tr.Database, () => {
-                SetXrefBind(xrefModes, xf);
-            });
-        }
-        else //前台
-        {
-            SetXrefBind(xrefModes, xf);
-        }
-    }
-
-    static void SetXrefBind(XrefModes xrefModes, XrefFactory xf)
-    {
-        switch (xrefModes)
-        {
-            case XrefModes.Unload:
-            xf.Unload();
-            break;
-            case XrefModes.Reload:
-            xf.Reload();
-            break;
-            case XrefModes.Detach:
-            xf.Detach();
-            break;
-            case XrefModes.Bind:
-            xf.Bind();
-            break;
-            default:
-            break;
-        }
+        tr.Task(() => {
+            switch (xrefModes)
+            {
+                case XrefModes.Unload:
+                xf.Unload();
+                break;
+                case XrefModes.Reload:
+                xf.Reload();
+                break;
+                case XrefModes.Detach:
+                xf.Detach();
+                break;
+                case XrefModes.Bind:
+                xf.Bind();
+                break;
+                default:
+                break;
+            }
+        });
     }
 }
 

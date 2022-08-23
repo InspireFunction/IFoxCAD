@@ -128,8 +128,10 @@ public class DBTrans : IDisposable
                    FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare,
                    string? password = null)
     {
-        if (string.IsNullOrEmpty(fileName?.Trim()))
+        if (fileName == null || string.IsNullOrEmpty(fileName.Trim()))
             throw new ArgumentNullException(nameof(fileName));
+
+        fileName = fileName.Replace("/", "\\");////doc.Name总是"D:\\JX.dwg"
 
         if (!File.Exists(fileName))
             Database = new Database(true, false);
@@ -181,10 +183,8 @@ public class DBTrans : IDisposable
                     //Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(),
                     //      true/*控制读入一个与系统编码不相同的文件时的转换操作*/,password);
 
-
                     Database.ReadDwgFile(fileName, fileShare,
                             true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
-
 #else
                     Database.ReadDwgFile(fileName, openMode,
                             true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
@@ -396,7 +396,47 @@ public class DBTrans : IDisposable
     }
     #endregion
 
-    #region idispose接口相关函数
+
+    /// <summary>
+    /// 自动进行前后台分开处理的任务
+    /// </summary>
+    /// <remarks>
+    /// 备注:<br/>
+    /// 0x01 此方案利用前台数据库进行处理<br/>
+    /// 0x02 此问题主要出现是<see cref="Database.ResolveXrefs"/>这个线性引擎上面,在参照/深度克隆的底层共用此技术,导致单行文字偏移<br/>
+    /// 0x03 异常: 前台绑定的时候不能用它,否则出现: <see langword="eWasErased"/><br/>
+    /// </remarks>
+    /// <param name="action">委托</param>
+    /// <param name="handlingDBTextDeviation">开启单行文字偏移处理</param>
+    public void Task(Action action, bool handlingDBTextDeviation = true)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        //前台开图 || 后台直接处理
+        if (Document != null || !handlingDBTextDeviation)
+        {
+            action.Invoke();
+            return;
+        }
+
+        //后台
+        //这种情况发生在关闭了所有文档之后,进行跨进程通讯
+        var dbBak = HostApplicationServices.WorkingDatabase;
+        if (dbBak == null)
+        {
+            action.Invoke();
+            return;
+        }
+
+        //处理单行文字偏移
+        HostApplicationServices.WorkingDatabase = Database;
+        action.Invoke();
+        HostApplicationServices.WorkingDatabase = dbBak;
+    }
+
+
+    #region IDisposable接口相关函数
     /// <summary>
     /// 取消事务
     /// </summary>

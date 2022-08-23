@@ -41,10 +41,9 @@ public class MirrorFile
     [CommandMethod("CmdTest_MirrorFile2")]
     public static void CmdTest_MirrorFile2()
     {
-        using var tr = new DBTrans(file, openMode: FileOpenMode.OpenForReadAndReadShare);
+        using var tr = new DBTrans(file);
 
-        tr.Database.DBTextDeviation(() => {
-
+        tr.Task(() => {
             var yaxis = new Point3d(0, 1, 0);
             tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
                 foreach (ObjectId entId in modelSpace)
