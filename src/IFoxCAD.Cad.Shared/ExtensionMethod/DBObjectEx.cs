@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using System.Linq;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 实体对象扩展类
@@ -16,22 +18,39 @@ public static class DBObjectEx
     {
         if (obj.XData == null)
             return;
-        XDataList data = obj.XData;
-        bool appNameIdentical = false;
+        XDataList data = obj.XData;//测试命令 addxdata removexdata
+
+        int appNameIndex = -1;
+        int appNameIndexNext = -1;
+
+        //先找到属于它的名字索引,然后再找到下一个不属于它名字的索引,移除中间部分
         for (int i = 0; i < data.Count; i++)
         {
             if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName)
             {
-                appNameIdentical = data[i].Value.ToString() == appName;
-                break;
+                if (data[i].Value.ToString() == appName)
+                {
+                    appNameIndex = i;
+                    continue;
+                }
+                if (appNameIndex != -1)//表示已经记录,开始它后面的appName
+                {
+                    appNameIndexNext = i;
+                    break;
+                }
             }
         }
-        if (!appNameIdentical)
+        if (appNameIndex == -1)
             return;
 
-        for (int i = data.Count - 1; i >= 0; i--)
-            if (data[i].TypeCode == (int)dxfCode)
-                data.RemoveAt(i);
+        if (appNameIndexNext == -1)
+            appNameIndexNext = data.Count;
+
+        //移除指定App的扩展
+        for (int i = appNameIndexNext - 1; i >= appNameIndex; i--)
+            if (data[i].TypeCode == ((short)dxfCode))
+            data.RemoveAt(i);
+
         using (obj.ForWrite())
             obj.XData = data;
     }

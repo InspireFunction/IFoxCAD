@@ -197,20 +197,28 @@ public class Test
     public void AddXdata()
     {
         using var tr = new DBTrans();
-        var appname = "myapp";
+        var appname = "myapp2";
 
+        tr.RegAppTable.Add("myapp1");
         tr.RegAppTable.Add(appname); // add函数会默认的在存在这个名字的时候返回这个名字的regapp的id，不存在就新建
-        tr.RegAppTable.Add("myapp2");
+        tr.RegAppTable.Add("myapp3");
+        tr.RegAppTable.Add("myapp4");
 
         var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0))
         {
             XData = new XDataList()
                 {
-                    { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码
+                    { DxfCode.ExtendedDataRegAppName, "myapp1" },  //可以用dxfcode和int表示组码
+                    { DxfCode.ExtendedDataAsciiString, "xxxxxxx" },
+                    {1070, 12 },
+                    { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码,移除中间的测试
                     { DxfCode.ExtendedDataAsciiString, "hahhahah" },
                     {1070, 12 },
-                    { DxfCode.ExtendedDataRegAppName, "myapp2" },  //可以用dxfcode和int表示组码
-                    { DxfCode.ExtendedDataAsciiString, "hahhahah" },
+                    { DxfCode.ExtendedDataRegAppName, "myapp3" },  //可以用dxfcode和int表示组码
+                    { DxfCode.ExtendedDataAsciiString, "aaaaaaaaa" },
+                    {1070, 12 },
+                    { DxfCode.ExtendedDataRegAppName, "myapp4" },  //可以用dxfcode和int表示组码
+                    { DxfCode.ExtendedDataAsciiString, "bbbbbbbbb" },
                     {1070, 12 }
                 }
         };
@@ -256,19 +264,23 @@ public class Test
             ed.WriteMessage(data.XData.ToString());
         }
     }
+
+
     [CommandMethod("removexdata")]
     public void Removexdata()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
         var ed = doc.Editor;
-        var appname = "myapp";
+        var appname = "myapp2";
         var res = ed.GetEntity("\n select the entity:");
         if (res.Status == PromptStatus.OK)
         {
             using var tr = new DBTrans();
-            var data = tr.GetObject<Entity>(res.ObjectId);
-            data?.RemoveXData(appname, DxfCode.ExtendedDataAsciiString);
-            ed.WriteMessage(data?.XData.ToString());
+            var ent = tr.GetObject<Entity>(res.ObjectId);
+            ed.WriteMessage("\n移除前:" + ent?.XData.ToString());
+
+            ent?.RemoveXData(appname, DxfCode.ExtendedDataAsciiString);
+            ed.WriteMessage("\n移除后:" + ent?.XData.ToString());
         }
     }
 
