@@ -212,7 +212,7 @@ public class Test
                     { DxfCode.ExtendedDataAsciiString, "xxxxxxx" },
                     {1070, 12 },
                     { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码,移除中间的测试
-                    { DxfCode.ExtendedDataAsciiString, "hahhahah" },
+                    { DxfCode.ExtendedDataAsciiString, "要移除的我" },
                     {1070, 12 },
                     { DxfCode.ExtendedDataRegAppName, "myapp3" },  //可以用dxfcode和int表示组码
                     { DxfCode.ExtendedDataAsciiString, "aaaaaaaaa" },
