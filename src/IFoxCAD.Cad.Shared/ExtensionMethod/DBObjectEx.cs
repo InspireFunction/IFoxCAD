@@ -63,10 +63,10 @@ public static class DBObjectEx
             for (int i = appNameIndexNext - 1; i >= appNameIndex; i--)
                 if (data[i].TypeCode == ((short)dxfCode))
                     data.RemoveAt(i);
-        });
 
-        using (obj.ForWrite())
-            obj.XData = data;
+            using (obj.ForWrite())
+                obj.XData = data;
+        });
     }
     /// <summary>
     /// 修改扩展数据
@@ -85,10 +85,10 @@ public static class DBObjectEx
             for (int i = appNameIndexNext - 1; i >= appNameIndex; i--)
                 if (data[i].TypeCode == (short)dxfCode)
                     data[i] = new TypedValue((short)dxfCode, newvalue);
-        });
 
-        using (obj.ForWrite())
-            obj.XData = data;
+            using (obj.ForWrite())
+                obj.XData = data;
+        });
     }
     #endregion
 
