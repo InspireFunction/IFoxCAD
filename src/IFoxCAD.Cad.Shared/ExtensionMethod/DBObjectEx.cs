@@ -9,17 +9,13 @@ public static class DBObjectEx
 {
     #region Xdata扩展
     /// <summary>
-    /// 删除扩展数据
+    /// 获取appName的索引区间
     /// </summary>
-    /// <param name="obj">对象实例</param>
-    /// <param name="appName">应用程序名称</param>
-    /// <param name="dxfCode">要删除数据的组码</param>
-    public static void RemoveXData(this DBObject obj, string appName, DxfCode dxfCode)
+    /// <param name="data"></param>
+    /// <param name="appName"></param>
+    /// <returns></returns>
+    public static void GetAppIndex(XDataList data, string appName, Action<int, int> action)
     {
-        if (obj.XData == null)
-            return;
-        XDataList data = obj.XData;//测试命令 addxdata removexdata
-
         int appNameIndex = -1;
         int appNameIndexNext = -1;
 
@@ -46,10 +42,28 @@ public static class DBObjectEx
         if (appNameIndexNext == -1)
             appNameIndexNext = data.Count;
 
+        action?.Invoke(appNameIndex, appNameIndexNext);
+    }
+
+    /// <summary>
+    /// 删除扩展数据
+    /// </summary>
+    /// <param name="obj">对象实例</param>
+    /// <param name="appName">应用程序名称</param>
+    /// <param name="dxfCode">要删除数据的组码</param>
+    public static void RemoveXData(this DBObject obj, string appName, DxfCode dxfCode)
+    {
+        if (obj.XData == null)
+            return;
+        XDataList data = obj.XData;
+
+        //测试命令 addxdata removexdata
         //移除指定App的扩展
-        for (int i = appNameIndexNext - 1; i >= appNameIndex; i--)
-            if (data[i].TypeCode == ((short)dxfCode))
-            data.RemoveAt(i);
+        GetAppIndex(data, appName, (appNameIndex, appNameIndexNext) => {
+            for (int i = appNameIndexNext - 1; i >= appNameIndex; i--)
+                if (data[i].TypeCode == ((short)dxfCode))
+                    data.RemoveAt(i);
+        });
 
         using (obj.ForWrite())
             obj.XData = data;
@@ -66,21 +80,13 @@ public static class DBObjectEx
         if (obj.XData == null)
             return;
         XDataList data = obj.XData;
-        bool appNameIdentical = false;
-        for (int i = 0; i < data.Count; i++)
-        {
-            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName)
-            {
-                appNameIdentical = data[i].Value.ToString() == appName;
-                break;
-            }
-        }
-        if (!appNameIdentical)
-            return;
 
-        for (int i = data.Count - 1; i >= 0; i--)
-            if (data[i].TypeCode == (int)dxfCode)
-                data[i] = new TypedValue((int)dxfCode, newvalue);
+        GetAppIndex(data, appName, (appNameIndex, appNameIndexNext) => {
+            for (int i = appNameIndexNext - 1; i >= appNameIndex; i--)
+                if (data[i].TypeCode == (short)dxfCode)
+                    data[i] = new TypedValue((short)dxfCode, newvalue);
+        });
+
         using (obj.ForWrite())
             obj.XData = data;
     }
