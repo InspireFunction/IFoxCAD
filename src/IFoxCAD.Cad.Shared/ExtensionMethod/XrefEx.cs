@@ -663,40 +663,52 @@ public static class DBTransEx
     /// <param name="sym"></param>
     public static void Purge(this DBTrans tr, SymModes sym = SymModes.All)
     {
-        if ((sym & SymModes.BlockTable) == SymModes.BlockTable)
-            DatabasePurge(tr, tr.BlockTable);
-        if ((sym & SymModes.DimStyleTable) == SymModes.DimStyleTable)
-            DatabasePurge(tr, tr.DimStyleTable);
-        if ((sym & SymModes.LayerTable) == SymModes.LayerTable)
-            DatabasePurge(tr, tr.LayerTable);
-        if ((sym & SymModes.LinetypeTable) == SymModes.LinetypeTable)
-            DatabasePurge(tr, tr.LinetypeTable);
-        if ((sym & SymModes.TextStyleTable) == SymModes.TextStyleTable)
-            DatabasePurge(tr, tr.TextStyleTable);
-        if ((sym & SymModes.ViewportTable) == SymModes.ViewportTable)
-            DatabasePurge(tr, tr.ViewportTable);
-        if ((sym & SymModes.RegAppTable) == SymModes.RegAppTable)
-            DatabasePurge(tr, tr.RegAppTable);
-        if ((sym & SymModes.ViewTable) == SymModes.ViewTable)
-            DatabasePurge(tr, tr.ViewTable);
-        if ((sym & SymModes.UcsTable) == SymModes.UcsTable)
-            DatabasePurge(tr, tr.UcsTable);
-    }
-
-    static void DatabasePurge<TTable, TRecord>(DBTrans tr,
-                             SymbolTable<TTable, TRecord> symbolTable)
-                             where TTable : SymbolTable
-                             where TRecord : SymbolTableRecord, new()
-    {
         var ids = new ObjectIdCollection();
-        symbolTable.ForEach(id => ids.Add(id));
-        while (ids.Count > 0)
+        var db = tr.Database;
+
+        //0x01
+        //db.Purge(ids)是获取未硬引用(无引用?)的对象,也就可以删除的.
+        //0x02
+        //如果一个图元引用一个图层,
+        //假设这个图元是可以删除的(实际上它可能来自于词典记录的id) => 那么它被 db.Purge(ids) 识别,
+        //但是这个图层因为有硬引用,所以不被 db.Purge(ids) 识别,
+        //只能删除图元之后,循环第二次再通过 db.Purge(ids) 获取图层id.
+
+        do
         {
+            if ((sym & SymModes.BlockTable) == SymModes.BlockTable)
+                GetIds(ids, tr.BlockTable);
+            if ((sym & SymModes.DimStyleTable) == SymModes.DimStyleTable)
+                GetIds(ids, tr.DimStyleTable);
+            if ((sym & SymModes.LayerTable) == SymModes.LayerTable)
+                GetIds(ids, tr.LayerTable);
+            if ((sym & SymModes.LinetypeTable) == SymModes.LinetypeTable)
+                GetIds(ids, tr.LinetypeTable);
+            if ((sym & SymModes.TextStyleTable) == SymModes.TextStyleTable)
+                GetIds(ids, tr.TextStyleTable);
+            if ((sym & SymModes.ViewportTable) == SymModes.ViewportTable)
+                GetIds(ids, tr.ViewportTable);
+            if ((sym & SymModes.RegAppTable) == SymModes.RegAppTable)
+                GetIds(ids, tr.RegAppTable);
+            if ((sym & SymModes.ViewTable) == SymModes.ViewTable)
+                GetIds(ids, tr.ViewTable);
+            if ((sym & SymModes.UcsTable) == SymModes.UcsTable)
+                GetIds(ids, tr.UcsTable);
+
             //Purge是查询能够清理的对象
-            tr.Database.Purge(ids);
+            db.Purge(ids);
             foreach (ObjectId id in ids)
                 id.Erase();
-        }
+
+        } while (ids.Count > 0);
+    }
+
+    static void GetIds<TTable, TRecord>(ObjectIdCollection ids,
+                       SymbolTable<TTable, TRecord> symbolTable)
+                       where TTable : SymbolTable
+                       where TRecord : SymbolTableRecord, new()
+    {
+        symbolTable.ForEach(id => ids.Add(id));
     }
 }
 #endif
