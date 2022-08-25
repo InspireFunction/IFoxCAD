@@ -398,13 +398,16 @@ public class DBTrans : IDisposable
 
 
     /// <summary>
-    /// 自动进行前后台分开处理的任务
+    /// 前台后台任务分别处理
     /// </summary>
     /// <remarks>
     /// 备注:<br/>
-    /// 0x01 此方案利用前台数据库进行处理<br/>
-    /// 0x02 此问题主要出现是<see cref="Database.ResolveXrefs"/>这个线性引擎上面,在参照/深度克隆的底层共用此技术,导致单行文字偏移<br/>
-    /// 0x03 异常: 前台绑定的时候不能用它,否则出现: <see langword="eWasErased"/><br/>
+    /// <code>
+    /// 0x01 文字偏移问题主要出现是<see cref="Database.ResolveXrefs"/>这个线性引擎上面,
+    ///      在 参照绑定/深度克隆 的底层共用此技术导致问题发生
+    /// 0x02 后台是利用前台当前数据库进行处理的
+    /// 0x03 跨进程通讯暂无测试(可能存在bug)
+    /// </code>
     /// </remarks>
     /// <param name="action">委托</param>
     /// <param name="handlingDBTextDeviation">开启单行文字偏移处理</param>
@@ -430,6 +433,8 @@ public class DBTrans : IDisposable
         }
 
         //处理单行文字偏移
+        //前台绑定参照的时候不能用它,否则出现: <see langword="eWasErased"/><br/>
+        //所以本函数自动识别前后台做处理
         HostApplicationServices.WorkingDatabase = Database;
         action.Invoke();
         HostApplicationServices.WorkingDatabase = dbBak;
