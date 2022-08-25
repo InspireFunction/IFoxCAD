@@ -673,6 +673,8 @@ public static class DBTransEx
         //假设这个图元是可以删除的(实际上它可能来自于词典记录的id) => 那么它被 db.Purge(ids) 识别,
         //但是这个图层因为有硬引用,所以不被 db.Purge(ids) 识别,
         //只能删除图元之后,循环第二次再通过 db.Purge(ids) 获取图层id.
+        //0x03
+        //因为删除之后,符号表内的引用可能被修改,因此需要重复遍历符号表.
 
         do
         {
@@ -690,6 +692,7 @@ public static class DBTransEx
                 GetIds(ids, tr.ViewportTable);
             if ((sym & SymModes.RegAppTable) == SymModes.RegAppTable)
                 GetIds(ids, tr.RegAppTable);
+            //SHUN007 说这两个表可能有错误
             if ((sym & SymModes.ViewTable) == SymModes.ViewTable)
                 GetIds(ids, tr.ViewTable);
             if ((sym & SymModes.UcsTable) == SymModes.UcsTable)
