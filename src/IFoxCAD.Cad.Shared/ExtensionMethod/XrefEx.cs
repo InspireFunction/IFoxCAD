@@ -661,32 +661,29 @@ public static class DBTransEx
     /// </summary>
     /// <param name="tr"></param>
     /// <param name="sym"></param>
-    public static void Purge(this DBTrans tr, SymModes sym = SymModes.Purge)
+    public static void Purge(this DBTrans tr, SymModes sym = SymModes.All)
     {
-        var db = tr.Database;
         if ((sym & SymModes.BlockTable) == SymModes.BlockTable)
-            DatabasePurge(db, tr.BlockTable);
+            DatabasePurge(tr, tr.BlockTable);
         if ((sym & SymModes.DimStyleTable) == SymModes.DimStyleTable)
-            DatabasePurge(db, tr.DimStyleTable);
+            DatabasePurge(tr, tr.DimStyleTable);
         if ((sym & SymModes.LayerTable) == SymModes.LayerTable)
-            DatabasePurge(db, tr.LayerTable);
+            DatabasePurge(tr, tr.LayerTable);
         if ((sym & SymModes.LinetypeTable) == SymModes.LinetypeTable)
-            DatabasePurge(db, tr.LinetypeTable);
+            DatabasePurge(tr, tr.LinetypeTable);
         if ((sym & SymModes.TextStyleTable) == SymModes.TextStyleTable)
-            DatabasePurge(db, tr.TextStyleTable);
+            DatabasePurge(tr, tr.TextStyleTable);
         if ((sym & SymModes.ViewportTable) == SymModes.ViewportTable)
-            DatabasePurge(db, tr.ViewportTable);
+            DatabasePurge(tr, tr.ViewportTable);
         if ((sym & SymModes.RegAppTable) == SymModes.RegAppTable)
-            DatabasePurge(db, tr.RegAppTable);
-
-        //以下不能这样清理,不然有异常
+            DatabasePurge(tr, tr.RegAppTable);
         if ((sym & SymModes.ViewTable) == SymModes.ViewTable)
-            DatabasePurge(db, tr.ViewTable);
+            DatabasePurge(tr, tr.ViewTable);
         if ((sym & SymModes.UcsTable) == SymModes.UcsTable)
-            DatabasePurge(db, tr.UcsTable);
+            DatabasePurge(tr, tr.UcsTable);
     }
 
-    static void DatabasePurge<TTable, TRecord>(Database db,
+    static void DatabasePurge<TTable, TRecord>(DBTrans tr,
                              SymbolTable<TTable, TRecord> symbolTable)
                              where TTable : SymbolTable
                              where TRecord : SymbolTableRecord, new()
@@ -695,13 +692,10 @@ public static class DBTransEx
         symbolTable.ForEach(id => ids.Add(id));
         if (ids.Count == 0)
             return;
-        do
-        {
-            //Purge是过滤出能够清理的对象
-            db.Purge(ids);
-            foreach (ObjectId id in ids)
-                id.Erase();
-        } while (ids.Count > 0);
+        //Purge是查询能够清理的对象
+        tr.Database.Purge(ids);
+        foreach (ObjectId id in ids)
+            id.Erase();
     }
 }
 #endif

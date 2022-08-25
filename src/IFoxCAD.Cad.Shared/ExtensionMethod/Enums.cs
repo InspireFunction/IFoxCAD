@@ -97,17 +97,7 @@ public enum SymModes : ushort
     Option2 = UcsTable | ViewTable | ViewportTable,
 
     //全部
-    All = BlockTable | Option1 | Option2,
-
-    //清理
-    Purge =
-    BlockTable |
-    DimStyleTable |
-    LayerTable |
-    LinetypeTable |
-    TextStyleTable |
-    ViewportTable |
-    RegAppTable,
+    All = BlockTable | Option1 | Option2
 }
 
 
