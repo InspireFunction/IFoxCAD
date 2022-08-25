@@ -690,12 +690,13 @@ public static class DBTransEx
     {
         var ids = new ObjectIdCollection();
         symbolTable.ForEach(id => ids.Add(id));
-        if (ids.Count == 0)
-            return;
-        //Purge是查询能够清理的对象
-        tr.Database.Purge(ids);
-        foreach (ObjectId id in ids)
-            id.Erase();
+        while (ids.Count > 0)
+        {
+            //Purge是查询能够清理的对象
+            tr.Database.Purge(ids);
+            foreach (ObjectId id in ids)
+                id.Erase();
+        }
     }
 }
 #endif
