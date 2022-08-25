@@ -3,12 +3,6 @@
 
 namespace IFoxCAD.LoadEx;
 
-/*
- * 因为此处引用了 nuget的 Lib.Harmony
- * 所以单独分一个工程出来作为cad工程的引用
- * 免得污染了cad工程的纯洁
- */
-
 #if HarmonyPatch_1
 [HarmonyPatch("Autodesk.AutoCAD.ApplicationServices.ExtensionLoader", "OnAssemblyLoad")]
 #endif
@@ -55,8 +49,8 @@ public class AssemblyDependent : IDisposable
     /// <param name="dllFullName">dll的文件位置</param>
     /// <param name="loadStates">返回加载链</param>
     /// <param name="byteLoad">true字节加载,false文件加载</param>
-    /// <returns> 参数 <paramref name="dllFullName"/> 加载成功标识
-    /// <code> 链条后面的不再理会,因为相同的dll引用辨识无意义 </code>
+    /// <returns> 参数 <paramref name="dllFullName"/> 是否加载成功
+    /// <code>    链条后面的不再理会,因为相同的dll引用辨识无意义 </code>
     /// </returns>
     public bool Load(string? dllFullName, List<LoadState> loadStates, bool byteLoad = true)
     {
@@ -99,6 +93,18 @@ public class AssemblyDependent : IDisposable
             try
             {
                 var ass = GetPdbAssembly(allRef);
+
+#if Debug_WriteLine_null
+                if (ass == null)
+                    System.Diagnostics.Debug
+                        .WriteLine($"****{nameof(Load)}:此文件无加载了pdb对象:" + allRef); 
+#endif
+
+#if Debug_WriteLine_notnull
+                if (ass != null)
+                    System.Diagnostics.Debug
+                        .WriteLine($"****{nameof(Load)}:此文件加载了pdb对象:" + allRef);
+#endif
                 if (ass == null)
                     if (byteLoad)
                         ass = Assembly.Load(File.ReadAllBytes(allRef));
@@ -251,10 +257,12 @@ public class AssemblyDependent : IDisposable
         return assemblyAsRef;
     }
 
+
     /// <summary>
     /// 加载信息
     /// </summary>
-    public static string? PrintMessage(List<LoadState> loadStates)
+    public static string? PrintMessage(List<LoadState> loadStates,
+                                       PrintModes modes = PrintModes.All)
     {
         if (loadStates == null)
             return null;
@@ -263,26 +271,33 @@ public class AssemblyDependent : IDisposable
         var ok = loadStates.FindAll(a => a.State);
         var no = loadStates.FindAll(a => !a.State);
 
-        if (ok.Count != 0)
+        if ((modes & PrintModes.Yes) == PrintModes.Yes)
         {
-            sb.Append("** 这些文件加载成功!");
-            foreach (var item in ok)
+            if (ok.Count != 0)
             {
+                sb.Append("** 这些文件加载成功!");
+                foreach (var item in ok)
+                {
+                    sb.Append(Environment.NewLine);
+                    sb.Append("++ ");
+                    sb.Append(item.DllFullName);
+                }
                 sb.Append(Environment.NewLine);
-                sb.Append("++ ");
-                sb.Append(item.DllFullName);
+                sb.Append(Environment.NewLine);
             }
-            sb.Append(Environment.NewLine);
-            sb.Append(Environment.NewLine);
         }
-        if (no.Count != 0)
+
+        if ((modes & PrintModes.No) == PrintModes.No)
         {
-            sb.Append("** 这些文件已被加载过,同时重复名称和版本号,跳过!");
-            foreach (var item in no)
+            if (no.Count != 0)
             {
-                sb.Append(Environment.NewLine);
-                sb.Append("-- ");
-                sb.Append(item.DllFullName);
+                sb.Append("** 这些文件已被加载过,同时重复名称和版本号,跳过!");
+                foreach (var item in no)
+                {
+                    sb.Append(Environment.NewLine);
+                    sb.Append("-- ");
+                    sb.Append(item.DllFullName);
+                }
             }
         }
         return sb.ToString();
@@ -395,6 +410,12 @@ public class AssemblyDependent : IDisposable
     #endregion
 }
 
+public enum PrintModes
+{
+    Yes = 1,
+    No = 2,
+    All = Yes | No,
+}
 
 /// <summary>
 /// 加载程序集和加载状态
