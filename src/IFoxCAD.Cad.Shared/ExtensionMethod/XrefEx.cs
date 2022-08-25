@@ -356,7 +356,7 @@ public class XrefFactory : IXrefBindModes
             }
 #endif
         }
-    } 
+    }
     #endregion
 }
 
@@ -691,12 +691,17 @@ public static class DBTransEx
                              where TTable : SymbolTable
                              where TRecord : SymbolTableRecord, new()
     {
-        var idArray = symbolTable.Select(id => id);
-        if (!idArray.Any())
+        var ids = new ObjectIdCollection();
+        symbolTable.ForEach(id => ids.Add(id));
+        if (ids.Count == 0)
             return;
-        var ids = new ObjectIdCollection(idArray.ToArray());
-        while (ids.Count > 0)
+        do
+        {
+            //Purge是过滤出能够清理的对象
             db.Purge(ids);
+            foreach (ObjectId id in ids)
+                id.Erase();
+        } while (ids.Count > 0);
     }
 }
 #endif
