@@ -675,35 +675,33 @@ public static class DBTransEx
         //只能删除图元之后,循环第二次再通过 db.Purge(ids) 获取图层id.
         //0x03
         //因为删除之后,符号表内的引用可能被修改,因此需要重复遍历符号表.
+        //0x04
+        //试试循环事务
 
-        do
-        {
-            if ((sym & SymModes.BlockTable) == SymModes.BlockTable)
-                GetIds(ids, tr.BlockTable);
-            if ((sym & SymModes.DimStyleTable) == SymModes.DimStyleTable)
-                GetIds(ids, tr.DimStyleTable);
-            if ((sym & SymModes.LayerTable) == SymModes.LayerTable)
-                GetIds(ids, tr.LayerTable);
-            if ((sym & SymModes.LinetypeTable) == SymModes.LinetypeTable)
-                GetIds(ids, tr.LinetypeTable);
-            if ((sym & SymModes.TextStyleTable) == SymModes.TextStyleTable)
-                GetIds(ids, tr.TextStyleTable);
-            if ((sym & SymModes.ViewportTable) == SymModes.ViewportTable)
-                GetIds(ids, tr.ViewportTable);
-            if ((sym & SymModes.RegAppTable) == SymModes.RegAppTable)
-                GetIds(ids, tr.RegAppTable);
-            //SHUN007 说这两个表可能有错误
-            if ((sym & SymModes.ViewTable) == SymModes.ViewTable)
-                GetIds(ids, tr.ViewTable);
-            if ((sym & SymModes.UcsTable) == SymModes.UcsTable)
-                GetIds(ids, tr.UcsTable);
+        if ((sym & SymModes.BlockTable) == SymModes.BlockTable)
+            GetIds(ids, tr.BlockTable);
+        if ((sym & SymModes.DimStyleTable) == SymModes.DimStyleTable)
+            GetIds(ids, tr.DimStyleTable);
+        if ((sym & SymModes.LayerTable) == SymModes.LayerTable)
+            GetIds(ids, tr.LayerTable);
+        if ((sym & SymModes.LinetypeTable) == SymModes.LinetypeTable)
+            GetIds(ids, tr.LinetypeTable);
+        if ((sym & SymModes.TextStyleTable) == SymModes.TextStyleTable)
+            GetIds(ids, tr.TextStyleTable);
+        if ((sym & SymModes.ViewportTable) == SymModes.ViewportTable)
+            GetIds(ids, tr.ViewportTable);
+        if ((sym & SymModes.RegAppTable) == SymModes.RegAppTable)
+            GetIds(ids, tr.RegAppTable);
+        //SHUN007 说这两个表可能有错误
+        if ((sym & SymModes.ViewTable) == SymModes.ViewTable)
+            GetIds(ids, tr.ViewTable);
+        if ((sym & SymModes.UcsTable) == SymModes.UcsTable)
+            GetIds(ids, tr.UcsTable);
 
-            //Purge是查询能够清理的对象
-            db.Purge(ids);
-            foreach (ObjectId id in ids)
-                id.Erase();
-
-        } while (ids.Count > 0);
+        //Purge是查询能够清理的对象
+        db.Purge(ids);
+        foreach (ObjectId id in ids)
+            id.Erase();
     }
 
     static void GetIds<TTable, TRecord>(ObjectIdCollection ids,
