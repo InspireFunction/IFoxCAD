@@ -375,35 +375,30 @@ public class AssemblyDependent : IDisposable
     #endregion
 
     #region Dispose
-    public bool Disposed = false;
+    public bool IsDisposed = false;
 
     /// <summary>
-    /// 显式调用Dispose方法,继承IDisposable
+    /// 手动调用释放
     /// </summary>
     public void Dispose()
     {
-        //由手动释放
         Dispose(true);
-        //通知垃圾回收机制不再调用终结器(析构器)_跑了这里就不会跑析构函数了
         GC.SuppressFinalize(this);
     }
 
     /// <summary>
-    /// 析构函数,以备忘记了显式调用Dispose方法
+    /// 析构函数调用释放
     /// </summary>
     ~AssemblyDependent()
     {
-        Dispose(false); //由系统释放
+        Dispose(false);
     }
-
-    /// <summary>
-    /// 释放
-    /// </summary>
-    /// <param name="ing"></param>
-    protected virtual void Dispose(bool ing)
+  
+    protected virtual void Dispose(bool disposing)
     {
-        if (Disposed) return; //不重复释放
-        Disposed = true;//让类型知道自己已经被释放
+        //不重复释放,并设置已经释放
+        if (IsDisposed) return;
+        IsDisposed = true;
 
         CurrentDomainAssemblyResolveEvent -= AssemblyHelper.DefaultAssemblyResolve;
     }

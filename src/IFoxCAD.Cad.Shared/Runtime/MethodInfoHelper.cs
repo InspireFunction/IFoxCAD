@@ -20,8 +20,8 @@ internal static class MethodInfoHelper
             //新函数指针进入此处
             //参数数量一定要匹配,为null则参数个数不同导致报错,
             //参数为stirng[],则可以传入object[]代替,其他参数是否还可以实现默认构造?
-            var paramInfos = methodInfo.GetParameters();
             var args = new List<object> { };
+            var paramInfos = methodInfo.GetParameters();
             for (int i = 0; i < paramInfos.Length; i++)
                 args.Add(null!);
             result = methodInfo.Invoke(null, args.ToArray());//静态调用

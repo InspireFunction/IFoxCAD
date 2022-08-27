@@ -16,7 +16,7 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 是否释放资源
     /// </summary>
-    private bool disposedValue;
+    private bool IsDisposed;
     /// <summary>
     /// 是否提交事务
     /// </summary>
@@ -449,6 +449,7 @@ public class DBTrans : IDisposable
     {
         Dispose(false);
     }
+
     /// <summary>
     /// 提交事务
     /// </summary>
@@ -457,57 +458,59 @@ public class DBTrans : IDisposable
         Dispose(true);
     }
 
+    /// <summary>
+    /// 手动调用释放
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(disposing: true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// 析构函数调用释放
+    /// </summary>
+    ~DBTrans()
+    {
+        Dispose(disposing: false);
+    }
+
     protected virtual void Dispose(bool disposing)
     {
         /* 事务dispose流程：
          * 1. 根据传入的参数确定是否提交,true为提交,false为不提交
-         * 2. 根据disposedValue的值确定是否重复dispose,false为首次dispose
+         * 2. 根据IsDisposed的值确定是否重复dispose,false为首次dispose
          * 3. 如果锁文档就将文档锁dispose
          * 4. 不管是否提交,既然进入dispose,就要将事务栈的当前事务弹出
          *    注意这里的事务栈不是cad的事务管理器,而是dbtrans的事务
          * 5. 清理非托管的字段
          */
 
-        if (disposedValue)
-            return;
+        //不重复释放,并设置已经释放
+        if (IsDisposed) return;
+        IsDisposed = true;
 
-        // 释放未托管的资源(未托管的对象)并替代终结器
-        // 将大型字段设置为 null
-        disposedValue = true;
 
         if (disposing)
         {
-            // 调用cad的事务进行提交,释放托管状态(托管对象)
+            //调用cad的事务进行提交,释放托管状态(托管对象)
             Transaction.Commit();
         }
         else
         {
-            // 否则取消所有的修改
+            //否则取消所有的修改
             Transaction.Abort();
         }
-        // 调用 cad事务的dispose进行销毁
+
+        //调用cad事务的dispose进行销毁
         if (!Transaction.IsDisposed)
             Transaction.Dispose();
 
-        // 调用文档锁dispose
+        //调用文档锁dispose
         documentLock?.Dispose();
 
-        // 将事务栈的当前dbtrans弹栈
+        //将事务栈的当前dbtrans弹栈
         dBTrans.Pop();
-    }
-
-    // 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器
-    ~DBTrans()
-    {
-        // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
-        Dispose(disposing: false);
-    }
-
-    public void Dispose()
-    {
-        // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
     #endregion
 }
