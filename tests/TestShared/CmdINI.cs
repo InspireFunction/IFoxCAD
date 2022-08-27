@@ -8,18 +8,32 @@
 /// 1:<see cref="AutoRegAssem"/>构造函数<br/>
 /// 2:<see cref="IFoxInitialize"/>特性..多个<br/>
 /// 3:<see cref="IFoxAutoGo"/>接口..多个<br/>
-/// 4:本类的构造函数
-/// </para>    
+/// 4:本类的构造函数<br/>
+/// <code>
+/// **** 警告 ****
+/// 如果不写一个<see cref="CmdInitEx.CmdInit"/> 储存这个对象,
+/// 而是直接写卸载命令在此,
+/// 第一次加载的时候会初始化完成,然后这个类生命就结束了,
+/// 第二次通过命令进入,会引发构造函数再次执行,留意构造函数的打印信息即可发现
+/// </code>
+/// </para>
 /// </summary>
-public class CmdINI : AutoRegAssem
+public class CmdInit : AutoRegAssem
 {
-    public CmdINI() : base(AutoRegConfig.All)
+    public CmdInit() : base(AutoRegConfig.All)
     {
         var dm = Acap.DocumentManager;
         var doc = dm.MdiActiveDocument;
         var ed = doc.Editor;
-        ed.WriteMessage($"\n {nameof(CmdINI)}构造函数,开始自动执行\r\n");
+        ed.WriteMessage($"\n {nameof(CmdInit)}构造函数,开始自动执行\r\n");
+
+        CmdInitEx.CmdInit = this;
     }
+}
+
+public class CmdInitEx
+{
+    public static CmdInit? CmdInit;
 
     ///如果netload之后用 <see cref="IFoxRemoveReg"/> 删除注册表,
     ///由于不是也不能卸载dll,再netload是无法执行自动接口的,
@@ -27,12 +41,12 @@ public class CmdINI : AutoRegAssem
     [CommandMethod("IFoxAddReg")]
     public void IFoxAddReg()
     {
-        base.RegApp();
-
         var dm = Acap.DocumentManager;
         var doc = dm.MdiActiveDocument;
         var ed = doc.Editor;
         ed.WriteMessage($"\n 加入注册表");
+
+        CmdInit?.RegApp();
     }
 
     /// <summary>
@@ -40,14 +54,14 @@ public class CmdINI : AutoRegAssem
     /// </summary>
     [CommandMethod("IFoxRemoveReg")]
     public void IFoxRemoveReg()
-    {
-        //执行命令的时候会再次执行构造函数(导致初始化两次),但是再次执行就不会了
-        base.UnRegApp(); 
-
+    { 
         var dm = Acap.DocumentManager;
         var doc = dm.MdiActiveDocument;
         var ed = doc.Editor;
         ed.WriteMessage($"\n 卸载注册表");
+
+        //执行命令的时候会再次执行构造函数(导致初始化两次),但是再次执行就不会了
+        CmdInit?.UnRegApp();
     }
 }
 
