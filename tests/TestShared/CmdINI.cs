@@ -1,4 +1,4 @@
-﻿namespace Test;
+namespace Test;
 
 /// <summary>
 /// 注册中心(自动执行接口):
@@ -48,7 +48,9 @@ public class CmdInit
         var ed = doc.Editor;
         ed.WriteMessage($"\n 加入注册表");
 
-        AutoRegAssemEx?.RegApp();
+        if (AutoRegAssemEx is null)
+            AutoRegAssemEx = new();
+        AutoRegAssemEx.RegApp();
     }
 
     /// <summary>
@@ -62,8 +64,9 @@ public class CmdInit
         var ed = doc.Editor;
         ed.WriteMessage($"\n 卸载注册表");
 
-        //执行命令的时候会再次执行构造函数(导致初始化两次),但是再次执行就不会了
+        //防止卸载两次,不然会报错的
         AutoRegAssemEx?.UnRegApp();
+        AutoRegAssemEx = null;
     }
 }
 
