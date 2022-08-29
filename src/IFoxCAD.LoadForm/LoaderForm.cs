@@ -9,15 +9,15 @@ public partial class LoaderForm : Form
 
     public LoaderForm()
     {
-        //Owner = form;
-        //MdiParent = form;
+        // Owner = form;
+        // MdiParent = form;
         InitializeComponent();
         _ad = new();
     }
 
     void LoaderForm_Load(object sender, EventArgs e)
     {
-        StartPosition = FormStartPosition.CenterScreen;//在当前屏幕中央
+        StartPosition = FormStartPosition.CenterScreen;// 在当前屏幕中央
         if (DllPath != null)
             textBox1.Text = DllPath;
     }
@@ -50,7 +50,7 @@ public partial class LoaderForm : Form
         LoadDlls(new() { textBox1.Text });
     }
 
-    //鼠标拖拽文件到窗口
+    // 鼠标拖拽文件到窗口
     void LoaderForm_DragDrop(object sender, DragEventArgs e)
     {
         var paths = (string[])e.Data.GetData(DataFormats.FileDrop);
@@ -89,7 +89,7 @@ public partial class LoaderForm : Form
             MessageBox.Show("无任何信息", "加载出现问题!");
     }
 
-    //鼠标样式修改
+    // 鼠标样式修改
     void LoaderForm_DragEnter(object sender, DragEventArgs e)
     {
         if (e.Data.GetDataPresent(DataFormats.FileDrop))

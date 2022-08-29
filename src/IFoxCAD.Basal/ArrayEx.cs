@@ -39,7 +39,7 @@ public static class ArrayEx
     /// </param>
     public static void Deduplication<T>(List<T> lst, Func<T, T, bool> func)
     {
-        //头和尾比较,满足条件移除尾巴
+        // 头和尾比较,满足条件移除尾巴
         for (int i = 0; i < lst.Count; i++)
         {
             var first = lst[i];

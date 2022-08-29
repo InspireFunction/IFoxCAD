@@ -96,7 +96,7 @@ public enum SymModes : ushort
     ViewportTable = 256,
     Option2 = UcsTable | ViewTable | ViewportTable,
 
-    //全部
+    // 全部
     All = BlockTable | Option1 | Option2
 }
 

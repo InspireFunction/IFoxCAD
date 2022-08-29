@@ -65,11 +65,11 @@ namespace System.Collections.Generic
     [DebuggerDisplay("Count = {Count}")]
 #if !FEATURE_NETCORE
     [Serializable]
-    public class SortedSet<T> : ISet<T>, ICollection<T>, ICollection, ISerializable, IDeserializationCallback//, IReadOnlyCollection<T>
+    public class SortedSet<T> : ISet<T>, ICollection<T>, ICollection, ISerializable, IDeserializationCallback// , IReadOnlyCollection<T>
     {
 #else
     public class SortedSet<T> : ISet<T>, ICollection<T>, ICollection, IReadOnlyCollection<T> {
-#endif //!FEATURE_NETCORE
+#endif // !FEATURE_NETCORE
         #region local variables/constants
         Node root;
         IComparer<T> comparer;
@@ -81,7 +81,7 @@ namespace System.Collections.Generic
         private const String CountName = "Count";
         private const String ItemsName = "Items";
         private const String VersionName = "Version";
-        //needed for enumerator
+        // needed for enumerator
         private const String TreeName = "Tree";
         private const String NodeValueName = "Item";
         private const String EnumStartName = "EnumStarted";
@@ -89,13 +89,13 @@ namespace System.Collections.Generic
         private const String EnumVersionName = "EnumVersion";
 
 #if !FEATURE_NETCORE
-        //needed for TreeSubset
+        // needed for TreeSubset
         private const String minName = "Min";
         private const String maxName = "Max";
         private const String lBoundActiveName = "lBoundActive";
         private const String uBoundActiveName = "uBoundActive";
 
-        private SerializationInfo siInfo; //A temporary variable which we need during deserialization. 
+        private SerializationInfo siInfo; // A temporary variable which we need during deserialization. 
 #endif
         internal const int StackAllocThreshold = 100;
 
@@ -136,7 +136,7 @@ namespace System.Collections.Generic
             SortedSet<T> baseTreeSubSet = collection as TreeSubSet;
             if (collection is SortedSet<T> baseSortedSet && baseTreeSubSet == null && AreComparersEqual(this, baseSortedSet))
             {
-                //breadth first traversal to recreate nodes
+                // breadth first traversal to recreate nodes
                 if (baseSortedSet.Count == 0)
                 {
                     count = 0;
@@ -146,7 +146,7 @@ namespace System.Collections.Generic
                 }
 
 
-                //pre order way to replicate nodes
+                // pre order way to replicate nodes
                 Stack<Node> theirStack = new(2 * Log2(baseSortedSet.Count) + 2);
                 Stack<Node> myStack = new(2 * Log2(baseSortedSet.Count) + 2);
                 Node theirCurrent = baseSortedSet.root;
@@ -185,7 +185,7 @@ namespace System.Collections.Generic
                 version = 0;
             }
             else
-            {     //As it stands, you're doing an NlogN sort of the collection
+            {     // As it stands, you're doing an NlogN sort of the collection
 
                 List<T> els = new(collection);
                 els.Sort(this.comparer);
@@ -387,11 +387,11 @@ namespace System.Collections.Generic
 
         #region Subclass helpers
 
-        //virtual function for subclass that needs to update count
+        // virtual function for subclass that needs to update count
         internal virtual void VersionCheck() { }
 
 
-        //virtual function for subclass that needs to do range checks
+        // virtual function for subclass that needs to do range checks
         internal virtual bool IsWithinRange(T item)
         {
             return true;
@@ -439,8 +439,8 @@ namespace System.Collections.Generic
             Node grandParent = null;
             Node greatGrandParent = null;
 
-            //even if we don't actually add to the set, we may be altering its structure (by doing rotations
-            //and such). so update version to disable any enumerators/subsets working on it
+            // even if we don't actually add to the set, we may be altering its structure (by doing rotations
+            // and such). so update version to disable any enumerators/subsets working on it
             version++;
 
 
@@ -523,8 +523,8 @@ namespace System.Collections.Generic
             // In top-down implementation, it is important to make sure the node to be deleted is not a 2-node.
             // Following code will make sure the node on the path is not a 2 Node. 
 
-            //even if we don't actually remove from the set, we may be altering its structure (by doing rotations
-            //and such). so update version to disable any enumerators/subsets working on it
+            // even if we don't actually remove from the set, we may be altering its structure (by doing rotations
+            // and such). so update version to disable any enumerators/subsets working on it
             version++;
 
             Node current = root;
@@ -588,29 +588,29 @@ namespace System.Collections.Generic
                             switch (rotation)
                             {
                                 case TreeRotation.RightRotation:
-                                    Debug.Assert(parent.Left == sibling, "sibling must be left child of parent!");
-                                    Debug.Assert(sibling.Left.IsRed, "Left child of sibling must be red!");
-                                    sibling.Left.IsRed = false;
-                                    newGrandParent = RotateRight(parent);
-                                    break;
+                                Debug.Assert(parent.Left == sibling, "sibling must be left child of parent!");
+                                Debug.Assert(sibling.Left.IsRed, "Left child of sibling must be red!");
+                                sibling.Left.IsRed = false;
+                                newGrandParent = RotateRight(parent);
+                                break;
                                 case TreeRotation.LeftRotation:
-                                    Debug.Assert(parent.Right == sibling, "sibling must be left child of parent!");
-                                    Debug.Assert(sibling.Right.IsRed, "Right child of sibling must be red!");
-                                    sibling.Right.IsRed = false;
-                                    newGrandParent = RotateLeft(parent);
-                                    break;
+                                Debug.Assert(parent.Right == sibling, "sibling must be left child of parent!");
+                                Debug.Assert(sibling.Right.IsRed, "Right child of sibling must be red!");
+                                sibling.Right.IsRed = false;
+                                newGrandParent = RotateLeft(parent);
+                                break;
 
                                 case TreeRotation.RightLeftRotation:
-                                    Debug.Assert(parent.Right == sibling, "sibling must be left child of parent!");
-                                    Debug.Assert(sibling.Left.IsRed, "Left child of sibling must be red!");
-                                    newGrandParent = RotateRightLeft(parent);
-                                    break;
+                                Debug.Assert(parent.Right == sibling, "sibling must be left child of parent!");
+                                Debug.Assert(sibling.Left.IsRed, "Left child of sibling must be red!");
+                                newGrandParent = RotateRightLeft(parent);
+                                break;
 
                                 case TreeRotation.LeftRightRotation:
-                                    Debug.Assert(parent.Left == sibling, "sibling must be left child of parent!");
-                                    Debug.Assert(sibling.Right.IsRed, "Right child of sibling must be red!");
-                                    newGrandParent = RotateLeftRight(parent);
-                                    break;
+                                Debug.Assert(parent.Left == sibling, "sibling must be left child of parent!");
+                                Debug.Assert(sibling.Right.IsRed, "Right child of sibling must be red!");
+                                newGrandParent = RotateLeftRight(parent);
+                                break;
                             }
 
                             newGrandParent.IsRed = parent.IsRed;
@@ -708,7 +708,7 @@ namespace System.Collections.Generic
             {
                 throw new ArgumentException(SR.GetString("SR.Arg_ArrayPlusOffTooSmall"));
             }
-            //upper bound
+            // upper bound
             count += index;
 
             InOrderTreeWalk(delegate (Node node)
@@ -948,9 +948,9 @@ namespace System.Collections.Generic
             return null;
         }
 
-        //used for bithelpers. Note that this implementation is completely different 
-        //from the Subset's. The two should not be mixed. This indexes as if the tree were an array.
-        //http://en.wikipedia.org/wiki/Binary_Tree#Methods_for_storing_binary_trees
+        // used for bithelpers. Note that this implementation is completely different 
+        // from the Subset's. The two should not be mixed. This indexes as if the tree were an array.
+        // http://en.wikipedia.org/wiki/Binary_Tree#Methods_for_storing_binary_trees
         internal virtual int InternalIndexOf(T item)
         {
             Node current = root;
@@ -1140,7 +1140,7 @@ namespace System.Collections.Generic
         }
 
 
-        //This is a little frustrating because we can't support more sorted structures
+        // This is a little frustrating because we can't support more sorted structures
         private static bool AreComparersEqual(SortedSet<T> set1, SortedSet<T> set2)
         {
             return set1.Comparer.Equals(set2.Comparer);
@@ -1171,11 +1171,11 @@ namespace System.Collections.Generic
         #region ISet Members
 
         /// <summary>
-        /// Transform this set into its union with the IEnumerable OTHER            
-        ///Attempts to insert each element and rejects it if it exists.          
-        /// NOTE: The caller object is important as UnionWith uses the Comparator 
-        ///associated with THIS to check equality                                
-        /// Throws ArgumentNullException if OTHER is null                         
+        /// Transform this set into its union with the IEnumerable OTHER
+        /// Attempts to insert each element and rejects it if it exists.
+        /// NOTE: The caller object is important as UnionWith uses the Comparator
+        /// associated with THIS to check equality
+        /// Throws ArgumentNullException if OTHER is null
         /// </summary>
         /// <param name="other"></param>
         public void UnionWith(IEnumerable<T> other)
@@ -1202,8 +1202,8 @@ namespace System.Collections.Generic
 
 
             if (s != null && t == null && AreComparersEqual(this, s) && (s.Count > this.Count / 2))
-            { //this actually hurts if N is much greater than M the /2 is arbitrary
-                //first do a merge sort to an array.
+            { // this actually hurts if N is much greater than M the /2 is arbitrary
+                // first do a merge sort to an array.
                 T[] merged = new T[s.Count + this.Count];
                 int c = 0;
                 Enumerator mine = this.GetEnumerator();
@@ -1239,9 +1239,9 @@ namespace System.Collections.Generic
                     } while (remaining.MoveNext());
                 }
 
-                //now merged has all c elements
+                // now merged has all c elements
 
-                //safe to gc the root, we  have all the elements
+                // safe to gc the root, we  have all the elements
                 root = null;
 
 
@@ -1261,9 +1261,9 @@ namespace System.Collections.Generic
 
 
 
-            //what does this do?
-            //you're given a sorted array... say 1 2 3 4 5 6 
-            //2 cases:
+            // what does this do?
+            // you're given a sorted array... say 1 2 3 4 5 6
+            // 2 cases:
             //    If there are odd # of elements, pick the middle element (in this case 4), and compute
             //    its left and right branches
             //    If there are even # of elements, pick the left middle element, save the right middle element
@@ -1278,10 +1278,10 @@ namespace System.Collections.Generic
             //    down to the bottom
 
 
-            //the iterative way to do this ends up wasting more space than it saves in stack frames (at
-            //least in what i tried)
-            //so we're doing this recursively
-            //base cases are described below
+            // the iterative way to do this ends up wasting more space than it saves in stack frames (at
+            // least in what i tried)
+            // so we're doing this recursively
+            // base cases are described below
             int size = endIndex - startIndex + 1;
             if (size == 0)
             {
@@ -1359,18 +1359,18 @@ namespace System.Collections.Generic
             if (Count == 0)
                 return;
 
-            //HashSet<T> optimizations can't be done until equality comparers and comparers are related
+            // HashSet<T> optimizations can't be done until equality comparers and comparers are related
 
-            //Technically, this would work as well with an ISorted<T>
+            // Technically, this would work as well with an ISorted<T>
             TreeSubSet t = this as TreeSubSet;
             if (t != null)
                 VersionCheck();
-            //only let this happen if i am also a SortedSet, not a SubSet
+            // only let this happen if i am also a SortedSet, not a SubSet
             if (other is SortedSet<T> s && t == null && AreComparersEqual(this, s))
             {
 
 
-                //first do a merge sort to an array.
+                // first do a merge sort to an array.
                 T[] merged = new T[this.Count];
                 int c = 0;
                 Enumerator mine = this.GetEnumerator();
@@ -1398,9 +1398,9 @@ namespace System.Collections.Generic
                     }
                 }
 
-                //now merged has all c elements
+                // now merged has all c elements
 
-                //safe to gc the root, we  have all the elements
+                // safe to gc the root, we  have all the elements
                 root = null;
 
                 root = SortedSet<T>.ConstructRootFromSortedArray(merged, 0, c - 1, null);
@@ -1458,7 +1458,7 @@ namespace System.Collections.Generic
 
             if (other is SortedSet<T> asSorted && AreComparersEqual(this, asSorted))
             {
-                //outside range, no point doing anything               
+                // outside range, no point doing anything
                 if (!(comparer.Compare(asSorted.Max, this.Min) < 0 || comparer.Compare(asSorted.Min, this.Max) > 0))
                 {
                     T min = this.Min;
@@ -1522,21 +1522,21 @@ namespace System.Collections.Generic
 #endif
             else
             {
-                //need perf improvement on this
+                // need perf improvement on this
                 T[] elements = (new List<T>(other)).ToArray();
                 Array.Sort(elements, this.Comparer);
                 SymmetricExceptWithSameEC(elements);
             }
         }
 
-        //OTHER must be a set
+        // OTHER must be a set
         internal void SymmetricExceptWithSameEC(ISet<T> other)
         {
             foreach (T item in other)
             {
-                //yes, it is classier to say
-                //if (!this.Remove(item))this.Add(item);
-                //but this ends up saving on rotations                    
+                // yes, it is classier to say
+                // if (!this.Remove(item))this.Add(item);
+                // but this ends up saving on rotations
                 if (this.Contains(item))
                 {
                     this.Remove(item);
@@ -1548,7 +1548,7 @@ namespace System.Collections.Generic
             }
         }
 
-        //OTHER must be a sorted array
+        // OTHER must be a sorted array
         internal void SymmetricExceptWithSameEC(T[] other)
         {
             if (other.Length == 0)
@@ -1600,8 +1600,8 @@ namespace System.Collections.Generic
             }
             else
             {
-                //worst case: mark every element in my set and see if i've counted all
-                //O(MlogN)
+                // worst case: mark every element in my set and see if i've counted all
+                // O(MlogN)
 
                 ElementCount result = CheckUniqueAndUnfoundElements(other, false);
                 return (result.uniqueCount == Count && result.unfoundCount >= 0);
@@ -1642,13 +1642,13 @@ namespace System.Collections.Generic
 
 
 #if USING_HASH_SET
-            //do it one way for HashSets
+            // do it one way for HashSets
             HashSet<T> asHash = other as HashSet<T>;
             if (asHash != null && comparer.Equals(Comparer<T>.Default) && asHash.Comparer.Equals(EqualityComparer<T>.Default)) {
                 return asHash.IsProperSupersetOf(this);
             }
 #endif
-            //another for sorted sets with the same comparer
+            // another for sorted sets with the same comparer
             if (other is SortedSet<T> asSorted && AreComparersEqual(this, asSorted))
             {
                 if (this.Count >= asSorted.Count)
@@ -1657,8 +1657,8 @@ namespace System.Collections.Generic
             }
 
 
-            //worst case: mark every element in my set and see if i've counted all
-            //O(MlogN).
+            // worst case: mark every element in my set and see if i've counted all
+            // O(MlogN).
             ElementCount result = CheckUniqueAndUnfoundElements(other, false);
             return (result.uniqueCount == Count && result.unfoundCount > 0);
         }
@@ -1679,14 +1679,14 @@ namespace System.Collections.Generic
             if ((other as ICollection) != null && (other as ICollection).Count == 0)
                 return true;
 
-            //do it one way for HashSets
+            // do it one way for HashSets
 #if USING_HASH_SET
             HashSet<T> asHash = other as HashSet<T>;
             if (asHash != null && comparer.Equals(Comparer<T>.Default) && asHash.Comparer.Equals(EqualityComparer<T>.Default)) {
                 return asHash.IsSubsetOf(this);
             }
 #endif
-            //another for sorted sets with the same comparer
+            // another for sorted sets with the same comparer
             if (other is SortedSet<T> asSorted && AreComparersEqual(this, asSorted))
             {
                 if (this.Count < asSorted.Count)
@@ -1699,7 +1699,7 @@ namespace System.Collections.Generic
                 }
                 return true;
             }
-            //and a third for everything else
+            // and a third for everything else
             return ContainsAllElements(other);
         }
 
@@ -1723,14 +1723,14 @@ namespace System.Collections.Generic
                 return true;
 
 #if USING_HASH_SET
-            //do it one way for HashSets
+            // do it one way for HashSets
  
             HashSet<T> asHash = other as HashSet<T>;
             if (asHash != null && comparer.Equals(Comparer<T>.Default) && asHash.Comparer.Equals(EqualityComparer<T>.Default)) {
                 return asHash.IsProperSubsetOf(this);
             }
 #endif
-            //another way for sorted sets
+            // another way for sorted sets
             if (other is SortedSet<T> asSorted && AreComparersEqual(asSorted, this))
             {
                 if (asSorted.Count >= this.Count)
@@ -1745,10 +1745,10 @@ namespace System.Collections.Generic
             }
 
 
-            //worst case: mark every element in my set and see if i've counted all
-            //O(MlogN)
-            //slight optimization, put it into a HashSet and then check can do it in O(N+M)
-            //but slower in better cases + wastes space
+            // worst case: mark every element in my set and see if i've counted all
+            // O(MlogN)
+            // slight optimization, put it into a HashSet and then check can do it in O(N+M)
+            // but slower in better cases + wastes space
             ElementCount result = CheckUniqueAndUnfoundElements(other, true);
             return (result.uniqueCount < Count && result.unfoundCount == 0);
         }
@@ -1792,8 +1792,8 @@ namespace System.Collections.Generic
                 return mineEnded && theirsEnded;
             }
 
-            //worst case: mark every element in my set and see if i've counted all
-            //O(N) by size of other            
+            // worst case: mark every element in my set and see if i've counted all
+            // O(N) by size of other
             ElementCount result = CheckUniqueAndUnfoundElements(other, true);
             return (result.uniqueCount == Count && result.unfoundCount == 0);
         }
@@ -2046,12 +2046,12 @@ namespace System.Collections.Generic
 #endif
             SortedSet<T> underlying;
             T min, max;
-            //these exist for unbounded collections
-            //for instance, you could allow this subset to be defined for i>10. The set will throw if
-            //anything <=10 is added, but there is no upperbound. These features Head(), Tail(), were punted
-            //in the spec, and are not available, but the framework is there to make them available at some point.
+            // these exist for unbounded collections
+            // for instance, you could allow this subset to be defined for i>10. The set will throw if
+            // anything <=10 is added, but there is no upperbound. These features Head(), Tail(), were punted
+            // in the spec, and are not available, but the framework is there to make them available at some point.
             bool lBoundActive, uBoundActive;
-            //used to see if the count is out of date            
+            // used to see if the count is out of date
 
 
 #if DEBUG
@@ -2189,7 +2189,7 @@ namespace System.Collections.Generic
 
                 // The maximum height of a red-black tree is 2*lg(n+1).
                 // See page 264 of "Introduction to algorithms" by Thomas H. Cormen
-                Stack<Node> stack = new(2 * (int)SortedSet<T>.Log2(count + 1)); //this is not exactly right if count is out of date, but the stack can grow
+                Stack<Node> stack = new(2 * (int)SortedSet<T>.Log2(count + 1)); // this is not exactly right if count is out of date, but the stack can grow
                 Node current = root;
                 while (current != null)
                 {
@@ -2287,8 +2287,8 @@ namespace System.Collections.Generic
                 return base.FindNode(item);
             }
 
-            //this does indexing in an inefficient way compared to the actual sortedset, but it saves a
-            //lot of space
+            // this does indexing in an inefficient way compared to the actual sortedset, but it saves a
+            // lot of space
             internal override int InternalIndexOf(T item)
             {
                 int count = -1;
@@ -2325,20 +2325,20 @@ namespace System.Collections.Generic
 
 
 
-            //This passes functionality down to the underlying tree, clipping edges if necessary
-            //There's nothing gained by having a nested subset. May as well draw it from the base
-            //Cannot increase the bounds of the subset, can only decrease it
+            // This passes functionality down to the underlying tree, clipping edges if necessary
+            // There's nothing gained by having a nested subset. May as well draw it from the base
+            // Cannot increase the bounds of the subset, can only decrease it
             public override SortedSet<T> GetViewBetween(T lowerValue, T upperValue)
             {
 
                 if (lBoundActive && Comparer.Compare(min, lowerValue) > 0)
                 {
-                    //lBound = min;
+                    // lBound = min;
                     throw new ArgumentOutOfRangeException("lowerValue");
                 }
                 if (uBoundActive && Comparer.Compare(max, upperValue) < 0)
                 {
-                    //uBound = max;
+                    // uBound = max;
                     throw new ArgumentOutOfRangeException("upperValue");
                 }
                 TreeSubSet ret = (TreeSubSet)underlying.GetViewBetween(lowerValue, upperValue);
@@ -2385,8 +2385,8 @@ namespace System.Collections.Generic
 
             void IDeserializationCallback.OnDeserialization(Object sender)
             {
-                //don't do anything here as its already been done by the constructor
-                //OnDeserialization(sender);
+                // don't do anything here as its already been done by the constructor
+                // OnDeserialization(sender);
 
             }
 
@@ -2427,7 +2427,7 @@ namespace System.Collections.Generic
                 underlying.version = siInfo.GetInt32(VersionName);
                 count = underlying.count;
                 version = underlying.version - 1;
-                VersionCheck(); //this should update the count to be right and update root to be right
+                VersionCheck(); // this should update the count to be right and update root to be right
 
                 if (count != savedCount)
                 {
@@ -2462,7 +2462,7 @@ namespace System.Collections.Generic
                 ThrowHelper.ThrowArgumentNullException(ExceptionArgument.info);
             }
 
-            info.AddValue(CountName, count); //This is the length of the bucket array.
+            info.AddValue(CountName, count); // This is the length of the bucket array.
             info.AddValue(ComparerName, comparer, typeof(IComparer<T>));
             info.AddValue(VersionName, version);
 
@@ -2483,7 +2483,7 @@ namespace System.Collections.Generic
         {
             if (comparer != null)
             {
-                return; //Somebody had a dependency on this class and fixed us up before the ObjectManager got to it.
+                return; // Somebody had a dependency on this class and fixed us up before the ObjectManager got to it.
             }
 
             if (siInfo == null)
@@ -2516,7 +2516,7 @@ namespace System.Collections.Generic
             }
             siInfo = null;
         }
-#endif //!FEATURE_NETCORE
+#endif // !FEATURE_NETCORE
         #endregion
 
         #region Helper Classes
@@ -2566,7 +2566,7 @@ namespace System.Collections.Generic
             internal Enumerator(SortedSet<T> set)
             {
                 tree = set;
-                //this is a hack to make sure that the underlying subset has not been changed since
+                // this is a hack to make sure that the underlying subset has not been changed since
                 //
                 tree.VersionCheck();
 
@@ -2585,7 +2585,7 @@ namespace System.Collections.Generic
             internal Enumerator(SortedSet<T> set, bool reverse)
             {
                 tree = set;
-                //this is a hack to make sure that the underlying subset has not been changed since
+                // this is a hack to make sure that the underlying subset has not been changed since
                 //
                 tree.VersionCheck();
                 version = tree.version;
@@ -2653,7 +2653,7 @@ namespace System.Collections.Generic
                 {
                     T item = (T)siInfo.GetValue(NodeValueName, typeof(T));
                     Intialize();
-                    //go until it reaches the value we want
+                    // go until it reaches the value we want
                     while (this.MoveNext())
                     {
                         if (tree.Comparer.Compare(this.Current, item) == 0)
@@ -2663,7 +2663,7 @@ namespace System.Collections.Generic
 
 
             }
-#endif //!FEATURE_NETCORE
+#endif // !FEATURE_NETCORE
 
 
             private void Intialize()
@@ -2696,7 +2696,7 @@ namespace System.Collections.Generic
             public bool MoveNext()
             {
 
-                //this is a hack to make sure that the underlying subset has not been changed since
+                // this is a hack to make sure that the underlying subset has not been changed since
                 //
                 tree.VersionCheck();
 
@@ -2832,7 +2832,7 @@ namespace System.Collections.Generic
         // used for set checking operations (using enumerables) that rely on counting
         private static int Log2(int value)
         {
-            //Contract.Requires(value>0)
+            // Contract.Requires(value>0)
             int c = 0;
             while (value > 0)
             {
@@ -2884,8 +2884,8 @@ namespace System.Collections.Generic
         {
             return SortedSet<T>.SortedSetEquals(x, y, comparer);
         }
-        //IMPORTANT: this part uses the fact that GetHashCode() is consistent with the notion of equality in
-        //the set
+        // IMPORTANT: this part uses the fact that GetHashCode() is consistent with the notion of equality in
+        // the set
         public int GetHashCode(SortedSet<T> obj)
         {
             int hashCode = 0;

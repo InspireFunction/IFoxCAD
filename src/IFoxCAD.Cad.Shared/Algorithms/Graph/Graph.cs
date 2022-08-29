@@ -130,11 +130,11 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
             foreach (var item in edges.Values)
             {
                 item.RemoveWhere(x => vertex.Equals(x.TargetVertex));
-                //foreach (var edge in item)
-                //{
+                // foreach (var edge in item)
+                // {
                 //    if (vertex.Equals(edge.TargetVertex))
                 //        item.Remove(edge);
-                //}
+                // }
             }
             vertexs.Remove(str);
         }
@@ -497,7 +497,7 @@ public sealed class DepthFirst
     public void FindAll(IGraph graph)
     {
         var total = new HashSet<IGraphVertex>();
-        //var graphtmp = graph.Clone();
+        // var graphtmp = graph.Clone();
         foreach (var item in graph.VerticesAsEnumberable)
         {
             Dfs(graph, new LinkedHashSet<IGraphVertex> { item }, total);
@@ -577,7 +577,7 @@ public sealed class DepthFirst
                 var inv = Invert(cur,cur[0]); // O(n)
                  
                 var curstr = Gethashstring(cur,inv); 
-                //Env.Print(curstr);
+                // Env.Print(curstr);
                 if (Isnew(curstr))
                 {
                     Curve3ds.Add(cur);

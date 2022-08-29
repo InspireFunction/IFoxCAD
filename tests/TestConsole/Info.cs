@@ -35,7 +35,7 @@ public enum PlugIn2
     DOCBAR = 8,
     DUOTAB = 16,
 
-    //all == *Lisp*|DOCBAR|DUOTAB
-    //采取的行为是:注释的行为是特殊的,就按照注释的,否则,遍历子元素提取注释
+    // all == *Lisp*|DOCBAR|DUOTAB
+    // 采取的行为是:注释的行为是特殊的,就按照注释的,否则,遍历子元素提取注释
     All = Lisp | DOCBAR | DUOTAB
 }

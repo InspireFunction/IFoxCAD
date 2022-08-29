@@ -26,7 +26,7 @@ namespace System.Runtime.CompilerServices
 
                 if (length == 0)
                 {
-                    //return Array.Empty<T>();
+                    // return Array.Empty<T>();
                     return new T[0];
 
 

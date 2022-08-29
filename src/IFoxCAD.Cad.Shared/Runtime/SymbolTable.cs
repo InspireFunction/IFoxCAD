@@ -40,7 +40,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         {
             if (CurrentSymbolTable is LayerTable layer)
             {
-                //层表包含隐藏的,全部显示出来
+                // 层表包含隐藏的,全部显示出来
                 layer = layer.IncludingHidden;
                 if (layer is TTable tt)
                     CurrentSymbolTable = tt;
@@ -172,7 +172,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         using (record.ForWrite())
             action.Invoke(record);
         // 调用regen()函数可能会导致卡顿
-        //Env.Editor.Regen();
+        // Env.Editor.Regen();
     }
 
     /// <summary>

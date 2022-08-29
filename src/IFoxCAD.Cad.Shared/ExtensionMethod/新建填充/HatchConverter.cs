@@ -88,23 +88,23 @@ public class HatchConverter
     {
         _oldHatch = hatch;
 
-        //不能在提取信息的时候进行新建cad图元,
-        //否则cad将会提示遗忘释放
+        // 不能在提取信息的时候进行新建cad图元,
+        // 否则cad将会提示遗忘释放
         hatch.ForEach(loop => {
             var hcData = new HatchConverterData();
 
             bool isCurve2d = true;
             if (loop.IsPolyline)
             {
-                //边界是多段线
+                // 边界是多段线
                 HatchLoopIsPolyline(loop, hcData);
                 isCurve2d = false;
             }
             else
             {
-                if (loop.Curves.Count == 2)//1是不可能的,大于2的是曲线
+                if (loop.Curves.Count == 2)// 1是不可能的,大于2的是曲线
                 {
-                    //边界是曲线,过滤可能是圆形的情况
+                    // 边界是曲线,过滤可能是圆形的情况
                     var cir = TwoArcFormOneCircle(loop);
                     if (cir is not null)
                     {
@@ -114,7 +114,7 @@ public class HatchConverter
                 }
             }
 
-            //边界是曲线
+            // 边界是曲线
             if (isCurve2d)
                 HatchLoopIsCurve2d(loop, hcData);
 
@@ -137,9 +137,9 @@ public class HatchConverter
         if (hcData is null)
             throw new ArgumentNullException(nameof(hcData));
 
-        //判断为圆形:
-        //上下两个圆弧,然后填充,就会生成此种填充
-        //顶点数是3,凸度是半圆,两个半圆就是一个圆形
+        // 判断为圆形:
+        // 上下两个圆弧,然后填充,就会生成此种填充
+        // 顶点数是3,凸度是半圆,两个半圆就是一个圆形
         if (loop.Polyline.Count == 3 && loop.Polyline[0].Bulge == 1 && loop.Polyline[1].Bulge == 1 ||
             loop.Polyline.Count == 3 && loop.Polyline[0].Bulge == -1 && loop.Polyline[1].Bulge == -1)
         {
@@ -147,7 +147,7 @@ public class HatchConverter
         }
         else
         {
-            //遍历多段线信息
+            // 遍历多段线信息
             var bvc = loop.Polyline;
             for (int i = 0; i < bvc.Count; i++)
                 hcData.PolyLineData.Add(new BulgeVertexWidth(bvc[i]));
@@ -170,23 +170,23 @@ public class HatchConverter
 
         CircleData? circular = null;
 
-        //判断为圆形:
-        //用一条(不是两条)多段线画出两条圆弧为正圆,就会生成此种填充
-        //边界为曲线,数量为2,可能是两个半圆曲线,如果是,就加入圆形数据中
+        // 判断为圆形:
+        // 用一条(不是两条)多段线画出两条圆弧为正圆,就会生成此种填充
+        // 边界为曲线,数量为2,可能是两个半圆曲线,如果是,就加入圆形数据中
 
-        //第一段
-        var getCurves1Pts = loop.Curves[0].GetSamplePoints(3);   //曲线取样点分两份(3点)
-        var mid1Pt = getCurves1Pts[1];                           //腰点
+        // 第一段
+        var getCurves1Pts = loop.Curves[0].GetSamplePoints(3);   // 曲线取样点分两份(3点)
+        var mid1Pt = getCurves1Pts[1];                           // 腰点
         double bulge1 = loop.Curves[0].StartPoint.GetArcBulge(mid1Pt, loop.Curves[0].EndPoint);
 
-        //第二段
+        // 第二段
         var getCurves2Pts = loop.Curves[1].GetSamplePoints(3);
         var mid2Pt = getCurves2Pts[1];
         double bulge2 = loop.Curves[1].StartPoint.GetArcBulge(mid2Pt, loop.Curves[1].EndPoint);
 
-        //第一段上弧&&第二段反弧 || 第一段反弧&&第二段上弧
+        // 第一段上弧&&第二段反弧 || 第一段反弧&&第二段上弧
         if (bulge1 == -1 && bulge2 == -1 || bulge1 == 1 && bulge2 == 1)
-            circular = new CircleData(loop.Curves[0].StartPoint, loop.Curves[1].StartPoint); //两个起点就是对称点
+            circular = new CircleData(loop.Curves[0].StartPoint, loop.Curves[1].StartPoint); // 两个起点就是对称点
 
         return circular;
     }
@@ -198,36 +198,36 @@ public class HatchConverter
     /// <param name="hcData">收集图元信息</param>
     static void HatchLoopIsCurve2d(HatchLoop loop, HatchConverterData hcData)
     {
-        //取每一段曲线,曲线可能是直线来的,但是圆弧会按照顶点来分段
+        // 取每一段曲线,曲线可能是直线来的,但是圆弧会按照顶点来分段
         int curveIsClosed = 0;
 
-        //遍历边界的多个子段
+        // 遍历边界的多个子段
         foreach (Curve2d curve in loop.Curves)
         {
-            //计数用于实现闭合
+            // 计数用于实现闭合
             curveIsClosed++;
             if (curve is NurbCurve2d spl)
             {
-                //判断为样条曲线:
+                // 判断为样条曲线:
                 hcData.SplineData.Add(spl);
                 continue;
             }
 
             var pts = curve.GetSamplePoints(3);
             var midPt = pts[1];
-            if (curve.StartPoint.IsEqualTo(curve.EndPoint, new Tolerance(1e-6, 1e-6)))//首尾相同,就是圆形
+            if (curve.StartPoint.IsEqualTo(curve.EndPoint, new Tolerance(1e-6, 1e-6)))// 首尾相同,就是圆形
             {
-                //判断为圆形:
-                //获取起点,然后采样三点,中间就是对称点(直径点)
+                // 判断为圆形:
+                // 获取起点,然后采样三点,中间就是对称点(直径点)
                 hcData.CircleData.Add(new CircleData(curve.StartPoint, midPt));
                 continue;
             }
 
-            //判断为多段线,圆弧:
+            // 判断为多段线,圆弧:
             double bulge = curve.StartPoint.GetArcBulge(midPt, curve.EndPoint);
             hcData.PolyLineData.Add(new BulgeVertexWidth(curve.StartPoint, bulge));
 
-            //末尾点,不闭合的情况下就要获取这个
+            // 末尾点,不闭合的情况下就要获取这个
             if (curveIsClosed == loop.Curves.Count)
                 hcData.PolyLineData.Add(new BulgeVertexWidth(curve.EndPoint, 0));
         }
@@ -243,7 +243,7 @@ public class HatchConverter
         {
             var data = _hcDatas[i];
 
-            //生成边界:多段线
+            // 生成边界:多段线
             if (data.PolyLineData.Count > 0)
             {
                 Polyline pl = new();
@@ -259,12 +259,12 @@ public class HatchConverter
                 outEnts.Add(pl);
             }
 
-            //生成边界:圆
+            // 生成边界:圆
             data.CircleData.ForEach(item => {
                 outEnts.Add(new Circle(item.Center.Point3d(), Vector3d.ZAxis, item.Radius));
             });
 
-            //生成边界:样条曲线
+            // 生成边界:样条曲线
             data.SplineData.ForEach(item => {
                 outEnts.Add(item.ToCurve());
             });
@@ -293,7 +293,7 @@ public class HatchConverter
         bool createHatchFlag = true,
         Transaction? trans = null)
     {
-        //重设边界之前肯定是有边界才可以
+        // 重设边界之前肯定是有边界才可以
         if (BoundaryIds.Count == 0)
         {
             List<Entity> boundaryEntitys = new();
@@ -334,7 +334,7 @@ public class HatchConverter
     void ResetBoundary(Hatch hatch,
         bool boundaryAssociative = true)
     {
-        //删除原有边界
+        // 删除原有边界
         while (hatch.NumberOfLoops != 0)
             hatch.RemoveLoopAt(0);
 
@@ -345,13 +345,13 @@ public class HatchConverter
         {
             obIds.Clear();
             obIds.Add(BoundaryIds[i]);
-            //要先添加最外面的边界
+            // 要先添加最外面的边界
             if (i == 0)
                 hatch.AppendLoop(HatchLoopTypes.Outermost, obIds);
             else
                 hatch.AppendLoop(HatchLoopTypes.Default, obIds);
         }
-        //计算填充并显示
+        // 计算填充并显示
         hatch.EvaluateHatch(true);
     }
     #endregion

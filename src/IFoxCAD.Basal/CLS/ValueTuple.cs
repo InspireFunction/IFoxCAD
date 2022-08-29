@@ -1,7 +1,7 @@
 ﻿// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
-//#pragma warning disable SA1141 // explicitly not using tuple syntax in tuple implementation
+// #pragma warning disable SA1141 // explicitly not using tuple syntax in tuple implementation
 
 
 using System.Diagnostics;
@@ -61,7 +61,7 @@ namespace System.Numerics.Hashing
 
 namespace System
 {
-    //internal static class SR 
+    // internal static class SR 
     internal sealed partial class SR
     {
         // public const string ArgumentException_ValueTupleIncorrectType = "The parameter should be a ValueTuple type of appropriate arity.";
@@ -2131,8 +2131,8 @@ namespace System
         {
             get
             {
-                //ITupleInternal? rest = Rest as ITupleInternal;
-                //return rest == null ? 8 : 7 + rest.Size;
+                // ITupleInternal? rest = Rest as ITupleInternal;
+                // return rest == null ? 8 : 7 + rest.Size;
                 return Rest is not ITupleInternal rest ? 8 : 7 + rest.Size;
             }
         }

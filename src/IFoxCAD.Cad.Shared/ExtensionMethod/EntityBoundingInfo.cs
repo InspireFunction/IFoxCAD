@@ -45,8 +45,8 @@ public struct BoundingInfo
             isEffective, angle)
     { }
 
-    //public BoundingInfo(Rect rect, double angle = 0)
-    //{
+    // public BoundingInfo(Rect rect, double angle = 0)
+    // {
     //    MinX = rect.X;
     //    MinY = rect.Y;
     //    MinZ = 0;
@@ -54,7 +54,7 @@ public struct BoundingInfo
     //    MaxY = rect.Top;
     //    MaxZ = 0;
     //    Angle = angle;
-    //}
+    // }
 }
 
 public class EntityBoundingInfo
@@ -103,7 +103,7 @@ public class EntityBoundingInfo
                 if (line.Contains(nameof(LogTxt.备注信息)))
                 {
                     int index = line.IndexOf(":");
-                    index = line.IndexOf("\"", index) + 1;//1是"\""
+                    index = line.IndexOf("\"", index) + 1;// 1是"\""
                     int index2 = line.IndexOf("\"", index);
                     var msg = line.Substring(index, index2 - index);
                     _typeNames.Add(msg);
@@ -123,10 +123,10 @@ public class EntityBoundingInfo
     /// <param name="ent"></param>
     static void ExceptionToLog(Exception e, Entity ent)
     {
-        //无法处理的错误类型将被记录
-        //如果错误无法try,而是cad直接致命错误,那么此处也不会被写入,
-        //这种情况无法避免程序安全性,总不能写了日志再去删除日志词条,这样会造成频繁IO的
-        //遇到一个不认识的类型再去写入?然后记录它是否可以写入?
+        // 无法处理的错误类型将被记录
+        // 如果错误无法try,而是cad直接致命错误,那么此处也不会被写入,
+        // 这种情况无法避免程序安全性,总不能写了日志再去删除日志词条,这样会造成频繁IO的
+        // 遇到一个不认识的类型再去写入?然后记录它是否可以写入?
         var old_LogAddress = LogHelper.LogAddress;
         var old_FlagOutFile = LogHelper.FlagOutFile;
         try
@@ -153,20 +153,20 @@ public class EntityBoundingInfo
     public static BoundingInfo GetBoundingInfo(Entity ent)
     {
 #if Debug_Cause_Error
-        //错误类型处理
-        if (ent is AttributeDefinition) //属性定义
+        // 错误类型处理
+        if (ent is AttributeDefinition) // 属性定义
             return new(Point3d.Origin, Point3d.Origin, false);
-        else if (ent is Xline xline)//参照线
+        else if (ent is Xline xline)// 参照线
             return new(xline.BasePoint, xline.BasePoint, true);
-        else if (ent is Ray ray)//射线
+        else if (ent is Ray ray)// 射线
             return new(ray.BasePoint, ray.BasePoint, true);
 #endif
-        //指定类型处理
+        // 指定类型处理
         if (ent is BlockReference brf)
             return GetBoxInfoInBlockReference(brf);
         else if (ent is MText mText)
             return GetBoxInfoInMText(mText);
-        else if (!_typeNames.Contains(ent.GetType().Name)) //屏蔽天正等等缺失包围盒的类型
+        else if (!_typeNames.Contains(ent.GetType().Name)) // 屏蔽天正等等缺失包围盒的类型
             try
             {
                 return new(ent.GeometricExtents.MinPoint, ent.GeometricExtents.MaxPoint, true);
@@ -182,7 +182,7 @@ public class EntityBoundingInfo
     {
         try
         {
-            //这个获取是原点附近,需要平移到块基点
+            // 这个获取是原点附近,需要平移到块基点
             var fit = brf.GeometryExtentsBestFit();
             var minX = fit.MinPoint.X + brf.Position.X;
             var minY = fit.MinPoint.Y + brf.Position.Y;
@@ -194,9 +194,9 @@ public class EntityBoundingInfo
         }
         catch
         {
-            //如果是一条参照线的组块,将导致获取包围盒时报错
-            //0x01 是否需要进入块内,然后拿到每个图元的BasePoint再计算中点?感觉过于复杂.
-            //0x02 这个时候拿基点走就算了
+            // 如果是一条参照线的组块,将导致获取包围盒时报错
+            // 0x01 是否需要进入块内,然后拿到每个图元的BasePoint再计算中点?感觉过于复杂.
+            // 0x02 这个时候拿基点走就算了
             return new(brf.Position, brf.Position, true);
         }
     }
@@ -219,12 +219,12 @@ public class EntityBoundingInfo
          * ------------------------------------
          */
 
-        double width = mtxt.ActualWidth;//实际宽度
-        double height = mtxt.ActualHeight;//实际高度
+        double width = mtxt.ActualWidth;// 实际宽度
+        double height = mtxt.ActualHeight;// 实际高度
         double wl = 0.0;
         double hb = 0.0;
 
-        //对齐方式
+        // 对齐方式
         switch (mtxt.Attachment)
         {
             case AttachmentPoint.TopCenter:
@@ -243,7 +243,7 @@ public class EntityBoundingInfo
             case AttachmentPoint.TopLeft:
             case AttachmentPoint.TopCenter:
             case AttachmentPoint.TopRight:
-                hb = -height;//下边线到插入点的距离
+                hb = -height;// 下边线到插入点的距离
                 break;
             case AttachmentPoint.MiddleLeft:
             case AttachmentPoint.MiddleCenter:

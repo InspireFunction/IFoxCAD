@@ -20,9 +20,9 @@ public static class DBObjectEx
     {
         List<int> acIndex = new();
         int appNameIndex = -1;
-        //int appNameIndexNext = -1;
+        // int appNameIndexNext = -1;
 
-        //先找到属于它的名字索引,然后再找到下一个不属于它名字的索引,移除中间部分
+        // 先找到属于它的名字索引,然后再找到下一个不属于它名字的索引,移除中间部分
         for (int i = 0; i < data.Count; i++)
         {
             if (data[i].TypeCode == (short)DxfCode.ExtendedDataRegAppName)
@@ -34,22 +34,22 @@ public static class DBObjectEx
                 }
                 if (appNameIndex != -1)
                 {
-                    //找到了后面的appName
-                    //appNameIndexNext = i;
+                    // 找到了后面的appName
+                    // appNameIndexNext = i;
                     break;
                 }
             }
-            if (appNameIndex != -1 && //找next的时候,获取任务(移除)的对象
+            if (appNameIndex != -1 && // 找next的时候,获取任务(移除)的对象
                 dxfCodes.Contains((DxfCode)data[i].TypeCode))
                 acIndex.Add(i);
         }
 
-        //当前app索引
-        //if (appNameIndex == -1)
-        //return;
+        // 当前app索引
+        // if (appNameIndex == -1)
+        // return;
 
-        //下一个app索引,如果是空,就为末尾
-        //if (appNameIndexNext == -1)
+        // 下一个app索引,如果是空,就为末尾
+        // if (appNameIndexNext == -1)
         //    appNameIndexNext = data.Count;
 
         return acIndex;
@@ -67,8 +67,8 @@ public static class DBObjectEx
             return;
         XDataList data = obj.XData;
 
-        //测试命令 addxdata removexdata
-        //移除指定App的扩展
+        // 测试命令 addxdata removexdata
+        // 移除指定App的扩展
         var indexs = GetXdataAppIndex(data, appName, new DxfCode[] { dxfCode });
         if (indexs.Count == 0)
             return;

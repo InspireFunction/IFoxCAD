@@ -42,9 +42,9 @@ public class TestPoint
     {
         // test
         var pt = Env.Editor.GetPoint("pick pt").Value;
-        //Tools.TestTimes2(1_000_000, "新语法", () => {
+        // Tools.TestTimes2(1_000_000, "新语法", () => {
         //    pt.GetHashString2();
-        //});
+        // });
         Tools.TestTimes2(1_000_000, "旧语法", () => {
             pt.GetHashString();
         });

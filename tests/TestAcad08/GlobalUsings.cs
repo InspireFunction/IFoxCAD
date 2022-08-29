@@ -12,13 +12,13 @@ global using System.ComponentModel;
 global using System.Runtime.CompilerServices;
 
 
-//<!--json要求的程序集,用这个不产生dll,但是可能因为环境丢失了这个东西,导致程序运行失败,尤其是net40-->
-//<!--<Reference Include="System.Web.Extensions"/>-->
-//#if !NET472
-//global using System.Web.Script.Serialization;/*序列化的类 程序集:System.Web.Extensions.dll*/ 
-//#else
-//global using System.Text.Json;
-//#endif
+// <!--json要求的程序集,用这个不产生dll,但是可能因为环境丢失了这个东西,导致程序运行失败,尤其是net40-->
+// <!--<Reference Include="System.Web.Extensions"/>-->
+// #if !NET472
+// global using System.Web.Script.Serialization;/*序列化的类 程序集:System.Web.Extensions.dll*/
+// #else
+// global using System.Text.Json;
+// #endif
 
 /// autocad 引用
 global using Autodesk.AutoCAD.ApplicationServices;

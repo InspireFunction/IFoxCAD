@@ -13,7 +13,7 @@ public class TolerancePoint2d : IEqualityComparer<Point2d>
         _tolerance = tolerance;
     }
 
-    public bool Equals(Point2d a, Point2d b)//Point3d是struct不会为null
+    public bool Equals(Point2d a, Point2d b)// Point3d是struct不会为null
     {
         /*默认规则是==是0容差,Eq是有容差*/
         // 方形限定
@@ -30,9 +30,9 @@ public class TolerancePoint2d : IEqualityComparer<Point2d>
 
     public int GetHashCode(Point2d obj)
     {
-        //结构体直接返回 obj.GetHashCode(); Point3d ToleranceDistinct3d
-        //因为结构体是用可值叠加来判断?或者因为结构体兼备了一些享元模式的状态?
-        //而类是构造的指针,所以取哈希值要改成x+y+z..s给Equals判断用,+是会溢出,所以用^
+        // 结构体直接返回 obj.GetHashCode(); Point3d ToleranceDistinct3d
+        // 因为结构体是用可值叠加来判断?或者因为结构体兼备了一些享元模式的状态?
+        // 而类是构造的指针,所以取哈希值要改成x+y+z..s给Equals判断用,+是会溢出,所以用^
         return (int)obj.X ^ (int)obj.Y;// ^ (int)obj.Z;
     }
 }
@@ -53,9 +53,9 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
 #pragma warning restore CA2211 // 非常量字段应当不可见
 
     #region 字段
-    //这里的成员不要用{get}封装成属性,否则会导致跳转了一次函数,
-    //10w图元将会从187毫秒变成400毫秒
-    //不用 protected 否则子类传入Rect对象进来无法用
+    // 这里的成员不要用{get}封装成属性,否则会导致跳转了一次函数,
+    // 10w图元将会从187毫秒变成400毫秒
+    // 不用 protected 否则子类传入Rect对象进来无法用
     internal double _X;
     internal double _Y;
     internal double _Right;
@@ -195,12 +195,12 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     }
     public static bool operator ==(Rect? a, Rect? b)
     {
-        //此处地方不允许使用==null,因为此处是定义
+        // 此处地方不允许使用==null,因为此处是定义
         if (b is null)
             return a is null;
         else if (a is null)
             return false;
-        if (ReferenceEquals(a, b))//同一对象
+        if (ReferenceEquals(a, b))// 同一对象
             return true;
 
         return a.Equals(b, 0);
@@ -213,7 +213,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     {
         if (b is null)
             return false;
-        if (ReferenceEquals(this, b)) //同一对象
+        if (ReferenceEquals(this, b)) // 同一对象
             return true;
 
         return Math.Abs(_X - b._X) < tolerance &&
@@ -274,18 +274,18 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
 
     public Point2d[] ToPoints()
     {
-        Point2d a = MinPoint;//min
+        Point2d a = MinPoint;// min
         Point2d b = new(_Right, _Y);
-        Point2d c = MaxPoint;//max
+        Point2d c = MaxPoint;// max
         Point2d d = new(_X, _Top);
         return new Point2d[] { a, b, c, d };
     }
 
     public (Point2d boxMin, Point2d boxRigthDown, Point2d boxMax, Point2d boxLeftUp) ToPoints4()
     {
-        Point2d a = MinPoint;//min
+        Point2d a = MinPoint;// min
         Point2d b = new(_Right, _Y);
-        Point2d c = MaxPoint;//max
+        Point2d c = MaxPoint;// max
         Point2d d = new(_X, _Top);
         return (a, b, c, d);
     }
@@ -311,21 +311,21 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
 
         var pts = ptList.ToList();
         /*  消重,不这里设置,否则这不是一个正确的单元测试
-            *  //var ptList = pts.Distinct().ToList();
+            *  // var ptList = pts.Distinct().ToList();
             *  var ptList = pts.DistinctExBy((a, b) => a.DistanceTo(b) < 1e-6).ToList();
             */
         if (ptList.Count == 5)
         {
-            //首尾点相同移除最后
+            // 首尾点相同移除最后
             if (pts[0].IsEqualTo(pts[^1], CadTolerance))
                 pts.RemoveAt(pts.Count - 1);
         }
         if (pts.Count != 4)
             return false;
 
-        //最快的方案
-        //点乘求值法:(为了处理 正梯形/平行四边形 需要三次)
-        //这里的容差要在1e-8内,因为点乘的三次浮点数乘法会令精度变低
+        // 最快的方案
+        // 点乘求值法:(为了处理 正梯形/平行四边形 需要三次)
+        // 这里的容差要在1e-8内,因为点乘的三次浮点数乘法会令精度变低
         var dot = DotProductValue(pts[0], pts[1], pts[3]);
         if (Math.Abs(dot) < tolerance)
         {
@@ -366,7 +366,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
         var pts = ptList.ToList();
         if (ptList.Count == 5)
         {
-            //首尾点相同移除最后
+            // 首尾点相同移除最后
             if (pts[0].IsEqualTo(pts[^1], CadTolerance))
                 pts.RemoveAt(pts.Count - 1);
         }
@@ -389,16 +389,16 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
         var xMax = double.MinValue;
         var yMin = double.MaxValue;
         var yMax = double.MinValue;
-        //var zMin = double.MaxValue;
-        //var zMax = double.MinValue;
+        // var zMin = double.MaxValue;
+        // var zMax = double.MinValue;
 
         pts.ForEach(p => {
             xMin = Math.Min(p.X, xMin);
             xMax = Math.Max(p.X, xMax);
             yMin = Math.Min(p.Y, yMin);
             yMax = Math.Max(p.Y, yMax);
-            //zMin = Math.Min(p.Z, zMin);
-            //zMax = Math.Max(p.Z, zMax);
+            // zMin = Math.Min(p.Z, zMin);
+            // zMax = Math.Max(p.Z, zMax);
         });
         return (new Point2d(xMin, yMin), new Point2d(xMax, yMax));
     }
@@ -416,7 +416,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
         if (!Rect.IsRectAngle(pts))
             return false;
 
-        //获取min和max点(非包围盒)
+        // 获取min和max点(非包围盒)
         pts = pts.OrderBy(a => a.X).ThenBy(a => a.Y).ToList();
         var minPt = pts.First();
         var maxPt = pts.Last();
@@ -424,14 +424,14 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
         link.AddRange(pts);
 
         pts.Clear();
-        //排序这四个点,左下/右下/右上/左上
+        // 排序这四个点,左下/右下/右上/左上
         var node = link.Find(minPt);
         for (int i = 0; i < 4; i++)
         {
             pts.Add(node!.Value);
             node = node.Next;
         }
-        //保证是逆时针
+        // 保证是逆时针
         var isAcw = CrossAclockwise(pts[0], pts[1], pts[2]);
         if (!isAcw)
             (pts[3], pts[1]) = (pts[1], pts[3]);
@@ -470,7 +470,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <returns>b点在oa的逆时针<see cref="true"/></returns>
     static bool CrossAclockwise(Point2d o, Point2d a, Point2d b)
     {
-        return Cross(o, a, b) > -1e-6;//浮点数容差考虑
+        return Cross(o, a, b) > -1e-6;// 浮点数容差考虑
     }
 
 #if !WinForm
@@ -501,11 +501,11 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
         Func<T, T, bool> collisionProcessing,
         Action<T> lastProcessing) where T : Rect
     {
-        //先排序X:不需要Y排序,因为Y的上下浮动不共X .ThenBy(a => a.Box.Y)
-        //因为先排序就可以有序遍历x区间,超过就break,达到更快
+        // 先排序X:不需要Y排序,因为Y的上下浮动不共X .ThenBy(a => a.Box.Y)
+        // 因为先排序就可以有序遍历x区间,超过就break,达到更快
         box = box.OrderBy(a => a._X).ToList();
 
-        //遍历所有图元
+        // 遍历所有图元
         for (int i = 0; i < box.Count; i++)
         {
             var oneRect = box[i];
@@ -514,14 +514,14 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
 
             bool actionlast = true;
 
-            //搜索范围要在 one 的头尾中间的部分
+            // 搜索范围要在 one 的头尾中间的部分
             for (int j = i + 1; j < box.Count; j++)
             {
                 var twoRect = box[j];
-                //x碰撞:矩形2的Left 在 矩形1[Left-Right]闭区间;穿过的话,也必然有自己的Left因此不需要处理
+                // x碰撞:矩形2的Left 在 矩形1[Left-Right]闭区间;穿过的话,也必然有自己的Left因此不需要处理
                 if (oneRect._X <= twoRect._X && twoRect._X <= oneRect._Right)
                 {
-                    //y碰撞,那就是真的碰撞了
+                    // y碰撞,那就是真的碰撞了
                     if ((oneRect._Top >= twoRect._Top && twoRect._Top >= oneRect._Y) /*包容上边*/
                      || (oneRect._Top >= twoRect._Y && twoRect._Y >= oneRect._Y)     /*包容下边*/
                      || (twoRect._Top >= oneRect._Top && oneRect._Y >= twoRect._Y))  /*穿过*/
@@ -529,13 +529,13 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
                         if (collisionProcessing(oneRect, twoRect))
                             actionlast = false;
                     }
-                    //这里想中断y高过它的无意义比较,
-                    //但是必须排序Y,而排序Y必须同X,而这里不是同X(而是同X区间),所以不能中断
-                    //而做到X区间排序,就必须创造一个集合,再排序这个集合,
-                    //会导致每个图元都拥有一次X区间集合,开销更巨大(因此放弃).
+                    // 这里想中断y高过它的无意义比较,
+                    // 但是必须排序Y,而排序Y必须同X,而这里不是同X(而是同X区间),所以不能中断
+                    // 而做到X区间排序,就必须创造一个集合,再排序这个集合,
+                    // 会导致每个图元都拥有一次X区间集合,开销更巨大(因此放弃).
                 }
                 else
-                    break;//因为已经排序了,后续的必然超过 x碰撞区间
+                    break;// 因为已经排序了,后续的必然超过 x碰撞区间
             }
 
             if (actionlast)
@@ -548,10 +548,10 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     #region 转换类型
 #if !WinForm
     // 隐式转换(相当于是重载赋值运算符)
-    //public static implicit operator Rect(System.Windows.Rect rect)
-    //{
+    // public static implicit operator Rect(System.Windows.Rect rect)
+    // {
     //    return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);
-    //}
+    // }
     public static implicit operator Rect(System.Drawing.RectangleF rect)
     {
         return new Rect(rect.Left, rect.Bottom, rect.Right, rect.Top);

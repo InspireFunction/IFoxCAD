@@ -74,18 +74,18 @@ public class DBTransHelper
     public static ObjectId TryGetObjectId(Database db, Handle handle)
     {
 #if !NET35
-        //高版本直接利用
+        // 高版本直接利用
         var es = db.TryGetObjectId(handle, out ObjectId id);
-        //if (!es)
+        // if (!es)
 #else
         var es = GetAcDbObjectId(db.UnmanagedObject, handle, out ObjectId id);
-        //if (ErrorStatus.OK != (ErrorStatus)es)
+        // if (ErrorStatus.OK != (ErrorStatus)es)
 #endif
         return id;
     }
 
-    //public static int GetCadFileVersion(string filename)
-    //{
+    // public static int GetCadFileVersion(string filename)
+    // {
     //    var bytes = File.ReadAllBytes(filename);
     //    var headstr = Encoding.Default.GetString(bytes)[0..6];
     //    if (!headstr.StartsWith("AC")) return 0;
@@ -94,5 +94,5 @@ public class DBTransHelper
     //    Enum.TryParse()
     //    return vernum + 986;
         
-    //}
+    // }
 }

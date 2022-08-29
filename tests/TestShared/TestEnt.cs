@@ -26,12 +26,12 @@ public class TestEnt
          });
         Tools.TestTimes(100000, "name 匹配：", () =>
         {
-            //var t = line.GetType().Name;
+            // var t = line.GetType().Name;
             var tt = line1.GetType().Name == nameof(Line);
         });
         Tools.TestTimes(100000, "dxfname 匹配：", () =>
         {
-            //var t = line.GetType().Name;
+            // var t = line.GetType().Name;
             var tt = line1.GetRXClass().DxfName == nameof(Line);
         });
     }

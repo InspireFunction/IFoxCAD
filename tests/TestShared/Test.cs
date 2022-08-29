@@ -24,17 +24,17 @@ public class Test
 
         Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         Circle circle = new(new Point3d(0, 0, 0), Vector3d.ZAxis, 2);
-        //var lienid = tr.AddEntity(line);
-        //var cirid = tr.AddEntity(circle);
-        //var linent = tr.GetObject<Line>(lienid);
-        //var lineent = tr.GetObject<Circle>(cirid);
-        //var linee = tr.GetObject<Line>(cirid); //经测试，类型不匹配，返回null
-        //var dd = tr.GetObject<Circle>(lienid);
-        //List<DBObject> ds = new() { linee, dd };
-        //tr.CurrentSpace.AddEntity(line,tr);
+        // var lienid = tr.AddEntity(line);
+        // var cirid = tr.AddEntity(circle);
+        // var linent = tr.GetObject<Line>(lienid);
+        // var lineent = tr.GetObject<Circle>(cirid);
+        // var linee = tr.GetObject<Line>(cirid); // 经测试，类型不匹配，返回null
+        // var dd = tr.GetObject<Circle>(lienid);
+        // List<DBObject> ds = new() { linee, dd };
+        // tr.CurrentSpace.AddEntity(line,tr);
     }
 
-    //add entity test
+    // add entity test
     [CommandMethod("addent")]
     public void Addent()
     {
@@ -51,20 +51,20 @@ public class Test
     public void Drawarc()
     {
         using var tr = new DBTrans();
-        Arc arc1 = EntityEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));//起点，圆心，终点
-        Arc arc2 = EntityEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);            //起点，圆心，弧度
-        Arc arc3 = EntityEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));   //起点，圆上一点，终点
+        Arc arc1 = EntityEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));// 起点，圆心，终点
+        Arc arc2 = EntityEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);            // 起点，圆心，弧度
+        Arc arc3 = EntityEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));   // 起点，圆上一点，终点
         tr.CurrentSpace.AddEntity(arc1, arc2, arc3);
-        tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));//起点，圆上一点，终点
+        tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));// 起点，圆上一点，终点
     }
 
     [CommandMethod("drawcircle")]
     public void DraCircle()
     {
         using var tr = new DBTrans();
-        var circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));                       //起点，终点
-        var circle2 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(2, 0, 0), new Point3d(0, 2, 0));//三点画圆，成功
-        var circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0));//起点，圆心，终点，失败
+        var circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));                       // 起点，终点
+        var circle2 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(2, 0, 0), new Point3d(0, 2, 0));// 三点画圆，成功
+        var circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0));// 起点，圆心，终点，失败
         tr.CurrentSpace.AddEntity(circle1, circle2!);
         if (circle3 is not null)
         {
@@ -75,8 +75,8 @@ public class Test
             tr.Editor?.WriteMessage("三点画圆失败");
         }
         tr.CurrentSpace.AddEntity(circle3!);
-        tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));//三点画圆，成功
-        tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 2, 0));//起点，圆上一点，终点(共线)
+        tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));// 三点画圆，成功
+        tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 2, 0));// 起点，圆上一点，终点(共线)
     }
 
     [CommandMethod("layertest")]
@@ -97,7 +97,7 @@ public class Test
     }
 
 
-    //添加图层
+    // 添加图层
     [CommandMethod("layerAdd1")]
     public void Layertest1()
     {
@@ -105,29 +105,29 @@ public class Test
         tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor, 1));
     }
 
-    //添加图层
+    // 添加图层
     [CommandMethod("layerAdd2")]
     public void Layertest2()
     {
         using var tr = new DBTrans();
         tr.LayerTable.Add("test2", 2);
-        //tr.LayerTable["3"] = new LayerTableRecord();
+        // tr.LayerTable["3"] = new LayerTableRecord();
     }
-    //删除图层
+    // 删除图层
     [CommandMethod("layerdel")]
     public void LayerDel()
     {
         using var tr = new DBTrans();
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("0").ToString());        //删除图层 0
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("Defpoints").ToString());//删除图层 Defpoints
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("1").ToString());        //删除不存在的图层 1
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("2").ToString());        //删除有图元的图层 2
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("3").ToString());        //删除图层 3
+        Env.Editor.WriteMessage(tr.LayerTable.Delete("0").ToString());        // 删除图层 0
+        Env.Editor.WriteMessage(tr.LayerTable.Delete("Defpoints").ToString());// 删除图层 Defpoints
+        Env.Editor.WriteMessage(tr.LayerTable.Delete("1").ToString());        // 删除不存在的图层 1
+        Env.Editor.WriteMessage(tr.LayerTable.Delete("2").ToString());        // 删除有图元的图层 2
+        Env.Editor.WriteMessage(tr.LayerTable.Delete("3").ToString());        // 删除图层 3
 
-        tr.LayerTable.Remove("2"); //测试是否能强制删除
+        tr.LayerTable.Remove("2"); // 测试是否能强制删除
     }
 
-    //添加直线
+    // 添加直线
     [CommandMethod("linedemo1")]
     public void AddLine1()
     {
@@ -154,7 +154,7 @@ public class Test
         tr.CurrentSpace.AddEntity(line2, line3, circle);
     }
 
-    //增加多段线1
+    // 增加多段线1
     [CommandMethod("Pldemo1")]
     public void AddPolyline1()
     {
@@ -171,7 +171,7 @@ public class Test
         tr.CurrentSpace.AddEntity(pl);
     }
 
-    //增加多段线2
+    // 增加多段线2
     [CommandMethod("pldemo2")]
     public void Addpl2()
     {
@@ -208,16 +208,16 @@ public class Test
         {
             XData = new XDataList()
                 {
-                    { DxfCode.ExtendedDataRegAppName, "myapp1" },  //可以用dxfcode和int表示组码
+                    { DxfCode.ExtendedDataRegAppName, "myapp1" },  // 可以用dxfcode和int表示组码
                     { DxfCode.ExtendedDataAsciiString, "xxxxxxx" },
                     {1070, 12 },
-                    { DxfCode.ExtendedDataRegAppName, appname },  //可以用dxfcode和int表示组码,移除中间的测试
+                    { DxfCode.ExtendedDataRegAppName, appname },  // 可以用dxfcode和int表示组码,移除中间的测试
                     { DxfCode.ExtendedDataAsciiString, "要移除的我" },
                     {1070, 12 },
-                    { DxfCode.ExtendedDataRegAppName, "myapp3" },  //可以用dxfcode和int表示组码
+                    { DxfCode.ExtendedDataRegAppName, "myapp3" },  // 可以用dxfcode和int表示组码
                     { DxfCode.ExtendedDataAsciiString, "aaaaaaaaa" },
                     {1070, 12 },
-                    { DxfCode.ExtendedDataRegAppName, "myapp4" },  //可以用dxfcode和int表示组码
+                    { DxfCode.ExtendedDataRegAppName, "myapp4" },  // 可以用dxfcode和int表示组码
                     { DxfCode.ExtendedDataAsciiString, "bbbbbbbbb" },
                     {1070, 12 }
                 }
@@ -238,14 +238,14 @@ public class Test
         tr.RegAppTable.GetRecordNames().ForEach(name => name.Print());
         tr.RegAppTable.ForEach(re => re.Name.Print());
 
-        //var res = ed.GetEntity("\n select the entity:");
-        //if (res.Status == PromptStatus.OK)
-        //{
+        // var res = ed.GetEntity("\n select the entity:");
+        // if (res.Status == PromptStatus.OK)
+        // {
         //    using var tr = new DBTrans();
         //    tr.RegAppTable.ForEach(id => id.GetObject<RegAppTableRecord>().Print());
         //    var data = tr.GetObject<Entity>(res.ObjectId).XData;
         //    ed.WriteMessage(data.ToString());
-        //}
+        // }
     }
 
     [CommandMethod("changexdata")]

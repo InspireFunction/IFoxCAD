@@ -131,7 +131,7 @@ public class DBTrans : IDisposable
         if (fileName == null || string.IsNullOrEmpty(fileName.Trim()))
             throw new ArgumentNullException(nameof(fileName));
 
-        fileName = fileName.Replace("/", "\\");////doc.Name总是"D:\\JX.dwg"
+        fileName = fileName.Replace("/", "\\");//// doc.Name总是"D:\\JX.dwg"
 
         if (!File.Exists(fileName))
             Database = new Database(true, false);
@@ -154,33 +154,33 @@ public class DBTrans : IDisposable
                 else
                 {
 #if ac2008
-                    //FileAccess fileAccess = FileAccess.Read;
+                    // FileAccess fileAccess = FileAccess.Read;
                     FileShare fileShare = FileShare.Read;
                     switch (openMode)
                     {
-                        case FileOpenMode.OpenTryForReadShare://这个是什么状态??
-                        //fileAccess = FileAccess.ReadWrite;
+                        case FileOpenMode.OpenTryForReadShare:// 这个是什么状态??
+                        // fileAccess = FileAccess.ReadWrite;
                         fileShare = FileShare.ReadWrite;
                         break;
-                        case FileOpenMode.OpenForReadAndAllShare://完美匹配
-                        //fileAccess = FileAccess.ReadWrite;
+                        case FileOpenMode.OpenForReadAndAllShare:// 完美匹配
+                        // fileAccess = FileAccess.ReadWrite;
                         fileShare = FileShare.ReadWrite;
                         break;
-                        case FileOpenMode.OpenForReadAndWriteNoShare://完美匹配
-                        //fileAccess = FileAccess.ReadWrite;
+                        case FileOpenMode.OpenForReadAndWriteNoShare:// 完美匹配
+                        // fileAccess = FileAccess.ReadWrite;
                         fileShare = FileShare.None;
                         break;
-                        case FileOpenMode.OpenForReadAndReadShare://完美匹配
-                        //fileAccess = FileAccess.Read;
+                        case FileOpenMode.OpenForReadAndReadShare:// 完美匹配
+                        // fileAccess = FileAccess.Read;
                         fileShare = FileShare.Read;
                         break;
                         default:
                         break;
                     }
 
-                    //这个会致命错误
-                    //using FileStream fileStream = new(fileName, FileMode.Open, fileAccess, fileShare);
-                    //Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(),
+                    // 这个会致命错误
+                    // using FileStream fileStream = new(fileName, FileMode.Open, fileAccess, fileShare);
+                    // Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(),
                     //      true/*控制读入一个与系统编码不相同的文件时的转换操作*/,password);
 
                     Database.ReadDwgFile(fileName, fileShare,
@@ -360,7 +360,7 @@ public class DBTrans : IDisposable
     public ObjectId GetObjectId(string handleString)
     {
         var hanle = new Handle(Convert.ToInt64(handleString, 16));
-        //return Database.GetObjectId(false, hanle, 0);
+        // return Database.GetObjectId(false, hanle, 0);
         return DBTransHelper.TryGetObjectId(Database, hanle);
     }
     #endregion
@@ -383,7 +383,7 @@ public class DBTrans : IDisposable
         }
         if (doca == null) // 后台开图,用数据库保存
         {
-            //用了不存在的文件进行后台打开,并且设置保存,这个时候就软处理
+            // 用了不存在的文件进行后台打开,并且设置保存,这个时候就软处理
             if (string.IsNullOrEmpty(Database.Filename))
             {
                 Debug.WriteLine("**** 此数据没有保存路径,无法保存!");
@@ -416,15 +416,15 @@ public class DBTrans : IDisposable
         if (action == null)
             throw new ArgumentNullException(nameof(action));
 
-        //前台开图 || 后台直接处理
+        // 前台开图 || 后台直接处理
         if (Document != null || !handlingDBTextDeviation)
         {
             action.Invoke();
             return;
         }
 
-        //后台
-        //这种情况发生在关闭了所有文档之后,进行跨进程通讯
+        // 后台
+        // 这种情况发生在关闭了所有文档之后,进行跨进程通讯
         var dbBak = HostApplicationServices.WorkingDatabase;
         if (dbBak == null)
         {
@@ -432,9 +432,9 @@ public class DBTrans : IDisposable
             return;
         }
 
-        //处理单行文字偏移
-        //前台绑定参照的时候不能用它,否则出现: <see langword="eWasErased"/><br/>
-        //所以本函数自动识别前后台做处理
+        // 处理单行文字偏移
+        // 前台绑定参照的时候不能用它,否则出现: <see langword="eWasErased"/><br/>
+        // 所以本函数自动识别前后台做处理
         HostApplicationServices.WorkingDatabase = Database;
         action.Invoke();
         HostApplicationServices.WorkingDatabase = dbBak;
@@ -486,30 +486,30 @@ public class DBTrans : IDisposable
          * 5. 清理非托管的字段
          */
 
-        //不重复释放,并设置已经释放
+        // 不重复释放,并设置已经释放
         if (IsDisposed) return;
         IsDisposed = true;
 
 
         if (disposing)
         {
-            //调用cad的事务进行提交,释放托管状态(托管对象)
+            // 调用cad的事务进行提交,释放托管状态(托管对象)
             Transaction.Commit();
         }
         else
         {
-            //否则取消所有的修改
+            // 否则取消所有的修改
             Transaction.Abort();
         }
 
-        //调用cad事务的dispose进行销毁
+        // 调用cad事务的dispose进行销毁
         if (!Transaction.IsDisposed)
             Transaction.Dispose();
 
-        //调用文档锁dispose
+        // 调用文档锁dispose
         documentLock?.Dispose();
 
-        //将事务栈的当前dbtrans弹栈
+        // 将事务栈的当前dbtrans弹栈
         dBTrans.Pop();
     }
     #endregion

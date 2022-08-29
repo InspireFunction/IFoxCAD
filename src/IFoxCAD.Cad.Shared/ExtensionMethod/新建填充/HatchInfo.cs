@@ -1,56 +1,56 @@
-namespace IFoxCAD.Cad;
+ï»¿namespace IFoxCAD.Cad;
 
 /*
- *  Ìí¼ÓµÄµÚÒ»¸ö±ß½ç±ØĞëÊÇÍâ±ß½ç,¼´ÓÃÓÚ¶¨ÒåÍ¼°¸Ìî³ä×îÍâÃæµÄ±ß½ç¡£
- *  ÒªÌí¼ÓÍâ²¿±ß½ç,ÇëÊ¹ÓÃÌí¼Ó»·µÄÀàĞÍÎª HatchLoopTypes.Outermost ³£Á¿µÄ AppendLoop ·½·¨,
- *  Ò»µ©Íâ±ß½ç±»¶¨Òå,¾Í¿ÉÒÔ¼ÌĞøÌí¼ÓÁíÍâµÄ±ß½ç¡£
- *  Ìí¼ÓÄÚ²¿±ß½çÇëÊ¹ÓÃ´ø HatchLoopTypes.Default ³£Á¿µÄ AppendLoop ·½·¨¡£
+ *  æ·»åŠ çš„ç¬¬ä¸€ä¸ªè¾¹ç•Œå¿…é¡»æ˜¯å¤–è¾¹ç•Œ,å³ç”¨äºå®šä¹‰å›¾æ¡ˆå¡«å……æœ€å¤–é¢çš„è¾¹ç•Œã€‚
+ *  è¦æ·»åŠ å¤–éƒ¨è¾¹ç•Œ,è¯·ä½¿ç”¨æ·»åŠ ç¯çš„ç±»å‹ä¸º HatchLoopTypes.Outermost å¸¸é‡çš„ AppendLoop æ–¹æ³•,
+ *  ä¸€æ—¦å¤–è¾¹ç•Œè¢«å®šä¹‰,å°±å¯ä»¥ç»§ç»­æ·»åŠ å¦å¤–çš„è¾¹ç•Œã€‚
+ *  æ·»åŠ å†…éƒ¨è¾¹ç•Œè¯·ä½¿ç”¨å¸¦ HatchLoopTypes.Default å¸¸é‡çš„ AppendLoop æ–¹æ³•ã€‚
  *
- *  ¶à¸öÍâ±ß½çµÄÊ±ºò,Ìí¼ÓµÄÊÇ(Íâ±ß½ç,Íâ±ß½ç,Íâ±ß½ç,ÆÕÍ¨±ß½ç....)
- *  ¶à¸öÍâ±ß½çµÄÊ±ºò,Ìí¼ÓµÄÊÇ(Íâ±ß½ç,ÆÕÍ¨±ß½ç.....Íâ±ß½ç,ÆÕÍ¨±ß½ç....)
+ *  å¤šä¸ªå¤–è¾¹ç•Œçš„æ—¶å€™,æ·»åŠ çš„æ˜¯(å¤–è¾¹ç•Œ,å¤–è¾¹ç•Œ,å¤–è¾¹ç•Œ,æ™®é€šè¾¹ç•Œ....)
+ *  å¤šä¸ªå¤–è¾¹ç•Œçš„æ—¶å€™,æ·»åŠ çš„æ˜¯(å¤–è¾¹ç•Œ,æ™®é€šè¾¹ç•Œ.....å¤–è¾¹ç•Œ,æ™®é€šè¾¹ç•Œ....)
  */
 
 /// <summary>
-/// Í¼°¸Ìî³ä
+/// å›¾æ¡ˆå¡«å……
 /// </summary>
 public class HatchInfo
 {
-    #region ³ÉÔ±
+    #region æˆå‘˜
     /// <summary>
-    /// ±ß½çid(×îÍâÃæ·ÅµÚÒ»)
+    /// è¾¹ç•Œid(æœ€å¤–é¢æ”¾ç¬¬ä¸€)
     /// </summary>
     readonly List<ObjectId> _boundaryIds;
     /// <summary>
-    /// Ìî³äÍ¼Ôª
+    /// å¡«å……å›¾å…ƒ
     /// </summary>
     readonly Hatch _hatch;
     /// <summary>
-    /// ±ß½ç¹ØÁª(´Ë´¦²»ÄÜÖ±½Ó=>¸øÌî³ä³ÉÔ±,ÒòÎªËü»á¼ÓÈë·´Ó¦Æ÷)
+    /// è¾¹ç•Œå…³è”(æ­¤å¤„ä¸èƒ½ç›´æ¥=>ç»™å¡«å……æˆå‘˜,å› ä¸ºå®ƒä¼šåŠ å…¥ååº”å™¨)
     /// </summary>
     readonly bool _boundaryAssociative;
     /// <summary>
-    /// Ìî³äµÄÃû³Æ:ÓÃ»§¶¨Òå(¹Ì¶¨Ãû³Æ)/½¥±ä/Ìî³äÒÀ¾İ¶¨ÒåÎÄ¼ş
+    /// å¡«å……çš„åç§°:ç”¨æˆ·å®šä¹‰(å›ºå®šåç§°)/æ¸å˜/å¡«å……ä¾æ®å®šä¹‰æ–‡ä»¶
     /// </summary>
     string? _hatchName;
     /// <summary>
-    /// Ìî³äÄ£Ê½ÀàĞÍ(Ô¤¶¨Òå/ÓÃ»§¶¨Òå/×Ô¶¨Òå)
+    /// å¡«å……æ¨¡å¼ç±»å‹(é¢„å®šä¹‰/ç”¨æˆ·å®šä¹‰/è‡ªå®šä¹‰)
     /// </summary>
     HatchPatternType _patternTypeHatch;
     /// <summary>
-    /// ½¥±äÄ£Ê½ÀàĞÍ
+    /// æ¸å˜æ¨¡å¼ç±»å‹
     /// </summary>
     GradientPatternType _patternTypeGradient;
     /// <summary>
-    /// ±ÈÀı/¼ä¾à
+    /// æ¯”ä¾‹/é—´è·
     /// </summary>
     double Scale => _hatch.PatternScale;
     /// <summary>
-    /// ½Ç¶È
+    /// è§’åº¦
     /// </summary>
     double Angle => _hatch.PatternAngle;
     #endregion
 
-    #region ¹¹Ôì
+    #region æ„é€ 
     HatchInfo()
     {
         _hatch = new Hatch();
@@ -59,36 +59,36 @@ public class HatchInfo
     }
 
     /// <summary>
-    /// Í¼°¸Ìî³ä
+    /// å›¾æ¡ˆå¡«å……
     /// </summary>
-    /// <param name="boundaryAssociative">¹ØÁª±ß½ç</param>
-    /// <param name="hatchOrigin">Ìî³äÔ­µã</param>
-    /// <param name="hatchScale">±ÈÀı</param>
-    /// <param name="hatchAngle">½Ç¶È</param>
+    /// <param name="boundaryAssociative">å…³è”è¾¹ç•Œ</param>
+    /// <param name="hatchOrigin">å¡«å……åŸç‚¹</param>
+    /// <param name="hatchScale">æ¯”ä¾‹</param>
+    /// <param name="hatchAngle">è§’åº¦</param>
     public HatchInfo(bool boundaryAssociative = true,
                      Point2d? hatchOrigin = null,
                      double hatchScale = 1,
                      double hatchAngle = 0) : this()
     {
         if (hatchScale <= 0)
-            throw new ArgumentException("Ìî³ä±ÈÀı²»ÔÊĞíĞ¡ÓÚµÈÓÚ0");
+            throw new ArgumentException("å¡«å……æ¯”ä¾‹ä¸å…è®¸å°äºç­‰äº0");
 
-        _hatch.PatternScale = hatchScale;//Ìî³ä±ÈÀı
-        _hatch.PatternAngle = hatchAngle;//Ìî³ä½Ç¶È
+        _hatch.PatternScale = hatchScale;// å¡«å……æ¯”ä¾‹
+        _hatch.PatternAngle = hatchAngle;// å¡«å……è§’åº¦
         _boundaryAssociative = boundaryAssociative;
 
         hatchOrigin ??= Point2d.Origin;
-        _hatch.Origin = hatchOrigin.Value; //Ìî³äÔ­µã
+        _hatch.Origin = hatchOrigin.Value; // å¡«å……åŸç‚¹
     }
 
     /// <summary>
-    /// Í¼°¸Ìî³ä
+    /// å›¾æ¡ˆå¡«å……
     /// </summary>
-    /// <param name="boundaryIds">±ß½ç</param>
-    /// <param name="boundaryAssociative">¹ØÁª±ß½ç</param>
-    /// <param name="hatchOrigin">Ìî³äÔ­µã</param>
-    /// <param name="hatchScale">±ÈÀı</param>
-    /// <param name="hatchAngle">½Ç¶È</param>
+    /// <param name="boundaryIds">è¾¹ç•Œ</param>
+    /// <param name="boundaryAssociative">å…³è”è¾¹ç•Œ</param>
+    /// <param name="hatchOrigin">å¡«å……åŸç‚¹</param>
+    /// <param name="hatchScale">æ¯”ä¾‹</param>
+    /// <param name="hatchAngle">è§’åº¦</param>
     public HatchInfo(IEnumerable<ObjectId> boundaryIds,
                      bool boundaryAssociative = true,
                      Point2d? hatchOrigin = null,
@@ -101,111 +101,111 @@ public class HatchInfo
 
     #endregion
 
-    #region ·½·¨
+    #region æ–¹æ³•
     /// <summary>
-    /// Ä£Ê½1:Ô¤¶¨Òå
+    /// æ¨¡å¼1:é¢„å®šä¹‰
     /// </summary>
     public HatchInfo Mode1PreDefined(string name)
     {
         _hatchName = name;
-        _hatch.HatchObjectType = HatchObjectType.HatchObject; //¶ÔÏóÀàĞÍ(Ìî³ä/½¥±ä)
+        _hatch.HatchObjectType = HatchObjectType.HatchObject; // å¯¹è±¡ç±»å‹(å¡«å……/æ¸å˜)
         _patternTypeHatch = HatchPatternType.PreDefined;
         return this;
     }
 
     /// <summary>
-    /// Ä£Ê½2:ÓÃ»§¶¨Òå
+    /// æ¨¡å¼2:ç”¨æˆ·å®šä¹‰
     /// </summary>
-    /// <param name="patternDouble">ÊÇ·ñË«Ïò</param>
+    /// <param name="patternDouble">æ˜¯å¦åŒå‘</param>
     public HatchInfo Mode2UserDefined(bool patternDouble = true)
     {
         _hatchName = "_USER";
-        _hatch.HatchObjectType = HatchObjectType.HatchObject; //¶ÔÏóÀàĞÍ(Ìî³ä/½¥±ä)
+        _hatch.HatchObjectType = HatchObjectType.HatchObject; // å¯¹è±¡ç±»å‹(å¡«å……/æ¸å˜)
         _patternTypeHatch = HatchPatternType.UserDefined;
 
-        _hatch.PatternDouble = patternDouble; //ÊÇ·ñË«Ïò£¨±ØĞëĞ´ÔÚ SetHatchPattern Ö®Ç°£©
-        _hatch.PatternSpace = Scale;         //¼ä¾à£¨±ØĞëĞ´ÔÚ SetHatchPattern Ö®Ç°£©
+        _hatch.PatternDouble = patternDouble; // æ˜¯å¦åŒå‘ï¼ˆå¿…é¡»å†™åœ¨ SetHatchPattern ä¹‹å‰ï¼‰
+        _hatch.PatternSpace = Scale;         // é—´è·ï¼ˆå¿…é¡»å†™åœ¨ SetHatchPattern ä¹‹å‰ï¼‰
         return this;
     }
 
     /// <summary>
-    /// Ä£Ê½3:×Ô¶¨Òå
+    /// æ¨¡å¼3:è‡ªå®šä¹‰
     /// </summary>
     /// <param name="name"></param>
     public HatchInfo Mode3UserDefined(string name)
     {
         _hatchName = name;
-        _hatch.HatchObjectType = HatchObjectType.HatchObject; //¶ÔÏóÀàĞÍ(Ìî³ä/½¥±ä)
+        _hatch.HatchObjectType = HatchObjectType.HatchObject; // å¯¹è±¡ç±»å‹(å¡«å……/æ¸å˜)
         _patternTypeHatch = HatchPatternType.CustomDefined;
         return this;
     }
 
     /// <summary>
-    /// Ä£Ê½4:½¥±äÌî³ä
+    /// æ¨¡å¼4:æ¸å˜å¡«å……
     /// </summary>
-    /// <param name="name">½¥±äÌî³äÃû³Æ</param>
-    /// <param name="colorStart">½¥±äÉ«ÆğÊ¼ÑÕÉ«</param>
-    /// <param name="colorEnd">½¥±äÉ«½áÊøÑÕÉ«</param>
-    /// <param name="gradientShift">½¥±äÒÆ¶¯</param>
-    /// <param name="shadeTintValue">É«µ÷Öµ</param>
-    /// <param name="gradientOneColorMode">µ¥É«<see langword="true"/>Ë«É«<see langword="false"/></param>
+    /// <param name="name">æ¸å˜å¡«å……åç§°</param>
+    /// <param name="colorStart">æ¸å˜è‰²èµ·å§‹é¢œè‰²</param>
+    /// <param name="colorEnd">æ¸å˜è‰²ç»“æŸé¢œè‰²</param>
+    /// <param name="gradientShift">æ¸å˜ç§»åŠ¨</param>
+    /// <param name="shadeTintValue">è‰²è°ƒå€¼</param>
+    /// <param name="gradientOneColorMode">å•è‰²<see langword="true"/>åŒè‰²<see langword="false"/></param>
     public HatchInfo Mode4Gradient(GradientName name, Color colorStart, Color colorEnd,
         float gradientShift = 0,
         float shadeTintValue = 0,
         bool gradientOneColorMode = false)
     {
-        //entget½¥±äµÄÃû×Ö±ØÈ»ÊÇ"SOLID",µ«ÊÇÕâÀï×÷Îª"½¥±ä"Ãû,¶ø²»ÊÇ"Ìî³ä"Ãû
+        // entgetæ¸å˜çš„åå­—å¿…ç„¶æ˜¯"SOLID",ä½†æ˜¯è¿™é‡Œä½œä¸º"æ¸å˜"å,è€Œä¸æ˜¯"å¡«å……"å
         _hatchName = name.ToString();
-        _hatch.HatchObjectType = HatchObjectType.GradientObject;      //¶ÔÏóÀàĞÍ(Ìî³ä/½¥±ä)
-        _patternTypeGradient = GradientPatternType.PreDefinedGradient;//Ä£Ê½4:½¥±ä
-        //_patternTypeGradient = GradientPatternType.UserDefinedGradient;//Ä£Ê½5:½¥±ä..ÕâÖÖÄ£Ê½¸ÉÉ¶ÓÃÄØ
+        _hatch.HatchObjectType = HatchObjectType.GradientObject;      // å¯¹è±¡ç±»å‹(å¡«å……/æ¸å˜)
+        _patternTypeGradient = GradientPatternType.PreDefinedGradient;// æ¨¡å¼4:æ¸å˜
+        // _patternTypeGradient = GradientPatternType.UserDefinedGradient;// æ¨¡å¼5:æ¸å˜..è¿™ç§æ¨¡å¼å¹²å•¥ç”¨å‘¢
 
-        //ÉèÖÃ½¥±äÉ«Ìî³äµÄÆğÊ¼ºÍ½áÊøÑÕÉ«
+        // è®¾ç½®æ¸å˜è‰²å¡«å……çš„èµ·å§‹å’Œç»“æŸé¢œè‰²
         var gColor1 = new GradientColor(colorStart, 0);
         var gColor2 = new GradientColor(colorEnd, 1);
         _hatch.SetGradientColors(new GradientColor[] { gColor1, gColor2 });
 
-        _hatch.GradientShift = gradientShift;              //Ìİ¶ÈÎ»ÒÆ
-        _hatch.ShadeTintValue = shadeTintValue;            //ÒõÓ°É«Öµ
-        _hatch.GradientOneColorMode = gradientOneColorMode;//½¥±äµ¥É«/Ë«É«
-        _hatch.GradientAngle = Angle;                      //½¥±ä½Ç¶È
+        _hatch.GradientShift = gradientShift;              // æ¢¯åº¦ä½ç§»
+        _hatch.ShadeTintValue = shadeTintValue;            // é˜´å½±è‰²å€¼
+        _hatch.GradientOneColorMode = gradientOneColorMode;// æ¸å˜å•è‰²/åŒè‰²
+        _hatch.GradientAngle = Angle;                      // æ¸å˜è§’åº¦
 
         return this;
     }
 
     /// <summary>
-    /// ¹¹½¨
+    /// æ„å»º
     /// </summary>
-    /// <param name="btrOfAddEntitySpace">½«Ìî³ä¼ÓÈë´Ë¿Õ¼ä</param>
+    /// <param name="btrOfAddEntitySpace">å°†å¡«å……åŠ å…¥æ­¤ç©ºé—´</param>
     public ObjectId Build(BlockTableRecord btrOfAddEntitySpace)
     {
-        //¼ÓÈëÊı¾İ¿â
+        // åŠ å…¥æ•°æ®åº“
         var hatchId = btrOfAddEntitySpace.AddEntity(_hatch);
 
-        //ÉèÖÃÄ£Ê½:½¥±ä/Ìî³ä
+        // è®¾ç½®æ¨¡å¼:æ¸å˜/å¡«å……
         if (_hatch.HatchObjectType == HatchObjectType.GradientObject)
             _hatch.SetGradient(_patternTypeGradient, _hatchName);
         else
             _hatch.SetHatchPattern(_patternTypeHatch, _hatchName);
 
-        //¹ØÁª±ß½ç,Èç¹û²»ÏÈÌí¼ÓÊı¾İ¿â¿Õ¼äÄÚ¾Í»á³ö´í
-        //Îª true »á¼ÓÈë·´Ó¦Æ÷,Òò´Ë±È½ÏÂı(¶şÎ¬Âë½«»áÊ®¼¸Ãë²ÅÉú³ÉºÃ),ÊÓĞèÇó¶ø¶¨.
+        // å…³è”è¾¹ç•Œ,å¦‚æœä¸å…ˆæ·»åŠ æ•°æ®åº“ç©ºé—´å†…å°±ä¼šå‡ºé”™
+        // ä¸º true ä¼šåŠ å…¥ååº”å™¨,å› æ­¤æ¯”è¾ƒæ…¢(äºŒç»´ç å°†ä¼šåå‡ ç§’æ‰ç”Ÿæˆå¥½),è§†éœ€æ±‚è€Œå®š.
         _hatch.Associative = _boundaryAssociative;
 
-        //ÀûÓÃ AppendLoop ÖØÔØ¼ÓÈë,ÕâÀï¾Í²»´¦Àí
+        // åˆ©ç”¨ AppendLoop é‡è½½åŠ å…¥,è¿™é‡Œå°±ä¸å¤„ç†
         if (_boundaryIds.Count > 0)
             AppendLoop(_boundaryIds, HatchLoopTypes.Default);
 
-        //¼ÆËãÌî³ä²¢ÏÔÊ¾(Èô±ß½ç³ö´í,Õâ¾ä»áÒì³£)
+        // è®¡ç®—å¡«å……å¹¶æ˜¾ç¤º(è‹¥è¾¹ç•Œå‡ºé”™,è¿™å¥ä¼šå¼‚å¸¸)
         _hatch.EvaluateHatch(true);
 
         return hatchId;
     }
 
     /// <summary>
-    /// Ö´ĞĞÍ¼ÔªµÄÊôĞÔĞŞ¸Ä
+    /// æ‰§è¡Œå›¾å…ƒçš„å±æ€§ä¿®æ”¹
     /// </summary>
-    /// <param name="action">ÈÓ³öÌî³äÊµÌå</param>
+    /// <param name="action">æ‰”å‡ºå¡«å……å®ä½“</param>
     public HatchInfo Action(Action<Hatch> action)
     {
         action(_hatch);
@@ -213,7 +213,7 @@ public class HatchInfo
     }
 
     /// <summary>
-    /// Çå¿Õ±ß½ç¼¯ºÏ
+    /// æ¸…ç©ºè¾¹ç•Œé›†åˆ
     /// </summary>
     public HatchInfo ClearBoundary()
     {
@@ -222,7 +222,7 @@ public class HatchInfo
     }
 
     /// <summary>
-    /// É¾³ı±ß½çÍ¼Ôª
+    /// åˆ é™¤è¾¹ç•Œå›¾å…ƒ
     /// </summary>
     public HatchInfo EraseBoundary()
     {
@@ -232,16 +232,16 @@ public class HatchInfo
     }
 
     /// <summary>
-    /// ¼ÓÈë±ß½ç
+    /// åŠ å…¥è¾¹ç•Œ
     /// </summary>
-    /// <param name="boundaryIds">±ß½çid</param>
-    /// <param name="hatchLoopTypes">¼ÓÈë·½Ê½</param>
+    /// <param name="boundaryIds">è¾¹ç•Œid</param>
+    /// <param name="hatchLoopTypes">åŠ å…¥æ–¹å¼</param>
     void AppendLoop(IEnumerable<ObjectId> boundaryIds,
                     HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
         var obIds = new ObjectIdCollection();
-        //±ß½çÊÇ±ÕºÏµÄ,¶øÇÒÒÑ¾­¼ÓÈëÊı¾İ¿â
-        //Ìî³ä±ÕºÏ»·ÀàĞÍ.×îÍâÃæ
+        // è¾¹ç•Œæ˜¯é—­åˆçš„,è€Œä¸”å·²ç»åŠ å…¥æ•°æ®åº“
+        // å¡«å……é—­åˆç¯ç±»å‹.æœ€å¤–é¢
         foreach (var border in boundaryIds)
         {
             obIds.Clear();
@@ -252,12 +252,12 @@ public class HatchInfo
     }
 
     /// <summary>
-    /// ¼ÓÈë±ß½ç(·Â¸ß°æ±¾µÄÌî³äº¯Êı)
+    /// åŠ å…¥è¾¹ç•Œ(ä»¿é«˜ç‰ˆæœ¬çš„å¡«å……å‡½æ•°)
     /// </summary>
-    /// <param name="pts">µã¼¯</param>
-    /// <param name="bluges">Í¹¶È¼¯</param>
-    /// <param name="btrOfAddEntitySpace">¼ÓÈë´Ë¿Õ¼ä</param>
-    /// <param name="hatchLoopTypes">¼ÓÈë·½Ê½</param>
+    /// <param name="pts">ç‚¹é›†</param>
+    /// <param name="bluges">å‡¸åº¦é›†</param>
+    /// <param name="btrOfAddEntitySpace">åŠ å…¥æ­¤ç©ºé—´</param>
+    /// <param name="hatchLoopTypes">åŠ å…¥æ–¹å¼</param>
     /// <returns></returns>
     public HatchInfo AppendLoop(Point2dCollection pts,
                                 DoubleCollection bluges,
@@ -271,8 +271,8 @@ public class HatchInfo
 #if NET35
         _boundaryIds.Add(CreateAddBoundary(ptsEnd2End, bluges, btrOfAddEntitySpace));
 #else
-        //2011ĞÂÔöAPI,¿ÉÒÔ²»Éú³ÉÍ¼ÔªµÄÇé¿öÏÂ¼ÓÈë±ß½ç,
-        //Í¨¹ıÕâÀï½øÈëµÄ»°,±ß½ç _boundaryIds ÊÇ¿ÕµÄ,ÄÇÃ´ Build() Ê±ºò¾ÍĞèÒª¹ıÂË¿ÕµÄ
+        // 2011æ–°å¢API,å¯ä»¥ä¸ç”Ÿæˆå›¾å…ƒçš„æƒ…å†µä¸‹åŠ å…¥è¾¹ç•Œ,
+        // é€šè¿‡è¿™é‡Œè¿›å…¥çš„è¯,è¾¹ç•Œ _boundaryIds æ˜¯ç©ºçš„,é‚£ä¹ˆ Build() æ—¶å€™å°±éœ€è¦è¿‡æ»¤ç©ºçš„
         _hatch.AppendLoop(hatchLoopTypes, ptsEnd2End, bluges);
 #endif
         return this;
@@ -280,12 +280,12 @@ public class HatchInfo
 
 #if NET35
     /// <summary>
-    /// Í¨¹ıµã¼¯ºÍÍ¹¶ÈÉú³É±ß½çµÄ¶à¶ÎÏß
+    /// é€šè¿‡ç‚¹é›†å’Œå‡¸åº¦ç”Ÿæˆè¾¹ç•Œçš„å¤šæ®µçº¿
     /// </summary>
-    /// <param name="pts">µã¼¯</param>
-    /// <param name="bluges">Í¹¶È¼¯</param>
-    /// <param name="btrOfAddEntitySpace">¼ÓÈë´Ë¿Õ¼ä</param>
-    /// <returns>¶à¶ÎÏßid</returns>
+    /// <param name="pts">ç‚¹é›†</param>
+    /// <param name="bluges">å‡¸åº¦é›†</param>
+    /// <param name="btrOfAddEntitySpace">åŠ å…¥æ­¤ç©ºé—´</param>
+    /// <returns>å¤šæ®µçº¿id</returns>
     static ObjectId CreateAddBoundary(Point2dCollection? pts,
         DoubleCollection? bluges,
         BlockTableRecord btrOfAddEntitySpace)
@@ -307,46 +307,46 @@ public class HatchInfo
 #endif
     #endregion
 
-    #region Ã¶¾Ù
+    #region æšä¸¾
     /// <summary>
-    /// ½¥±äÉ«Ìî³äµÄÍ¼°¸Ãû³Æ
+    /// æ¸å˜è‰²å¡«å……çš„å›¾æ¡ˆåç§°
     /// </summary>
     public enum GradientName
     {
         /// <summary>
-        /// Ïß×´½¥±ä
+        /// çº¿çŠ¶æ¸å˜
         /// </summary>
         Linear,
         /// <summary>
-        /// Ô²Öù×´½¥±ä
+        /// åœ†æŸ±çŠ¶æ¸å˜
         /// </summary>
         Cylinder,
         /// <summary>
-        /// ·´Ô²Öù×´½¥±ä
+        /// ååœ†æŸ±çŠ¶æ¸å˜
         /// </summary>
         Invcylinder,
         /// <summary>
-        /// Çò×´½¥±ä
+        /// çƒçŠ¶æ¸å˜
         /// </summary>
         Spherical,
         /// <summary>
-        /// ·´Çò×´½¥±ä
+        /// åçƒçŠ¶æ¸å˜
         /// </summary>
         Invspherical,
         /// <summary>
-        /// °ëÇò×´½¥±ä
+        /// åŠçƒçŠ¶æ¸å˜
         /// </summary>
         Hemisperical,
         /// <summary>
-        /// ·´°ëÇò×´½¥±ä
+        /// ååŠçƒçŠ¶æ¸å˜
         /// </summary>
         InvHemisperical,
         /// <summary>
-        /// Å×ÎïÃæ×´½¥±ä
+        /// æŠ›ç‰©é¢çŠ¶æ¸å˜
         /// </summary>
         Curved,
         /// <summary>
-        /// ·´Å×ÎïÃæ×´½¥±ä
+        /// åæŠ›ç‰©é¢çŠ¶æ¸å˜
         /// </summary>
         Incurved
     }

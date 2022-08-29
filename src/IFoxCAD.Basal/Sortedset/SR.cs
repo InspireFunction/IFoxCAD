@@ -565,7 +565,7 @@ internal sealed partial class SR
     internal const string Error_InvalidRadiusValue = "Error_InvalidRadiusValue";
     internal const string ToolTipString = "ToolTipString";
 
-    //Collection Editor Resources
+    // Collection Editor Resources
     internal const string CollectionEditorCaption = "CollectionEditorCaption";
     internal const string CollectionEditorProperties = "CollectionEditorProperties";
     internal const string CollectionEditorPropertiesMultiSelect = "CollectionEditorPropertiesMultiSelect";
@@ -604,7 +604,7 @@ internal sealed partial class SR
     internal const string Error_InsideAtomicScope = "Error_InsideAtomicScope";
     internal const string SuspendReason_WorkflowChange = "SuspendReason_WorkflowChange";
 
-    //type filtering
+    // type filtering
     internal const string FilterDescription_ParameterDeclaration = "FilterDescription_ParameterDeclaration";
     internal const string FilterDescription_GenericArgument = "FilterDescription_GenericArgument";
 
@@ -718,7 +718,7 @@ internal sealed partial class SR
     internal const string Standard = "Standard";
     internal const string Base = "Base";
 
-    //CustomActivityDesigner
+    // CustomActivityDesigner
     internal const string ValidatorCompanionClassDesc = "ValidatorCompanionClassDesc";
     internal const string ExecutorCompanionClassDesc = "ExecutorCompanionClassDesc";
     internal const string DesignerCompanionClassDesc = "DesignerCompanionClassDesc";
@@ -873,7 +873,7 @@ internal sealed partial class SR
     internal const string NamespaceAndDeclaringTypeCannotBeNull = "NamespaceAndDeclaringTypeCannotBeNull";
     internal const string NotElementType = "NotElementType";
 
-    //Layout persistence errors
+    // Layout persistence errors
     internal const string Error_LayoutSerializationActivityNotFound = "Error_LayoutSerializationActivityNotFound";
     internal const string Error_LayoutSerializationAssociatedActivityNotFound = "Error_LayoutSerializationAssociatedActivityNotFound";
     internal const string Error_LayoutSerializationPersistenceSupport = "Error_LayoutSerializationPersistenceSupport";

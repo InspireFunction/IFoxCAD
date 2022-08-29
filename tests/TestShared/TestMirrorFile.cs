@@ -23,10 +23,10 @@ public class MirrorFile
 
                 dbText.UpgradeOpen();
                 var pos = dbText.Position;
-                //text.Move(pos, Point3d.Origin);
-                //Y轴
+                // text.Move(pos, Point3d.Origin);
+                // Y轴
                 dbText.Mirror(Point3d.Origin, new Point3d(0, 1, 0));
-                //text.Move(Point3d.Origin, pos);
+                // text.Move(Point3d.Origin, pos);
                 dbText.DowngradeOpen();
             }
         });
@@ -52,13 +52,13 @@ public class MirrorFile
                     if (entity is DBText dbText)
                     {
                         dbText.Mirror(Point3d.Origin, yaxis);
-                        dbText.IsMirroredInX = true;   //这句将导致文字偏移
+                        dbText.IsMirroredInX = true;   // 这句将导致文字偏移
 
-                        //指定文字的垂直对齐方式
+                        // 指定文字的垂直对齐方式
                         if (dbText.VerticalMode == TextVerticalMode.TextBase)
                             dbText.VerticalMode = TextVerticalMode.TextBottom;
 
-                        //指定文字的水平对齐方式
+                        // 指定文字的水平对齐方式
                         dbText.HorizontalMode = dbText.HorizontalMode switch
                         {
                             TextHorizontalMode.TextLeft => TextHorizontalMode.TextRight,

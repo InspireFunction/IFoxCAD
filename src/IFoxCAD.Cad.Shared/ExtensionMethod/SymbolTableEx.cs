@@ -26,8 +26,8 @@ public static class SymbolTableEx
     /// <returns>图层id</returns>
     public static ObjectId Add(this SymbolTable<LayerTable, LayerTableRecord> table, string name, int colorIndex)
     {
-        colorIndex %= 256;//防止输入的颜色超出256
-        colorIndex = Math.Abs(colorIndex);//防止负数
+        colorIndex %= 256;// 防止输入的颜色超出256
+        colorIndex = Math.Abs(colorIndex);// 防止负数
         return table.Add(name, lt => lt.Color = Color.FromColorIndex(ColorMethod.ByColor, (short)colorIndex));
     }
     /// <summary>
@@ -184,9 +184,9 @@ public static class SymbolTableEx
     /// <returns>块定义Id</returns>
     public static ObjectId GetBlockFrom(this SymbolTable<BlockTable, BlockTableRecord> table, string fileName, bool over)
     {
-        //FileInfo fi = new(fileName);
-        //string blkdefname = fi.Name;
-        //if (blkdefname.Contains("."))
+        // FileInfo fi = new(fileName);
+        // string blkdefname = fi.Name;
+        // if (blkdefname.Contains("."))
         //    blkdefname = blkdefname.Substring(0, blkdefname.LastIndexOf('.'));
 
         string blkdefname = SymbolUtilityServices.RepairSymbolName(
@@ -241,16 +241,16 @@ public static class SymbolTableEx
             name,
             ltt => {
                 ltt.AsciiDescription = description;
-                ltt.PatternLength = length; //线型的总长度
-                ltt.NumDashes = dash.Length; //组成线型的笔画数目
+                ltt.PatternLength = length; // 线型的总长度
+                ltt.NumDashes = dash.Length; // 组成线型的笔画数目
                 for (int i = 0; i < dash.Length; i++)
                 {
                     ltt.SetDashLengthAt(i, dash[i]);
                 }
-                //ltt.SetDashLengthAt(0, 0.5); //0.5个单位的划线
-                //ltt.SetDashLengthAt(1, -0.25); //0.25个单位的空格
-                //ltt.SetDashLengthAt(2, 0); // 一个点
-                //ltt.SetDashLengthAt(3, -0.25); //0.25个单位的空格
+                // ltt.SetDashLengthAt(0, 0.5); // 0.5个单位的划线
+                // ltt.SetDashLengthAt(1, -0.25); // 0.25个单位的空格
+                // ltt.SetDashLengthAt(2, 0); // 一个点
+                // ltt.SetDashLengthAt(3, -0.25); // 0.25个单位的空格
             }
         );
     }

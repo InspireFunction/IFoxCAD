@@ -47,10 +47,10 @@ public class CadVersion
     //        return base.GetHashCode();
     //    }
 
-    //    //public override string ToString()
-    //    //{
+    //    // public override string ToString()
+    //    // {
     //    //    return base.ToString();
-    //    //}
+    //    // }
 }
 #else
 public record CadVersion

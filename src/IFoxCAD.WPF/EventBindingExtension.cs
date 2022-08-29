@@ -65,14 +65,14 @@ public class EventBindingExtension : MarkupExtension
         Type? eventHandlerType = null;
         if (memberInfo is EventInfo eventInfo)
         {
-            //var info = memberInfo as EventInfo;
-            //var eventInfo = info;
+            // var info = memberInfo as EventInfo;
+            // var eventInfo = info;
             eventHandlerType = eventInfo.EventHandlerType;
         }
         else if (memberInfo is MethodInfo methodInfo)
         {
-            //var info = memberInfo as MethodInfo;
-            //var methodInfo = info;
+            // var info = memberInfo as MethodInfo;
+            // var methodInfo = info;
             ParameterInfo[] pars = methodInfo.GetParameters();
             eventHandlerType = pars[1].ParameterType;
         }

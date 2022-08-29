@@ -70,7 +70,7 @@ public class BulgeVertexWidth
     /// <param name="index">子段编号</param>
     public BulgeVertexWidth(Polyline pl, int index)
     {
-        var pt = pl.GetPoint2dAt(index);//这里可以3d
+        var pt = pl.GetPoint2dAt(index);// 这里可以3d
         X = pt.X;
         Y = pt.Y;
         Bulge = pl.GetBulgeAt(index);

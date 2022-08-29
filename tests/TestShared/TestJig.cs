@@ -4,7 +4,7 @@ using System.Windows.Forms;
 
 public class Commands_Jig
 {
-    //已在数据库的图元如何进入jig
+    // 已在数据库的图元如何进入jig
     [CommandMethod("TestCmd_jig33")]
     public static void TestCmd_jig33()
     {
@@ -18,18 +18,18 @@ public class Commands_Jig
         var oldSp = cir.StartPoint;
         JigEx? moveJig = null;
         moveJig = new JigEx((mousePoint, drawEntitys) => {
-            moveJig!.SetOptions(oldSp);//回调过程中也可以修改基点
-            //cir.UpgradeOpen();//已经提权了,所以这里不需要提权
+            moveJig!.SetOptions(oldSp);// 回调过程中也可以修改基点
+            // cir.UpgradeOpen();// 已经提权了,所以这里不需要提权
             cir.Move(cir.StartPoint, mousePoint);
-            //cir.DowngradeOpen();
+            // cir.DowngradeOpen();
 
-            //此处会Dispose图元,
-            //所以此处不加入已经在数据库的图元,而是加入new Entity的.
-            //drawEntitys.Enqueue(cir);
+            // 此处会Dispose图元,
+            // 所以此处不加入已经在数据库的图元,而是加入new Entity的.
+            // drawEntitys.Enqueue(cir);
         });
         moveJig.SetOptions(cir.GeometricExtents.MinPoint, orthomode: true);
 
-        //此处详见方法注释
+        // 此处详见方法注释
         moveJig.DatabaseEntityDraw(draw => {
             draw.RawGeometry.Draw(cir);
         });
@@ -43,7 +43,7 @@ public class Commands_Jig
     }
 
 
-    //不在数据库的图元如何进入jig
+    // 不在数据库的图元如何进入jig
     [CommandMethod("TestCmd_Jig44")]
     public void TestCmd_Jig44()
     {
@@ -65,20 +65,20 @@ public class Commands_Jig
         jig = new JigEx((mousePoint, drawEntitys) => {
             var closestPt = pl.GetClosestPointTo(mousePoint, false);
 
-            //回调过程中SetOptions会覆盖配置,所以如果想增加关键字或者修改基点,
-            //不要这样做: jig.SetOptions(closestPt) 而是使用底层暴露
+            // 回调过程中SetOptions会覆盖配置,所以如果想增加关键字或者修改基点,
+            // 不要这样做: jig.SetOptions(closestPt) 而是使用底层暴露
             options!.BasePoint = closestPt;
 
-            //需要避免重复加入同一个关键字
+            // 需要避免重复加入同一个关键字
             if (!options.Keywords.Contains("A"))
                 options.Keywords.Add("A");
 
-            //生成文字
+            // 生成文字
             var dictString = (pl.GetDistAtPoint(closestPt) * 0.001).ToString("0.00");
             var acText = new TextInfo(dictString, closestPt, AttachmentPoint.BaseLeft, textHeight: 200)
                         .AddDBTextToEntity();
 
-            //加入刷新队列
+            // 加入刷新队列
             drawEntitys.Enqueue(acText);
         });
 
@@ -106,7 +106,7 @@ public class Commands_Jig
                         break;
                 }
             }
-            else if (pr.Status != PromptStatus.OK)//PromptStatus.None == 右键,空格,回车,都在这里结束
+            else if (pr.Status != PromptStatus.OK)// PromptStatus.None == 右键,空格,回车,都在这里结束
             {
                 tr.Editor?.WriteMessage(Environment.NewLine + pr.Status.ToString());
                 return;

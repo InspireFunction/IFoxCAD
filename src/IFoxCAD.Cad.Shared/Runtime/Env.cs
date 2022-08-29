@@ -260,19 +260,19 @@ public static class Env
         get
         {
             string s = ((string)Acap.GetSystemVariable("dimblk")).ToUpper();
-            //if (string.IsNullOrEmpty(s))
-            //{
+            // if (string.IsNullOrEmpty(s))
+            // {
             //    return DimblkType.Defult;
-            //}
-            //else
-            //{
+            // }
+            // else
+            // {
             //    if (dimdescdict.TryGetValue(s, out DimblkType value))
             //    {
             //        return value;
             //    }
             //    return s.ToEnum<DimblkType>();
-            //    //return s.FromDescName<DimblkType>();
-            //}
+            //    // return s.FromDescName<DimblkType>();
+            // }
             return dimdescdict[s];
         }
         set
@@ -463,7 +463,7 @@ public static class Env
     /// <returns>指定的环境变量的值；或者如果找不到环境变量，则返回 null</returns>
     public static string? GetEnv(string var)
     {
-        //从当前进程或者从当前用户或本地计算机的 Windows 操作系统注册表项检索环境变量的值
+        // 从当前进程或者从当前用户或本地计算机的 Windows 操作系统注册表项检索环境变量的值
         return Environment.GetEnvironmentVariable(var);
     }
     /// <summary>
@@ -473,7 +473,7 @@ public static class Env
     /// <param name="value">变量值</param>
     public static void SetEnv(string var, string? value)
     {
-        //创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
+        // 创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
         Environment.SetEnvironmentVariable(var, value);
     }
     #endregion

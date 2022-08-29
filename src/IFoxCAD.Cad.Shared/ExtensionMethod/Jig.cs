@@ -30,10 +30,10 @@ public class JigEx : DrawJig
 
 
     readonly Action<Point3d, Queue<Entity>>? _mouseAction;
-    readonly Tolerance _tolerance;//容差
+    readonly Tolerance _tolerance;// 容差
 
-    readonly Queue<Entity> _drawEntitys;//重复生成的图元,放在这里刷新
-    JigPromptPointOptions? _options;//jig鼠标配置
+    readonly Queue<Entity> _drawEntitys;// 重复生成的图元,放在这里刷新
+    JigPromptPointOptions? _options;// jig鼠标配置
     bool _worldDrawFlag = false; // 20220503
 
     bool _systemVariables_Orthomode = false;
@@ -42,7 +42,7 @@ public class JigEx : DrawJig
         get => _systemVariables_Orthomode;
         set
         {
-            //1正交,0非正交 //setvar: https://www.cnblogs.com/JJBox/p/10209541.html
+            // 1正交,0非正交 // setvar: https://www.cnblogs.com/JJBox/p/10209541.html
             if (Env.OrthoMode != value)
                 Env.OrthoMode = _systemVariables_Orthomode = value;
         }
@@ -92,9 +92,9 @@ public class JigEx : DrawJig
 
         _options = JigPointOptions();
         _options.Message = Environment.NewLine + msg;
-        _options.Cursor = cursorType;   //光标绑定
-        _options.UseBasePoint = true;   //基点打开
-        _options.BasePoint = basePoint; //基点设定
+        _options.Cursor = cursorType;   // 光标绑定
+        _options.UseBasePoint = true;   // 基点打开
+        _options.BasePoint = basePoint; // 基点设定
         return _options;
     }
 
@@ -115,7 +115,7 @@ public class JigEx : DrawJig
         _options = JigPointOptions();
         _options.Message = Environment.NewLine + msg;
 
-        //加入关键字,加入时候将空格内容放到最后
+        // 加入关键字,加入时候将空格内容放到最后
         string spaceValue = string.Empty;
         const string spaceKey = " ";
 
@@ -126,9 +126,9 @@ public class JigEx : DrawJig
                 else
                     _options.Keywords.Add(item.Key, item.Key, item.Value);
 
-        ///因为默认配置函数<see cref="JigPointOptions">导致此处空格触发是无效的,
-        ///但是用户如果想触发,就需要在外部减去默认UserInputControls配置
-        ///要放最后,才能优先触发其他关键字
+        /// 因为默认配置函数<see cref="JigPointOptions">导致此处空格触发是无效的,
+        /// 但是用户如果想触发,就需要在外部减去默认UserInputControls配置
+        /// 要放最后,才能优先触发其他关键字
         if (spaceValue != string.Empty)
             _options.Keywords.Add(spaceKey, spaceKey, spaceValue);
         else
@@ -137,8 +137,8 @@ public class JigEx : DrawJig
         // 外部设置减去配置
         // _options.UserInputControls =
         //         _options.UserInputControls
-        //         ^ UserInputControls.NullResponseAccepted     //输入了鼠标右键,结束jig
-        //         ^ UserInputControls.AnyBlankTerminatesInput; //空格或回车,结束jig;
+        //         ^ UserInputControls.NullResponseAccepted     // 输入了鼠标右键,结束jig
+        //         ^ UserInputControls.AnyBlankTerminatesInput; // 空格或回车,结束jig;
         return _options;
     }
 
@@ -162,7 +162,7 @@ public class JigEx : DrawJig
     /// <returns></returns>
     public PromptResult Drag()
     {
-        //jig功能必然是当前前台文档,所以封装内部更好调用
+        // jig功能必然是当前前台文档,所以封装内部更好调用
         var dm = Acap.DocumentManager;
         var doc = dm.MdiActiveDocument;
         var ed = doc.Editor;
@@ -182,13 +182,13 @@ public class JigEx : DrawJig
     public IEnumerable<ObjectId>? AddEntityToMsPs(BlockTableRecord btrOfAddEntitySpace,
                                                   IEnumerable<Entity>? removeEntity = null)
     {
-        //内部用 _drawEntitys 外部用 Entitys,减少一层转换
+        // 内部用 _drawEntitys 外部用 Entitys,减少一层转换
         if (_drawEntitys.Count == 0)
             return null;
 
         IEnumerable<Entity> es = _drawEntitys;
         if (removeEntity != null)
-            es = es.Except(removeEntity);//差集
+            es = es.Except(removeEntity);// 差集
 
         return btrOfAddEntitySpace.AddEntity(es);
     }
@@ -203,7 +203,7 @@ public class JigEx : DrawJig
     protected override SamplerStatus Sampler(JigPrompts prompts)
     {
         if (_worldDrawFlag)
-            return SamplerStatus.NoChange;//OK的时候拖动鼠标与否都不出现图元
+            return SamplerStatus.NoChange;// OK的时候拖动鼠标与否都不出现图元
 
         if (_options is null)
             throw new NullReferenceException(nameof(_options));
@@ -214,21 +214,21 @@ public class JigEx : DrawJig
         else if (pro.Status != PromptStatus.OK)
             return SamplerStatus.Cancel;
 
-        //上次鼠标点不同(一定要这句,不然图元刷新太快会看到奇怪的边线)
+        // 上次鼠标点不同(一定要这句,不然图元刷新太快会看到奇怪的边线)
         var mousePointWcs = pro.Value;
 
-        //== 是比较类字段,但是最好转为哈希比较.
-        //IsEqualTo 是方形判断(仅加法),但是cad是距离.
-        //Distance  是圆形判断(会求平方根,使用了牛顿迭代),
-        //大量数据(十万以上/频繁刷新)面前会显得非常慢.
+        // == 是比较类字段,但是最好转为哈希比较.
+        // IsEqualTo 是方形判断(仅加法),但是cad是距离.
+        // Distance  是圆形判断(会求平方根,使用了牛顿迭代),
+        // 大量数据(十万以上/频繁刷新)面前会显得非常慢.
         if (mousePointWcs.IsEqualTo(MousePointWcsLast, _tolerance))
             return SamplerStatus.NoChange;
 
-        //上次循环的缓冲区图元清理,否则将会在vs输出遗忘 Dispose
+        // 上次循环的缓冲区图元清理,否则将会在vs输出遗忘 Dispose
         while (_drawEntitys.Count > 0)
             _drawEntitys.Dequeue().Dispose();
 
-        //委托把容器扔出去接收新创建的图元,然后给重绘更新
+        // 委托把容器扔出去接收新创建的图元,然后给重绘更新
         _mouseAction?.Invoke(mousePointWcs, _drawEntitys);
         MousePointWcsLast = mousePointWcs;
 
@@ -302,10 +302,10 @@ public class JigEx : DrawJig
         return new JigPromptPointOptions()
         {
             UserInputControls =
-                  UserInputControls.GovernedByUCSDetect     //由UCS探测用
-                | UserInputControls.Accept3dCoordinates     //接受三维坐标
-                | UserInputControls.NullResponseAccepted    //输入了鼠标右键,结束jig
-                | UserInputControls.AnyBlankTerminatesInput //空格或回车,结束jig;
+                  UserInputControls.GovernedByUCSDetect     // 由UCS探测用
+                | UserInputControls.Accept3dCoordinates     // 接受三维坐标
+                | UserInputControls.NullResponseAccepted    // 输入了鼠标右键,结束jig
+                | UserInputControls.AnyBlankTerminatesInput // 空格或回车,结束jig;
         };
     }
 
@@ -320,23 +320,23 @@ public class JigEx : DrawJig
             throw new ArgumentNullException(nameof(_options));
 
         if ((opt.UserInputControls & UserInputControls.NullResponseAccepted) == UserInputControls.NullResponseAccepted)
-            opt.UserInputControls ^= UserInputControls.NullResponseAccepted; //输入了鼠标右键,结束jig
+            opt.UserInputControls ^= UserInputControls.NullResponseAccepted; // 输入了鼠标右键,结束jig
         if ((opt.UserInputControls & UserInputControls.AnyBlankTerminatesInput) == UserInputControls.AnyBlankTerminatesInput)
-            opt.UserInputControls ^= UserInputControls.AnyBlankTerminatesInput; //空格或回车,结束jig
+            opt.UserInputControls ^= UserInputControls.AnyBlankTerminatesInput; // 空格或回车,结束jig
     }
 }
 
 #if false
-| UserInputControls.DoNotEchoCancelForCtrlC        //不要取消CtrlC的回音
-| UserInputControls.DoNotUpdateLastPoint           //不要更新最后一点
-| UserInputControls.NoDwgLimitsChecking            //没有Dwg限制检查
-| UserInputControls.NoZeroResponseAccepted         //接受非零响应
-| UserInputControls.NoNegativeResponseAccepted     //不否定回复已被接受
-| UserInputControls.Accept3dCoordinates            //返回点的三维坐标,是转换坐标系了?
-| UserInputControls.AcceptMouseUpAsPoint           //接受释放按键时的点而不是按下时
+| UserInputControls.DoNotEchoCancelForCtrlC        // 不要取消CtrlC的回音
+| UserInputControls.DoNotUpdateLastPoint           // 不要更新最后一点
+| UserInputControls.NoDwgLimitsChecking            // 没有Dwg限制检查
+| UserInputControls.NoZeroResponseAccepted         // 接受非零响应
+| UserInputControls.NoNegativeResponseAccepted     // 不否定回复已被接受
+| UserInputControls.Accept3dCoordinates            // 返回点的三维坐标,是转换坐标系了?
+| UserInputControls.AcceptMouseUpAsPoint           // 接受释放按键时的点而不是按下时
 
-| UserInputControls.InitialBlankTerminatesInput    //初始 空格或回车,结束jig
-| UserInputControls.AcceptOtherInputString         //接受其他输入字符串
-| UserInputControls.NoZDirectionOrtho              //无方向正射,直接输入数字时以基点到当前点作为方向
-| UserInputControls.UseBasePointElevation          //使用基点高程,基点的Z高度探测
+| UserInputControls.InitialBlankTerminatesInput    // 初始 空格或回车,结束jig
+| UserInputControls.AcceptOtherInputString         // 接受其他输入字符串
+| UserInputControls.NoZDirectionOrtho              // 无方向正射,直接输入数字时以基点到当前点作为方向
+| UserInputControls.UseBasePointElevation          // 使用基点高程,基点的Z高度探测
 #endif

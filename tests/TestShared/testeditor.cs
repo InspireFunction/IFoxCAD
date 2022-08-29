@@ -34,12 +34,12 @@ public class Testeditor
     [CommandMethod("testzoomextent")]
     public void Testzoomextent()
     {
-        //using var tr = new DBTrans();
-        //var res = Env.Editor.GetEntity("\npick ent:");
-        //if (res.Status == PromptStatus.OK)
-        //{
+        // using var tr = new DBTrans();
+        // var res = Env.Editor.GetEntity("\npick ent:");
+        // if (res.Status == PromptStatus.OK)
+        // {
         //    Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>());
-        //}
+        // }
 
         Env.Editor.ZoomExtents();
     }

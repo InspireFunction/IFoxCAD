@@ -15,15 +15,15 @@ public class Testid
         {
             res.ObjectId.Erase();
         }
-        //using (var tr = new DBTrans())
-        //{
+        // using (var tr = new DBTrans())
+        // {
         //    var res = Env.Editor.GetEntity("\npick ent:");
         //    if(res.Status == PromptStatus.OK)
         //    {
         //        res.ObjectId.Erase();
         //    }
 
-        //}
+        // }
     }
     
     [CommandMethod("testmycommand")]
@@ -37,7 +37,7 @@ public class Testid
         blkred?.AppendEntity(l1);
         trans.AddNewlyCreatedDBObject(l1, true);
         trans.Commit();
-        //dbtrans.Dispose();
+        // dbtrans.Dispose();
     }
     [CommandMethod("testtextstyle")]
     public void TestTextStyle()

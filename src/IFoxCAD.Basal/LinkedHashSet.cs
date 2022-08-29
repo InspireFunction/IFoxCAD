@@ -135,7 +135,7 @@ public class LinkedHashSet<T> : ICollection<T> where T : IComparable
 
     public void CopyTo(T[] array, int arrayIndex)
     {
-        //m_LinkedList.CopyTo(array, arrayIndex);
+        // m_LinkedList.CopyTo(array, arrayIndex);
         return;
     }
 

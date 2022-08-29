@@ -19,10 +19,10 @@ public class Test_Expression
         Expression<Func<int, bool>> exprTree = num => num < 5;
 
         // 分解表达式树
-        ParameterExpression param = exprTree.Parameters[0];//num
-        BinaryExpression operation = (BinaryExpression)exprTree.Body;//函数体    {(num < 5)}
-        ParameterExpression left = (ParameterExpression)operation.Left;//左节点   num
-        ConstantExpression right = (ConstantExpression)operation.Right;//右表达式 5
+        ParameterExpression param = exprTree.Parameters[0];// num
+        BinaryExpression operation = (BinaryExpression)exprTree.Body;// 函数体    {(num < 5)}
+        ParameterExpression left = (ParameterExpression)operation.Left;// 左节点   num
+        ConstantExpression right = (ConstantExpression)operation.Right;// 右表达式 5
 
         Console.WriteLine("表达式树例子: {0} => {1} {2} {3}",
                           param.Name, left.Name, operation.NodeType, right.Value);
@@ -37,17 +37,17 @@ public class Test_Expression
         // 
         // // 分解表达式树
         // ParameterExpression param = exprTree.Parameters[0];// x
-        // BinaryExpression operation = (BinaryExpression)exprTree.Body;//函数体 {((x > 5) AndAlso (x < 50))}
+        // BinaryExpression operation = (BinaryExpression)exprTree.Body;// 函数体 {((x > 5) AndAlso (x < 50))}
         // 
-        // ParameterExpression left = (ParameterExpression)operation.Left;//左节点.......这里报错
-        // ConstantExpression right = (ConstantExpression)operation.Right;//右表达式.....这里报错
+        // ParameterExpression left = (ParameterExpression)operation.Left;// 左节点.......这里报错
+        // ConstantExpression right = (ConstantExpression)operation.Right;// 右表达式.....这里报错
         // 
         // Console.WriteLine("表达式树例子: {0} => {1} {2} {3}",
         //                   param.Name, left.Name, operation.NodeType, right.Value);
     }
 
 
-    //博客园例子,表达式体内有多个式子
+    // 博客园例子,表达式体内有多个式子
     public static void Demo3()
     {
         List<string> names = new() { "Cai", "Edward", "Beauty" };
@@ -79,7 +79,7 @@ public class Test_Expression
         };
 
         Expression left = my.Modify(lambda.Body);
-        //构造一个新的表达式
+        // 构造一个新的表达式
         var newLambda = Expression.Lambda<Func<string, bool>>(left, my.Parameter);
         return newLambda.Compile();
     }
@@ -102,9 +102,9 @@ public class Test_Expression
 
         Expression left = my.Modify(lambda0.Body);
         Expression right = my.Modify(lambda1.Body);
-        var expression = Expression.AndAlso(left, right);//就是 && 合并两个匿名函数
+        var expression = Expression.AndAlso(left, right);// 就是 && 合并两个匿名函数
 
-        //构造一个新的表达式
+        // 构造一个新的表达式
         var newLambda = Expression.Lambda<Func<string, bool>>(expression, my.Parameter);
         return newLambda.Compile();
     }

@@ -18,7 +18,7 @@ public static class GeometryEx
     /// <returns>点与多边形的关系</returns>
     public static PointOnRegionType PointOnRegion(this IEnumerable<Point2d> pts, Point2d pt)
     {
-        //遍历点集并生成首尾连接的多边形
+        // 遍历点集并生成首尾连接的多边形
         var ptlst = new LoopList<Point2d>(pts);
         if (ptlst.Count < 3)
             return PointOnRegionType.Error;
@@ -30,11 +30,11 @@ public static class GeometryEx
         }
         var cc2d = new CompositeCurve2d(ls2ds.ToArray());
 
-        //在多边形上?
+        // 在多边形上?
         if (cc2d.IsOn(pt))
             return PointOnRegionType.On;
 
-        //在最小包围矩形外?
+        // 在最小包围矩形外?
         var bb2d = cc2d.BoundBlock;
         if (!bb2d.Contains(pt))
             return PointOnRegionType.Outside;
@@ -68,7 +68,7 @@ public static class GeometryEx
     /// <returns>点与多边形的关系</returns>
     public static PointOnRegionType PointOnRegion(this IEnumerable<Point3d> pts, Point3d pt)
     {
-        //遍历点集并生成首尾连接的多边形
+        // 遍历点集并生成首尾连接的多边形
         var ptlst = new LoopList<Point3d>(pts);
         if (ptlst.First!.Value == ptlst.Last!.Value)
             ptlst.RemoveLast();
@@ -80,11 +80,11 @@ public static class GeometryEx
             ls3ds.Add(new LineSegment3d(node.Value, node.Next!.Value));
         var cc3d = new CompositeCurve3d(ls3ds.ToArray());
 
-        //在多边形上?
+        // 在多边形上?
         if (cc3d.IsOn(pt))
             return PointOnRegionType.On;
 
-        //在最小包围矩形外?
+        // 在最小包围矩形外?
         var bb2d = cc3d.BoundBlock;
         if (!bb2d.Contains(pt))
             return PointOnRegionType.Outside;
@@ -140,7 +140,7 @@ public static class GeometryEx
     {
         ptlst = new LoopList<Point2d> { pt1, pt2, pt3 };
 
-        //遍历各点与下一点的向量长度,找到距离最大的两个点
+        // 遍历各点与下一点的向量长度,找到距离最大的两个点
         LoopListNode<Point2d> maxNode =
             ptlst.GetNodes().FindByMax
             (
@@ -148,19 +148,19 @@ public static class GeometryEx
                 node => node.Value.GetDistanceTo(node.Next!.Value)
             );
 
-        //以两点做最小包围圆
+        // 以两点做最小包围圆
         CircularArc2d ca2d =
             GetMinCircle(maxNode.Value, maxNode.Next!.Value, out LoopList<Point2d> tptlst);
 
-        //如果另一点属于该圆
+        // 如果另一点属于该圆
         if (ca2d.IsIn(maxNode.Previous!.Value))
         {
-            //返回
+            // 返回
             ptlst = tptlst;
             return ca2d;
         }
-        //否则按三点做圆
-        //ptlst.SetFirst(maxNode);
+        // 否则按三点做圆
+        // ptlst.SetFirst(maxNode);
         ptlst = new LoopList<Point2d> { maxNode.Value, maxNode.Next.Value, maxNode.Previous.Value };
         ca2d = new CircularArc2d(pt1, pt2, pt3);
         ca2d.SetAngles(0, Math.PI * 2);
@@ -182,15 +182,15 @@ public static class GeometryEx
         ptlst = null;
         CircularArc2d? ca2d = null;
 
-        //遍历C43的组合,环链表的优势在这里
+        // 遍历C43的组合,环链表的优势在这里
         foreach (LoopListNode<Point2d> firstNode in iniptlst.GetNodes())
         {
-            //获取各组合下三点的最小包围圆
+            // 获取各组合下三点的最小包围圆
             var secondNode = firstNode.Next;
             var thirdNode = secondNode!.Next;
             var tca2d = GetMinCircle(firstNode.Value, secondNode.Value, thirdNode!.Value, out LoopList<Point2d> tptlst);
 
-            //如果另一点属于该圆,并且半径小于当前值就把它做为候选解
+            // 如果另一点属于该圆,并且半径小于当前值就把它做为候选解
             if (!tca2d.IsIn(firstNode.Previous!.Value))
                 continue;
             if (ca2d is null || tca2d.Radius < ca2d.Radius)
@@ -200,7 +200,7 @@ public static class GeometryEx
             }
         }
 
-        //返回直径最小的圆
+        // 返回直径最小的圆
         return ca2d;
     }
 
@@ -341,7 +341,7 @@ public static class GeometryEx
     /// <returns>解析类圆对象</returns>
     public static CircularArc2d? GetMinCircle(this List<Point2d> pnts, out LoopList<Point2d>? ptlst)
     {
-        //点数较小时直接返回
+        // 点数较小时直接返回
         switch (pnts.Count)
         {
             case 0:
@@ -362,29 +362,29 @@ public static class GeometryEx
                 return GetMinCircle(pnts[0], pnts[1], pnts[2], pnts[3], out ptlst);
         }
 
-        //按前三点计算最小包围圆
+        // 按前三点计算最小包围圆
         var tpnts = new Point2d[4];
         pnts.CopyTo(0, tpnts, 0, 3);
         var ca2d = GetMinCircle(tpnts[0], tpnts[1], tpnts[2], out ptlst);
 
-        //找到点集中距离圆心的最远点为第四点
+        // 找到点集中距离圆心的最远点为第四点
         tpnts[3] = pnts.FindByMax(pnt => ca2d.Center.GetDistanceTo(pnt));
 
-        //如果最远点属于圆结束
+        // 如果最远点属于圆结束
         while (!ca2d.IsIn(tpnts[3]))
         {
-            //如果最远点不属于圆,按此四点计算最小包围圆
+            // 如果最远点不属于圆,按此四点计算最小包围圆
             ca2d = GetMinCircle(tpnts[0], tpnts[1], tpnts[2], tpnts[3], out ptlst);
 
-            //将结果作为新的前三点
+            // 将结果作为新的前三点
             if (ptlst!.Count == 3)
             {
                 tpnts[2] = ptlst.Last!.Value;
             }
             else
             {
-                //第三点取另两点中距离圆心较远的点
-                //按算法中描述的任选其中一点的话,还是无法收敛......
+                // 第三点取另两点中距离圆心较远的点
+                // 按算法中描述的任选其中一点的话,还是无法收敛......
                 tpnts[2] =
                     tpnts.Except(ptlst)
                     .FindByMax(pnt => ca2d!.Center.GetDistanceTo(pnt));
@@ -392,10 +392,10 @@ public static class GeometryEx
             tpnts[0] = ptlst.First!.Value;
             tpnts[1] = ptlst.First.Next!.Value;
 
-            //按此三点计算最小包围圆
+            // 按此三点计算最小包围圆
             ca2d = GetMinCircle(tpnts[0], tpnts[1], tpnts[2], out ptlst);
 
-            //找到点集中圆心的最远点为第四点
+            // 找到点集中圆心的最远点为第四点
             tpnts[3] = pnts.FindByMax(pnt => ca2d.Center.GetDistanceTo(pnt));
         }
 

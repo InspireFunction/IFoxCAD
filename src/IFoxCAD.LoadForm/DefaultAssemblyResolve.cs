@@ -21,18 +21,18 @@ public class AssemblyHelper
         Assembly? result = null;
         var cadAss = AppDomain.CurrentDomain.GetAssemblies();
 
-        //名称和版本号都一致的,调用它
+        // 名称和版本号都一致的,调用它
         result = cadAss.FirstOrDefault(ass => ass.GetName().FullName == args.Name);
         if (result != null)
             return result;
 
-        //获取名称一致,但是版本号不同的,调用最后的可用版本
+        // 获取名称一致,但是版本号不同的,调用最后的可用版本
         var ag = GetAssemblyName(args.Name);
 
-        //获取最后一个符合条件的,
-        //否则a.dll引用b.dll函数的时候,b.dll修改重生成之后,
-        //加载进去会调用第一个版本的b.dll,
-        //vs会迭代程序版本号的*,所以最后的可用就是循环到最后的.
+        // 获取最后一个符合条件的,
+        // 否则a.dll引用b.dll函数的时候,b.dll修改重生成之后,
+        // 加载进去会调用第一个版本的b.dll,
+        // vs会迭代程序版本号的*,所以最后的可用就是循环到最后的.
         for (int i = 0; i < cadAss.Length; i++)
         {
             if (GetAssemblyName(cadAss[i].GetName().FullName) != ag)

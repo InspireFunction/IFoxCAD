@@ -13,7 +13,7 @@ public static class EnumEx
         _cache.Clear();
     }
 
-    //(类型完整名,描述组合)
+    // (类型完整名,描述组合)
     static readonly Dictionary<string, HashSet<string>> _cache = new();
 
     /// <summary>
@@ -34,7 +34,7 @@ public static class EnumEx
         if (fieldInfo == null)
             return null!;
 
-        //注释存放的容器
+        // 注释存放的容器
         HashSet<string> nodes = new();
         if (Attribute.GetCustomAttribute(fieldInfo, typeof(T)) is T attribute)
         {
@@ -43,28 +43,28 @@ public static class EnumEx
             return nodes;
         }
 
-        //通常到这里的就是 ALL = A | B | C
-        //遍历所有的枚举,组合每个注释
+        // 通常到这里的就是 ALL = A | B | C
+        // 遍历所有的枚举,组合每个注释
         List<Enum> enumHas = new();
 
-        //遍历这个枚举类型,获取枚举按位包含的成员
+        // 遍历这个枚举类型,获取枚举按位包含的成员
         foreach (Enum em in Enum.GetValues(eType))
             if ((e.GetHashCode() & em.GetHashCode()) == em.GetHashCode() &&
                  e.GetHashCode() != em.GetHashCode())
                 enumHas.Add(em);
 
 
-        //采取的行为是:注释的行为是特殊的,就按照注释的,否则,遍历子元素提取注释
-        //大的在前面才能判断是否按位包含后面的,后面的就是要移除的
+        // 采取的行为是:注释的行为是特殊的,就按照注释的,否则,遍历子元素提取注释
+        // 大的在前面才能判断是否按位包含后面的,后面的就是要移除的
         enumHas = enumHas.OrderByDescending(a => a.GetHashCode()).ToList();
         ArrayEx.Deduplication(enumHas, (a, b) => {
             return (a.GetHashCode() & b.GetHashCode()) == b.GetHashCode();
         });
 
-        //逆序仅仅为排序后处理,不一定和书写顺序一样,尤其是递归可能存在重复的元素
+        // 逆序仅仅为排序后处理,不一定和书写顺序一样,尤其是递归可能存在重复的元素
         for (int i = enumHas.Count - 1; i >= 0; i--)
         {
-            var atts = GetAttribute<T>(enumHas[i], noDescrToString);//递归
+            var atts = GetAttribute<T>(enumHas[i], noDescrToString);// 递归
             if (atts == null)
                 continue;
             foreach (var item in atts)
@@ -90,13 +90,13 @@ public static class EnumEx
     }
 
 
-    //TODO 山人审核代码之后可以删除,这个完全被上面替代了
+    // TODO 山人审核代码之后可以删除,这个完全被上面替代了
     public static string GetDesc(this Enum val)
     {
         var type = val.GetType();
         var memberInfo = type.GetMember(val.ToString());
         var attributes = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
-        //如果没有定义描述,就把当前枚举值的对应名称返回
+        // 如果没有定义描述,就把当前枚举值的对应名称返回
         if (attributes is null || attributes.Length != 1)
             return val.ToString();
 

@@ -148,7 +148,7 @@ public static class Curve3dEx
     /// <returns>三维复合曲线列表</returns>
     public static List<CompositeCurve3d> GetSplitCurves(this CompositeCurve3d c3d, List<double> pars)
     {
-        //曲线参数剔除重复的
+        // 曲线参数剔除重复的
         pars.Sort();
         for (int i = pars.Count - 1; i > 0; i--)
         {
@@ -159,20 +159,20 @@ public static class Curve3dEx
         if (pars.Count == 0)
             return new List<CompositeCurve3d>();
 
-        //这个是曲线参数类
+        // 这个是曲线参数类
         var inter = c3d.GetInterval();
-        //曲线们
+        // 曲线们
         var c3ds = c3d.GetCurves();
         if (c3ds.Length == 1 && c3ds[0].IsClosed())
         {
-            //闭合曲线不允许打断于一点
+            // 闭合曲线不允许打断于一点
             if (pars.Count > 1)
             {
-                //如果包含起点
+                // 如果包含起点
                 if (Tolerance.Global.IsEqualPoint(pars[0], inter.LowerBound))
                 {
                     pars[0] = inter.LowerBound;
-                    //又包含终点，去除终点
+                    // 又包含终点，去除终点
                     if (Tolerance.Global.IsEqualPoint(pars[^1], inter.UpperBound))
                     {
                         pars.RemoveAt(pars.Count - 1);
@@ -184,7 +184,7 @@ public static class Curve3dEx
                 {
                     pars[^1] = inter.UpperBound;
                 }
-                //加入第一点以支持反向打断
+                // 加入第一点以支持反向打断
                 pars.Add(pars[0]);
             }
             else
@@ -194,7 +194,7 @@ public static class Curve3dEx
         }
         else
         {
-            //非闭合曲线加入起点和终点
+            // 非闭合曲线加入起点和终点
             if (Tolerance.Global.IsEqualPoint(pars[0], inter.LowerBound))
                 pars[0] = inter.LowerBound;
             else
@@ -209,7 +209,7 @@ public static class Curve3dEx
         for (int i = 0; i < pars.Count - 1; i++)
         {
             List<Curve3d> cc3ds = new();
-            //复合曲线参数转换到包含曲线参数
+            // 复合曲线参数转换到包含曲线参数
             var cp1 = c3d.GlobalToLocalParameter(pars[i]);
             var cp2 = c3d.GlobalToLocalParameter(pars[i + 1]);
             if (cp1.SegmentIndex == cp2.SegmentIndex)
@@ -404,7 +404,7 @@ public static class Curve3dEx
     /// <returns>实体圆弧</returns>
     public static Arc ToArc(this CircularArc3d ca3d)
     {
-        //必须新建，而不能直接使用GetPlane()获取
+        // 必须新建，而不能直接使用GetPlane()获取
         double angle = ca3d.ReferenceVector.AngleOnPlane(new Plane(ca3d.Center, ca3d.Normal));
         return new Arc(ca3d.Center, ca3d.Normal, ca3d.Radius, ca3d.StartAngle + angle, ca3d.EndAngle + angle);
     }
@@ -462,7 +462,7 @@ public static class Curve3dEx
                 ea3d.MinorRadius / ea3d.MajorRadius,
                 0,
                 Math.PI * 2);
-        //Ge椭圆角度就是Db椭圆的参数
+        // Ge椭圆角度就是Db椭圆的参数
         if (!ea3d.IsClosed())
         {
             ell.StartAngle = ell.GetAngleAtParameter(ea3d.StartAngle);

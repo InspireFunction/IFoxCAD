@@ -28,10 +28,10 @@ public static class Utility
          * 解释代码:
          * 0x01:
          * (int)(long.MaxValue & 0xffffffffL) | (int)(long.MaxValue >> 32);
-         * Convert.ToString(long.MaxValue & 0xffffffffL, 2)//去掉高位:"11111111111111111111111111111111" 32个,再强转int
+         * Convert.ToString(long.MaxValue & 0xffffffffL, 2)// 去掉高位:"11111111111111111111111111111111" 32个,再强转int
          * 按位与&是保证符号位肯定是1,其他尽可能为0,高位被去掉只是MaxValue&0的原因,强转才是去掉高位..."尽可能"一词带来第一次随机性
          * 0x02:
-         * Convert.ToString((long.MaxValue >> 32), 2)      //去掉低位: "1111111111111111111111111111111" 31个,再强转int
+         * Convert.ToString((long.MaxValue >> 32), 2)      // 去掉低位: "1111111111111111111111111111111" 31个,再强转int
          * 按位或|是尽可能为1..."尽可能"一词带来第二次随机性
          * 
          */
@@ -52,7 +52,7 @@ public static class Utility
             int R = ran.Next(255);
             int G = ran.Next(255);
             int B = ran.Next(255);
-            B = (R + G > 400) ? R + G - 400 : B;//0 : 380 - R - G;
+            B = (R + G > 400) ? R + G - 400 : B;// 0 : 380 - R - G;
             B = (B > 255) ? 255 : B;
             return System.Drawing.Color.FromArgb(R, G, B);
         }

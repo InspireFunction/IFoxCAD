@@ -21,6 +21,6 @@ public class NetLoad
         _form.Show();
         _form.Focus();
 
-        //Acap.ShowModalDialog(_form);
+        // Acap.ShowModalDialog(_form);
     }
 }

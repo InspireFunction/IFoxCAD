@@ -59,16 +59,16 @@ public class TextInfo
         acText.SetDatabaseDefaults();
 
         if (Database is not null)
-            acText.SetDatabaseDefaults(Database);//我的默认值是填满的,所以可以不需要
+            acText.SetDatabaseDefaults(Database);// 我的默认值是填满的,所以可以不需要
 
         if (TextStyleId is not null)
             acText.SetTextStyleId(TextStyleId.Value);
 
-        acText.Height = TextHeight;     //高度
-        acText.TextString = Contents;   //内容
-        acText.Position = Position;     //插入点(一定要先设置)
-        acText.Justify = TextJustify;   //使他们对齐
-        //acText.HorizontalMode
+        acText.Height = TextHeight;     // 高度
+        acText.TextString = Contents;   // 内容
+        acText.Position = Position;     // 插入点(一定要先设置)
+        acText.Justify = TextJustify;   // 使他们对齐
+        // acText.HorizontalMode
 
         if (AlignmentPoint is not null)
             acText.AlignmentPoint = AlignmentPoint.Value;
@@ -98,18 +98,18 @@ public class TextInfo
         if (TextStyleId is not null)
             mText.SetTextStyleId(TextStyleId.Value);
 
-        mText.TextHeight = TextHeight; //高度
-        mText.Contents = Contents;     //内容
-        mText.Location = Position;     //插入点(一定要先设置)
+        mText.TextHeight = TextHeight; // 高度
+        mText.Contents = Contents;     // 内容
+        mText.Location = Position;     // 插入点(一定要先设置)
 
-        //mText.SetAttachmentMovingLocation(TextJustify);
-        mText.Attachment = TextJustify;//使他们对齐
+        // mText.SetAttachmentMovingLocation(TextJustify);
+        mText.Attachment = TextJustify;// 使他们对齐
 
         return mText;
     }
 }
 
-//反射设定对象的文字样式id
+// 反射设定对象的文字样式id
 public static partial class TextInfoHelper
 {
     /// <summary>
@@ -169,9 +169,9 @@ public static partial class TextInfoHelper
         {
             var entType = acText.GetType();
             var prs = entType.GetProperties();
-            _textStyleId = prs.FirstOrDefault(a => a.Name == "TextStyle");//反射获取属性
+            _textStyleId = prs.FirstOrDefault(a => a.Name == "TextStyle");// 反射获取属性
             if (_textStyleId == null)
-                _textStyleId = prs.FirstOrDefault(a => a.Name == "TextStyleId");//反射获取属性
+                _textStyleId = prs.FirstOrDefault(a => a.Name == "TextStyleId");// 反射获取属性
         }
         return _textStyleId;
     }

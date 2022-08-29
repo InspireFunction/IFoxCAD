@@ -107,13 +107,13 @@ public static class EditorEx
 
 
     /*
-     *  //定义选择集选项
+     *  // 定义选择集选项
      *  var pso = new PromptSelectionOptions
      *  {
-     *      AllowDuplicates = false,  //重复选择
+     *      AllowDuplicates = false,  // 重复选择
      *  };
      *
-     *  //getai遍历全图选择块有用到
+     *  // getai遍历全图选择块有用到
      *  var dic = new Dictionary<string, Action>() {
      *          { "Z,全部同名", ()=> {
      *              getai = BlockHelper.EnumAttIdentical.AllBlockName;
@@ -125,14 +125,14 @@ public static class EditorEx
      *          { "V,属性值-默认", ()=> {
      *              getai = BlockHelper.EnumAttIdentical.DisplayAndTagText;
      *          }},
-     *          //允许以下操作,相同的会加入前面的
-     *          //{ "V,属性值-默认|X,啊啊啊啊", ()=> {
+     *          // 允许以下操作,相同的会加入前面的
+     *          // { "V,属性值-默认|X,啊啊啊啊", ()=> {
      *
-     *          //}},
+     *          // }},
      *  };
      *  pso.SsgetAddKeys(dic);
      *
-     *  //创建选择集过滤器,只选择块对象
+     *  // 创建选择集过滤器,只选择块对象
      *  var filList = new TypedValue[] { new TypedValue((int)DxfCode.Start, "INSERT") };
      *  var filter = new SelectionFilter(filList);
      *  ssPsr = ed.GetSelection(pso, filter);
@@ -176,7 +176,7 @@ public static class EditorEx
         foreach (var item in tmp)
             dicActions.Add(item.Key, item.Value);
 
-        //去除关键字重复的,把重复的执行动作移动到前面
+        // 去除关键字重复的,把重复的执行动作移动到前面
         for (int i = 0; i < dicActions.Count; i++)
         {
             var pair1 = dicActions.ElementAt(i);
@@ -204,18 +204,18 @@ public static class EditorEx
                                  keySplitS[i + 1] + "(" + keySplitS[i] + ")");
         }
 
-        //回调的时候我想用Dict的O(1)索引,
-        //但是此函数内进行new Dictionary() 在函数栈释放的时候,它被释放掉了.
-        //因此 dicActions 参数的生命周期
+        // 回调的时候我想用Dict的O(1)索引,
+        // 但是此函数内进行new Dictionary() 在函数栈释放的时候,它被释放掉了.
+        // 因此 dicActions 参数的生命周期
         tmp = new(dicActions);
         dicActions.Clear();
         foreach (var item in tmp)
             dicActions.Add(item.Key.Split(',')[0], item.Value);
 
         var keyWords = pso.Keywords;
-        //从选择集命令中显示关键字
+        // 从选择集命令中显示关键字
         pso.MessageForAdding = keyWords.GetDisplayString(true);
-        //关键字回调事件 ssget关键字
+        // 关键字回调事件 ssget关键字
         pso.KeywordInput += (sender, e) => {
             dicActions[e.Input].Invoke();
         };
@@ -226,111 +226,108 @@ public static class EditorEx
 
 
 
-    //#region 即时选择样板
-
-    ///// <summary>
-    /////  即时选择,框选更新关键字
-    ///// </summary>
-    //public static void SelectTest()
-    //{
-    //    Env.Editor.WriteMessage("\n[白嫖工具]--测试");
-    //    //激活选中事件
-    //    Env.Editor.SelectionAdded += SelectTest_SelectionAdded;
-    //    //初始化坐标系
-    //    Env.Editor.CurrentUserCoordinateSystem = Matrix3d.Identity;
-
-    //    //创建过滤器
-    //    var sf = new OpEqual(0, "arc");
-    //    var pso = new PromptSelectionOptions
-    //    {
-    //        MessageForAdding = "\n请选择对象:"
-    //    };
-
-    //    pso.Keywords.Add("Z");
-    //    pso.Keywords.Add("X");
-    //    pso.Keywords.Add("Q");
-    //    //注册关键字
-    //    pso.KeywordInput += SelectTest_KeywordInput;
-    //    try
-    //    {
-    //        //用户选择
-    //        var psr = Env.Editor.GetSelection(pso, sf);
-    //        //处理代码
-
-
-    //    }
-    //    catch (Exception ex)//捕获关键字
-    //    {
-    //        if (ex.Message == "XuError")
-    //        {
-    //            //关闭关键字事件
-    //            pso.KeywordInput -= SelectTest_KeywordInput;
-    //            //关闭选中事件
-    //            Env.Editor.SelectionAdded -= SelectTest_SelectionAdded;
-    //            //重新调用自身
-    //            ZengLiangYuanJiao();
-    //        }
-    //    }
-    //    //关闭关键字事件
-    //    pso.KeywordInput -= SelectTest_KeywordInput;
-    //    //关闭选中事件
-    //    Env.Editor.SelectionAdded -= SelectTest_SelectionAdded;
-    //}
-
-    ///// <summary>
-    ///// 即时选择
-    ///// </summary>
-    ///// <param name="sender"></param>
-    ///// <param name="e"></param>
-    //private static void SelectTest_SelectionAdded(object sender, SelectionAddedEventArgs e)
-    //{
-    //    //关闭选中事件
-    //    Env.Editor.SelectionAdded -= SelectTest_SelectionAdded;
-    //    using (var tr = new DBTrans())
-    //    {
-    //        //处理代码
-    //        for (int i = 0; i < e.AddedObjects.Count; i++)
-    //        {
-
-
-    //            //处理完移除已处理的对象
-    //            e.Remove(i);
-    //        }
-    //    }
-    //    //激活选中事件
-    //    Env.Editor.SelectionAdded += SelectTest_SelectionAdded;
-    //}
-
-    ///// <summary>
-    ///// 关键字响应
-    ///// </summary>
-    ///// <param name="sender"></param>
-    ///// <param name="e"></param>
-    //private static void SelectTest_KeywordInput(object sender, SelectionTextInputEventArgs e)
-    //{
-    //    //获取关键字
-    //    switch (e.Input)
-    //    {
-    //        case "Z":
-    //            {
-    //                break;
-    //            }
-    //        case "X":
-    //            {
-    //                break;
-    //            }
-
-    //        case "Q":
-    //            {
-    //                break;
-    //            }
-    //    }
-    //    //抛出异常,用于更新提示信息
-    //    throw new ArgumentException("XuError");
-    //}
-
-
-    //#endregion
+    // #region 即时选择样板
+    // /// <summary>
+    // ///  即时选择,框选更新关键字
+    // /// </summary>
+    // public static void SelectTest()
+    // {
+    //     Env.Editor.WriteMessage("\n[白嫖工具]--测试");
+    //     // 激活选中事件
+    //     Env.Editor.SelectionAdded += SelectTest_SelectionAdded;
+    //     // 初始化坐标系
+    //     Env.Editor.CurrentUserCoordinateSystem = Matrix3d.Identity;
+       
+    //     // 创建过滤器
+    //     var sf = new OpEqual(0, "arc");
+    //     var pso = new PromptSelectionOptions
+    //     {
+    //         MessageForAdding = "\n请选择对象:"
+    //     };
+       
+    //     pso.Keywords.Add("Z");
+    //     pso.Keywords.Add("X");
+    //     pso.Keywords.Add("Q");
+    //     // 注册关键字
+    //     pso.KeywordInput += SelectTest_KeywordInput;
+    //     try
+    //     {
+    //         // 用户选择
+    //         var psr = Env.Editor.GetSelection(pso, sf);
+    //         // 处理代码
+       
+       
+    //     }
+    //     catch (Exception ex)// 捕获关键字
+    //     {
+    //         if (ex.Message == "XuError")
+    //         {
+    //             // 关闭关键字事件
+    //             pso.KeywordInput -= SelectTest_KeywordInput;
+    //             // 关闭选中事件
+    //             Env.Editor.SelectionAdded -= SelectTest_SelectionAdded;
+    //             // 重新调用自身
+    //             ZengLiangYuanJiao();
+    //         }
+    //     }
+    //     // 关闭关键字事件
+    //     pso.KeywordInput -= SelectTest_KeywordInput;
+    //     // 关闭选中事件
+    //     Env.Editor.SelectionAdded -= SelectTest_SelectionAdded;
+    // }
+       
+    // /// <summary>
+    // /// 即时选择
+    // /// </summary>
+    // /// <param name="sender"></param>
+    // /// <param name="e"></param>
+    // private static void SelectTest_SelectionAdded(object sender, SelectionAddedEventArgs e)
+    // {
+    //     // 关闭选中事件
+    //     Env.Editor.SelectionAdded -= SelectTest_SelectionAdded;
+    //     using (var tr = new DBTrans())
+    //     {
+    //         // 处理代码
+    //         for (int i = 0; i < e.AddedObjects.Count; i++)
+    //         {
+       
+       
+    //             // 处理完移除已处理的对象
+    //             e.Remove(i);
+    //         }
+    //     }
+    //     // 激活选中事件
+    //     Env.Editor.SelectionAdded += SelectTest_SelectionAdded;
+    // }
+       
+    // /// <summary>
+    // /// 关键字响应
+    // /// </summary>
+    // /// <param name="sender"></param>
+    // /// <param name="e"></param>
+    // private static void SelectTest_KeywordInput(object sender, SelectionTextInputEventArgs e)
+    // {
+    //     // 获取关键字
+    //     switch (e.Input)
+    //     {
+    //         case "Z":
+    //             {
+    //                 break;
+    //             }
+    //         case "X":
+    //             {
+    //                 break;
+    //             }
+       
+    //         case "Q":
+    //             {
+    //                 break;
+    //             }
+    //     }
+    //     // 抛出异常,用于更新提示信息
+    //     throw new ArgumentException("XuError");
+    // }     
+    // #endregion
     #endregion
 
     #region Info
@@ -857,11 +854,11 @@ public static class EditorEx
         view.Width = width;
         view.Height = height;
         view.CenterPoint = new Point2d(CenPt.X, CenPt.Y);
-        ed.SetCurrentView(view);//更新当前视图
+        ed.SetCurrentView(view);// 更新当前视图
     }
 
     /// <summary>
-    ///缩放窗口范围
+    /// 缩放窗口范围
     /// </summary>
     /// <param name="ed">命令行对象</param>
     /// <param name="lpt">第一点</param>
@@ -887,7 +884,7 @@ public static class EditorEx
     /// <returns></returns>
     public static Extents3d? GetValidExtents3d(this Database db, double extention = 1e-6)
     {
-        db.UpdateExt(true);//更新当前模型空间的范围
+        db.UpdateExt(true);// 更新当前模型空间的范围
         var ve = new Vector3d(extention, extention, extention);
         // 数据库没有图元的时候,min是大,max是小,导致新建出错
         // 数据如下:
@@ -909,7 +906,7 @@ public static class EditorEx
     public static void ZoomExtents(this Editor ed, double offsetDist = 0.00)
     {
         Database db = ed.Document.Database;
-        // db.UpdateExt(true); //GetValidExtents3d内提供了
+        // db.UpdateExt(true); // GetValidExtents3d内提供了
         var dbExtent = db.GetValidExtents3d();
         if (dbExtent == null)
             ed.ZoomWindow(Point3d.Origin, new Point3d(1, 1, 0), offsetDist);
@@ -1017,7 +1014,7 @@ public static class EditorEx
     [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "?acedEvaluateLisp@@YAHPEB_WAEAPEAUresbuf@@@Z")]
 #endif
-    [System.Security.SuppressUnmanagedCodeSecurity]//初始化默认值
+    [System.Security.SuppressUnmanagedCodeSecurity]// 初始化默认值
     static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
 
 #pragma warning disable CA2101 // 指定对 P/Invoke 字符串参数进行封送处理

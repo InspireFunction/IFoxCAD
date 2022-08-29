@@ -129,13 +129,13 @@ public class QuadTreeNode<TEntity>
         if (!Contains(rect))
             return null;
 
-        //四叉树分裂,将当前节点分为四个子节点
+        // 四叉树分裂,将当前节点分为四个子节点
         if (NodesIsEmpty)
             CreateChildren();
 
-        //当前节点边界 包含 图元包围盒 就插入
-        //退出递归:4个节点都不完全包含
-        //4个节点的上层
+        // 当前节点边界 包含 图元包围盒 就插入
+        // 退出递归:4个节点都不完全包含
+        // 4个节点的上层
         var nodes = Nodes;
         for (int i = 0; i < nodes.Length; i++)
         {
@@ -160,31 +160,31 @@ public class QuadTreeNode<TEntity>
     {
         if (!Contains(ent))
         {
-            //Debug.WriteLine("不在四叉树边界范围");
-            //Trace.WriteLine("不在四叉树边界范围");
+            // Debug.WriteLine("不在四叉树边界范围");
+            // Trace.WriteLine("不在四叉树边界范围");
             return null;
         }
 
         // if (ent.IsPoint)
         // {
-        //     //找到最后一层包含它的节点,然后加入它
-        //     //因此是跳过分裂矩形的,以免造成无限递归
+        //     // 找到最后一层包含它的节点,然后加入它
+        //     // 因此是跳过分裂矩形的,以免造成无限递归
         //     var minNode = GetMinNode(ent);
         //     minNode.Contents.Add(ent);
         //     return minNode;
         // }
 
 #if true2
-        //方案二:
-        //内容数超过才分裂,防止树深度过高,但是多选过滤时候慢一点
+        // 方案二:
+        // 内容数超过才分裂,防止树深度过高,但是多选过滤时候慢一点
         if (Contents.Count > QuadTreeEvn.QuadTreeContentsCountSplit)
         {
-            //分裂出四个子节点
+            // 分裂出四个子节点
             if (_nodesIsEmpty)
             {
                 CreateChildren();
-                //分裂之后将当前层的内容扔到四个子节点,
-                //如果被压着,那么就不会扔到下面
+                // 分裂之后将当前层的内容扔到四个子节点,
+                // 如果被压着,那么就不会扔到下面
                 for (int i = Contents.Count - 1; i >= 0; i--)
                 {
                     var minNode = GetMinNode(Contents[i].Box);
@@ -194,8 +194,8 @@ public class QuadTreeNode<TEntity>
             }
             else
             {
-                //没有分裂的话,就递归
-                //退出递归:4个节点都不完全包含,内容就是他们的父亲
+                // 没有分裂的话,就递归
+                // 退出递归:4个节点都不完全包含,内容就是他们的父亲
                 var nodes = _Nodes;
                 for (int i = 0; i < nodes.Length; i++)
                 {
@@ -203,35 +203,35 @@ public class QuadTreeNode<TEntity>
                     if (node is null)
                         continue;
 
-                    //这里需要中断.(匿名方法ForEach无法中断,会造成父节点加入内容)
+                    // 这里需要中断.(匿名方法ForEach无法中断,会造成父节点加入内容)
                     if (node.Contains(ent))
                         return node.Insert(ent);
                 }
             }
         }
 #else
-        //方案一:分裂到最细节点
+        // 方案一:分裂到最细节点
 
-        //分裂出四个子节点
+        // 分裂出四个子节点
         if (NodesIsEmpty)
             CreateChildren();
 
-        //4个子节点开始递归
-        //退出递归:4个节点都不完全包含,内容就是他们的父亲
+        // 4个子节点开始递归
+        // 退出递归:4个节点都不完全包含,内容就是他们的父亲
         var nodes = Nodes;
         for (int i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
             if (node is null)
                 continue;
-            //这里需要中断.(匿名方法ForEach无法中断,会造成父节点加入内容)
+            // 这里需要中断.(匿名方法ForEach无法中断,会造成父节点加入内容)
             if (node.Contains(ent))
                 return node.Insert(ent);
         }
 #endif
 
-        //为什么要用容器?
-        //相同包围盒或者四叉树分割线压着多个.
+        // 为什么要用容器?
+        // 相同包围盒或者四叉树分割线压着多个.
         this.Contents.Add(ent);
         return this;
     }
@@ -264,10 +264,10 @@ public class QuadTreeNode<TEntity>
 
         var upperRight = new Rect(box._X + halfWidth, box._Y + halfHeight, box._Right, box._Top);
         var upperLeft = new Rect(box._X, box._Y + halfHeight, box._Right - halfWidth, box._Top);
-        var lowerleft = new Rect(box._X, box._Y, box._Right - halfWidth, box._Top - halfHeight);//基础
+        var lowerleft = new Rect(box._X, box._Y, box._Right - halfWidth, box._Top - halfHeight);// 基础
         var lowerRight = new Rect(box._X + halfWidth, box._Y, box._Right, box._Top - halfHeight);
 
-        //依照象限顺序输出
+        // 依照象限顺序输出
         return new Rect[] { upperRight, upperLeft, lowerleft, lowerRight };
     }
     #endregion
@@ -279,13 +279,13 @@ public class QuadTreeNode<TEntity>
     /// <param name="easeEnt">根据图元删除</param>
     public bool Remove(TEntity easeEnt)
     {
-        //通过图元id删除无疑是非常低效的,
-        //1.相当于在所有的容器查找它,但是移除只会移除一次,
+        // 通过图元id删除无疑是非常低效的,
+        // 1.相当于在所有的容器查找它,但是移除只会移除一次,
         //  因此必须要求图元只会加入一次,才能中断检索剩余分支.
-        //2.这个代价还是太高,因此我们还是要默认条件,图元载入一次之后,不再改动.
-        //3.不再改动也不太合理,因为cad图元还是可以修改的
+        // 2.这个代价还是太高,因此我们还是要默认条件,图元载入一次之后,不再改动.
+        // 3.不再改动也不太合理,因为cad图元还是可以修改的
 
-        //1.处理内容
+        // 1.处理内容
         if (Contents.Remove(easeEnt))
         {
             if (CountSubTree == 0)
@@ -293,15 +293,15 @@ public class QuadTreeNode<TEntity>
             return true;
         }
 
-        //2.递归子节点移除
+        // 2.递归子节点移除
         var nodes = Nodes;
         for (int i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
             if (node is null)
                 continue;
-            if (node.Remove(easeEnt))     //递归进入子节点删除内容
-                return true;              //删除成功就中断其他节点的搜索
+            if (node.Remove(easeEnt))     // 递归进入子节点删除内容
+                return true;              // 删除成功就中断其他节点的搜索
         }
         return false;
     }
@@ -317,13 +317,13 @@ public class QuadTreeNode<TEntity>
             nodes[i]?.Clear(nodes[i]);
 
         node.Contents.Clear();
-        //node.Contents = null;//重复加入时候会出错
+        // node.Contents = null;// 重复加入时候会出错
         node.RightTopTree = null;
         node.LeftTopTree = null;
         node.LeftBottomTree = null;
         node.RightBottomTree = null;
         node.Parent = null;
-        //node.Box = zoreRect;
+        // node.Box = zoreRect;
     }
 
     /// <summary>
@@ -332,23 +332,23 @@ public class QuadTreeNode<TEntity>
     /// <param name="queryArea">根据范围删除</param>
     public void Remove(Rect queryArea)
     {
-        //本节点内容移除
-        if (Contents is not null && Contents.Count > 0)//从最上层的根节点开始进入
+        // 本节点内容移除
+        if (Contents is not null && Contents.Count > 0)// 从最上层的根节点开始进入
         {
             for (int i = Contents.Count - 1; i >= 0; i--)
             {
                 var ent = Contents[i];
-                //移除之后,如果容器是0,那么这里不能直接 Contents=null,
-                //因为此节点下面可能还有节点,
-                //需要判断了其后数量0才可以清理.
-                //否则其后还有内容,那么此节点就是仍然可以用的.
+                // 移除之后,如果容器是0,那么这里不能直接 Contents=null,
+                // 因为此节点下面可能还有节点,
+                // 需要判断了其后数量0才可以清理.
+                // 否则其后还有内容,那么此节点就是仍然可以用的.
                 if (queryArea.Contains(ent))
                     Contents.Remove(ent);
             }
         }
 
-        //同插入一样
-        //跳到指定节点再搜索这个节点下面的图元
+        // 同插入一样
+        // 跳到指定节点再搜索这个节点下面的图元
         var nodes = Nodes;
         for (int i = 0; i < nodes.Length; i++)
         {
@@ -358,27 +358,27 @@ public class QuadTreeNode<TEntity>
             if (node.NodesIsEmpty)
                 continue;
 
-            //此节点边界 完全包含 查询区域,则转到该节点,并跳过其余节点(打断此循环)
+            // 此节点边界 完全包含 查询区域,则转到该节点,并跳过其余节点(打断此循环)
             if (node.Contains(queryArea))
             {
                 node.Remove(queryArea);
                 break;
             }
-            //查询区域 完全包含 此节点边界,提取此节点全部内容
-            //跳过分析碰撞,并继续循环搜索其他节点
+            // 查询区域 完全包含 此节点边界,提取此节点全部内容
+            // 跳过分析碰撞,并继续循环搜索其他节点
             if (queryArea.Contains(node))
             {
                 node.Clear(node);
                 continue;
             }
-            //查询区域 与 此节点四边形边线碰撞 查询该四边形中,并继续循环搜索其他节点
-            //1,角点碰撞 2,边界碰撞
+            // 查询区域 与 此节点四边形边线碰撞 查询该四边形中,并继续循环搜索其他节点
+            // 1,角点碰撞 2,边界碰撞
             if (node.IntersectsWith(queryArea))
                 node.Remove(queryArea);
         }
 
-        //本节点内容移除之后,旗下还有内容的话,
-        //会跳过此处,再进入子节点进行递归,直到最后一个节点
+        // 本节点内容移除之后,旗下还有内容的话,
+        // 会跳过此处,再进入子节点进行递归,直到最后一个节点
         if (CountSubTree == 0)
             Clear(this);
     }
@@ -394,33 +394,33 @@ public class QuadTreeNode<TEntity>
     {
         GetCurrentContents(queryArea, results);
 
-        //遍历子节点
+        // 遍历子节点
         var nodes = Nodes;
         for (int i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
             if (node is null)
                 continue;
-            //子节点的4个子节点都是空的,
-            //那么表示元素会在子节点这一层啊...
+            // 子节点的4个子节点都是空的,
+            // 那么表示元素会在子节点这一层啊...
             if (node.NodesIsEmpty)
                 continue;
 
-            //此节点边界 完全包含 查询区域,则转到该节点,并跳过其余节点(打断此循环)
+            // 此节点边界 完全包含 查询区域,则转到该节点,并跳过其余节点(打断此循环)
             if (node.Contains(queryArea))
             {
                 node.Query(queryArea, results);
                 break;
             }
-            //查询区域 完全包含 此节点边界,提取此节点全部内容
-            //跳过分析碰撞,并继续循环搜索其他节点
+            // 查询区域 完全包含 此节点边界,提取此节点全部内容
+            // 跳过分析碰撞,并继续循环搜索其他节点
             if (queryArea.Contains(node))
             {
                 node.ContentsSubTree(results);
                 continue;
             }
-            //查询区域 与 此节点四边形边线碰撞 查询该四边形中,并继续循环搜索其他节点
-            //1,角点碰撞 2,边界碰撞
+            // 查询区域 与 此节点四边形边线碰撞 查询该四边形中,并继续循环搜索其他节点
+            // 1,角点碰撞 2,边界碰撞
             if (node.IntersectsWith(queryArea))
                 node.Query(queryArea, results);
         }
@@ -433,7 +433,7 @@ public class QuadTreeNode<TEntity>
     /// <param name="results"></param>
     void GetCurrentContents(Rect queryArea, List<TEntity> results)
     {
-        //遍历当前节点内容,加入方式取决于碰撞模式
+        // 遍历当前节点内容,加入方式取决于碰撞模式
         if (QuadTreeEvn.SelectMode == QuadTreeSelectMode.IntersectsWith)
         {
             for (int i = 0; i < Contents.Count; i++)
@@ -462,11 +462,11 @@ public class QuadTreeNode<TEntity>
     public TEntity? FindNearEntity(Rect queryArea)
     {
         TEntity? resultEntity = default;
-        //1.找到 查找矩形 所在的节点,利用此节点的矩形.
+        // 1.找到 查找矩形 所在的节点,利用此节点的矩形.
         var queryNode = GetMinNode(queryArea);
         var queryAreaCenter = queryArea.CenterPoint;
 
-        //2.从根开始搜索
+        // 2.从根开始搜索
         //  如果搜索父亲的父亲的...内容群,它不是距离最近的,只是节点(亲属关系)最近
         //  储存找过的<图元,距离>
         var entDic = new Dictionary<TEntity, double>();
@@ -475,10 +475,10 @@ public class QuadTreeNode<TEntity>
         QuadTreeEvn.SelectMode = QuadTreeSelectMode.IntersectsWith;
         while (true)
         {
-            //循环找父节点大小
+            // 循环找父节点大小
             var hw = queryNode.Width / 2.0;
             var hh = queryNode.Height / 2.0;
-            //3.利用选区中心扩展一个节点边界大小的矩形.从而选择图元
+            // 3.利用选区中心扩展一个节点边界大小的矩形.从而选择图元
             //  再判断图元的与目标的距离,找到最小距离,即为最近
             var minPt = new Point2d(queryAreaCenter.X - hw, queryAreaCenter.Y - hh);
             var maxPt = new Point2d(queryAreaCenter.X + hw, queryAreaCenter.Y + hh);
@@ -490,7 +490,7 @@ public class QuadTreeNode<TEntity>
                 if (entDic.ContainsKey(ent))
                     continue;
                 var dis = ent.CenterPoint.GetDistanceTo(queryAreaCenter);
-                if (dis > 1e-6)//剔除本身
+                if (dis > 1e-6)// 剔除本身
                     entDic.Add(ent, dis);
             }
             if (entDic.Count > 0)
@@ -498,9 +498,9 @@ public class QuadTreeNode<TEntity>
                 resultEntity = entDic.OrderBy(a => a.Value).First().Key;
                 break;
             }
-            if (queryNode.Parent is null)//最顶层就退出
+            if (queryNode.Parent is null)// 最顶层就退出
                 break;
-            queryNode = queryNode.Parent;//利用父节点矩形进行变大选区
+            queryNode = queryNode.Parent;// 利用父节点矩形进行变大选区
         }
         QuadTreeEvn.SelectMode = old;
         return resultEntity;
@@ -516,15 +516,15 @@ public class QuadTreeNode<TEntity>
     public TEntity? FindNeibor(Rect queryArea, QuadTreeFindMode findMode)
     {
         TEntity? resultEntity = default;
-        //1.找到 查找矩形 所在的节点,利用此节点的矩形.
-        //2.利用节点矩形是分裂的特点,边和边必然贴合.
-        //3.找到方向 findMode 拥有的节点,然后查找节点的内容
+        // 1.找到 查找矩形 所在的节点,利用此节点的矩形.
+        // 2.利用节点矩形是分裂的特点,边和边必然贴合.
+        // 3.找到方向 findMode 拥有的节点,然后查找节点的内容
         var queryNode = GetMinNode(queryArea);
 
         bool whileFlag = true;
-        //同一个节点可能包含邻居,因为四叉树的加入是图元压线,
-        //那么就在这里搜就得了,用中心点决定空间位置
-        //但是本空间的图元可能都比它矮,无法满足条件
+        // 同一个节点可能包含邻居,因为四叉树的加入是图元压线,
+        // 那么就在这里搜就得了,用中心点决定空间位置
+        // 但是本空间的图元可能都比它矮,无法满足条件
         if (queryNode.CountSubTree > 1)
         {
             resultEntity = GetNearestNeighbor(queryNode, findMode, queryArea);
@@ -536,11 +536,11 @@ public class QuadTreeNode<TEntity>
 
         while (whileFlag)
         {
-            //同一个父节点是临近的,优先获取 兄弟节点 的内容.
-            //循环了第二次是北方兄弟的节点,
-            //但是这不是一个找到临近图元的方法,
-            //因为临近的可能是父亲的父亲的父亲...另一个函数 FindNearEntity 写
-            //本方案也仅仅作为找北方节点
+            // 同一个父节点是临近的,优先获取 兄弟节点 的内容.
+            // 循环了第二次是北方兄弟的节点,
+            // 但是这不是一个找到临近图元的方法,
+            // 因为临近的可能是父亲的父亲的父亲...另一个函数 FindNearEntity 写
+            // 本方案也仅仅作为找北方节点
             var parent = queryNode.Parent;
             if (parent is not null)
             {
@@ -548,7 +548,7 @@ public class QuadTreeNode<TEntity>
                 {
                     case QuadTreeFindMode.Top:
                         {
-                            //下格才获取上格,否则导致做了无用功,上格就直接获取邻居了
+                            // 下格才获取上格,否则导致做了无用功,上格就直接获取邻居了
                             if (parent.LeftBottomTree == queryNode || parent.RightBottomTree == queryNode)
                                 resultEntity = GetNearestNeighbor(parent, findMode, queryArea);
                         }
@@ -576,9 +576,9 @@ public class QuadTreeNode<TEntity>
             if (resultEntity is not null)
                 break;
 
-            //通过 所在节点 找 邻居节点,
-            //拿到 邻居节点 下面的所有内容(图元)
-            //内容可能是空的,再从邻居那往北找...如果找到了四叉树最外层,仍然没有内容,退出循环
+            // 通过 所在节点 找 邻居节点,
+            // 拿到 邻居节点 下面的所有内容(图元)
+            // 内容可能是空的,再从邻居那往北找...如果找到了四叉树最外层,仍然没有内容,退出循环
             var neiborNode = FindNeiborNode(queryNode, findMode);
             if (neiborNode is null)
                 continue;
@@ -587,7 +587,7 @@ public class QuadTreeNode<TEntity>
                 resultEntity = GetNearestNeighbor(neiborNode, findMode, queryArea);
                 break;
             }
-            if (neiborNode.Parent is null)//如果找到了四叉树最外层,仍然没有内容,退出循环
+            if (neiborNode.Parent is null)// 如果找到了四叉树最外层,仍然没有内容,退出循环
                 break;
             queryNode = neiborNode;
         }
@@ -615,7 +615,7 @@ public class QuadTreeNode<TEntity>
         {
             case QuadTreeFindMode.Top:
                 {
-                    //取出Y比queryArea的还大的一个,是最近的那个
+                    // 取出Y比queryArea的还大的一个,是最近的那个
                     var qy = qcent.Y;
                     queryNode.ContentsSubTree(lst);
                     lst.ForEach(ent =>
@@ -665,7 +665,7 @@ public class QuadTreeNode<TEntity>
         }
 
         if (lst.Count > 0)
-            return lst[0];//可能就是本体重叠
+            return lst[0];// 可能就是本体重叠
         return results;
     }
 
@@ -683,10 +683,10 @@ public class QuadTreeNode<TEntity>
             if (node is null)
                 continue;
 
-            //边界包含查询面积,那么再递归查询,
-            //直到最后四个都不包含,那么上一个就是图元所在节点
+            // 边界包含查询面积,那么再递归查询,
+            // 直到最后四个都不包含,那么上一个就是图元所在节点
             if (node.Contains(queryArea))
-                return node.GetMinNode(queryArea);//中断后面的范围,才可以返回正确的
+                return node.GetMinNode(queryArea);// 中断后面的范围,才可以返回正确的
         }
         return this;
     }
@@ -706,19 +706,19 @@ public class QuadTreeNode<TEntity>
         {
             case QuadTreeFindMode.Top:
                 {
-                    //判断当前节点在父节点的位置,如果是在 下格 就取对应的 上格
+                    // 判断当前节点在父节点的位置,如果是在 下格 就取对应的 上格
                     if (tar == parent.LeftBottomTree)
                         return parent.LeftTopTree;
                     if (tar == parent.RightBottomTree)
                         return parent.RightTopTree;
-                    //否则就是上格
-                    //找父节点的北方邻居..也就是在爷节点上面找
-                    //递归,此时必然是 下格,就必然返回 上格,然后退出递归
+                    // 否则就是上格
+                    // 找父节点的北方邻居..也就是在爷节点上面找
+                    // 递归,此时必然是 下格,就必然返回 上格,然后退出递归
                     var parentNeibor = FindNeiborNode(parent, QuadTreeFindMode.Top);
-                    //父节点的北方邻居 无 子节点
+                    // 父节点的北方邻居 无 子节点
                     if (parentNeibor is null || parentNeibor.RightTopTree is null)
-                        return parentNeibor;//返回父节点的北方邻居,比较大
-                                            //父节点的北方邻居 有 子节点,剩下条件就只有这两
+                        return parentNeibor;// 返回父节点的北方邻居,比较大
+                                            // 父节点的北方邻居 有 子节点,剩下条件就只有这两
 
                     // 如果直接返回,那么是(相同或更大),
                     // 而找邻近图元需要的是这个(相同或更大)下面的图元,在外面对这个格子内图元用坐标分析就好了
@@ -770,8 +770,8 @@ public class QuadTreeNode<TEntity>
     /// <summary>
     /// 所有的点归类到最小包围它的空间
     /// </summary>
-    //public void PointsToMinNode()
-    //{
+    // public void PointsToMinNode()
+    // {
     //    ForEach(node =>
     //    {
     //        for (int i = 0; i < node.Contents.Count; i++)
@@ -779,7 +779,7 @@ public class QuadTreeNode<TEntity>
     //            var ent = node.Contents[i];
     //            if (ent.IsPoint)
     //            {
-    //                //如果最小包含!=当前,就是没有放在最适合的位置
+    //                // 如果最小包含!=当前,就是没有放在最适合的位置
     //                var queryNode = GetMinNode(ent);
     //                if (queryNode != node)
     //                {
@@ -790,7 +790,7 @@ public class QuadTreeNode<TEntity>
     //        }
     //        return false;
     //    });
-    //}
+    // }
     #endregion
 
     #region 方法
@@ -800,11 +800,11 @@ public class QuadTreeNode<TEntity>
     /// <param name="action"></param>QTAction
     public bool ForEach(QuadTree<TEntity>.QTAction action)
     {
-        //执行本节点
+        // 执行本节点
         if (action(this))
             return true;
 
-        //递归执行本节点的子节点
+        // 递归执行本节点的子节点
         var nodes = Nodes;
         for (int i = 0; i < nodes.Length; i++)
         {

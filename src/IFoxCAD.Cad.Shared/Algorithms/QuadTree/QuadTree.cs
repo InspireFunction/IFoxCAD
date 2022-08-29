@@ -50,7 +50,7 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
     /// <param name="rect">四叉树矩形范围</param>
     public QuadTree(Rect rect)
     {
-        _rootNode = new QuadTreeNode<TEntity>(rect, null, 0);//初始化根节点
+        _rootNode = new QuadTreeNode<TEntity>(rect, null, 0);// 初始化根节点
         _points = new();
     }
     #endregion
@@ -85,42 +85,42 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
             var sq_Botton = _rootNode._Y;
             var sq_Right = _rootNode._Right;
             var sq_Top = _rootNode._Top;
-            if (ent._Y >= _rootNode._Y)//上↑增殖
+            if (ent._Y >= _rootNode._Y)// 上↑增殖
             {
                 if (ent._X >= _rootNode._X)
                 {
-                    //右上↗增殖
+                    // 右上↗增殖
                     sq_Right += _rootNode.Width;
                     sq_Top += _rootNode.Height;
                 }
                 else
                 {
-                    //左上↖增殖
+                    // 左上↖增殖
                     sq_Left -= _rootNode.Width;
                     sq_Top += _rootNode.Height;
                 }
             }
-            else//在下↓
+            else// 在下↓
             {
                 if (ent._X >= _rootNode._X)
                 {
-                    //右下↘增殖
+                    // 右下↘增殖
                     sq_Right += _rootNode.Width;
                     sq_Botton -= _rootNode.Height;
                 }
                 else
                 {
-                    //左下↙增殖
+                    // 左下↙增殖
                     sq_Left -= _rootNode.Width;
                     sq_Botton -= _rootNode.Height;
                 }
             }
-            //扩大2次方
+            // 扩大2次方
             var rectSquare = new Rect(sq_Left, sq_Botton, sq_Right, sq_Top);
 
-            //四叉树的旧根要作为四分之一插入
-            //新根中计算原根
-            //把 旧根节点 连接到 新根节点 上面,然后新根成为根
+            // 四叉树的旧根要作为四分之一插入
+            // 新根中计算原根
+            // 把 旧根节点 连接到 新根节点 上面,然后新根成为根
             var newRoot = new QuadTreeNode<TEntity>(rectSquare, null, 0);
             var insert = newRoot.Insert(_rootNode);
             if (insert is null)
@@ -144,8 +144,8 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
             else
                 throw new("四叉树:新节点不对,无法连接");
 
-            //其后的子节点层数全部增加层数,
-            //要加多少层取决于当前根边界属于新根边界的所在层
+            // 其后的子节点层数全部增加层数,
+            // 要加多少层取决于当前根边界属于新根边界的所在层
             var depth = insert.Depth;
             if (depth == 0)
                 throw new("四叉树:插入节点是0,造成错误");
@@ -154,7 +154,7 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
                 return false;
             });
 
-            //交换根控制
+            // 交换根控制
             _rootNode = newRoot;
         }
 
@@ -172,9 +172,9 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
         QuadTreeEvn.SelectMode = selectMode;
 
         var results = new List<TEntity>();
-        //选择图元
+        // 选择图元
         _rootNode.Query(rect, results);
-        //选择点
+        // 选择点
         var ptge = _points.GetEnumerator();
         switch (selectMode)
         {
@@ -195,7 +195,7 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
                             results.Add(ptEnt);
                     }
                     else if (ptEnt._X > rect._Right)
-                        break;//超过后面范围就break,因为红黑树已经排序
+                        break;// 超过后面范围就break,因为红黑树已经排序
                 }
                 break;
             default:

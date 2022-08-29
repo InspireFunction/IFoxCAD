@@ -9,8 +9,8 @@ namespace IFoxCAD.LoadEx;
 public class AssemblyDependent : IDisposable
 {
 #if HarmonyPatch
-    //这个是不能删除的,否则就不执行了
-    //HarmonyPatch hook method 返回 false 表示拦截原函数
+    // 这个是不能删除的,否则就不执行了
+    // HarmonyPatch hook method 返回 false 表示拦截原函数
     public static bool Prefix() { return false; }
 #endif
 
@@ -36,7 +36,7 @@ public class AssemblyDependent : IDisposable
     /// </summary>
     public AssemblyDependent()
     {
-        //初始化一次,反复load
+        // 初始化一次,反复load
         CurrentDomainAssemblyResolveEvent += AssemblyHelper.DefaultAssemblyResolve;
     }
     #endregion
@@ -57,12 +57,12 @@ public class AssemblyDependent : IDisposable
         if (dllFullName == null)
             throw new ArgumentNullException(nameof(dllFullName));
 
-        dllFullName = Path.GetFullPath(dllFullName);//相对路径要先转换
+        dllFullName = Path.GetFullPath(dllFullName);// 相对路径要先转换
         if (!File.Exists(dllFullName))
             throw new ArgumentException("路径不存在");
 
-        //程序集数组要动态获取(每次Load的时候),
-        //否则会变成一个固定数组,造成加载了之后也不会出现成员
+        // 程序集数组要动态获取(每次Load的时候),
+        // 否则会变成一个固定数组,造成加载了之后也不会出现成员
         var cadAssembly = AppDomain.CurrentDomain.GetAssemblies();
         var cadAssemblyRef = AppDomain.CurrentDomain.ReflectionOnlyGetAssemblies();
 
@@ -71,22 +71,22 @@ public class AssemblyDependent : IDisposable
 
         bool dllFullNameLoadOk = false;
 
-        //查询加载链逆向加载,确保前面不丢失
-        //这里有问题,从尾巴开始的,就一定是没有任何引用吗?
+        // 查询加载链逆向加载,确保前面不丢失
+        // 这里有问题,从尾巴开始的,就一定是没有任何引用吗?
         for (int i = allRefs.Count - 1; i >= 0; i--)
         {
             var allRef = allRefs[i];
 
-            //路径转程序集名
+            // 路径转程序集名
             var an = AssemblyName.GetAssemblyName(allRef).FullName;
             var assembly = cadAssembly.FirstOrDefault(a => a.FullName == an);
             if (assembly != null)
             {
-                loadStates.Add(new LoadState(allRef, false));//版本号没变不加载
+                loadStates.Add(new LoadState(allRef, false));// 版本号没变不加载
                 continue;
             }
 
-            //有一次true,就是true 
+            // 有一次true,就是true
             if (allRef == dllFullName)
                 dllFullNameLoadOk = true;
 
@@ -126,7 +126,7 @@ public class AssemblyDependent : IDisposable
     Assembly? GetPdbAssembly(string? path)
     {
 #if DEBUG
-        //为了实现Debug时候出现断点,见链接,加依赖
+        // 为了实现Debug时候出现断点,见链接,加依赖
         // https://www.cnblogs.com/DasonKwok/p/10510218.html
         // https://www.cnblogs.com/DasonKwok/p/10523279.html
 
@@ -164,11 +164,11 @@ public class AssemblyDependent : IDisposable
             return;
 
         var sb = new StringBuilder();
-        //dll拖拉加载路径-搜索路径(可以增加到这个dll下面的所有文件夹?)
+        // dll拖拉加载路径-搜索路径(可以增加到这个dll下面的所有文件夹?)
         sb.Append(Path.GetDirectoryName(dllFullName));
         sb.Append("\\");
 
-        //遍历依赖,如果存在dll拖拉加载目录就加入dlls集合
+        // 遍历依赖,如果存在dll拖拉加载目录就加入dlls集合
         var asse = assemblyAsRef.GetReferencedAssemblies();
         for (int i = 0; i < asse.Length; i++)
         {
@@ -194,20 +194,20 @@ public class AssemblyDependent : IDisposable
                           Assembly[] cadAssemblyRef,
                           string? dllFullName)
     {
-        //路径转程序集名
+        // 路径转程序集名
         var assName = AssemblyName.GetAssemblyName(dllFullName).FullName;
-        //在当前程序域的 assemblyAs内存区 和 assemblyAsRef映射区 找这个程序集名
+        // 在当前程序域的 assemblyAs内存区 和 assemblyAsRef映射区 找这个程序集名
         var assemblyAs = cadAssembly.FirstOrDefault(ass => ass.FullName == assName);
 
-        //内存区有表示加载过
-        //映射区有表示查找过,但没有加载(一般来说不存在.只是debug会注释掉 Assembly.Load 的时候用来测试)
+        // 内存区有表示加载过
+        // 映射区有表示查找过,但没有加载(一般来说不存在.只是debug会注释掉 Assembly.Load 的时候用来测试)
         if (assemblyAs != null)
             return assemblyAs;
 
-        //映射区
+        // 映射区
         var assemblyAsRef = cadAssemblyRef.FirstOrDefault(ass => ass.FullName == assName);
 
-        //内存区和映射区都没有的话就把dll加载到映射区,用来找依赖表
+        // 内存区和映射区都没有的话就把dll加载到映射区,用来找依赖表
         if (assemblyAsRef != null)
             return assemblyAsRef;
 
@@ -226,7 +226,7 @@ public class AssemblyDependent : IDisposable
             hm.UnpatchAll(ext);
 #endif
 #if HarmonyPatch_2
-            //方案二:跟cad耦合了
+            // 方案二:跟cad耦合了
             const string ext = "Autodesk.AutoCAD.ApplicationServices.ExtensionLoader";
             var docAss = typeof(Autodesk.AutoCAD.ApplicationServices.Document).Assembly;
             var a = docAss.GetType(ext);
@@ -345,13 +345,13 @@ public class AssemblyDependent : IDisposable
             var filename = Path.GetFileNameWithoutExtension(dllFullName);
             var path = Path.GetDirectoryName(dllFullName);
 
-            //新建文件夹_临时目录
+            // 新建文件夹_临时目录
             temp_Pdb_dest = path + $"\\{Temp}\\";
-            //移动文件进去
+            // 移动文件进去
             temp_Pdb_source = path + "\\" + filename + ".pdb";
             FileEx.MoveFolder(temp_Pdb_source, temp_Pdb_dest);
 
-            //检查是否存在obj文件夹,有就递归移动
+            // 检查是否存在obj文件夹,有就递归移动
             var list = path.Split('\\');
             if (list[list.Length - 1] == "Debug" && list[list.Length - 2] == "bin")
             {
@@ -396,7 +396,7 @@ public class AssemblyDependent : IDisposable
   
     protected virtual void Dispose(bool disposing)
     {
-        //不重复释放,并设置已经释放
+        // 不重复释放,并设置已经释放
         if (IsDisposed) return;
         IsDisposed = true;
 
@@ -459,7 +459,7 @@ public class FileEx
         if (ContainFileName(destPath))
             destPath = Path.GetDirectoryName(destPath);
 
-        //目标目录不存在则创建
+        // 目标目录不存在则创建
         if (!Directory.Exists(destPath))
             Directory.CreateDirectory(destPath);
 
@@ -492,28 +492,28 @@ public class FileEx
     /// <param name="destPath">目标文件夹</param>
     static void MoveFolder2(string sourcePath, string destPath)
     {
-        //目标目录不存在则创建
+        // 目标目录不存在则创建
         if (!Directory.Exists(destPath))
             Directory.CreateDirectory(destPath);
 
-        //获得源文件下所有文件
+        // 获得源文件下所有文件
         var files = new List<string>(Directory.GetFiles(sourcePath));
         files.ForEach(c => {
             string destFile = Path.Combine(destPath, Path.GetFileName(c));
-            //覆盖模式
+            // 覆盖模式
             if (File.Exists(destFile))
                 File.Delete(destFile);
             File.Move(c, destFile);
         });
-        //获得源文件下所有目录文件
+        // 获得源文件下所有目录文件
         List<string> folders = new(Directory.GetDirectories(sourcePath));
 
         folders.ForEach(c => {
             string destDir = Path.Combine(destPath, Path.GetFileName(c));
-            //Directory.Move必须要在同一个根目录下移动才有效，不能在不同卷中移动。
-            //Directory.Move(c, destDir);
+            // Directory.Move必须要在同一个根目录下移动才有效，不能在不同卷中移动。
+            // Directory.Move(c, destDir);
 
-            //采用递归的方法实现
+            // 采用递归的方法实现
             MoveFolder2(c, destDir);
         });
     }
@@ -527,15 +527,15 @@ public class FileEx
     {
         if (dir is null)
             throw new ArgumentException(nameof(dir));
-        if (!Directory.Exists(dir)) //如果存在这个文件夹删除之
+        if (!Directory.Exists(dir)) // 如果存在这个文件夹删除之
             return;
         foreach (string d in Directory.GetFileSystemEntries(dir))
         {
             if (File.Exists(d))
-                File.Delete(d); //直接删除其中的文件
+                File.Delete(d); // 直接删除其中的文件
             else
-                DeleteFolder(d); //递归删除子文件夹
+                DeleteFolder(d); // 递归删除子文件夹
         }
-        Directory.Delete(dir, true); //删除已空文件夹
+        Directory.Delete(dir, true); // 删除已空文件夹
     }
 }

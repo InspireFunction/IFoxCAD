@@ -6,7 +6,7 @@ using System.Threading;
 using Exception = Exception;
 
 #region 写入日志到不同的环境中
-//https://zhuanlan.zhihu.com/p/338492989
+// https://zhuanlan.zhihu.com/p/338492989
 public abstract class LogBase
 {
     public abstract void DeleteLog();
@@ -59,7 +59,7 @@ public class FileLogger : LogBase
     }
     public override void WriteLog(string? message)
     {
-        //把异常信息输出到文件
+        // 把异常信息输出到文件
         var sw = new StreamWriter(LogHelper.LogAddress, true/*当天日志文件存在就追加,否则就创建*/);
         sw.Write(message);
         sw.Flush();
@@ -197,20 +197,20 @@ public static class LogHelper
     /// <returns>完整路径</returns>
     public static string GetDefaultOption(string fileName, bool createDirectory = true)
     {
-        //微软回复:静态构造函数只会被调用一次,
-        //并且在它执行完成之前,任何其它线程都不能创建这个类的实例或使用这个类的静态成员
-        //https://blog.csdn.net/weixin_34204722/article/details/90095812
+        // 微软回复:静态构造函数只会被调用一次,
+        // 并且在它执行完成之前,任何其它线程都不能创建这个类的实例或使用这个类的静态成员
+        // https://blog.csdn.net/weixin_34204722/article/details/90095812
         var sb = new StringBuilder();
         sb.Append(Environment.CurrentDirectory);
         sb.Append("\\ErrorLog");
 
-        //新建文件夹
+        // 新建文件夹
         if (createDirectory)
         {
             var path = sb.ToString();
             if (!Directory.Exists(path))
             {
-                //设置文件夹属性为普通
+                // 设置文件夹属性为普通
                 Directory.CreateDirectory(path)
                          .Attributes = FileAttributes.Normal;
             }
@@ -262,7 +262,7 @@ public static class LogHelper
                 OptionFile();
         }
 
-        //不写入错误
+        // 不写入错误
         if (target == LogTarget.FileNotException)
             ex = null;
 
@@ -271,7 +271,7 @@ public static class LogHelper
             _logWriteLock.EnterWriteLock();// 写模式锁定 读写锁
 
             var logtxt = new LogTxt(ex, message);
-            //var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
+            // var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
             var logtxtJson = logtxt?.ToString();
             if (logtxtJson == null)
                 return string.Empty;
@@ -369,7 +369,7 @@ public class LogTxt
 #endregion
 
 
-#if false //最简单的实现
+#if false // 最简单的实现
 public static class Log
 {
     /// <summary>
@@ -385,19 +385,19 @@ public static class Log
 
     static Log()
     {
-        //微软回复:静态构造函数只会被调用一次,
-        //并且在它执行完成之前,任何其它线程都不能创建这个类的实例或使用这个类的静态成员
-        //https://blog.csdn.net/weixin_34204722/article/details/90095812
+        // 微软回复:静态构造函数只会被调用一次,
+        // 并且在它执行完成之前,任何其它线程都不能创建这个类的实例或使用这个类的静态成员
+        // https://blog.csdn.net/weixin_34204722/article/details/90095812
         var sb = new StringBuilder();
         sb.Append(Environment.CurrentDirectory);
         sb.Append("\\ErrorLog");
 
-        //新建文件夹
+        // 新建文件夹
         var path = sb.ToString();
         if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path)
-                     .Attributes = FileAttributes.Normal; //设置文件夹属性为普通
+                     .Attributes = FileAttributes.Normal; // 设置文件夹属性为普通
         }
 
         sb.Append('\\');
@@ -422,13 +422,13 @@ public static class Log
             _logWriteLock.EnterWriteLock();// 写模式锁定 读写锁
 
             var logtxt = new LogTxt(ex, remarks);
-            //var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
+            // var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
             var logtxtJson = logtxt.ToString();
 
             if (logtxtJson == null)
                 return string.Empty;
 
-            //把异常信息输出到文件
+            // 把异常信息输出到文件
             var sw = new StreamWriter(_logAddress, true/*当天日志文件存在就追加,否则就创建*/);
             sw.Write(logtxtJson);
             sw.Flush();
@@ -439,8 +439,8 @@ public static class Log
             {
                 Debug.WriteLine("错误日志: " + _logAddress);
                 Debug.Write(logtxtJson);
-                //Debugger.Break(); 
-                //Debug.Assert(false, "终止进程");
+                // Debugger.Break(); 
+                // Debug.Assert(false, "终止进程");
             }
             return logtxtJson;
         }

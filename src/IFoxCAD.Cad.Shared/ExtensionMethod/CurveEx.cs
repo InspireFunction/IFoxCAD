@@ -118,7 +118,7 @@ public static class CurveEx
             graph.AddEdge(curve.GetGeCurve());
 #endif
         }
-        //新建 dfs
+        // 新建 dfs
         var dfs = new DepthFirst();
         // 查询全部的 闭合环
         dfs.FindAll(graph);
@@ -156,14 +156,14 @@ public static class CurveEx
             }
         }
 
-        //var oldCurves = new List<Curve>();
+        // var oldCurves = new List<Curve>();
         var newCurves = new List<Curve>();
         var cci3d = new CurveCurveIntersector3d();
 
         for (int i = 0; i < curves.Count; i++)
         {
             var gc1 = geCurves[i];
-            var pars1 = paramss[i]; //引用
+            var pars1 = paramss[i]; // 引用
             for (int j = i; j < curves.Count; j++)
             {
                 var gc2 = geCurves[j];
@@ -193,7 +193,7 @@ public static class CurveEx
                             newCurves.Add(c3dCur);
                         }
                     }
-                    //oldCurves.Add(curves[i]);
+                    // oldCurves.Add(curves[i]);
                 }
             }
         }
@@ -201,7 +201,7 @@ public static class CurveEx
         return newCurves;
     }
 
-    //转换DBCurve为GeCurved
+    // 转换DBCurve为GeCurved
 
     #region Curve
 
@@ -475,9 +475,9 @@ public static class CurveEx
                 return ToNurbCurve3d(pl2d);
         }
 
-        //Polyline pl = new Polyline();
-        //pl.ConvertFrom(pl2d, false);
-        //return ToCurve3d(pl);
+        // Polyline pl = new Polyline();
+        // pl.ConvertFrom(pl2d, false);
+        // return ToCurve3d(pl);
     }
 
     /// <summary>
@@ -644,7 +644,7 @@ public static class CurveEx
             SegmentType.Line != polyline.GetSegmentType(index))
             throw new System.Exception("非直线段不能倒角");
 
-        //获取当前索引号的前后两段直线,并组合为Ge复合曲线
+        // 获取当前索引号的前后两段直线,并组合为Ge复合曲线
         Curve3d[] c3ds =
             new Curve3d[]
                 {
@@ -653,11 +653,11 @@ public static class CurveEx
                 };
         CompositeCurve3d cc3d = new(c3ds);
 
-        //试倒直角
-        //子曲线的个数有三种情况:
-        //1、=3时倒角方向正确
-        //2、=2时倒角方向相反
-        //3、=0或为直线时失败
+        // 试倒直角
+        // 子曲线的个数有三种情况:
+        // 1、=3时倒角方向正确
+        // 2、=2时倒角方向相反
+        // 3、=0或为直线时失败
         c3ds =
             cc3d.GetTrimmedOffset
             (
@@ -691,7 +691,7 @@ public static class CurveEx
             throw new System.Exception("倒角半径过大");
         }
 
-        //GetTrimmedOffset会生成倒角+偏移，故先反方向倒角,再倒回
+        // GetTrimmedOffset会生成倒角+偏移，故先反方向倒角,再倒回
         c3ds = cc3d.GetTrimmedOffset
                 (
                     -radius,
@@ -708,7 +708,7 @@ public static class CurveEx
                     type
                 );
 
-        //将结果Ge曲线转为Db曲线,并将相关的数值反映到原曲线
+        // 将结果Ge曲线转为Db曲线,并将相关的数值反映到原曲线
         var plTemp = c3ds[0].ToCurve() as Polyline;
         if (plTemp is null)
             return;

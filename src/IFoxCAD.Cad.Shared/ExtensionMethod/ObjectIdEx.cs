@@ -19,7 +19,7 @@ public static class ObjectIdEx
     public static T? GetObject<T>(this ObjectId id, OpenMode mode = OpenMode.ForRead, bool openErased = false, Transaction? tr = default) where T : DBObject
     {
         tr ??= DBTrans.Top.Transaction;
-        //tr = Env.GetTrans(tr);
+        // tr = Env.GetTrans(tr);
         return tr.GetObject(id, mode, openErased) as T;
     }
 
@@ -53,7 +53,7 @@ public static class ObjectIdEx
     }
     #endregion GetObject
 
-    //Acad08缺少 id.ObjectClass 如何补偿?
+    // Acad08缺少 id.ObjectClass 如何补偿?
     public static RXClass ObjectClass(this ObjectId id)
     {
 #if NET35
@@ -86,7 +86,7 @@ public static class ObjectIdEx
             {
                 ent.Erase();
             }// 第一种读写权限自动转换写法
-            //Env.Editor.Regen();
+            // Env.Editor.Regen();
         }
     }
 }
