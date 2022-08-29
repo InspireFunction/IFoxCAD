@@ -2,7 +2,7 @@
 
 using System;
 
-public class Helper
+public class DBTransHelper
 {
     /*
      * id = db.GetObjectId(false, handle, 0);

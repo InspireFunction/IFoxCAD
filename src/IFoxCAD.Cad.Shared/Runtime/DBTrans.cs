@@ -361,7 +361,7 @@ public class DBTrans : IDisposable
     {
         var hanle = new Handle(Convert.ToInt64(handleString, 16));
         //return Database.GetObjectId(false, hanle, 0);
-        return Helper.TryGetObjectId(Database, hanle);
+        return DBTransHelper.TryGetObjectId(Database, hanle);
     }
     #endregion
 

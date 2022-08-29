@@ -143,7 +143,7 @@ public class AutoReflection
                 RunFunctions(_TerminateList);
             }
         }
-        catch (System.Exception)
+        catch (System.Exception e)
         {
             Debugger.Break();
         }
