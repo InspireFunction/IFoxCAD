@@ -1,5 +1,7 @@
 namespace IFoxCAD.LoadEx;
 
+using System.Diagnostics;
+
 public class AssemblyHelper
 {
     /// <summary>
@@ -33,17 +35,31 @@ public class AssemblyHelper
         // 否则a.dll引用b.dll函数的时候,b.dll修改重生成之后,
         // 加载进去会调用第一个版本的b.dll,
         // vs会迭代程序版本号的*,所以最后的可用就是循环到最后的.
+
+
         for (int i = 0; i < cadAss.Length; i++)
         {
             if (GetAssemblyName(cadAss[i].GetName().FullName) != ag)
                 continue;
             result = cadAss[i];
         }
+
+        if (result == null)
+        {
+            var sb = new StringBuilder();
+            sb.AppendLine(nameof(DefaultAssemblyResolve) + "出错,没有在本程序集中找到它");
+            sb.AppendLine("++参数名:: " + GetAssemblyName(args.Name));
+            sb.AppendLine("++参数完整信息:: " + args.Name);
+            for (int i = 0; i < cadAss.Length; i++)
+                sb.AppendLine("-------匹配对象:: " + GetAssemblyName(cadAss[i].GetName().FullName));
+            Debug.WriteLine(sb.ToString());
+            Debugger.Break();
+        }
         return result;
     }
 
     static string GetAssemblyName(string argString)
     {
-        return argString.Substring(argString.IndexOf(','));
+        return argString.Substring(0, argString.IndexOf(','));
     }
 }
