@@ -62,9 +62,10 @@ public class JigEx : DrawJig
     /// 在界面绘制图元
     /// </summary>
     /// <param name="action">
-    /// 用来频繁执行的回调:
-    /// <see cref="Point3d"/>鼠标点;
-    /// <see cref="Queue"/>加入新建的图元,鼠标采样期间会Dispose图元的;所以已经在数据库图元利用事件加入,不要在此加入;
+    /// 用来频繁执行的回调:<br/>
+    /// <see cref="Point3d"/>鼠标点;<br/>
+    /// <see cref="Queue"/>加入新建的图元,鼠标采样期间会Dispose图元的;<br/>
+    /// 所以已经在数据库图元利用事件加入,不要在此加入;<br/>
     /// </param>
     /// <param name="tolerance">鼠标移动的容差</param>
     public JigEx(Action<Point3d, Queue<Entity>>? action = null, double tolerance = 1e-6) : this()
