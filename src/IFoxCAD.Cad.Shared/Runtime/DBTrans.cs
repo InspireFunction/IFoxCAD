@@ -475,9 +475,9 @@ public class DBTrans : IDisposable
         var fileName = Path.GetFileNameWithoutExtension(_fileFullName);
         var fileExt = Path.GetExtension(_fileFullName);
 
-        if (fileName == string.Empty)
+        if (fileName.Trim() == string.Empty)
             fileName = DateTime.Now.ToString("--yyMMdd--hhmmssffff");
-        if (fileExt == string.Empty)
+        if (fileExt.Trim() == string.Empty)
             fileExt = ".dwg";
 
         // 构造函数(fileName)用了不存在的路径进行后台打开,就会出现此问题
