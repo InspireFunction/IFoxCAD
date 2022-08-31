@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
 using System.Diagnostics;
 using System.IO;
@@ -418,6 +418,7 @@ public class DBTrans : IDisposable
         }
         else
         {
+            fileMsg = saveAsName;
             // 路径失败也保存到桌面
             // 没有文件名呢?那就报错,保存到系统目录也会报错,只能尽人事
             var path = Path.GetDirectoryName(saveAsName);
