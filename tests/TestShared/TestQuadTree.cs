@@ -101,7 +101,7 @@ public partial class TestQuadTree
                
                 var ce = new CadEntity(entId, entRect)
                 {
-                    Color = RandomEx.RandomColor
+                    Color = RandomEx.NextColor()
                 };
                 ces.Add(ce);
                 /*加入随机点*/
