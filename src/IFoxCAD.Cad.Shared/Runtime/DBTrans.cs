@@ -2,6 +2,7 @@
 
 using System.Diagnostics;
 using System.IO;
+using System.Threading;
 
 /// <summary>
 /// 事务栈
@@ -368,36 +369,17 @@ public class DBTrans : IDisposable
 
     #region 保存文件
     /// <summary>
-    /// 保存当前数据库的dwg文件,如果前台打开则按dwg默认版本保存,否则按version参数的版本保存
+    /// 保存当前数据库的dwg文件<br/>
+    /// 前台按dwg默认版本保存(环境变量),<br/>
+    /// 后台按参数<paramref name="version"/>保存,同时受<paramref name="automatic"/>影响
     /// </summary>
-    /// <param name="version">dwg版本,默认为2004</param>
-    /// <param name="IsDefaultFormatForSave">为true时候<paramref name="version"/>无效,将读取当前cad环境配置的版本</param>
+    /// <param name="version">默认2004dwg: <see cref="DwgVersion.AC1800"/></param>
+    /// <param name="automatic">为true时候<paramref name="version"/>无效,将自动识别环境变量</param>
     public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800,
-                            bool IsDefaultFormatForSave = true)
+                            bool automatic = true)
     {
-        if (IsDefaultFormatForSave)
-        {
-            var ffs = Env.AcedGetEnv("DefaultFormatForSave");
-            version = ffs switch
-            {
-                "1" => DwgVersion.AC1009,// r12/LT12 dxf
-                "8" => DwgVersion.AC1014,// r14/LT98/LT97 dwg 
-                "12" => DwgVersion.AC1015,// 2000 dwg
-                "13" => DwgVersion.AC1800a,// 2000 dxf
-                "24" => DwgVersion.AC1800,// 2004 dwg
-                "25" => (DwgVersion)26,// 2004 dxf
-                "36" => (DwgVersion)27,// 2007 dwg    DwgVersion.AC1021
-                "37" => (DwgVersion)28,// 2007 dxf
-                //"38" => (DwgVersion),// dwt 样板文件...啊惊没找到这个是什么
-                "48" => (DwgVersion)29,// 2010 dwg  DwgVersion.AC1024
-                "49" => (DwgVersion)30,// 2010 dxf
-                "60" => (DwgVersion)31,// 2013 dwg  DwgVersion.AC1027
-                "61" => (DwgVersion)32,// 2013 dxf
-                "64" => (DwgVersion)33,// 2018 dwg  DwgVersion.AC1032
-                "65" => (DwgVersion)34,// 2018 dxf   
-                _ => (DwgVersion)25,
-            };
-        }
+        if (automatic)
+            version = Env.GetDefaultFormatForSaveToDwgVersion();
 
         Document? doca = null;
         foreach (Document doc in Acap.DocumentManager)
@@ -417,19 +399,33 @@ public class DBTrans : IDisposable
                 return;
             }
 
-            /// 构造函数(fileName)用了不存在的路径进行后台打开,就会出现此问题 
-            /// 测试命令 FileNotExist
-            Debug.WriteLine("**** 此文件路径不存在,无法保存!将自动保存到桌面中.");
-            string dir = Environment.GetFolderPath(
-                         Environment.SpecialFolder.DesktopDirectory) + "\\路径不存在进行临时保存\\";
+            // 构造函数(fileName)用了不存在的路径进行后台打开,就会出现此问题
+            // 测试命令 FileNotExist
+            var dir = Environment.GetFolderPath(
+                        Environment.SpecialFolder.DesktopDirectory) + "\\路径不存在进行临时保存\\";
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
-            string file = DateTime.Now.ToString("yyyy-MM-dd--h-mm-ss-ffff");
-            Database.SaveAs(dir + file + ".dwg", version);
+            string file;
+            do
+            {
+                var time = DateTime.Now.ToString("yyyy-MM-dd--h-mm-ss-ffff");
+                file = dir + time + ".dwg";
+                Thread.Sleep(100);
+            } while (File.Exists(file));
+            Database.SaveAs(file, version);
 
+            // 防止前台关闭了所有文档导致没有Editor,所以使用 MessageBox 发送警告
+            System.Windows.Forms.MessageBox.Show(
+                $"**** 后台保存图纸出错," +
+                $"此文件路径不存在,无法保存!" +
+                $"将自动保存到桌面中." +
+                $"\n\n路径为{file}", nameof(DBTrans));
         }
-        else // 前台开图,使用命令保存;不需要切换文档
+        else
+        {
+            // 前台开图,使用命令保存;不需要切换文档
             doca.SendStringToExecute("_qsave\n", false, true, true);
+        }
     }
     #endregion
 
