@@ -27,6 +27,10 @@ public class DBTrans : IDisposable
     /// 事务栈
     /// </summary>
     private static readonly Stack<DBTrans> dBTrans = new();
+    /// <summary>
+    /// 文件名
+    /// </summary>
+    private readonly string? _fileFullName;
     #endregion
 
     #region 公开属性
@@ -133,15 +137,15 @@ public class DBTrans : IDisposable
         if (fileName == null || string.IsNullOrEmpty(fileName.Trim()))
             throw new ArgumentNullException(nameof(fileName));
 
-        fileName = fileName.Replace("/", "\\");//// doc.Name总是"D:\\JX.dwg"
+        _fileFullName = fileName.Replace("/", "\\");//// doc.Name总是"D:\\JX.dwg"
 
-        if (!File.Exists(fileName))
+        if (!File.Exists(_fileFullName))
             Database = new Database(true, false);
         else
         {
             var doc = Acap.DocumentManager
                      .Cast<Document>()
-                     .FirstOrDefault(doc => doc.Name == fileName);
+                     .FirstOrDefault(doc => doc.Name == _fileFullName);
             if (doc is not null)
             {
                 Database = doc.Database;
@@ -151,8 +155,8 @@ public class DBTrans : IDisposable
             else
             {
                 Database = new Database(false, true);
-                if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
-                    Database.DxfIn(fileName, null);
+                if (Path.GetExtension(_fileFullName).ToLower().Contains("dxf"))
+                    Database.DxfIn(_fileFullName, null);
                 else
                 {
 #if ac2008
@@ -181,14 +185,14 @@ public class DBTrans : IDisposable
                     }
 
                     // 这个会致命错误
-                    // using FileStream fileStream = new(fileName, FileMode.Open, fileAccess, fileShare);
+                    // using FileStream fileStream = new(_fileFullName, FileMode.Open, fileAccess, fileShare);
                     // Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(),
                     //      true/*控制读入一个与系统编码不相同的文件时的转换操作*/,password);
 
-                    Database.ReadDwgFile(fileName, fileShare,
+                    Database.ReadDwgFile(_fileFullName, fileShare,
                             true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
 #else
-                    Database.ReadDwgFile(fileName, openMode,
+                    Database.ReadDwgFile(_fileFullName, openMode,
                             true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
 #endif
                 }
@@ -378,9 +382,6 @@ public class DBTrans : IDisposable
     public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800,
                             bool automatic = true)
     {
-        if (automatic)
-            version = Env.GetDefaultFormatForSaveToDwgVersion();
-
         Document? doca = null;
         foreach (Document doc in Acap.DocumentManager)
         {
@@ -390,29 +391,41 @@ public class DBTrans : IDisposable
                 break;
             }
         }
-        if (doca == null)
+        if (doca != null)
         {
-            // 后台开图,用数据库保存
-            if (!string.IsNullOrEmpty(Database.Filename))
-            {
-                Database.SaveAs(Database.Filename, version);
-                return;
-            }
+            // 前台开图,使用命令保存;不需要切换文档
+            doca.SendStringToExecute("_qsave\n", false, true, true);
+            return;
+        }
+
+        // 后台开图,用数据库保存
+        string file = Database.Filename;
+        if (automatic)
+            version = Env.GetDefaultFormatForSaveToDwgVersion();
+      
+        var isDxf = false;
+        if (string.IsNullOrEmpty(file))
+        {
+            var fileName = Path.GetFileNameWithoutExtension(_fileFullName);
+            var fileExt = Path.GetExtension(_fileFullName);
+            isDxf = fileExt.ToLower().Contains("dxf");
 
             // 构造函数(fileName)用了不存在的路径进行后台打开,就会出现此问题
             // 测试命令 FileNotExist
             var dir = Environment.GetFolderPath(
-                        Environment.SpecialFolder.DesktopDirectory) + "\\路径不存在进行临时保存\\";
+                       Environment.SpecialFolder.DesktopDirectory)
+                       + "\\后台保存出错进行临时保存\\";
+
             if (!Directory.Exists(dir))
                 Directory.CreateDirectory(dir);
-            string file;
-            do
+
+            file = dir + fileName + fileExt;
+            while (File.Exists(file))
             {
-                var time = DateTime.Now.ToString("yyyy-MM-dd--h-mm-ss-ffff");
-                file = dir + time + ".dwg";
+                var time = DateTime.Now.ToString("--yyMMdd--hhmmssffff");
+                file = dir + fileName + time + fileExt;
                 Thread.Sleep(100);
-            } while (File.Exists(file));
-            Database.SaveAs(file, version);
+            }
 
             // 防止前台关闭了所有文档导致没有Editor,所以使用 MessageBox 发送警告
             System.Windows.Forms.MessageBox.Show(
@@ -421,10 +434,19 @@ public class DBTrans : IDisposable
                 $"将自动保存到桌面中." +
                 $"\n\n路径为{file}", nameof(DBTrans));
         }
+
+        if (isDxf)
+        {
+            // dxf用任何版本号都会报错
+            Database.DxfOut(file, 7, true);
+        }
         else
         {
-            // 前台开图,使用命令保存;不需要切换文档
-            doca.SendStringToExecute("_qsave\n", false, true, true);
+            // dwg需要版本号,而dxf不用,dwg用dxf版本号会报错
+            // 若扩展名和版本号冲突,按照扩展名为准
+            if (version.IsDxfVersion())
+                version = DwgVersion.Current;
+            Database.SaveAs(file, version);
         }
     }
     #endregion

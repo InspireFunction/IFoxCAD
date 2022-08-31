@@ -569,4 +569,25 @@ public static class Env
         };
         return version;
     }
+
+    /// <summary>
+    /// 是否为dxf版本号
+    /// </summary>
+    /// <param name="dwgVersion"></param>
+    /// <returns></returns>
+    public static bool IsDxfVersion(this DwgVersion dwgVersion)
+    {
+        var result = (int)dwgVersion switch
+        {
+            16 => true,// r12/LT12 dxf
+            24 => true,// 2000 dxf
+            26 => true,// 2004 dxf
+            28 => true,// 2007 dxf
+            30 => true,// 2010 dxf
+            32 => true,// 2013 dxf
+            34 => true,// 2018 dxf   
+            _ => false,
+        };
+        return result;
+    }
 }

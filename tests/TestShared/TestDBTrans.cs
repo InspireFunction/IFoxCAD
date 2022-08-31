@@ -5,8 +5,12 @@ public class TestTrans
     [CommandMethod(nameof(FileNotExist))]
     public void FileNotExist()
     {
+        //不存在的dwg会在桌面进行临时保存
         using var tr = new DBTrans("test.dwg");
-        tr.SaveDwgFile();//不存在的dwg会在桌面进行临时保存
+        //tr.SaveDwgFile();
+
+        //测试保存为dxf 2007 dxf
+        tr.SaveDwgFile((DwgVersion)24, false);
     }
 
 
@@ -22,7 +26,7 @@ public class TestTrans
     [CommandMethod("testifoxcommit")]
     public void Testifoxcommit()
     {
-        
+
         using var tr = new DBTrans();
         tr.ModelSpace.AddCircle(new Point3d(0, 0, 0), 20);
         tr.Abort();

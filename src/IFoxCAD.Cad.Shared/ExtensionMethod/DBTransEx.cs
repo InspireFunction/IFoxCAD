@@ -27,10 +27,8 @@ public static class DBTransEx
     /// </summary>
     /// <param name="tr"></param>
     /// <param name="sym"></param>
-    /// <param name="excludeXref">排除外部参照</param>
-    public static void Purge(this DBTrans tr,
-                             SymModes sym = SymModes.All,
-                             bool excludeXref = true)
+    /// <param name="excludeXref">排除外部参照:默认true,为false时候会令图层全部显示再清理,包括冻结</param>
+    public static void Purge(this DBTrans tr, SymModes sym = SymModes.All, bool excludeXref = true)
     {
         var ids = new ObjectIdCollection();
         var db = tr.Database;
@@ -40,7 +38,6 @@ public static class DBTransEx
             if (!excludeXref)
                 GetAllIds(tr, tr.BlockTable, ids, excludeXref);
             else
-                // TODO: 此处是否需要?块表需要排除参照id?
                 tr.BlockTable.ForEach(tabRec => {
                     if (!tabRec.IsFromExternalReference)
                         ids.Add(tabRec.Id);
