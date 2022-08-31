@@ -1,5 +1,4 @@
 ﻿// #define error_demo
-#define lack_test
 
 namespace IFoxCAD.Cad;
 
@@ -651,65 +650,3 @@ public class XrefPath
     #endregion
 }
 #endregion
-
-
-#if lack_test
-public static class DBTransEx
-{
-    /// <summary>
-    /// 清理符号表
-    /// </summary>
-    /// <param name="tr"></param>
-    /// <param name="sym"></param>
-    public static void Purge(this DBTrans tr, SymModes sym = SymModes.All)
-    {
-        var ids = new ObjectIdCollection();
-        var db = tr.Database;
-
-        // 0x01
-        // db.Purge(ids)是获取未硬引用(无引用?)的对象,也就可以删除的.
-        // 0x02
-        // 如果一个图元引用一个图层,
-        // 假设这个图元是可以删除的(实际上它可能来自于词典记录的id) => 那么它被 db.Purge(ids) 识别,
-        // 但是这个图层因为有硬引用,所以不被 db.Purge(ids) 识别,
-        // 只能删除图元之后,循环第二次再通过 db.Purge(ids) 获取图层id.
-        // 0x03
-        // 因为删除之后,符号表内的引用可能被修改,因此需要重复遍历符号表.
-        // 0x04
-        // 试试循环事务
-
-        if ((sym & SymModes.BlockTable) == SymModes.BlockTable)
-            GetIds(ids, tr.BlockTable);
-        if ((sym & SymModes.DimStyleTable) == SymModes.DimStyleTable)
-            GetIds(ids, tr.DimStyleTable);
-        if ((sym & SymModes.LayerTable) == SymModes.LayerTable)
-            GetIds(ids, tr.LayerTable);
-        if ((sym & SymModes.LinetypeTable) == SymModes.LinetypeTable)
-            GetIds(ids, tr.LinetypeTable);
-        if ((sym & SymModes.TextStyleTable) == SymModes.TextStyleTable)
-            GetIds(ids, tr.TextStyleTable);
-        if ((sym & SymModes.ViewportTable) == SymModes.ViewportTable)
-            GetIds(ids, tr.ViewportTable);
-        if ((sym & SymModes.RegAppTable) == SymModes.RegAppTable)
-            GetIds(ids, tr.RegAppTable);
-        // SHUN007 说这两个表可能有错误
-        if ((sym & SymModes.ViewTable) == SymModes.ViewTable)
-            GetIds(ids, tr.ViewTable);
-        if ((sym & SymModes.UcsTable) == SymModes.UcsTable)
-            GetIds(ids, tr.UcsTable);
-
-        // Purge是查询能够清理的对象
-        db.Purge(ids);
-        foreach (ObjectId id in ids)
-            id.Erase();
-    }
-
-    static void GetIds<TTable, TRecord>(ObjectIdCollection ids,
-                       SymbolTable<TTable, TRecord> symbolTable)
-                       where TTable : SymbolTable
-                       where TRecord : SymbolTableRecord, new()
-    {
-        symbolTable.ForEach(id => ids.Add(id));
-    }
-}
-#endif

@@ -36,5 +36,8 @@ global using System.Collections.Specialized;
 global using Registry = Microsoft.Win32.Registry;
 global using RegistryKey = Microsoft.Win32.RegistryKey;
 
+global using Autodesk.AutoCAD.GraphicsInterface;
+global using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
+
 /// ifoxcad.basal 引用
 global using IFoxCAD.Basal;
