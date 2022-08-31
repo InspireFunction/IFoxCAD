@@ -1,6 +1,7 @@
 ﻿namespace IFoxCAD.Cad;
 
 using System.Diagnostics;
+using System.IO;
 
 /// <summary>
 /// 事务栈
@@ -381,22 +382,31 @@ public class DBTrans : IDisposable
                 break;
             }
         }
-        if (doca == null) // 后台开图,用数据库保存
+        if (doca == null) 
         {
-            // 用了不存在的文件进行后台打开,并且设置保存,这个时候就软处理
-            if (string.IsNullOrEmpty(Database.Filename))
+            // 后台开图,用数据库保存
+            if (!string.IsNullOrEmpty(Database.Filename))
             {
-                Debug.WriteLine("**** 此数据没有保存路径,无法保存!");
+                Database.SaveAs(Database.Filename, version);
                 return;
             }
-            Database.SaveAs(Database.Filename, version);
+
+            /// 构造函数(fileName)用了不存在的路径进行后台打开,就会出现此问题 
+            /// 测试命令 FileNotExist
+            Debug.WriteLine("**** 此文件路径不存在,无法保存!将自动保存到桌面中.");
+            string dir = Environment.GetFolderPath(
+                         Environment.SpecialFolder.DesktopDirectory) + "\\路径不存在进行临时保存\\";
+            if (!Directory.Exists(dir))
+                Directory.CreateDirectory(dir);
+            string file = DateTime.Now.ToString("yyyy-MM-dd--h-mm-ss-ffff");
+            Database.SaveAs(dir + file + ".dwg", version);
         }
         else // 前台开图,使用命令保存;不需要切换文档
             doca.SendStringToExecute("_qsave\n", false, true, true);
     }
     #endregion
 
-
+    #region 前台后台任务
     /// <summary>
     /// 前台后台任务分别处理
     /// </summary>
@@ -439,7 +449,7 @@ public class DBTrans : IDisposable
         action.Invoke();
         HostApplicationServices.WorkingDatabase = dbBak;
     }
-
+    #endregion
 
     #region IDisposable接口相关函数
     /// <summary>

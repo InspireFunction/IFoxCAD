@@ -1,7 +1,17 @@
-﻿namespace Test;
+﻿using System.Security.Cryptography;
+
+namespace Test;
 
 public class TestTrans
 {
+    [CommandMethod(nameof(FileNotExist))]
+    public void FileNotExist()
+    {
+        using var tr = new DBTrans("test.dwg");
+        tr.SaveDwgFile();//不存在的dwg会在桌面进行临时保存
+    }
+
+
     [CommandMethod("testtr")]
     public void Testtr()
     {

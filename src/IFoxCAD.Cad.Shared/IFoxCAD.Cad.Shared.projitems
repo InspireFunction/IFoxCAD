@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Algorithms\QuadTree\QuadTreeNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Algorithms\QuadTree\QuadTreeSelectMode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Algorithms\QuadTree\Rect.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\DBTransEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\XrefEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\BulgeVertexWidth.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\CollectionEx.cs" />
@@ -30,7 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\EntityEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\GeometryEx.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Jig.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\JigEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\ObjectIdEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\ObjEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\PointEx.cs" />
