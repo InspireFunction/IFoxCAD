@@ -456,6 +456,56 @@ public static class Env
             Env.Print($"{varName} 是不存在的变量！");
         }
     }
+
+#if NET35
+    [System.Security.SuppressUnmanagedCodeSecurity]
+    [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedGetEnv")]
+    static extern int AcedGetEnv(string envName, StringBuilder ReturnValue);
+
+    [System.Security.SuppressUnmanagedCodeSecurity]
+    [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedSetEnv")]
+    static extern int AcedSetEnv(string envName, StringBuilder NewValue);
+#elif !HC2020
+    [System.Security.SuppressUnmanagedCodeSecurity]
+    [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedGetEnv")]
+    static extern int AcedGetEnv(string envName, StringBuilder ReturnValue);
+
+    [System.Security.SuppressUnmanagedCodeSecurity]
+    [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedSetEnv")]
+    static extern int AcedSetEnv(string envName, StringBuilder NewValue);
+#endif
+
+#if HC2020
+    [System.Security.SuppressUnmanagedCodeSecurity]
+    [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "gcedGetEnv")]
+    static extern int AcedGetEnv(string envName, StringBuilder ReturnValue);
+
+    [System.Security.SuppressUnmanagedCodeSecurity]
+    [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "gcedSetEnv")]
+    static extern int AcedSetEnv(string envName, StringBuilder NewValue);
+#endif
+
+    /// <summary>
+    /// 设置环境变量
+    /// </summary>
+    public static string AcedGetEnv(string name)
+    {
+        var sbRes = new StringBuilder(1024);
+        _ = AcedGetEnv(name, sbRes);
+        return sbRes.ToString();
+    }
+
+    /// <summary>
+    /// 设置环境变量
+    /// </summary>
+    /// <param name="name">lisp的名称</param>
+    /// <param name="var">要设置的值</param>
+    /// <returns>成功标识</returns>
+    public static int AcedSetEnv(string name, string var)
+    {
+        return AcedSetEnv(name, new StringBuilder(var));
+    }
+
     /// <summary>
     /// 获取系统环境变量
     /// </summary>

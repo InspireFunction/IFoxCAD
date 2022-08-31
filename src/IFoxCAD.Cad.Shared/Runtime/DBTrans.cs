@@ -371,8 +371,34 @@ public class DBTrans : IDisposable
     /// 保存当前数据库的dwg文件,如果前台打开则按dwg默认版本保存,否则按version参数的版本保存
     /// </summary>
     /// <param name="version">dwg版本,默认为2004</param>
-    public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800)
+    /// <param name="IsDefaultFormatForSave">为true时候<paramref name="version"/>无效,将读取当前cad环境配置的版本</param>
+    public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800,
+                            bool IsDefaultFormatForSave = true)
     {
+        if (IsDefaultFormatForSave)
+        {
+            var ffs = Env.AcedGetEnv("DefaultFormatForSave");
+            version = ffs switch
+            {
+                "1" => DwgVersion.AC1009,// r12/LT12 dxf
+                "8" => DwgVersion.AC1014,// r14/LT98/LT97 dwg 
+                "12" => DwgVersion.AC1015,// 2000 dwg
+                "13" => DwgVersion.AC1800a,// 2000 dxf
+                "24" => DwgVersion.AC1800,// 2004 dwg
+                "25" => (DwgVersion)26,// 2004 dxf
+                "36" => (DwgVersion)27,// 2007 dwg    DwgVersion.AC1021
+                "37" => (DwgVersion)28,// 2007 dxf
+                //"38" => (DwgVersion),// dwt 样板文件...啊惊没找到这个是什么
+                "48" => (DwgVersion)29,// 2010 dwg  DwgVersion.AC1024
+                "49" => (DwgVersion)30,// 2010 dxf
+                "60" => (DwgVersion)31,// 2013 dwg  DwgVersion.AC1027
+                "61" => (DwgVersion)32,// 2013 dxf
+                "64" => (DwgVersion)33,// 2018 dwg  DwgVersion.AC1032
+                "65" => (DwgVersion)34,// 2018 dxf   
+                _ => (DwgVersion)25,
+            };
+        }
+
         Document? doca = null;
         foreach (Document doc in Acap.DocumentManager)
         {
@@ -382,7 +408,7 @@ public class DBTrans : IDisposable
                 break;
             }
         }
-        if (doca == null) 
+        if (doca == null)
         {
             // 后台开图,用数据库保存
             if (!string.IsNullOrEmpty(Database.Filename))
@@ -400,6 +426,7 @@ public class DBTrans : IDisposable
                 Directory.CreateDirectory(dir);
             string file = DateTime.Now.ToString("yyyy-MM-dd--h-mm-ss-ffff");
             Database.SaveAs(dir + file + ".dwg", version);
+
         }
         else // 前台开图,使用命令保存;不需要切换文档
             doca.SendStringToExecute("_qsave\n", false, true, true);

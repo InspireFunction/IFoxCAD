@@ -1,6 +1,4 @@
-﻿using System.Security.Cryptography;
-
-namespace Test;
+﻿namespace Test;
 
 public class TestTrans
 {
