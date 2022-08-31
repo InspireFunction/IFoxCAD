@@ -2,15 +2,31 @@
 
 public class TestTrans
 {
+    // 后台:不存在路径的dwg会在桌面进行临时保存
     [CommandMethod(nameof(FileNotExist))]
     public void FileNotExist()
     {
-        //不存在的dwg会在桌面进行临时保存
         using var tr = new DBTrans("test.dwg");
-        //tr.SaveDwgFile();
-
-        //测试保存为dxf 2007 dxf
         tr.SaveDwgFile((DwgVersion)24, false);
+    }
+
+    // 前台:由于是弹出面板,此时路径不会起任何作用
+    [CommandMethod(nameof(FileNotExist2))]
+    public void FileNotExist2()
+    {
+        using var tr = new DBTrans();
+        tr.SaveDwgFile(saveAsName: "D:\\");
+    }
+
+    // 后台:只有路径,没有文件名
+    [CommandMethod(nameof(FileNotExist3))]
+    public void FileNotExist3()
+    {
+        using var tr = new DBTrans("D:\\");
+        tr.SaveDwgFile();
+
+        using var tr2 = new DBTrans("D:\\");
+        tr2.SaveDwgFile(saveAsName: "D:\\");
     }
 
 
