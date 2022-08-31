@@ -380,11 +380,11 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="version">默认2004dwg: <see cref="DwgVersion.AC1800"/></param>
     /// <param name="automatic">为true时候<paramref name="version"/>无效,将自动识别环境变量</param>
-    /// <param name="saveAsName">另存为路径,前台将调用另存为面板,此时它将无效</param>
+    /// <param name="saveAsFile">另存为路径,前台将调用另存为面板,此时它将无效</param>
     /// <param name="echoes">保存失败的提示</param>
     public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800,
                             bool automatic = true,
-                            string? saveAsName = null,
+                            string? saveAsFile = null,
                             bool echoes = true)
     {
         Document? doca = null;
@@ -400,70 +400,75 @@ public class DBTrans : IDisposable
         // 前台开图,使用命令保存;不需要切换文档
         if (doca != null)
         {
-            if (saveAsName == null)
+            if (saveAsFile == null)
                 doca.SendStringToExecute("_qsave\n", false, true, true);
             else
-                /// 无法把 <paramref name="saveAsName"/>给这个面板
+                /// 无法把 <paramref name="saveAsFile"/>给这个面板
                 doca.SendStringToExecute($"_Saveas\n", false, true, true);
             return;
         }
 
-
         // 后台开图,用数据库保存
-        string? fileMsg = _fileFullName;
+        string? fileMsg;
         bool flag = false;
-        if (saveAsName == null)
+        if (saveAsFile == null)
         {
+            fileMsg = _fileFullName;
             flag = true;
         }
         else
         {
-            fileMsg = saveAsName;
+            fileMsg = saveAsFile;
             // 路径失败也保存到桌面
             // 没有文件名呢?那就报错,保存到系统目录也会报错,只能尽人事
-            var path = Path.GetDirectoryName(saveAsName);
+            var path = Path.GetDirectoryName(saveAsFile);
             if (string.IsNullOrEmpty(path))
-                flag = true;
-            else
             {
-                try
-                {
-                    if (!Directory.Exists(path))
-                        Directory.CreateDirectory(path);
-                }
+                flag = true;
+            }
+            else if (!Directory.Exists(path))
+            {
+                try { Directory.CreateDirectory(path); }
                 catch { flag = true; }
             }
         }
-        if (string.IsNullOrEmpty(Path.GetFileNameWithoutExtension(saveAsName)))
+        var fileNameWith = Path.GetFileNameWithoutExtension(saveAsFile).Trim();
+        if (string.IsNullOrEmpty(fileNameWith))
             flag = true;
 
         if (flag)
         {
-            var (error, file2) = GetSaveAsName();
+            var (error, file) = GetSaveAsFile();
             if (echoes && error)
-                MessageBox.Show($"错误参数:\n{fileMsg}\n\n它将保存:\n{file2}", "错误的文件路径");
-            saveAsName = file2;
+                MessageBox.Show($"错误参数:\n{fileMsg}\n\n它将保存:\n{file}", "错误的文件路径");
+            saveAsFile = file;
         }
 
-        if (Path.GetExtension(saveAsName).ToLower().Contains("dxf"))
+
+        if (Path.GetExtension(saveAsFile).ToLower().Contains("dxf"))
         {
             // dxf用任何版本号都会报错
-            Database.DxfOut(saveAsName, 7, true);
+            Database.DxfOut(saveAsFile, 7, true);
         }
         else
         {
             if (automatic)
-                version = Env.GetDefaultFormatForSaveToDwgVersion();
+                version = Env.GetDefaultDwgVersion();
 
             // dwg需要版本号,而dxf不用,dwg用dxf版本号会报错
             // 若扩展名和版本号冲突,按照扩展名为准
             if (version.IsDxfVersion())
                 version = DwgVersion.Current;
-            Database.SaveAs(saveAsName, version);
+            Database.SaveAs(saveAsFile, version);
         }
     }
 
-    (bool error, string path) GetSaveAsName()
+
+    /// <summary>
+    /// 获取文件名,无效的话就制造
+    /// </summary>
+    /// <returns></returns>
+    (bool error, string path) GetSaveAsFile()
     {
         var file = Database.Filename;
         if (!string.IsNullOrEmpty(file))
@@ -472,12 +477,12 @@ public class DBTrans : IDisposable
         // 因为用户的任务可能占用时间非常长,所以这里提示保存到桌面,
         // 而不是弹出警告就结束
         // 防止前台关闭了所有文档导致没有Editor,所以使用 MessageBox 发送警告
-        var fileName = Path.GetFileNameWithoutExtension(_fileFullName);
+        var fileName = Path.GetFileNameWithoutExtension(_fileFullName).Trim();
         var fileExt = Path.GetExtension(_fileFullName);
 
-        if (fileName.Trim() == string.Empty)
+        if (string.IsNullOrEmpty(fileName))
             fileName = DateTime.Now.ToString("--yyMMdd--hhmmssffff");
-        if (fileExt.Trim() == string.Empty)
+        if (string.IsNullOrEmpty(fileExt))
             fileExt = ".dwg";
 
         // 构造函数(fileName)用了不存在的路径进行后台打开,就会出现此问题

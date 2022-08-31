@@ -15,7 +15,7 @@ public class TestTrans
     public void FileNotExist2()
     {
         using var tr = new DBTrans();
-        tr.SaveDwgFile(saveAsName: "D:\\");
+        tr.SaveDwgFile(saveAsFile: "D:\\");
     }
 
     // 后台:只有路径,没有文件名
@@ -26,7 +26,7 @@ public class TestTrans
         tr.SaveDwgFile();
 
         using var tr2 = new DBTrans("D:\\");
-        tr2.SaveDwgFile(saveAsName: "D:\\");
+        tr2.SaveDwgFile(saveAsFile: "D:\\");
     }
 
 

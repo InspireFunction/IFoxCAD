@@ -544,28 +544,29 @@ public static class Env
     /// 获取当前配置文件的保存版本
     /// </summary>
     /// <returns></returns>
-    public static DwgVersion GetDefaultFormatForSaveToDwgVersion()
+    public static DwgVersion GetDefaultDwgVersion()
     {
         DwgVersion version;
         var ffs = Env.AcedGetEnv("DefaultFormatForSave");
         version = ffs switch
         {
-            "1" => DwgVersion.AC1009,// r12/LT12 dxf
-            "8" => DwgVersion.AC1014,// r14/LT98/LT97 dwg 
+            "1" => DwgVersion.AC1009,// R12/LT12 dxf
+            "8" => DwgVersion.AC1014,// R14/LT98/LT97 dwg 
             "12" => DwgVersion.AC1015,// 2000 dwg
             "13" => DwgVersion.AC1800a,// 2000 dxf
             "24" => DwgVersion.AC1800,// 2004 dwg
             "25" => (DwgVersion)26,// 2004 dxf
             "36" => (DwgVersion)27,// 2007 dwg  DwgVersion.AC1021
             "37" => (DwgVersion)28,// 2007 dxf
-                                   //"38" => (DwgVersion),// dwt 样板文件...啊惊没找到这个是什么
+
+            //"38" => (DwgVersion),// dwt 样板文件...啊惊没找到这个是什么
             "48" => (DwgVersion)29,// 2010 dwg  DwgVersion.AC1024
             "49" => (DwgVersion)30,// 2010 dxf
             "60" => (DwgVersion)31,// 2013 dwg  DwgVersion.AC1027
             "61" => (DwgVersion)32,// 2013 dxf
             "64" => (DwgVersion)33,// 2018 dwg  DwgVersion.AC1032
             "65" => (DwgVersion)34,// 2018 dxf   
-            _ => (DwgVersion)25,
+            _ => DwgVersion.AC1800,
         };
         return version;
     }
@@ -579,7 +580,7 @@ public static class Env
     {
         var result = (int)dwgVersion switch
         {
-            16 => true,// r12/LT12 dxf
+            16 => true,// R12/LT12 dxf
             24 => true,// 2000 dxf
             26 => true,// 2004 dxf
             28 => true,// 2007 dxf
