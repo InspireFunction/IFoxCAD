@@ -98,9 +98,10 @@ public partial class TestQuadTree
                 // 四叉树数据
                 var entRect = new Rect(edge.MinPoint.X, edge.MinPoint.Y, edge.MaxPoint.X, edge.MaxPoint.Y);
                 var entId = tr.CurrentSpace.AddEntity(ent);
+               
                 var ce = new CadEntity(entId, entRect)
                 {
-                    Color = Utility.RandomColor
+                    Color = RandomEx.RandomColor
                 };
                 ces.Add(ce);
                 /*加入随机点*/
@@ -133,7 +134,7 @@ public partial class TestQuadTree
         var y1 = (int)dbExt.Y;
         var y2 = (int)(dbExt.Y + dbExt.Height);
 
-        var rand = Utility.GetRandom();
+        var rand = RandomEx.GetRandom();
         for (int i = 0; i < createNumber; i++)
         {
             var x = rand.Next(x1, x2) + rand.NextDouble();
