@@ -436,7 +436,7 @@ public static class Env
     /// </summary>
     /// <param name="varName">变量名</param>
     /// <returns>变量值</returns>
-    public static object GetVar(string varName)
+    public static object GetVar(string? varName)
     {
         return Acap.GetSystemVariable(varName);
     }
@@ -445,7 +445,7 @@ public static class Env
     /// </summary>
     /// <param name="varName">变量名</param>
     /// <param name="value">变量值</param>
-    public static void SetVar(string varName, object value)
+    public static void SetVar(string? varName, object? value)
     {
         try
         {
@@ -460,35 +460,35 @@ public static class Env
 #if NET35
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedGetEnv")]
-    static extern int AcedGetEnv(string envName, StringBuilder ReturnValue);
+    static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
 
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedSetEnv")]
-    static extern int AcedSetEnv(string envName, StringBuilder NewValue);
+    static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #elif !HC2020
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedGetEnv")]
-    static extern int AcedGetEnv(string envName, StringBuilder ReturnValue);
+    static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
 
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedSetEnv")]
-    static extern int AcedSetEnv(string envName, StringBuilder NewValue);
+    static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #endif
 
 #if HC2020
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "gcedGetEnv")]
-    static extern int AcedGetEnv(string envName, StringBuilder ReturnValue);
+    static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
 
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "gcedSetEnv")]
-    static extern int AcedSetEnv(string envName, StringBuilder NewValue);
+    static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #endif
 
     /// <summary>
     /// 设置环境变量
     /// </summary>
-    public static string AcedGetEnv(string name)
+    public static string AcedGetEnv(string? name)
     {
         var sbRes = new StringBuilder(1024);
         _ = AcedGetEnv(name, sbRes);
@@ -501,7 +501,7 @@ public static class Env
     /// <param name="name">lisp的名称</param>
     /// <param name="var">要设置的值</param>
     /// <returns>成功标识</returns>
-    public static int AcedSetEnv(string name, string var)
+    public static int AcedSetEnv(string? name, string? var)
     {
         return AcedSetEnv(name, new StringBuilder(var));
     }
@@ -511,7 +511,7 @@ public static class Env
     /// </summary>
     /// <param name="var">变量名</param>
     /// <returns>指定的环境变量的值；或者如果找不到环境变量，则返回 null</returns>
-    public static string? GetEnv(string var)
+    public static string? GetEnv(string? var)
     {
         // 从当前进程或者从当前用户或本地计算机的 Windows 操作系统注册表项检索环境变量的值
         return Environment.GetEnvironmentVariable(var);
@@ -521,7 +521,7 @@ public static class Env
     /// </summary>
     /// <param name="var">变量名</param>
     /// <param name="value">变量值</param>
-    public static void SetEnv(string var, string? value)
+    public static void SetEnv(string? var, string? value)
     {
         // 创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
         Environment.SetEnvironmentVariable(var, value);
@@ -591,4 +591,140 @@ public static class Env
         };
         return result;
     }
+
+    /// <summary>
+    /// 获取cad年份
+    /// </summary>
+    /// <exception cref="NotImplementedException">超出年份就报错</exception>
+    public static int GetAcadVersion()
+    {
+        var ver = Acap.Version.Major + "." + Acap.Version.Minor;
+        int acarVarNum = ver switch
+        {
+            "16.2" => 2006,
+            "17.0" => 2007,
+            "17.1" => 2008,
+            "17.2" => 2009,
+            "18.0" => 2010,
+            "18.1" => 2011,
+            "18.2" => 2012,
+            "19.0" => 2013,
+            "19.1" => 2014,
+            "20.0" => 2015,
+            "20.1" => 2016,
+            "21.0" => 2017,
+            "22.0" => 2018,
+            "23.0" => 2019,
+            "23.1" => 2020,
+            "24.0" => 2021,
+            "24.1" => 2022,
+            _ => throw new NotImplementedException(),
+        };
+        return acarVarNum;
+    }
+
+
+#if !NET35 && !NET40
+    [CommandMethod(nameof(Test_GetvarAll))]
+    public static void Test_GetvarAll()
+    {
+        GetvarAll();
+    }
+
+    public static Dictionary<string, object> GetvarAll()
+    {
+        var dict = new Dictionary<string, object>();
+        var en = new SystemVariableEnumerator();
+        while (en.MoveNext())
+        {
+            Console.WriteLine(en.Current.Name + "-----" + en.Current.Value);
+            dict.Add(en.Current.Name, en.Current.Value);
+        }
+        return dict;
+    }
+#endif
+
+
+    /// <summary>
+    /// 返回现有系统变量并设置新系统变量
+    /// </summary>
+    /// <param name="pairs">设置的变量词典</param>
+    /// <returns>返回现有变量词典</returns>
+    public static Dictionary<string, string> SaveNowVar(Dictionary<string, string> pairs)
+    {
+        if (pairs is null)
+            throw new ArgumentNullException(nameof(pairs));
+
+        // 系统变量保存
+        var dict = new Dictionary<string, string>();
+        // 系统变量设置
+        foreach (var item in pairs)
+        {
+            var bak = Env.AcedGetEnv(item.Key);
+            Env.AcedSetEnv(item.Key, item.Value);
+            if (bak is not null)
+                dict.Add(item.Key, bak);
+        }
+        return dict;
+    }
+
+#if true2
+    /// <summary>
+    /// 设置系统或环境变量
+    /// </summary>
+    /// <param name="name">变量名</param>
+    /// <param name="parameter">变量值</param>
+    /// <returns>成功设置返回值,失败null</returns>
+    public static string? Setvar(string? name, string? parameter)
+    {
+        if (name is null)
+            throw new ArgumentException(null, nameof(name));
+        if (parameter is null)
+            throw new ArgumentException(null, nameof(parameter));
+
+        string? valueTypeName = null;
+        string? valueOld;
+        try
+        {
+            // 改系统变量
+            var value = Acap.GetSystemVariable(name);
+            if (value is null)
+                return null;
+            valueOld = value.ToString();
+            valueTypeName = value.GetType().Name;
+            // 如果出现了clayer无法设置,是没有锁文档导致的
+            switch (valueTypeName)
+            {
+                case "String":
+                    Acap.SetSystemVariable(name, parameter.Replace("\"", ""));// 去掉引号
+                    break;
+                case "Double":
+                    Acap.SetSystemVariable(name, double.Parse(parameter));
+                    break;
+                case "Int16":
+                    Acap.SetSystemVariable(name, short.Parse(parameter));
+                    break;
+                case "Int32":
+                    Acap.SetSystemVariable(name, int.Parse(parameter));
+                    break;
+            }
+        }
+        catch (Exception err1)
+        {
+            try
+            {
+                valueOld = Env.AcedGetEnv(name);
+                Env.AcedSetEnv(name, parameter);
+            }
+            catch (Exception err2)
+            {
+                // 当系统变量没有,环境变量也没有才抛出错误
+                var error = $"\n**** cad系统变量和环境都没有:" +
+                    $"{name}\n出错:{parameter}\n来自:{valueTypeName}\n{err1.Message}\n{err2.Message}";
+                throw new Exception(error);
+            }
+        }
+        return valueOld;
+    } 
+#endif
 }
