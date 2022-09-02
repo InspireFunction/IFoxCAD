@@ -548,6 +548,7 @@ public static class Env
     /// </summary>
     /// <param name="message">要打印的对象</param>
     public static void Print(object message) => Editor.WriteMessage($"{message}\n");
+    public static void Printl(object message) => Editor.WriteMessage($"{Environment.NewLine}{message}\n");
 
     /// <summary>
     /// 判断当前是否在UCS坐标下

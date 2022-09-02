@@ -134,6 +134,13 @@ public class Cmd_IFoxInitialize
 
 public partial class Test
 {
+    [CommandMethod(nameof(Test_GetEnv))]
+    public static void Test_GetEnv()
+    {
+        var dir = Env.AcedGetEnv("PrinterConfigDir");
+        Env.Printl("pc3打印机位置:" + dir);
+    }
+
 #if !NET35 && !NET40
 
     // 通过此功能获取全部变量,尚不清楚此处如何设置,没有通过测试
