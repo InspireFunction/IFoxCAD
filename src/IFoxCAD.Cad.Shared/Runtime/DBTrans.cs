@@ -31,7 +31,7 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 文件名
     /// </summary>
-    private readonly string? _fileFullName;
+    private readonly string? _fileName;
     #endregion
 
     #region 公开属性
@@ -138,15 +138,19 @@ public class DBTrans : IDisposable
         if (fileName == null || string.IsNullOrEmpty(fileName.Trim()))
             throw new ArgumentNullException(nameof(fileName));
 
-        _fileFullName = fileName.Replace("/", "\\");//// doc.Name总是"D:\\JX.dwg"
+        _fileName = fileName.Replace("/", "\\");//// doc.Name总是"D:\\JX.dwg"
 
-        if (!File.Exists(_fileFullName))
+        if (!File.Exists(_fileName))
+        {
+            // 此处若为失败的文件名,那么保存的时候就会丢失名称,
+            // 因此用 _fileName 储存
             Database = new Database(true, false);
+        }
         else
         {
             var doc = Acap.DocumentManager
                      .Cast<Document>()
-                     .FirstOrDefault(doc => doc.Name == _fileFullName);
+                     .FirstOrDefault(doc => doc.Name == _fileName);
             if (doc is not null)
             {
                 Database = doc.Database;
@@ -156,8 +160,10 @@ public class DBTrans : IDisposable
             else
             {
                 Database = new Database(false, true);
-                if (Path.GetExtension(_fileFullName).ToLower().Contains("dxf"))
-                    Database.DxfIn(_fileFullName, null);
+                if (Path.GetExtension(_fileName).ToLower().Contains("dxf"))
+                {
+                    Database.DxfIn(_fileName, null);
+                }
                 else
                 {
 #if ac2008
@@ -186,15 +192,12 @@ public class DBTrans : IDisposable
                     }
 
                     // 这个会致命错误
-                    // using FileStream fileStream = new(_fileFullName, FileMode.Open, fileAccess, fileShare);
-                    // Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(),
-                    //      true/*控制读入一个与系统编码不相同的文件时的转换操作*/,password);
+                    // using FileStream fileStream = new(_fileName, FileMode.Open, fileAccess, fileShare);
+                    // Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(), true, password);
 
-                    Database.ReadDwgFile(_fileFullName, fileShare,
-                            true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
+                    Database.ReadDwgFile(_fileName, fileShare, true, password);
 #else
-                    Database.ReadDwgFile(_fileFullName, openMode,
-                            true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
+                    Database.ReadDwgFile(_fileName, openMode,true, password);
 #endif
                 }
                 Database.CloseInput(true);
@@ -374,76 +377,88 @@ public class DBTrans : IDisposable
 
     #region 保存文件
     /// <summary>
-    /// 保存当前数据库的dwg文件<br/>
-    /// 前台按dwg默认版本保存(环境变量),<br/>
-    /// 后台按参数<paramref name="version"/>保存,同时受<paramref name="automatic"/>影响
+    /// 保存文件
     /// </summary>
-    /// <param name="version">默认2004dwg: <see cref="DwgVersion.AC1800"/></param>
-    /// <param name="automatic">为true时候<paramref name="version"/>无效,将自动识别环境变量</param>
-    /// <param name="saveAsFile">另存为路径,前台将调用另存为面板,此时它将无效</param>
-    /// <param name="echoes">保存失败的提示</param>
-    public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800,
-                            bool automatic = true,
-                            string? saveAsFile = null,
-                            bool echoes = true)
+    /// <param name="version"></param>
+    public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800)
     {
-        Document? doca = null;
-        foreach (Document doc in Acap.DocumentManager)
+        SaveFile(version);
+    }
+
+    /// <summary>
+    /// 保存文件<br/>
+    /// </summary>
+    /// <param name="version">默认2004dwg;若保存dxf则需要在路径输入扩展名</param>
+    /// <param name="automatic">为true时候<paramref name="version"/>无效,将变为自动识别环境变量</param>
+    /// <param name="saveAsFile">另存为文件,前台将调用时它将无效,将变为弹出面板</param>
+    /// <param name="echoes">保存路径失败的提示</param>
+    public void SaveFile(DwgVersion version = DwgVersion.AC1800,
+                         bool automatic = true,
+                         string? saveAsFile = null,
+                         bool echoes = true)
+    {
+        // 遍历当前所有文档,文档必然是前台的
+        Document? doc = null;
+        foreach (Document docItem in Acap.DocumentManager)
         {
-            if (doc.Database.Filename == this.Database.Filename)
+            if (docItem.Database.Filename == this.Database.Filename)
             {
-                doca = doc;
+                doc = docItem;
                 break;
             }
         }
-
         // 前台开图,使用命令保存;不需要切换文档
-        if (doca != null)
+        if (doc != null)
         {
             if (saveAsFile == null)
-                doca.SendStringToExecute("_qsave\n", false, true, true);
+                doc.SendStringToExecute("_qsave\n", false, true, true);
             else
                 /// 无法把 <paramref name="saveAsFile"/>给这个面板
-                doca.SendStringToExecute($"_Saveas\n", false, true, true);
+                doc.SendStringToExecute($"_Saveas\n", false, true, true);
             return;
         }
 
         // 后台开图,用数据库保存
         string? fileMsg;
-        bool flag = false;
-        if (saveAsFile == null)
+        bool creatFlag = false;
+        saveAsFile = saveAsFile?.Trim();
+        if (string.IsNullOrEmpty(saveAsFile))
         {
-            fileMsg = _fileFullName;
-            flag = true;
+            fileMsg = _fileName;
+            creatFlag = true;
         }
         else
         {
             fileMsg = saveAsFile;
+
             // 路径失败也保存到桌面
-            // 没有文件名呢?那就报错,保存到系统目录也会报错,只能尽人事
             var path = Path.GetDirectoryName(saveAsFile);
             if (string.IsNullOrEmpty(path))
             {
-                flag = true;
+                creatFlag = true;
             }
             else if (!Directory.Exists(path))
             {
                 try { Directory.CreateDirectory(path); }
-                catch { flag = true; }
+                catch { creatFlag = true; }
             }
+
+            // 文件名缺失时
+            if (!creatFlag && 
+                string.IsNullOrEmpty(Path.GetFileName(saveAsFile).Trim()))
+                creatFlag = true;
         }
         var fileNameWith = Path.GetFileNameWithoutExtension(saveAsFile).Trim();
         if (string.IsNullOrEmpty(fileNameWith))
-            flag = true;
+            creatFlag = true;
 
-        if (flag)
+        if (creatFlag)
         {
-            var (error, file) = GetSaveAsFile();
+            var (error, file) = GetOrCreateSaveAsFile();
             if (echoes && error)
                 MessageBox.Show($"错误参数:\n{fileMsg}\n\n它将保存:\n{file}", "错误的文件路径");
             saveAsFile = file;
         }
-
 
         if (Path.GetExtension(saveAsFile).ToLower().Contains("dxf"))
         {
@@ -468,17 +483,18 @@ public class DBTrans : IDisposable
     /// 获取文件名,无效的话就制造
     /// </summary>
     /// <returns></returns>
-    (bool error, string path) GetSaveAsFile()
+    (bool error, string path) GetOrCreateSaveAsFile()
     {
         var file = Database.Filename;
         if (!string.IsNullOrEmpty(file))
             return (false, file);
 
-        // 因为用户的任务可能占用时间非常长,所以这里提示保存到桌面,
+        // 为了防止用户输入了错误的路径造成无法保存,
+        // 所以此处将进行保存到桌面,
         // 而不是弹出警告就结束
         // 防止前台关闭了所有文档导致没有Editor,所以使用 MessageBox 发送警告
-        var fileName = Path.GetFileNameWithoutExtension(_fileFullName).Trim();
-        var fileExt = Path.GetExtension(_fileFullName);
+        var fileName = Path.GetFileNameWithoutExtension(_fileName).Trim();
+        var fileExt = Path.GetExtension(_fileName);
 
         if (string.IsNullOrEmpty(fileName))
             fileName = DateTime.Now.ToString("--yyMMdd--hhmmssffff");
@@ -512,12 +528,12 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <remarks>
     /// 备注:<br/>
-    /// <code>
-    /// 0x01 文字偏移问题主要出现是<see cref="Database.ResolveXrefs"/>这个线性引擎上面,
-    ///      在 参照绑定/深度克隆 的底层共用此技术导致问题发生
-    /// 0x02 后台是利用前台当前数据库进行处理的
-    /// 0x03 跨进程通讯暂无测试(可能存在bug)
-    /// </code>
+    /// <para>
+    /// 0x01 文字偏移问题主要出现线性引擎函数<see cref="Database.ResolveXrefs"/>上面,<br/>
+    ///      在 参照绑定/深度克隆 的底层共用此函数导致<br/>
+    /// 0x02 后台是利用前台当前数据库进行处理的<br/>
+    /// 0x03 跨进程通讯暂无测试(可能存在bug)<br/>
+    /// </para>
     /// </remarks>
     /// <param name="action">委托</param>
     /// <param name="handlingDBTextDeviation">开启单行文字偏移处理</param>

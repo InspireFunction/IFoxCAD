@@ -584,7 +584,7 @@ public static class Env
             "61" => (DwgVersion)32,// 2013 dxf
             "64" => (DwgVersion)33,// 2018 dwg  DwgVersion.AC1032
             "65" => (DwgVersion)34,// 2018 dxf   
-            _ => DwgVersion.AC1800,
+            _ => throw new NotImplementedException(),//提醒维护
         };
         return version;
     }
@@ -713,7 +713,5 @@ public static class Env
         }
         return dict;
     }
-
-
     #endregion
 }

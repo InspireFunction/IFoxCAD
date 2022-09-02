@@ -7,7 +7,7 @@ public class TestTrans
     public void FileNotExist()
     {
         using var tr = new DBTrans("test.dwg");
-        tr.SaveDwgFile((DwgVersion)24, false);
+        tr.SaveFile((DwgVersion)24, false);
     }
 
     // 前台:由于是弹出面板,此时路径不会起任何作用
@@ -15,7 +15,7 @@ public class TestTrans
     public void FileNotExist2()
     {
         using var tr = new DBTrans();
-        tr.SaveDwgFile(saveAsFile: "D:\\");
+        tr.SaveFile(saveAsFile: "D:\\");
     }
 
     // 后台:只有路径,没有文件名
@@ -26,7 +26,7 @@ public class TestTrans
         tr.SaveDwgFile();
 
         using var tr2 = new DBTrans("D:\\");
-        tr2.SaveDwgFile(saveAsFile: "D:\\");
+        tr2.SaveFile(saveAsFile: "D:\\");
     }
 
 
