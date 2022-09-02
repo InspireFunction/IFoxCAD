@@ -58,7 +58,7 @@ public class CmdInit
     /// </summary>
     [CommandMethod("IFoxRemoveReg")]
     public void IFoxRemoveReg()
-    { 
+    {
         var dm = Acap.DocumentManager;
         var doc = dm.MdiActiveDocument;
         var ed = doc.Editor;
@@ -130,4 +130,29 @@ public class Cmd_IFoxInitialize
     //    // 文档管理器将比此接口前死亡,因此此句不会执行
     //    Acap.DocumentManager.MdiActiveDocument?.Editor.WriteMessage("\nunload....");
     // }
+}
+
+public partial class Test
+{
+#if !NET35 && !NET40
+
+    // 通过此功能获取全部变量,尚不清楚此处如何设置,没有通过测试
+    [CommandMethod(nameof(Test_GetvarAll))]
+    public static void Test_GetvarAll()
+    {
+        GetvarAll();
+    }
+
+    public static Dictionary<string, object> GetvarAll()
+    {
+        var dict = new Dictionary<string, object>();
+        var en = new SystemVariableEnumerator();
+        while (en.MoveNext())
+        {
+            Console.WriteLine(en.Current.Name + "-----" + en.Current.Value);//Value会出现异常
+            dict.Add(en.Current.Name, en.Current.Value);
+        }
+        return dict;
+    }
+#endif
 }

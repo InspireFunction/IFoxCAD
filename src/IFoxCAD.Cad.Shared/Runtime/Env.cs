@@ -430,9 +430,9 @@ public static class Env
 
     #endregion Enum
 
-    #region 环境变量
+    #region acad系统变量
     /// <summary>
-    /// 获取cad变量
+    /// 获取cad系统变量
     /// </summary>
     /// <param name="varName">变量名</param>
     /// <returns>变量值</returns>
@@ -441,11 +441,15 @@ public static class Env
         return Acap.GetSystemVariable(varName);
     }
     /// <summary>
-    /// 设置cad变量
+    /// 设置cad系统变量<br/>
+    /// 0x01 建议先获取现有变量值和设置的是否相同,否则直接设置会发生异常<br/>
+    /// 0x02 建议锁文档,否则 Psltscale 设置发生异常<br/>
+    /// 发生异常的时候vs输出窗口会打印一下,但是如果不介意也没啥问题
     /// </summary>
     /// <param name="varName">变量名</param>
     /// <param name="value">变量值</param>
-    public static void SetVar(string? varName, object? value)
+    /// <param name="echo">输出异常,默认true;此设置仅为打印到命令栏,无法控制vs输出</param>
+    public static void SetVar(string? varName, object? value, bool echo = true)
     {
         try
         {
@@ -453,10 +457,13 @@ public static class Env
         }
         catch (System.Exception)
         {
-            Env.Print($"{varName} 是不存在的变量！");
+            if (echo)
+                Env.Print($"{varName} 是不存在的变量！");
         }
-    }
+    } 
+    #endregion
 
+    #region acad环境变量
 #if NET35
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedGetEnv")]
@@ -474,7 +481,6 @@ public static class Env
     [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedSetEnv")]
     static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #endif
-
 #if HC2020
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "gcedGetEnv")]
@@ -486,8 +492,10 @@ public static class Env
 #endif
 
     /// <summary>
-    /// 设置环境变量
+    /// 读取acad环境变量
     /// </summary>
+    /// <param name="name"></param>
+    /// <returns>返回值从不为null,需判断<see cref="string.Empty"/></returns>
     public static string AcedGetEnv(string? name)
     {
         var sbRes = new StringBuilder(1024);
@@ -496,16 +504,22 @@ public static class Env
     }
 
     /// <summary>
-    /// 设置环境变量
+    /// 设置acad环境变量<br/>
+    /// 它是不会报错的,但是直接设置会写入注册表的,<br/>
+    /// 如果是设置高低版本cad不同的变量,建议先读取判断再设置<br/>
     /// </summary>
-    /// <param name="name">lisp的名称</param>
-    /// <param name="var">要设置的值</param>
-    /// <returns>成功标识</returns>
+    /// <param name="name"></param>
+    /// <param name="var"></param>
+    /// <returns></returns>
     public static int AcedSetEnv(string? name, string? var)
     {
+        // acad2008注册表路径:
+        // 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R17.1\ACAD - 6001:804\FixedProfile\General
         return AcedSetEnv(name, new StringBuilder(var));
     }
+    #endregion
 
+    #region win环境变量
     /// <summary>
     /// 获取系统环境变量
     /// </summary>
@@ -525,7 +539,7 @@ public static class Env
     {
         // 创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
         Environment.SetEnvironmentVariable(var, value);
-    }
+    } 
     #endregion
 
 
@@ -534,12 +548,15 @@ public static class Env
     /// </summary>
     /// <param name="message">要打印的对象</param>
     public static void Print(object message) => Editor.WriteMessage($"{message}\n");
+
     /// <summary>
     /// 判断当前是否在UCS坐标下
     /// </summary>
     /// <returns>Bool</returns>
     public static bool IsUcs() => (short)GetVar("WORLDUCS") == 0;
 
+
+    #region dwg版本号/cad版本号/年份
     /// <summary>
     /// 获取当前配置文件的保存版本
     /// </summary>
@@ -622,109 +639,88 @@ public static class Env
         };
         return acarVarNum;
     }
+    #endregion
 
 
-#if !NET35 && !NET40
-    [CommandMethod(nameof(Test_GetvarAll))]
-    public static void Test_GetvarAll()
+    #region cad变量功能延伸
+    /// <summary>
+    /// 设置cad系统变量<br/>
+    /// 提供一个反序列化后,无cad异常输出的功能<br/>
+    /// 注意,您需要再此执行时候设置文档锁
+    /// <see cref="Autodesk.AutoCAD.ApplicationServices.DocumentManager.MdiActiveDocument.LockDocument"/>
+    /// 否则也将导致修改数据库异常<br/>
+    /// </summary>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    /// <returns>成功返回当前值,失败null</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static object? SetVarEx(string? key, string? value)
     {
-        GetvarAll();
-    }
+        if (key == null)
+            throw new ArgumentNullException(nameof(key));
+        if (value == null)
+            throw new ArgumentNullException(nameof(value));
 
-    public static Dictionary<string, object> GetvarAll()
-    {
-        var dict = new Dictionary<string, object>();
-        var en = new SystemVariableEnumerator();
-        while (en.MoveNext())
+        var currentVar = Env.GetVar(key);
+        if (currentVar == null)
+            return null;
+
+        object? valueType = null;
+        switch (currentVar.GetType().Name)
         {
-            Console.WriteLine(en.Current.Name + "-----" + en.Current.Value);
-            dict.Add(en.Current.Name, en.Current.Value);
+            case "String":
+            valueType = value.Replace("\"", string.Empty);
+            break;
+            case "Double":
+            valueType = double.Parse(value);
+            break;
+            case "Int16":
+            valueType = short.Parse(value);
+            break;
+            case "Int32":
+            valueType = int.Parse(value);
+            break;
         }
-        return dict;
-    }
-#endif
 
+        // 相同的参数进行设置会发生一次异常
+        if (currentVar.ToString().ToUpper() != valueType!.ToString().ToUpper())
+            Env.SetVar(key, valueType);
+
+        return currentVar;
+    }
 
     /// <summary>
-    /// 返回现有系统变量并设置新系统变量
+    /// 设置新系统变量,返回现有系统变量
     /// </summary>
-    /// <param name="pairs">设置的变量词典</param>
-    /// <returns>返回现有变量词典</returns>
-    public static Dictionary<string, string> SaveNowVar(Dictionary<string, string> pairs)
+    /// <param name="args">设置的变量词典</param>
+    /// <returns>返回现有变量词典,然后下次就可以利用它进行设置回来了</returns>
+    public static Dictionary<string, string> SaveCadVar(Dictionary<string, string> args)
     {
-        if (pairs is null)
-            throw new ArgumentNullException(nameof(pairs));
+        if (args is null)
+            throw new ArgumentNullException(nameof(args));
 
-        // 系统变量保存
         var dict = new Dictionary<string, string>();
-        // 系统变量设置
-        foreach (var item in pairs)
+        foreach (var item in args)
         {
-            var bak = Env.AcedGetEnv(item.Key);
-            Env.AcedSetEnv(item.Key, item.Value);
-            if (bak is not null)
-                dict.Add(item.Key, bak);
+            // 判断是否为系统变量
+            var ok = SetVarEx(item.Key, item.Value);
+            if (ok != null)
+            {
+                dict.Add(item.Key, ok.ToString());
+                continue;
+            }
+
+            // 判断是否为系统变量
+            var envstr = Env.AcedGetEnv(item.Key);
+            if (!string.IsNullOrEmpty(envstr))
+            {
+                Env.AcedSetEnv(item.Key, item.Value);
+                dict.Add(item.Key, envstr);
+            }
         }
         return dict;
-    }
-
-#if true2
-    /// <summary>
-    /// 设置系统或环境变量
-    /// </summary>
-    /// <param name="name">变量名</param>
-    /// <param name="parameter">变量值</param>
-    /// <returns>成功设置返回值,失败null</returns>
-    public static string? Setvar(string? name, string? parameter)
-    {
-        if (name is null)
-            throw new ArgumentException(null, nameof(name));
-        if (parameter is null)
-            throw new ArgumentException(null, nameof(parameter));
-
-        string? valueTypeName = null;
-        string? valueOld;
-        try
-        {
-            // 改系统变量
-            var value = Acap.GetSystemVariable(name);
-            if (value is null)
-                return null;
-            valueOld = value.ToString();
-            valueTypeName = value.GetType().Name;
-            // 如果出现了clayer无法设置,是没有锁文档导致的
-            switch (valueTypeName)
-            {
-                case "String":
-                    Acap.SetSystemVariable(name, parameter.Replace("\"", ""));// 去掉引号
-                    break;
-                case "Double":
-                    Acap.SetSystemVariable(name, double.Parse(parameter));
-                    break;
-                case "Int16":
-                    Acap.SetSystemVariable(name, short.Parse(parameter));
-                    break;
-                case "Int32":
-                    Acap.SetSystemVariable(name, int.Parse(parameter));
-                    break;
-            }
-        }
-        catch (Exception err1)
-        {
-            try
-            {
-                valueOld = Env.AcedGetEnv(name);
-                Env.AcedSetEnv(name, parameter);
-            }
-            catch (Exception err2)
-            {
-                // 当系统变量没有,环境变量也没有才抛出错误
-                var error = $"\n**** cad系统变量和环境都没有:" +
-                    $"{name}\n出错:{parameter}\n来自:{valueTypeName}\n{err1.Message}\n{err2.Message}";
-                throw new Exception(error);
-            }
-        }
-        return valueOld;
     } 
-#endif
+
+
+    #endregion
 }
