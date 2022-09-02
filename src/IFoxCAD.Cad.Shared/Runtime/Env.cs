@@ -460,7 +460,7 @@ public static class Env
             if (echo)
                 Env.Print($"{varName} 是不存在的变量！");
         }
-    } 
+    }
     #endregion
 
     #region acad环境变量
@@ -539,7 +539,7 @@ public static class Env
     {
         // 创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
         Environment.SetEnvironmentVariable(var, value);
-    } 
+    }
     #endregion
 
 
@@ -647,8 +647,8 @@ public static class Env
     /// <summary>
     /// 设置cad系统变量<br/>
     /// 提供一个反序列化后,无cad异常输出的功能<br/>
-    /// 注意,您需要再此执行时候设置文档锁
-    /// <see cref="Autodesk.AutoCAD.ApplicationServices.DocumentManager.MdiActiveDocument.LockDocument"/>
+    /// 注意,您需要再此执行时候设置文档锁<br/>
+    /// <see cref="Acap.DocumentManager.MdiActiveDocument.LockDocument()"/><br/>
     /// 否则也将导致修改数据库异常<br/>
     /// </summary>
     /// <param name="key"></param>
@@ -666,22 +666,14 @@ public static class Env
         if (currentVar == null)
             return null;
 
-        object? valueType = null;
-        switch (currentVar.GetType().Name)
+        object? valueType = currentVar.GetType().Name switch
         {
-            case "String":
-            valueType = value.Replace("\"", string.Empty);
-            break;
-            case "Double":
-            valueType = double.Parse(value);
-            break;
-            case "Int16":
-            valueType = short.Parse(value);
-            break;
-            case "Int32":
-            valueType = int.Parse(value);
-            break;
-        }
+            "String" => value.Replace("\"", string.Empty),
+            "Double" => double.Parse(value),
+            "Int16" => short.Parse(value),
+            "Int32" => int.Parse(value),
+            _ => throw new NotImplementedException(),
+        };
 
         // 相同的参数进行设置会发生一次异常
         if (currentVar.ToString().ToUpper() != valueType!.ToString().ToUpper())
@@ -720,7 +712,7 @@ public static class Env
             }
         }
         return dict;
-    } 
+    }
 
 
     #endregion
