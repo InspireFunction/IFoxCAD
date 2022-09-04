@@ -53,9 +53,10 @@ public class JigEx : DrawJig
     /// <summary>
     /// 在界面绘制图元
     /// </summary>
-    private JigEx()
+    JigEx()
     {
         _drawEntitys = new();
+        DimensionEntitys = new();
     }
 
     /// <summary>
@@ -293,6 +294,7 @@ public class JigEx : DrawJig
     }
     #endregion
 
+
     /// <summary>
     /// 用户输入控制默认配置
     /// <para>令jig.Drag().Status == <see cref="PromptStatus.None"/></para>
@@ -325,6 +327,25 @@ public class JigEx : DrawJig
         if ((opt.UserInputControls & UserInputControls.AnyBlankTerminatesInput) == UserInputControls.AnyBlankTerminatesInput)
             opt.UserInputControls ^= UserInputControls.AnyBlankTerminatesInput; // 空格或回车,结束jig
     }
+
+
+    #region 注释数据
+    /// <summary>
+    /// 注释数据,可以在缩放的时候不受影响
+    /// </summary>
+    public DynamicDimensionDataCollection DimensionEntitys;
+
+    /// <summary>
+    /// 重写注释数据
+    /// </summary>
+    /// <param name="dimScale"></param>
+    /// <returns></returns>
+    protected override DynamicDimensionDataCollection GetDynamicDimensionData(double dimScale)
+    {
+        base.GetDynamicDimensionData(dimScale);
+        return DimensionEntitys;
+    }
+    #endregion
 }
 
 #if false
