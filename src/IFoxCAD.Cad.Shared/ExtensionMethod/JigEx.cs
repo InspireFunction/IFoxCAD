@@ -346,6 +346,11 @@ public class JigEx : DrawJig
         return DimensionEntitys;
     }
     #endregion
+
+    protected override void ViewportDraw(ViewportDraw draw)
+    {
+        base.ViewportDraw(draw);
+    }
 }
 
 #if false

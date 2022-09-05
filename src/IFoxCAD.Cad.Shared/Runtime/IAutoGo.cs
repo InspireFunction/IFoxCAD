@@ -145,6 +145,7 @@ public class AutoReflection
         }
         catch (System.Exception e)
         {
+            Env.Printl(e.Message);
             Debugger.Break();
         }
     }

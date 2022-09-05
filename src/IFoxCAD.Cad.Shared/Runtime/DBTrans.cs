@@ -17,10 +17,6 @@ public class DBTrans : IDisposable
     /// </summary>
     private readonly DocumentLock? documentLock;
     /// <summary>
-    /// 是否释放资源
-    /// </summary>
-    private bool IsDisposed;
-    /// <summary>
     /// 是否提交事务
     /// </summary>
     private readonly bool _commit;
@@ -197,7 +193,7 @@ public class DBTrans : IDisposable
 
                     Database.ReadDwgFile(_fileName, fileShare, true, password);
 #else
-                    Database.ReadDwgFile(_fileName, openMode,true, password);
+                    Database.ReadDwgFile(_fileName, openMode, true, password);
 #endif
                 }
                 Database.CloseInput(true);
@@ -444,7 +440,7 @@ public class DBTrans : IDisposable
             }
 
             // 文件名缺失时
-            if (!creatFlag && 
+            if (!creatFlag &&
                 string.IsNullOrEmpty(Path.GetFileName(saveAsFile).Trim()))
                 creatFlag = true;
         }
@@ -584,12 +580,14 @@ public class DBTrans : IDisposable
         Dispose(true);
     }
 
+    public bool IsDisposed { get; private set; } = false;
+
     /// <summary>
     /// 手动调用释放
     /// </summary>
     public void Dispose()
     {
-        Dispose(disposing: true);
+        Dispose(true);
         GC.SuppressFinalize(this);
     }
 
@@ -598,18 +596,17 @@ public class DBTrans : IDisposable
     /// </summary>
     ~DBTrans()
     {
-        Dispose(disposing: false);
+        Dispose(false);
     }
 
     protected virtual void Dispose(bool disposing)
     {
         /* 事务dispose流程：
          * 1. 根据传入的参数确定是否提交,true为提交,false为不提交
-         * 2. 根据IsDisposed的值确定是否重复dispose,false为首次dispose
-         * 3. 如果锁文档就将文档锁dispose
-         * 4. 不管是否提交,既然进入dispose,就要将事务栈的当前事务弹出
+         * 2. 如果锁文档就将文档锁dispose
+         * 3. 不管是否提交,既然进入dispose,就要将事务栈的当前事务弹出
          *    注意这里的事务栈不是cad的事务管理器,而是dbtrans的事务
-         * 5. 清理非托管的字段
+         * 4. 清理非托管的字段
          */
 
         // 不重复释放,并设置已经释放
@@ -628,14 +625,14 @@ public class DBTrans : IDisposable
             Transaction.Abort();
         }
 
-        // 调用cad事务的dispose进行销毁
+        // 将cad事务进行销毁
         if (!Transaction.IsDisposed)
             Transaction.Dispose();
 
-        // 调用文档锁dispose
+        // 将文档锁销毁
         documentLock?.Dispose();
 
-        // 将事务栈的当前dbtrans弹栈
+        // 将当前事务栈弹栈
         dBTrans.Pop();
     }
     #endregion

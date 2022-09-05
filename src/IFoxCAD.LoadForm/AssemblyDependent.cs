@@ -374,8 +374,8 @@ public class AssemblyDependent : IDisposable
     }
     #endregion
 
-    #region Dispose
-    public bool IsDisposed = false;
+    #region IDisposable接口相关函数
+    public bool IsDisposed { get; private set; } = false;
 
     /// <summary>
     /// 手动调用释放
