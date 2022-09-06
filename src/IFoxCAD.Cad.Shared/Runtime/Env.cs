@@ -492,13 +492,22 @@ public static class Env
 #endif
 
     /// <summary>
-    /// 读取acad环境变量
+    /// 读取acad环境变量<br/>
+    /// 也能获取win环境变量
     /// </summary>
     /// <param name="name"></param>
     /// <returns>返回值从不为null,需判断<see cref="string.Empty"/></returns>
-    public static string AcedGetEnv(string? name)
+    public static string GetEnv(string? name)
     {
-        var sbRes = new StringBuilder(1024);
+        // acad2008注册表路径:
+        // 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R17.1\ACAD - 6001:804\FixedProfile\General
+        // 用户: 计算机\HKEY_CURRENT_USER\Environment
+        // 系统: 计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+
+        //Path的长度非常长/可用内存 (最新格式) 1 MB (标准格式)
+        //https://docs.microsoft.com/zh-cn/windows/win32/sysinfo/registry-element-size-limits
+
+        var sbRes = new StringBuilder(1024 * 1024);
         _ = AcedGetEnv(name, sbRes);
         return sbRes.ToString();
     }
@@ -511,35 +520,35 @@ public static class Env
     /// <param name="name"></param>
     /// <param name="var"></param>
     /// <returns></returns>
-    public static int AcedSetEnv(string? name, string? var)
+    public static int SetEnv(string? name, string? var)
     {
-        // acad2008注册表路径:
-        // 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R17.1\ACAD - 6001:804\FixedProfile\General
         return AcedSetEnv(name, new StringBuilder(var));
     }
     #endregion
 
-    #region win环境变量
-    /// <summary>
-    /// 获取系统环境变量
-    /// </summary>
-    /// <param name="var">变量名</param>
-    /// <returns>指定的环境变量的值；或者如果找不到环境变量，则返回 null</returns>
-    public static string? GetEnv(string? var)
-    {
-        // 从当前进程或者从当前用户或本地计算机的 Windows 操作系统注册表项检索环境变量的值
-        return Environment.GetEnvironmentVariable(var);
-    }
-    /// <summary>
-    /// 设置系统环境变量
-    /// </summary>
-    /// <param name="var">变量名</param>
-    /// <param name="value">变量值</param>
-    public static void SetEnv(string? var, string? value)
-    {
-        // 创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
-        Environment.SetEnvironmentVariable(var, value);
-    }
+    #region win环境变量/由于 Aced的 能够同时获取此变量与cad内的,所以废弃
+    ///// <summary>
+    ///// 获取系统环境变量
+    ///// </summary>
+    ///// <param name="var">变量名</param>
+    ///// <returns>指定的环境变量的值；或者如果找不到环境变量，则返回 null</returns>
+    //public static string? GetEnv(string? var)
+    //{
+    //    // 从当前进程或者从当前用户或本地计算机的 Windows 操作系统注册表项检索环境变量的值
+    //    // 用户: 计算机\HKEY_CURRENT_USER\Environment
+    //    // 系统: 计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+    //    return Environment.GetEnvironmentVariable(var);
+    //}
+    ///// <summary>
+    ///// 设置系统环境变量
+    ///// </summary>
+    ///// <param name="var">变量名</param>
+    ///// <param name="value">变量值</param>
+    //public static void SetEnv(string? var, string? value)
+    //{
+    //    // 创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
+    //    Environment.SetEnvironmentVariable(var, value);
+    //}
     #endregion
 
 
@@ -565,11 +574,11 @@ public static class Env
     public static DwgVersion GetDefaultDwgVersion()
     {
         DwgVersion version;
-        var ffs = Env.AcedGetEnv("DefaultFormatForSave");
+        var ffs = Env.GetEnv("DefaultFormatForSave");
         version = ffs switch
         {
             "1" => DwgVersion.AC1009,// R12/LT12 dxf
-            "8" => DwgVersion.AC1014,// R14/LT98/LT97 dwg 
+            "8" => DwgVersion.AC1014,// R14/LT98/LT97 dwg
             "12" => DwgVersion.AC1015,// 2000 dwg
             "13" => DwgVersion.AC1800a,// 2000 dxf
             "24" => DwgVersion.AC1800,// 2004 dwg
@@ -583,7 +592,7 @@ public static class Env
             "60" => (DwgVersion)31,// 2013 dwg  DwgVersion.AC1027
             "61" => (DwgVersion)32,// 2013 dxf
             "64" => (DwgVersion)33,// 2018 dwg  DwgVersion.AC1032
-            "65" => (DwgVersion)34,// 2018 dxf   
+            "65" => (DwgVersion)34,// 2018 dxf
             _ => throw new NotImplementedException(),//提醒维护
         };
         return version;
@@ -604,7 +613,7 @@ public static class Env
             28 => true,// 2007 dxf
             30 => true,// 2010 dxf
             32 => true,// 2013 dxf
-            34 => true,// 2018 dxf   
+            34 => true,// 2018 dxf
             _ => false,
         };
         return result;
@@ -704,10 +713,10 @@ public static class Env
             }
 
             // 判断是否为系统变量
-            var envstr = Env.AcedGetEnv(item.Key);
+            var envstr = Env.GetEnv(item.Key);
             if (!string.IsNullOrEmpty(envstr))
             {
-                Env.AcedSetEnv(item.Key, item.Value);
+                Env.SetEnv(item.Key, item.Value);
                 dict.Add(item.Key, envstr);
             }
         }

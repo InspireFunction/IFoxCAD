@@ -137,9 +137,18 @@ public partial class Test
     [CommandMethod(nameof(Test_GetEnv))]
     public static void Test_GetEnv()
     {
-        var dir = Env.AcedGetEnv("PrinterConfigDir");
+        var dir = Env.GetEnv("PrinterConfigDir");
         Env.Printl("pc3打印机位置:" + dir);
+
+        Env.SetEnv("abc", "656");
+
+        var obj = Env.GetEnv("abc");
+        Env.Printl("GetEnv:" + obj);
+
+        Env.Printl("GetEnv:" + Env.GetEnv("abc"));
+        Env.Printl("GetEnv PATH:" + Env.GetEnv("PATH"));
     }
+
 
 #if !NET35 && !NET40
 
