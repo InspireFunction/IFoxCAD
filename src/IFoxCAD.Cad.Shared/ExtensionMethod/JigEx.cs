@@ -238,8 +238,8 @@ public class JigEx : DrawJig
     }
 
     /// <summary>
-    /// 重绘已在数据库的图元 
-    /// <para> 
+    /// 重绘已在数据库的图元
+    /// <para>
     /// 0x01 此处不加入newEntity的,它们在构造函数的参数回调处加入,它们会进行频繁new和Dispose从而避免遗忘释放<br/>
     /// 0x02 此处用于重绘已经在数据的图元<br/>
     /// 0x03 此处用于图元亮显暗显,因为会被重绘冲刷掉所以独立出来不重绘,它们也往往已经存在数据库的
@@ -347,10 +347,11 @@ public class JigEx : DrawJig
     }
     #endregion
 
-    protected override void ViewportDraw(ViewportDraw draw)
-    {
-        base.ViewportDraw(draw);
-    }
+    // 此处无测试
+    //protected override void ViewportDraw(ViewportDraw draw)
+    //{
+    //    base.ViewportDraw(draw);
+    //}
 }
 
 #if false
