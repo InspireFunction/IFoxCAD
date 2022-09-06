@@ -52,10 +52,11 @@ public class XrefFactory : IXrefBindModes
 
 
     /// <summary>
-    /// bind时候是否为插入模式<br/>
-    /// 默认<see langword="true"/>可能和双美元符号有关
+    /// 绑定模式和双美元符号相关(与cad保持相同的默认)<br/>
+    /// <see langword="false"/>为绑定模式,产生双美元;
+    /// <see langword="true"/>为插入模式,块重名会以本图覆盖;
     /// </summary>
-    public bool InsertBind = true;
+    public bool BindOrInsert = false;
     /// <summary>
     /// bind时候是否拆离参照<br/>
     /// 默认<see langword="true"/>:学官方的绑定后自动拆离
@@ -72,7 +73,6 @@ public class XrefFactory : IXrefBindModes
     /// 其他项有异常:<see langword="eWasOpenForNotify"/><br/>
     /// </summary>
     public SymModes SymModesBind = SymModes.LayerTable;
-
     #endregion
 
     #region 构造
@@ -318,9 +318,9 @@ public class XrefFactory : IXrefBindModes
         var bindIds = GetBindIds();
         var xbindIds = GetXBindIds();
         if (xbindIds.Count > 0)
-            _tr.Database.XBindXrefs(xbindIds, InsertBind);
+            _tr.Database.XBindXrefs(xbindIds, BindOrInsert);
         if (bindIds.Count > 0)
-            _tr.Database.BindXrefs(bindIds, InsertBind);
+            _tr.Database.BindXrefs(bindIds, BindOrInsert);
 
 
         // 内部删除嵌套参照的块操作
@@ -484,7 +484,7 @@ public class XrefPath
     }
     #endregion
 
-    #region 静态函数  
+    #region 静态函数
     /// <summary>
     /// 获取相对路径或者绝对路径
     /// <see href="https://www.cnblogs.com/hont/p/5412340.html">参考链接</see>
@@ -522,7 +522,7 @@ public class XrefPath
     /// <param name="strDbPath">绝对路径</param>
     /// <param name="strXrefPath">相对关系</param>
     /// <returns></returns>
-    /// StringHelper.GetRelativePath("G:\\A1.项目\\20190920金山谷黄宅\\01.饰施图\\03.平面图", 
+    /// StringHelper.GetRelativePath("G:\\A1.项目\\20190920金山谷黄宅\\01.饰施图\\03.平面图",
     /// "G:\\A1.项目\\20190920金山谷黄宅\\01.饰施图\\01.辅助文件\\图框\\A3图框.dwg");
     public static string GetRelativePath(string strDbPath, string strXrefPath)
     {
@@ -594,7 +594,7 @@ public class XrefPath
     /// 相对路径->绝对路径
     /// </summary>
     /// <param name="directory">文件夹路径</param>
-    /// <param name="relativePath">相对关系:有..的</param> 
+    /// <param name="relativePath">相对关系:有..的</param>
     /// <returns>完整路径</returns>
     /// <![CDATA[
     /// GetCompletePath("G:\\A1.项目\\20190920金山谷黄宅\\01.饰施图\\03.平面图" ,
