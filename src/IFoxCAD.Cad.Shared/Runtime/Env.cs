@@ -495,17 +495,18 @@ public static class Env
     /// 读取acad环境变量<br/>
     /// 也能获取win环境变量
     /// </summary>
-    /// <param name="name"></param>
+    /// <param name="name">变量名</param>
     /// <returns>返回值从不为null,需判断<see cref="string.Empty"/></returns>
     public static string GetEnv(string? name)
     {
-        // acad2008注册表路径:
-        // 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R17.1\ACAD - 6001:804\FixedProfile\General
+        // 它将混合查询以下路径:
+        // acad2008注册表路径: 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R17.1\ACAD - 6001:804\FixedProfile\General
         // 用户: 计算机\HKEY_CURRENT_USER\Environment
         // 系统: 计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
 
-        //Path的长度非常长/可用内存 (最新格式) 1 MB (标准格式)
-        //https://docs.microsoft.com/zh-cn/windows/win32/sysinfo/registry-element-size-limits
+        // GetEnv("Path")长度很长:
+        // 可用内存 (最新格式) 1 MB (标准格式)
+        // https://docs.microsoft.com/zh-cn/windows/win32/sysinfo/registry-element-size-limits
 
         var sbRes = new StringBuilder(1024 * 1024);
         _ = AcedGetEnv(name, sbRes);
@@ -517,8 +518,8 @@ public static class Env
     /// 它是不会报错的,但是直接设置会写入注册表的,<br/>
     /// 如果是设置高低版本cad不同的变量,建议先读取判断再设置<br/>
     /// </summary>
-    /// <param name="name"></param>
-    /// <param name="var"></param>
+    /// <param name="name">变量名</param>
+    /// <param name="var">变量值</param>
     /// <returns></returns>
     public static int SetEnv(string? name, string? var)
     {
