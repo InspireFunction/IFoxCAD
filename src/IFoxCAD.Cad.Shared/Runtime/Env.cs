@@ -650,6 +650,11 @@ public static class Env
         };
         return acarVarNum;
     }
+
+    public static string GetAcapVersionDll(string str = "acdb")
+    {
+        return str + Acap.Version.Major + ".dll";
+    }
     #endregion
 
 

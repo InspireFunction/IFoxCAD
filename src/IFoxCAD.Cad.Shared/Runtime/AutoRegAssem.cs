@@ -65,6 +65,9 @@ public abstract class AutoRegAssem : IExtensionApplication
                 RegApp();
         }
 
+        if ((autoRegConfig & AutoRegConfig.RemoveEMR) == AutoRegConfig.RemoveEMR)
+            EMR.Remove();
+
         // 实例化了 AutoClass 之后会自动执行 IFoxAutoGo 接口下面的类,
         // 以及自动执行特性 [IFoxInitialize]
         // 类库用户不在此处进行其他代码,而是实现特性

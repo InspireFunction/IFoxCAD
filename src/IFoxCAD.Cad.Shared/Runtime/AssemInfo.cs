@@ -73,7 +73,10 @@ public enum AutoRegConfig
     /// </summary>
     ReflectionInterface = 4,
 
-    All = Regedit | ReflectionAttribute | ReflectionInterface,
+    /// <summary>
+    /// 移除教育版
+    /// </summary>
+    RemoveEMR = 8,
+
+    All = Regedit | ReflectionAttribute | ReflectionInterface | RemoveEMR,
 }
-
-

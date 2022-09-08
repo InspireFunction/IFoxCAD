@@ -267,7 +267,6 @@ public class AutoReflection
                 break;
             }
         }, _dllName);
-
     }
 
     /// <summary>
