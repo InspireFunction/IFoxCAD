@@ -3,6 +3,21 @@ using System;
 using System.Text;
 using TestConsole;
 
+
+List<int> list = new List<int>();
+list.Add(1);
+list.Add(2);
+list.Add(3);
+list.Add(4);
+list.Add(5);
+list.ForEach((x, loop) => {
+    if (x == 3)
+        loop.Break();
+    Console.WriteLine(x);
+});
+
+
+
 // 乱序
 Console.WriteLine(PlugIn.JoinBox.PrintNote());
 Console.WriteLine(PlugIn.Lisp.PrintNote());// 这里先交换顺序来试试能不能成功

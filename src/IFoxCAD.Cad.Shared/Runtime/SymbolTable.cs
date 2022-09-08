@@ -334,7 +334,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
                         OpenMode openMode = OpenMode.ForRead,
                         bool checkIdOk = false)
     {
-        LoopState state = LoopState.Go;/*这种方式比Action改Func更友好*/
+        LoopState state = new();/*这种方式比Action改Func更友好*/
         foreach (var id in this)
         {
             if (checkIdOk && !id.IsOk())
@@ -342,7 +342,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
             var record = GetRecord(id, openMode);
             if (record is not null)
                 action(record, state);
-            if (state == LoopState.Break)
+            if (state.IsBreak)
                 break;
         }
     }
