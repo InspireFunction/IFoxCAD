@@ -43,7 +43,7 @@ public class DBTrans : IDisposable
              * 事务栈上面有事务,这个事务属于当前文档,
              * 那么直接提交原本事务然后再开一个(一直把栈前面的同数据库提交清空)
              * 那不就发生跨事务读取图元了吗?....否决
-             * 
+             *
              * 0x02
              * 跨文档事务出错 Autodesk.AutoCAD.Runtime.Exception:“eNotFromThisDocument”
              * Curves.GetEntities()会从Top获取事务(Top会new一个),此时会是当前文档;
@@ -52,7 +52,7 @@ public class DBTrans : IDisposable
              * 然后我新建了一个文档,再进行命令=>又进入Top,Top返回了前一个文档的事务
              * 因此所以无法清理栈,所以Dispose不触发,导致无法刷新图元和Ctrl+Z出错
              * 所以用AOP方式修复
-             * 
+             *
              * 0x03
              * 经过艰苦卓绝的测试,aop模式由于不能断点调试,所以暂时放弃。
              */
@@ -524,12 +524,10 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <remarks>
     /// 备注:<br/>
-    /// <para>
     /// 0x01 文字偏移问题主要出现线性引擎函数<see cref="Database.ResolveXrefs"/>上面,<br/>
     ///      在 参照绑定/深度克隆 的底层共用此函数导致<br/>
     /// 0x02 后台是利用前台当前数据库进行处理的<br/>
     /// 0x03 跨进程通讯暂无测试(可能存在bug)<br/>
-    /// </para>
     /// </remarks>
     /// <param name="action">委托</param>
     /// <param name="handlingDBTextDeviation">开启单行文字偏移处理</param>
@@ -547,16 +545,18 @@ public class DBTrans : IDisposable
 
         // 后台
         // 这种情况发生在关闭了所有文档之后,进行跨进程通讯
-        var dbBak = HostApplicationServices.WorkingDatabase;
-        if (dbBak == null)
+        // 此处要先获取激活的文档,不能直接获取当前数据库否则异常
+        var dm = Acap.DocumentManager;
+        var doc = dm.MdiActiveDocument;
+        if (doc == null)
         {
             action.Invoke();
             return;
         }
-
         // 处理单行文字偏移
-        // 前台绑定参照的时候不能用它,否则出现: <see langword="eWasErased"/><br/>
+        // 前台绑定参照的时候不能用它,否则抛出异常:eWasErased
         // 所以本函数自动识别前后台做处理
+        var dbBak = doc.Database;
         HostApplicationServices.WorkingDatabase = Database;
         action.Invoke();
         HostApplicationServices.WorkingDatabase = dbBak;
