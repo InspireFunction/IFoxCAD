@@ -12,7 +12,7 @@ using System.Diagnostics;
 /// 去教育版
 /// </summary>
 /// <returns></returns>
-internal class EMR
+internal class AcadEMR
 {
     /// <summary>
     /// 释放库
@@ -50,16 +50,21 @@ internal class EMR
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     static extern bool VirtualProtect(IntPtr lpAddress, IntPtr dwSize, uint flNewProtect, ref uint lpflOldProtect);
 
+
     /// <summary>
-    /// 去教育版
+    /// 移除教育版
     /// </summary>
-    /// <returns></returns>
-    public static string Remove(bool echoe = false)
+    /// <param name="echoes">打印出错信息</param>
+    public static void Remove(bool echoes = false)
     {
         var dllName = Env.GetAcapVersionDll();
         IntPtr moduleHandle = GetModuleHandle(dllName);
         if (moduleHandle == IntPtr.Zero)
-            return typeof(EMR).FullName + "." + nameof(Remove) + "找不到模块：" + dllName;
+        {
+            if (echoes)
+                Env.Printl(typeof(AcadEMR).FullName + "." + nameof(Remove) + "找不到模块：" + dllName);
+            return;
+        }
 
         string funcname = System.Text.Encoding.Unicode.GetString(new byte[] { 63 });
         if (IntPtr.Size == 4)
@@ -69,7 +74,11 @@ internal class EMR
 
         IntPtr funcAdress = GetProcAddress(moduleHandle, funcname);
         if (funcAdress == IntPtr.Zero)
-            return "无法找指定函数：" + funcname;
+        {
+            if (echoes)
+                Env.Printl("无法找指定函数：" + funcname);
+            return;
+        }
 
         IntPtr ptr;
         if (IntPtr.Size == 4)
@@ -77,26 +86,31 @@ internal class EMR
         else
             ptr = new IntPtr(funcAdress.ToInt64() + 4);
 
-        if (!CheckFunc(ref ptr, 51, 2) && echoe)//08 通过此处
-            Debug.WriteLine("无法验证函数体：0x33");
+        if (!CheckFunc(ref ptr, 51, 2))//08 通过此处
+            if (echoes)
+                Env.Printl("无法验证函数体：0x33");
         IntPtr destPtr = ptr;
 
-        if (!CheckFunc(ref ptr, 57, 6) && echoe)//08 无法通过此处,所以只是打印提示
-            Debug.WriteLine("无法验证函数体：0x39");
-        if (!CheckFunc(ref ptr, 15, 2) && echoe)//08 无法通过此处,所以只是打印提示
-            Debug.WriteLine("无法验证函数体：0x0F");
+        if (!CheckFunc(ref ptr, 57, 6))//08 无法通过此处,所以只是打印提示
+            if (echoes)
+                Env.Printl("无法验证函数体：0x39");
+        if (!CheckFunc(ref ptr, 15, 2))//08 无法通过此处,所以只是打印提示
+            if (echoes)
+                Env.Printl("无法验证函数体：0x0F");
 
         uint flag = default;
         uint tccc = default;
 
         IntPtr ip100 = new(100);
         if (!VirtualProtect(destPtr, ip100, 64, ref flag))// 修改内存权限
-            return "内存模式修改失败!";
+        {
+            if (echoes)
+                Env.Printl("内存模式修改失败!");
+            return;
+        }
 
         Marshal.WriteByte(destPtr, 137);
         VirtualProtect(destPtr, ip100, flag, ref tccc);// 恢复内存权限
-
-        return string.Empty;
     }
 
     /// <summary>
