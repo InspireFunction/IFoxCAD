@@ -3,7 +3,17 @@
 #### 释义
 IFox中：
 - IF：为Inspire Function（中文名：跃动方程）的首字母缩写
-- Fox：起初`雪山飞狐`（又狐哥）在明经论坛发布了[开源库](http://bbs.mjtd.com/thread-75701-1-1.html)，后`落魄山人`（又小山山）基于狐哥的开源库创建了NFox开源项目，后经多重原因NFox被废弃，小山山又开创新开源项目，取名为`IF+Fox=IFox`，一语双关，简洁而不简单。
+- Fox：起初 **雪山飞狐（又狐哥）** 在明经论坛发布了[开源库](http://bbs.mjtd.com/thread-75701-1-1.html)，后来狐哥自己的项目进行了极大的丰富后形成NFox类库。
+
+   在 **落魄山人（又小山山）** 开始学习c#开发后，由于这个人过于懒，不想自己写基础的函数了，所以厚颜无耻的跟狐哥要来了 **NFox** 的源码。
+
+   在学习了一阵源码后，发现狐哥的代码惊天地，泣鬼神，惊为天人，直接跪服，从此成为狐哥的脑残粉。
+
+   为不使明珠蒙尘，特向狐哥申请是否可以开源，经原作者狐哥同意，正式发布 **NFox** 开源类库。
+
+   后来本人多次二逼操作后， **NFox** 莫名无法运行，找不到原因，以及原代码嵌套引用多，逻辑复杂，痛定思痛，遂放弃 **NFox** 的开发，基于 **NFox** 重构为 **IFox** ,重新发布开源项目，取名为`IF+Fox=IFox`，一语双关，简洁而不简单。当然这些都是掩饰，其实就是 **I(爱)Fox(狐哥)** 。
+
+ **Inspire Function（中文名：跃动方程）及 IFoxCad 的名字均为小轩轩起名** 
 
 #### 介绍
 
@@ -143,31 +153,31 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
        [IFoxInitialize]
        public void InitOne()
        { 
-           // TODO 您想在加载dll之后自动执行的函数
+           //TODO 您想在加载dll之后自动执行的函数
            // 可以随便在哪里类里 可以多次实现 IFoxInitialize 特性
        }
    
    }
    
-   // 其他的类中的函数:
-   // 实现自动接口之后,在任意一个函数上面使用此特性,减少每次改动 CmdINI 类
+   //其他的类中的函数:
+   //实现自动接口之后,在任意一个函数上面使用此特性,减少每次改动 CmdINI 类
    public class AutoTest
    {
        [IFoxInitialize]
        public void Initialize()
        { 
-           // TODO 您想在加载dll之后自动执行的函数
+           //TODO 您想在加载dll之后自动执行的函数
        }
        [IFoxInitialize]
        public void InitTwo()
        { 
-           // TODO 您想在加载dll之后自动执行的函数
+           //TODO 您想在加载dll之后自动执行的函数
            // 可以随便在哪里类里 可以多次实现 IFoxInitialize 特性
        }
        [IFoxInitialize(isInitialize: false)] // 特性的参数为false的时候就表示卸载时执行的函数
        public void Terminate()
        {
-            // TODO 您想在关闭cad时自动执行的函数
+            //TODO 您想在关闭cad时自动执行的函数
        }
    }
    ```
@@ -179,10 +189,10 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
    由于cad的对象是有打开模式，是否可写等等，为了安全起见，在处理对象时，一般是用读模式打开，然后需要写数据的时候在提权为写模式，然后在降级到读模式，但是这个过程中，很容易漏掉某些步骤，然后cad崩溃。为了处理这些情况，内裤提供了提权类来保证读写模式的有序转换。
 
    ```c#
-   using(line.ForWrite()) // 开启对象写模式提权事务
+   using(line.ForWrite()) //开启对象写模式提权事务
    {
-     // 处理代码
-   } // 关闭事务自动处理读写模式
+     //处理代码
+   } //关闭事务自动处理读写模式
    ```
 
 8. 未完待续。。。。
