@@ -18,6 +18,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Algorithms\QuadTree\QuadTreeSelectMode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Algorithms\QuadTree\Rect.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\DBTransEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\JigExTransient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\XrefEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\BulgeVertexWidth.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\CollectionEx.cs" />

@@ -50,7 +50,7 @@ public class TestLisp
     [CommandMethod("CmdTest_RunLisp19", CommandFlags.NoUndoMarker)]
     // 不能在参照块中使用命令
     [CommandMethod("CmdTest_RunLisp20", CommandFlags.NoBlockEditor)]
-#if ac2009
+#if !ac2008
     // acad09增,不会被动作录制器 捕捉到
     [CommandMethod("CmdTest_RunLisp21", CommandFlags.NoActionRecording)]
     // acad09增,会被动作录制器捕捉
