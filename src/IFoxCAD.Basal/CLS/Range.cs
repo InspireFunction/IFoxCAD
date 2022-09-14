@@ -100,4 +100,3 @@ public readonly struct Range : IEquatable<Range>
         return (start, end - start);
     }
 }
-

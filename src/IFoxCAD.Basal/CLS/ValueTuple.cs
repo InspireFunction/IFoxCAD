@@ -10,9 +10,9 @@ using System.Numerics.Hashing;
  * 惊惊:
  * 首先是因为有人想要编译的时候只形成一个dll,然后把元组塞入IFox,同时也补充了NET35没有元组的遗憾.
  * 而利用nuget元组包必然会形成依赖地狱.
- * 
+ *
  * 如果你的工程使用了nuget元组包,就造成了必须要剔除IFox.
- * 
+ *
  * 改IFox的元组命名空间倒是可以分离两者,但是 vs编译器 无法识别带其他命名空间的元组.
  * 所以元组本身就是冲突的,需要把其他元组卸载掉,由IFox提供.
  */
@@ -61,11 +61,11 @@ namespace System.Numerics.Hashing
 
 namespace System
 {
-    // internal static class SR 
+    // internal static class SR
     internal sealed partial class SR
     {
         // public const string ArgumentException_ValueTupleIncorrectType = "The parameter should be a ValueTuple type of appropriate arity.";
-        // public const string ArgumentException_ValueTupleLastArgumentNotAValueTuple = "The TRest type argument of ValueTuple`8 must be a ValueTuple."; 
+        // public const string ArgumentException_ValueTupleLastArgumentNotAValueTuple = "The TRest type argument of ValueTuple`8 must be a ValueTuple.";
         public const string ArgumentException_ValueTupleIncorrectType = "该参数应该是适当数量的 ValueTuple 类型.";
         public const string ArgumentException_ValueTupleLastArgumentNotAValueTuple = "ValueTuple`8 的 TREST 类型参数必须是 ValueTuple.";
     }
@@ -139,7 +139,7 @@ namespace System
         /// <returns>
         /// A signed number indicating the relative values of this instance and <paramref name="other"/>.
         /// Returns less than zero if this instance is less than <paramref name="other"/>, zero if this
-        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater 
+        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater
         /// than <paramref name="other"/>.
         /// </returns>
         public int CompareTo(ValueTuple other)
@@ -425,7 +425,7 @@ namespace System
         /// <returns>
         /// A signed number indicating the relative values of this instance and <paramref name="other"/>.
         /// Returns less than zero if this instance is less than <paramref name="other"/>, zero if this
-        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater 
+        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater
         /// than <paramref name="other"/>.
         /// </returns>
         public int CompareTo(ValueTuple<T1> other)
@@ -596,7 +596,7 @@ namespace System
         /// <returns>
         /// A signed number indicating the relative values of this instance and <paramref name="other"/>.
         /// Returns less than zero if this instance is less than <paramref name="other"/>, zero if this
-        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater 
+        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater
         /// than <paramref name="other"/>.
         /// </returns>
         public int CompareTo(ValueTuple<T1, T2> other)
@@ -771,7 +771,7 @@ namespace System
         /// <returns>
         /// A signed number indicating the relative values of this instance and <paramref name="other"/>.
         /// Returns less than zero if this instance is less than <paramref name="other"/>, zero if this
-        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater 
+        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater
         /// than <paramref name="other"/>.
         /// </returns>
         public int CompareTo(ValueTuple<T1, T2, T3> other)
@@ -961,7 +961,7 @@ namespace System
         /// <returns>
         /// A signed number indicating the relative values of this instance and <paramref name="other"/>.
         /// Returns less than zero if this instance is less than <paramref name="other"/>, zero if this
-        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater 
+        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater
         /// than <paramref name="other"/>.
         /// </returns>
         public int CompareTo(ValueTuple<T1, T2, T3, T4> other)
@@ -1168,7 +1168,7 @@ namespace System
         /// <returns>
         /// A signed number indicating the relative values of this instance and <paramref name="other"/>.
         /// Returns less than zero if this instance is less than <paramref name="other"/>, zero if this
-        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater 
+        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater
         /// than <paramref name="other"/>.
         /// </returns>
         public int CompareTo(ValueTuple<T1, T2, T3, T4, T5> other)
@@ -1392,7 +1392,7 @@ namespace System
         /// <returns>
         /// A signed number indicating the relative values of this instance and <paramref name="other"/>.
         /// Returns less than zero if this instance is less than <paramref name="other"/>, zero if this
-        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater 
+        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater
         /// than <paramref name="other"/>.
         /// </returns>
         public int CompareTo(ValueTuple<T1, T2, T3, T4, T5, T6> other)
@@ -1633,7 +1633,7 @@ namespace System
         /// <returns>
         /// A signed number indicating the relative values of this instance and <paramref name="other"/>.
         /// Returns less than zero if this instance is less than <paramref name="other"/>, zero if this
-        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater 
+        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater
         /// than <paramref name="other"/>.
         /// </returns>
         public int CompareTo(ValueTuple<T1, T2, T3, T4, T5, T6, T7> other)
@@ -1897,7 +1897,7 @@ namespace System
         /// <returns>
         /// A signed number indicating the relative values of this instance and <paramref name="other"/>.
         /// Returns less than zero if this instance is less than <paramref name="other"/>, zero if this
-        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater 
+        /// instance is equal to <paramref name="other"/>, and greater than zero if this instance is greater
         /// than <paramref name="other"/>.
         /// </returns>
         public int CompareTo(ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest> other)
@@ -1987,48 +1987,48 @@ namespace System
             switch (k)
             {
                 case 1:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T7>.Default.GetHashCode(Item7),
-                                                       rest.GetHashCode());
+                return ValueTuple.CombineHashCodes(EqualityComparer<T7>.Default.GetHashCode(Item7),
+                                                   rest.GetHashCode());
                 case 2:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
-                                                       rest.GetHashCode());
+                return ValueTuple.CombineHashCodes(EqualityComparer<T6>.Default.GetHashCode(Item6),
+                                                   EqualityComparer<T7>.Default.GetHashCode(Item7),
+                                                   rest.GetHashCode());
                 case 3:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                       EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
-                                                       rest.GetHashCode());
+                return ValueTuple.CombineHashCodes(EqualityComparer<T5>.Default.GetHashCode(Item5),
+                                                   EqualityComparer<T6>.Default.GetHashCode(Item6),
+                                                   EqualityComparer<T7>.Default.GetHashCode(Item7),
+                                                   rest.GetHashCode());
                 case 4:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                                       EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                       EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
-                                                       rest.GetHashCode());
+                return ValueTuple.CombineHashCodes(EqualityComparer<T4>.Default.GetHashCode(Item4),
+                                                   EqualityComparer<T5>.Default.GetHashCode(Item5),
+                                                   EqualityComparer<T6>.Default.GetHashCode(Item6),
+                                                   EqualityComparer<T7>.Default.GetHashCode(Item7),
+                                                   rest.GetHashCode());
                 case 5:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                                       EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                                       EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                       EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
-                                                       rest.GetHashCode());
+                return ValueTuple.CombineHashCodes(EqualityComparer<T3>.Default.GetHashCode(Item3),
+                                                   EqualityComparer<T4>.Default.GetHashCode(Item4),
+                                                   EqualityComparer<T5>.Default.GetHashCode(Item5),
+                                                   EqualityComparer<T6>.Default.GetHashCode(Item6),
+                                                   EqualityComparer<T7>.Default.GetHashCode(Item7),
+                                                   rest.GetHashCode());
                 case 6:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T2>.Default.GetHashCode(Item2),
-                                                       EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                                       EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                                       EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                       EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
-                                                       rest.GetHashCode());
+                return ValueTuple.CombineHashCodes(EqualityComparer<T2>.Default.GetHashCode(Item2),
+                                                   EqualityComparer<T3>.Default.GetHashCode(Item3),
+                                                   EqualityComparer<T4>.Default.GetHashCode(Item4),
+                                                   EqualityComparer<T5>.Default.GetHashCode(Item5),
+                                                   EqualityComparer<T6>.Default.GetHashCode(Item6),
+                                                   EqualityComparer<T7>.Default.GetHashCode(Item7),
+                                                   rest.GetHashCode());
                 case 7:
                 case 8:
-                    return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
-                                                       EqualityComparer<T2>.Default.GetHashCode(Item2),
-                                                       EqualityComparer<T3>.Default.GetHashCode(Item3),
-                                                       EqualityComparer<T4>.Default.GetHashCode(Item4),
-                                                       EqualityComparer<T5>.Default.GetHashCode(Item5),
-                                                       EqualityComparer<T6>.Default.GetHashCode(Item6),
-                                                       EqualityComparer<T7>.Default.GetHashCode(Item7),
-                                                       rest.GetHashCode());
+                return ValueTuple.CombineHashCodes(EqualityComparer<T1>.Default.GetHashCode(Item1),
+                                                   EqualityComparer<T2>.Default.GetHashCode(Item2),
+                                                   EqualityComparer<T3>.Default.GetHashCode(Item3),
+                                                   EqualityComparer<T4>.Default.GetHashCode(Item4),
+                                                   EqualityComparer<T5>.Default.GetHashCode(Item5),
+                                                   EqualityComparer<T6>.Default.GetHashCode(Item6),
+                                                   EqualityComparer<T7>.Default.GetHashCode(Item7),
+                                                   rest.GetHashCode());
             }
 
             Debug.Assert(false, "Missed all cases for computing ValueTuple hash code");
@@ -2063,27 +2063,27 @@ namespace System
             switch (k)
             {
                 case 1:
-                    return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
+                return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
                 case 2:
-                    return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item6), comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
+                return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item6), comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
                 case 3:
-                    return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item5), comparer.GetHashCode(Item6), comparer.GetHashCode(Item7),
-                                                       rest.GetHashCode(comparer));
+                return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item5), comparer.GetHashCode(Item6), comparer.GetHashCode(Item7),
+                                                   rest.GetHashCode(comparer));
                 case 4:
-                    return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item4), comparer.GetHashCode(Item5), comparer.GetHashCode(Item6),
-                                                       comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
+                return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item4), comparer.GetHashCode(Item5), comparer.GetHashCode(Item6),
+                                                   comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
                 case 5:
-                    return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item3), comparer.GetHashCode(Item4), comparer.GetHashCode(Item5),
-                                                       comparer.GetHashCode(Item6), comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
+                return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item3), comparer.GetHashCode(Item4), comparer.GetHashCode(Item5),
+                                                   comparer.GetHashCode(Item6), comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
                 case 6:
-                    return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item2), comparer.GetHashCode(Item3), comparer.GetHashCode(Item4),
-                                                       comparer.GetHashCode(Item5), comparer.GetHashCode(Item6), comparer.GetHashCode(Item7),
-                                                       rest.GetHashCode(comparer));
+                return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item2), comparer.GetHashCode(Item3), comparer.GetHashCode(Item4),
+                                                   comparer.GetHashCode(Item5), comparer.GetHashCode(Item6), comparer.GetHashCode(Item7),
+                                                   rest.GetHashCode(comparer));
                 case 7:
                 case 8:
-                    return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item1), comparer.GetHashCode(Item2), comparer.GetHashCode(Item3),
-                                                       comparer.GetHashCode(Item4), comparer.GetHashCode(Item5), comparer.GetHashCode(Item6),
-                                                       comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
+                return ValueTuple.CombineHashCodes(comparer.GetHashCode(Item1), comparer.GetHashCode(Item2), comparer.GetHashCode(Item3),
+                                                   comparer.GetHashCode(Item4), comparer.GetHashCode(Item5), comparer.GetHashCode(Item6),
+                                                   comparer.GetHashCode(Item7), rest.GetHashCode(comparer));
             }
 
             Debug.Assert(false, "Missed all cases for computing ValueTuple hash code");
@@ -2138,7 +2138,3 @@ namespace System
         }
     }
 }
-
-
-
-
