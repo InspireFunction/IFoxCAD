@@ -6,7 +6,7 @@
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
-        <Version>0.3.7</Version>
+        <Version>0.4</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb;liuqihong</Authors>
         <Description>基于.NET的Cad二次开发类库</Description>

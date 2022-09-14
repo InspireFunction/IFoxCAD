@@ -26,7 +26,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestLisp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestLoop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestMirrorFile.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TestNetLoad.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestPoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestQuadTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)testselectfilter.cs" />

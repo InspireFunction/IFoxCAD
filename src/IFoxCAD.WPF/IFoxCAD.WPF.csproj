@@ -9,8 +9,8 @@
         <UseWindowsForms>true</UseWindowsForms>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <Version>0.3.0</Version>
-        <Authors>xsfhlzh;vicwjb</Authors>
+        <Version>0.4</Version>
+        <Authors>xsfhlzh;vicwjb;liuqihong</Authors>
         <Company>InspireFunction</Company>
         <Description>WPF的简单MVVM模式开发类库</Description>
         <Copyright>InspireFunction</Copyright>

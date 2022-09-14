@@ -1,4 +1,5 @@
-﻿namespace Test;
+﻿#if test
+namespace Test;
 
 public class NetLoad
 {
@@ -24,3 +25,4 @@ public class NetLoad
         // Acap.ShowModalDialog(_form);
     }
 }
+#endif
