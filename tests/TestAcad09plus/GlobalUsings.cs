@@ -18,13 +18,18 @@ global using Autodesk.AutoCAD.Colors;
 global using Autodesk.AutoCAD.DatabaseServices;
 global using Autodesk.AutoCAD.Geometry;
 global using Autodesk.AutoCAD.Runtime;
-global using Acgi =  Autodesk.AutoCAD.GraphicsInterface;
+global using Acgi = Autodesk.AutoCAD.GraphicsInterface;
 global using Acap = Autodesk.AutoCAD.ApplicationServices.Application;
 
 global using Registry = Microsoft.Win32.Registry;
 global using RegistryKey = Microsoft.Win32.RegistryKey;
 
+global using Acad_DwgFiler = Autodesk.AutoCAD.DatabaseServices.DwgFiler;
+global using Acad_DxfFiler = Autodesk.AutoCAD.DatabaseServices.DxfFiler;
+
 /// ifoxcad
 global using IFoxCAD.Cad;
-global using IFoxCAD.WPF;
 global using IFoxCAD.Basal;
+#if !ac2008
+global using IFoxCAD.WPF;
+#endif

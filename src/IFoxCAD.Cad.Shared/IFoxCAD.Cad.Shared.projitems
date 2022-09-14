@@ -40,6 +40,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SymbolTableEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SymbolTableRecordEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Tools.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Filer\DwgFiler.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Filer\DwgFilerEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Filer\DxfFiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建填充\HatchConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建填充\HatchEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建填充\HatchInfo.cs" />

@@ -11,7 +11,7 @@ public class TestBlock
             return;
         foreach (var item in ents)
         {
-            if(item is null)
+            if (item is null)
                 continue;
             var box = item.GetBoundingBoxEx();
             Env.Print("min:" + box.Min + ";max" + box.Max);
@@ -44,7 +44,6 @@ public class TestBlock
         tr.BlockTable.Add("test1",
         btr => {
             btr.Origin = new Point3d(0, 0, 0);
-
         },
         () => {
             var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
@@ -202,7 +201,6 @@ public class TestBlock
     {
         using (var tr = new DBTrans())
         {
-
             // Point3d.Origin.AddBellowToModelSpace(100, 100, 5, 3, 30);// 画波纹管
 
             // Database db2 = new Database(false, true);
@@ -249,7 +247,6 @@ public class TestBlock
         var btr = tr2.BlockTable[Bref.Name];
 
         tr2.BlockTable.Change(btr, ltr => {
-
             foreach (ObjectId OID in ltr)
             {
                 var ent = tr2.GetObject<Entity>(OID);
@@ -260,14 +257,12 @@ public class TestBlock
                         switch (mText.Text)
                         {
                             case "$$A":
-                                mText.Contents = "hahaha";
-                                break;
+                            mText.Contents = "hahaha";
+                            break;
                             case "$$B":
-                                ;
-                                break;
+                            break;
                             default:
-                                ;
-                                break;
+                            break;
                         }
                     }
                     else if (ent is DBText dBText) { dBText.TextString = "haha"; }
@@ -276,11 +271,11 @@ public class TestBlock
                         switch (dimension.DimensionText)
                         {
                             case "$$pipeLen":
-                                dimension.DimensionText = "350";
-                                dimension.RecomputeDimensionBlock(true);
-                                break;
+                            dimension.DimensionText = "350";
+                            dimension.RecomputeDimensionBlock(true);
+                            break;
                             default:
-                                break;
+                            break;
                         }
                     }
                 }
@@ -427,7 +422,6 @@ public class TestBlock
         ed.Regen();
         tr.Commit();
         // ed.Regen();
-
     }
 
     public void TestWblock()
@@ -477,9 +471,7 @@ public class TestBlock
             ent.ForWrite(e => e.ColorIndex = 4);
         });
         tr.Database.SaveAs(dwg, DwgVersion.Current);
-
     }
-
 }
 
 public class BlockImportClass
@@ -620,6 +612,6 @@ public class BlockImportClass
           failed > 0 ? " (" + failed + " failed)" : "",
           pathName
         );
-    } 
+    }
 #endif
 }

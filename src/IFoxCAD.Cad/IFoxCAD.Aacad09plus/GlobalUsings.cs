@@ -39,5 +39,10 @@ global using RegistryKey = Microsoft.Win32.RegistryKey;
 global using Autodesk.AutoCAD.GraphicsInterface;
 global using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
 
+global using Acad_DwgFiler = Autodesk.AutoCAD.DatabaseServices.DwgFiler;
+global using Acad_DxfFiler = Autodesk.AutoCAD.DatabaseServices.DxfFiler;
+global using Acad_ErrorStatus = Autodesk.AutoCAD.Runtime.ErrorStatus;
+
+
 /// ifoxcad.basal 引用
 global using IFoxCAD.Basal;

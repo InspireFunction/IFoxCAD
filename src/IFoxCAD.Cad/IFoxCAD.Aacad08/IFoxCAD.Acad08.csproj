@@ -1,5 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    
+
     <PropertyGroup>
         <TargetFrameworks>NET35</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
@@ -33,7 +33,7 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>DEBUG</DefineConstants>
     </PropertyGroup>
-	
+
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
         <DefineConstants>$(Configuration);ac2008;ac2009</DefineConstants>
     </PropertyGroup>
@@ -54,4 +54,8 @@
     </ItemGroup>
 
     <Import Project="..\..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared" />
+
+    <ItemGroup>
+        <Compile Include="..\IFoxCAD.Aacad09plus\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
+    </ItemGroup>
 </Project>

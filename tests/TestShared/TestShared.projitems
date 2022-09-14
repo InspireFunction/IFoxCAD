@@ -10,6 +10,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CmdINI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestDwgFilerEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Test.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestAOP.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)testblock.cs" />
