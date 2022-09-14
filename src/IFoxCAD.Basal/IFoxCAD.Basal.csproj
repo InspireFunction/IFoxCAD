@@ -8,7 +8,7 @@
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
         <Version>0.4</Version>
         <Company>InspireFunction</Company>
-        <Authors>xsfhlzh;vicwjb</Authors>
+        <Authors>xsfhlzh;vicwjb;liuqihong</Authors>
         <Description>基于.NET的二次开发基本类库</Description>
         <Copyright>InspireFunction</Copyright>
         <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>

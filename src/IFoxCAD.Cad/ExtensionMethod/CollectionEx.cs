@@ -71,33 +71,59 @@ public static class CollectionEx
 
 
     /// <summary>
-    /// 遍历集合的迭代器，执行action委托
+    /// 遍历集合,执行委托
     /// </summary>
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
-    /// <param name="action">要运行的委托</param>
+    /// <param name="action">委托</param>
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        foreach (var element in source)
+            action.Invoke(element);
+    }
+    /// <summary>
+    /// 遍历集合,执行委托<br/>
+    /// 输出索引值
+    /// </summary>
+    /// <typeparam name="T">集合值的类型</typeparam>
+    /// <param name="source">集合</param>
+    /// <param name="action">委托</param>
+    public static void ForEach<T>(this IEnumerable<T> source, Action<int, T> action)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        int i = 0;
         foreach (var element in source)
         {
-            action?.Invoke(element);
+            action.Invoke(i, element);
+            i++;
         }
     }
     /// <summary>
-    /// 同时遍历集合索引和值的迭代器，执行action委托
+    /// 遍历集合,执行委托<br/>
+    /// 输出索引值,允许循环中断
     /// </summary>
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
-    /// <param name="action">要运行的委托</param>
-    public static void ForEach<T>(this IEnumerable<T> source, Action<int, T> action)
+    /// <param name="action">委托</param>
+    public static void ForEach<T>(this IEnumerable<T> source, Action<int, T, LoopState> action)
     {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        LoopState state = new();/*这种方式比Action改Func更友好*/
         int i = 0;
-        foreach (var item in source)
+        foreach (var element in source)
         {
-            action?.Invoke(i, item);
+            action.Invoke(i, element, state);
+            if (!state.IsRun)
+                break;
             i++;
         }
-
     }
 
 
@@ -123,31 +149,31 @@ public static class CollectionEx
         switch (keywordName)
         {
             case KeywordName.GlobalName:
-                for (int i = 0; i < collection.Count; i++)
-                    if (collection[i].GlobalName == name)
-                    {
-                        contains = true;
-                        break;
-                    }
-                break;
+            for (int i = 0; i < collection.Count; i++)
+                if (collection[i].GlobalName == name)
+                {
+                    contains = true;
+                    break;
+                }
+            break;
             case KeywordName.LocalName:
-                for (int i = 0; i < collection.Count; i++)
-                    if (collection[i].LocalName == name)
-                    {
-                        contains = true;
-                        break;
-                    }
-                break;
+            for (int i = 0; i < collection.Count; i++)
+                if (collection[i].LocalName == name)
+                {
+                    contains = true;
+                    break;
+                }
+            break;
             case KeywordName.DisplayName:
-                for (int i = 0; i < collection.Count; i++)
-                    if (collection[i].DisplayName == name)
-                    {
-                        contains = true;
-                        break;
-                    }
-                break;
+            for (int i = 0; i < collection.Count; i++)
+                if (collection[i].DisplayName == name)
+                {
+                    contains = true;
+                    break;
+                }
+            break;
             default:
-                break;
+            break;
         }
         return contains;
     }
@@ -193,6 +219,6 @@ public static class CollectionEx
         foreach (IdPair item in idmap)
             ids.Add(item.Value);
         return ids;
-    } 
+    }
     #endregion
 }

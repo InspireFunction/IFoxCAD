@@ -342,12 +342,10 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
             var record = GetRecord(id, openMode);
             if (record is not null)
                 action(record, state);
-            if (state.IsBreak)
+            if (!state.IsRun)
                 break;
         }
     }
-
-
     #endregion
 
     #region IEnumerable<ObjectId> 成员

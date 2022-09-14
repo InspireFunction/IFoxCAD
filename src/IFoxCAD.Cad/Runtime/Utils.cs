@@ -48,19 +48,19 @@ public class DBTransHelper
         switch (Acap.Version.Major)
         {
             case 17:
-            {
-                if (IntPtr.Size == 4)
-                    return getAcDbObjectId17x32(db, out id, createIfNotFound, ref handle, reserved);
-                else
-                    return getAcDbObjectId17x64(db, out id, createIfNotFound, ref handle, reserved);
-            }
+                {
+                    if (IntPtr.Size == 4)
+                        return getAcDbObjectId17x32(db, out id, createIfNotFound, ref handle, reserved);
+                    else
+                        return getAcDbObjectId17x64(db, out id, createIfNotFound, ref handle, reserved);
+                }
             case 18:
-            {
-                if (IntPtr.Size == 4)
-                    return getAcDbObjectId18x32(db, out id, createIfNotFound, ref handle, reserved);
-                else
-                    return getAcDbObjectId18x64(db, out id, createIfNotFound, ref handle, reserved);
-            }
+                {
+                    if (IntPtr.Size == 4)
+                        return getAcDbObjectId18x32(db, out id, createIfNotFound, ref handle, reserved);
+                    else
+                        return getAcDbObjectId18x64(db, out id, createIfNotFound, ref handle, reserved);
+                }
         }
         return -1;
     }
@@ -93,6 +93,6 @@ public class DBTransHelper
     //    var a = Enum.Parse(typeof(DwgVersion), "AC1800");
     //    Enum.TryParse()
     //    return vernum + 986;
-
+        
     // }
 }

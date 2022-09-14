@@ -165,9 +165,7 @@ public abstract class AutoRegAssem : IExtensionApplication
 
     // 这里的是不会自动执行的
     public void Initialize() { }
-    public void Terminate()
-    {
-    }
+    public void Terminate() { }
 
     ~AutoRegAssem()
     {

@@ -23,11 +23,11 @@ public static class SymbolTableRecordEx
     /// </param>
     /// <param name="objIds">图元id集合,注意所有成员都要在同一个空间中</param>
     /// <returns>克隆后的id词典</returns>
-    public static IdMapping DeepClone(this BlockTableRecord btr, ObjectIdCollection objIds)
+    public static IdMapping DeepCloneEx(this BlockTableRecord btr, ObjectIdCollection objIds)
     {
         if (objIds is null || objIds.Count == 0)
             throw new ArgumentNullException(nameof(objIds));
-       
+
         var db = objIds[0].Database;
         IdMapping mapping = new();
         using (btr.ForWrite())
@@ -39,7 +39,7 @@ public static class SymbolTableRecordEx
                 // 不在此提取,为了此函数被高频调用
                 // 获取克隆键值对(旧块名,新块名)
                 // foreach (ObjectId item in blockIds)
-                //     result.Add(mapping[item].Value);  
+                //     result.Add(mapping[item].Value);
             }
             catch (System.Exception e)
             {
@@ -289,7 +289,6 @@ public static class SymbolTableRecordEx
                                     Action<Polyline>? action = default,
                                     Transaction? trans = default)
     {
-
         Polyline pl = new();
         pl.SetDatabaseDefaults();
         pts.ForEach((i, vertex) => {

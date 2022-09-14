@@ -32,9 +32,9 @@ public static class ObjectIdEx
     /// <param name="mode">打开模式</param>
     /// <param name="openErased">打开删除对象</param>
     /// <returns>指定类型对象集合</returns>
-    public static IEnumerable<T?> GetObject<T>(this IEnumerable<ObjectId> ids,
+    public static IEnumerable<T?> GetObject<T>(this IEnumerable<ObjectId> ids, 
                                                OpenMode mode = OpenMode.ForRead,
-                                               bool openErased = false,
+                                               bool openErased = false, 
                                                Transaction? tr = default) where T : DBObject
     {
         return ids.Select(id => id.GetObject<T>(mode, openErased, tr));

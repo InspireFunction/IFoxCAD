@@ -260,10 +260,8 @@ public class TestBlock
                             mText.Contents = "hahaha";
                             break;
                             case "$$B":
-                            ;
                             break;
                             default:
-                            ;
                             break;
                         }
                     }

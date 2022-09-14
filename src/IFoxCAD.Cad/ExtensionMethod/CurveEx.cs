@@ -114,7 +114,7 @@ public static class CurveEx
         {
 #if NET35
             graph.AddEdge(curve.ToCurve3d()!);
-#else
+#else 
             graph.AddEdge(curve.GetGeCurve());
 #endif
         }
@@ -467,12 +467,12 @@ public static class CurveEx
         {
             case Poly2dType.SimplePoly:
             case Poly2dType.FitCurvePoly:
-            Polyline pl = new();
-            pl.SetDatabaseDefaults();
-            pl.ConvertFrom(pl2d, false);
-            return ToCurve3d(pl);
+                Polyline pl = new();
+                pl.SetDatabaseDefaults();
+                pl.ConvertFrom(pl2d, false);
+                return ToCurve3d(pl);
             default:
-            return ToNurbCurve3d(pl2d);
+                return ToNurbCurve3d(pl2d);
         }
 
         // Polyline pl = new Polyline();
@@ -491,13 +491,13 @@ public static class CurveEx
         {
             case Poly2dType.SimplePoly:
             case Poly2dType.FitCurvePoly:
-            Polyline pl = new();
-            pl.SetDatabaseDefaults();
-            pl.ConvertFrom(pl2d, false);
-            return ToNurbCurve3d(pl);
+                Polyline pl = new();
+                pl.SetDatabaseDefaults();
+                pl.ConvertFrom(pl2d, false);
+                return ToNurbCurve3d(pl);
 
             default:
-            return ToCurve3d(pl2d.Spline);
+                return ToCurve3d(pl2d.Spline);
         }
     }
 
@@ -578,15 +578,15 @@ public static class CurveEx
             switch (pl.GetSegmentType(i))
             {
                 case SegmentType.Line:
-                c3ds.Add(pl.GetLineSegmentAt(i));
-                break;
+                    c3ds.Add(pl.GetLineSegmentAt(i));
+                    break;
 
                 case SegmentType.Arc:
-                c3ds.Add(pl.GetArcSegmentAt(i));
-                break;
+                    c3ds.Add(pl.GetArcSegmentAt(i));
+                    break;
 
                 default:
-                break;
+                    break;
             }
         }
         return new CompositeCurve3d(c3ds.ToArray());
@@ -606,15 +606,15 @@ public static class CurveEx
             switch (pl.GetSegmentType(i))
             {
                 case SegmentType.Line:
-                nc3dtemp = new NurbCurve3d(pl.GetLineSegmentAt(i));
-                break;
+                    nc3dtemp = new NurbCurve3d(pl.GetLineSegmentAt(i));
+                    break;
 
                 case SegmentType.Arc:
-                nc3dtemp = pl.GetArcSegmentAt(i).ToNurbCurve3d();
-                break;
+                    nc3dtemp = pl.GetArcSegmentAt(i).ToNurbCurve3d();
+                    break;
 
                 default:
-                break;
+                    break;
             }
             if (nc3d is null)
             {
