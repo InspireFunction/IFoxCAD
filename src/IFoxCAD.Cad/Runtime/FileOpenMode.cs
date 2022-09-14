@@ -1,4 +1,4 @@
-#if ac2008 //NET35
+#if ac2008 // NET35
 namespace Autodesk.AutoCAD.DatabaseServices
 {
     [Wrapper("AcDbDatabase::OpenMode")]

@@ -3,14 +3,15 @@
 using System;
 using System.Diagnostics;
 using System.Threading;
+using Exception = Exception;
 
 #region 写入日志到不同的环境中
-//https://zhuanlan.zhihu.com/p/338492989
+// https://zhuanlan.zhihu.com/p/338492989
 public abstract class LogBase
 {
-    public abstract void ReadLog(string message);
+    public abstract void DeleteLog();
+    public abstract string[] ReadLog();
     public abstract void WriteLog(string message);
-    public abstract void DeleteLog(string message);
 }
 
 /// <summary>
@@ -19,17 +20,21 @@ public abstract class LogBase
 public enum LogTarget
 {
     /// <summary>
-    /// 文件
+    /// 文件(包含错误和备注)
     /// </summary>
     File = 1,
     /// <summary>
+    /// 文件(不包含错误,也就是只写备注信息)
+    /// </summary>
+    FileNotException = 2,
+    /// <summary>
     /// 数据库
     /// </summary>
-    Database = 2,
+    Database = 4,
     /// <summary>
     /// windows日志
     /// </summary>
-    EventLog = 4,
+    EventLog = 8,
 }
 
 /// <summary>
@@ -37,19 +42,24 @@ public enum LogTarget
 /// </summary>
 public class FileLogger : LogBase
 {
-    public override void DeleteLog(string message)
+    public override void DeleteLog()
     {
-        throw new NotImplementedException();
+        File.Delete(LogHelper.LogAddress);
     }
-
-    public override void ReadLog(string message)
+    public override string[] ReadLog()
     {
-        throw new NotImplementedException();
+        List<string> lines = new();
+        using (var sr = new StreamReader(LogHelper.LogAddress, true/*自动识别文件头*/))
+        {
+            string line;
+            while ((line = sr.ReadLine()) != null)
+                lines.Add(line);
+        }
+        return lines.ToArray();
     }
-
     public override void WriteLog(string? message)
     {
-        //把异常信息输出到文件
+        // 把异常信息输出到文件
         var sw = new StreamWriter(LogHelper.LogAddress, true/*当天日志文件存在就追加,否则就创建*/);
         sw.Write(message);
         sw.Flush();
@@ -63,16 +73,14 @@ public class FileLogger : LogBase
 /// </summary>
 public class DBLogger : LogBase
 {
-    public override void DeleteLog(string message)
+    public override void DeleteLog()
     {
         throw new NotImplementedException();
     }
-
-    public override void ReadLog(string message)
+    public override string[] ReadLog()
     {
         throw new NotImplementedException();
     }
-
     public override void WriteLog(string? message)
     {
         throw new NotImplementedException();
@@ -84,31 +92,39 @@ public class DBLogger : LogBase
 /// </summary>
 public class EventLogger : LogBase
 {
-    // https://docs.microsoft.com/en-us/answers/questions/526018/windows-event-log-with-net-5.html
-    // net50要加 <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
     // 需要win权限
+    // https://blog.csdn.net/weixin_38208401/article/details/77870909
+    // NET50要加 <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
+    // https://docs.microsoft.com/en-us/answers/questions/526018/windows-event-log-with-net-5.html
 
     public string LogName = "IFoxCadLog";
-    public override void DeleteLog(string message)
+    public override void DeleteLog()
     {
 #if !NET5_0 && !NET6_0
         if (EventLog.Exists(LogName))
             EventLog.Delete(LogName);
 #endif
     }
-
-    public override void ReadLog(string message)
+    public override string[] ReadLog()
     {
+        List<string> lines = new();
 #if !NET5_0 && !NET6_0
-        EventLog eventLog = new();
-        eventLog.Log = LogName;
-        foreach (EventLogEntry entry in eventLog.Entries)
+        try
         {
-            //Write your custom code here
+            EventLog eventLog = new()
+            {
+                Log = LogName
+            };
+            foreach (EventLogEntry entry in eventLog.Entries)
+                lines.Add(entry.Message);
+        }
+        catch (System.Security.SecurityException e)
+        {
+            throw new Exception("您没有权限读取win日志::" + e.Message);
         }
 #endif
+        return lines.ToArray();
     }
-
     public override void WriteLog(string? message)
     {
 #if !NET5_0 && !NET6_0
@@ -122,7 +138,7 @@ public class EventLogger : LogBase
         }
         catch (System.Security.SecurityException e)
         {
-            throw new Exception("您没有权限写入win日志中" + e.Message);
+            throw new Exception("您没有权限写入win日志::" + e.Message);
         }
 #endif
     }
@@ -146,7 +162,6 @@ public static class LogHelper
     /// 输出错误信息到vs输出窗口的开关
     /// </summary>
     public static bool FlagOutVsOutput = true;
-
 #pragma warning restore CA2211 // 非常量字段应当不可见
 
     /// <summary>
@@ -158,7 +173,7 @@ public static class LogHelper
     /// <summary>
     /// 提供给外部设置log文件保存路径
     /// </summary>
-    /// <param name="newlogAddress">空的话就为运行的dll旁边的一个文件夹上</param>
+    /// <param name="newlogAddress">null就生成默认配置</param>
     public static void OptionFile(string? newlogAddress = null)
     {
         _logWriteLock.EnterWriteLock();// 写模式锁定 读写锁
@@ -166,32 +181,43 @@ public static class LogHelper
         {
             LogAddress = newlogAddress;
             if (string.IsNullOrEmpty(LogAddress))
-            {
-                //微软回复:静态构造函数只会被调用一次,
-                //并且在它执行完成之前,任何其它线程都不能创建这个类的实例或使用这个类的静态成员
-                //https://blog.csdn.net/weixin_34204722/article/details/90095812
-                var sb = new StringBuilder();
-                sb.Append(Environment.CurrentDirectory);
-                sb.Append("\\ErrorLog");
-
-                //新建文件夹
-                var path = sb.ToString();
-                if (!Directory.Exists(path))
-                {
-                    Directory.CreateDirectory(path)
-                             .Attributes = FileAttributes.Normal; //设置文件夹属性为普通
-                }
-
-                sb.Append('\\');
-                sb.Append(DateTime.Now.ToString("yy-MM-dd"));
-                sb.Append(".log");
-                LogAddress = sb.ToString();
-            }
+                LogAddress = GetDefaultOption(DateTime.Now.ToString("yy-MM-dd") + ".log");
         }
         finally
         {
             _logWriteLock.ExitWriteLock();// 解锁 读写锁
         }
+    }
+
+    /// <summary>
+    /// 输入文件名,获取保存路径的完整路径
+    /// </summary>
+    /// <param name="fileName">文件名,null获取默认路径</param>
+    /// <param name="createDirectory">创建路径</param>
+    /// <returns>完整路径</returns>
+    public static string GetDefaultOption(string fileName, bool createDirectory = true)
+    {
+        // 微软回复:静态构造函数只会被调用一次,
+        // 并且在它执行完成之前,任何其它线程都不能创建这个类的实例或使用这个类的静态成员
+        // https://blog.csdn.net/weixin_34204722/article/details/90095812
+        var sb = new StringBuilder();
+        sb.Append(Environment.CurrentDirectory);
+        sb.Append("\\ErrorLog");
+
+        // 新建文件夹
+        if (createDirectory)
+        {
+            var path = sb.ToString();
+            if (!Directory.Exists(path))
+            {
+                // 设置文件夹属性为普通
+                Directory.CreateDirectory(path)
+                         .Attributes = FileAttributes.Normal;
+            }
+        }
+        sb.Append('\\');
+        sb.Append(fileName);
+        return sb.ToString();
     }
 
     public static string WriteLog(this string? message,
@@ -219,21 +245,33 @@ public static class LogHelper
     }
 
 
-
-    static string LogAction(Exception? ex, string? message, LogTarget target)
+    /// <param name="ex">错误</param>
+    /// <param name="message">备注信息</param>
+    /// <param name="target">记录方式</param>
+    static string LogAction(Exception? ex,
+                            string? message,
+                            LogTarget target)
     {
         if (ex == null && message == null)
             return string.Empty;
 
-        if (target == LogTarget.File && LogAddress == null)
-            OptionFile();
+        if (LogAddress == null)
+        {
+            if (target == LogTarget.File ||
+                target == LogTarget.FileNotException)
+                OptionFile();
+        }
+
+        // 不写入错误
+        if (target == LogTarget.FileNotException)
+            ex = null;
 
         try
         {
             _logWriteLock.EnterWriteLock();// 写模式锁定 读写锁
 
             var logtxt = new LogTxt(ex, message);
-            //var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
+            // var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
             var logtxtJson = logtxt?.ToString();
             if (logtxtJson == null)
                 return string.Empty;
@@ -244,6 +282,10 @@ public static class LogHelper
                 switch (target)
                 {
                     case LogTarget.File:
+                        logger = new FileLogger();
+                        logger.WriteLog(logtxtJson);
+                        break;
+                    case LogTarget.FileNotException:
                         logger = new FileLogger();
                         logger.WriteLog(logtxtJson);
                         break;
@@ -277,26 +319,25 @@ public static class LogHelper
 [Serializable]
 public class LogTxt
 {
-    public string 当前时间;
+    public string? 当前时间;
     public string? 备注信息;
     public string? 异常信息;
     public string? 异常对象;
     public string? 触发方法;
     public string? 调用堆栈;
 
-    LogTxt()
-    {
-        // 以不同语言显示日期
-        // DateTime.Now.ToString("f", new System.Globalization.CultureInfo("es-ES"))
-        // DateTime.Now.ToString("f", new System.Globalization.CultureInfo("zh-cn"))
-        // 为了最小信息熵,所以用这样的格式,并且我喜欢补0
-        当前时间 = DateTime.Now.ToString("yy-MM-dd hh:mm:ss");
-    }
+    public LogTxt() { }
 
     public LogTxt(Exception? ex, string? message) : this()
     {
         if (ex == null && message == null)
             throw new ArgumentNullException(nameof(ex));
+
+        // 以不同语言显示日期
+        // DateTime.Now.ToString("f", new System.Globalization.CultureInfo("es-ES"))
+        // DateTime.Now.ToString("f", new System.Globalization.CultureInfo("zh-cn"))
+        // 为了最小信息熵,所以用这样的格式,并且我喜欢补0
+        当前时间 = DateTime.Now.ToString("yy-MM-dd hh:mm:ss");
 
         if (ex != null)
         {
@@ -328,7 +369,7 @@ public class LogTxt
 #endregion
 
 
-#if false //最简单的实现
+#if false // 最简单的实现
 public static class Log
 {
     /// <summary>
@@ -344,19 +385,19 @@ public static class Log
 
     static Log()
     {
-        //微软回复:静态构造函数只会被调用一次,
-        //并且在它执行完成之前,任何其它线程都不能创建这个类的实例或使用这个类的静态成员
-        //https://blog.csdn.net/weixin_34204722/article/details/90095812
+        // 微软回复:静态构造函数只会被调用一次,
+        // 并且在它执行完成之前,任何其它线程都不能创建这个类的实例或使用这个类的静态成员
+        // https://blog.csdn.net/weixin_34204722/article/details/90095812
         var sb = new StringBuilder();
         sb.Append(Environment.CurrentDirectory);
         sb.Append("\\ErrorLog");
 
-        //新建文件夹
+        // 新建文件夹
         var path = sb.ToString();
         if (!Directory.Exists(path))
         {
             Directory.CreateDirectory(path)
-                     .Attributes = FileAttributes.Normal; //设置文件夹属性为普通
+                     .Attributes = FileAttributes.Normal; // 设置文件夹属性为普通
         }
 
         sb.Append('\\');
@@ -381,13 +422,13 @@ public static class Log
             _logWriteLock.EnterWriteLock();// 写模式锁定 读写锁
 
             var logtxt = new LogTxt(ex, remarks);
-            //var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
+            // var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
             var logtxtJson = logtxt.ToString();
 
             if (logtxtJson == null)
                 return string.Empty;
 
-            //把异常信息输出到文件
+            // 把异常信息输出到文件
             var sw = new StreamWriter(_logAddress, true/*当天日志文件存在就追加,否则就创建*/);
             sw.Write(logtxtJson);
             sw.Flush();
@@ -398,8 +439,8 @@ public static class Log
             {
                 Debug.WriteLine("错误日志: " + _logAddress);
                 Debug.Write(logtxtJson);
-                //Debugger.Break(); 
-                //Debug.Assert(false, "终止进程");
+                // Debugger.Break(); 
+                // Debug.Assert(false, "终止进程");
             }
             return logtxtJson;
         }

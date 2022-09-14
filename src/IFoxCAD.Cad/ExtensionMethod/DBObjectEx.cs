@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using System.Linq;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 实体对象扩展类
@@ -6,6 +8,53 @@
 public static class DBObjectEx
 {
     #region Xdata扩展
+
+    /// <summary>
+    /// 获取appName的索引区间
+    /// </summary>
+    /// <param name="data">xdata</param>
+    /// <param name="appName">注册名称</param>
+    /// <param name="dxfCodes">任务组码对象</param>
+    /// <returns>返回任务组码的索引</returns>
+    static List<int> GetXdataAppIndex(XDataList data, string appName, DxfCode[] dxfCodes)
+    {
+        List<int> acIndex = new();
+        int appNameIndex = -1;
+        // int appNameIndexNext = -1;
+
+        // 先找到属于它的名字索引,然后再找到下一个不属于它名字的索引,移除中间部分
+        for (int i = 0; i < data.Count; i++)
+        {
+            if (data[i].TypeCode == (short)DxfCode.ExtendedDataRegAppName)
+            {
+                if (data[i].Value.ToString() == appName)
+                {
+                    appNameIndex = i;
+                    continue;
+                }
+                if (appNameIndex != -1)
+                {
+                    // 找到了后面的appName
+                    // appNameIndexNext = i;
+                    break;
+                }
+            }
+            if (appNameIndex != -1 && // 找next的时候,获取任务(移除)的对象
+                dxfCodes.Contains((DxfCode)data[i].TypeCode))
+                acIndex.Add(i);
+        }
+
+        // 当前app索引
+        // if (appNameIndex == -1)
+        // return;
+
+        // 下一个app索引,如果是空,就为末尾
+        // if (appNameIndexNext == -1)
+        //    appNameIndexNext = data.Count;
+
+        return acIndex;
+    }
+
     /// <summary>
     /// 删除扩展数据
     /// </summary>
@@ -17,21 +66,16 @@ public static class DBObjectEx
         if (obj.XData == null)
             return;
         XDataList data = obj.XData;
-        bool appNameIdentical = false;
-        for (int i = 0; i < data.Count; i++)
-        {
-            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName)
-            {
-                appNameIdentical = data[i].Value.ToString() == appName;
-                break;
-            }
-        }
-        if (!appNameIdentical)
+
+        // 测试命令 addxdata removexdata
+        // 移除指定App的扩展
+        var indexs = GetXdataAppIndex(data, appName, new DxfCode[] { dxfCode });
+        if (indexs.Count == 0)
             return;
 
-        for (int i = data.Count - 1; i >= 0; i--)
-            if (data[i].TypeCode == (int)dxfCode)
-                data.RemoveAt(i);
+        for (int i = indexs.Count - 1; i >= 0; i--)
+            data.RemoveAt(indexs[i]);
+
         using (obj.ForWrite())
             obj.XData = data;
     }
@@ -47,21 +91,14 @@ public static class DBObjectEx
         if (obj.XData == null)
             return;
         XDataList data = obj.XData;
-        bool appNameIdentical = false;
-        for (int i = 0; i < data.Count; i++)
-        {
-            if (data[i].TypeCode == (int)DxfCode.ExtendedDataRegAppName)
-            {
-                appNameIdentical = data[i].Value.ToString() == appName;
-                break;
-            }
-        }
-        if (!appNameIdentical)
+
+        var indexs = GetXdataAppIndex(data, appName, new DxfCode[] { dxfCode });
+        if (indexs.Count == 0)
             return;
 
-        for (int i = data.Count - 1; i >= 0; i--)
-            if (data[i].TypeCode == (int)dxfCode)
-                data[i] = new TypedValue((int)dxfCode, newvalue);
+        for (int i = indexs.Count - 1; i >= 0; i--)
+            data[i] = new TypedValue((short)dxfCode, newvalue);
+
         using (obj.ForWrite())
             obj.XData = data;
     }

@@ -1,6 +1,92 @@
 ﻿namespace IFoxCAD.Cad;
 
 /// <summary>
+/// 参照路径转换
+/// </summary>
+public enum PathConverterModes : byte
+{
+    /// <summary>
+    /// 相对路径
+    /// </summary>
+    Relative,
+    /// <summary>
+    /// 绝对路径
+    /// </summary>
+    Complete
+}
+
+/// <summary>
+/// 参照绑定
+/// </summary>
+public enum XrefModes : byte
+{
+    /// <summary>
+    /// 卸载
+    /// </summary>
+    Unload,
+    /// <summary>
+    /// 重载
+    /// </summary>
+    Reload,
+    /// <summary>
+    /// 拆离
+    /// </summary>
+    Detach,
+    /// <summary>
+    /// 绑定
+    /// </summary>
+    Bind,
+}
+
+public enum SymModes : ushort
+{
+    /// <summary>
+    /// 块表
+    /// </summary>
+    BlockTable = 1,
+
+    /// <summary>
+    /// 图层表
+    /// </summary>
+    LayerTable = 2,
+    /// <summary>
+    /// 文字样式表
+    /// </summary>
+    TextStyleTable = 4,
+    /// <summary>
+    /// 注册应用程序表
+    /// </summary>
+    RegAppTable = 8,
+    /// <summary>
+    /// 标注样式表
+    /// </summary>
+    DimStyleTable = 16,
+    /// <summary>
+    /// 线型表
+    /// </summary>
+    LinetypeTable = 32,
+    Option1 = LayerTable | TextStyleTable | DimStyleTable | LinetypeTable | RegAppTable,
+
+    /// <summary>
+    /// 用户坐标系表
+    /// </summary>
+    UcsTable = 64,
+    /// <summary>
+    /// 视图表
+    /// </summary>
+    ViewTable = 128,
+    /// <summary>
+    /// 视口表
+    /// </summary>
+    ViewportTable = 256,
+    Option2 = UcsTable | ViewTable | ViewportTable,
+
+    // 全部
+    All = BlockTable | Option1 | Option2
+}
+
+
+/// <summary>
 /// 坐标系类型枚举
 /// </summary>
 public enum CoordinateSystemCode
@@ -88,20 +174,22 @@ public enum FontTTF
 }
 
 
-
-public static class EnumHelper
+public class LoopState
 {
-    public static string GetDesc(this Enum val)
-    {
-        var type = val.GetType();
-        var memberInfo = type.GetMember(val.ToString());
-        var attributes = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
-        //如果没有定义描述，就把当前枚举值的对应名称返回
-        if (attributes is null || attributes.Length != 1)
-        {
-            return val.ToString();
-        }
-        return ((DescriptionAttribute)attributes.Single()).Description;
-    }
-}
+    const int PLS_NONE = 0;
+    const int PLS_EXCEPTIONAL = 1;
+    const int PLS_BROKEN = 2;
+    const int PLS_STOPPED = 4;
+    const int PLS_CANCELED = 8;
 
+    private volatile int _LoopStateFlags = PLS_NONE;
+
+    public bool IsRun => _LoopStateFlags == PLS_NONE;
+    public bool IsCancel => _LoopStateFlags == PLS_CANCELED;
+    public bool IsExceptional => _LoopStateFlags == PLS_EXCEPTIONAL;
+
+    public bool IsBreak => (_LoopStateFlags & PLS_BROKEN) == PLS_BROKEN;
+    public bool IsStop => (_LoopStateFlags & PLS_STOPPED) == PLS_STOPPED;
+    public void Stop() => _LoopStateFlags = PLS_STOPPED;
+    public void Break() => _LoopStateFlags = PLS_BROKEN;
+}

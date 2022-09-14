@@ -121,7 +121,7 @@ public static class Curve2dEx
 
     #region EllipticalArc2d
 
-    //椭圆弧
+    // 椭圆弧
     /// <summary>
     /// 将二维解析类椭圆弧转换为实体椭圆弧，然后进行矩阵变换
     /// </summary>

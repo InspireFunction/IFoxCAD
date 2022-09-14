@@ -4,9 +4,9 @@
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
 
-        <TargetFrameworks>net35;net40;net45</TargetFrameworks>
+        <TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
-        <Version>0.3.6</Version>
+        <Version>0.4</Version>
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb</Authors>
         <Description>基于.NET的二次开发基本类库</Description>

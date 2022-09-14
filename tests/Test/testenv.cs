@@ -43,7 +43,7 @@ public class Testenv
         Env.OSMode = (Env.OSModeType)5179;
         // 追加模式
         Env.OSMode |= Env.OSModeType.Center;
-        //检查是否有某个模式
+        // 检查是否有某个模式
         var os = Env.OSMode.Include(Env.OSModeType.Center);
         // 取消某个模式
         Env.OSMode ^= Env.OSModeType.Center;
@@ -60,12 +60,11 @@ public class Testenv
     [CommandMethod("testcadver")]
     public void Testcadver()
     {
-        //Env.Print(AcadVersion.Versions);
+        // Env.Print(AcadVersion.Versions);
         AcadVersion.Versions.ForEach(v => Env.Print(v));
-        AcadVersion.FromApp(Application.AcadApplication).Print();
+        AcadVersion.FromApp(Acap.AcadApplication)?.Print();
         1.Print();
         "1".Print();
-
     }
 
     [CommandMethod("TestGetVar")]
@@ -80,10 +79,9 @@ public class Testenv
     [CommandMethod("TestDwgVersion")]
     public void TestDwgVersion()
     {
-        //
-        //string filename = @"C:\Users\vic\Desktop\test.dwg";
-        //var a = Helper.GetCadFileVersion(filename);
-        //a.Print();
-        //((DwgVersion)a).Print();
+        // string filename = @"C:\Users\vic\Desktop\test.dwg";
+        // var a = Helper.GetCadFileVersion(filename);
+        // a.Print();
+        // ((DwgVersion)a).Print();
     }
 }

@@ -18,7 +18,7 @@ public class TestFileDatabase
             if (trans.Document is not null && trans.Document.IsActive)
                 trans.Document.SendStringToExecute("_qsave\n", false, true, true);
             else
-                trans.Database.SaveAs(fileName, DwgVersion.AC1021);
+                trans.Database.SaveAs(fileName, (DwgVersion)27);
         }
         catch (System.Exception e)
         {

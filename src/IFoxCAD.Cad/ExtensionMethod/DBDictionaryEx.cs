@@ -258,10 +258,10 @@ public static class DBDictionaryEx
     ///// <param name="createSubDictionary">是否创建子字典</param>
     ///// <param name="dictNames">键值列表</param>
     ///// <returns>字典</returns>
-    //public static DBDictionary GetSubDictionary(this DBObject obj, bool createSubDictionary, params string[] dictNames)
-    //{
+    // public static DBDictionary GetSubDictionary(this DBObject obj, bool createSubDictionary, params string[] dictNames)
+    // {
     //    return obj.GetXDictionary().GetSubDictionary(createSubDictionary, dictNames);
-    //}
+    // }
 
     #endregion
 

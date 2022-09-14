@@ -21,7 +21,7 @@ public static class PointEx
         };
     }
 
-    //为了频繁触发所以弄个全局变量
+    // 为了频繁触发所以弄个全局变量
     static Plane? _Plane;
     /// <summary>
     /// 两点计算弧度范围0到2Pi
@@ -57,7 +57,7 @@ public static class PointEx
     /// <returns></returns>
     public static Point2d GetCenter(this Point2d a, Point2d b)
     {
-        // (p1 + p2) / 2; //溢出风险
+        // (p1 + p2) / 2; // 溢出风险
         return new Point2d(a.X * 0.5 + b.X * 0.5,
                            a.Y * 0.5 + b.Y * 0.5);
     }
@@ -74,13 +74,13 @@ public static class PointEx
     {
         double dStartAngle = arc2.GetAngle(arc1);
         double dEndAngle = arc2.GetAngle(arc3);
-        //求的P1P2与P1P3夹角
+        // 求的P1P2与P1P3夹角
         var talAngle = (Math.PI - dStartAngle + dEndAngle) / 2;
-        //凸度==拱高/半弦长==拱高比值/半弦长比值
-        //有了比值就不需要拿到拱高值和半弦长值了,因为接下来是相除得凸度
+        // 凸度==拱高/半弦长==拱高比值/半弦长比值
+        // 有了比值就不需要拿到拱高值和半弦长值了,因为接下来是相除得凸度
         double bulge = Math.Sin(talAngle) / Math.Cos(talAngle);
 
-        //处理精度
+        // 处理精度
         if (bulge > 0.9999 && bulge < 1.0001)
             bulge = 1;
         else if (bulge < -0.9999 && bulge > -1.0001)
@@ -100,10 +100,10 @@ public static class PointEx
         if (ptcol == null)
             throw new ArgumentNullException(nameof(ptcol));
 
-        if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))//首尾相同直接返回
+        if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))// 首尾相同直接返回
             return ptcol;
 
-        //首尾不同,去加一个到最后
+        // 首尾不同,去加一个到最后
         var lst = new Point2d[ptcol.Count + 1];
         for (int i = 0; i < lst.Length; i++)
             lst[i] = ptcol[i];
@@ -119,10 +119,10 @@ public static class PointEx
         if (ptcol == null)
             throw new ArgumentNullException(nameof(ptcol));
 
-        if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))//首尾相同直接返回
+        if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))// 首尾相同直接返回
             return ptcol;
 
-        //首尾不同,去加一个到最后
+        // 首尾不同,去加一个到最后
         var lst = new Point3d[ptcol.Count + 1];
         for (int i = 0; i < lst.Length; i++)
             lst[i] = ptcol[i];

@@ -20,22 +20,12 @@ public static class CurveEx
     /// </summary>
     /// <param name="curve">曲线</param>
     /// <param name="pars">打断参数表</param>
-    /// <param name="func">参数表排序委托
-    /// <para>
-    /// 默认：<see langword="null"/> 按所提供的参数表进行分割打断<br/>
-    /// 否则：按委托排序后的参数表进行分割打断
-    /// </para>
-    /// </param>
     /// <returns>打断后曲线的集合</returns>
-    public static IEnumerable<Curve> GetSplitCurves(this Curve curve,
-                                                    IEnumerable<double> pars,
-                                                    Func<IEnumerable<double>, IEnumerable<double>>? func = null)
+    public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<double> pars)
     {
-        if (pars == null)
+        if (pars is null)
             throw new ArgumentNullException(nameof(pars));
 
-        if (func != null)
-            pars = func.Invoke(pars);
         return
             curve
             .GetSplitCurves(new DoubleCollection(pars.ToArray()))
@@ -49,16 +39,21 @@ public static class CurveEx
     /// <param name="pars">打断参数表</param>
     /// <param name="isOrder">对参数表是否进行排序
     /// <para>
-    /// <see langword="true"/>：按参数值升序排序；<br/>
-    /// <see langword="false"/>：不排序，默认值
+    /// <see langword="true"/>按参数值升序排序<br/>
+    /// <see langword="false"/>不排序,默认值
     /// </para>
     /// </param>
     /// <returns>打断后曲线的集合</returns>
     public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<double> pars, bool isOrder = false)
     {
+        if (pars is null)
+            throw new ArgumentNullException(nameof(pars));
+        if (isOrder)
+            pars = pars.OrderBy(x => x);
+
         return
             curve
-            .GetSplitCurves(new DoubleCollection(isOrder ? pars.OrderBy(x => x).ToArray() : pars.ToArray()))
+            .GetSplitCurves(new DoubleCollection(pars.ToArray()))
             .Cast<Curve>();
     }
 
@@ -70,6 +65,8 @@ public static class CurveEx
     /// <returns>打断后曲线的集合</returns>
     public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<Point3d> points)
     {
+        if (points is null)
+            throw new ArgumentNullException(nameof(points));
         return
             curve
             .GetSplitCurves(new Point3dCollection(points.ToArray()))
@@ -83,18 +80,18 @@ public static class CurveEx
     /// <param name="points">打断点表</param>
     /// <param name="isOrder">对点表是否进行排序
     /// <para>
-    /// <see langword="true"/>：按参数值升序排序；<br/>
-    /// <see langword="false"/>：不排序，默认值
+    /// <see langword="true"/>按参数值升序排序<br/>
+    /// <see langword="false"/>不排序,默认值
     /// </para>
     /// </param>
     /// <returns>打断后曲线的集合</returns>
-    public static IEnumerable<Curve> GetSplitCurves(this Curve curve,
-                                                    IEnumerable<Point3d> points,
-                                                    bool isOrder = false)
+    public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<Point3d> points, bool isOrder = false)
     {
+        if (points is null)
+            throw new ArgumentNullException(nameof(points));
         if (isOrder)
             points = points.OrderBy(point => curve.GetParameterAtPoint(
-                curve.GetClosestPointTo(point, false)));
+                                             curve.GetClosestPointTo(point, false)));
         return
             curve
             .GetSplitCurves(new Point3dCollection(points.ToArray()))
@@ -108,17 +105,20 @@ public static class CurveEx
     /// <returns>所有的闭合环的曲线集合</returns>
     public static IEnumerable<Curve> GetAllCycle(this IEnumerable<Curve> curves)
     {
+        if (curves is null)
+            throw new ArgumentNullException(nameof(curves));
+
         // 新建图
         var graph = new Graph();
         foreach (var curve in curves)
         {
 #if NET35
             graph.AddEdge(curve.ToCurve3d()!);
-#else 
+#else
             graph.AddEdge(curve.GetGeCurve());
 #endif
         }
-        //新建 dfs
+        // 新建 dfs
         var dfs = new DepthFirst();
         // 查询全部的 闭合环
         dfs.FindAll(graph);
@@ -140,6 +140,9 @@ public static class CurveEx
     /// <returns>打断后的曲线列表</returns>
     public static List<Curve> BreakCurve(this List<Curve> curves)
     {
+        if (curves is null)
+            throw new ArgumentNullException(nameof(curves));
+
         var geCurves = new List<CompositeCurve3d>(); // 存储曲线转换后的复合曲线
         var paramss = new List<List<double>>();      // 存储每个曲线的交点参数值
 
@@ -153,14 +156,14 @@ public static class CurveEx
             }
         }
 
-        //var oldCurves = new List<Curve>();
+        // var oldCurves = new List<Curve>();
         var newCurves = new List<Curve>();
         var cci3d = new CurveCurveIntersector3d();
 
         for (int i = 0; i < curves.Count; i++)
         {
             var gc1 = geCurves[i];
-            var pars1 = paramss[i]; //引用
+            var pars1 = paramss[i]; // 引用
             for (int j = i; j < curves.Count; j++)
             {
                 var gc2 = geCurves[j];
@@ -190,7 +193,7 @@ public static class CurveEx
                             newCurves.Add(c3dCur);
                         }
                     }
-                    //oldCurves.Add(curves[i]);
+                    // oldCurves.Add(curves[i]);
                 }
             }
         }
@@ -198,7 +201,7 @@ public static class CurveEx
         return newCurves;
     }
 
-    //转换DBCurve为GeCurved
+    // 转换DBCurve为GeCurved
 
     #region Curve
 
@@ -464,17 +467,17 @@ public static class CurveEx
         {
             case Poly2dType.SimplePoly:
             case Poly2dType.FitCurvePoly:
-                Polyline pl = new();
-                pl.SetDatabaseDefaults();
-                pl.ConvertFrom(pl2d, false);
-                return ToCurve3d(pl);
+            Polyline pl = new();
+            pl.SetDatabaseDefaults();
+            pl.ConvertFrom(pl2d, false);
+            return ToCurve3d(pl);
             default:
-                return ToNurbCurve3d(pl2d);
+            return ToNurbCurve3d(pl2d);
         }
 
-        //Polyline pl = new Polyline();
-        //pl.ConvertFrom(pl2d, false);
-        //return ToCurve3d(pl);
+        // Polyline pl = new Polyline();
+        // pl.ConvertFrom(pl2d, false);
+        // return ToCurve3d(pl);
     }
 
     /// <summary>
@@ -488,13 +491,13 @@ public static class CurveEx
         {
             case Poly2dType.SimplePoly:
             case Poly2dType.FitCurvePoly:
-                Polyline pl = new();
-                pl.SetDatabaseDefaults();
-                pl.ConvertFrom(pl2d, false);
-                return ToNurbCurve3d(pl);
+            Polyline pl = new();
+            pl.SetDatabaseDefaults();
+            pl.ConvertFrom(pl2d, false);
+            return ToNurbCurve3d(pl);
 
             default:
-                return ToCurve3d(pl2d.Spline);
+            return ToCurve3d(pl2d.Spline);
         }
     }
 
@@ -575,15 +578,15 @@ public static class CurveEx
             switch (pl.GetSegmentType(i))
             {
                 case SegmentType.Line:
-                    c3ds.Add(pl.GetLineSegmentAt(i));
-                    break;
+                c3ds.Add(pl.GetLineSegmentAt(i));
+                break;
 
                 case SegmentType.Arc:
-                    c3ds.Add(pl.GetArcSegmentAt(i));
-                    break;
+                c3ds.Add(pl.GetArcSegmentAt(i));
+                break;
 
                 default:
-                    break;
+                break;
             }
         }
         return new CompositeCurve3d(c3ds.ToArray());
@@ -603,15 +606,15 @@ public static class CurveEx
             switch (pl.GetSegmentType(i))
             {
                 case SegmentType.Line:
-                    nc3dtemp = new NurbCurve3d(pl.GetLineSegmentAt(i));
-                    break;
+                nc3dtemp = new NurbCurve3d(pl.GetLineSegmentAt(i));
+                break;
 
                 case SegmentType.Arc:
-                    nc3dtemp = pl.GetArcSegmentAt(i).ToNurbCurve3d();
-                    break;
+                nc3dtemp = pl.GetArcSegmentAt(i).ToNurbCurve3d();
+                break;
 
                 default:
-                    break;
+                break;
             }
             if (nc3d is null)
             {
@@ -641,7 +644,7 @@ public static class CurveEx
             SegmentType.Line != polyline.GetSegmentType(index))
             throw new System.Exception("非直线段不能倒角");
 
-        //获取当前索引号的前后两段直线,并组合为Ge复合曲线
+        // 获取当前索引号的前后两段直线,并组合为Ge复合曲线
         Curve3d[] c3ds =
             new Curve3d[]
                 {
@@ -650,11 +653,11 @@ public static class CurveEx
                 };
         CompositeCurve3d cc3d = new(c3ds);
 
-        //试倒直角
-        //子曲线的个数有三种情况:
-        //1、=3时倒角方向正确
-        //2、=2时倒角方向相反
-        //3、=0或为直线时失败
+        // 试倒直角
+        // 子曲线的个数有三种情况:
+        // 1、=3时倒角方向正确
+        // 2、=2时倒角方向相反
+        // 3、=0或为直线时失败
         c3ds =
             cc3d.GetTrimmedOffset
             (
@@ -688,7 +691,7 @@ public static class CurveEx
             throw new System.Exception("倒角半径过大");
         }
 
-        //GetTrimmedOffset会生成倒角+偏移，故先反方向倒角,再倒回
+        // GetTrimmedOffset会生成倒角+偏移，故先反方向倒角,再倒回
         c3ds = cc3d.GetTrimmedOffset
                 (
                     -radius,
@@ -705,9 +708,9 @@ public static class CurveEx
                     type
                 );
 
-        //将结果Ge曲线转为Db曲线,并将相关的数值反映到原曲线
+        // 将结果Ge曲线转为Db曲线,并将相关的数值反映到原曲线
         var plTemp = c3ds[0].ToCurve() as Polyline;
-        if (plTemp == null)
+        if (plTemp is null)
             return;
         polyline.RemoveVertexAt(index);
         polyline.AddVertexAt(index, plTemp.GetPoint2dAt(1), plTemp.GetBulgeAt(1), 0, 0);
@@ -716,5 +719,5 @@ public static class CurveEx
 
     #endregion Polyline
 
-    #endregion Curve
+    #endregion
 }

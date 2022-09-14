@@ -1,8 +1,8 @@
-﻿using System;
+﻿namespace IFoxCAD.Cad;
 
-namespace IFoxCAD.Cad;
+using System;
 
-public class Helper
+public class DBTransHelper
 {
     /*
      * id = db.GetObjectId(false, handle, 0);
@@ -45,22 +45,22 @@ public class Helper
     static int GetAcDbObjectId(IntPtr db, Handle handle, out ObjectId id, bool createIfNotFound = false, uint reserved = 0)
     {
         id = ObjectId.Null;
-        switch (Application.Version.Major)
+        switch (Acap.Version.Major)
         {
             case 17:
-                {
-                    if (IntPtr.Size == 4)
-                        return getAcDbObjectId17x32(db, out id, createIfNotFound, ref handle, reserved);
-                    else
-                        return getAcDbObjectId17x64(db, out id, createIfNotFound, ref handle, reserved);
-                }
+            {
+                if (IntPtr.Size == 4)
+                    return getAcDbObjectId17x32(db, out id, createIfNotFound, ref handle, reserved);
+                else
+                    return getAcDbObjectId17x64(db, out id, createIfNotFound, ref handle, reserved);
+            }
             case 18:
-                {
-                    if (IntPtr.Size == 4)
-                        return getAcDbObjectId18x32(db, out id, createIfNotFound, ref handle, reserved);
-                    else
-                        return getAcDbObjectId18x64(db, out id, createIfNotFound, ref handle, reserved);
-                }
+            {
+                if (IntPtr.Size == 4)
+                    return getAcDbObjectId18x32(db, out id, createIfNotFound, ref handle, reserved);
+                else
+                    return getAcDbObjectId18x64(db, out id, createIfNotFound, ref handle, reserved);
+            }
         }
         return -1;
     }
@@ -74,18 +74,18 @@ public class Helper
     public static ObjectId TryGetObjectId(Database db, Handle handle)
     {
 #if !NET35
-        //高版本直接利用
+        // 高版本直接利用
         var es = db.TryGetObjectId(handle, out ObjectId id);
-        //if (!es)
+        // if (!es)
 #else
         var es = GetAcDbObjectId(db.UnmanagedObject, handle, out ObjectId id);
-        //if (ErrorStatus.OK != (ErrorStatus)es)
+        // if (ErrorStatus.OK != (ErrorStatus)es)
 #endif
         return id;
     }
 
-    //public static int GetCadFileVersion(string filename)
-    //{
+    // public static int GetCadFileVersion(string filename)
+    // {
     //    var bytes = File.ReadAllBytes(filename);
     //    var headstr = Encoding.Default.GetString(bytes)[0..6];
     //    if (!headstr.StartsWith("AC")) return 0;
@@ -93,6 +93,6 @@ public class Helper
     //    var a = Enum.Parse(typeof(DwgVersion), "AC1800");
     //    Enum.TryParse()
     //    return vernum + 986;
-        
-    //}
+
+    // }
 }

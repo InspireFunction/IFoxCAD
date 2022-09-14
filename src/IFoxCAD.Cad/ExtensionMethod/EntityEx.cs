@@ -13,10 +13,10 @@ public static class EntityEx
     /// <param name="entity">实体对象</param>
     public static void Flush(this Entity entity, DBTrans? trans = null)
     {
-        //if (entity is null)
-        //{
+        // if (entity is null)
+        // {
         //    throw new ArgumentNullException(nameof(entity));
-        //}
+        // }
         trans ??= DBTrans.Top;
         entity.RecordGraphicsModified(true);
         trans.Transaction.TransactionManager.QueueForGraphicsFlush();
@@ -197,8 +197,10 @@ public static class EntityEx
     /// <param name="mt">多行文字</param>
     /// <param name="obj">存储对象变量</param>
     /// <param name="mTextFragmentCallback">回调函数，用于处理炸散之后的对象
-    /// <para><see cref="MTextFragment"/>多行文字炸散后的对象</para>
-    /// <para><see cref="MTextFragmentCallbackStatus"/>回调函数处理的结果</para>
+    /// <para>
+    /// <see cref="MTextFragment"/>多行文字炸散后的对象<br/>
+    /// <see cref="MTextFragmentCallbackStatus"/>回调函数处理的结果
+    /// </para>
     /// </param>
     public static void ExplodeFragments<T>(this MText mt, T obj, Func<MTextFragment, T, MTextFragmentCallbackStatus> mTextFragmentCallback)
     {
@@ -240,7 +242,7 @@ public static class EntityEx
         arc.Radius = centerPoint.DistanceTo(startPoint);
         Vector2d startVector = new(startPoint.X - centerPoint.X, startPoint.Y - centerPoint.Y);
         Vector2d endVector = new(endPoint.X - centerPoint.X, endPoint.Y - centerPoint.Y);
-        //计算起始和终止角度
+        // 计算起始和终止角度
         arc.StartAngle = startVector.Angle;
         arc.EndAngle = endVector.Angle;
         return arc;
@@ -255,9 +257,9 @@ public static class EntityEx
     /// <returns>圆弧</returns>
     public static Arc CreateArc(Point3d startPoint, Point3d pointOnArc, Point3d endPoint)
     {
-        //创建一个几何类的圆弧对象
+        // 创建一个几何类的圆弧对象
         CircularArc3d geArc = new(startPoint, pointOnArc, endPoint);
-        //将几何类圆弧对象的圆心和半径赋值给圆弧
+        // 将几何类圆弧对象的圆心和半径赋值给圆弧
 #if NET35
         return (Arc)geArc.ToCurve();
 #else
@@ -313,14 +315,14 @@ public static class EntityEx
     /// <returns>圆</returns>
     public static Circle? CreateCircle(Point3d pt1, Point3d pt2, Point3d pt3)
     {
-        //先判断三点是否共线,得到pt1点指向pt2、pt2点的矢量
+        // 先判断三点是否共线,得到pt1点指向pt2、pt2点的矢量
         Vector3d va = pt1.GetVectorTo(pt2);
         Vector3d vb = pt1.GetVectorTo(pt3);
-        //如两矢量夹角为0或180度（π弧度),则三点共线.
+        // 如两矢量夹角为0或180度（π弧度),则三点共线.
         if (va.GetAngleTo(vb) == 0 | va.GetAngleTo(vb) == Math.PI)
             return null;
 
-        //创建一个几何类的圆弧对象
+        // 创建一个几何类的圆弧对象
         CircularArc3d geArc = new(pt1, pt2, pt3);
         geArc.ToCircle();
         return geArc.ToCircle();
@@ -334,7 +336,7 @@ public static class EntityEx
     /// <returns>图形的ObjectId</returns>
     public static Circle? CreateCircle(Point3d center, double radius, double vex = 0, double vey = 0, double vez = 1)
     {
-        return new Circle(center, new Vector3d(vex, vey, vez), radius);//平面法向量XY方向
+        return new Circle(center, new Vector3d(vex, vey, vez), radius);// 平面法向量XY方向
     }
 
     #endregion
@@ -364,7 +366,7 @@ public static class EntityEx
         using SpatialFilter sf = new() { Definition = sfd };
         var dict = bref.GetXDictionary()!.GetSubDictionary(true, new string[] { filterDictName })!;
         dict.SetAt<SpatialFilter>(spatialName, sf);
-        //SetToDictionary(dict, spatialName, sf);
+        // SetToDictionary(dict, spatialName, sf);
     }
 
     /// <summary>
@@ -389,10 +391,11 @@ public static class EntityEx
         using SpatialFilter sf = new() { Definition = sfd };
         var dict = bref.GetXDictionary()!.GetSubDictionary(true, new string[] { filterDictName })!;
         dict.SetAt<SpatialFilter>(spatialName, sf);
-        //SetToDictionary(dict, spatialName, sf);
+        // SetToDictionary(dict, spatialName, sf);
     }
     #endregion
 
+    #region 属性
     /// <summary>
     /// 更新动态块属性值
     /// </summary>
@@ -410,6 +413,19 @@ public static class EntityEx
                 if (propertyNameValues.ContainsKey(item.PropertyName))
                     item.Value = propertyNameValues[item.PropertyName];
         }
+    }
+    #endregion
+
+    /// <summary>
+    /// 获取图元包围盒
+    /// </summary>
+    /// <param name="ent"></param>
+    /// <returns>包围盒信息</returns>
+    /// 异常:
+    ///   会将包围盒类型记录到所属路径中,以此查询
+    public static BoundingInfo GetBoundingBoxEx(this Entity ent)
+    {
+        return EntityBoundingInfo.GetBoundingInfo(ent);
     }
     #endregion
 }

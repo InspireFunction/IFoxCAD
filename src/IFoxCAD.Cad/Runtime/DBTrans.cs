@@ -1,7 +1,13 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
+
+using System.Diagnostics;
+using System.IO;
+using System.Threading;
+using System.Windows.Forms;
 
 /// <summary>
-/// 事务栈,隐匿事务在数据库其中担任的角色
+/// 事务栈
+/// <para>隐匿事务在数据库其中担任的角色</para>
 /// </summary>
 public class DBTrans : IDisposable
 {
@@ -11,10 +17,6 @@ public class DBTrans : IDisposable
     /// </summary>
     private readonly DocumentLock? documentLock;
     /// <summary>
-    /// 是否释放资源
-    /// </summary>
-    private bool disposedValue;
-    /// <summary>
     /// 是否提交事务
     /// </summary>
     private readonly bool _commit;
@@ -22,6 +24,10 @@ public class DBTrans : IDisposable
     /// 事务栈
     /// </summary>
     private static readonly Stack<DBTrans> dBTrans = new();
+    /// <summary>
+    /// 文件名
+    /// </summary>
+    private readonly string? _fileName;
     #endregion
 
     #region 公开属性
@@ -37,7 +43,7 @@ public class DBTrans : IDisposable
              * 事务栈上面有事务,这个事务属于当前文档,
              * 那么直接提交原本事务然后再开一个(一直把栈前面的同数据库提交清空)
              * 那不就发生跨事务读取图元了吗?....否决
-             * 
+             *
              * 0x02
              * 跨文档事务出错 Autodesk.AutoCAD.Runtime.Exception:“eNotFromThisDocument”
              * Curves.GetEntities()会从Top获取事务(Top会new一个),此时会是当前文档;
@@ -46,7 +52,7 @@ public class DBTrans : IDisposable
              * 然后我新建了一个文档,再进行命令=>又进入Top,Top返回了前一个文档的事务
              * 因此所以无法清理栈,所以Dispose不触发,导致无法刷新图元和Ctrl+Z出错
              * 所以用AOP方式修复
-             * 
+             *
              * 0x03
              * 经过艰苦卓绝的测试,aop模式由于不能断点调试,所以暂时放弃。
              */
@@ -125,16 +131,22 @@ public class DBTrans : IDisposable
                    FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare,
                    string? password = null)
     {
-        if (string.IsNullOrEmpty(fileName?.Trim()))
+        if (fileName == null || string.IsNullOrEmpty(fileName.Trim()))
             throw new ArgumentNullException(nameof(fileName));
 
-        if (!File.Exists(fileName))
+        _fileName = fileName.Replace("/", "\\");//// doc.Name总是"D:\\JX.dwg"
+
+        if (!File.Exists(_fileName))
+        {
+            // 此处若为失败的文件名,那么保存的时候就会丢失名称,
+            // 因此用 _fileName 储存
             Database = new Database(true, false);
+        }
         else
         {
             var doc = Acap.DocumentManager
                      .Cast<Document>()
-                     .FirstOrDefault(doc => doc.Name == fileName);
+                     .FirstOrDefault(doc => doc.Name == _fileName);
             if (doc is not null)
             {
                 Database = doc.Database;
@@ -144,25 +156,44 @@ public class DBTrans : IDisposable
             else
             {
                 Database = new Database(false, true);
-                if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
-                    Database.DxfIn(fileName, null);
+                if (Path.GetExtension(_fileName).ToLower().Contains("dxf"))
+                {
+                    Database.DxfIn(_fileName, null);
+                }
                 else
                 {
 #if ac2008
-                    //此处没有一一对应的关系
-#pragma warning disable CS0436 // 类型与导入类型冲突
-                    var sf = openMode switch
+                    // FileAccess fileAccess = FileAccess.Read;
+                    FileShare fileShare = FileShare.Read;
+                    switch (openMode)
                     {
-                        FileOpenMode.OpenTryForReadShare => FileShare.Read,
-                        FileOpenMode.OpenForReadAndAllShare => FileShare.ReadWrite,
-                        FileOpenMode.OpenForReadAndWriteNoShare => FileShare.None,
-                        FileOpenMode.OpenForReadAndReadShare => FileShare.ReadWrite,
-                        _ => FileShare.ReadWrite,
-                    };
-#pragma warning restore CS0436 // 类型与导入类型冲突
-                    Database.ReadDwgFile(fileName, sf, true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
+                        case FileOpenMode.OpenTryForReadShare:// 这个是什么状态??
+                        // fileAccess = FileAccess.ReadWrite;
+                        fileShare = FileShare.ReadWrite;
+                        break;
+                        case FileOpenMode.OpenForReadAndAllShare:// 完美匹配
+                        // fileAccess = FileAccess.ReadWrite;
+                        fileShare = FileShare.ReadWrite;
+                        break;
+                        case FileOpenMode.OpenForReadAndWriteNoShare:// 完美匹配
+                        // fileAccess = FileAccess.ReadWrite;
+                        fileShare = FileShare.None;
+                        break;
+                        case FileOpenMode.OpenForReadAndReadShare:// 完美匹配
+                        // fileAccess = FileAccess.Read;
+                        fileShare = FileShare.Read;
+                        break;
+                        default:
+                        break;
+                    }
+
+                    // 这个会致命错误
+                    // using FileStream fileStream = new(_fileName, FileMode.Open, fileAccess, fileShare);
+                    // Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(), true, password);
+
+                    Database.ReadDwgFile(_fileName, fileShare, true, password);
 #else
-                    Database.ReadDwgFile(fileName, openMode, true/*控制读入一个与系统编码不相同的文件时的转换操作*/, password);
+                    Database.ReadDwgFile(_fileName, openMode, true, password);
 #endif
                 }
                 Database.CloseInput(true);
@@ -192,7 +223,8 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 块表
     /// </summary>
-    public SymbolTable<BlockTable, BlockTableRecord> BlockTable => new(this, Database.BlockTableId);
+    public SymbolTable<BlockTable, BlockTableRecord> BlockTable => _BlockTable ??= new(this, Database.BlockTableId);
+    SymbolTable<BlockTable, BlockTableRecord>? _BlockTable;
     /// <summary>
     /// 当前绘图空间
     /// </summary>
@@ -208,41 +240,43 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 层表
     /// </summary>
-    public SymbolTable<LayerTable, LayerTableRecord> LayerTable => new(this, Database.LayerTableId);
+    public SymbolTable<LayerTable, LayerTableRecord> LayerTable => _LayerTable ??= new(this, Database.LayerTableId);
+    SymbolTable<LayerTable, LayerTableRecord>? _LayerTable;
     /// <summary>
     /// 文字样式表
     /// </summary>
-    public SymbolTable<TextStyleTable, TextStyleTableRecord> TextStyleTable => new(this, Database.TextStyleTableId);
-
+    public SymbolTable<TextStyleTable, TextStyleTableRecord> TextStyleTable => _TextStyleTable ??= new(this, Database.TextStyleTableId);
+    SymbolTable<TextStyleTable, TextStyleTableRecord>? _TextStyleTable;
     /// <summary>
     /// 注册应用程序表
     /// </summary>
-    public SymbolTable<RegAppTable, RegAppTableRecord> RegAppTable => new(this, Database.RegAppTableId);
-
+    public SymbolTable<RegAppTable, RegAppTableRecord> RegAppTable => _RegAppTable ??= new(this, Database.RegAppTableId);
+    SymbolTable<RegAppTable, RegAppTableRecord>? _RegAppTable;
     /// <summary>
     /// 标注样式表
     /// </summary>
-    public SymbolTable<DimStyleTable, DimStyleTableRecord> DimStyleTable => new(this, Database.DimStyleTableId);
-
+    public SymbolTable<DimStyleTable, DimStyleTableRecord> DimStyleTable => _DimStyleTable ??= new(this, Database.DimStyleTableId);
+    SymbolTable<DimStyleTable, DimStyleTableRecord>? _DimStyleTable;
     /// <summary>
     /// 线型表
     /// </summary>
-    public SymbolTable<LinetypeTable, LinetypeTableRecord> LinetypeTable => new(this, Database.LinetypeTableId);
-
+    public SymbolTable<LinetypeTable, LinetypeTableRecord> LinetypeTable => _LinetypeTable ??= new(this, Database.LinetypeTableId);
+    SymbolTable<LinetypeTable, LinetypeTableRecord>? _LinetypeTable;
     /// <summary>
     /// 用户坐标系表
     /// </summary>
-    public SymbolTable<UcsTable, UcsTableRecord> UcsTable => new(this, Database.UcsTableId);
-
+    public SymbolTable<UcsTable, UcsTableRecord> UcsTable => _UcsTable ??= new(this, Database.UcsTableId);
+    SymbolTable<UcsTable, UcsTableRecord>? _UcsTable;
     /// <summary>
     /// 视图表
     /// </summary>
-    public SymbolTable<ViewTable, ViewTableRecord> ViewTable => new(this, Database.ViewTableId);
-
+    public SymbolTable<ViewTable, ViewTableRecord> ViewTable => _ViewTable ??= new(this, Database.ViewTableId);
+    SymbolTable<ViewTable, ViewTableRecord>? _ViewTable;
     /// <summary>
     /// 视口表
     /// </summary>
-    public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => new(this, Database.ViewportTableId);
+    public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => _ViewportTable ??= new(this, Database.ViewportTableId);
+    SymbolTable<ViewportTable, ViewportTableRecord>? _ViewportTable;
     #endregion
 
     #region 字典
@@ -332,38 +366,204 @@ public class DBTrans : IDisposable
     public ObjectId GetObjectId(string handleString)
     {
         var hanle = new Handle(Convert.ToInt64(handleString, 16));
-        //return Database.GetObjectId(false, hanle, 0);
-        return Helper.TryGetObjectId(Database, hanle);
+        // return Database.GetObjectId(false, hanle, 0);
+        return DBTransHelper.TryGetObjectId(Database, hanle);
     }
     #endregion
 
     #region 保存文件
     /// <summary>
-    /// 保存当前数据库的dwg文件,如果前台打开则按dwg默认版本保存,否则按version参数的版本保存
+    /// 保存文件
     /// </summary>
-    /// <param name="version">dwg版本,默认为2004</param>
+    /// <param name="version"></param>
     public void SaveDwgFile(DwgVersion version = DwgVersion.AC1800)
     {
-        bool flag = true;
-        foreach (Document doc in Acap.DocumentManager)
+        SaveFile(version);
+    }
+
+    /// <summary>
+    /// 保存文件<br/>
+    /// </summary>
+    /// <param name="version">默认2004dwg;若保存dxf则需要在路径输入扩展名</param>
+    /// <param name="automatic">为true时候<paramref name="version"/>无效,将变为自动识别环境变量</param>
+    /// <param name="saveAsFile">另存为文件,前台将调用时它将无效,将变为弹出面板</param>
+    /// <param name="echoes">保存路径失败的提示</param>
+    public void SaveFile(DwgVersion version = DwgVersion.AC1800,
+                         bool automatic = true,
+                         string? saveAsFile = null,
+                         bool echoes = true)
+    {
+        // 遍历当前所有文档,文档必然是前台的
+        Document? doc = null;
+        foreach (Document docItem in Acap.DocumentManager)
         {
-            // 前台开图,使用命令保存
-            if (doc.Database.Filename == this.Database.Filename)
+            if (docItem.Database.Filename == this.Database.Filename)
             {
-                doc.SendStringToExecute("_qsave\n", false, true, true); //不需要切换文档
-                flag = false;
+                doc = docItem;
                 break;
             }
         }
-        if (flag)
+        // 前台开图,使用命令保存;不需要切换文档
+        if (doc != null)
         {
-            // 后台开图,用数据库保存
-            Database.SaveAs(Database.Filename, version);
+            if (saveAsFile == null)
+                doc.SendStringToExecute("_qsave\n", false, true, true);
+            else
+                /// 无法把 <paramref name="saveAsFile"/>给这个面板
+                doc.SendStringToExecute($"_Saveas\n", false, true, true);
+            return;
         }
+
+        // 后台开图,用数据库保存
+        string? fileMsg;
+        bool creatFlag = false;
+        saveAsFile = saveAsFile?.Trim();
+        if (string.IsNullOrEmpty(saveAsFile))
+        {
+            fileMsg = _fileName;
+            creatFlag = true;
+        }
+        else
+        {
+            fileMsg = saveAsFile;
+
+            // 路径失败也保存到桌面
+            var path = Path.GetDirectoryName(saveAsFile);
+            if (string.IsNullOrEmpty(path))
+            {
+                creatFlag = true;
+            }
+            else if (!Directory.Exists(path))
+            {
+                try { Directory.CreateDirectory(path); }
+                catch { creatFlag = true; }
+            }
+
+            // 文件名缺失时
+            if (!creatFlag &&
+                string.IsNullOrEmpty(Path.GetFileName(saveAsFile).Trim()))
+                creatFlag = true;
+        }
+        var fileNameWith = Path.GetFileNameWithoutExtension(saveAsFile).Trim();
+        if (string.IsNullOrEmpty(fileNameWith))
+            creatFlag = true;
+
+        if (creatFlag)
+        {
+            var (error, file) = GetOrCreateSaveAsFile();
+            if (echoes && error)
+                MessageBox.Show($"错误参数:\n{fileMsg}\n\n它将保存:\n{file}", "错误的文件路径");
+            saveAsFile = file;
+        }
+
+        if (Path.GetExtension(saveAsFile).ToLower().Contains("dxf"))
+        {
+            // dxf用任何版本号都会报错
+            Database.DxfOut(saveAsFile, 7, true);
+        }
+        else
+        {
+            if (automatic)
+                version = Env.GetDefaultDwgVersion();
+
+            // dwg需要版本号,而dxf不用,dwg用dxf版本号会报错
+            // 若扩展名和版本号冲突,按照扩展名为准
+            if (version.IsDxfVersion())
+                version = DwgVersion.Current;
+            Database.SaveAs(saveAsFile, version);
+        }
+    }
+
+
+    /// <summary>
+    /// 获取文件名,无效的话就制造
+    /// </summary>
+    /// <returns></returns>
+    (bool error, string path) GetOrCreateSaveAsFile()
+    {
+        var file = Database.Filename;
+        if (!string.IsNullOrEmpty(file))
+            return (false, file);
+
+        // 为了防止用户输入了错误的路径造成无法保存,
+        // 所以此处将进行保存到桌面,
+        // 而不是弹出警告就结束
+        // 防止前台关闭了所有文档导致没有Editor,所以使用 MessageBox 发送警告
+        var fileName = Path.GetFileNameWithoutExtension(_fileName).Trim();
+        var fileExt = Path.GetExtension(_fileName);
+
+        if (string.IsNullOrEmpty(fileName))
+            fileName = DateTime.Now.ToString("--yyMMdd--hhmmssffff");
+        if (string.IsNullOrEmpty(fileExt))
+            fileExt = ".dwg";
+
+        // 构造函数(fileName)用了不存在的路径进行后台打开,就会出现此问题
+        // 测试命令 FileNotExist
+        var dir = Environment.GetFolderPath(
+               Environment.SpecialFolder.DesktopDirectory)
+               + "\\后台保存出错的文件\\";
+
+        if (!Directory.Exists(dir))
+            Directory.CreateDirectory(dir);
+
+        file = dir + fileName + fileExt;
+        while (File.Exists(file))
+        {
+            var time = DateTime.Now.ToString("--yyMMdd--hhmmssffff");
+            file = dir + fileName + time + fileExt;
+            Thread.Sleep(100);
+        }
+        return (true, file);
+    }
+
+    #endregion
+
+    #region 前台后台任务
+    /// <summary>
+    /// 前台后台任务分别处理
+    /// </summary>
+    /// <remarks>
+    /// 备注:<br/>
+    /// 0x01 文字偏移问题主要出现线性引擎函数<see cref="Database.ResolveXrefs"/>上面,<br/>
+    ///      在 参照绑定/深度克隆 的底层共用此函数导致<br/>
+    /// 0x02 后台是利用前台当前数据库进行处理的<br/>
+    /// 0x03 跨进程通讯暂无测试(可能存在bug)<br/>
+    /// </remarks>
+    /// <param name="action">委托</param>
+    /// <param name="handlingDBTextDeviation">开启单行文字偏移处理</param>
+    public void Task(Action action, bool handlingDBTextDeviation = true)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        // 前台开图 || 后台直接处理
+        if (Document != null || !handlingDBTextDeviation)
+        {
+            action.Invoke();
+            return;
+        }
+
+        // 后台
+        // 这种情况发生在关闭了所有文档之后,进行跨进程通讯
+        // 此处要先获取激活的文档,不能直接获取当前数据库否则异常
+        var dm = Acap.DocumentManager;
+        var doc = dm.MdiActiveDocument;
+        if (doc == null)
+        {
+            action.Invoke();
+            return;
+        }
+        // 处理单行文字偏移
+        // 前台绑定参照的时候不能用它,否则抛出异常:eWasErased
+        // 所以本函数自动识别前后台做处理
+        var dbBak = doc.Database;
+        HostApplicationServices.WorkingDatabase = Database;
+        action.Invoke();
+        HostApplicationServices.WorkingDatabase = dbBak;
     }
     #endregion
 
-    #region idispose接口相关函数
+    #region IDisposable接口相关函数
     /// <summary>
     /// 取消事务
     /// </summary>
@@ -371,6 +571,7 @@ public class DBTrans : IDisposable
     {
         Dispose(false);
     }
+
     /// <summary>
     /// 提交事务
     /// </summary>
@@ -379,23 +580,39 @@ public class DBTrans : IDisposable
         Dispose(true);
     }
 
+    public bool IsDisposed { get; private set; } = false;
+
+    /// <summary>
+    /// 手动调用释放
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// 析构函数调用释放
+    /// </summary>
+    ~DBTrans()
+    {
+        Dispose(false);
+    }
+
     protected virtual void Dispose(bool disposing)
     {
         /* 事务dispose流程：
          * 1. 根据传入的参数确定是否提交,true为提交,false为不提交
-         * 2. 根据disposedValue的值确定是否重复dispose,false为首次dispose
-         * 3. 如果锁文档就将文档锁dispose
-         * 4. 不管是否提交,既然进入dispose,就要将事务栈的当前事务弹出
+         * 2. 如果锁文档就将文档锁dispose
+         * 3. 不管是否提交,既然进入dispose,就要将事务栈的当前事务弹出
          *    注意这里的事务栈不是cad的事务管理器,而是dbtrans的事务
-         * 5. 清理非托管的字段
+         * 4. 清理非托管的字段
          */
 
-        if (disposedValue)
-            return;
+        // 不重复释放,并设置已经释放
+        if (IsDisposed) return;
+        IsDisposed = true;
 
-        // 释放未托管的资源(未托管的对象)并替代终结器
-        // 将大型字段设置为 null
-        disposedValue = true;
 
         if (disposing)
         {
@@ -407,29 +624,16 @@ public class DBTrans : IDisposable
             // 否则取消所有的修改
             Transaction.Abort();
         }
-        // 调用 cad事务的dispose进行销毁
+
+        // 将cad事务进行销毁
         if (!Transaction.IsDisposed)
             Transaction.Dispose();
 
-        // 调用文档锁dispose
+        // 将文档锁销毁
         documentLock?.Dispose();
 
-        // 将事务栈的当前dbtrans弹栈
+        // 将当前事务栈弹栈
         dBTrans.Pop();
-    }
-
-    // 仅当“Dispose(bool disposing)”拥有用于释放未托管资源的代码时才替代终结器
-    ~DBTrans()
-    {
-        // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
-        Dispose(disposing: false);
-    }
-
-    public void Dispose()
-    {
-        // 不要更改此代码。请将清理代码放入“Dispose(bool disposing)”方法中
-        Dispose(disposing: true);
-        GC.SuppressFinalize(this);
     }
     #endregion
 }

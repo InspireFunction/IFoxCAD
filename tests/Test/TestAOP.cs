@@ -1,7 +1,7 @@
 ﻿namespace Test;
 
-//被注入的函数将不能使用断点,
-//因此用户要充分了解才能使用
+// 被注入的函数将不能使用断点,
+// 因此用户要充分了解才能使用
 #if false
 /*
  * 类库用户想侵入的命名空间是用户的,
@@ -27,35 +27,35 @@ namespace Test
      */
     public class AopTestClass
     {
-        //类不拒绝,这里拒绝
+        // 类不拒绝,这里拒绝
         [IFoxRefuseInjectionTransaction]
         [CommandMethod("IFoxRefuseInjectionTransaction")]
         public void IFoxRefuseInjectionTransaction()
         {
         }
 
-        //不拒绝
+        // 不拒绝
         [CommandMethod("InjectionTransaction")]
         public void InjectionTransaction()
         {
-            //怎么用事务呢?
-            //直接用 DBTrans.Top
+            // 怎么用事务呢?
+            // 直接用 DBTrans.Top
             var dBTrans = new DBTrans();
             dBTrans.Commit();
         }
     }
 
-    //拒绝注入事务,写类上,则方法全都拒绝
+    // 拒绝注入事务,写类上,则方法全都拒绝
     [IFoxRefuseInjectionTransaction]
     public class AopTestClassRefuseInjection
     {
-        //此时这个也是拒绝的..这里加特性只是无所谓
+        // 此时这个也是拒绝的..这里加特性只是无所谓
         [IFoxRefuseInjectionTransaction]
         [CommandMethod("IFoxRefuseInjectionTransaction2")]
         public void IFoxRefuseInjectionTransaction2()
         {
-            //拒绝注入就要自己开事务,通常用在循环提交事务上面.
-            //另见 报错0x02 https://www.cnblogs.com/JJBox/p/10798940.html
+            // 拒绝注入就要自己开事务,通常用在循环提交事务上面.
+            // 另见 报错0x02 https://www.cnblogs.com/JJBox/p/10798940.html
             using var tr = new DBTrans();
         }
 

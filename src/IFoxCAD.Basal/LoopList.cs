@@ -1,6 +1,6 @@
 namespace IFoxCAD.Basal;
 
-#line hidden //调试的时候跳过它
+#line hidden // 调试的时候跳过它
 
 /// <summary>
 /// 环链表节点
@@ -161,7 +161,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// </summary>
     public void Clear()
     {
-        //移除头部,表示链表再也无法遍历得到
+        // 移除头部,表示链表再也无法遍历得到
         First = null;
         Count = 0;
     }
@@ -238,17 +238,17 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// <returns></returns>
     public LoopListNode<T>? Find(T value)
     {
-        //LoopListNode<T> result = null;
-        //ForEach(node =>
-        //{
+        // LoopListNode<T> result = null;
+        // ForEach(node =>
+        // {
         //    if (node.Value.Equals(t2))
         //    {
         //        result = node;
         //        return true;
         //    }
         //    return false;
-        //});
-        //return result;
+        // });
+        // return result;
 
         LoopListNode<T>? node = First;
         var c = EqualityComparer<T>.Default;
@@ -536,7 +536,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     {
         if (Count == 1 || node == First)
         {
-            RemoveFirst();//此处会减数字
+            RemoveFirst();// 此处会减数字
         }
         else
         {

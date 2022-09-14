@@ -9,8 +9,8 @@ namespace Test;
 public class CadEntity : QuadEntity
 {
     public ObjectId ObjectId;
-    //这里加入其他字段
-    public List<QuadEntity>? Link;//碰撞链
+    // 这里加入其他字段
+    public List<QuadEntity>? Link;// 碰撞链
     public System.Drawing.Color Color;
     public double Angle;
     public CadEntity(ObjectId objectId, Rect box) : base(box)
@@ -36,7 +36,7 @@ public class CadEntity : QuadEntity
 
 public partial class TestQuadTree
 {
-    QuadTree<CadEntity> _quadTreeRoot;
+    QuadTree<CadEntity>? _quadTreeRoot;
     #region 四叉树创建并加入
     [CommandMethod("Test_QuadTree")]
     public void Test_QuadTree()
@@ -44,20 +44,20 @@ public partial class TestQuadTree
         using var tr = new DBTrans();
 
         Rect dbExt;
-        //使用数据库边界来进行
+        // 使用数据库边界来进行
         var dbExtent = tr.Database.GetValidExtents3d();
         if (dbExtent == null)
         {
-            //throw new ArgumentException("画一个矩形");
+            // throw new ArgumentException("画一个矩形");
 
-            //这个初始值的矩形是很有意义,
-            //主要是四叉树分裂过程中产生多个Rect,Rect内有很多重复的double值,是否可以内存复用,以此减少内存大小?
-            //接着想了一下,Rect可以是int,long,这样可以利用位运算它扩展和缩小,
-            //最小就是1,并且可以控制四叉树深度,不至于无限递归.
-            //而且指针长度跟值是一样的,所以就不需要复用了,毕竟跳转一个函数地址挺麻烦的.
-            //但是因为啊惊懒的原因,并没有单独制作这样的矩形,
-            //而且非常糟糕的是,c#不支持模板约束运算符,使得值类型之间需要通过一层接口来委婉处理,拉低了效率..引用类型倒是无所谓..
-            //要么忍着,要么换c++去搞四叉树吧
+            // 这个初始值的矩形是很有意义,
+            // 主要是四叉树分裂过程中产生多个Rect,Rect内有很多重复的double值,是否可以内存复用,以此减少内存大小?
+            // 接着想了一下,Rect可以是int,long,这样可以利用位运算它扩展和缩小,
+            // 最小就是1,并且可以控制四叉树深度,不至于无限递归.
+            // 而且指针长度跟值是一样的,所以就不需要复用了,毕竟跳转一个函数地址挺麻烦的.
+            // 但是因为啊惊懒的原因,并没有单独制作这样的矩形,
+            // 而且非常糟糕的是,c#不支持模板约束运算符,使得值类型之间需要通过一层接口来委婉处理,拉低了效率..引用类型倒是无所谓..
+            // 要么忍着,要么换c++去搞四叉树吧
             dbExt = new Rect(0, 0, 1 << 10, 1 << 10);
         }
         else
@@ -67,10 +67,10 @@ public partial class TestQuadTree
             dbExt = new Rect(a, b);
         }
 
-        //创建四叉树
+        // 创建四叉树
         _quadTreeRoot = new QuadTree<CadEntity>(dbExt);
 
-        //数据库边界
+        // 数据库边界
         var pl = dbExt.ToPoints();
         var databaseBoundary = new List<(Point3d, double, double, double)>
             {
@@ -81,26 +81,27 @@ public partial class TestQuadTree
             };
         tr.CurrentSpace.AddPline(databaseBoundary);
 
-        //生成多少个图元,导致cad会令undo出错(八叉树深度过大 treemax)
-        //int maximumItems = 30_0000;
+        // 生成多少个图元,导致cad会令undo出错(八叉树深度过大 treemax)
+        // int maximumItems = 30_0000;
         int maximumItems = 1000;
 
-        //随机图元生成
-        List<CadEntity> ces = new();  //用于随机获取图元
+        // 随机图元生成
+        List<CadEntity> ces = new();  // 用于随机获取图元
         Timer.RunTime(() => {
-            //生成外边界和随机圆形 
+            // 生成外边界和随机圆形 
             var grc = GenerateRandomCircle(maximumItems, dbExt);
             foreach (var ent in grc)
             {
-                //初始化图元颜色
-                ent.ColorIndex = 1; //Color.FromRgb(0, 0, 0);//黑色
+                // 初始化图元颜色
+                ent!.ColorIndex = 1; // Color.FromRgb(0, 0, 0);// 黑色
                 var edge = ent.GeometricExtents;
-                //四叉树数据
+                // 四叉树数据
                 var entRect = new Rect(edge.MinPoint.X, edge.MinPoint.Y, edge.MaxPoint.X, edge.MaxPoint.Y);
                 var entId = tr.CurrentSpace.AddEntity(ent);
+               
                 var ce = new CadEntity(entId, entRect)
                 {
-                    Color = Utility.RandomColor
+                    Color = RandomEx.NextColor()
                 };
                 ces.Add(ce);
                 /*加入随机点*/
@@ -110,17 +111,15 @@ public partial class TestQuadTree
                 var dbPointCe = new CadEntity(entId, entRect);
                 ces.Add(dbPointCe);
             }
-        }, Timer.TimeEnum.Millisecond, "画圆消耗时间:");//30万图元±3秒.cad2021
+        }, Timer.TimeEnum.Millisecond, "画圆消耗时间:");// 30万图元±3秒.cad2021
 
-        //测试只加入四叉树的时间
+        // 测试只加入四叉树的时间
         Timer.RunTime(() => {
             for (int i = 0; i < ces.Count; i++)
-            {
                 _quadTreeRoot.Insert(ces[i]);
-            }
-        }, Timer.TimeEnum.Millisecond, "插入四叉树时间:");//30万图元±0.7秒.cad2021
+        }, Timer.TimeEnum.Millisecond, "插入四叉树时间:");// 30万图元±0.7秒.cad2021
 
-        tr.Editor.WriteMessage($"\n加入图元数量:{maximumItems}");
+        tr.Editor?.WriteMessage($"\n加入图元数量:{maximumItems}");
     }
 
     /// <summary>
@@ -128,26 +127,26 @@ public partial class TestQuadTree
     /// </summary>
     /// <param name="createNumber">创建数量</param>
     /// <param name="dbExt">数据库边界</param>
-    static IEnumerable<Entity> GenerateRandomCircle(int createNumber, Rect dbExt)
+    static IEnumerable<Entity?> GenerateRandomCircle(int createNumber, Rect dbExt)
     {
         var x1 = (int)dbExt.X;
         var x2 = (int)(dbExt.X + dbExt.Width);
         var y1 = (int)dbExt.Y;
         var y2 = (int)(dbExt.Y + dbExt.Height);
 
-        var rand = Utility.GetRandom();
+        var rand = RandomEx.GetRandom();
         for (int i = 0; i < createNumber; i++)
         {
             var x = rand.Next(x1, x2) + rand.NextDouble();
             var y = rand.Next(y1, y2) + rand.NextDouble();
-            yield return EntityEx.CreateCircle(new Point3d(x, y, 0), rand.Next(1, 100)); //起点，终点
+            yield return EntityEx.CreateCircle(new Point3d(x, y, 0), rand.Next(1, 100)); // 起点，终点
         }
     }
 
     /*TODO 啊惊: 有点懒不想改了*/
 #if true2 
 
-    //选择加入到四叉树
+    // 选择加入到四叉树
     [CommandMethod("CmdTest_QuadTree21")]
     public void CmdTest_QuadTree21()
     {
@@ -164,7 +163,7 @@ public partial class TestQuadTree
         AddQuadTreeRoot(db, ed, ss);
     }
 
-    //自动加入全图到四叉树
+    // 自动加入全图到四叉树
     [CommandMethod("CmdTest_QuadTree20")]
     public void CmdTest_QuadTree20()
     {
@@ -179,14 +178,14 @@ public partial class TestQuadTree
         var time1 = Timer.RunTime(() => {
             db.Action(tr => {
                 db.TraverseBlockTable(tr, btRec => {
-                    if (!btRec.IsLayout)//布局跳过
+                    if (!btRec.IsLayout)// 布局跳过
                         return false;
 
                     foreach (var item in btRec)
                     {
-                        //var ent = item.ToEntity(tr);
+                        // var ent = item.ToEntity(tr);
                         ss.Add(item);
-                        ++entnum;//图元数量:100000, 遍历全图时间:0.216秒 CmdTest_QuadTree2
+                        ++entnum;// 图元数量:100000, 遍历全图时间:0.216秒 CmdTest_QuadTree2
                     }
                     return false;
                 });
@@ -194,7 +193,7 @@ public partial class TestQuadTree
         });
         ed.WriteMessage($"\n图元数量:{entnum}, 遍历全图时间:{time1 / 1000.0}秒");
 
-        //清空原有的
+        // 清空原有的
         _quadTreeRoot = null;
         AddQuadTreeRoot(db, ed, ss);
     } 
@@ -206,13 +205,13 @@ public partial class TestQuadTree
             ed.WriteMessage("\n四叉树是空的,重新初始化");
 
             Rect dbExt;
-            //使用数据库边界来进行
+            // 使用数据库边界来进行
             var dbExtent = db.GetValidExtents3d();
             if (dbExtent == null)
             {
-                //throw new ArgumentException("画一个矩形");
+                // throw new ArgumentException("画一个矩形");
 
-                //测试时候画个矩形,在矩形内画随机坐标的圆形
+                // 测试时候画个矩形,在矩形内画随机坐标的圆形
                 dbExt = new Rect(0, 0, 32525, 32525);
             }
             else
@@ -238,7 +237,7 @@ public partial class TestQuadTree
                 if (ent is null)
                     return;
                 var edge = new EdgeEntity(ent);
-                //四叉树数据
+                // 四叉树数据
                 var ce = new CadEntity(entId, edge.Edge)
                 {
                     Color = Utility.RandomColor
@@ -262,13 +261,13 @@ public partial class TestQuadTree
 #if true2
 
     #region 节点边界显示
-    //四叉树减去节点
+    // 四叉树减去节点
     [CommandMethod("CmdTest_QuadTree0")]
     public void CmdTest_QuadTree0()
     {
         var dm = Acap.DocumentManager;
         var doc = dm.MdiActiveDocument;
-        //var db = doc.Database;
+        // var db = doc.Database;
         var ed = doc.Editor;
         ed.WriteMessage("\n四叉树减区");
 
@@ -283,7 +282,7 @@ public partial class TestQuadTree
         _quadTreeRoot.Remove(rect);
     }
 
-    //创建节点边界
+    // 创建节点边界
     [CommandMethod("CmdTest_QuadTree00")]
     public void CmdTest_CreateNodesRect()
     {
@@ -299,17 +298,17 @@ public partial class TestQuadTree
             return;
         }
 
-        //此处发现了一个事务处理的bug,提交数量过多的时候,会导致 ctrl+z 无法回滚,
-        //需要把事务放在循环体内部
-        //报错: 0x6B00500A (msvcr80.dll)处(位于 acad.exe 中)引发的异常: 0xC0000005: 写入位置 0xFFE00000 时发生访问冲突。
-        //画出所有的四叉树节点边界,因为事务放在外面引起
+        // 此处发现了一个事务处理的bug,提交数量过多的时候,会导致 ctrl+z 无法回滚,
+        // 需要把事务放在循环体内部
+        // 报错: 0x6B00500A (msvcr80.dll)处(位于 acad.exe 中)引发的异常: 0xC0000005: 写入位置 0xFFE00000 时发生访问冲突。
+        // 画出所有的四叉树节点边界,因为事务放在外面引起
         var nodeRects = new List<Rect>();
         _quadTreeRoot.ForEach(node => {
             nodeRects.Add(node);
             return false;
         });
         var rectIds = new List<ObjectId>();
-        foreach (var item in nodeRects)//Count = 97341 当数量接近这个量级
+        foreach (var item in nodeRects)// Count = 97341 当数量接近这个量级
         {
             db.Action(tr => {
                 var pts = item.ToPoints();
@@ -322,7 +321,7 @@ public partial class TestQuadTree
             db.CoverGroup(tr, rectIds);
         });
 
-        //获取四叉树深度
+        // 获取四叉树深度
         int dep = 0;
         _quadTreeRoot.ForEach(node => {
             dep = dep > node.Depth ? dep : node.Depth;
@@ -335,7 +334,7 @@ public partial class TestQuadTree
 #endif
 
     #region 四叉树查询节点
-    //选择范围改图元颜色
+    // 选择范围改图元颜色
     [CommandMethod("CmdTest_QuadTree3")]
     public void CmdTest_QuadTree3()
     {
@@ -354,9 +353,11 @@ public partial class TestQuadTree
     /// <param name="mode"></param>
     void Ssget(QuadTreeSelectMode mode)
     {
-        using var tr = new DBTrans();
-
         if (_quadTreeRoot is null)
+            return;
+
+        using var tr = new DBTrans();
+        if (tr.Editor is null)
             return;
         var rect = GetCorner(tr.Editor);
         if (rect is null)
@@ -364,11 +365,11 @@ public partial class TestQuadTree
 
         tr.Editor.WriteMessage("选择模式:" + mode);
 
-        //仿选择集
+        // 仿选择集
         var ces = _quadTreeRoot.Query(rect, mode);
         ces.ForEach(item => {
             var ent = tr.GetObject<Entity>(item.ObjectId, OpenMode.ForWrite);
-            ent.Color = Color.FromColor(item.Color);
+            ent!.Color = Color.FromColor(item.Color);
             ent.DowngradeOpen();
             ent.Dispose();
         });
@@ -388,8 +389,8 @@ public partial class TestQuadTree
             return null;
         var optionsB = new PromptCornerOptions(Environment.NewLine + "输入矩形角点2:", pprA.Value)
         {
-            UseDashedLine = true,//使用虚线
-            AllowNone = true,//回车
+            UseDashedLine = true,// 使用虚线
+            AllowNone = true,// 回车
         };
         var pprB = ed.GetCorner(optionsB);
         if (pprB.Status != PromptStatus.OK)
@@ -404,27 +405,27 @@ public partial class TestQuadTree
     #endregion
 }
 
-//public partial class TestQuadTree
-//{
+// public partial class TestQuadTree
+// {
 //    public void Cmd_tt6()
 //    {
 //        using var tr = new DBTrans();
 //        var ed = tr.Editor;
-//        //创建四叉树,默认参数无所谓
+//        // 创建四叉树,默认参数无所谓
 //        var TreeRoot = new QuadTree<CadEntity>(new Rect(0, 0, 32525, 32525));
 
 //        var fil = OpFilter.Build(e => e.Dxf(0) == "LINE");
 //        var psr = ed.SSGet("\n 选择需要连接的直线", fil);
 //        if (psr.Status != PromptStatus.OK) return;
 //        var LineEnts = new List<Line>(psr.Value.GetEntities<Line>(OpenMode.ForWrite)!);
-//        //将实体插入到四岔树
+//        // 将实体插入到四岔树
 //        foreach (var line in LineEnts)
 //        {
 //            var edge = line.GeometricExtents;
 //            var entRect = new Rect(edge.MinPoint.X, edge.MinPoint.Y, edge.MaxPoint.X, edge.MaxPoint.Y);
 //            var ce = new CadEntity(line.Id, entRect)
 //            {
-//                //四叉树数据
+//                // 四叉树数据
 //                Angle = line.Angle
 //            };
 //            TreeRoot.Insert(ce);
@@ -432,24 +433,24 @@ public partial class TestQuadTree
 
 //        var ppo = new PromptPointOptions(Environment.NewLine + "\n指定标注点:<空格退出>")
 //        {
-//            AllowArbitraryInput = true,//任意输入
-//            AllowNone = true //允许回车
+//            AllowArbitraryInput = true,// 任意输入
+//            AllowNone = true // 允许回车
 //        };
-//        var ppr = ed.GetPoint(ppo);//用户点选
+//        var ppr = ed.GetPoint(ppo);// 用户点选
 //        if (ppr.Status != PromptStatus.OK)
 //            return;
 //        var rect = new Rect(ppr.Value.Point2d(), 100, 100);
-//        tr.CurrentSpace.AddEntity(rect.ToPolyLine());//显示选择靶标范围
+//        tr.CurrentSpace.AddEntity(rect.ToPolyLine());// 显示选择靶标范围
 
-//        var nent = TreeRoot.FindNearEntity(rect);//查询最近实体，按逆时针
-//        var ent = tr.GetObject<Entity>(nent.ObjectId, OpenMode.ForWrite);//打开实体
-//        ent.ColorIndex = Utility.GetRandom().Next(1, 256);//1~256随机色
-//        ent.DowngradeOpen();//实体降级
+//        var nent = TreeRoot.FindNearEntity(rect);// 查询最近实体，按逆时针
+//        var ent = tr.GetObject<Entity>(nent.ObjectId, OpenMode.ForWrite);// 打开实体
+//        ent.ColorIndex = Utility.GetRandom().Next(1, 256);// 1~256随机色
+//        ent.DowngradeOpen();// 实体降级
 //        ent.Dispose();
 
-//        var res = TreeRoot.Query(rect, QuadTreeSelectMode.IntersectsWith);//查询选择靶标范围相碰的ID
+//        var res = TreeRoot.Query(rect, QuadTreeSelectMode.IntersectsWith);// 查询选择靶标范围相碰的ID
 //        res.ForEach(item => {
-//            if (item.Angle == 0 || item.Angle == Math.PI) //过滤直线角度为0或180的直线
+//            if (item.Angle == 0 || item.Angle == Math.PI) // 过滤直线角度为0或180的直线
 //            {
 //                var ent = tr.GetObject<Entity>(item.ObjectId, OpenMode.ForWrite);
 //                ent.ColorIndex = Utility.GetRandom().Next(1, 7);
@@ -458,4 +459,4 @@ public partial class TestQuadTree
 //            }
 //        });
 //    }
-//}
+// }

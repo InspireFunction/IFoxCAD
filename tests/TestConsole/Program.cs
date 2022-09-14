@@ -1,11 +1,46 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System;
 using System.Text;
+using TestConsole;
 
 
-//表达式树例子
+List<int> list = new List<int>();
+list.Add(1);
+list.Add(2);
+list.Add(3);
+list.Add(4);
+list.Add(5);
+list.ForEach((x, loop) => {
+    if (x == 3)
+        loop.Break();
+    Console.WriteLine(x);
+});
+
+
+
+// 乱序
+Console.WriteLine(PlugIn.JoinBox.PrintNote());
+Console.WriteLine(PlugIn.Lisp.PrintNote());// 这里先交换顺序来试试能不能成功
+Console.WriteLine(PlugIn.IMinCad.PrintNote());
+Console.WriteLine(PlugIn.YuanQuan.PrintNote());
+Console.WriteLine(PlugIn.All.PrintNote());
+Console.WriteLine(PlugIn.DOCBAR.PrintNote());
+Console.WriteLine(PlugIn.DUOTAB.PrintNote());
+Console.WriteLine("***************************************************");
+// 乱序2
+Console.WriteLine(PlugIn2.JoinBox.PrintNote());
+Console.WriteLine(PlugIn2.Lisp.PrintNote());// 这里先交换顺序来试试能不能成功
+Console.WriteLine(PlugIn2.IMinCad.PrintNote());
+Console.WriteLine(PlugIn2.YuanQuan.PrintNote());
+Console.WriteLine(PlugIn2.All.PrintNote());
+Console.WriteLine(PlugIn2.DOCBAR.PrintNote());
+Console.WriteLine(PlugIn2.DUOTAB.PrintNote());
+
+EnumEx.CleanCache();
+
+// 表达式树例子
 TestConsole.Test_Expression.Demo3();
-//TestConsole.Test_Expression.Demo1();
+// TestConsole.Test_Expression.Demo1();
 
 #region 元组测试
 var valuetuple = (1, 2);
@@ -26,13 +61,13 @@ Console.ReadLine();
 
 
 #region 测试遍历枚举
-//Season a = Season.Autumn;
-//Console.WriteLine($"Integral value of {a} is {(int)a}");  // output: Integral value of Autumn is 2
-//foreach (var enumItem in Enum.GetValues(typeof(Season)))
+// Season a = Season.Autumn;
+// Console.WriteLine($"Integral value of {a} is {(int)a}");  // output: Integral value of Autumn is 2
+// foreach (var enumItem in Enum.GetValues(typeof(Season)))
 //    Console.WriteLine((byte)enumItem);
 
 var sb = new StringBuilder();
-/*因为 net framework 没写好的原因,导致直接使用迭代器反而更慢,到了net60就迭代器比foreach更快*/
+/*因为 net framework 没写好的原因,导致直接使用迭代器反而更慢,到了NET60就迭代器比foreach更快*/
 var enums = Enum.GetValues(typeof(Season)).GetEnumerator();
 while (enums.MoveNext())
 {
@@ -41,8 +76,8 @@ while (enums.MoveNext())
 }
 Console.WriteLine(sb);
 
-sb.Remove(sb.Length - 1, 1);//剔除末尾,
-//因为有返回值所以容易理解成 sb = sb.Remove(sb.Length - 1, 1);
+sb.Remove(sb.Length - 1, 1);// 剔除末尾,
+// 因为有返回值所以容易理解成 sb = sb.Remove(sb.Length - 1, 1);
 Console.WriteLine(sb);
 
 public enum Season : byte

@@ -21,7 +21,9 @@ public static class ArrayEx
     }
 
     /// <summary>
-    /// 一维数组消重,此函数建议更改为:
+    /// 一维数组按规则消除<br/>
+    /// 本例适用于数值类型比较,特定规则比较<br/>
+    /// 如果是哈希比较,建议更改为:
     /// <![CDATA[
     ///  HashSet<T> set = new();
     ///  foreach (var item in listInOut)
@@ -29,19 +31,23 @@ public static class ArrayEx
     /// ]]>
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    /// <param name="listInOut">传入有重复成员的数组,传出没有重复的</param>
-    /// <param name="func">传出参数1:数组开头;传出参数2:数组结尾;返回值比较结尾为<see langword="true"/>就移除</param>
-    [Obsolete]
-    public static void Deduplication<T>(List<T> listInOut, Func<T, T, bool> func)
+    /// <param name="lst">传入有重复成员的数组,原数组修改</param>
+    /// <param name="func">
+    /// 传出参数1:数组开头<br/>
+    /// 传出参数2:数组结尾<br/>
+    /// 返回值比较结尾为<see langword="true"/>就移除<br/>
+    /// </param>
+    public static void Deduplication<T>(List<T> lst, Func<T, T, bool> func)
     {
-        for (int i = 0; i < listInOut.Count; i++)
+        // 头和尾比较,满足条件移除尾巴
+        for (int i = 0; i < lst.Count; i++)
         {
-            var first = listInOut[i];
-            for (int j = listInOut.Count - 1; j > i; j--)
+            var first = lst[i];
+            for (int j = lst.Count - 1; j > i/*符号是 >= 而且是i*/; j--)
             {
-                var last = listInOut[j];
+                var last = lst[j];
                 if (func(first, last))
-                    listInOut.RemoveAt(j);
+                    lst.RemoveAt(j);
             }
         }
     }

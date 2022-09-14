@@ -75,7 +75,7 @@ public readonly struct Range : IEquatable<Range>
 #if NET45
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
-    //[CLSCompliant(false)]
+    // [CLSCompliant(false)]
     public (int Offset, int Length) GetOffsetAndLength(int length)
     {
         int start;
@@ -100,4 +100,3 @@ public readonly struct Range : IEquatable<Range>
         return (start, end - start);
     }
 }
-

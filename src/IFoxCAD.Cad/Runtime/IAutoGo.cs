@@ -51,8 +51,8 @@ public class IFoxInitialize : Attribute
     }
 }
 
-//为了解决IExtensionApplication在一个dll内无法多次实现接口的关系
-//所以在这里反射加载所有的 IAutoGo ,以达到能分开写"启动运行"函数的目的
+// 为了解决IExtensionApplication在一个dll内无法多次实现接口的关系
+// 所以在这里反射加载所有的 IAutoGo ,以达到能分开写"启动运行"函数的目的
 class RunClass
 {
     public Sequence Sequence { get; }
@@ -75,22 +75,26 @@ class RunClass
 
 /// <summary>
 /// 此类作为加载后cad自动运行接口的一部分,用于反射特性和接口
-/// <para>启动cad后的执行顺序为:</para>
-/// <para>1:<see cref="IFoxInitialize"/>特性..(多个)</para>
-/// <para>2:<see cref="IFoxAutoGo"/>接口..(多个)</para>
+/// <para>
+/// 启动cad后的执行顺序为:<br/>
+/// 1:<see cref="IFoxInitialize"/>特性..(多个)<br/>
+/// 2:<see cref="IFoxAutoGo"/>接口..(多个)
+/// </para>
 /// </summary>
 public class AutoReflection
 {
-    static List<RunClass> _InitializeList = new(); //储存方法用于初始化
-    static List<RunClass> _TerminateList = new();  //储存方法用于结束释放
+    static List<RunClass> _InitializeList = new(); // 储存方法用于初始化
+    static List<RunClass> _TerminateList = new();  // 储存方法用于结束释放
 
     readonly string _dllName;
     readonly AutoRegConfig _autoRegConfig;
 
     /// <summary>
     /// 反射执行
-    /// <para>1.特性:<see cref="IFoxInitialize"/></para>
-    /// <para>2.接口:<see cref="IFoxAutoGo"/></para>
+    /// <para>
+    /// 1.特性:<see cref="IFoxInitialize"/><br/>
+    /// 2.接口:<see cref="IFoxAutoGo"/>
+    /// </para>
     /// </summary>
     /// <param name="dllName">约束在此dll进行加速</param>
     public AutoReflection(string dllName, AutoRegConfig configInfo)
@@ -99,12 +103,12 @@ public class AutoReflection
         _autoRegConfig = configInfo;
     }
 
-    //启动cad的时候会自动执行
+    // 启动cad的时候会自动执行
     public void Initialize()
     {
         try
         {
-            //收集特性,包括启动时和关闭时
+            // 收集特性,包括启动时和关闭时
             if ((_autoRegConfig & AutoRegConfig.ReflectionAttribute) == AutoRegConfig.ReflectionAttribute)
                 GetAttributeFunctions(_InitializeList, _TerminateList);
 
@@ -113,7 +117,7 @@ public class AutoReflection
 
             if (_InitializeList.Count > 0)
             {
-                //按照 SequenceId 排序_升序
+                // 按照 SequenceId 排序_升序
                 _InitializeList = _InitializeList.OrderBy(runClass => runClass.Sequence).ToList();
                 RunFunctions(_InitializeList);
             }
@@ -124,7 +128,7 @@ public class AutoReflection
         }
     }
 
-    //关闭cad的时候会自动执行
+    // 关闭cad的时候会自动执行
     public void Terminate()
     {
         try
@@ -134,13 +138,14 @@ public class AutoReflection
 
             if (_TerminateList.Count > 0)
             {
-                //按照 SequenceId 排序_降序
+                // 按照 SequenceId 排序_降序
                 _TerminateList = _TerminateList.OrderByDescending(runClass => runClass.Sequence).ToList();
                 RunFunctions(_TerminateList);
             }
         }
-        catch (System.Exception)
+        catch (System.Exception e)
         {
+            Env.Printl(e.Message);
             Debugger.Break();
         }
     }
@@ -159,22 +164,22 @@ public class AutoReflection
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
 #if !NET35
-            //cad2021出现如下报错
-            //System.NotSupportedException:动态程序集中不支持已调用的成员
-            //assemblies = assemblies.Where(p => !p.IsDynamic).ToArray();//这个要容器类型转换
+            // cad2021出现如下报错
+            // System.NotSupportedException:动态程序集中不支持已调用的成员
+            // assemblies = assemblies.Where(p => !p.IsDynamic).ToArray();// 这个要容器类型转换
             assemblies = Array.FindAll(assemblies, p => !p.IsDynamic);
 #endif
-            //主程序域
+            // 主程序域
             for (int ii = 0; ii < assemblies.Length; ii++)
             {
                 var assembly = assemblies[ii];
 
-                //获取类型集合,反射时候还依赖其他的dll就会这个错误
-                //此通讯库要跳过,否则会报错.
+                // 获取类型集合,反射时候还依赖其他的dll就会这个错误
+                // 此通讯库要跳过,否则会报错.
                 var location = Path.GetFileNameWithoutExtension(assembly.Location);
                 if (dllNameWithoutExtension != null && location != dllNameWithoutExtension)
                     continue;
-                if (location == "AcInfoCenterConn")//通讯库
+                if (location == "AcInfoCenterConn")// 通讯库
                     continue;
 
                 Type[]? types = null;
@@ -262,7 +267,6 @@ public class AutoReflection
                 break;
             }
         }, _dllName);
-
     }
 
     /// <summary>

@@ -145,4 +145,3 @@ public readonly struct Index : IEquatable<Index>
         return ((uint)Value).ToString();
     }
 }
-

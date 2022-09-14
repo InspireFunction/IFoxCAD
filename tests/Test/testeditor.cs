@@ -29,21 +29,17 @@ public class Testeditor
         using var tr = new DBTrans();
         var res = Env.Editor.GetEntity("\npick ent:");
         if (res.Status == PromptStatus.OK)
-        {
-            Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>());
-        }
-
-
+            Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>()!);
     }
     [CommandMethod("testzoomextent")]
     public void Testzoomextent()
     {
-        //using var tr = new DBTrans();
-        //var res = Env.Editor.GetEntity("\npick ent:");
-        //if (res.Status == PromptStatus.OK)
-        //{
+        // using var tr = new DBTrans();
+        // var res = Env.Editor.GetEntity("\npick ent:");
+        // if (res.Status == PromptStatus.OK)
+        // {
         //    Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>());
-        //}
+        // }
 
         Env.Editor.ZoomExtents();
     }
@@ -60,10 +56,8 @@ public class Testeditor
             { "B", action_b }
         };
 
-        var ss = Env.Editor.SSGet( ":S",
-                                                    messages: new string[2] { "get", "del" },
-                                                    keywords: keyword);
-
-        Env.Print(ss);
+        var ss = Env.Editor.SSGet( ":S", messages: new string[2] { "get", "del" },
+                                         keywords: keyword);
+        Env.Print(ss!);
     }
 }

@@ -1,4 +1,6 @@
-﻿namespace Test;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+
+namespace Test;
 
 public class TestGraph
 {
@@ -29,15 +31,12 @@ public class TestGraph
         if (ents == null)
             return;
         Tools.TestTimes2(1, "new", () => {
-            
-       
-        var res = ents.GetAllCycle();
+            var res = ents!.GetAllCycle();
 
-            //res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
+            // res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
             Env.Print(res.Count());
-        tr.CurrentSpace.AddEntity(res); 
+            tr.CurrentSpace.AddEntity(res);
         });
-
     }
 
     [CommandMethod("testgraphspeed")]
@@ -48,17 +47,17 @@ public class TestGraph
         if (ents == null)
             return;
 
-
         var graph = new IFoxCAD.Cad.Graph(); // 为了调试先把图的访问改为internal
-
         foreach (var curve in ents)
         {
-
-            graph.AddEdge(curve.GetGeCurve());
-
-
+#if NET35
+            graph.AddEdge(curve!.ToCurve3d()!);
+#else
+            graph.AddEdge(curve!.GetGeCurve());
+#endif
         }
-        //新建 dfs
+
+        // 新建 dfs
         var dfs = new DepthFirst();
 #if true
         Tools.TestTimes2(100, "new", () => {
@@ -78,11 +77,10 @@ public class TestGraph
             // 查询全部的 闭合环
             dfs.FindAll(graph);
         });
-#endif 
-        //res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
+#endif
+        // res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
 
-        //tr.CurrentSpace.AddEntity(res);
-
+        // tr.CurrentSpace.AddEntity(res);
     }
 }
 
@@ -95,8 +93,10 @@ public class TestCurve
     public void TestBreakCurve()
     {
         using var tr = new DBTrans();
-        var ents = Env.Editor.SSGet().Value.GetEntities<Curve>();
-        var tt = CurveEx.BreakCurve(ents.ToList());
+        var ents = Env.Editor.SSGet()?.Value.GetEntities<Curve>();
+        if (ents is null)
+            return;
+        var tt = CurveEx.BreakCurve(ents.ToList()!);
         tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
         tr.CurrentSpace.AddEntity(tt);
     }
@@ -105,22 +105,23 @@ public class TestCurve
     public void TestCurveCurveIntersector3d()
     {
         using var tr = new DBTrans();
-        var ents = Env.Editor.SSGet().Value.GetEntities<Curve>()
-            .Select(e => e.ToCompositeCurve3d()).ToList();
+        var ents = Env.Editor.SSGet()?
+                   .Value.GetEntities<Curve>()
+                   .Select(e => e?.ToCompositeCurve3d()).ToList();
+        if (ents == null)
+            return;
 
         var cci3d = new CurveCurveIntersector3d();
-
-
         for (int i = 0; i < ents.Count; i++)
         {
             var gc1 = ents[i];
-            var int1 = gc1.GetInterval();
-            //var pars1 = paramss[i];
+            var int1 = gc1?.GetInterval();
+            // var pars1 = paramss[i];
             for (int j = i; j < ents.Count; j++)
             {
                 var gc2 = ents[j];
-                //var pars2 = paramss[j];
-                var int2 = gc2.GetInterval();
+                // var pars2 = paramss[j];
+                var int2 = gc2?.GetInterval();
                 cci3d.Set(gc1, gc2, int1, int2, Vector3d.ZAxis);
                 var d = cci3d.OverlapCount();
                 var a = cci3d.GetIntersectionRanges();
@@ -133,23 +134,19 @@ public class TestCurve
 
                 for (int k = 0; k < cci3d.NumberOfIntersectionPoints; k++)
                 {
-                    //var a = cci3d.GetOverlapRanges(k);
-                    //var b = cci3d.IsTangential(k);
-                    //var c = cci3d.IsTransversal(k);
-                    //var d = cci3d.OverlapCount();
-                    //var e = cci3d.OverlapDirection();
+                    // var a = cci3d.GetOverlapRanges(k);
+                    // var b = cci3d.IsTangential(k);
+                    // var c = cci3d.IsTransversal(k);
+                    // var d = cci3d.OverlapCount();
+                    // var e = cci3d.OverlapDirection();
                     var pt = cci3d.GetIntersectionParameters(k);
                     var pts = cci3d.GetIntersectionPoint(k);
                     Env.Print(pts);
                 }
-
-
-
             }
-
         }
         // var tt = CurveEx.Topo(ents.ToList());
-        //tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
-        //tr.CurrentSpace.AddEntity(tt);
+        // tt.ForEach(t => t.ForWrite(e => e.ColorIndex = 1));
+        // tr.CurrentSpace.AddEntity(tt);
     }
 }

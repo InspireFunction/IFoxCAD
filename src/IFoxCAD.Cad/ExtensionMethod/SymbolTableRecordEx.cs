@@ -10,12 +10,16 @@ public static class SymbolTableRecordEx
     #region 克隆实体id
     /// <summary>
     /// 深度克隆id到块表记录
-    /// <para>0x01 此方法不允许是未添加数据库的图元,因此它是id</para>
-    /// <para>0x02 若为未添加数据库图元,则利用entity.Clone();同时不需要考虑动态块属性,可以使用entity.GetTransformedCopy</para>
+    /// <para>
+    /// 0x01 此方法不允许是未添加数据库的图元,因此它是id<br/>
+    /// 0x02 若为未添加数据库图元,则利用entity.Clone();同时不需要考虑动态块属性,可以使用entity.GetTransformedCopy
+    /// </para>
     /// </summary>
     /// <param name="btr">
-    /// <para>克隆到当前块表记录,相当于原地克隆</para>
-    /// <para>克隆到目标块表记录内,相当于制作新块</para>
+    /// <para>
+    /// 克隆到当前块表记录,相当于原地克隆<br/>
+    /// 克隆到目标块表记录内,相当于制作新块
+    /// </para>
     /// </param>
     /// <param name="objIds">图元id集合,注意所有成员都要在同一个空间中</param>
     /// <returns>克隆后的id词典</returns>
@@ -52,12 +56,12 @@ public static class SymbolTableRecordEx
     /// </summary>
     /// <param name="ent">图元</param>
     /// <param name="matrix">矩阵</param>
-    //public static void EntityTransformedCopy(this Entity ent, Matrix3d matrix)
-    //{
+    // public static void EntityTransformedCopy(this Entity ent, Matrix3d matrix)
+    // {
     //    var entNew = ent.GetTransformedCopy(matrix);
     //    if (ent is BlockReference blockReference)
     //        entNew.SetPropertiesFrom(blockReference);
-    //}
+    // }
 
     #endregion
 
@@ -72,7 +76,7 @@ public static class SymbolTableRecordEx
     public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity,
                                      Transaction? trans = null)
     {
-        //if (entity is null)
+        // if (entity is null)
         //    throw new ArgumentNullException(nameof(entity), "对象为 null");
 
         ObjectId id;
@@ -96,7 +100,7 @@ public static class SymbolTableRecordEx
     public static IEnumerable<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents,
                                                     Transaction? trans = null) where T : Entity
     {
-        //if (ents.Any(ent => ent is null))
+        // if (ents.Any(ent => ent is null))
         //    throw new ArgumentNullException(nameof(ents), "实体集合内存在 null 对象");
 
         trans ??= DBTrans.Top.Transaction;
@@ -137,7 +141,7 @@ public static class SymbolTableRecordEx
     /// <returns>图元id</returns>
     private static ObjectId AddEnt<T>(this BlockTableRecord btr, T ent, Action<T>? action, Transaction? trans) where T : Entity
     {
-        //trans ??= DBTrans.Top.Transaction;
+        // trans ??= DBTrans.Top.Transaction;
         action?.Invoke(ent);
         return btr.AddEntity(ent, trans);
     }
@@ -150,7 +154,7 @@ public static class SymbolTableRecordEx
     /// <returns>图元id，如果委托返回 null，则为 ObjectId.Null</returns>
     public static ObjectId AddEnt(this BlockTableRecord btr, Func<Entity> action, Transaction? transaction)
     {
-        //transaction ??= DBTrans.Top.Transaction;
+        // transaction ??= DBTrans.Top.Transaction;
         var ent = action.Invoke();
         if (ent is null)
             return ObjectId.Null;
@@ -203,7 +207,7 @@ public static class SymbolTableRecordEx
                                      Action<Circle>? action = default, Transaction? trans = default)
     {
         var circle = EntityEx.CreateCircle(p0, p1, p2);
-        //return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
+        // return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
         if (circle is null)
             throw new ArgumentNullException(nameof(circle), "对象为 null");
 
@@ -238,7 +242,7 @@ public static class SymbolTableRecordEx
             for (int i = 0; i < bvws.Count; i++)
                 pl.AddVertexAt(i, bvws[i].Vertex, bvws[i].Bulge, bvws[i].StartWidth, bvws[i].EndWidth);
         }
-        pl.Closed = isClosed;//闭合
+        pl.Closed = isClosed;// 闭合
         return btr.AddEnt(pl, action, trans);
     }
     /// <summary>
