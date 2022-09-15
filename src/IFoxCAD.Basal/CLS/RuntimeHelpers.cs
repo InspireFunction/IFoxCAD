@@ -20,7 +20,7 @@ public static class RuntimeHelpers
 
         (int offset, int length) = range.GetOffsetAndLength(array.Length);
 
-        if (default(T)! != null || typeof(T[]) == array.GetType()) // TODO-NULLABLE: default(T) == null warning (https://github.com/dotnet/roslyn/issues/34757)
+        if (default(T)! != null || typeof(T[]) == array.GetType()) // NULLABLE: default(T) == null warning (https://github.com/dotnet/roslyn/issues/34757)
         {
             // We know the type of the array to be exactly T[].
             if (length == 0)

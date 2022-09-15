@@ -325,7 +325,7 @@ public class DBTrans : IDisposable
     /// </summary>
     public DBDictionary LayoutDict => GetObject<DBDictionary>(Database.LayoutDictionaryId)!;
 
-#if !zcad //中望官方的问题
+#if !zcad // 中望官方的问题
     /// <summary>
     /// 数据链接字典
     /// </summary>
@@ -467,7 +467,7 @@ public class DBTrans : IDisposable
             Database.DxfOut(saveAsFile, 7, true);
 #endif
 
-#if zcad  //中望这里没有测试
+#if zcad  // 中望这里没有测试
             Database.DxfOut(saveAsFile, 7, version, true);
 #endif
         }

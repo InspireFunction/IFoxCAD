@@ -501,7 +501,7 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public bool Remove(T item)
         {
-            return this.DoRemove(item); // hack so it can be made non-virtual
+            return this.DoRemove(item); // so it can be made non-virtual
         }
 
         internal virtual bool DoRemove(T item)
@@ -2113,7 +2113,7 @@ namespace System.Collections.Generic
             }
 
             internal override bool DoRemove(T item)
-            { // todo: uppercase this and others
+            {
                 if (!IsWithinRange(item))
                 {
                     return false;

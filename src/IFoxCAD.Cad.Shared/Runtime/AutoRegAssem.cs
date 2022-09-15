@@ -86,27 +86,27 @@ public abstract class AutoRegAssem : IExtensionApplication
     public static RegistryKey GetAcAppKey(bool writable = true)
     {
         RegistryKey? ackey = null;
-
+        var hc = HostApplicationServices.Current;
+#if acad || zcad // 中望此处缺乏测试
 #if NET35
-        string key = HostApplicationServices.Current.RegistryProductRootKey; // 这里浩辰读出来是""
-#elif !HC2020
-        string key = HostApplicationServices.Current.UserRegistryProductRootKey;
+        string key = hc.RegistryProductRootKey;
+#else
+        string key = hc.UserRegistryProductRootKey;
+#endif
+        ackey = Registry.CurrentUser.OpenSubKey(key, writable);
 #endif
 
-#if !HC2020
-        ackey = Registry.CurrentUser.OpenSubKey(key, writable);
-#else
-        // 浩辰
-        var s =  GrxCAD.DatabaseServices.HostApplicationServices.Current.RegistryProductRootKey;// 浩辰奇怪的空值
-        string str = CadSystem.Getvar("ACADVER");
-        str = Regex.Replace(str, @"[^\d.\d]", "");
-        double.TryParse(str, out double a);
-        // string regedit = @"Software\Gstarsoft\GstarCAD\R" + a.ToString() + @"\zh-CN"; // 2019
-        // string regedit = @"Software\Gstarsoft\GstarCAD\B" + a.ToString() + @"\zh-CN";// 2020 这里是
-        string regedit = @"Software\Gstarsoft\GstarCAD\B20\zh-CN";// 2020 这里是
-
+#if gcad
+        // gcad 此处是否仍然有bug? 等待其他人测试反馈
+        var key = hc.RegistryProductRootKey; // 浩辰2020读出来是""
+        string regedit = "";
+        if (Env.GetAcadVersion() == 2019)
+            regedit = @"Software\Gstarsoft\GstarCAD\R" + 19 + @"\zh-CN";
+        if (Env.GetAcadVersion() == 2020)
+            regedit = @"Software\Gstarsoft\GstarCAD\B" + 20 + @"\zh-CN";
         ackey = Registry.CurrentUser.OpenSubKey(regedit, writable);
 #endif
+
         return ackey.CreateSubKey("Applications");
     }
 
@@ -165,7 +165,9 @@ public abstract class AutoRegAssem : IExtensionApplication
 
     // 这里的是不会自动执行的
     public void Initialize() { }
-    public void Terminate() { }
+    public void Terminate()
+    {
+    }
 
     ~AutoRegAssem()
     {

@@ -153,31 +153,31 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
        [IFoxInitialize]
        public void InitOne()
        { 
-           //TODO 您想在加载dll之后自动执行的函数
+           // TODO 您想在加载dll之后自动执行的函数
            // 可以随便在哪里类里 可以多次实现 IFoxInitialize 特性
        }
    
    }
    
-   //其他的类中的函数:
-   //实现自动接口之后,在任意一个函数上面使用此特性,减少每次改动 CmdINI 类
+   // 其他的类中的函数:
+   // 实现自动接口之后,在任意一个函数上面使用此特性,减少每次改动 CmdINI 类
    public class AutoTest
    {
        [IFoxInitialize]
        public void Initialize()
        { 
-           //TODO 您想在加载dll之后自动执行的函数
+           // TODO 您想在加载dll之后自动执行的函数
        }
        [IFoxInitialize]
        public void InitTwo()
        { 
-           //TODO 您想在加载dll之后自动执行的函数
+           // TODO 您想在加载dll之后自动执行的函数
            // 可以随便在哪里类里 可以多次实现 IFoxInitialize 特性
        }
        [IFoxInitialize(isInitialize: false)] // 特性的参数为false的时候就表示卸载时执行的函数
        public void Terminate()
        {
-            //TODO 您想在关闭cad时自动执行的函数
+            // TODO 您想在关闭cad时自动执行的函数
        }
    }
    ```
@@ -189,10 +189,10 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
    由于cad的对象是有打开模式，是否可写等等，为了安全起见，在处理对象时，一般是用读模式打开，然后需要写数据的时候在提权为写模式，然后在降级到读模式，但是这个过程中，很容易漏掉某些步骤，然后cad崩溃。为了处理这些情况，内裤提供了提权类来保证读写模式的有序转换。
 
    ```c#
-   using(line.ForWrite()) //开启对象写模式提权事务
+   using(line.ForWrite()) // 开启对象写模式提权事务
    {
-     //处理代码
-   } //关闭事务自动处理读写模式
+     // 处理代码
+   } // 关闭事务自动处理读写模式
    ```
 
 8. 未完待续。。。。

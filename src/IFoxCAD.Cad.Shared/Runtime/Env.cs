@@ -36,7 +36,7 @@ public static class Env
 
     #region Preferences
 
-#if !zcad //中望官方的问题
+#if !zcad // 中望官方的问题
     /// <summary>
     /// 获取当前配置的数据
     /// </summary>
@@ -80,7 +80,6 @@ public static class Env
     #endregion Preferences
 
     #region Enum
-
     /// <summary>
     /// 控制在AutoLISP的command函数运行时AutoCAD是否回显提示和输入， <see langword="true"/> 为显示， <see langword="false"/> 为不显示
     /// </summary>
@@ -432,7 +431,7 @@ public static class Env
 
     #endregion Enum
 
-    #region acad系统变量
+    #region 系统变量
     /// <summary>
     /// 获取cad系统变量
     /// </summary>
@@ -465,7 +464,8 @@ public static class Env
     }
     #endregion
 
-    #region acad环境变量
+    #region 环境变量
+#if acad
 #if NET35
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedGetEnv")]
@@ -474,7 +474,7 @@ public static class Env
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedSetEnv")]
     static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
-#elif !HC2020
+#else
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedGetEnv")]
     static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
@@ -483,13 +483,25 @@ public static class Env
     [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedSetEnv")]
     static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #endif
-#if HC2020
+#endif
+
+#if gcad
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "gcedGetEnv")]
     static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
 
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "gcedSetEnv")]
+    static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
+#endif
+
+#if zcad // TODO: 中望没有测试,此处仅为不报错;本工程所有含有"中望"均存在问题
+    [System.Security.SuppressUnmanagedCodeSecurity]
+    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "zcedGetEnv")]
+    static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
+
+    [System.Security.SuppressUnmanagedCodeSecurity]
+    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "zcedSetEnv")]
     static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #endif
 
@@ -530,28 +542,28 @@ public static class Env
     #endregion
 
     #region win环境变量/由于 Aced的 能够同时获取此变量与cad内的,所以废弃
-    ///// <summary>
-    ///// 获取系统环境变量
-    ///// </summary>
-    ///// <param name="var">变量名</param>
-    ///// <returns>指定的环境变量的值；或者如果找不到环境变量，则返回 null</returns>
-    //public static string? GetEnv(string? var)
-    //{
-    //    // 从当前进程或者从当前用户或本地计算机的 Windows 操作系统注册表项检索环境变量的值
-    //    // 用户: 计算机\HKEY_CURRENT_USER\Environment
-    //    // 系统: 计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-    //    return Environment.GetEnvironmentVariable(var);
-    //}
-    ///// <summary>
-    ///// 设置系统环境变量
-    ///// </summary>
-    ///// <param name="var">变量名</param>
-    ///// <param name="value">变量值</param>
-    //public static void SetEnv(string? var, string? value)
-    //{
-    //    // 创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
-    //    Environment.SetEnvironmentVariable(var, value);
-    //}
+    // /// <summary>
+    // /// 获取系统环境变量
+    // /// </summary>
+    // /// <param name="var">变量名</param>
+    // /// <returns>指定的环境变量的值；或者如果找不到环境变量，则返回 null</returns>
+    // public static string? GetEnv(string? var)
+    // {
+    //     // 从当前进程或者从当前用户或本地计算机的 Windows 操作系统注册表项检索环境变量的值
+    //     // 用户: 计算机\HKEY_CURRENT_USER\Environment
+    //     // 系统: 计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
+    //     return Environment.GetEnvironmentVariable(var);
+    // }
+    // /// <summary>
+    // /// 设置系统环境变量
+    // /// </summary>
+    // /// <param name="var">变量名</param>
+    // /// <param name="value">变量值</param>
+    // public static void SetEnv(string? var, string? value)
+    // {
+    //     // 创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
+    //     Environment.SetEnvironmentVariable(var, value);
+    // }
     #endregion
 
 
@@ -589,14 +601,14 @@ public static class Env
             "36" => (DwgVersion)27,// 2007 dwg  DwgVersion.AC1021
             "37" => (DwgVersion)28,// 2007 dxf
 
-            //"38" => (DwgVersion),// dwt 样板文件...啊惊没找到这个是什么
+            // "38" => (DwgVersion),// dwt 样板文件...啊惊没找到这个是什么
             "48" => (DwgVersion)29,// 2010 dwg  DwgVersion.AC1024
             "49" => (DwgVersion)30,// 2010 dxf
             "60" => (DwgVersion)31,// 2013 dwg  DwgVersion.AC1027
             "61" => (DwgVersion)32,// 2013 dxf
             "64" => (DwgVersion)33,// 2018 dwg  DwgVersion.AC1032
             "65" => (DwgVersion)34,// 2018 dxf
-            _ => throw new NotImplementedException(),//提醒维护
+            _ => throw new NotImplementedException(),// 提醒维护
         };
         return version;
     }

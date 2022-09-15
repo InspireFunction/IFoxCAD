@@ -90,7 +90,7 @@ public static class EnumEx
     }
 
 
-    // TODO 山人审核代码之后可以删除,这个完全被上面替代了
+    // TODO: 山人审核代码之后可以删除,这个完全被上面替代了
     public static string GetDesc(this Enum val)
     {
         var type = val.GetType();

@@ -348,10 +348,10 @@ public class JigEx : DrawJig
     #endregion
 
     // 此处无测试
-    //protected override void ViewportDraw(ViewportDraw draw)
-    //{
-    //    base.ViewportDraw(draw);
-    //}
+    // protected override void ViewportDraw(ViewportDraw draw)
+    // {
+    //     base.ViewportDraw(draw);
+    // }
 }
 
 #if false

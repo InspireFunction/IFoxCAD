@@ -86,15 +86,15 @@ internal class AcadEMR
         else
             ptr = new IntPtr(funcAdress.ToInt64() + 4);
 
-        if (!CheckFunc(ref ptr, 51, 2))//08 通过此处
+        if (!CheckFunc(ref ptr, 51, 2))// 08 通过此处
             if (echoes)
                 Env.Printl("无法验证函数体：0x33");
         IntPtr destPtr = ptr;
 
-        if (!CheckFunc(ref ptr, 57, 6))//08 无法通过此处,所以只是打印提示
+        if (!CheckFunc(ref ptr, 57, 6))// 08 无法通过此处,所以只是打印提示
             if (echoes)
                 Env.Printl("无法验证函数体：0x39");
-        if (!CheckFunc(ref ptr, 15, 2))//08 无法通过此处,所以只是打印提示
+        if (!CheckFunc(ref ptr, 15, 2))// 08 无法通过此处,所以只是打印提示
             if (echoes)
                 Env.Printl("无法验证函数体：0x0F");
 

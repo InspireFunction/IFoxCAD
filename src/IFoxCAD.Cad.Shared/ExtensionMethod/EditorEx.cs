@@ -70,7 +70,6 @@ public static class EditorEx
             pso.RejectPaperspaceViewport = mode.Contains(":V");
             pso.AllowSubSelections = mode.Contains("-A");
             pso.ForceSubSelections = mode.Contains("-F");
-
         }
         if (messages is not null)
         {
@@ -89,7 +88,6 @@ public static class EditorEx
                 if (keywords.ContainsKey(e.Input))
                     keywords[e.Input].Invoke();
             };
-
         }
         try
         {
@@ -99,7 +97,7 @@ public static class EditorEx
                 ss = editor.GetSelection(pso);
         }
         catch (Exception e)
-        { 
+        {
             editor.WriteMessage($"\nKey is {e.Message}");
         }
         return ss;
@@ -237,14 +235,14 @@ public static class EditorEx
     //     Env.Editor.SelectionAdded += SelectTest_SelectionAdded;
     //     // 初始化坐标系
     //     Env.Editor.CurrentUserCoordinateSystem = Matrix3d.Identity;
-       
+
     //     // 创建过滤器
     //     var sf = new OpEqual(0, "arc");
     //     var pso = new PromptSelectionOptions
     //     {
     //         MessageForAdding = "\n请选择对象:"
     //     };
-       
+
     //     pso.Keywords.Add("Z");
     //     pso.Keywords.Add("X");
     //     pso.Keywords.Add("Q");
@@ -255,8 +253,8 @@ public static class EditorEx
     //         // 用户选择
     //         var psr = Env.Editor.GetSelection(pso, sf);
     //         // 处理代码
-       
-       
+
+
     //     }
     //     catch (Exception ex)// 捕获关键字
     //     {
@@ -275,7 +273,7 @@ public static class EditorEx
     //     // 关闭选中事件
     //     Env.Editor.SelectionAdded -= SelectTest_SelectionAdded;
     // }
-       
+
     // /// <summary>
     // /// 即时选择
     // /// </summary>
@@ -290,8 +288,6 @@ public static class EditorEx
     //         // 处理代码
     //         for (int i = 0; i < e.AddedObjects.Count; i++)
     //         {
-       
-       
     //             // 处理完移除已处理的对象
     //             e.Remove(i);
     //         }
@@ -299,7 +295,7 @@ public static class EditorEx
     //     // 激活选中事件
     //     Env.Editor.SelectionAdded += SelectTest_SelectionAdded;
     // }
-       
+
     // /// <summary>
     // /// 关键字响应
     // /// </summary>
@@ -318,7 +314,7 @@ public static class EditorEx
     //             {
     //                 break;
     //             }
-       
+
     //         case "Q":
     //             {
     //                 break;
@@ -326,7 +322,7 @@ public static class EditorEx
     //     }
     //     // 抛出异常,用于更新提示信息
     //     throw new ArgumentException("XuError");
-    // }     
+    // }
     // #endregion
     #endregion
 
@@ -493,7 +489,6 @@ public static class EditorEx
     /// <returns></returns>
     public static List<TypedValue> GetLines(IEnumerable<Point2d> pnts, bool isClosed)
     {
-
         var itor = pnts.GetEnumerator();
         if (!itor.MoveNext())
             return new List<TypedValue>();
@@ -712,55 +707,55 @@ public static class EditorEx
         switch (from)
         {
             case CoordinateSystemCode.Wcs:
-                switch (to)
-                {
-                    case CoordinateSystemCode.Ucs:
-                        return editor.GetMatrixFromWcsToUcs();
+            switch (to)
+            {
+                case CoordinateSystemCode.Ucs:
+                return editor.GetMatrixFromWcsToUcs();
 
-                    case CoordinateSystemCode.MDcs:
-                        return editor.GetMatrixFromMDcsToWcs();
+                case CoordinateSystemCode.MDcs:
+                return editor.GetMatrixFromMDcsToWcs();
 
-                    case CoordinateSystemCode.PDcs:
-                        throw new Exception("To be used only with DCS...ErrorStatus.InvalidInput");
-                }
-                break;
+                case CoordinateSystemCode.PDcs:
+                throw new Exception("To be used only with DCS...ErrorStatus.InvalidInput");
+            }
+            break;
             case CoordinateSystemCode.Ucs:
-                switch (to)
-                {
-                    case CoordinateSystemCode.Wcs:
-                        return editor.GetMatrixFromUcsToWcs();
+            switch (to)
+            {
+                case CoordinateSystemCode.Wcs:
+                return editor.GetMatrixFromUcsToWcs();
 
-                    case CoordinateSystemCode.MDcs:
-                        return editor.GetMatrixFromUcsToWcs() * editor.GetMatrixFromWcsToMDcs();
+                case CoordinateSystemCode.MDcs:
+                return editor.GetMatrixFromUcsToWcs() * editor.GetMatrixFromWcsToMDcs();
 
-                    case CoordinateSystemCode.PDcs:
-                        throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
-                }
-                break;
+                case CoordinateSystemCode.PDcs:
+                throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
+            }
+            break;
             case CoordinateSystemCode.MDcs:
-                switch (to)
-                {
-                    case CoordinateSystemCode.Wcs:
-                        return editor.GetMatrixFromMDcsToWcs();
+            switch (to)
+            {
+                case CoordinateSystemCode.Wcs:
+                return editor.GetMatrixFromMDcsToWcs();
 
-                    case CoordinateSystemCode.Ucs:
-                        return editor.GetMatrixFromMDcsToWcs() * editor.GetMatrixFromWcsToUcs();
+                case CoordinateSystemCode.Ucs:
+                return editor.GetMatrixFromMDcsToWcs() * editor.GetMatrixFromWcsToUcs();
 
-                    case CoordinateSystemCode.PDcs:
-                        return editor.GetMatrixFromMDcsToPDcs();
-                }
-                break;
+                case CoordinateSystemCode.PDcs:
+                return editor.GetMatrixFromMDcsToPDcs();
+            }
+            break;
             case CoordinateSystemCode.PDcs:
-                switch (to)
-                {
-                    case CoordinateSystemCode.Wcs:
-                        throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
-                    case CoordinateSystemCode.Ucs:
-                        throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
-                    case CoordinateSystemCode.MDcs:
-                        return editor.GetMatrixFromPDcsToMDcs();
-                }
-                break;
+            switch (to)
+            {
+                case CoordinateSystemCode.Wcs:
+                throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
+                case CoordinateSystemCode.Ucs:
+                throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
+                case CoordinateSystemCode.MDcs:
+                return editor.GetMatrixFromPDcsToMDcs();
+            }
+            break;
         }
         return Matrix3d.Identity;
 #else
@@ -999,12 +994,12 @@ public static class EditorEx
 
     #region 执行lisp
 #if NET35
-    [DllImport("acad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
+    [DllImport("acad.exe",
 #else
-    [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
+    [DllImport("accore.dll",
 #endif
+        CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
     static extern int AcedInvoke(IntPtr args, out IntPtr result);
-
 
 #if NET35
     [DllImport("acad.exe", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
@@ -1019,12 +1014,11 @@ public static class EditorEx
 
 #pragma warning disable CA2101 // 指定对 P/Invoke 字符串参数进行封送处理
 #if NET35
-    [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
-        EntryPoint = "ads_queueexpr")]
+    [DllImport("acad.exe",
 #else
-    [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
-        EntryPoint = "ads_queueexpr")]
+    [DllImport("accore.dll",
 #endif
+    CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ads_queueexpr")]
 #pragma warning restore CA2101 // 指定对 P/Invoke 字符串参数进行封送处理
     static extern int Ads_queueexpr(string strExpr);
 
@@ -1057,7 +1051,7 @@ public static class EditorEx
          *   }
          * 调用方式:
          *    (command "CmdTest_RunLisp1")
-         * bug说明: 
+         * bug说明:
          *    AcedEvaluateLisp接口在高版本调用时候没有运行成功,使得 !abc 没有值
          *    经过测试,cad08调用成功,此bug与CommandFlags无关
          * 解决方案:

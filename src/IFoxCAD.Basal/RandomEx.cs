@@ -30,7 +30,7 @@ public static class RandomEx
     }
     /// <summary>
     /// 生成一个指定范围的浮点数值
-    /// </summary> 
+    /// </summary>
     /// <param name="minValue">范围最小浮点数值</param>
     /// <param name="maxValue">范围最大浮点数值</param>
     /// <returns></returns>
@@ -57,7 +57,7 @@ public static class RandomEx
     }
     /// <summary>
     /// 生成一个不连续或指定值的随机值
-    /// </summary> 
+    /// </summary>
     /// <param name="arr">一个字符串数组</param>
     /// <returns></returns>
     public static string NextString(string[] arr)
@@ -78,7 +78,7 @@ public static class RandomEx
     }
     /// <summary>
     /// 生成一个不连续或指定值的随机值
-    /// </summary> 
+    /// </summary>
     /// <param name="arr">一个双精度值数组</param>
     /// <returns></returns>
     public static double NextDouble(double[] arr)
@@ -99,7 +99,7 @@ public static class RandomEx
     }
     /// <summary>
     /// 生成指定范围内的整数
-    /// </summary> 
+    /// </summary>
     /// <param name="max">范围最大整数值</param>
     /// <returns></returns>
     public static int NextInt(int max)
@@ -119,7 +119,7 @@ public static class RandomEx
     }
     /// <summary>
     /// 生成指定范围内的整数
-    /// </summary> 
+    /// </summary>
     /// <param name="min">范围的最小整数</param>
     /// <param name="max">范围的最大整数</param>
     /// <returns>返回一个介于<paramref name="min"/>与<paramref name="max"/>之间的整数</returns>
@@ -158,13 +158,13 @@ public static class RandomEx
         int R = ran.Next(255);
         int G = ran.Next(255);
         int B = ran.Next(255);
-        B = (R + G > 400) ? R + G - 400 : B;//0 : 380 - R - G;
+        B = (R + G > 400) ? R + G - 400 : B;// 0 : 380 - R - G;
         B = (B > 255) ? 255 : B;
         return System.Drawing.Color.FromArgb(R, G, B);
     }
 
 
-    /* 
+    /*
     * 知识准备:
     *                                                           |             高位64位            |          低位32位             |
     * Convert.ToString(int.MaxValue, 2)输出二进制                                                 "1111111111111111111111111111111" 31个;最高位是符号位,所以少1位
@@ -179,12 +179,12 @@ public static class RandomEx
     * 解释代码:
     * 0x01:
     * (int)(long.MaxValue & 0xffffffffL) | (int)(long.MaxValue >> 32);
-    * Convert.ToString(long.MaxValue & 0xffffffffL, 2)//去掉高位:"11111111111111111111111111111111" 32个,再强转int
+    * Convert.ToString(long.MaxValue & 0xffffffffL, 2)// 去掉高位:"11111111111111111111111111111111" 32个,再强转int
     * 按位与&是保证符号位肯定是1,其他尽可能为0,高位被去掉只是MaxValue&0的原因,强转才是去掉高位..."尽可能"一词带来第一次随机性
     * 0x02:
-    * Convert.ToString((long.MaxValue >> 32), 2)      //去掉低位: "1111111111111111111111111111111" 31个,再强转int
+    * Convert.ToString((long.MaxValue >> 32), 2)      // 去掉低位: "1111111111111111111111111111111" 31个,再强转int
     * 按位或|是尽可能为1..."尽可能"一词带来第二次随机性
-    * 
+    *
     */
 
     /// <summary>
@@ -193,10 +193,9 @@ public static class RandomEx
     /// </summary>
     /// <returns></returns>
     public static Random GetRandom()
-    { 
-        var tick = DateTime.Now.Ticks; 
+    {
+        var tick = DateTime.Now.Ticks;
         var tickSeeds = (int)(tick & 0xffffffffL) | (int)(tick >> 32);
         return new Random(tickSeeds);
     }
-
 }

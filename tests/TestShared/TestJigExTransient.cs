@@ -38,7 +38,7 @@ public partial class Test
         // 由于c2进行了修改,所以需要更新,
         // 可以单个更新或更新整个瞬态容器
         jet.Update(c2);
-        //jet.UpdateAll();
+        // jet.UpdateAll();
 
         var r4 = Env.Editor.GetPoint("\n此拾取无意义,仅为了暂停查看");
 

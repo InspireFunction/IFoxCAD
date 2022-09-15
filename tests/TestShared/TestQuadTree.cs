@@ -88,7 +88,7 @@ public partial class TestQuadTree
         // 随机图元生成
         List<CadEntity> ces = new();  // 用于随机获取图元
         Timer.RunTime(() => {
-            // 生成外边界和随机圆形 
+            // 生成外边界和随机圆形
             var grc = GenerateRandomCircle(maximumItems, dbExt);
             foreach (var ent in grc)
             {
@@ -98,7 +98,7 @@ public partial class TestQuadTree
                 // 四叉树数据
                 var entRect = new Rect(edge.MinPoint.X, edge.MinPoint.Y, edge.MaxPoint.X, edge.MaxPoint.Y);
                 var entId = tr.CurrentSpace.AddEntity(ent);
-               
+
                 var ce = new CadEntity(entId, entRect)
                 {
                     Color = RandomEx.NextColor()
@@ -143,8 +143,8 @@ public partial class TestQuadTree
         }
     }
 
-    /*TODO 啊惊: 有点懒不想改了*/
-#if true2 
+    /* 啊惊: 有点懒不想改了*/
+#if true2
 
     // 选择加入到四叉树
     [CommandMethod("CmdTest_QuadTree21")]
@@ -196,7 +196,7 @@ public partial class TestQuadTree
         // 清空原有的
         _quadTreeRoot = null;
         AddQuadTreeRoot(db, ed, ss);
-    } 
+    }
 
     void AddQuadTreeRoot(Database db, Editor ed, List<ObjectId> ss)
     {
@@ -257,7 +257,7 @@ public partial class TestQuadTree
 
     #endregion
 
-    /*TODO 啊惊: 有点懒不想改了*/
+    /* 啊惊: 有点懒不想改了*/
 #if true2
 
     #region 节点边界显示

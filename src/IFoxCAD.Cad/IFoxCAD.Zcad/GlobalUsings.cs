@@ -29,7 +29,7 @@ global using Acap = ZwSoft.ZwCAD.ApplicationServices.Application;
 global using ZwSoft.ZwCAD.DatabaseServices.Filters;
 global using ZwSoft.ZwCAD;
 
-//jig命名空间会引起Viewport/Polyline等等重义,最好逐个引入 using ZwSoft.ZwCAD.GraphicsInterface
+// jig命名空间会引起Viewport/Polyline等等重义,最好逐个引入 using ZwSoft.ZwCAD.GraphicsInterface
 global using ZwSoft.ZwCAD.GraphicsInterface;
 global using WorldDraw = ZwSoft.ZwCAD.GraphicsInterface.WorldDraw;
 global using Manager = ZwSoft.ZwCAD.GraphicsSystem.Manager;

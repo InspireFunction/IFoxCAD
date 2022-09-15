@@ -165,7 +165,7 @@ public partial class Test
         var en = new SystemVariableEnumerator();
         while (en.MoveNext())
         {
-            Console.WriteLine(en.Current.Name + "-----" + en.Current.Value);//Value会出现异常
+            Console.WriteLine(en.Current.Name + "-----" + en.Current.Value);// Value会出现异常
             dict.Add(en.Current.Name, en.Current.Value);
         }
         return dict;

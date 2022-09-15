@@ -51,7 +51,7 @@ public class DwgFilerEx
     public DwgFilerEx? DeserializeObject(string json)
     {
         throw new ArgumentException();
-        //return JsonConvert.DeserializeObject<DwgFilerEx>(json);// 反序列化*字符串转类
+        // return JsonConvert.DeserializeObject<DwgFilerEx>(json);// 反序列化*字符串转类
     }
 
     /// <summary>
@@ -61,16 +61,16 @@ public class DwgFilerEx
     public string SerializeObject()
     {
         throw new ArgumentException();
-        //return JsonConvert.SerializeObject(DwgFiler, Formatting.Indented);  // 序列化*类转字符串
+        // return JsonConvert.SerializeObject(DwgFiler, Formatting.Indented);  // 序列化*类转字符串
     }
 
     public override string ToString()
     {
         // 替换中括号以外的字符串,替换逗号为换行符 https://bbs.csdn.net/topics/370134253
-        //var str = SerializeObject();
-        //str = str.Substring(1, str.Length - 2);
-        //str = Regex.Replace(str, @"(?:,)(?![^\[]*?\])", "\r\n");
-        //return str;
+        // var str = SerializeObject();
+        // str = str.Substring(1, str.Length - 2);
+        // str = Regex.Replace(str, @"(?:,)(?![^\[]*?\])", "\r\n");
+        // return str;
 
         return DwgFiler.ToString();
     }
