@@ -325,14 +325,13 @@ public class DBTrans : IDisposable
     /// </summary>
     public DBDictionary LayoutDict => GetObject<DBDictionary>(Database.LayoutDictionaryId)!;
 
-#if !zcad
+#if !zcad //中望官方的问题
     /// <summary>
     /// 数据链接字典
     /// </summary>
     public DBDictionary DataLinkDict => GetObject<DBDictionary>(Database.DataLinkDictionaryId)!;
-#endif
 
-#if !ac2009 && !zcad
+#if !ac2009
     /// <summary>
     /// 详细视图样式字典
     /// </summary>
@@ -341,6 +340,7 @@ public class DBTrans : IDisposable
     /// 剖面视图样式字典
     /// </summary>
     public DBDictionary SectionViewStyleDict => GetObject<DBDictionary>(Database.SectionViewStyleDictionaryId)!;
+#endif
 #endif
     #endregion
 
