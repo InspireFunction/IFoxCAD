@@ -17,7 +17,7 @@ global using Exception = System.Exception;
 global using Registry = Microsoft.Win32.Registry;
 global using RegistryKey = Microsoft.Win32.RegistryKey;
 
-/// autocad 引用
+/// cad 引用
 global using Autodesk.AutoCAD.ApplicationServices;
 global using Autodesk.AutoCAD.EditorInput;
 global using Autodesk.AutoCAD.Colors;
@@ -31,15 +31,15 @@ global using Autodesk.AutoCAD.DatabaseServices.Filters;
 global using Autodesk.AutoCAD;
 
 // jig命名空间会引起Viewport/Polyline等等重义,最好逐个引入 using Autodesk.AutoCAD.GraphicsInterface
+global using Autodesk.AutoCAD.GraphicsInterface;
 global using WorldDraw = Autodesk.AutoCAD.GraphicsInterface.WorldDraw;
 global using Manager = Autodesk.AutoCAD.GraphicsSystem.Manager;
 global using Group = Autodesk.AutoCAD.DatabaseServices.Group;
 global using Viewport = Autodesk.AutoCAD.DatabaseServices.Viewport;
-global using Autodesk.AutoCAD.GraphicsInterface;
 global using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
-global using Acad_DwgFiler = Autodesk.AutoCAD.DatabaseServices.DwgFiler;
-global using Acad_DxfFiler = Autodesk.AutoCAD.DatabaseServices.DxfFiler;
-global using Acad_ErrorStatus = Autodesk.AutoCAD.Runtime.ErrorStatus;
+global using Cad_DwgFiler = Autodesk.AutoCAD.DatabaseServices.DwgFiler;
+global using Cad_DxfFiler = Autodesk.AutoCAD.DatabaseServices.DxfFiler;
+global using Cad_ErrorStatus = Autodesk.AutoCAD.Runtime.ErrorStatus;
 
 /// ifoxcad.basal 引用
 global using IFoxCAD.Basal;

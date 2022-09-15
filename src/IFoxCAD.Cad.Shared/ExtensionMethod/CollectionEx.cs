@@ -1,4 +1,7 @@
-﻿namespace IFoxCAD.Cad;
+﻿using System.ComponentModel;
+using System.Xml.Linq;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 集合扩展类
@@ -143,34 +146,55 @@ public static class CollectionEx
     /// <param name="keywordName">关键字容器字段名</param>
     /// <returns>true含有</returns>
     public static bool Contains(this KeywordCollection collection, string name,
-        KeywordName keywordName = KeywordName.GlobalName)
+                                KeywordName keywordName = KeywordName.GlobalName)
     {
         bool contains = false;
         switch (keywordName)
         {
             case KeywordName.GlobalName:
             for (int i = 0; i < collection.Count; i++)
-                if (collection[i].GlobalName == name)
+            {
+#if gcad
+                var item = collection.get_Item(i);
+#else
+                var item = collection[i];
+#endif
+                if (item.GlobalName == name)
                 {
                     contains = true;
                     break;
                 }
+            }
             break;
             case KeywordName.LocalName:
             for (int i = 0; i < collection.Count; i++)
-                if (collection[i].LocalName == name)
+            {
+#if gcad
+                var item = collection.get_Item(i);
+#else
+                var item = collection[i];
+#endif
+                if (item.LocalName == name)
                 {
                     contains = true;
                     break;
                 }
+            }
             break;
             case KeywordName.DisplayName:
             for (int i = 0; i < collection.Count; i++)
-                if (collection[i].DisplayName == name)
+            {
+#if gcad
+                var item = collection.get_Item(i);
+#else
+                var item = collection[i];
+#endif
+                if (item.DisplayName == name)
                 {
                     contains = true;
                     break;
                 }
+            }
             break;
             default:
             break;
@@ -188,7 +212,14 @@ public static class CollectionEx
     {
         Dictionary<string, string> map = new();
         for (int i = 0; i < collection.Count; i++)
-            map.Add(collection[i].GlobalName, collection[i].DisplayName);
+        {
+#if gcad
+            var item = collection.get_Item(i);
+#else
+            var item = collection[i];
+#endif
+            map.Add(item.GlobalName, item.DisplayName);
+        }
         return map;
     }
     #endregion

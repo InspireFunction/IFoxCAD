@@ -9,7 +9,7 @@
 
 
 [Serializable]
-public class DwgFiler : Acad_DwgFiler
+public class DwgFiler : Cad_DwgFiler
 {
 #if NET35
     public int m_Position;
@@ -17,7 +17,7 @@ public class DwgFiler : Acad_DwgFiler
     public long m_Position;
 #endif
     public FilerType m_FilerType;
-    public Acad_ErrorStatus m_FilerStatus;
+    public Cad_ErrorStatus m_FilerStatus;
     public List<IntPtr> AddressList;
     public int AddressListPt = 0;
     public List<byte[]> BinaryChunkList;
@@ -77,7 +77,7 @@ public class DwgFiler : Acad_DwgFiler
     {
         m_Position = 0;
         m_FilerType = FilerType.CopyFiler;
-        m_FilerStatus = Acad_ErrorStatus.OK;
+        m_FilerStatus = Cad_ErrorStatus.OK;
         AddressList = new List<IntPtr>();
         BinaryChunkList = new List<byte[]>();
         BooleanList = new List<bool>();
@@ -117,7 +117,7 @@ public class DwgFiler : Acad_DwgFiler
         get { return this.m_FilerType; }
     }
 
-    public override Acad_ErrorStatus FilerStatus
+    public override Cad_ErrorStatus FilerStatus
     {
         get { return m_FilerStatus; }
         set { m_FilerStatus = value; }
@@ -345,17 +345,32 @@ public class DwgFiler : Acad_DwgFiler
         m_FilerType = FilerType.CopyFiler;
     }
 
+#if zcad //中望这里弄错了
+    public override void Seek(int offset, int method)
+    {
+        var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
+        ed.WriteMessage(MethodInfo.GetCurrentMethod().Name + " = " + " \n ");
+    }
+    public override void Seek(long offset, int method)
+    {
+        var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
+        ed.WriteMessage(MethodInfo.GetCurrentMethod().Name + " = " + " \n ");
+    }
+#endif
+
+#if acad || gcad
     public override void Seek(
-#if ac2008 || ac2009
+#if NET35
     int
 #else
     long
 #endif
-     offset, int method)
+    offset, int method)
     {
-        Editor ed = Acap.DocumentManager.MdiActiveDocument.Editor;
+        var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
         ed.WriteMessage(MethodInfo.GetCurrentMethod().Name + " = " + " \n ");
     }
+#endif
 
     public override void WriteAddress(IntPtr value)
     {

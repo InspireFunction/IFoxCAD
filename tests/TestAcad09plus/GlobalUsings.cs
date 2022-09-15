@@ -37,9 +37,9 @@ global using Group = Autodesk.AutoCAD.DatabaseServices.Group;
 global using Viewport = Autodesk.AutoCAD.DatabaseServices.Viewport;
 global using Autodesk.AutoCAD.GraphicsInterface;
 global using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
-global using Acad_DwgFiler = Autodesk.AutoCAD.DatabaseServices.DwgFiler;
-global using Acad_DxfFiler = Autodesk.AutoCAD.DatabaseServices.DxfFiler;
-global using Acad_ErrorStatus = Autodesk.AutoCAD.Runtime.ErrorStatus;
+global using Cad_DwgFiler = Autodesk.AutoCAD.DatabaseServices.DwgFiler;
+global using Cad_DxfFiler = Autodesk.AutoCAD.DatabaseServices.DxfFiler;
+global using Cad_ErrorStatus = Autodesk.AutoCAD.Runtime.ErrorStatus;
 
 
 /// ifoxcad

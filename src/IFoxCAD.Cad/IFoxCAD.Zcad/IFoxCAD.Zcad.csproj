@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
     <PropertyGroup>
-        <TargetFrameworks>NET45;NET48</TargetFrameworks>
+        <TargetFrameworks>NET48</TargetFrameworks>
         <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
         <Nullable>enable</Nullable>
         <UseWPF>true</UseWPF>
@@ -30,11 +30,11 @@
     </PropertyGroup>
 	
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
-        <DefineConstants>$(Configuration);ZCAD</DefineConstants>
+        <DefineConstants>$(Configuration);zcad</DefineConstants>
     </PropertyGroup>
 	
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
-        <DefineConstants>$(Configuration);ZCAD</DefineConstants>
+        <DefineConstants>$(Configuration);zcad</DefineConstants>
     </PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">

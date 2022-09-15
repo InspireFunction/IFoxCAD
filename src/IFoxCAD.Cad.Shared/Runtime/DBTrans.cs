@@ -324,11 +324,15 @@ public class DBTrans : IDisposable
     /// 布局字典
     /// </summary>
     public DBDictionary LayoutDict => GetObject<DBDictionary>(Database.LayoutDictionaryId)!;
+
+#if !zcad
     /// <summary>
     /// 数据链接字典
     /// </summary>
     public DBDictionary DataLinkDict => GetObject<DBDictionary>(Database.DataLinkDictionaryId)!;
-#if !ac2009
+#endif
+
+#if !ac2009 && !zcad
     /// <summary>
     /// 详细视图样式字典
     /// </summary>
@@ -459,7 +463,13 @@ public class DBTrans : IDisposable
         if (Path.GetExtension(saveAsFile).ToLower().Contains("dxf"))
         {
             // dxf用任何版本号都会报错
+#if acad || gcad
             Database.DxfOut(saveAsFile, 7, true);
+#endif
+
+#if zcad  //中望这里没有测试
+            Database.DxfOut(saveAsFile, 7, version, true);
+#endif
         }
         else
         {

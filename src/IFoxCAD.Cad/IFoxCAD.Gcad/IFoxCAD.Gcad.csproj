@@ -30,7 +30,7 @@
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
-		<DefineConstants>$(Configuration);GCAD</DefineConstants>
+		<DefineConstants>$(Configuration);gcad</DefineConstants>
 	</PropertyGroup>
 
 	<ItemGroup Condition="'$(TargetFramework)' == 'NET48'">

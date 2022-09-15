@@ -1,9 +1,10 @@
-﻿namespace IFoxCAD.Cad;
+﻿#if acad
+namespace IFoxCAD.Cad;
 
 /* 此处暂未完成,无任何测试,尚且不知道怎么用 */
 using System.Runtime.Remoting;
 
-public class DxfFiler : Acad_DxfFiler
+public class DxfFiler : Cad_DxfFiler
 {
     public DxfFiler(IntPtr unmanagedPointer, [MarshalAs(UnmanagedType.U1)] bool autoDelete) : base(unmanagedPointer, autoDelete)
     {
@@ -97,7 +98,7 @@ public class DxfFiler : Acad_DxfFiler
         base.SetError(format, values);
     }
 
-    public override void SetError(Acad_ErrorStatus value, string format, params string[] values)
+    public override void SetError(Cad_ErrorStatus value, string format, params string[] values)
     {
         base.SetError(value, format, values);
     }
@@ -217,3 +218,4 @@ public class DxfFiler : Acad_DxfFiler
         base.Dispose(disposing);
     }
 }
+#endif

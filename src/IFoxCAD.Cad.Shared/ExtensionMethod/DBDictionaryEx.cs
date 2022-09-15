@@ -151,53 +151,51 @@ public static class DBDictionaryEx
     /// <param name="value">数据</param>
     public static void SetValue(this DataCell cell, CellType type, object value)
     {
-
-
         switch (type)
         {
             case CellType.Bool:
-                cell.SetBool((bool)value);
-                break;
+            cell.SetBool((bool)value);
+            break;
 
             case CellType.CharPtr:
-                cell.SetString((string)value);
-                break;
+            cell.SetString((string)value);
+            break;
 
             case CellType.Integer:
-                cell.SetInteger((int)value);
-                break;
+            cell.SetInteger((int)value);
+            break;
 
             case CellType.Double:
-                cell.SetDouble((double)value);
-                break;
+            cell.SetDouble((double)value);
+            break;
 
             case CellType.ObjectId:
-                cell.SetObjectId((ObjectId)value);
-                break;
+            cell.SetObjectId((ObjectId)value);
+            break;
 
             case CellType.Point:
-                cell.SetPoint((Point3d)value);
-                break;
+            cell.SetPoint((Point3d)value);
+            break;
 
             case CellType.Vector:
-                cell.SetVector((Vector3d)value);
-                break;
+            cell.SetVector((Vector3d)value);
+            break;
 
             case CellType.HardOwnerId:
-                cell.SetHardOwnershipId((ObjectId)value);
-                break;
+            cell.SetHardOwnershipId((ObjectId)value);
+            break;
 
             case CellType.HardPtrId:
-                cell.SetHardPointerId((ObjectId)value);
-                break;
+            cell.SetHardPointerId((ObjectId)value);
+            break;
 
             case CellType.SoftOwnerId:
-                cell.SetSoftOwnershipId((ObjectId)value);
-                break;
+            cell.SetSoftOwnershipId((ObjectId)value);
+            break;
 
             case CellType.SoftPtrId:
-                cell.SetSoftPointerId((ObjectId)value);
-                break;
+            cell.SetSoftPointerId((ObjectId)value);
+            break;
         }
     }
     #endregion
@@ -366,24 +364,4 @@ public static class DBDictionaryEx
         return names;
     }
     #endregion
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 }

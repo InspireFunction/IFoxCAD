@@ -41,13 +41,13 @@
         <DefineConstants>DEBUG</DefineConstants>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
-        <DefineConstants>$(Configuration);ac2009</DefineConstants>
+        <DefineConstants>$(Configuration);acad;ac2009</DefineConstants>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
-        <DefineConstants>$(Configuration);ac2013</DefineConstants>
+        <DefineConstants>$(Configuration);acad;ac2013</DefineConstants>
     </PropertyGroup>
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
-        <DefineConstants>$(Configuration);ac2015</DefineConstants>
+        <DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
     </PropertyGroup>
     <ItemGroup>
         <None Include="..\..\..\LICENSE">

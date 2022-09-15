@@ -14,11 +14,11 @@ public class DwgFilerEx
     /// <summary>
     /// Dwg序列化
     /// </summary>
-    public DwgFilerEx(DwgFiler? acad_DwgFiler = null)
+    public DwgFilerEx(DwgFiler? Cad_DwgFiler = null)
     {
-        if (acad_DwgFiler == null)
-            acad_DwgFiler = new();
-        DwgFiler = acad_DwgFiler;
+        if (Cad_DwgFiler == null)
+            Cad_DwgFiler = new();
+        DwgFiler = Cad_DwgFiler;
     }
 
     /// <summary>
@@ -75,7 +75,7 @@ public class DwgFilerEx
         return DwgFiler.ToString();
     }
 
-    public static implicit operator Acad_DwgFiler(DwgFilerEx df)
+    public static implicit operator Cad_DwgFiler(DwgFilerEx df)
     {
         return df.DwgFiler;
     }

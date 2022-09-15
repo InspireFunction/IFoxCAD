@@ -36,6 +36,7 @@ public static class Env
 
     #region Preferences
 
+#if !zcad //中望这里弄错了
     /// <summary>
     /// 获取当前配置的数据
     /// </summary>
@@ -49,6 +50,7 @@ public static class Env
         IConfigurationSection ss = cpf.OpenSubsection(subSectionName);
         return ss.ReadProperty(propertyName, "");
     }
+
 
     /// <summary>
     /// 获取对话框配置的数据
@@ -74,7 +76,7 @@ public static class Env
         IConfigurationSection ss = gs.OpenSubsection(propertyName);
         return ss;
     }
-
+#endif
     #endregion Preferences
 
     #region Enum
