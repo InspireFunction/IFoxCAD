@@ -345,7 +345,7 @@ public class DwgFiler : Cad_DwgFiler
         m_FilerType = FilerType.CopyFiler;
     }
 
-#if zcad //中望这里弄错了
+#if zcad //中望官方的问题
     public override void Seek(int offset, int method)
     {
         var ed = Acap.DocumentManager.MdiActiveDocument.Editor;

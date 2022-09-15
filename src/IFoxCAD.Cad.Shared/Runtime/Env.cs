@@ -36,7 +36,7 @@ public static class Env
 
     #region Preferences
 
-#if !zcad //中望这里弄错了
+#if !zcad //中望官方的问题
     /// <summary>
     /// 获取当前配置的数据
     /// </summary>
