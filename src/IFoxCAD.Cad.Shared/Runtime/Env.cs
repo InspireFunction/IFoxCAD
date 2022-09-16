@@ -522,7 +522,7 @@ public static class Env
         // 可用内存 (最新格式) 1 MB (标准格式)
         // https://docs.microsoft.com/zh-cn/windows/win32/sysinfo/registry-element-size-limits
 
-        var sbRes = new StringBuilder(1024 * 1024);
+        var sbRes = new StringBuilder(1 << 23);
         _ = AcedGetEnv(name, sbRes);
         return sbRes.ToString();
     }
