@@ -63,22 +63,25 @@ public static class SelectionSetEx
     /// </summary>
     /// <typeparam name="T">指定类型</typeparam>
     /// <param name="ss">选择集</param>
-    /// <param name="tr">事务</param>
     /// <param name="openMode">打开模式</param>
+    /// <param name="tr">事务</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>图元集合</returns>
-    public static IEnumerable<T?> GetEntities<T>(this SelectionSet ss, OpenMode openMode = OpenMode.ForRead, DBTrans? tr = default) where T : Entity
+    public static IEnumerable<T?> GetEntities<T>(this SelectionSet ss,
+                                                OpenMode openMode = OpenMode.ForRead,
+                                                DBTrans? tr = default,
+                                                bool openErased = false,
+                                                bool openLockedLayer = false) where T : Entity
     {
         if (ss is null)
             throw new ArgumentNullException(nameof(ss));
 
         tr ??= DBTrans.Top;
-        return
-            ss
-            .GetObjectIds()
-            .Select(id => tr.GetObject<T>(id, openMode))
-            .Where(ent => ent != null);
+        return ss.GetObjectIds()
+                 .Select(id => tr.GetObject<T>(id, openMode, openErased, openLockedLayer))
+                 .Where(ent => ent != null);
     }
-
     #endregion
 
     #region ForEach
@@ -87,14 +90,51 @@ public static class SelectionSetEx
     /// </summary>
     /// <typeparam name="T">指定图元类型</typeparam>
     /// <param name="ss">选择集</param>
-    /// <param name="tr">事务</param>
+    /// <param name="action">处理函数;(图元)</param>
     /// <param name="openMode">打开模式</param>
-    /// <param name="action">处理函数</param>
-    public static void ForEach<T>(this SelectionSet ss, Action<T?> action, OpenMode openMode = OpenMode.ForRead, DBTrans? tr = default) where T : Entity
+    /// <param name="tr">事务</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
+    public static void ForEach<T>(this SelectionSet ss,
+                                  Action<T?> action,
+                                  OpenMode openMode = OpenMode.ForRead,
+                                  DBTrans? tr = default,
+                                  bool openErased = false,
+                                  bool openLockedLayer = false) where T : Entity
     {
-        foreach (T? ent in ss.GetEntities<T>(openMode, tr))
+        ForEach<T>(ss, (ent, state) => {
+            action.Invoke(ent);
+        }, openMode, tr, openErased, openLockedLayer);
+    }
+
+    /// <summary>
+    /// 遍历选择集
+    /// </summary>
+    /// <typeparam name="T">指定图元类型</typeparam>
+    /// <param name="ss">选择集</param>
+    /// <param name="action">处理函数;(图元,终止方式)</param>
+    /// <param name="openMode">打开模式</param>
+    /// <param name="tr">事务</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static void ForEach<T>(this SelectionSet ss,
+                                 Action<T?, LoopState> action,
+                                 OpenMode openMode = OpenMode.ForRead,
+                                 DBTrans? tr = default,
+                                 bool openErased = false,
+                                 bool openLockedLayer = false) where T : Entity
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        LoopState state = new();
+        var ents = ss.GetEntities<T>(openMode, tr, openErased, openLockedLayer);
+        foreach (var ent in ents)
         {
-            action?.Invoke(ent);
+            action.Invoke(ent, state);
+            if (!state.IsRun)
+                break;
         }
     }
     #endregion

@@ -314,9 +314,14 @@ public class HatchConverter
          * 那么它的平移后的基点在哪里呢?
          */
 
-        var newHatchId = btrOfAddEntitySpace.DeepCloneEx(new ObjectIdCollection(new ObjectId[] { OldHatchId })).GetValues()[0];
+        var newHatchId = btrOfAddEntitySpace.DeepCloneEx(
+                         new ObjectIdCollection(new ObjectId[] { OldHatchId })).GetValues()[0];
         trans ??= DBTrans.Top.Transaction;
-        var hatchEnt = trans.GetObject(newHatchId, OpenMode.ForWrite) as Hatch;
+
+        bool openErased = false;
+        bool openLockedLayer = false;
+        var hatchEnt = trans.GetObject(newHatchId, OpenMode.ForWrite,
+                                       openErased, openLockedLayer) as Hatch;
         if (hatchEnt != null)
         {
             ResetBoundary(hatchEnt, boundaryAssociative);

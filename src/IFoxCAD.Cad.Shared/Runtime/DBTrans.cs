@@ -352,14 +352,14 @@ public class DBTrans : IDisposable
     /// <param name="id">对象id</param>
     /// <param name="mode">打开模式,默认为只读</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
-    /// <param name="forceOpenOnLockedLayer">是否打开锁定图层对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>图元对象,类型不匹配时返回 <see langword="null"/> </returns>
     public T? GetObject<T>(ObjectId id,
-                          OpenMode mode = OpenMode.ForRead,
-                          bool openErased = false,
-                          bool forceOpenOnLockedLayer = false) where T : DBObject
+                           OpenMode mode = OpenMode.ForRead,
+                           bool openErased = false,
+                           bool openLockedLayer = false) where T : DBObject
     {
-        return Transaction.GetObject(id, mode, openErased, forceOpenOnLockedLayer) as T;
+        return Transaction.GetObject(id, mode, openErased, openLockedLayer) as T;
     }
 
     /// <summary>

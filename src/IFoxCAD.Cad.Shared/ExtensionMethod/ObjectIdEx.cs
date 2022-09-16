@@ -12,15 +12,19 @@ public static class ObjectIdEx
     /// </summary>
     /// <typeparam name="T">指定的泛型</typeparam>
     /// <param name="id">对象id</param>
-    /// <param name="tr">事务</param>
     /// <param name="mode">打开模式</param>
-    /// <param name="openErased">打开删除对象</param>
+    /// <param name="tr">事务</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>指定类型对象</returns>
-    public static T? GetObject<T>(this ObjectId id, OpenMode mode = OpenMode.ForRead, bool openErased = false, Transaction? tr = default) where T : DBObject
+    public static T? GetObject<T>(this ObjectId id,
+                                 OpenMode mode = OpenMode.ForRead,
+                                 Transaction? tr = default,
+                                 bool openErased = false,
+                                 bool openLockedLayer = false) where T : DBObject
     {
         tr ??= DBTrans.Top.Transaction;
-        // tr = Env.GetTrans(tr);
-        return tr.GetObject(id, mode, openErased) as T;
+        return tr.GetObject(id, mode, openErased, openLockedLayer) as T;
     }
 
     /// <summary>
@@ -28,16 +32,18 @@ public static class ObjectIdEx
     /// </summary>
     /// <typeparam name="T">指定的泛型</typeparam>
     /// <param name="ids">对象id集合</param>
-    /// <param name="tr">事务</param>
     /// <param name="mode">打开模式</param>
-    /// <param name="openErased">打开删除对象</param>
+    /// <param name="tr">事务</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>指定类型对象集合</returns>
-    public static IEnumerable<T?> GetObject<T>(this IEnumerable<ObjectId> ids, 
+    public static IEnumerable<T?> GetObject<T>(this IEnumerable<ObjectId> ids,
                                                OpenMode mode = OpenMode.ForRead,
-                                               bool openErased = false, 
-                                               Transaction? tr = default) where T : DBObject
+                                               Transaction? tr = default,
+                                               bool openErased = false,
+                                               bool openLockedLayer = false) where T : DBObject
     {
-        return ids.Select(id => id.GetObject<T>(mode, openErased, tr));
+        return ids.Select(id => id.GetObject<T>(mode, tr, openErased, openLockedLayer));
     }
 
     /// <summary>

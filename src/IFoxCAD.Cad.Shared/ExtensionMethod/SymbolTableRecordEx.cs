@@ -327,18 +327,20 @@ public static class SymbolTableRecordEx
     /// <param name="btr">块表记录</param>
     /// <param name="mode">打开模式</param>
     /// <param name="trans">事务</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>实体集合</returns>
     public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr,
                                                 OpenMode mode = OpenMode.ForRead,
+                                                Transaction? trans = default,
                                                 bool openErased = false,
-                                                bool forceOpenOnLockedLayer = false,
-                                                Transaction? trans = default) where T : Entity
+                                                bool openLockedLayer = false) where T : Entity
     {
         trans ??= DBTrans.Top.Transaction;
         return
             btr
             .Cast<ObjectId>()
-            .Select(id => trans.GetObject(id, mode, openErased, forceOpenOnLockedLayer))
+            .Select(id => trans.GetObject(id, mode, openErased, openLockedLayer))
             .OfType<T>();
     }
 
@@ -352,7 +354,7 @@ public static class SymbolTableRecordEx
     {
         string dxfName = RXClass.GetClass(typeof(T)).DxfName;
         return btr.Cast<ObjectId>()
-            .Where(id => id.ObjectClass().DxfName == dxfName);
+                  .Where(id => id.ObjectClass().DxfName == dxfName);
     }
 
     /// <summary>
@@ -362,23 +364,27 @@ public static class SymbolTableRecordEx
     /// <returns>实体Id分组</returns>
     public static IEnumerable<IGrouping<string, ObjectId>> GetObjectIds(this BlockTableRecord btr)
     {
-        return
-            btr
-            .Cast<ObjectId>()
-            .GroupBy(id => id.ObjectClass().DxfName);
+        return btr.Cast<ObjectId>()
+                  .GroupBy(id => id.ObjectClass().DxfName);
     }
+
 
     /// <summary>
     /// 获取绘制顺序表
     /// </summary>
     /// <param name="btr">块表</param>
     /// <param name="trans">事务</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>绘制顺序表</returns>
     public static DrawOrderTable? GetDrawOrderTable(this BlockTableRecord btr,
-                                                    Transaction? trans = default)
+                                                    Transaction? trans = default,
+                                                    bool openErased = false,
+                                                    bool openLockedLayer = false)
     {
         trans ??= DBTrans.Top.Transaction;
-        return trans.GetObject(btr.DrawOrderTableId, OpenMode.ForRead) as DrawOrderTable;
+        return trans.GetObject(btr.DrawOrderTableId, OpenMode.ForRead,
+               openErased, openLockedLayer) as DrawOrderTable;
     }
     #endregion
 
@@ -398,7 +404,8 @@ public static class SymbolTableRecordEx
                                        string blockName,
                                        Scale3d scale = default,
                                        double rotation = default,
-                                       Dictionary<string, string>? atts = default, Transaction? trans = null)
+                                       Dictionary<string, string>? atts = default,
+                                       Transaction? trans = null)
     {
         trans ??= DBTrans.Top.Transaction;
         if (!DBTrans.Top.BlockTable.Has(blockName))
@@ -417,11 +424,13 @@ public static class SymbolTableRecordEx
     /// <param name="rotation">块插入旋转角(弧度)，默认为0</param>
     /// <param name="atts">属性字典{Tag,Value}，默认为null</param>
     /// <returns>块参照对象id</returns>
-    public static ObjectId InsertBlock(this BlockTableRecord blockTableRecord, Point3d position,
+    public static ObjectId InsertBlock(this BlockTableRecord blockTableRecord,
+                                       Point3d position,
                                        ObjectId blockId,
                                        Scale3d scale = default,
                                        double rotation = default,
-                                       Dictionary<string, string>? atts = default, Transaction? trans = null)
+                                       Dictionary<string, string>? atts = default,
+                                       Transaction? trans = null)
     {
         trans ??= DBTrans.Top.Transaction;
         if (!DBTrans.Top.BlockTable.Has(blockId))

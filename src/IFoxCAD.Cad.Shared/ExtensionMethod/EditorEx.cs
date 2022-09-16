@@ -659,15 +659,19 @@ public static class EditorEx
 
         Database db = editor.Document.Database;
         Matrix3d mat;
-        using (Transaction tr = db.TransactionManager.StartTransaction())
+        using (var tr = db.TransactionManager.StartTransaction())
         {
-            var vp = tr.GetObject(editor.CurrentViewportObjectId, OpenMode.ForRead) as Viewport;
+            var openErased = false;
+            var openLockedLayer = false;
+            var vp = tr.GetObject(editor.CurrentViewportObjectId, OpenMode.ForRead,
+                                  openErased, openLockedLayer) as Viewport;
             if (vp?.Number == 1)
             {
                 try
                 {
                     editor.SwitchToModelSpace();
-                    vp = tr.GetObject(editor.CurrentViewportObjectId, OpenMode.ForRead) as Viewport;
+                    vp = tr.GetObject(editor.CurrentViewportObjectId, OpenMode.ForRead,
+                                      openErased, openLockedLayer) as Viewport;
                     editor.SwitchToPaperSpace();
                 }
                 catch

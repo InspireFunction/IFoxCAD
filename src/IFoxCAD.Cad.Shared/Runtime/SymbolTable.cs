@@ -36,15 +36,15 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         Database = tr.Database;
         CurrentSymbolTable = DTrans.GetObject<TTable>(tableId)!;
 
-        if (defaultBehavior)
+        if (!defaultBehavior)
+            return;
+
+        if (CurrentSymbolTable is LayerTable layer)
         {
-            if (CurrentSymbolTable is LayerTable layer)
-            {
-                // 层表包含隐藏的,全部显示出来
-                layer = layer.IncludingHidden;
-                if (layer is TTable tt)
-                    CurrentSymbolTable = tt;
-            }
+            // 层表包含隐藏的,全部显示出来
+            layer = layer.IncludingHidden;
+            if (layer is TTable tt)
+                CurrentSymbolTable = tt;
         }
     }
 

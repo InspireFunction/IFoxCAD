@@ -558,8 +558,9 @@ public static class CurveEx
         Point3dCollection pnts = new();
         foreach (ObjectId id in pl)
         {
-            PolylineVertex3d ver = (PolylineVertex3d)id.GetObject(OpenMode.ForRead);
-            pnts.Add(ver.Position);
+            var ver = id.GetObject<PolylineVertex3d>(OpenMode.ForRead);
+            if (ver != null)
+                pnts.Add(ver.Position);
         }
         return new PolylineCurve3d(pnts);
     }
