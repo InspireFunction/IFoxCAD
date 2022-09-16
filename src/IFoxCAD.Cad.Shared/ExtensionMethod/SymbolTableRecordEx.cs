@@ -330,13 +330,15 @@ public static class SymbolTableRecordEx
     /// <returns>实体集合</returns>
     public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr,
                                                 OpenMode mode = OpenMode.ForRead,
+                                                bool openErased = false,
+                                                bool forceOpenOnLockedLayer = false,
                                                 Transaction? trans = default) where T : Entity
     {
         trans ??= DBTrans.Top.Transaction;
         return
             btr
             .Cast<ObjectId>()
-            .Select(id => trans.GetObject(id, mode))
+            .Select(id => trans.GetObject(id, mode, openErased, forceOpenOnLockedLayer))
             .OfType<T>();
     }
 
