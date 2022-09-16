@@ -353,8 +353,7 @@ public class DwgFiler : Cad_DwgFiler
     }
     public override void Seek(long offset, int method)
     {
-        var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
-        ed.WriteMessage(MethodInfo.GetCurrentMethod().Name + " = " + " \n ");
+        Seek((int)offset, method);
     }
 #endif
 

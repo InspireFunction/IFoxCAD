@@ -112,12 +112,14 @@ public static class CurveEx
         var graph = new Graph();
         foreach (var curve in curves)
         {
-#if !acad
-            graph.AddEdge(curve.ToCurve3d()!);
-#elif NET35
+#if !gcad
+#if NET35
             graph.AddEdge(curve.ToCurve3d()!);
 #else
             graph.AddEdge(curve.GetGeCurve());
+#endif
+#else
+            graph.AddEdge(curve.ToCurve3d()!);
 #endif
         }
         // 新建 dfs

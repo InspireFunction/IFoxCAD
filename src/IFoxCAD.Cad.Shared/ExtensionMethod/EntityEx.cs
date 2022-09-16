@@ -260,12 +260,14 @@ public static class EntityEx
         // 创建一个几何类的圆弧对象
         CircularArc3d geArc = new(startPoint, pointOnArc, endPoint);
         // 将几何类圆弧对象的圆心和半径赋值给圆弧
-#if !acad
-        return (Arc)geArc.ToCurve();
-#elif NET35
+#if !gcad
+#if NET35
         return (Arc)geArc.ToCurve();
 #else
         return (Arc)Curve.CreateFromGeCurve(geArc);
+#endif
+#else
+        return (Arc)geArc.ToCurve();
 #endif
     }
 
