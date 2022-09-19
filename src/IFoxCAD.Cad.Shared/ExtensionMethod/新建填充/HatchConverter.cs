@@ -283,8 +283,7 @@ public class HatchConverter
     /// <summary>
     /// 创建边界图元和新填充到当前空间
     /// </summary>
-    /// <param name="tr">事务</param>
-    /// <param name="db">数据库</param>
+    /// <param name="btrOfAddEntitySpace"></param>
     /// <param name="boundaryAssociative">边界关联</param>
     /// <param name="createHatchFlag">是否创建填充,false则只创建边界</param>
     /// <returns>新填充id,边界在<see cref="BoundaryIds"/>获取</returns>

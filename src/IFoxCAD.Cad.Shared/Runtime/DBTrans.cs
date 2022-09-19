@@ -425,7 +425,8 @@ public class DBTrans : IDisposable
         if (string.IsNullOrEmpty(saveAsFile))
         {
             fileMsg = _fileName;
-            creatFlag = true;
+            saveAsFile = _fileName;
+            //creatFlag = true;
         }
         else
         {
@@ -448,9 +449,16 @@ public class DBTrans : IDisposable
                 string.IsNullOrEmpty(Path.GetFileName(saveAsFile).Trim()))
                 creatFlag = true;
         }
-        var fileNameWith = Path.GetFileNameWithoutExtension(saveAsFile).Trim();
-        if (string.IsNullOrEmpty(fileNameWith))
+        if (saveAsFile != null)
+        {
+            var fileNameWith = Path.GetFileNameWithoutExtension(saveAsFile).Trim();
+            if (string.IsNullOrEmpty(fileNameWith))
+                creatFlag = true;
+        }
+        else
+        {
             creatFlag = true;
+        }
 
         if (creatFlag)
         {
@@ -470,18 +478,18 @@ public class DBTrans : IDisposable
 #if zcad  // 中望这里没有测试
             Database.DxfOut(saveAsFile, 7, version, true);
 #endif
+            return;
         }
-        else
-        {
-            if (automatic)
-                version = Env.GetDefaultDwgVersion();
 
-            // dwg需要版本号,而dxf不用,dwg用dxf版本号会报错
-            // 若扩展名和版本号冲突,按照扩展名为准
-            if (version.IsDxfVersion())
-                version = DwgVersion.Current;
-            Database.SaveAs(saveAsFile, version);
-        }
+        if (automatic)
+            version = Env.GetDefaultDwgVersion();
+
+        // dwg需要版本号,而dxf不用,dwg用dxf版本号会报错
+        // 若扩展名和版本号冲突,按照扩展名为准
+        if (version.IsDxfVersion())
+            version = DwgVersion.Current;
+
+        Database.SaveAs(saveAsFile, version);
     }
 
 
