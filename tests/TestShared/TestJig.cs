@@ -97,13 +97,13 @@ public class Commands_Jig
                 switch (pr.StringResult)
                 {
                     case "A":
-                        tr.Editor?.WriteMessage($"\n 您触发了关键字{pr.StringResult}");
-                        flag = false;
-                        break;
+                    tr.Editor?.WriteMessage($"\n 您触发了关键字{pr.StringResult}");
+                    flag = false;
+                    break;
                     case " ":
-                        tr.Editor?.WriteMessage("\n 触发关键字空格");
-                        flag = false;
-                        break;
+                    tr.Editor?.WriteMessage("\n 触发关键字空格");
+                    flag = false;
+                    break;
                 }
             }
             else if (pr.Status != PromptStatus.OK)// PromptStatus.None == 右键,空格,回车,都在这里结束
@@ -253,38 +253,38 @@ public class Commands_Jig
                 switch (ppr.StringResult)
                 {
                     case "Bold":
-                        break;
+                    break;
                     case "Italic":
-                        break;
+                    break;
                     case "LArger":
-                        {
-                            // Multiple the text size by two
-                            _txtSize *= 2;
-                            break;
-                        }
+                    {
+                        // Multiple the text size by two
+                        _txtSize *= 2;
+                        break;
+                    }
                     case "Smaller":
-                        {
-                            // Divide the text size by two
-                            _txtSize /= 2;
-                            break;
-                        }
+                    {
+                        // Divide the text size by two
+                        _txtSize /= 2;
+                        break;
+                    }
                     case "ROtate90":
+                    {
+                        // To rotate clockwise we subtract 90 degrees and
+                        // then normalise the angle between 0 and 360
+                        _angle -= Math.PI / 2;
+                        while (_angle < Math.PI * 2)
                         {
-                            // To rotate clockwise we subtract 90 degrees and
-                            // then normalise the angle between 0 and 360
-                            _angle -= Math.PI / 2;
-                            while (_angle < Math.PI * 2)
-                            {
-                                _angle += Math.PI * 2;
-                            }
-                            break;
+                            _angle += Math.PI * 2;
                         }
+                        break;
+                    }
                     case "LEft":
-                        break;
+                    break;
                     case "RIght":
-                        break;
+                    break;
                     case "Middle":
-                        break;
+                    break;
                 }
                 return SamplerStatus.OK;
             }
@@ -309,6 +309,6 @@ public class Commands_Jig
             txt.Rotation = _angle;
             return true;
         }
-    } 
+    }
 #endif
 }

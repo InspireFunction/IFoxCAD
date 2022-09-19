@@ -134,13 +134,15 @@ public class DBTrans : IDisposable
         if (fileName == null || string.IsNullOrEmpty(fileName.Trim()))
             throw new ArgumentNullException(nameof(fileName));
 
-        _fileName = fileName.Replace("/", "\\");//// doc.Name总是"D:\\JX.dwg"
+        _fileName = fileName.Replace("/", "\\");// doc.Name总是"D:\\JX.dwg"
 
+        // 此处若为失败的文件名,那么保存的时候就会丢失名称,
+        // 因此用 _fileName 储存
         if (!File.Exists(_fileName))
         {
-            // 此处若为失败的文件名,那么保存的时候就会丢失名称,
-            // 因此用 _fileName 储存
-            Database = new Database(true, false);
+            // 第二个参数如果使用了false,那么将导致关闭cad的时候出现致命错误;cad08测试
+            // Unhandled Access Violation Reading Ox113697a0 Exception at 4b4154h
+            Database = new Database(true, true);
         }
         else
         {
@@ -425,7 +427,7 @@ public class DBTrans : IDisposable
         if (string.IsNullOrEmpty(saveAsFile))
         {
             fileMsg = _fileName;
-            saveAsFile = _fileName;
+            saveAsFile = fileMsg;
             //creatFlag = true;
         }
         else
@@ -632,7 +634,7 @@ public class DBTrans : IDisposable
         IsDisposed = true;
 
 
-        if (disposing)
+        if (_commit)// disposing
         {
             // 调用cad的事务进行提交,释放托管状态(托管对象)
             Transaction.Commit();
