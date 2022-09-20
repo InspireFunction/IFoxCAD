@@ -345,7 +345,7 @@ public static class SymbolTableRecordEx
     }
 
     /// <summary>
-    /// 按类型获取实体Id,AutoCad2010以上版本支持
+    /// 按类型获取实体Id
     /// </summary>
     /// <typeparam name="T">实体类型</typeparam>
     /// <param name="btr">块表记录</param>
@@ -354,7 +354,7 @@ public static class SymbolTableRecordEx
     {
         string dxfName = RXClass.GetClass(typeof(T)).DxfName;
         return btr.Cast<ObjectId>()
-                  .Where(id => id.ObjectClass().DxfName == dxfName);
+                  .Where(id => id.ObjectClass()?.DxfName == dxfName);
     }
 
     /// <summary>

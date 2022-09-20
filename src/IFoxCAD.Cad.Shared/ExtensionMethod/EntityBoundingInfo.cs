@@ -55,6 +55,22 @@ public struct BoundingInfo
     //    MaxZ = 0;
     //    Angle = angle;
     // }
+
+    public override string ToString()
+    {
+        return Extents3d.ToString();
+    }
+
+    public void Move(Point3d pt1, Point3d pt2)
+    {
+        var ve = pt1 - pt2;
+        MinX -= ve.X;
+        MinY -= ve.Y;
+        MinZ -= ve.Z;
+        MaxX -= ve.X;
+        MaxY -= ve.Y;
+        MaxZ -= ve.Z;
+    }
 }
 
 public class EntityBoundingInfo
@@ -230,26 +246,26 @@ public class EntityBoundingInfo
             case AttachmentPoint.TopCenter:
             case AttachmentPoint.MiddleCenter:
             case AttachmentPoint.BottomCenter:
-                wl = width * -0.5;
-                break;
+            wl = width * -0.5;
+            break;
             case AttachmentPoint.TopRight:
             case AttachmentPoint.MiddleRight:
             case AttachmentPoint.BottomRight:
-                wl = -width;
-                break;
+            wl = -width;
+            break;
         }
         switch (mtxt.Attachment)
         {
             case AttachmentPoint.TopLeft:
             case AttachmentPoint.TopCenter:
             case AttachmentPoint.TopRight:
-                hb = -height;// 下边线到插入点的距离
-                break;
+            hb = -height;// 下边线到插入点的距离
+            break;
             case AttachmentPoint.MiddleLeft:
             case AttachmentPoint.MiddleCenter:
             case AttachmentPoint.MiddleRight:
-                hb = height * -0.5;
-                break;
+            hb = height * -0.5;
+            break;
         }
 
         double wr = width + wl;

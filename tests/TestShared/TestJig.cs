@@ -40,6 +40,7 @@ public class Commands_Jig
             if (prDrag.Status == PromptStatus.OK)
                 break;
         }
+        moveJig.Dispose();
     }
 
 
@@ -60,9 +61,8 @@ public class Commands_Jig
          * 原因: 多段线与鼠标垂直点作为 BasePoint,jig鼠标点为确定点
          * 所以需要先声明再传入指针,但是我发现null也可以.
          */
-        JigEx? jig = null;
         JigPromptPointOptions? options = null;
-        jig = new JigEx((mousePoint, drawEntitys) => {
+        using var jig = new JigEx((mousePoint, drawEntitys) => {
             var closestPt = pl.GetClosestPointTo(mousePoint, false);
 
             // 回调过程中SetOptions会覆盖配置,所以如果想增加关键字或者修改基点,
