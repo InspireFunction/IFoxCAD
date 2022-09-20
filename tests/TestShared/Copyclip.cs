@@ -36,6 +36,10 @@ public class Copyclip
             e.Veto();
             IFoxPasteclip();
         }
+        else if (up == "PASTEBLOCK") //ctrl+shift+v 粘贴为块也要自己造
+        {
+
+        }
     }
 
     /// <summary>
@@ -97,20 +101,32 @@ public class Copyclip
                 ents.Add(ent);
         });
 
+        // 求全部图元的左下角作为基点
+        double minx = double.MaxValue;
+        double miny = double.MaxValue;
+        ents.ForEach(ent => {
+            var info = ent.GetBoundingBoxEx();
+            minx = minx > info.MinX ? info.MinX : minx;
+            miny = miny > info.MinY ? info.MinY : miny;
+        });
+        var bs = new Point3d(minx, miny, 0);
+
         var moveJig = new JigEx((mousePoint, drawEntitys) => {
             ents.ForEach(ent => {
                 var entClone = (Entity)ent.Clone();
-                entClone.Move(Point3d.Origin, mousePoint);
+                entClone.Move(bs, mousePoint);
                 drawEntitys.Enqueue(entClone);
             });
         });
-        moveJig.SetOptions(Point3d.Origin, orthomode: false);
+        moveJig.SetOptions(bs, orthomode: false);
         moveJig.Drag();
 
         // 加入当前空间
         tr.CurrentSpace.AddEntity(moveJig.Entitys);
     }
 
+    // 有了这个的话,还需要读取剪贴板吗??
+    static string? _path;
 
     /// <summary>
     /// 复制命令
@@ -120,6 +136,10 @@ public class Copyclip
 #endif
     public void IFoxCopyclip()
     {
+        // 此处要先去删除tmp文件夹的上次剪贴板产生的dwg文件
+        if (_path != null)
+            File.Delete(_path);
+
         var dm = Acap.DocumentManager;
         if (dm.Count == 0)
             return;
@@ -142,8 +162,10 @@ public class Copyclip
         string file;
         do
         {
-            file = Path.GetTempPath()
-                   + DateTime.Now.ToString("yyyyMMddHHmmssfff") + ".DWG";
+            var t1 = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+            t1 = Convert.ToInt32(t1.GetHashCode()).ToString("X");
+            var t2 = Convert.ToInt32(t1.GetHashCode()).ToString("X");// 这里是为了满足长度而做的
+            file = Path.GetTempPath() + "A$" + t1 + t2[0] + ".DWG";
             Thread.Sleep(1);
         } while (File.Exists(file));
 
@@ -186,5 +208,6 @@ public class Copyclip
                 false);
         });
         fileTr.SaveFile();
+        _path = file;
     }
 }
