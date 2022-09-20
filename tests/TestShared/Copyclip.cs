@@ -33,12 +33,32 @@ public class Copyclip
         else if (up == "PASTECLIP")
         {
             // 由于不知道校验码是怎么构造的,所以只能否决命令,并且自己实现粘贴
+            // 获取剪贴板上面的保存路径
+            var format = Clipboard.GetDataObject()
+                                  .GetFormats()
+                                  .FirstOrDefault(f => f.StartsWith("AutoCAD"));
+
+            if (string.IsNullOrEmpty(format))
+                return;
+
+            string fileName;
+            var data = (MemoryStream)Clipboard.GetData(format);
+            using (var reader = new StreamReader(data))
+            {
+                fileName = reader.ReadToEnd();
+                fileName = fileName.Replace("\0", string.Empty);
+                fileName = fileName.Substring(0, fileName.IndexOf(".DWG") + 4);
+            }
+            if (string.IsNullOrEmpty(Path.GetFileName(fileName)))
+                return;
+
+            // 如果剪贴板存在这个路径,才去否决,粘贴文字之类的由原本的命令执行
+            _fileName = fileName;
             e.Veto();
             IFoxPasteclip();
         }
         else if (up == "PASTEBLOCK") //ctrl+shift+v 粘贴为块也要自己造
         {
-
         }
     }
 
@@ -54,30 +74,14 @@ public class Copyclip
         if (dm.Count == 0)
             return;
 
-        // 获取剪贴板上面的保存路径
-        var format = Clipboard.GetDataObject()
-                              .GetFormats()
-                              .FirstOrDefault(f => f.StartsWith("AutoCAD"));
-
-        if (string.IsNullOrEmpty(format))
+        if (_fileName == null)
             return;
 
-        string fileName;
-        var data = (MemoryStream)Clipboard.GetData(format);
-        using (var reader = new StreamReader(data))
-        {
-            fileName = reader.ReadToEnd();
-            fileName = fileName.Replace("\0", string.Empty);
-            fileName = fileName.Substring(0, fileName.IndexOf(".DWG") + 4);
-        }
-        if (string.IsNullOrEmpty(Path.GetFileName(fileName)))
-            return;
-
-        Env.Printl("粘贴来源: " + fileName);
+        Env.Printl("粘贴来源: " + _fileName);
 
         // 获取临时文件的图元id
         var result = new List<ObjectId>();
-        using var fileTr = new DBTrans(fileName, false, FileOpenMode.OpenForReadAndAllShare);
+        using var fileTr = new DBTrans(_fileName, false, FileOpenMode.OpenForReadAndAllShare);
         foreach (var id in fileTr.ModelSpace)
             result.Add(id);
 
@@ -126,7 +130,7 @@ public class Copyclip
     }
 
     // 有了这个的话,还需要读取剪贴板吗??
-    static string? _path;
+    static string? _fileName;
 
     /// <summary>
     /// 复制命令
@@ -137,8 +141,8 @@ public class Copyclip
     public void IFoxCopyclip()
     {
         // 此处要先去删除tmp文件夹的上次剪贴板产生的dwg文件
-        if (_path != null)
-            File.Delete(_path);
+        if (_fileName != null)
+            File.Delete(_fileName);
 
         var dm = Acap.DocumentManager;
         if (dm.Count == 0)
@@ -208,6 +212,6 @@ public class Copyclip
                 false);
         });
         fileTr.SaveFile();
-        _path = file;
+        _fileName = file;
     }
 }
