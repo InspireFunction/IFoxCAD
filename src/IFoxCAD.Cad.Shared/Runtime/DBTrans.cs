@@ -9,8 +9,13 @@ using System.Windows.Forms;
 /// 事务栈
 /// <para>隐匿事务在数据库其中担任的角色</para>
 /// </summary>
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(DBTrans))]
 public class DBTrans : IDisposable
 {
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => "StackCount:" + dBTrans.Count;
+
     #region 私有字段
     /// <summary>
     /// 文档锁
@@ -519,9 +524,8 @@ public class DBTrans : IDisposable
 
         // 构造函数(fileName)用了不存在的路径进行后台打开,就会出现此问题
         // 测试命令 FileNotExist
-        var dir = Environment.GetFolderPath(
-               Environment.SpecialFolder.DesktopDirectory)
-               + "\\后台保存出错的文件\\";
+        var dir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory)
+                + "\\后台保存出错的文件\\";
 
         if (!Directory.Exists(dir))
             Directory.CreateDirectory(dir);

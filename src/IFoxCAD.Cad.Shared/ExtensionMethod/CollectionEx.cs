@@ -251,5 +251,18 @@ public static class CollectionEx
             ids.Add(item.Value);
         return ids;
     }
+
+    /// <summary>
+    /// 转换为词典
+    /// </summary>
+    /// <param name="mapping"></param>
+    /// <returns></returns>
+    public static Dictionary<ObjectId, ObjectId> ToDictionary(this IdMapping mapping)
+    {
+        var keyValuePairs = new Dictionary<ObjectId, ObjectId>();
+        foreach (IdPair item in mapping)
+            keyValuePairs.Add(item.Key, item.Value);
+        return keyValuePairs;
+    }
     #endregion
 }
