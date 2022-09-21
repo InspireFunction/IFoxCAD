@@ -1,4 +1,4 @@
-﻿#define test
+#define test
 
 namespace Test;
 
@@ -114,7 +114,7 @@ public class InterceptCopyclip
     /// <summary>
     /// 带基点复制
     /// </summary>
-    [CommandMethod(nameof(IFoxCopyBase))]
+    [CommandMethod(nameof(IFoxCopyBase), CommandFlags.UsePickSet)]
     public void IFoxCopyBase()
     {
         Copy(true);
@@ -130,7 +130,7 @@ public class InterceptCopyclip
     /// <summary>
     /// 粘贴为块
     /// </summary>
-    [CommandMethod(nameof(IFoxPasteBlock), CommandFlags.UsePickSet)]
+    [CommandMethod(nameof(IFoxPasteBlock))]
     public void IFoxPasteBlock()
     {
         Paste(true);
