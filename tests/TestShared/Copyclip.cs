@@ -69,7 +69,7 @@ public class InterceptCopyclip
         /// 获取剪贴板
         /// </summary>
         /// <param name="pasteclipStr">控制不同的cad</param>
-        /// <returns>获取是否成功</returns>
+        /// <returns>转为结构输出</returns>
         public static TagClipboardInfo? GetClipboard(string pasteclipStr)
         {
             // 获取剪贴板上面的保存路径
@@ -421,7 +421,7 @@ public class InterceptCopyclip
             }
             var ent = tr.GetObject<Entity>(id);
             if (ent == null)
-                return;
+                continue;
             using (ent.ForWrite())
                 ent.Move(clipboardInfo.Point, Point3d.Origin);
         }
