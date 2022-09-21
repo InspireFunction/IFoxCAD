@@ -1,23 +1,58 @@
 #define test
 
 namespace Test;
-
 using IFoxCAD.Cad;
 using System;
 using System.Linq;
 using System.Threading;
 using Clipboard = System.Windows.Forms.Clipboard;
 
-// https://forums.autodesk.com/t5/net/paste-list-of-objects-from-clipboard-on-dwg-file-using-c-net/td-p/6797606
+/*
+ * 0x01 (已完成)
+ * 跨cad复制,由于高版本会保存为当前dwg格式,所以我们将所有都保存为07格式(有动态块),
+ * 就可以多个版本cad相互复制粘贴了
+ *
+ * 0x02
+ * 设置一个粘贴板栈,用tmp.config储存(路径和粘贴基点),ctrl+shfit+v v v 就是三次前的剪贴板内容
+ * 这样就更好地跨cad复制了
+ *
+ * 0x03
+ * 天正图元的复制粘贴出错原因
+ *
+ * 引用技术贴:
+ * https://forums.autodesk.com/t5/net/paste-list-of-objects-from-clipboard-on-dwg-file-using-c-net/td-p/6797606
+ */
 public class InterceptCopyclip
 {
+    /// <summary>
+    /// 剪贴板结构<br/>
+    /// 此处没有按照ARX的tagClipboardInfo结构复刻(别问,问就是不会)
+    /// </summary>
+    struct TagClipboardInfo
+    {
+        /// <summary>
+        /// dwg储存路径<br/>
+        /// 有了这个的话,还需要读取剪贴板吗?<br/>
+        /// 需要的,当前剪贴板中,有可能不是dwg路径,而是文字内容等<br/>
+        /// </summary>
+        public string File;
+        /// <summary>
+        /// 粘贴基点
+        /// </summary>
+        public Point3d Point;
+        /// <summary>
+        /// 粘贴基点字符串
+        /// </summary>
+        public const string PointStr = "BasePoint:";
+    }
+
 #if test
     [IFoxInitialize]
-#endif
     public void Init()
     {
         Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
     }
+#endif
 
 #if false
     // 想要重启cad之后还可以继续用剪贴板,那么就不要这个
@@ -49,7 +84,6 @@ public class InterceptCopyclip
         }
     }
 
-
     /// <summary>
     /// 反应器->命令否决触发命令前(不可锁文档)
     /// </summary>
@@ -62,15 +96,14 @@ public class InterceptCopyclip
         if (up == "PASTEBLOCK" || up == "PASTECLIP")
         {
             // 桌子是如何做到 粘贴为块的时候读取到基点的? 而直接粘贴则是左下角
-            // 是通过粘贴的字符串结构(乱码)提供的
-            var ok = GetCadPasteclip("AutoCAD");
-            if (!ok)
+            // 是通过粘贴的字符串结构(乱码部分)提供的
+            // 剪贴板不存在这个路径,粘贴文字之类的,由原本的命令执行
+            var tag = GetCadPasteclip("AutoCAD");
+            if (tag == null)
                 return;
-
-            // 如果剪贴板存在这个路径,才去否决,粘贴文字之类的由原本的命令执行
-            Env.Print("粘贴来源: " + _tmpFileName);
+            Env.Print("粘贴来源: " + tag.Value.File);
+            _clipboardInfo = tag;
         }
-
 
         if (up == "COPYCLIP")// 复制
         {
@@ -134,15 +167,7 @@ public class InterceptCopyclip
 
 
 
-
-
-    // 有了这个的话,还需要读取剪贴板吗?
-    // 需要的,当前剪贴板中,有可能不是dwg路径,而是文字内容等
-    string? _tmpFileName;
-    // 基点
-    Point3d? _basePoint;
-    // 基点字符串
-    const string _BasePointStr = "BasePoint:";
+    TagClipboardInfo? _clipboardInfo;
     // 删除的文件,如果删除出错(占用),将一直在这个集合中,直到cad关闭
     readonly List<string> _delFile = new();
 
@@ -151,7 +176,7 @@ public class InterceptCopyclip
     /// </summary>
     /// <param name="pasteclipStr">控制不同的cad</param>
     /// <returns>获取是否成功</returns>
-    bool GetCadPasteclip(string pasteclipStr)
+    TagClipboardInfo? GetCadPasteclip(string pasteclipStr)
     {
         // 获取剪贴板上面的保存路径
         var format = Clipboard.GetDataObject()
@@ -159,34 +184,35 @@ public class InterceptCopyclip
                               .FirstOrDefault(f => f.StartsWith(pasteclipStr));
 
         if (string.IsNullOrEmpty(format))
-            return false;
+            return null;
 
+        var tag = new TagClipboardInfo();
         var data = (MemoryStream)Clipboard.GetData(format);
         using (var reader = new StreamReader(data))
         {
             var str = reader.ReadToEnd();
             str = str.Replace("\0", string.Empty);
-            _tmpFileName = str.Substring(0, str.IndexOf(".DWG") + 4);
+            tag.File = str.Substring(0, str.IndexOf(".DWG") + 4);
 
-            var bpstr = str.IndexOf(_BasePointStr);
+            var bpstr = str.IndexOf(TagClipboardInfo.PointStr);
             if (bpstr > -1)
             {
-                int start = bpstr + _BasePointStr.Length + 1;//1是(括号
+                int start = bpstr + TagClipboardInfo.PointStr.Length + 1;//1是(括号
                 int end = str.IndexOf(")", start) - start;
                 var ptstr = str.Substring(start, end);
                 var ptArr = ptstr.Split(',');
                 if (ptArr != null)
                 {
-                    _basePoint = new Point3d(
+                    tag.Point = new Point3d(
                         double.Parse(ptArr[0]),
                         double.Parse(ptArr[1]),
                         double.Parse(ptArr[2]));
                 }
             }
         }
-        if (string.IsNullOrEmpty(Path.GetFileName(_tmpFileName)))
-            return false;
-        return true;
+        if (string.IsNullOrEmpty(Path.GetFileName(tag.File)))
+            return null;
+        return tag;
     }
 
     /// <summary>
@@ -207,19 +233,19 @@ public class InterceptCopyclip
         var objectIds = new List<ObjectId>();
         var psr = ed.SelectImplied();// 预选
         if (psr.Status != PromptStatus.OK)
-        {
             psr = ed.GetSelection();// 手选
-            if (psr.Status != PromptStatus.OK)
-                return;
-        }
+        if (psr.Status != PromptStatus.OK)
+            return;
+
         objectIds.AddRange(psr.Value.GetObjectIds());
 
+        var clipboardInfo = new TagClipboardInfo();
         if (getPoint)
         {
             var pr = ed.GetPoint("\n选择基点");
             if (pr.Status != PromptStatus.OK)
                 return;
-            _basePoint = pr.Value;
+            clipboardInfo.Point = pr.Value;
         }
         else
         {
@@ -240,20 +266,21 @@ public class InterceptCopyclip
                 miny = miny > info.MinY ? info.MinY : miny;
                 minz = minz > info.MinZ ? info.MinZ : minz;
             }
-            _basePoint = new Point3d(minx, miny, minz);
+            clipboardInfo.Point = new Point3d(minx, miny, minz);
         }
 
         // 获取临时路径
         do
         {
-            _tmpFileName = TimeName();
+            clipboardInfo.File = TimeName();
             Thread.Sleep(1);
-        } while (File.Exists(_tmpFileName));
+        } while (File.Exists(clipboardInfo.File));
 
+        // 手动序列化
         // 写入剪贴板,这里arx有个结构体
         var sb = new StringBuilder();
-        sb.Append(_tmpFileName);
-        sb.Append(_BasePointStr + _basePoint.ToString());
+        sb.Append(clipboardInfo.File);
+        sb.Append(TagClipboardInfo.PointStr + clipboardInfo.Point.ToString());
 
         var data = new MemoryStream();
         var bytes = Encoding.Unicode.GetBytes(sb.ToString());
@@ -261,7 +288,7 @@ public class InterceptCopyclip
         Clipboard.SetData($"AutoCAD.r{Acap.Version.Major}", data);
 
         // 克隆到目标块表内
-        using (var fileTr = new DBTrans(_tmpFileName))
+        using (var fileTr = new DBTrans(clipboardInfo.File))
         {
             fileTr.Task(() => {
                 var map = new IdMapping();
@@ -286,9 +313,6 @@ public class InterceptCopyclip
             }
         }
 
-        if (!_delFile.Contains(_tmpFileName))
-            _delFile.Add(_tmpFileName);
-
         // 剪切时候删除
         if (isEraseSsget)
         {
@@ -296,20 +320,9 @@ public class InterceptCopyclip
                 id.Erase();
             });
         }
-    }
 
-
-
-    /// <summary>
-    /// 获取时间名
-    /// </summary>
-    /// <returns></returns>
-    string TimeName()
-    {
-        var t1 = DateTime.Now.ToString("yyyyMMddHHmmssfff");
-        t1 = Convert.ToInt32(t1.GetHashCode()).ToString("X");
-        var t2 = Convert.ToInt32(t1.GetHashCode()).ToString("X");// 这里是为了满足长度而做的
-        return Path.GetTempPath() + "A$" + t1 + t2[0] + ".DWG";
+        if (!_delFile.Contains(clipboardInfo.File))
+            _delFile.Add(clipboardInfo.File);
     }
 
     /// <summary>
@@ -322,22 +335,32 @@ public class InterceptCopyclip
         if (dm.Count == 0)
             return;
 
-        if (_tmpFileName == null)
+        if (_clipboardInfo == null)
             return;
+        var clipboardInfo = _clipboardInfo.Value;
 
         // 获取临时文件的图元id
         var fileEntityIds = new List<ObjectId>();
-        using (var fileTr = new DBTrans(_tmpFileName, false, FileOpenMode.OpenForReadAndAllShare))
+        using (var fileTr = new DBTrans(clipboardInfo.File, false, FileOpenMode.OpenForReadAndAllShare))
         {
             foreach (var id in fileTr.ModelSpace)
-                fileEntityIds.Add(id);
+                if (id.IsOk())
+                    fileEntityIds.Add(id);
         }
 
         using var tr = new DBTrans();
+#if test
+        // 给辰的测试
+        //var pr = tr.Editor?.GetPoint("aaa");
+        //if (pr != null && pr.Status == PromptStatus.OK)
+        //{
+        //    tr.Editor?.WriteMessage("获取了点:" + pr.Value);
+        //}
+#endif
         tr.Editor?.SetImpliedSelection(new ObjectId[0]); // 清空选择集
 
         // 新建块表记录
-        var btr = CreateBlockTableRecord(tr);
+        var btr = CreateBlockTableRecord(tr, clipboardInfo.File);
         if (btr == null)
             return;
 
@@ -354,7 +377,6 @@ public class InterceptCopyclip
                 false);
         });
 
-        Point3d basePoint = _basePoint!.Value;
 
         // 移动块内,从基点到原点
         foreach (var id in btr)
@@ -368,31 +390,61 @@ public class InterceptCopyclip
             if (ent == null)
                 return;
             using (ent.ForWrite())
-                ent.Move(basePoint, Point3d.Origin);
+                ent.Move(clipboardInfo.Point, Point3d.Origin);
         }
 
         // 预览并获取交互点
-        // 天正此处可能存在失败
+        // 天正此处可能存在失败:天正图元不给你jig接口调用之类的
         using var moveJig = new JigEx((mousePoint, drawEntitys) => {
             var blockref = new BlockReference(Point3d.Origin, btr.ObjectId);
             blockref.Move(Point3d.Origin, mousePoint);
             drawEntitys.Enqueue(blockref);
         });
-        moveJig.SetOptions(basePoint);
+        moveJig.SetOptions(clipboardInfo.Point)
+               .Keywords.Add("A", "A", "引线点粘贴(A)");
+
         var dr = moveJig.Drag();
-        if (dr.Status == PromptStatus.None) // 空格为原点拷贝?
-            return;
-        if (dr.Status != PromptStatus.OK)
+        Point3d moveTo = Point3d.Origin;
+        if (dr.Status == PromptStatus.Keyword)
+            moveTo = clipboardInfo.Point;
+        else if (dr.Status == PromptStatus.OK)
+            moveTo = moveJig.MousePointWcsLast;
+        else
             return;
 
         if (isBlock)
-        {
-            // 粘贴为块,创建图元
-            tr.CurrentSpace.AddEntity(moveJig.Entitys);
-            return;
-        }
+            PasteIsBlock(tr, moveJig.Entitys, moveJig.MousePointWcsLast, moveTo);
+        else
+            PasteNotBlock(tr, btr, Point3d.Origin, moveTo);
+    }
 
-        // 直接粘贴
+    /// <summary>
+    /// 粘贴为块
+    /// </summary>
+    /// <param name="tr"></param>
+    /// <param name="entitys"></param>
+    /// <param name="move"></param>
+    /// <param name="moveTo"></param>
+    static void PasteIsBlock(DBTrans tr, Entity[] entitys, Point3d move, Point3d moveTo)
+    {
+        if (!move.IsEqualTo(moveTo, new Tolerance(1e-6, 1e-6)))
+        {
+            entitys.ForEach(ent => {
+                ent.Move(move, moveTo);
+            });
+        }
+        tr.CurrentSpace.AddEntity(entitys);
+    }
+
+    /// <summary>
+    /// 直接粘贴(不为块参照)
+    /// </summary>
+    /// <param name="tr"></param>
+    /// <param name="btr"></param>
+    /// <param name="move">它总是为<see cref="Point3d.Origin"/></param>
+    /// <param name="moveTo">目标点</param>
+    static void PasteNotBlock(DBTrans tr, BlockTableRecord btr, Point3d move, Point3d moveTo)
+    {
         using ObjectIdCollection ids = new();
         foreach (var id in btr)
         {
@@ -401,8 +453,8 @@ public class InterceptCopyclip
             ids.Add(id);
         }
 
-        // 深度克隆,然后平移到当前鼠标点位置
-        map = tr.CurrentSpace.DeepCloneEx(ids);
+        // 深度克隆,然后平移到当前目标点位置
+        var map = tr.CurrentSpace.DeepCloneEx(ids);
         map.GetValues().ForEach(id => {
             if (!id.IsOk())
                 return;
@@ -410,7 +462,7 @@ public class InterceptCopyclip
             if (ent == null)
                 return;
             using (ent.ForWrite())
-                ent.Move(Point3d.Origin, moveJig.MousePointWcsLast);
+                ent.Move(move, moveTo);
         });
 
         // 删除jig预览的块表记录
@@ -418,14 +470,27 @@ public class InterceptCopyclip
             btr.Erase();
     }
 
+
+    /// <summary>
+    /// 获取时间名
+    /// </summary>
+    /// <returns></returns>
+    string TimeName()
+    {
+        var t1 = DateTime.Now.ToString("yyyyMMddHHmmssfff");
+        t1 = Convert.ToInt32(t1.GetHashCode()).ToString("X");
+        var t2 = Convert.ToInt32(t1.GetHashCode()).ToString("X");// 这里是为了满足长度而做的
+        return Path.GetTempPath() + "A$" + t1 + t2[0] + ".DWG";
+    }
+
     /// <summary>
     /// 创建块表记录
     /// </summary>
     /// <param name="tr"></param>
     /// <returns></returns>
-    BlockTableRecord? CreateBlockTableRecord(DBTrans tr)
+    BlockTableRecord? CreateBlockTableRecord(DBTrans tr, string tmpFile)
     {
-        var blockNameNew = Path.GetFileNameWithoutExtension(_tmpFileName);
+        var blockNameNew = Path.GetFileNameWithoutExtension(tmpFile);
         while (tr.BlockTable.Has(blockNameNew))
         {
             blockNameNew = Path.GetFileNameWithoutExtension(TimeName());
