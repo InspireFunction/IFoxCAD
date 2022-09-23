@@ -59,6 +59,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\AssemInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\AutoRegAssem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\CadVersion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Runtime\TagClipboardInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\DBTrans.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\Env.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\FileOpenMode.cs" />

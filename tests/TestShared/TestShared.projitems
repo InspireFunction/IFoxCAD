@@ -25,6 +25,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Testid.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestJig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestJigExTransient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestJson.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestLisp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestLoop.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestMirrorFile.cs" />
