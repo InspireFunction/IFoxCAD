@@ -32,4 +32,8 @@
     </ItemGroup>
 
     <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
+    <!--<ItemGroup>
+        json要求的程序集
+        <Reference Include="System.Web.Extensions" />
+    </ItemGroup>-->
 </Project>

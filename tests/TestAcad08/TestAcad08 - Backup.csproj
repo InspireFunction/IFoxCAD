@@ -18,13 +18,14 @@
         <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Aacad08\IFoxCAD.Acad08.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+        <!--json要求的程序集,用这个不产生dll,但是可能因为环境丢失了这个东西,导致程序运行失败-->
+        <!--<Reference Include="System.Web.Extensions" />-->
+    </ItemGroup>
+
     <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
 
     <ItemGroup>
         <Compile Include="..\TestAcad09plus\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
     </ItemGroup>
-    <!--<ItemGroup>
-        json要求的程序集
-        <Reference Include="System.Web.Extensions" />
-    </ItemGroup>-->
 </Project>

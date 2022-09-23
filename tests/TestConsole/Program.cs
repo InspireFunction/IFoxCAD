@@ -1,7 +1,11 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using TestConsole;
+
+
+Console.WriteLine("***************************************************");
 
 
 List<int> list = new List<int>();

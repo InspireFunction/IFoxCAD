@@ -1,11 +1,12 @@
 #define test
 
 namespace Test;
+
+using Autodesk.AutoCAD.DatabaseServices;
 using IFoxCAD.Cad;
 using System;
-using System.Linq;
+using System.Text;
 using System.Threading;
-using Clipboard = System.Windows.Forms.Clipboard;
 
 /*
  * 0x01 (已完成)
@@ -13,8 +14,8 @@ using Clipboard = System.Windows.Forms.Clipboard;
  * 就可以多个版本cad相互复制粘贴了
  *
  * 0x02
- * 设置一个粘贴板栈,用tmp.config储存(路径和粘贴基点),ctrl+shfit+v v v 就是三次前的剪贴板内容
- * 这样就更好地跨cad复制了
+ * 设置一个粘贴板栈,用tmp.config储存(路径和粘贴基点),
+ * ctrl+shfit+v v v 就是三次前的剪贴板内容;也可以制作一个剪贴板窗口更好给用户交互
  *
  * 0x03
  * 天正图元的复制粘贴出错原因
@@ -24,43 +25,221 @@ using Clipboard = System.Windows.Forms.Clipboard;
  */
 public class InterceptCopyclip
 {
+    enum eClipInfoFlags
+    {
+        kbDragGeometry = 0x01,
+    };
+
+    enum eXrefType
+    {
+        kXrefTypeAttach = 1,
+        kXrefTypeOverlay = 2
+    };
+
+    enum eExpandedClipDataTypes
+    {
+        kDcPlotStyles = 1,
+        kDcXrefs = 2,
+        kDcLayouts = 3,
+        kDcBlocks = 4,
+        kDcLayers = 5,
+        kDcDrawings = 6,
+        kDcLinetypes = 7,
+        kDcTextStyles = 8,
+        kDcDimStyles = 9,
+        kDcBlocksWithAttdef = 10,
+        //#ifdef ADCHATCH
+        kDcHatches = 11,
+        //#endif
+        kTpXrefs = 12,
+        kTpImages = 13,
+        kTpTable = 14,
+        kDcTableStyles = 15,
+        kDcMultileaderStyles = 16,
+        kDcVisualStyles = 17,
+        kDcSectionViewStyles = 18,
+        kDcDetailViewStyles = 19,
+    };
+
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct Rect
+    {
+        public int Left { get; }
+        public int Top { get; }
+        public int Right { get; }
+        public int Bottom { get; }
+        public Rect(int left, int top, int right, int bottom)
+        {
+            Left = left;
+            Top = top;
+            Right = right;
+            Bottom = bottom;
+        }
+    }
+
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential, Pack = 8)]
+    public struct Point3D
+    {
+        public double X { get; }
+        public double Y { get; }
+        public double Z { get; }
+        public Point3D(double x, double y, double z)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+        }
+        public static implicit operator Point3D(Point3d pt)
+        {
+            return new Point3D(pt.X, pt.Y, pt.Z);
+        }
+        public static implicit operator Point3d(Point3D pt)
+        {
+            return new Point3d(pt.X, pt.Y, pt.Z);
+        }
+    }
     /// <summary>
-    /// 剪贴板结构<br/>
-    /// 此处没有按照ARX的tagClipboardInfo结构复刻(别问,问就是不会)
+    /// ARX剪贴板结构
     /// </summary>
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential, Pack = 8, CharSet = CharSet.Unicode)]
     struct TagClipboardInfo
     {
-        /// <summary>
-        /// dwg储存路径<br/>
-        /// 有了这个的话,还需要读取剪贴板吗?<br/>
-        /// 需要的,当前剪贴板中,有可能不是dwg路径,而是文字内容等<br/>
-        /// </summary>
-        public string File;
-        /// <summary>
-        /// 粘贴基点
-        /// </summary>
-        public Point3d Point;
-        /// <summary>
-        /// 粘贴基点字符串
-        /// </summary>
-        const string PointStr = "BasePoint:";
+        #region 字段,对应arx结构的,不要改动,本结构也不允许再加字段
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+        public string szTempFile;                               // 临时文件夹的dwg文件
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
+        public string szSourceFile;                             // 文件名从中做出选择..是不是指定块表记录?
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4)]
+        public string szSignature;
+        public int nFlags;                                      // kbDragGeometry: 从AutoCAD拖动几何图形
+        public Point3D dptInsert;                               // 插入点的原始世界坐标'
+        public Rect rectGDI;                                    // GDI coord 选择集的边界矩形
+        public IntPtr mpView;                                   // void*  用于验证这个对象是在这个视图中创建的 (HWND*)
+        public int dwThreadId;                                  // AutoCAD thread 创建数据对象
+        public int nLen;                                        // 下一段的长度的数据,如果有的话,从chData
+        public int nType;                                       // 类型的数据,如果有(eExpandedClipDataTypes)
+        [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
+        public string chData; // 数据的开始,如果有
+        #endregion
+
+        public string File => szTempFile;
+        public Point3d Point => dptInsert;
+
+        public TagClipboardInfo(string tmpPath, Point3d insert)
+        {
+            szTempFile = tmpPath;
+            dptInsert = insert;
+            szSignature = "R15";
+            nFlags = 0x01;
+
+            szSourceFile = string.Empty;
+            chData = string.Empty;
+        }
 
         public override string ToString()
         {
             var sb = new StringBuilder();
-            sb.Append(File);
-            sb.Append(PointStr);
-            sb.Append(Point);
+            sb.AppendLine($"szTempFile:{szTempFile}");
+            sb.AppendLine($"szSourceFile:{szSourceFile}");
+            sb.AppendLine($"szSignature:{szSignature}");
+            sb.AppendLine($"nFlags:{nFlags}");
+            sb.AppendLine($"dptInsert:{dptInsert}");
+            sb.AppendLine($"rectGDI:{rectGDI}");
+            sb.AppendLine($"mpView:{mpView}");
+            sb.AppendLine($"dwThreadId:{dwThreadId}");
+            sb.AppendLine($"nLen:{nLen}");
+            sb.AppendLine($"nType:{nType}");
+            sb.AppendLine($"chData:{chData}");
             return sb.ToString();
         }
 
+        static uint GetRegisterClipboardFormat(string cadStr)
+        {
+            // cf = NativeMethods.RegisterClipboardFormat($"{cadStr}.r{Acap.Version.Major}");
+            // r17写死,代表每个版本都去找它,否则将作为剪贴板版本隔离
+            uint cf = NativeMethods.RegisterClipboardFormat($"{cadStr}.r17");
+            return cf;
+        }
+
+        /// <summary>
+        /// 获取剪贴板
+        /// </summary>
+        /// <param name="cadStr">控制不同的cad:"AutoCAD"</param>
+        public static TagClipboardInfo? GetClipboard(string cadStr = "AutoCAD")
+        {
+            TagClipboardInfo? tag = null;
+            IntPtr data = IntPtr.Zero;
+            try
+            {
+                uint cf = GetRegisterClipboardFormat(cadStr);
+                if (!NativeMethods.OpenClipboard(IntPtr.Zero))
+                    return null;
+                // 剪贴板的数据拷贝进去结构体中,会依照数据长度进行拷贝
+                data = NativeMethods.GetClipboardData(cf);
+                if (data == IntPtr.Zero)
+                    return null;
+                IntPtr ptr = NativeMethods.GlobalLock(data);
+                if (ptr != IntPtr.Zero)
+                {
+                    // 非托管内存块->托管对象
+                    tag = (TagClipboardInfo)Marshal.PtrToStructure(ptr, typeof(TagClipboardInfo));
+                }
+            }
+            finally
+            {
+                if (data != IntPtr.Zero)
+                    NativeMethods.GlobalUnlock(data);
+                NativeMethods.CloseClipboard();
+            }
+            return tag;
+        }
+
+        /// <summary>
+        /// 设置剪贴板
+        /// </summary>
+        /// <param name="cadStr"></param>
+        /// <returns>true成功拷贝;false可能重复粘贴对象导致</returns>
+        public bool SetClipboard(string cadStr = "AutoCAD")
+        {
+            uint cf = GetRegisterClipboardFormat(cadStr);
+            int size = Marshal.SizeOf(typeof(TagClipboardInfo));
+            IntPtr ptr = IntPtr.Zero;
+            const uint GMEM_MOVEABLE = 0x0002;
+            IntPtr hglobal = NativeMethods.GlobalAlloc(GMEM_MOVEABLE, size);
+            try
+            {
+                if (NativeMethods.OpenClipboard(IntPtr.Zero))
+                {
+                    ptr = NativeMethods.GlobalLock(hglobal);
+                    if (ptr != IntPtr.Zero)// 重复复制同一个图元时
+                    {
+                        NativeMethods.EmptyClipboard();
+                        Marshal.StructureToPtr(this, ptr, true);
+                        NativeMethods.GlobalUnlock(hglobal);
+                        NativeMethods.SetClipboardData(cf, hglobal);
+                        NativeMethods.CloseClipboard();
+                    }
+                }
+            }
+            finally
+            {
+                NativeMethods.GlobalFree(hglobal);
+            }
+            return ptr != IntPtr.Zero;
+        }
+
+#if true2
+        // 这种写入方式是失败的
         /// <summary>
         /// 写入剪贴板
         /// </summary>
         public void SetClipboard()
         {
             using var data = new MemoryStream();
-            var bytes = Encoding.Unicode.GetBytes(ToString());
+            var bytes = Encoding.Unicode.GetBytes(ArxTagClipboardInfo.ToString());
             data.Write(bytes, 0, bytes.Length);
             Clipboard.SetData($"AutoCAD.r{Acap.Version.Major}", data);
         }
@@ -68,10 +247,13 @@ public class InterceptCopyclip
         /// <summary>
         /// 获取剪贴板
         /// </summary>
-        /// <param name="pasteclipStr">控制不同的cad</param>
+        /// <param name="pasteclipStr">控制不同的cad:"AutoCAD"</param>
         /// <returns>转为结构输出</returns>
-        public static TagClipboardInfo? GetClipboard(string pasteclipStr)
+        public static TagClipboardInfo? GetClipboard(string pasteclipStr = "AutoCAD")
         {
+            /// 粘贴基点字符串
+            const string PointStr = "BasePoint:";
+
             // 获取剪贴板上面的保存路径
             var format = Clipboard.GetDataObject()
                                   .GetFormats()
@@ -109,26 +291,94 @@ public class InterceptCopyclip
             if (ptArr.Length > 2)
                 z = double.Parse(ptArr[2]);
 
-            return new TagClipboardInfo
-            {
-                File = file,
-                Point = new(x, y, z)
-            };
+            return new(file, new(x, y, z));
         }
-
-        /// <summary>
-        /// 创建临时路径的时间文件名
-        /// </summary>
-        /// <param name="format">格式,X是16进制</param>
-        /// <returns></returns>
-        public static string CreateTempFileName(string format = "X")
+#endif
+#if true2
+        void GetSize()
         {
-            var t1 = DateTime.Now.ToString("yyyyMMddHHmmssfffffff");
-            t1 = Convert.ToInt32(t1.GetHashCode()).ToString(format);
-            var t2 = Convert.ToInt32(t1.GetHashCode()).ToString(format);// 这里是为了满足长度而做的
-            return Path.GetTempPath() + "A$" + t1 + t2[0] + ".DWG";
+            var v_1 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.szTempFile)).ToInt32();
+            var v_2 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.szSourceFile)).ToInt32();
+            var v_3 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.szSignature)).ToInt32();
+            var v_4 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.nFlags)).ToInt32();
+            var v_5 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.dptInsert)).ToInt32();
+            var v_6 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.rectGDI)).ToInt32();
+            var v_7 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.mpView)).ToInt32();
+            var v_8 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.dwThreadId)).ToInt32();
+            var v_9 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.nLen)).ToInt32();
+            var v_10 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.nType)).ToInt32();
+            var v_11 = Marshal.OffsetOf(typeof(TagClipboardInfo), nameof(TagClipboardInfo.chData)).ToInt32();
+            var v_12 = Marshal.SizeOf(typeof(TagClipboardInfo)); //1120
+
+            var v_a = Marshal.SizeOf(typeof(Point3D));//24
+            var v_b = Marshal.SizeOf(typeof(Rect));//16
         }
+#endif
     }
+    class NativeMethods
+    {
+        /// <summary>
+        /// 锁定内存
+        /// </summary>
+        /// <param name="hMem"></param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GlobalLock(IntPtr hMem);
+        /// <summary>
+        /// 解锁内存
+        /// </summary>
+        /// <param name="hMem"></param>
+        /// <returns></returns>
+        [DllImport("kernel32.dll")]
+        public static extern bool GlobalUnlock(IntPtr hMem);
+        /// <summary>
+        /// 开启剪贴板
+        /// </summary>
+        /// <param name="hWndNewOwner"></param>
+        /// <returns></returns>
+        [DllImport("user32.dll")]
+        public static extern bool OpenClipboard(IntPtr hWndNewOwner);
+        /// <summary>
+        /// 关闭剪贴板
+        /// </summary>
+        /// <returns></returns>
+        [DllImport("user32.dll")]
+        public static extern bool CloseClipboard();
+        /// <summary>
+        /// 根据数据格式获取剪贴板
+        /// </summary>
+        /// <param name="lpszFormat">数据格式名称</param>
+        /// <returns></returns>
+        [DllImport("user32.dll")]
+        public static extern uint RegisterClipboardFormat(string lpszFormat);
+        /// <summary>
+        /// 获取剪贴板
+        /// </summary>
+        /// <param name="uFormat"></param>
+        /// <returns></returns>
+        [DllImport("user32.dll")]
+        public static extern IntPtr GetClipboardData(uint uFormat);
+        /// <summary>
+        /// 设置剪贴板
+        /// </summary>
+        /// <param name="uFormat"></param>
+        /// <param name="hMem"></param>
+        /// <returns></returns>
+        [DllImport("user32.dll")]
+        public static extern IntPtr SetClipboardData(uint uFormat, IntPtr hMem);
+
+        [DllImport("user32.dll")]
+        public static extern bool EmptyClipboard();
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GlobalAlloc(uint uFlags, int dwBytes);
+        [DllImport("kernel32.dll")]
+        public static extern IntPtr GlobalFree(IntPtr hMem);
+    }
+
+
+
+
+
 
 #if test
     [IFoxInitialize]
@@ -176,19 +426,6 @@ public class InterceptCopyclip
     void DocumentManager_DocumentLockModeChanged(object sender, DocumentLockModeChangedEventArgs e)
     {
         var up = e.GlobalCommandName.ToUpper();
-
-        if (up == "PASTEBLOCK" || up == "PASTECLIP")
-        {
-            // 桌子是如何做到 粘贴为块的时候读取到基点的? 而直接粘贴则是左下角
-            // 是通过粘贴的字符串结构(乱码部分)提供的
-            // 剪贴板不存在这个路径,粘贴文字之类的,由原本的命令执行
-            var tag = TagClipboardInfo.GetClipboard("AutoCAD");
-            if (tag == null)
-                return;
-            Env.Print("粘贴来源: " + tag.Value.File);
-            _clipboardInfo = tag;
-        }
-
         if (up == "COPYCLIP")// 复制
         {
             e.Veto();
@@ -250,11 +487,11 @@ public class InterceptCopyclip
     }
 
 
-
-    TagClipboardInfo? _clipboardInfo;
-    // 删除的文件,如果删除出错(占用),将一直在这个集合中,直到cad关闭
+    /// <summary>
+    /// 储存准备删除的文件
+    /// 如果删除出错(占用),将一直在这个集合中,直到cad关闭
+    /// </summary>
     readonly List<string> _delFile = new();
-
 
     /// <summary>
     /// 复制
@@ -262,8 +499,6 @@ public class InterceptCopyclip
     /// <param name="getPoint"></param>
     public void Copy(bool getPoint, bool isEraseSsget = false)
     {
-        Terminate();
-
         var dm = Acap.DocumentManager;
         if (dm.Count == 0)
             return;
@@ -278,14 +513,14 @@ public class InterceptCopyclip
             return;
 
         // 设置基点
-        var clipboardInfo = new TagClipboardInfo();
+        Point3d pt = Point3d.Origin;
         var idArray = psr.Value.GetObjectIds();
         if (getPoint)
         {
             var pr = tr.Editor.GetPoint("\n选择基点");
             if (pr.Status != PromptStatus.OK)
                 return;
-            clipboardInfo.Point = pr.Value;
+            pt = pr.Value;
         }
         else
         {
@@ -306,17 +541,21 @@ public class InterceptCopyclip
                 miny = miny > info.MinY ? info.MinY : miny;
                 minz = minz > info.MinZ ? info.MinZ : minz;
             }
-            clipboardInfo.Point = new Point3d(minx, miny, minz);
+            pt = new(minx, miny, minz);
+        }
+
+        var tempFile = CreateTempFileName();
+        while (File.Exists(tempFile))
+        {
+            tempFile = CreateTempFileName();
+            Thread.Sleep(1);
         }
 
         // 写入剪贴板
-        clipboardInfo.File = TagClipboardInfo.CreateTempFileName();
-        while (File.Exists(clipboardInfo.File))
-        {
-            clipboardInfo.File = TagClipboardInfo.CreateTempFileName();
-            Thread.Sleep(1);
-        }
-        clipboardInfo.SetClipboard();
+        // 如果成功拷贝,删除上一次的临时文件
+        var clipboardInfo = new TagClipboardInfo(tempFile, pt);
+        if (clipboardInfo.SetClipboard())
+            Terminate();
 
         // 克隆到目标块表内
         using (var fileTr = new DBTrans(clipboardInfo.File))
@@ -368,9 +607,11 @@ public class InterceptCopyclip
         if (dm.Count == 0)
             return;
 
-        if (_clipboardInfo == null)
+        var tag = TagClipboardInfo.GetClipboard();
+        if (tag == null)
             return;
-        var clipboardInfo = _clipboardInfo.Value;
+        var clipboardInfo = tag.Value;
+        Env.Print("粘贴来源: " + clipboardInfo.File);
 
         // 获取临时文件的图元id
         var fileEntityIds = new List<ObjectId>();
@@ -380,6 +621,8 @@ public class InterceptCopyclip
                 if (id.IsOk())
                     fileEntityIds.Add(id);
         }
+        if (fileEntityIds.Count == 0)
+            return;
 
         using var tr = new DBTrans();
 #if test
@@ -522,12 +765,25 @@ public class InterceptCopyclip
         var blockNameNew = Path.GetFileNameWithoutExtension(tempFile);
         while (tr.BlockTable.Has(blockNameNew))
         {
-            tempFile = TagClipboardInfo.CreateTempFileName();
+            tempFile = CreateTempFileName();
             blockNameNew = Path.GetFileNameWithoutExtension(tempFile);
             Thread.Sleep(1);
         }
         var btrIdNew = tr.BlockTable.Add(blockNameNew);
         return tr.GetObject<BlockTableRecord>(btrIdNew);
+    }
+
+    /// <summary>
+    /// 创建临时路径的时间文件名
+    /// </summary>
+    /// <param name="format">格式,X是16进制</param>
+    /// <returns></returns>
+    public static string CreateTempFileName(string format = "X")
+    {
+        var t1 = DateTime.Now.ToString("yyyyMMddHHmmssfffffff");
+        t1 = Convert.ToInt32(t1.GetHashCode()).ToString(format);
+        var t2 = Convert.ToInt32(t1.GetHashCode()).ToString(format);// 这里是为了满足长度而做的
+        return Path.GetTempPath() + "A$" + t1 + t2[0] + ".DWG";
     }
 }
 

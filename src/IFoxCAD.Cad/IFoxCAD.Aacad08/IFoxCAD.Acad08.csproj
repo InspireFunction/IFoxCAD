@@ -58,4 +58,8 @@
     <ItemGroup>
         <Compile Include="..\IFoxCAD.Aacad09plus\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
     </ItemGroup>
+    <!--<ItemGroup>
+        json要求的程序集
+        <Reference Include="System.Web.Extensions" />
+    </ItemGroup>-->
 </Project>
