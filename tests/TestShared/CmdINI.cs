@@ -40,7 +40,7 @@ public class CmdInit
     /// 如果netload之后用 <see cref="IFoxRemoveReg"/> 删除注册表,
     /// 由于不是也不能卸载dll,再netload是无法执行自动接口的,
     /// 所以此时会产生无法再注册的问题...因此需要暴露此注册函数(硬来)
-    [CommandMethod("IFoxAddReg")]
+    [CommandMethod(nameof(IFoxAddReg))]
     public void IFoxAddReg()
     {
         var dm = Acap.DocumentManager;
@@ -56,7 +56,7 @@ public class CmdInit
     /// <summary>
     /// 卸载注册表信息
     /// </summary>
-    [CommandMethod("IFoxRemoveReg")]
+    [CommandMethod(nameof(IFoxRemoveReg))]
     public void IFoxRemoveReg()
     {
         var dm = Acap.DocumentManager;

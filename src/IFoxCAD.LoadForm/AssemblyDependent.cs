@@ -97,7 +97,7 @@ public class AssemblyDependent : IDisposable
 #if Debug_WriteLine_null
                 if (ass == null)
                     System.Diagnostics.Debug
-                        .WriteLine($"****{nameof(Load)}:此文件无加载了pdb对象:" + allRef); 
+                        .WriteLine($"****{nameof(Load)}:此文件无加载了pdb对象:" + allRef);
 #endif
 
 #if Debug_WriteLine_notnull
@@ -240,7 +240,7 @@ public class AssemblyDependent : IDisposable
         else
         {
             /*
-             * 0x01 此句没有依赖会直接报错 
+             * 0x01 此句没有依赖会直接报错
              *      assemblyAsRef = Assembly.ReflectionOnlyLoad(dllFullName);
              * 0x02 重复加载无修改的同一个dll,会出现如下异常:
              *      System.IO.FileLoadException:
@@ -304,7 +304,7 @@ public class AssemblyDependent : IDisposable
     }
     #endregion
 
-    #region 删除文件 
+    #region 删除文件
     /// <summary>
     /// Debug的时候删除obj目录,防止占用
     /// </summary>
@@ -393,7 +393,7 @@ public class AssemblyDependent : IDisposable
     {
         Dispose(false);
     }
-  
+
     protected virtual void Dispose(bool disposing)
     {
         // 不重复释放,并设置已经释放

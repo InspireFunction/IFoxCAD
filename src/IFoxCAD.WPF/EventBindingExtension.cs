@@ -26,35 +26,23 @@ public class EventBindingExtension : MarkupExtension
     public override object? ProvideValue(IServiceProvider serviceProvider)
     {
         if (serviceProvider is null)
-        {
             throw new ArgumentNullException(nameof(serviceProvider));
-        }
         if (serviceProvider.GetService(typeof(IProvideValueTarget)) is not IProvideValueTarget targetProvider)
-        {
             throw new InvalidOperationException();
-        }
 
         if (targetProvider.TargetObject is not FrameworkElement targetObject)
-        {
             throw new InvalidOperationException();
-        }
 
         if (targetProvider.TargetProperty is not MemberInfo memberInfo)
-        {
             throw new InvalidOperationException();
-        }
 
         if (string.IsNullOrWhiteSpace(Command))
         {
             Command = memberInfo.Name.Replace("Add", "");
             if (Command.Contains("Handler"))
-            {
                 Command = Command.Replace("Handler", "Command");
-            }
             else
-            {
                 Command += "Command";
-            }
         }
 
         return CreateHandler(memberInfo, Command!, targetObject.GetType());
@@ -136,13 +124,9 @@ public class EventBindingExtension : MarkupExtension
             var cmd = GetCommand(fe, cmdName);
             object? commandParam = null;
             if (!string.IsNullOrWhiteSpace(commandParameter))
-            {
                 commandParam = GetCommandParameter(fe, args, commandParameter!);
-            }
             if ((cmd is not null) && cmd.CanExecute(commandParam))
-            {
                 cmd.Execute(commandParam);
-            }
         }
     }
 
@@ -154,13 +138,10 @@ public class EventBindingExtension : MarkupExtension
         var vmType = vm.GetType();
         var cmdProp = vmType.GetProperty(cmdName);
         if (cmdProp is not null)
-        {
             return cmdProp.GetValue(vm) as ICommand;
-        }
 #if DEBUG
         throw new Exception("EventBinding path error: '" + cmdName + "' property not found on '" + vmType + "' 'DelegateCommand'");
 #endif
-
 
 #pragma warning disable CS0162 // 检测到无法访问的代码
         return null;
