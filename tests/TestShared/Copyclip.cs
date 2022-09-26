@@ -139,25 +139,20 @@ public class Copyclip
 #endif
     #endregion
 
-    // 想要重启cad之后还可以继续用剪贴板,那么就不要这个
+    // 想要重启cad之后还可以继续用剪贴板,那么就不要这个:
+    // [IFoxInitialize(isInitialize: false)]
     // 会出现永远存在临时文件夹的情况:
     // 0x01 复制的时候,无法删除占用中的,
-    // 0x02 调试期间直接退出acad.exe
-    // [IFoxInitialize(isInitialize: false)]
+    // 0x02 调试期间直接退出 acad.exe
     public void Terminate()
     {
         // 此处要先去删除tmp文件夹的上次剪贴板产生的dwg文件
-        for (int i = 0; i < _delFile.Count; i++)
+        for (int i = _delFile.Count - 1; i >= 0; i--)
         {
-            if (!File.Exists(_delFile[i]))
-            {
-                _delFile.RemoveAt(i);
-                continue;
-            }
-
             try
             {
-                File.Delete(_delFile[i]);
+                if (File.Exists(_delFile[i]))
+                    File.Delete(_delFile[i]);
                 _delFile.RemoveAt(i);
             }
             catch { Env.Printl("无法删除(是否占用):" + _delFile[i]); }
@@ -182,7 +177,6 @@ public class Copyclip
         if (dm.Count == 0)
             return;
         var doc = dm.MdiActiveDocument;
-
         if (doc.Editor == null)
             return;
         var psr = doc.Editor.SelectImplied();// 预选
@@ -241,8 +235,8 @@ public class Copyclip
         using (var fileTr = new DBTrans(cadClipType.File))
         {
             fileTr.Task(() => {
-                var map = new IdMapping();
-                using var ids = new ObjectIdCollection(idArray);
+                using IdMapping map = new();
+                using ObjectIdCollection ids = new(idArray);
                 tr.Database.WblockCloneObjects(
                     ids,
                     fileTr.ModelSpace.ObjectId,
@@ -349,6 +343,8 @@ public class Copyclip
              * https://www.cnblogs.com/5iedu/p/4706327.html
              * https://vimsky.com/examples/detail/csharp-ex-System.Runtime.InteropServices.ComTypes-STGMEDIUM---class.html
              * https://blog.csdn.net/qq_45533841/article/details/106011204
+             *
+             * 搞不定...
              */
         }, true);
 
@@ -417,16 +413,16 @@ public class Copyclip
         // 加入新建的块表记录
         // 动态块粘贴,然后用:ctrl+z会导致动态块特性无法恢复,
         /// 是因为它 <see cref=" DuplicateRecordCloning.Replace"/>
-        var map = new IdMapping();
+        using IdMapping map = new();
+        using ObjectIdCollection idc = new(fileEntityIds.ToArray());
         tr.Task(() => {
             tr.Database.WblockCloneObjects(
-                new ObjectIdCollection(fileEntityIds.ToArray()),
+                idc,
                 btr.ObjectId, // tr.Database.BlockTableId, // 粘贴目标
                 map,
                 DuplicateRecordCloning.Ignore,
                 false);
         });
-
 
         // 移动块内,从基点到原点
         foreach (var id in btr)
@@ -516,7 +512,9 @@ public class Copyclip
         }
 
         // 深度克隆,然后平移到当前目标点位置
-        var map = tr.CurrentSpace.DeepCloneEx(ids);
+        using IdMapping map = new();
+        tr.CurrentSpace.DeepCloneEx(ids, map);
+
         map.GetValues().ForEach(id => {
             if (!id.IsOk())
                 return;
