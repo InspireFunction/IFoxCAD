@@ -391,11 +391,17 @@ public static class EntityEx
             new Point2d(Math.Max(pt1.X, pt2.X), Math.Max(pt1.Y, pt2.Y))
         };
 
-        SpatialFilterDefinition sfd = new(pts, Vector3d.ZAxis, 0.0, 0.0, 0.0, true);
-        using SpatialFilter sf = new() { Definition = sfd };
-        var dict = bref.GetXDictionary()!.GetSubDictionary(true, new string[] { filterDictName })!;
+        using SpatialFilter sf = new()
+        {
+            Definition = new(pts, Vector3d.ZAxis, 0.0, 0.0, 0.0, true)
+        };
+        var dict = bref.GetXDictionary()!
+                       .GetSubDictionary(true, new string[] { filterDictName })!;
         dict.SetAt<SpatialFilter>(spatialName, sf);
         // SetToDictionary(dict, spatialName, sf);
+#if !acad
+        pts.Dispose();
+#endif
     }
     #endregion
 

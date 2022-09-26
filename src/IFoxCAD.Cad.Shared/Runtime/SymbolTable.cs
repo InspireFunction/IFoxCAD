@@ -269,17 +269,15 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         if ((has && over) || !has)
         {
             ObjectId id = table[name];
-            using IdMapping idm = new();
-            using (ObjectIdCollection ids = new() { id })
-            {
-                table.Database.
-                    WblockCloneObjects(ids,
-                                       CurrentSymbolTable.Id,
-                                       idm,
-                                       DuplicateRecordCloning.Replace,
-                                       false);
-            }
-            rid = idm[id].Value;
+            using IdMapping map = new();
+            using ObjectIdCollection ids = new() { id };
+            table.Database.WblockCloneObjects(
+                           ids,
+                           CurrentSymbolTable.Id,
+                           map,
+                           DuplicateRecordCloning.Replace,
+                           false);
+            rid = map[id].Value;
         }
         return rid;
     }

@@ -536,12 +536,10 @@ public static class Curve3dEx
     /// <returns>实体类三维多段线</returns>
     public static Polyline3d ToCurve(this PolylineCurve3d pl3d)
     {
-        Point3dCollection pnts = new();
+        using Point3dCollection pnts = new();
 
         for (int i = 0; i < pl3d.NumberOfControlPoints; i++)
-        {
             pnts.Add(pl3d.ControlPointAt(i));
-        }
 
         bool closed = false;
         int n = pnts.Count - 1;

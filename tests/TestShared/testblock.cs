@@ -432,7 +432,7 @@ public class TestBlock
             MessageForAdding = "选择对象"
         };
         var ss = Env.Editor.GetSelection(opts).Value;
-        var ids = new ObjectIdCollection(ss.GetObjectIds());
+        using ObjectIdCollection ids = new(ss.GetObjectIds());
         var db = curdb.Wblock(ids, Point3d.Origin);
         db.SaveAs(@"c:\test.dwg", DwgVersion.Current);
     }

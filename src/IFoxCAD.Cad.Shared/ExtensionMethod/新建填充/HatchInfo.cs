@@ -239,7 +239,7 @@ public class HatchInfo
     void AppendLoop(IEnumerable<ObjectId> boundaryIds,
                     HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
-        var obIds = new ObjectIdCollection();
+        using ObjectIdCollection obIds = new();
         // 边界是闭合的,而且已经加入数据库
         // 填充闭合环类型.最外面
         foreach (var border in boundaryIds)
@@ -248,7 +248,6 @@ public class HatchInfo
             obIds.Add(border);
             _hatch.AppendLoop(hatchLoopTypes, obIds);
         }
-        obIds.Dispose();
     }
 
     /// <summary>
@@ -267,13 +266,13 @@ public class HatchInfo
         if (pts == null)
             throw new ArgumentNullException(nameof(pts));
 
-        var ptsEnd2End = pts.End2End();
+        pts.End2End();
 #if NET35
-        _boundaryIds.Add(CreateAddBoundary(ptsEnd2End, bluges, btrOfAddEntitySpace));
+        _boundaryIds.Add(CreateAddBoundary(pts, bluges, btrOfAddEntitySpace));
 #else
         // 2011新增API,可以不生成图元的情况下加入边界,
         // 通过这里进入的话,边界 _boundaryIds 是空的,那么 Build() 时候就需要过滤空的
-        _hatch.AppendLoop(hatchLoopTypes, ptsEnd2End, bluges);
+        _hatch.AppendLoop(hatchLoopTypes, pts, bluges);
 #endif
         return this;
     }

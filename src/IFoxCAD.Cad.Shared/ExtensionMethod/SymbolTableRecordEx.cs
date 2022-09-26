@@ -22,19 +22,18 @@ public static class SymbolTableRecordEx
     /// </para>
     /// </param>
     /// <param name="objIds">图元id集合,注意所有成员都要在同一个空间中</param>
-    /// <returns>克隆后的id词典</returns>
-    public static IdMapping DeepCloneEx(this BlockTableRecord btr, ObjectIdCollection objIds)
+    /// <param name="maoOut">返回克隆后的id词典</param>
+    public static void DeepCloneEx(this BlockTableRecord btr, ObjectIdCollection objIds, IdMapping maoOut)
     {
         if (objIds is null || objIds.Count == 0)
             throw new ArgumentNullException(nameof(objIds));
 
         var db = objIds[0].Database;
-        IdMapping mapping = new();
         using (btr.ForWrite())
         {
             try
             {
-                db.DeepCloneObjects(objIds, btr.ObjectId, mapping, false);
+                db.DeepCloneObjects(objIds, btr.ObjectId, maoOut, false);
 
                 // 不在此提取,为了此函数被高频调用
                 // 获取克隆键值对(旧块名,新块名)
@@ -47,7 +46,6 @@ public static class SymbolTableRecordEx
                 e.WriteLog("深度克隆出错了");
             }
         }
-        return mapping;
     }
 
     /// <summary>

@@ -117,9 +117,11 @@ public class CmdTestDwgFilerEx
                 bText.ObjectId
             };
             // 克隆到目标块表内
-            var newObjs = tr.CurrentSpace
-                .DeepCloneEx(new ObjectIdCollection(sIds.ToArray()));
-            var newTexts = newObjs.GetValues().GetObject<DBText>();
+            using ObjectIdCollection bindIds = new(sIds.ToArray());
+            using IdMapping map = new();
+
+            tr.CurrentSpace.DeepCloneEx(bindIds, map);
+            var newTexts = map.GetValues().GetObject<DBText>();
             newTexts.ForEach(nText => {
                 if (nText == null)
                     return;

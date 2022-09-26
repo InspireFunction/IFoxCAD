@@ -1,4 +1,6 @@
 ﻿namespace IFoxCAD.Cad;
+
+using System.Data;
 using PointV = Point2d;
 
 /// <summary>
@@ -313,8 +315,10 @@ public class HatchConverter
          * 那么它的平移后的基点在哪里呢?
          */
 
-        var newHatchId = btrOfAddEntitySpace.DeepCloneEx(
-                         new ObjectIdCollection(new ObjectId[] { OldHatchId })).GetValues()[0];
+        using ObjectIdCollection idc = new(new ObjectId[] { OldHatchId });
+        using IdMapping map = new();
+        btrOfAddEntitySpace.DeepCloneEx(idc, map);
+        var newHatchId = map.GetValues()[0];
         trans ??= DBTrans.Top.Transaction;
 
         bool openErased = false;
@@ -344,7 +348,7 @@ public class HatchConverter
 
         hatch.Associative = boundaryAssociative;
 
-        var obIds = new ObjectIdCollection();
+        using ObjectIdCollection obIds = new();
         for (int i = 0; i < BoundaryIds.Count; i++)
         {
             obIds.Clear();

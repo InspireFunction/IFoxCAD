@@ -101,21 +101,24 @@ public class XrefFactory : IXrefBindModes
 
     public void Detach()
     {
-        var xrefIds = GetAllXrefNode();
+        using ObjectIdCollection xrefIds = new();
+        GetAllXrefNode(xrefIds);
         foreach (ObjectId id in xrefIds)
             _tr.Database.DetachXref(id);
     }
 
     public void Reload()
     {
-        var xrefIds = GetAllXrefNode();
+        using ObjectIdCollection xrefIds = new();
+        GetAllXrefNode(xrefIds);
         if (xrefIds.Count > 0)
             _tr.Database.ReloadXrefs(xrefIds);
     }
 
     public void Unload()
     {
-        var xrefIds = GetAllXrefNode();
+        using ObjectIdCollection xrefIds = new();
+        GetAllXrefNode(xrefIds);
         if (xrefIds.Count > 0)
             _tr.Database.UnloadXrefs(xrefIds);
     }
@@ -125,16 +128,15 @@ public class XrefFactory : IXrefBindModes
     /// <summary>
     /// 获取参照
     /// </summary>
-    /// <returns>全部参照id</returns>
-    ObjectIdCollection GetAllXrefNode()
+    /// <param name="xrefIds">返回全部参照id</param>
+    void GetAllXrefNode(ObjectIdCollection xrefIds)
     {
         // 储存要处理的参照id
-        var xrefIds = new ObjectIdCollection();
+        //var xrefIds = new ObjectIdCollection();
         XrefNodeForEach((xNodeName, xNodeId, xNodeStatus, xNodeIsNested) => {
             if (XrefNamesContains(xNodeName))
                 xrefIds.Add(xNodeId);
         });
-        return xrefIds;
     }
 
     bool XrefNamesContains(string xNodeName)
@@ -186,12 +188,13 @@ public class XrefFactory : IXrefBindModes
         }, checkIdOk: true);
     }
 
-    ObjectIdCollection GetXBindIds()
+
+    void GetXBindIds(ObjectIdCollection xbindIds)
     {
         // xbind
         // 0x01 它是用来绑其他符号表,绑块表会有异常
         // 0x02 集合若有问题,就会出现eWrongObjectType
-        var xbindIds = new ObjectIdCollection();
+        //var xbindIds = new ObjectIdCollection();
 
         // 起初测试是将九大符号表记录均加入的,但经实测不行...(为什么?存疑)
         #region Option1
@@ -221,14 +224,12 @@ public class XrefFactory : IXrefBindModes
         if ((SymModesBind & SymModes.ViewportTable) == SymModes.ViewportTable)
             AddedxbindIds(xbindIds, _tr.ViewportTable);
         #endregion
-
-        return xbindIds;
     }
 
-    ObjectIdCollection GetBindIds()
+    void GetBindIds(ObjectIdCollection bindIds)
     {
         // bind 只绑块表
-        var bindIds = new ObjectIdCollection();
+        //var bindIds = new ObjectIdCollection();
 
         _tr.BlockTable.ForEach(btr => {
             if (btr.IsLayout)
@@ -238,8 +239,6 @@ public class XrefFactory : IXrefBindModes
             if (btr.IsFromExternalReference && btr.IsResolved)
                 bindIds.Add(btr.ObjectId);
         }, checkIdOk: true);
-
-        return bindIds;
     }
 
     /// <summary>
@@ -312,11 +311,16 @@ public class XrefFactory : IXrefBindModes
         // 重载:嵌套参照已卸载了,需要重载之后才能进行绑定
         var keys = nested.Keys;
         if (keys.Count > 0)
-            _tr.Database.ReloadXrefs(new ObjectIdCollection(keys.ToArray()));
+        {
+            using ObjectIdCollection idc = new(keys.ToArray());
+            _tr.Database.ReloadXrefs(idc);
+        }
 
         // 绑定:切勿交换,否则会绑定无效
-        var bindIds = GetBindIds();
-        var xbindIds = GetXBindIds();
+        using ObjectIdCollection bindIds = new();
+        using ObjectIdCollection xbindIds = new();
+        GetBindIds(bindIds);
+        GetXBindIds(xbindIds);
         if (xbindIds.Count > 0)
             _tr.Database.XBindXrefs(xbindIds, BindOrInsert);
         if (bindIds.Count > 0)

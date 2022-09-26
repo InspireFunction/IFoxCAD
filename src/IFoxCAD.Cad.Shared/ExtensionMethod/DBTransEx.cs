@@ -5,7 +5,6 @@ namespace IFoxCAD.Cad;
 #if lack_test
 public static class DBTransEx
 {
-
     /*
      * 0x01
      * db.Purge(ids)是获取未硬引用(无引用?)的对象,也就可以删除的.
@@ -30,7 +29,7 @@ public static class DBTransEx
     /// <param name="excludeXref">排除外部参照:默认true,为false时候会令图层全部显示再清理,包括冻结</param>
     public static void Purge(this DBTrans tr, SymModes sym = SymModes.All, bool excludeXref = true)
     {
-        var ids = new ObjectIdCollection();
+        using ObjectIdCollection ids = new();
         var db = tr.Database;
 
         if ((sym & SymModes.BlockTable) == SymModes.BlockTable)

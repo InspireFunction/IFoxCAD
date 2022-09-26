@@ -67,10 +67,9 @@ public static class CurveEx
     {
         if (points is null)
             throw new ArgumentNullException(nameof(points));
-        return
-            curve
-            .GetSplitCurves(new Point3dCollection(points.ToArray()))
-            .Cast<Curve>();
+
+        using var pts = new Point3dCollection(points.ToArray());
+        return curve.GetSplitCurves(pts).Cast<Curve>();
     }
 
     /// <summary>
@@ -89,13 +88,15 @@ public static class CurveEx
     {
         if (points is null)
             throw new ArgumentNullException(nameof(points));
+
         if (isOrder)
-            points = points.OrderBy(point => curve.GetParameterAtPoint(
-                                             curve.GetClosestPointTo(point, false)));
-        return
-            curve
-            .GetSplitCurves(new Point3dCollection(points.ToArray()))
-            .Cast<Curve>();
+            points = points.OrderBy(point => {
+                var pt = curve.GetClosestPointTo(point, false);
+                return curve.GetParameterAtPoint(pt);
+            });
+
+        using Point3dCollection pts = new(points.ToArray());
+        return curve.GetSplitCurves(pts).Cast<Curve>();
     }
 
     /// <summary>
@@ -512,11 +513,9 @@ public static class CurveEx
     /// <returns>三维ge多段线</returns>
     public static PolylineCurve3d ToPolylineCurve3d(this Polyline2d pl)
     {
-        Point3dCollection pnts = new();
+        using Point3dCollection pnts = new();
         foreach (Vertex2d ver in pl)
-        {
             pnts.Add(ver.Position);
-        }
         return new PolylineCurve3d(pnts);
     }
 
@@ -555,7 +554,7 @@ public static class CurveEx
     /// <returns>三维ge多段线</returns>
     public static PolylineCurve3d ToPolylineCurve3d(this Polyline3d pl)
     {
-        Point3dCollection pnts = new();
+        using Point3dCollection pnts = new();
         foreach (ObjectId id in pl)
         {
             var ver = id.GetObject<PolylineVertex3d>(OpenMode.ForRead);

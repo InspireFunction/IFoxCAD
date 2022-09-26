@@ -2,7 +2,6 @@ namespace IFoxCAD.Cad;
 
 public static class PointEx
 {
-
     /// <summary>
     /// 获取点的hash字符串，同时可以作为pt的字符串表示
     /// </summary>
@@ -95,13 +94,13 @@ public static class PointEx
     /// <summary>
     /// 首尾相连
     /// </summary>
-    public static Point2dCollection End2End(this Point2dCollection ptcol)
+    public static void End2End(this Point2dCollection ptcol)
     {
         if (ptcol == null)
             throw new ArgumentNullException(nameof(ptcol));
 
         if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))// 首尾相同直接返回
-            return ptcol;
+            return;
 
         // 首尾不同,去加一个到最后
         var lst = new Point2d[ptcol.Count + 1];
@@ -109,18 +108,19 @@ public static class PointEx
             lst[i] = ptcol[i];
         lst[^1] = lst[0];
 
-        return new(lst);
+        ptcol.Clear();
+        ptcol.AddRange(lst);
     }
     /// <summary>
     /// 首尾相连
     /// </summary>
-    public static Point3dCollection End2End(this Point3dCollection ptcol)
+    public static void End2End(this Point3dCollection ptcol)
     {
         if (ptcol == null)
             throw new ArgumentNullException(nameof(ptcol));
 
         if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))// 首尾相同直接返回
-            return ptcol;
+            return;
 
         // 首尾不同,去加一个到最后
         var lst = new Point3d[ptcol.Count + 1];
@@ -128,7 +128,9 @@ public static class PointEx
             lst[i] = ptcol[i];
         lst[^1] = lst[0];
 
-        return new(lst);
+        ptcol.Clear();
+        for (int i = 0; i < lst.Length; i++)
+            ptcol.Add(lst[i]);
     }
     #endregion
 }

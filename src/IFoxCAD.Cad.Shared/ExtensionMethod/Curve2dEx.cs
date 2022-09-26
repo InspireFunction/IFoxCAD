@@ -246,7 +246,6 @@ public static class Curve2dEx
             new Line(
                 new Point3d(plane, ls2d.StartPoint),
                 new Point3d(plane, ls2d.EndPoint));
-
     }
 
     #endregion LineSegment2d
@@ -275,23 +274,17 @@ public static class Curve2dEx
     {
         int i;
         Plane plane = new();
-        Point3dCollection ctlpnts = new();
+        using Point3dCollection ctlpnts = new();
         for (i = 0; i < nc2d.NumControlPoints; i++)
-        {
             ctlpnts.Add(new Point3d(plane, nc2d.GetControlPointAt(i)));
-        }
 
         DoubleCollection knots = new();
         foreach (double knot in nc2d.Knots)
-        {
             knots.Add(knot);
-        }
 
         DoubleCollection weights = new();
         for (i = 0; i < nc2d.NumWeights; i++)
-        {
             weights.Add(nc2d.GetWeightAt(i));
-        }
 
         NurbCurve2dData ncdata = nc2d.DefinitionData;
 

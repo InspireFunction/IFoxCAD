@@ -12,7 +12,7 @@ public static class CollectionEx
     /// 对象id迭代器转换为集合
     /// </summary>
     /// <param name="ids">对象id的迭代器</param>
-    /// <returns>对象id集合</returns>
+    /// <returns>对象id集合,记得释放</returns>
     public static ObjectIdCollection ToCollection(this IEnumerable<ObjectId> ids)
     {
         return new ObjectIdCollection(ids.ToArray());
@@ -23,7 +23,7 @@ public static class CollectionEx
     /// </summary>
     /// <typeparam name="T">对象类型</typeparam>
     /// <param name="objs">实体对象的迭代器</param>
-    /// <returns>实体集合</returns>
+    /// <returns>实体集合,记得释放</returns>
     public static DBObjectCollection ToCollection<T>(this IEnumerable<T> objs) where T : DBObject
     {
         DBObjectCollection objCol = new();
@@ -36,7 +36,7 @@ public static class CollectionEx
     /// double 数值迭代器转换为 double 数值集合
     /// </summary>
     /// <param name="doubles">double 数值迭代器</param>
-    /// <returns>double 数值集合</returns>
+    /// <returns>数值集合,它没有Dispose</returns>
     public static DoubleCollection ToCollection(this IEnumerable<double> doubles)
     {
         return new DoubleCollection(doubles.ToArray());
@@ -46,7 +46,7 @@ public static class CollectionEx
     /// 二维点迭代器转换为二维点集合
     /// </summary>
     /// <param name="pts">二维点迭代器</param>
-    /// <returns>二维点集合</returns>
+    /// <returns>二维点集合,!acad记得释放</returns>
     public static Point2dCollection ToCollection(this IEnumerable<Point2d> pts)
     {
         return new Point2dCollection(pts.ToArray());
@@ -56,7 +56,7 @@ public static class CollectionEx
     /// 三维点迭代器转换为三维点集合
     /// </summary>
     /// <param name="pts">三维点迭代器</param>
-    /// <returns>三维点集合</returns>
+    /// <returns>三维点集合,记得释放</returns>
     public static Point3dCollection ToCollection(this IEnumerable<Point3d> pts)
     {
         return new Point3dCollection(pts.ToArray());
