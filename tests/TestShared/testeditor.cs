@@ -1,4 +1,7 @@
-﻿namespace Test;
+﻿using Autodesk.AutoCAD.EditorInput;
+using IFoxCAD.Cad;
+
+namespace Test;
 
 public class Testeditor
 {
@@ -56,8 +59,21 @@ public class Testeditor
             { "B", action_b }
         };
 
-        var ss = Env.Editor.SSGet( ":S", messages: new string[2] { "get", "del" },
+        var ss = Env.Editor.SSGet(":S", messages: new string[2] { "get", "del" },
                                          keywords: keyword);
         Env.Print(ss!);
+    }
+
+    [CommandMethod(nameof(Test_ExportWMF), CommandFlags.Modal | CommandFlags.UsePickSet)]
+    public void Test_ExportWMF()
+    {
+        var psr = Env.Editor.SelectImplied();// 预选,如果没有设置 CommandFlags.UsePickSet 将导致PromptStatus.Error
+        if (psr.Status != PromptStatus.OK)
+            psr = Env.Editor.GetSelection();// 手选
+        if (psr.Status != PromptStatus.OK)
+            return;
+
+        var ids = psr.Value.GetObjectIds();
+        Env.Editor.ExportWMF("D:\\桌面\\aaa.dwg", ids);
     }
 }

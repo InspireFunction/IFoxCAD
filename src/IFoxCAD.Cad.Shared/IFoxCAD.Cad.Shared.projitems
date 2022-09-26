@@ -49,6 +49,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建文字\AttachmentPointHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建文字\TextEntityAdd.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建文字\TextInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Runtime\LateBinding.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\LispDottedPair.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\LispList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\TypedValueList.cs" />
@@ -59,7 +60,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\AssemInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\AutoRegAssem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\CadVersion.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\TagClipboardInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Copyclip\BitmapTool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Copyclip\EmfTool.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Copyclip\TagClipboardInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\DBTrans.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\Env.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\FileOpenMode.cs" />
@@ -74,5 +77,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpLogi.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Copyclip\WindowsAPI.cs" />
   </ItemGroup>
 </Project>

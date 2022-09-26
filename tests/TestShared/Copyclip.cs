@@ -1,11 +1,9 @@
 #define test
-#define PASTECLIP
 #define COPYCLIP
+#define PASTECLIP
 
 namespace Test;
-
-using IFoxCAD.Cad;
-using System;
+using Autodesk.AutoCAD.DatabaseServices;
 using System.Threading;
 
 /*
@@ -42,42 +40,64 @@ public class Copyclip
     void DocumentManager_DocumentLockModeChanged(object sender, DocumentLockModeChangedEventArgs e)
     {
         var up = e.GlobalCommandName.ToUpper();
+        string? cmd = null;
 #if COPYCLIP
         if (up == "COPYCLIP")// 复制
         {
             e.Veto();
-            IFoxCopyClip();
+            cmd = nameof(IFoxCopyClip);
         }
         else if (up == "COPYBASE") //ctrl+shift+c 带基点复制
         {
             e.Veto();
-            IFoxCopyBase();
+            cmd = nameof(IFoxCopyBase);
         }
         else if (up == "CUTCLIP") // 剪切
         {
             e.Veto();
-            Copy(false, true);
+            cmd = nameof(IFoxCutclip);
         }
 #endif
 #if PASTECLIP
-        // TODO 此处直接粘贴到命令栏也会触发,所以需要控制焦点
         if (up == "PASTECLIP")// 粘贴
         {
+            //TODO === 完成之后此处将会移除
+            var getClip = ClipTool.GetClipboard(ClipboardEnv.CadVer, out TagClipboardInfo tag);
+            if (!getClip)
+                return;
+            //=== 完成之后此处将会移除
+
             e.Veto();
-            IFoxPasteClip();
+            cmd = nameof(IFoxPasteClip);
         }
         else if (up == "PASTEBLOCK") //ctrl+shift+v 粘贴为块
         {
+            //TODO === 完成之后此处将会移除
+            var getClip = ClipTool.GetClipboard(ClipboardEnv.CadVer, out TagClipboardInfo tag);
+            if (!getClip)
+                return;
+            //=== 完成之后此处将会移除
+
             e.Veto();
-            IFoxPasteBlock();
+            cmd = nameof(IFoxPasteBlock);
         }
 #endif
+        if (cmd != null)
+        {
+            var dm = Acap.DocumentManager;
+            if (dm.Count == 0)
+                return;
+            var doc = dm.MdiActiveDocument;
+            // 发送命令是因为导出WMF函数的com需要命令形式,否则将报错
+            // 但是发送命令会导致选择集被取消了,那么就需要设置 CommandFlags.Redraw
+            doc.SendStringToExecute(cmd + "\n", true, false, false);
+        }
     }
 
     /// <summary>
     /// 复制
     /// </summary>
-    [CommandMethod(nameof(IFoxCopyClip), CommandFlags.UsePickSet)]
+    [CommandMethod(nameof(IFoxCopyClip), CommandFlags.UsePickSet | CommandFlags.Redraw)]
     public void IFoxCopyClip()
     {
         Copy(false);
@@ -85,11 +105,21 @@ public class Copyclip
     /// <summary>
     /// 带基点复制
     /// </summary>
-    [CommandMethod(nameof(IFoxCopyBase), CommandFlags.UsePickSet)]
+    [CommandMethod(nameof(IFoxCopyBase), CommandFlags.UsePickSet | CommandFlags.Redraw)]
     public void IFoxCopyBase()
     {
         Copy(true);
     }
+    /// <summary>
+    /// 剪切
+    /// </summary>
+    [CommandMethod(nameof(IFoxCutclip), CommandFlags.UsePickSet | CommandFlags.Redraw)]
+    public void IFoxCutclip()
+    {
+        Copy(false, true);
+    }
+
+
     /// <summary>
     /// 粘贴
     /// </summary>
@@ -109,14 +139,11 @@ public class Copyclip
 #endif
     #endregion
 
-
-#if false
     // 想要重启cad之后还可以继续用剪贴板,那么就不要这个
     // 会出现永远存在临时文件夹的情况:
     // 0x01 复制的时候,无法删除占用中的,
     // 0x02 调试期间直接退出acad.exe
-    [IFoxInitialize(isInitialize: false)]
-#endif
+    // [IFoxInitialize(isInitialize: false)]
     public void Terminate()
     {
         // 此处要先去删除tmp文件夹的上次剪贴板产生的dwg文件
@@ -133,16 +160,14 @@ public class Copyclip
                 File.Delete(_delFile[i]);
                 _delFile.RemoveAt(i);
             }
-            catch
-            {
-                Env.Printl("无法删除(是否占用):" + _delFile[i]);
-            }
+            catch { Env.Printl("无法删除(是否占用):" + _delFile[i]); }
         }
     }
 
 
     /// <summary>
     /// 储存准备删除的文件
+    /// 也可以用txt代替
     /// 如果删除出错(占用),将一直在这个集合中,直到cad关闭
     /// </summary>
     readonly List<string> _delFile = new();
@@ -156,22 +181,34 @@ public class Copyclip
         var dm = Acap.DocumentManager;
         if (dm.Count == 0)
             return;
+        var doc = dm.MdiActiveDocument;
 
-        using var tr = new DBTrans();
-        if (tr.Editor == null)
+        if (doc.Editor == null)
             return;
-        var psr = tr.Editor.SelectImplied();// 预选
+        var psr = doc.Editor.SelectImplied();// 预选
         if (psr.Status != PromptStatus.OK)
-            psr = tr.Editor.GetSelection();// 手选
+            psr = doc.Editor.GetSelection();// 手选
         if (psr.Status != PromptStatus.OK)
             return;
 
         // 设置基点
         Point3d pt = Point3d.Origin;
         var idArray = psr.Value.GetObjectIds();
+
+        var tempFile = CreateTempFileName();
+        while (File.Exists(tempFile) ||
+               File.Exists(Path.ChangeExtension(tempFile, "wmf")))
+        {
+            tempFile = CreateTempFileName();
+            Thread.Sleep(1);
+        }
+
+        using var tr = new DBTrans();
+
+        #region 写入 AutoCAD.R17 数据
         if (getPoint)
         {
-            var pr = tr.Editor.GetPoint("\n选择基点");
+            var pr = doc.Editor.GetPoint("\n选择基点");
             if (pr.Status != PromptStatus.OK)
                 return;
             pt = pr.Value;
@@ -198,21 +235,10 @@ public class Copyclip
             pt = new(minx, miny, minz);
         }
 
-        var tempFile = CreateTempFileName();
-        while (File.Exists(tempFile))
-        {
-            tempFile = CreateTempFileName();
-            Thread.Sleep(1);
-        }
-
-        // 写入剪贴板
-        // 如果成功拷贝,删除上一次的临时文件
-        var clipboardInfo = new TagClipboardInfo(tempFile, pt);
-        if (TagClipboardInfo.SetClipboard(clipboardInfo))
-            Terminate();
+        var cadClipType = new TagClipboardInfo(tempFile, pt);
 
         // 克隆到目标块表内
-        using (var fileTr = new DBTrans(clipboardInfo.File))
+        using (var fileTr = new DBTrans(cadClipType.File))
         {
             fileTr.Task(() => {
                 var map = new IdMapping();
@@ -246,10 +272,97 @@ public class Copyclip
                 id.Erase();
             });
         }
+        #endregion
 
-        if (!_delFile.Contains(clipboardInfo.File))
-            _delFile.Add(clipboardInfo.File);
+        #region 写入 WMF 数据
+        var wmf = Path.ChangeExtension(cadClipType.File, "wmf");
+        Env.Editor.ExportWMF(wmf, idArray);
+
+        //using var mf = new Metafile(wmf);
+        //IntPtr emfHandle = mf.GetHenhmetafile();
+        #endregion
+
+        /*
+         * 剪贴板说明
+         * https://blog.csdn.net/chinabinlang/article/details/9815495
+         *
+         * 看了这ole剪贴板,感觉如果桌子真的是这样做,那么粘贴链接可能还真没法做成.
+         * 1,不知道桌子如何发送wmf文件,是结构体传送,还是文件路径传送.
+         * 2,不知道桌子如何接收剪贴板数据,是延迟接收还是一次性写入全局变量或者文件.
+         * https://blog.csdn.net/chinabinlang/article/details/9815495
+         */
+        /// 必须一次性写入剪贴板,详见<see cref="ClipTool.OpenClipboardTask"/>说明
+        bool getFlag = false;
+        ClipTool.OpenClipboardTask((freeDatas) => {
+            getFlag = ClipTool.GetClipboardFormat(
+                ClipboardEnv.CadVer, cadClipType,
+                out uint cadClipFormat, out IntPtr cadClipData);
+            freeDatas.Add(cadClipData);
+
+            // 写入cad图元
+            ClipTool.SetClipboardData(cadClipFormat, cadClipData);
+
+            // 写入BMP位图...这是截图,不是WMF转BMP,不对
+            BitmapTool.CaptureWndImage(doc.Window.Handle, bitmapHandle => {
+                ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
+            });
+
+
+            // 写入WMF
+            // MFC类 CMetaFileDC 不知道怎么做...
+            // https://blog.csdn.net/glt3953/article/details/8808262
+            // ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, wmfHandle);
+
+            // c# WMF转换文件
+            // https://blog.csdn.net/u013419838/article/details/100154891
+            //using MemoryStream ms = new(File.ReadAllBytes(wmf));
+            //using GZipStream gzipStream = new(ms, CompressionMode.Decompress);
+            //using MemoryStream outStream = new();
+            //int readCount;
+            //byte[] data = new byte[2048];
+            //do
+            //{
+            //    readCount = gzipStream.Read(data, 0, data.Length);
+            //    outStream.Write(data, 0, readCount);
+            //} while (readCount == data.Length);
+            // outStream.GetBuffer()
+
+            //ClipTool.GetClipboardFormat(
+            //  System.Windows.Forms.DataFormats.EnhancedMetafile, emfClipType,
+            //     out uint emfClipFormat, out IntPtr emfClipData);
+            //freeDatas.Add(emfClipData);
+
+            // 没效果
+            // using var mf = new Metafile(wmf);
+            // IntPtr emfHandle = mf.GetHenhmetafile();
+            //if (emfHandle != IntPtr.Zero)
+            //{
+            //    ClipTool.SetClipboardData(
+            //       ClipTool.RegisterClipboardFormat(System.Windows.Forms.DataFormats.EnhancedMetafile),
+            //       emfHandle);
+            //}
+
+            /*
+             * 文件结构
+             * https://www.vuln.cn/6358#:~:text=%20%E4%B8%8B%E9%9D%A2%E7%AE%80%E8%A6%81%E4%BB%8B%E7%BB%8D%E4%B8%80%E4%B8%8BEMF%E6%96%87%E4%BB%B6%E7%9A%84%E7%BB%93%E6%9E%84%EF%BC%8CEMF%E6%96%87%E4%BB%B6%E7%94%B1%E5%8F%AF%E5%8F%98%E5%A4%A7%E5%B0%8F%E7%9A%84%E5%85%83%E6%96%87%E4%BB%B6%E5%9D%97%E7%BB%84%E6%88%90%E3%80%82,%E6%AF%8F%E4%B8%AA%E5%85%83%E6%96%87%E4%BB%B6%E5%9D%97%E9%83%BD%E6%98%AF%E4%B8%80%E4%B8%AA%E5%8F%AF%E5%8F%98%E9%95%BF%E5%BA%A6%E7%9A%84ENHMETARECORD%E7%BB%93%E6%9E%84%EF%BC%8C%E7%BB%93%E6%9E%84%E5%A6%82%E4%B8%8B%E3%80%82%20SDK%E4%B8%AD%E5%AE%9A%E4%B9%89%E4%BA%86%E4%B8%8D%E5%90%8C%E7%9A%84iType%E7%B1%BB%E5%9E%8B%EF%BC%8C%E5%A6%82%E4%B8%8B%E6%89%80%E7%A4%BA%E3%80%82%20%E6%A0%B9%E6%8D%AEiType%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%B8%8D%E5%90%8C%EF%BC%8CdParm%E6%98%AF%E4%B8%8D%E5%90%8C%E7%9A%84%E7%BB%93%E6%9E%84%EF%BC%8CEMR_SETDIBITSTODEVICE%E5%AF%B9%E5%BA%94%E7%9A%84%E7%BB%93%E6%9E%84%E6%98%AFEMRSETDIBITSTODEVICE%E3%80%82
+             * https://blog.csdn.net/juma/article/details/2200023 有代码抄
+             * https://www.cnblogs.com/5iedu/p/4706327.html
+             * https://vimsky.com/examples/detail/csharp-ex-System.Runtime.InteropServices.ComTypes-STGMEDIUM---class.html
+             * https://blog.csdn.net/qq_45533841/article/details/106011204
+             */
+        }, true);
+
+        // 成功拷贝就删除上一次的临时文件
+        if (getFlag)
+            Terminate();
+
+        // 加入删除队列,下次删除
+        if (!_delFile.Contains(cadClipType.File))
+            _delFile.Add(cadClipType.File);
+        if (!_delFile.Contains(wmf))
+            _delFile.Add(wmf);
     }
+
 
     /// <summary>
     /// 粘贴
@@ -261,10 +374,10 @@ public class Copyclip
         if (dm.Count == 0)
             return;
 
-        var tag = TagClipboardInfo.GetClipboard();
-        if (tag == null)
+        var getClip = ClipTool.GetClipboard(ClipboardEnv.CadVer, out TagClipboardInfo tag);
+        if (!getClip)
             return;
-        var clipboardInfo = tag.Value;
+        var clipboardInfo = tag;
         Env.Print("粘贴来源: " + clipboardInfo.File);
 
         if (!File.Exists(clipboardInfo.File))
@@ -275,7 +388,9 @@ public class Copyclip
 
         // 获取临时文件的图元id
         var fileEntityIds = new List<ObjectId>();
-        using (var fileTr = new DBTrans(clipboardInfo.File, false, FileOpenMode.OpenForReadAndAllShare))
+        using (var fileTr = new DBTrans(clipboardInfo.File,
+                                        commit: false,
+                                        openMode: FileOpenMode.OpenForReadAndAllShare))
         {
             foreach (var id in fileTr.ModelSpace)
                 if (id.IsOk())
@@ -285,14 +400,13 @@ public class Copyclip
             return;
 
         using var tr = new DBTrans();
-#if test
+
         // 给辰的测试
         //var pr = tr.Editor?.GetPoint("aaa");
         //if (pr != null && pr.Status == PromptStatus.OK)
-        //{
         //    tr.Editor?.WriteMessage("获取了点:" + pr.Value);
-        //}
-#endif
+
+
         tr.Editor?.SetImpliedSelection(new ObjectId[0]); // 清空选择集
 
         // 新建块表记录

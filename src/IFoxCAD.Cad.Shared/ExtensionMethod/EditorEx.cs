@@ -1051,13 +1051,14 @@ public static class EditorEx
          *   [CommandMethod("CmdTest_RunLisp")]
          *   public static void CmdTest_RunLisp()
          *   {
-         *       var res = SendLisp.RunLisp("(setq abc 10)");
+         *       var res = RunLisp("(setq abc 10)");
          *   }
          * 调用方式:
          *    (command "CmdTest_RunLisp1")
          * bug说明:
-         *    AcedEvaluateLisp接口在高版本调用时候没有运行成功,使得 !abc 没有值
-         *    经过测试,cad08调用成功,此bug与CommandFlags无关
+         *    AcedEvaluateLisp 接口
+         *    在高版本调用时候没有运行成功,使得 !abc 没有值
+         *    在cad08成功,此bug与CommandFlags无关
          * 解决方案:
          *   0x01 用异步接口,但是这样是显式调用了:
          *        (setq thisdrawing (vla-get-activedocument (vlax-get-acad-object)))(vla-SendCommand thisdrawing "CmdTest_RunLisp1 ")
@@ -1083,6 +1084,62 @@ public static class EditorEx
             doc.SendStringToExecute(lispCode + "\n", false, false, false);
         }
         return null;
+    }
+    #endregion
+
+    #region Export
+    /// <summary>
+    /// 输出WMF<br/>
+    /// </summary>
+    /// <param name="editor">命令行对象</param>
+    /// <param name="saveFile">保存文件</param>
+    /// <param name="ids">选择集的对象,为null时候手选</param>
+    /// <param name="wmfSetDel">是否清空选择集</param>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static void ExportWMF(this Editor editor, string saveFile,
+                                 ObjectId[]? ids = null, bool wmfSetDel = false)
+    {
+        if (string.IsNullOrEmpty(saveFile))
+            throw new ArgumentNullException(nameof(saveFile));
+        if (File.Exists(saveFile))
+            throw new FileFormatException("文件重复:" + saveFile);
+
+        var dm = Acap.DocumentManager;
+        if (dm.Count == 0)
+            return;
+
+        // 剔除后缀
+        int dot = saveFile.LastIndexOf('.');
+        if (dot != -1)
+        {
+            // 因为文件名可以有.所以后缀点必须是最后\的后面
+            int s = saveFile.LastIndexOf('\\');
+            if (s < dot)
+                saveFile = saveFile.Substring(0, dot);
+        }
+
+        // ActiveSelectionSet:
+        // 第一次执行会触发选择,
+        // 再次重复命令执行的时候,它会无法再选择
+        // 因此此处选择一次,此时必然有当前选择集,它就直接获取当前选择集
+        if (ids == null || ids.Length == 0)
+        {
+            var psr = editor.SelectImplied();// 预选
+            if (psr.Status != PromptStatus.OK)
+                psr = editor.GetSelection();// 手选
+            if (psr.Status != PromptStatus.OK)
+                return;
+        }
+#if zcad
+        var com = Acap.ZcadApplication;
+#else
+        var com = Acap.AcadApplication;
+#endif
+        var doc = com.GetProperty("ActiveDocument");
+        var wmfSet = doc.GetProperty("ActiveSelectionSet");
+        doc.Invoke("Export", saveFile, "wmf", wmfSet); // JPGOUT,PNGOUT
+        if (wmfSetDel)
+            wmfSet.Invoke("Delete");
     }
     #endregion
 }
