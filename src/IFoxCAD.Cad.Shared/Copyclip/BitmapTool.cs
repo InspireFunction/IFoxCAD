@@ -34,15 +34,6 @@ public class BitmapTool
     public static extern IntPtr CreateCompatibleDC([In] IntPtr hdc);
 
     /// <summary>
-    /// 获取窗口客户区的大小,客户区为窗口中除标题栏,菜单栏之外的地方
-    /// </summary>
-    /// <param name="hwnd"></param>
-    /// <param name="lpRect"></param>
-    /// <returns></returns>
-    [DllImport("user32.dll", CharSet = CharSet.Auto, EntryPoint = "GetClientRect")]
-    public static extern bool GetClientRect(IntPtr hwnd, out IntRect lpRect);
-
-    /// <summary>
     /// Creates a bitmap compatible with the device that is associated with the specified device context.
     /// </summary>
     /// <param name="hdc">A handle to a device context.</param>
@@ -139,7 +130,7 @@ public class BitmapTool
         if (hMemDC == IntPtr.Zero)
             return;
 
-        GetClientRect(hWnd, out IntRect rcClient);
+        WindowsAPI.GetClientRect(hWnd, out IntRect rcClient);
         int width = rcClient.Right - rcClient.Left;
         int height = rcClient.Bottom - rcClient.Top;
 

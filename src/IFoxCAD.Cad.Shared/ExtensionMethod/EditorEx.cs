@@ -1090,6 +1090,7 @@ public static class EditorEx
     #region Export
     /// <summary>
     /// 输出WMF<br/>
+    /// 此函数不适用于后台
     /// </summary>
     /// <param name="editor">命令行对象</param>
     /// <param name="saveFile">保存文件</param>
@@ -1119,9 +1120,8 @@ public static class EditorEx
         }
 
         // ActiveSelectionSet:
-        // 第一次执行会触发选择,
-        // 再次重复命令执行的时候,它会无法再选择
-        // 因此此处选择一次,此时必然有当前选择集,它就直接获取当前选择集
+        // 第一次执行会触发选择,再次重复命令执行的时候,它会无法再选择(即使清空选择集).
+        // 因此此处netAPI进行选择,它就能读取当前选择集缓冲区的对象
         if (ids == null || ids.Length == 0)
         {
             var psr = editor.SelectImplied();// 预选

@@ -212,7 +212,16 @@ public struct Point3D
     }
 }
 
-public class ClipTool
+/*
+ * OLE 剪贴板说明
+ * https://blog.csdn.net/chinabinlang/article/details/9815495
+ *
+ * 感觉如果桌子真的是这样做,那么粘贴链接可能还真没法做成.
+ * 1,不知道桌子如何发送wmf文件,是结构体传送,还是文件路径传送.
+ * 2,不知道桌子如何接收剪贴板数据,是延迟接收还是一次性写入全局变量或者文件.
+ */
+
+public partial class ClipTool
 {
     /// <summary>
     /// 侦听剪贴板
@@ -338,7 +347,10 @@ public class ClipTool
         finally
         {
             for (int i = 0; i < freeDatas.Count; i++)
-                WindowsAPI.GlobalFree(freeDatas[i]);
+            {
+                //WindowsAPI.GlobalFree(freeDatas[i]);
+                Marshal.FreeHGlobal(freeDatas[i]);
+            }
             if (openFlag)
                 CloseClipboard();
         }
@@ -370,9 +382,6 @@ public class ClipTool
         return flag;
     }
 
-    // 申请的内存必须为可移动
-    public const uint GMEM_MOVEABLE = 0x0002;
-
     /// <summary>
     /// 获取剪贴板对象信息<br/>
     /// <a href = "https://learn.microsoft.com/zh-cn/windows/win32/dataxchg/clipboard-operations">微软链接</a>
@@ -394,7 +403,11 @@ public class ClipTool
          */
 
         clipKeyFormat = RegisterClipboardFormat(clipKey);
-        clipTypeData = WindowsAPI.GlobalAlloc(GMEM_MOVEABLE, Marshal.SizeOf(typeof(T)));
+
+        // const uint GMEM_MOVEABLE = 0x0002;//剪贴板需要的类型
+        // clipTypeData = WindowsAPI.GlobalAlloc(GMEM_MOVEABLE, Marshal.SizeOf(typeof(T)));
+        clipTypeData = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(T)));
+
         bool lockFlag = WindowsAPI.GlobalLockTask(clipTypeData, ptr => {
             // 托管对象->非托管内存块
             Marshal.StructureToPtr(clipType, ptr, true);
@@ -404,6 +417,85 @@ public class ClipTool
         return true;
     }
 }
+
+public static class ClipEx
+{
+    // https://blog.csdn.net/vencon_s/article/details/46345083
+
+    /// <summary>
+    /// 剪贴板数据保存目标数据列表
+    /// </summary>
+    static readonly List<byte[]> _bytes = new();
+    /// <summary>
+    /// 剪贴板数据类型列表
+    /// </summary>
+    static readonly List<uint> _formats = new();
+
+    /// <summary>
+    /// 遍历剪贴板保存内容
+    /// </summary>
+    /// <returns>true成功,false失败</returns>
+    public static bool SaveClip()
+    {
+        bool result = ClipTool.OpenClipboardTask(free => {
+            _bytes.Clear();
+            _formats.Clear();
+
+            uint cf = 0;
+            while (true)
+            {
+                cf = ClipTool.EnumClipboardFormats(cf);// 枚举剪贴板所有数据类型
+                if (cf == 0)
+                    break;
+
+                _formats.Add(cf);
+                IntPtr hMem = ClipTool.GetClipboardData(cf);
+                WindowsAPI.GlobalLockTask(hMem, prt => {
+                    uint size = WindowsAPI.GlobalSize(hMem);
+                    if (size > 0)
+                    {
+                        var buffer = new byte[size];
+                        Marshal.Copy(prt, buffer, 0, buffer.Length);// 将剪贴板数据保存到自定义字节数组
+                        _bytes.Add(buffer);
+                    }
+                });
+            }
+        }, false);
+        if (result)
+            result = _formats.Count > 0;
+        return result;
+    }
+
+    /// <summary>
+    /// 恢复保存的数据
+    /// </summary>
+    /// <returns>true成功,false失败</returns>
+    public static bool RestoreClip()
+    {
+        if (_formats.Count <= 0)
+            return false;
+
+        bool result = ClipTool.OpenClipboardTask(free => {
+            for (int i = 0; i < _formats.Count; i++)
+            {
+                int size = _bytes[i].Length;
+                IntPtr si = Marshal.AllocHGlobal(size);
+                if (size > 0)
+                {
+                    Marshal.Copy(_bytes[i], 0, si, size);
+                    ClipTool.SetClipboardData(_formats[i], si);
+                }
+            }
+        }, true);
+
+        if (result)
+            result = _formats.Count > 0;
+        return result;
+    }
+}
+
+
+
 
 /// <summary>
 /// 剪贴板的CF,也就是它的key

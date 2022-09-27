@@ -4,7 +4,11 @@
 
 namespace Test;
 using Autodesk.AutoCAD.DatabaseServices;
+using System.Diagnostics;
+using System.Drawing.Imaging;
 using System.Threading;
+using System.Windows;
+using static HarmonyLib.Code;
 
 /*
  * 0x01 (已完成)
@@ -246,17 +250,9 @@ public class Copyclip
             });
 
             // 大于dwg07格式的,保存为07,以实现高低版本通用剪贴板
-            // 小于dwg07格式的,本工程没有支持cad06dll,所以这里仅为展示
+            // 小于dwg07格式的,本工程没有支持cad06dll
             if ((int)DwgVersion.Current >= 27)
-            {
                 fileTr.SaveFile((DwgVersion)27, false);
-            }
-            else
-            {
-#pragma warning disable CS0162 // 检测到无法访问的代码
-                fileTr.SaveFile();
-#pragma warning restore CS0162 // 检测到无法访问的代码
-            }
         }
 
         // 剪切时候删除
@@ -270,83 +266,103 @@ public class Copyclip
 
         #region 写入 WMF 数据
         var wmf = Path.ChangeExtension(cadClipType.File, "wmf");
-        Env.Editor.ExportWMF(wmf, idArray);
 
-        //using var mf = new Metafile(wmf);
-        //IntPtr emfHandle = mf.GetHenhmetafile();
+        int a1 = 1;
+        if (a1 == 1)
+        {
+            // 导出的可能只是wmf其中一个字段
+            // cad命令 wmfin:不能导入 c# Graphics类 自绘的
+            // https://www.cnblogs.com/5iedu/p/4706327.html
+            Env.Editor.ExportWMF(wmf, idArray);
+        }
+        if (a1 == 2)
+        {
+            // 这是c#写入wmf流程
+            // c#画的wmf格式是可以的...用这样方式生成的就是可以写剪贴板
+            WindowsAPI.GetClientRect(doc.Window.Handle, out IntRect rcClient);
+            int width = rcClient.Right - rcClient.Left;
+            int height = rcClient.Bottom - rcClient.Top;
+            EmfTool.Export(wmf, width, height);
+        }
+
+        // 这里能够读出 cad wmf 签名
+        {
+            var javaByte = WMF_java.OpinionHead(wmf);
+            // 此处转失败
+            // WmfStr WmfStr = new();
+            // bool ja = WindowsAPI.BytesToStuct(javaByte, out WmfStr);
+        }
+
+        //wmf指针
+        IntPtr wmfMeta = IntPtr.Zero;
+        int a2 = 1;
+        if (a2 == 1)
+        {
+            wmfMeta = GetMetafile(wmf);
+        }
+        if (a2 == 2)
+        {
+            wmfMeta = WindowsAPI.CreateFile(wmf,
+                       FileAccess.Read, FileShare.ReadWrite,
+                       IntPtr.Zero, FileMode.Open,
+                       FileAttributes.Normal, IntPtr.Zero);
+        }
+        if (a2 == 3)
+        {
+            // 不成功
+            using FileStream wmfFile = new(wmf, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); // FileShare才能进c盘
+            var fileByte = new byte[wmfFile.Length];
+            wmfFile.Read(fileByte, 0, fileByte.Length);
+            if (fileByte.Length > 0)
+            {
+                wmfMeta = Marshal.AllocHGlobal(fileByte.Length);
+                Marshal.Copy(fileByte, 0, wmfMeta, fileByte.Length);
+            }
+        }
+
+        if (wmfMeta == IntPtr.Zero)
+        {
+            var errorNum = WindowsAPI.GetLastError();
+            if (errorNum == 6)
+                Debug.WriteLine("WMF错误:句柄无效!");
+            else
+                Debug.WriteLine("WMF错误:" + errorNum);
+        }
         #endregion
 
-        /*
-         * 剪贴板说明
-         * https://blog.csdn.net/chinabinlang/article/details/9815495
-         *
-         * 看了这ole剪贴板,感觉如果桌子真的是这样做,那么粘贴链接可能还真没法做成.
-         * 1,不知道桌子如何发送wmf文件,是结构体传送,还是文件路径传送.
-         * 2,不知道桌子如何接收剪贴板数据,是延迟接收还是一次性写入全局变量或者文件.
-         * https://blog.csdn.net/chinabinlang/article/details/9815495
-         */
-        /// 必须一次性写入剪贴板,详见<see cref="ClipTool.OpenClipboardTask"/>说明
+        /// 必须一次性写入剪贴板,详见 OpenClipboardTask
         bool getFlag = false;
-        ClipTool.OpenClipboardTask((freeDatas) => {
+        ClipTool.OpenClipboardTask(free => {
             getFlag = ClipTool.GetClipboardFormat(
                 ClipboardEnv.CadVer, cadClipType,
                 out uint cadClipFormat, out IntPtr cadClipData);
-            freeDatas.Add(cadClipData);
 
             // 写入cad图元
             ClipTool.SetClipboardData(cadClipFormat, cadClipData);
+            free.Add(cadClipData);
 
+            // c# cad截图 https://www.cnblogs.com/shangdishijiao/p/15166499.html
             // 写入BMP位图...这是截图,不是WMF转BMP,不对
-            BitmapTool.CaptureWndImage(doc.Window.Handle, bitmapHandle => {
-                ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
-            });
+            //BitmapTool.CaptureWndImage(doc.Window.Handle, bitmapHandle => {
+            //    ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
+            //});
 
-
-            // 写入WMF
-            // MFC类 CMetaFileDC 不知道怎么做...
-            // https://blog.csdn.net/glt3953/article/details/8808262
-            // ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, wmfHandle);
-
-            // c# WMF转换文件
-            // https://blog.csdn.net/u013419838/article/details/100154891
-            //using MemoryStream ms = new(File.ReadAllBytes(wmf));
-            //using GZipStream gzipStream = new(ms, CompressionMode.Decompress);
-            //using MemoryStream outStream = new();
-            //int readCount;
-            //byte[] data = new byte[2048];
-            //do
-            //{
-            //    readCount = gzipStream.Read(data, 0, data.Length);
-            //    outStream.Write(data, 0, readCount);
-            //} while (readCount == data.Length);
-            // outStream.GetBuffer()
-
-            //ClipTool.GetClipboardFormat(
-            //  System.Windows.Forms.DataFormats.EnhancedMetafile, emfClipType,
-            //     out uint emfClipFormat, out IntPtr emfClipData);
-            //freeDatas.Add(emfClipData);
-
-            // 没效果
-            // using var mf = new Metafile(wmf);
-            // IntPtr emfHandle = mf.GetHenhmetafile();
-            //if (emfHandle != IntPtr.Zero)
-            //{
-            //    ClipTool.SetClipboardData(
-            //       ClipTool.RegisterClipboardFormat(System.Windows.Forms.DataFormats.EnhancedMetafile),
-            //       emfHandle);
-            //}
-
-            /*
-             * 文件结构
-             * https://www.vuln.cn/6358#:~:text=%20%E4%B8%8B%E9%9D%A2%E7%AE%80%E8%A6%81%E4%BB%8B%E7%BB%8D%E4%B8%80%E4%B8%8BEMF%E6%96%87%E4%BB%B6%E7%9A%84%E7%BB%93%E6%9E%84%EF%BC%8CEMF%E6%96%87%E4%BB%B6%E7%94%B1%E5%8F%AF%E5%8F%98%E5%A4%A7%E5%B0%8F%E7%9A%84%E5%85%83%E6%96%87%E4%BB%B6%E5%9D%97%E7%BB%84%E6%88%90%E3%80%82,%E6%AF%8F%E4%B8%AA%E5%85%83%E6%96%87%E4%BB%B6%E5%9D%97%E9%83%BD%E6%98%AF%E4%B8%80%E4%B8%AA%E5%8F%AF%E5%8F%98%E9%95%BF%E5%BA%A6%E7%9A%84ENHMETARECORD%E7%BB%93%E6%9E%84%EF%BC%8C%E7%BB%93%E6%9E%84%E5%A6%82%E4%B8%8B%E3%80%82%20SDK%E4%B8%AD%E5%AE%9A%E4%B9%89%E4%BA%86%E4%B8%8D%E5%90%8C%E7%9A%84iType%E7%B1%BB%E5%9E%8B%EF%BC%8C%E5%A6%82%E4%B8%8B%E6%89%80%E7%A4%BA%E3%80%82%20%E6%A0%B9%E6%8D%AEiType%E7%B1%BB%E5%9E%8B%E7%9A%84%E4%B8%8D%E5%90%8C%EF%BC%8CdParm%E6%98%AF%E4%B8%8D%E5%90%8C%E7%9A%84%E7%BB%93%E6%9E%84%EF%BC%8CEMR_SETDIBITSTODEVICE%E5%AF%B9%E5%BA%94%E7%9A%84%E7%BB%93%E6%9E%84%E6%98%AFEMRSETDIBITSTODEVICE%E3%80%82
-             * https://blog.csdn.net/juma/article/details/2200023 有代码抄
-             * https://www.cnblogs.com/5iedu/p/4706327.html
-             * https://vimsky.com/examples/detail/csharp-ex-System.Runtime.InteropServices.ComTypes-STGMEDIUM---class.html
-             * https://blog.csdn.net/qq_45533841/article/details/106011204
-             *
-             * 搞不定...
-             */
+            // TODO 写入wmf
+            if (wmfMeta != IntPtr.Zero)
+            {
+                ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, wmfMeta);
+                EmfTool.DeleteEnhMetaFile(wmfMeta);
+            }
         }, true);
+
+        if (a2 == 2)
+        {
+            WindowsAPI.CloseHandle(wmfMeta);
+        }
+        if (a2 == 3)
+        {
+            Marshal.FreeHGlobal(wmfMeta);
+        }
 
         // 成功拷贝就删除上一次的临时文件
         if (getFlag)
@@ -357,6 +373,23 @@ public class Copyclip
             _delFile.Add(cadClipType.File);
         if (!_delFile.Contains(wmf))
             _delFile.Add(wmf);
+    }
+
+    static IntPtr GetMetafile(string wmf)
+    {
+        var hEMF2 = IntPtr.Zero;
+
+        // 这是c#写入wmf流程
+        // FileShare才能进c盘
+        using FileStream wmfFile = new(wmf, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+        using Metafile mf = new(wmfFile);
+        var hEMF = mf.GetHenhmetafile();
+        if (hEMF != IntPtr.Zero)
+        {
+            hEMF2 = EmfTool.CopyEnhMetaFile(hEMF, null);// 这句: 句柄无效..cad的wmf文件不识别
+            //EmfTool.DeleteEnhMetaFile(hEMF);//托管类应该是封装好的
+        }
+        return hEMF2;
     }
 
 
@@ -396,13 +429,6 @@ public class Copyclip
             return;
 
         using var tr = new DBTrans();
-
-        // 给辰的测试
-        //var pr = tr.Editor?.GetPoint("aaa");
-        //if (pr != null && pr.Status == PromptStatus.OK)
-        //    tr.Editor?.WriteMessage("获取了点:" + pr.Value);
-
-
         tr.Editor?.SetImpliedSelection(new ObjectId[0]); // 清空选择集
 
         // 新建块表记录
@@ -474,6 +500,45 @@ public class Copyclip
             using (btr.ForWrite())
                 btr.Erase();
         }
+
+        #region 读取剪贴板WMF
+#if true2
+        // win32api 不成功
+        ClipTool.OpenClipboardTask((freeDatas) => {
+            // 剪贴板数据保存目标数据列表
+            List<byte[]> _bytes = new();
+            var hMem = ClipTool.GetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE);
+            WindowsAPI.GlobalLockTask(hMem, prt => {
+                uint size = WindowsAPI.GlobalSize(hMem);
+                if (size > 0)
+                {
+                    var buffer = new byte[size];
+                    Marshal.Copy(prt, buffer, 0, buffer.Length);// 将剪贴板数据保存到自定义字节数组
+                    _bytes.Add(buffer);
+                }
+            });
+        }, false);
+#else
+        try
+        {
+            // c# 读取成功
+            if (Clipboard.ContainsData(DataFormats.EnhancedMetafile))
+            {
+                var iData = Clipboard.GetDataObject();//从剪切板获取数据
+                if (!iData.GetDataPresent(DataFormats.EnhancedMetafile))
+                    return;
+
+                //定义图形-图元文件
+                var metafile = (Metafile)iData.GetData(DataFormats.EnhancedMetafile);
+                Env.Printl("Metafile:" + metafile.Size.ToString());
+            }
+        }
+        catch (Exception e)
+        {
+            throw;
+        }
+#endif
+        #endregion
     }
 
     /// <summary>
@@ -582,3 +647,38 @@ public class Copyclip
 //            action.Invoke(id);
 //    }
 //}
+
+
+#if true2
+
+public class TestImageFormat
+{
+    public ImageFormat GetFormat(string filename)
+    {
+        string ext = Path.GetExtension(filename).ToLower();
+        var imf = ext switch
+        {
+            ".bmp" => ImageFormat.Bmp,
+            ".gif" => ImageFormat.Gif,
+            ".jpg" => ImageFormat.Jpeg,
+            ".tif" => ImageFormat.Tiff,
+            ".wmf" => ImageFormat.Wmf,
+            ".png" => ImageFormat.Png,
+            _ => throw new NotImplementedException(),
+        };
+        return imf;
+    }
+
+    [CommandMethod("CPI")]
+    public void CreatePreviewImage()
+    {
+        // Get the size of the document and capture the preview at that size
+        var size = Document.Window.DeviceIndependentSize;
+        using (var bmp = Document.CapturePreviewImage(Convert.ToUInt32(size.Width), Convert.ToUInt32(size.Height)))
+        {
+            // Save the file with the format derived from the filename
+            bmp.Save(outFile, GetFormat(outFile));
+        }
+    }
+}
+#endif
