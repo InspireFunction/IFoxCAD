@@ -197,3 +197,34 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 
 8. 未完待续。。。。
 
+
+
+
+
+#### 屏蔽IFox.Basal的元组功能
+
+由于c#在每个版本提供的元组功能不一样,所以IFox内置了元组功能,但是内置元组又会引起某些用户的工程冲突.
+
+因此您需要制作一个影子工程:
+
+1. 您需要具备使用git子模块的能力,引用jing分支中的源码.
+
+2. 子模块是为了保证可以不破坏IFox项目的实现更新.
+
+3. 新建 XX.Basal 文件夹
+
+4. 复制 IFox.Basal 的 .csproj 到上一步的文件夹,将其改为你的 XX.Basal
+
+5. 修改上一步的. csproj 引入nuget: `System.ValueTuple`
+
+6. 利用引用链接的方式进行引用 IFox.Basal 的文件,具体引用的依照自己喜欢,不引用CLS就等于屏蔽了元组
+
+   ```xml
+   <ItemGroup>
+       <Compile Include="..\ifoxcad\src\IFoxCAD.Basal\General\*.cs" Link="General\%(FileName)%(Extension)" />
+       <Compile Include="..\ifoxcad\src\IFoxCAD.Basal\Sortedset\*.cs" Link="Sortedset\%(FileName)%(Extension)" />
+   </ItemGroup>
+   ```
+
+这个方法可以把 XX.Basal 独立在IFox子模块外,令git pull仍然有效,并且 IFox.Basal 不做大更改的时候影子工程更新幅度非常少.
+
