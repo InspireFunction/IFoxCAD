@@ -230,7 +230,7 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 
 5. 修改 .csproj(影) 引入微软提供的元组 nuget: `System.ValueTuple` (或者你喜欢的)
 
-6. 解决方案加入 .csproj(影) 之后被解决方案的其他成员进行引用.
+6. 解决方案加入 .csproj(影) 之后被内部其他项目引用.
  
 这个方法便可以把 影子工程 独立在IFox项目外,令`git pull`仍然有效,
 
