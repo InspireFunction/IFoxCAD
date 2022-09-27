@@ -208,16 +208,15 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 因此您需要制作一个影子工程:
 
 1. 您需要具备使用git子模块的能力,引用jing分支中的源码.
+   子模块是为了保证您不修改IFox项目,因为你需要定期`git pull`更新组织提供的内容.
 
-2. 子模块是为了保证可以不破坏IFox项目的实现更新.
+2. 新建 XX.Basal 文件夹
 
-3. 新建 XX.Basal 文件夹
+3. 复制 IFox.Basal 的 .csproj 到上一步的文件夹,将其改为你的 XX.Basal
 
-4. 复制 IFox.Basal 的 .csproj 到上一步的文件夹,将其改为你的 XX.Basal
+4. 修改上一步的 .csproj 引入nuget: `System.ValueTuple`
 
-5. 修改上一步的. csproj 引入nuget: `System.ValueTuple`
-
-6. 利用引用链接的方式进行引用 IFox.Basal 的文件,具体引用的依照自己喜欢,不引用CLS就等于屏蔽了元组
+5. 利用引用链接的方式进行引用 IFox.Basal 的文件,具体引用的依照自己喜欢,不引用CLS就等于屏蔽了元组
 
    ```xml
    <ItemGroup>
@@ -226,5 +225,5 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
    </ItemGroup>
    ```
 
-这个方法可以把 XX.Basal 独立在IFox子模块外,令git pull仍然有效,并且 IFox.Basal 不做大更改的时候影子工程更新幅度非常少.
+这个方法便可以把 XX.Basal 独立在IFox项目外,令`git pull`仍然有效,并且 IFox.Basal 不做大更改的时候,影子工程更新幅度非常少.
 
