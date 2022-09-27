@@ -203,20 +203,23 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 
 #### 屏蔽IFox.Basal的元组功能
 
-由于c#在每个版本提供的元组功能不一样,所以IFox内置了元组功能,但是内置元组又会引起某些用户的工程冲突.
+由于c#在每个版本提供的元组功能不一样(有的中间版本缺少),所以IFox内置了元组功能,但是内置元组又会引起某些用户的工程冲突.
 
 因此您需要制作一个影子工程:
 
 1. 您需要具备使用git子模块的能力,引用jing分支中的源码.
+
    子模块是为了保证您不修改IFox项目,因为你需要定期`git pull`更新组织提供的内容.
 
-2. 新建 XX.Basal 文件夹
+   熟悉子模块之后,你需要把IFox项目一个个加入你的解决方案,
 
-3. 复制 IFox.Basal 的 .csproj 到上一步的文件夹,将其改为你的 XX.Basal
+   除了本次主角IFox.Basal.
 
-4. 修改上一步的 .csproj 引入nuget: `System.ValueTuple`
+2. 在子模块文件夹外新建 IFox.Basal(影) 文件夹
 
-5. 利用引用链接的方式进行引用 IFox.Basal 的文件,具体引用的依照自己喜欢,不引用CLS就等于屏蔽了元组
+3. 复制 IFox.Basal(本) 的 .csproj 到上一步的文件夹.
+
+4. 修改 .csproj(影) 利用引用链接的方式进行引用 IFox.Basal(本) 的文件,不引用CLS就等于屏蔽了元组
 
    ```xml
    <ItemGroup>
@@ -225,5 +228,11 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
    </ItemGroup>
    ```
 
-这个方法便可以把 XX.Basal 独立在IFox项目外,令`git pull`仍然有效,并且 IFox.Basal 不做大更改的时候,影子工程更新幅度非常少.
+5. 修改 .csproj(影) 引入微软提供的元组 nuget: `System.ValueTuple` (或者你喜欢的)
+
+6. 解决方案加入 .csproj(影) 之后被解决方案的其他成员进行引用.
+ 
+这个方法便可以把 影子工程 独立在IFox项目外,令`git pull`仍然有效,
+
+并且 本体工程 不做大更改的时候,影子工程更新幅度非常少,也多亏csproj改版了,不然也没有这个骚操作.
 
