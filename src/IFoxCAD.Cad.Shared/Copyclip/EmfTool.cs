@@ -258,12 +258,13 @@ public static class EmfTool
         wmfFile.Read(fileByte, 0, fileByte.Length);
         wmfFile.Close();
 
-        bool bts = WindowsAPI.BytesToStruct(fileByte, out PlaceableMetaHeader structWMF, out int iOffset);
+        bool bts = WindowsAPI.BytesToStruct(fileByte, out PlaceableMetaHeader sWMF, out int sWMFsize);
         if (!bts)
             throw new IOException("失败:类型转换,路径:" + wmfFile);
 
-        if (structWMF.IsActivity)
-            iOffset = Marshal.SizeOf(typeof(PlaceableMetaHeader));
+        int iOffset = 0;
+        if (sWMF.IsActivity)
+            iOffset = sWMFsize;
 
         // byte[] 指针偏移 https://blog.csdn.net/i0048egi/article/details/56063494
         GCHandle hObject1 = GCHandle.Alloc(fileByte.Skip(iOffset).ToArray(), GCHandleType.Pinned);
