@@ -267,13 +267,14 @@ public class Copyclip
         #region 写入 WMF 数据
         var wmf = Path.ChangeExtension(cadClipType.File, "wmf");
 
+        //wmf指针
+        IntPtr wmfMeta = IntPtr.Zero;
+
         int a1 = 1;
         if (a1 == 1)
         {
-            // 导出的可能只是wmf其中一个字段
-            // cad命令 wmfin:不能导入 c# Graphics类 自绘的
-            // https://www.cnblogs.com/5iedu/p/4706327.html
             Env.Editor.ExportWMF(wmf, idArray);
+            wmfMeta = EmfTool.CadGetMetafile(wmf);
         }
         if (a1 == 2)
         {
@@ -282,51 +283,10 @@ public class Copyclip
             WindowsAPI.GetClientRect(doc.Window.Handle, out IntRect rcClient);
             int width = rcClient.Right - rcClient.Left;
             int height = rcClient.Bottom - rcClient.Top;
-            EmfTool.Export(wmf, width, height);
-        }
+            EmfTool.Export(wmf, width, height);//cad的命令wmfin:不能导入c#自绘的
 
-        // 这里能够读出 cad wmf 签名
-        {
-            var javaByte = WMF_java.OpinionHead(wmf);
-            // 此处转失败
-            // WmfStr WmfStr = new();
-            // bool ja = WindowsAPI.BytesToStuct(javaByte, out WmfStr);
-        }
-
-        //wmf指针
-        IntPtr wmfMeta = IntPtr.Zero;
-        int a2 = 1;
-        if (a2 == 1)
-        {
-            wmfMeta = GetMetafile(wmf);
-        }
-        if (a2 == 2)
-        {
-            wmfMeta = WindowsAPI.CreateFile(wmf,
-                       FileAccess.Read, FileShare.ReadWrite,
-                       IntPtr.Zero, FileMode.Open,
-                       FileAttributes.Normal, IntPtr.Zero);
-        }
-        if (a2 == 3)
-        {
-            // 不成功
-            using FileStream wmfFile = new(wmf, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); // FileShare才能进c盘
-            var fileByte = new byte[wmfFile.Length];
-            wmfFile.Read(fileByte, 0, fileByte.Length);
-            if (fileByte.Length > 0)
-            {
-                wmfMeta = Marshal.AllocHGlobal(fileByte.Length);
-                Marshal.Copy(fileByte, 0, wmfMeta, fileByte.Length);
-            }
-        }
-
-        if (wmfMeta == IntPtr.Zero)
-        {
-            var errorNum = WindowsAPI.GetLastError();
-            if (errorNum == 6)
-                Debug.WriteLine("WMF错误:句柄无效!");
-            else
-                Debug.WriteLine("WMF错误:" + errorNum);
+            //c#方法,但是它读取不了cad的wmf
+            wmfMeta = EmfTool.GetMetafile(wmf);
         }
         #endregion
 
@@ -347,22 +307,12 @@ public class Copyclip
             //    ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
             //});
 
-            // TODO 写入wmf
             if (wmfMeta != IntPtr.Zero)
             {
                 ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, wmfMeta);
                 EmfTool.DeleteEnhMetaFile(wmfMeta);
             }
         }, true);
-
-        if (a2 == 2)
-        {
-            WindowsAPI.CloseHandle(wmfMeta);
-        }
-        if (a2 == 3)
-        {
-            Marshal.FreeHGlobal(wmfMeta);
-        }
 
         // 成功拷贝就删除上一次的临时文件
         if (getFlag)
@@ -373,23 +323,6 @@ public class Copyclip
             _delFile.Add(cadClipType.File);
         if (!_delFile.Contains(wmf))
             _delFile.Add(wmf);
-    }
-
-    static IntPtr GetMetafile(string wmf)
-    {
-        var hEMF2 = IntPtr.Zero;
-
-        // 这是c#写入wmf流程
-        // FileShare才能进c盘
-        using FileStream wmfFile = new(wmf, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-        using Metafile mf = new(wmfFile);
-        var hEMF = mf.GetHenhmetafile();
-        if (hEMF != IntPtr.Zero)
-        {
-            hEMF2 = EmfTool.CopyEnhMetaFile(hEMF, null);// 这句: 句柄无效..cad的wmf文件不识别
-            //EmfTool.DeleteEnhMetaFile(hEMF);//托管类应该是封装好的
-        }
-        return hEMF2;
     }
 
 
@@ -517,6 +450,16 @@ public class Copyclip
                     _bytes.Add(buffer);
                 }
             });
+
+            //{
+            //    var size = Marshal.SizeOf(typeof(PlaceableMetaHeader));
+            //    if (size > 0)
+            //    {
+            //        var buffer = new byte[size];
+            //        Marshal.Copy(hMem, buffer, 0, buffer.Length);// 将剪贴板数据保存到自定义字节数组
+            //        _bytes.Add(buffer);
+            //    }
+            //}
         }, false);
 #else
         try

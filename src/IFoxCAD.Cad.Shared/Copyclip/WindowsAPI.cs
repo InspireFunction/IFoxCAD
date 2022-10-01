@@ -123,20 +123,21 @@ public class WindowsAPI
     /// </summary>
     /// <param name="bytes">byte数组</param>
     /// <param name="obj">返回的结构体</param>
+    /// <param name="typeSize">返回的结构大小</param>
     /// <returns>转换后的结构体</returns>
-    public static bool BytesToStuct<T>(byte[] bytes, out T? obj)
+    public static bool BytesToStruct<T>(byte[] bytes, out T? obj, out int typeSize)
     {
         obj = default;
         var tt = typeof(T);
         // 得到结构体的大小
-        int size = Marshal.SizeOf(tt);
-        if (size > bytes.Length)
+        typeSize = Marshal.SizeOf(tt);
+        if (typeSize > bytes.Length)
             return false;
 
         // 分配结构体大小的内存空间
-        IntPtr structPtr = Marshal.AllocHGlobal(size);
+        IntPtr structPtr = Marshal.AllocHGlobal(typeSize);
         // 将byte数组拷到分配好的内存空间
-        Marshal.Copy(bytes, 0, structPtr, size);
+        Marshal.Copy(bytes, 0, structPtr, typeSize);
         // 将内存空间转换为目标结构体
         obj = (T)Marshal.PtrToStructure(structPtr, tt);
         // 释放内存空间
@@ -147,7 +148,7 @@ public class WindowsAPI
     /// <summary>
     /// 结构体转byte数组
     /// </summary>
-    /// <param name="structObj"> 要转换的结构体 </param>
+    /// <param name="structObj">要转换的结构体</param>
     /// <returns> 转换后的byte数组 </returns>
     public static byte[] StructToBytes(object structObj)
     {
