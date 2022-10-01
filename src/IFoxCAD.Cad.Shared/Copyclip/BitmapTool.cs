@@ -25,6 +25,9 @@ public class BitmapTool
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetDC(IntPtr hWnd);
 
+    [DllImport("user32.dll")]
+    public static extern bool ReleaseDC(IntPtr hWnd, IntPtr hDC);
+
     /// <summary>
     /// 创建DC
     /// </summary>

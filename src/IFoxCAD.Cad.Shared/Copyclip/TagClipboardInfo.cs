@@ -344,13 +344,14 @@ public partial class ClipTool
                 EmptyClipboard();
             action.Invoke(freeDatas);
         }
+        catch (Exception e)
+        {
+            Debug.WriteLine(e.Message);
+        }
         finally
         {
             for (int i = 0; i < freeDatas.Count; i++)
-            {
-                //WindowsAPI.GlobalFree(freeDatas[i]);
                 Marshal.FreeHGlobal(freeDatas[i]);
-            }
             if (openFlag)
                 CloseClipboard();
         }
@@ -363,7 +364,7 @@ public partial class ClipTool
     /// <param name="clipKey">剪贴板的索引名</param>
     public static bool GetClipboard<T>(string clipKey, out T? tag)
     {
-        bool flag = false;
+        bool locked = false;
         T? result = default;
 
         OpenClipboardTask(lst => {
@@ -372,14 +373,14 @@ public partial class ClipTool
             var clipTypeData = GetClipboardData(clipKeyFormat);
 
             // 剪贴板的数据拷贝进去结构体中,会依照数据长度进行拷贝
-            flag = WindowsAPI.GlobalLockTask(clipTypeData, ptr => {
+            locked = WindowsAPI.GlobalLockTask(clipTypeData, ptr => {
                 // 非托管内存块->托管对象
                 result = (T)Marshal.PtrToStructure(ptr, typeof(T));
             });
         }, false);
 
         tag = result;
-        return flag;
+        return locked;
     }
 
     /// <summary>
@@ -403,17 +404,11 @@ public partial class ClipTool
          */
 
         clipKeyFormat = RegisterClipboardFormat(clipKey);
-
-        // const uint GMEM_MOVEABLE = 0x0002;//剪贴板需要的类型
-        // clipTypeData = WindowsAPI.GlobalAlloc(GMEM_MOVEABLE, Marshal.SizeOf(typeof(T)));
-        clipTypeData = Marshal.AllocHGlobal(Marshal.SizeOf(typeof(T)));
-
-        bool lockFlag = WindowsAPI.GlobalLockTask(clipTypeData, ptr => {
-            // 托管对象->非托管内存块
-            Marshal.StructureToPtr(clipType, ptr, true);
-        });
-        if (!lockFlag || clipTypeData == IntPtr.Zero)
-            return false;
+        IntPtr res = IntPtr.Zero;
+        WindowsAPI.StructToPtr(clipType, clipPtr => {
+            res = clipPtr;
+        }, false);
+        clipTypeData = res;
         return true;
     }
 }
@@ -449,9 +444,9 @@ public static class ClipEx
                     break;
 
                 _formats.Add(cf);
-                IntPtr hMem = ClipTool.GetClipboardData(cf);
-                WindowsAPI.GlobalLockTask(hMem, prt => {
-                    uint size = WindowsAPI.GlobalSize(hMem);
+                IntPtr clipTypeData = ClipTool.GetClipboardData(cf);
+                var locked = WindowsAPI.GlobalLockTask(clipTypeData, prt => {
+                    uint size = WindowsAPI.GlobalSize(clipTypeData);
                     if (size > 0)
                     {
                         var buffer = new byte[size];

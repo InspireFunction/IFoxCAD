@@ -83,6 +83,18 @@ public struct StandardMetaRecord
 }
 
 
+// https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-metafilepict
+// http://www.cppblog.com/zwp/archive/2012/02/25/60225.html
+[Serializable]
+[StructLayout(LayoutKind.Sequential, Pack = 2)]
+public struct METAFILEPICT
+{
+    public int mm;
+    public int xExt;
+    public int yExt;
+    public IntPtr hMF; //内存图元文件的句柄
+}
+
 public static class EmfTool
 {
     // https://zhidao.baidu.com/question/646739770512964165/answer/1616737219.html?qq-pf-to=pcqq.c2c
@@ -116,19 +128,10 @@ public static class EmfTool
     /// </returns>
     [DllImport("gdi32.dll", EntryPoint = "SetWinMetaFileBits")]
     public static extern IntPtr SetWinMetaFileBits(uint nSize, IntPtr lpMeta16Data, IntPtr hdcRef, IntPtr lpMFP);
-
     /*
-     * [DllImport("gdi32.dll", EntryPoint = "SetWinMetaFileBits")]
-     * public static extern int SetWinMetaFileBits(uint nSize, ref byte lpbBuffer, IntPtr hdcRef, ref METAFILEPICT lpmfp);
-     * // https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-metafilepict
-     * public struct METAFILEPICT
-     * {
-     *     public int mm;
-     *     public int xExt;
-     *     public int yExt;
-     *     public HMETAFILE hMF; //内存图元文件的句柄
-     * }
-     */
+      [DllImport("gdi32.dll", EntryPoint = "SetWinMetaFileBits")]
+      public static extern int SetWinMetaFileBits(uint nSize, ref byte lpbBuffer, IntPtr hdcRef, ref METAFILEPICT lpmfp);
+    */
 
     /// <summary>
     /// 获取矢量图的byte
@@ -243,39 +246,54 @@ public static class EmfTool
     /// <summary>
     /// cad的wmf文件解析,转为emf<br/>
     /// </summary>
-    /// <param name="wmf">文件路径</param>
+    /// <param name="cadWmfFile">文件路径</param>
     /// <returns>emf指针,可以直接写入剪贴板</returns>
     /// <exception cref="IOException"></exception>
-    public static IntPtr CadGetMetafile(string wmf)
+    public static IntPtr CadGetMetafile(string cadWmfFile, IntPtr hWnd, IntRect rect)
     {
-        using FileStream wmfFile = new(wmf, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); // FileShare才能进c盘
-        if (wmfFile.Length == 0)
-            throw new IOException("文件字节0长:" + wmfFile);
-        if (wmfFile.Length < 5)
-            throw new IOException("无法校验文件签名:" + wmfFile);
+        using FileStream file = new(cadWmfFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); // FileShare才能进c盘
+        if (file.Length == 0)
+            throw new IOException("文件字节0长:" + file);
+        if (file.Length < 5)
+            throw new IOException("无法校验文件签名:" + file);
 
-        var fileByte = new byte[wmfFile.Length];
-        wmfFile.Read(fileByte, 0, fileByte.Length);
-        wmfFile.Close();
+        var fileByte = new byte[file.Length];
+        file.Read(fileByte, 0, fileByte.Length);
+        file.Close();
 
         bool bts = WindowsAPI.BytesToStruct(fileByte, out PlaceableMetaHeader sWMF, out int sWMFsize);
         if (!bts)
-            throw new IOException("失败:类型转换,路径:" + wmfFile);
+            throw new IOException("失败:类型转换,路径:" + file);
 
-        int iOffset = 0;
-        if (sWMF.IsActivity)
-            iOffset = sWMFsize;
+        var hDC = BitmapTool.GetDC(hWnd);
+        IntPtr hEMF = IntPtr.Zero;
+        try
+        {
+            var mpType = new METAFILEPICT
+            {
+                mm = 0,//MM_ANISOTROPIC 这里是随便填的不知道 MM_ANISOTROPIC 是什么值
+                xExt = rect.Left,
+                yExt = rect.Top,
+                hMF = IntPtr.Zero
+            };
+            int iOffset = 0;
+            if (sWMF.IsActivity)
+                iOffset = sWMFsize;
+            // byte[] 指针偏移 https://blog.csdn.net/i0048egi/article/details/56063494
+            var arr = fileByte.Skip(iOffset).ToArray();
+            GCHandle hObject1 = GCHandle.Alloc(arr, GCHandleType.Pinned);
 
-        // byte[] 指针偏移 https://blog.csdn.net/i0048egi/article/details/56063494
-        GCHandle hObject1 = GCHandle.Alloc(fileByte.Skip(iOffset).ToArray(), GCHandleType.Pinned);
-
-        //TODO 这里两个0值的设置没有和cad一样有个矩形
-        var hEMF = SetWinMetaFileBits((uint)(fileByte.Length - iOffset),
-                                      hObject1.AddrOfPinnedObject(),
-                                      IntPtr.Zero, IntPtr.Zero);
-        if (hObject1.IsAllocated)
-            hObject1.Free();
-
+            WindowsAPI.StructToPtr(mpType, mpPtr => {
+                //TODO 任务221002 这里末尾两个参数不对,没有跟cad一样有个矩形作为边界
+                hEMF = SetWinMetaFileBits((uint)arr.Length, hObject1.AddrOfPinnedObject(), hDC, mpPtr);
+                if (hObject1.IsAllocated)
+                    hObject1.Free();
+            });
+        }
+        finally
+        {
+            BitmapTool.ReleaseDC(IntPtr.Zero, hDC);
+        }
         if (hEMF == IntPtr.Zero)
             throw new IOException("失败:" + nameof(SetWinMetaFileBits));
         return hEMF;
@@ -285,18 +303,18 @@ public static class EmfTool
     /// <summary>
     /// c#获取wmf方式
     /// </summary>
-    /// <param name="wmf"></param>
+    /// <param name="wmfSave"></param>
     /// <returns></returns>
-    public static IntPtr GetMetafile(string wmf)
+    public static IntPtr GetMetafile(string wmfSave)
     {
-        using FileStream wmfFile = new(wmf, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); // FileShare才能进c盘
+        using FileStream file = new(wmfSave, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); // FileShare才能进c盘
         var hEMF2 = IntPtr.Zero;
 
-        using Metafile mf = new(wmfFile);
+        using Metafile mf = new(file);
         var hEMF = mf.GetHenhmetafile();
         if (hEMF != IntPtr.Zero)
             hEMF2 = CopyEnhMetaFile(hEMF, null);// 这句: 句柄无效..cad的wmf文件不识别
-        //EmfTool.DeleteEnhMetaFile(hEMF);//托管类应该是封装好的
+                                                //EmfTool.DeleteEnhMetaFile(hEMF);//托管类应该是封装好的
         return hEMF2;
     }
 

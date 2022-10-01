@@ -274,7 +274,12 @@ public class Copyclip
         if (a1 == 1)
         {
             Env.Editor.ExportWMF(wmf, idArray);
-            wmfMeta = EmfTool.CadGetMetafile(wmf);
+
+            var hWnd = doc.Window.Handle;
+            WindowsAPI.GetClientRect(hWnd, out IntRect rcClient);
+            int width = rcClient.Right - rcClient.Left;
+            int height = rcClient.Bottom - rcClient.Top;
+            wmfMeta = EmfTool.CadGetMetafile(wmf, hWnd, rcClient);
         }
         if (a1 == 2)
         {
@@ -303,9 +308,9 @@ public class Copyclip
 
             // c# cad截图 https://www.cnblogs.com/shangdishijiao/p/15166499.html
             // 写入BMP位图...这是截图,不是WMF转BMP,不对
-            //BitmapTool.CaptureWndImage(doc.Window.Handle, bitmapHandle => {
-            //    ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
-            //});
+            // BitmapTool.CaptureWndImage(doc.Window.Handle, bitmapHandle => {
+            //     ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
+            // });
 
             if (wmfMeta != IntPtr.Zero)
             {
