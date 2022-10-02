@@ -64,7 +64,8 @@ public class Copyclip
 #if PASTECLIP
         if (up == "PASTECLIP")// 粘贴
         {
-            //TODO === 完成之后此处将会移除
+            // TODO === 完成之后此处将会移除
+            // 粘贴文本的生成单行文字/多行文字,这些还需要自己去实现
             var getClip = ClipTool.GetClipboard(ClipboardEnv.CadVer, out TagClipboardInfo tag);
             if (!getClip)
                 return;
@@ -75,7 +76,7 @@ public class Copyclip
         }
         else if (up == "PASTEBLOCK") //ctrl+shift+v 粘贴为块
         {
-            //TODO === 完成之后此处将会移除
+            // TODO === 完成之后此处将会移除
             var getClip = ClipTool.GetClipboard(ClipboardEnv.CadVer, out TagClipboardInfo tag);
             if (!getClip)
                 return;
@@ -277,11 +278,11 @@ public class Copyclip
             getFlag = ClipTool.GetClipboardFormat(ClipboardEnv.CadVer, cadClipType,
                                      out uint cadClipFormat, out IntPtr cadClipData);
 
-            // 写入cad图元
+            // 写入剪贴板: cad图元
             ClipTool.SetClipboardData(cadClipFormat, cadClipData);
             free.Add(cadClipData);
 
-            // 写入 wmf 使得在粘贴链接的时候可以用
+            // 写入剪贴板: wmf,使得在粘贴链接的时候可以用
             if (wmfMeta != IntPtr.Zero)
             {
                 ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, wmfMeta);
@@ -289,7 +290,7 @@ public class Copyclip
             }
 
             // c# cad截图 https://www.cnblogs.com/shangdishijiao/p/15166499.html
-            // 写入BMP位图...这是截图,不是WMF转BMP,不对
+            // 写入剪贴板: BMP位图,这是截图,不是WMF转BMP,不对
             // BitmapTool.CaptureWndImage(doc.Window.Handle, bitmapHandle => {
             //     ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
             // });
@@ -350,9 +351,8 @@ public class Copyclip
         if (btr == null)
             return;
 
-        // 加入新建的块表记录
-        // 动态块粘贴,然后用:ctrl+z会导致动态块特性无法恢复,
-        /// 是因为它 <see cref=" DuplicateRecordCloning.Replace"/>
+        /// 克隆进块表记录
+        /// 动态块粘贴之后,用ctrl+z导致动态块特性无法恢复,是因为它: <see cref="DuplicateRecordCloning.Replace"/>
         using IdMapping map = new();
         using ObjectIdCollection idc = new(fileEntityIds.ToArray());
         tr.Task(() => {
@@ -416,68 +416,15 @@ public class Copyclip
         }
 
         #region 读取剪贴板WMF
-
-#if true3
-        var cf_metafile = (uint)ClipboardFormat.CF_ENHMETAFILE;
-        var len = EmfTool.GetEnhMetaFileDescription(cf_metafile, 0, null!);
-        var desc = new StringBuilder();  //PTSTR desc = (PTSTR)malloc(sizeof(TCHAR) * (len + 1));
-        len = EmfTool.GetEnhMetaFileDescription(cf_metafile, len, desc);
-
-        var m_grid = new StringBuilder();
-        m_grid.Append(desc);
-
-        len = EmfTool.GetEnhMetaFileHeader(cf_metafile, 0, IntPtr.Zero);
-        IntPtr header = Marshal.AllocHGlobal((int)len);
-        len = EmfTool.GetEnhMetaFileHeader(cf_metafile, len, header);
-
-        // 将内存空间转换为目标结构体
-        var obj = (ENHMETAHEADER)Marshal.PtrToStructure(header, typeof(ENHMETAHEADER));
-        m_grid.Append(obj.nRecords);
-
-        Marshal.FreeHGlobal(header);
-#endif
-
-#if true2
-        // win32api 不成功
-        ClipTool.OpenClipboardTask(free => {
-            // 剪贴板数据保存目标数据列表
-            List<byte[]> _bytes = new();
-            var hMem = ClipTool.GetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE);
-            if (hMem == IntPtr.Zero)
-            {
-                Debug.WriteLine("失败:GetClipboardData");
+        // c# 读取成功,win32直接读取剪贴板的话是不成功的
+        if (Clipboard.ContainsData(DataFormats.EnhancedMetafile))
+        {
+            var iData = Clipboard.GetDataObject();//从剪切板获取数据
+            if (!iData.GetDataPresent(DataFormats.EnhancedMetafile))
                 return;
-            }
-            WindowsAPI.GlobalLockTask(hMem, prt => {
-                uint size = WindowsAPI.GlobalSize(hMem);
-                if (size > 0)
-                {
-                    var buffer = new byte[size];
-                    Marshal.Copy(prt, buffer, 0, buffer.Length);
-                    _bytes.Add(buffer);
-                }
-            });
-        }, false);
-#else
-        try
-        {
-            // c# 读取成功
-            if (Clipboard.ContainsData(DataFormats.EnhancedMetafile))
-            {
-                var iData = Clipboard.GetDataObject();//从剪切板获取数据
-                if (!iData.GetDataPresent(DataFormats.EnhancedMetafile))
-                    return;
-
-                //定义图形-图元文件
-                var metafile = (Metafile)iData.GetData(DataFormats.EnhancedMetafile);
-                Env.Printl("Metafile:" + metafile.Size.ToString());
-            }
+            var metafile = (Metafile)iData.GetData(DataFormats.EnhancedMetafile);
+            Env.Printl("Metafile:" + metafile.Size.ToString());
         }
-        catch (Exception e)
-        {
-            throw;
-        }
-#endif
         #endregion
     }
 
@@ -590,7 +537,6 @@ public class Copyclip
 
 
 #if true2
-
 public class TestImageFormat
 {
     public ImageFormat GetFormat(string filename)

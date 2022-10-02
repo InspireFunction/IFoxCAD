@@ -9,7 +9,6 @@ using System.Windows;
 using System.Security.Policy;
 using System.Security.Cryptography;
 
-
 // DWORD == uint
 // WORD == ushort
 // LONG == int
@@ -19,15 +18,6 @@ using System.Security.Cryptography;
  * Console.WriteLine(Marshal.SizeOf(typeof(WindowsMetaHeader)));
  * Console.WriteLine(Marshal.SizeOf(typeof(StandardMetaRecord)));
  */
-
-//[Serializable]
-//[StructLayout(LayoutKind.Sequential, Pack = 2)]
-//public struct WmfStr
-//{
-//    public PlaceableMetaHeader Placeable;
-//    public WindowsMetaHeader Wmfhead;
-//    public StandardMetaRecord Wmfrecord;
-//}
 
 //WMF 文件格式：
 //https://blog.51cto.com/chenyanxi/803247
@@ -183,15 +173,6 @@ public struct ENHMETAHEADER
 
 public static class EmfTool
 {
-    // https://zhidao.baidu.com/question/646739770512964165/answer/1616737219.html?qq-pf-to=pcqq.c2c
-    //16位的函数
-    [DllImport("gdi32.dll")]
-    public static extern uint GetMetaFile(StringBuilder path);
-    //32位的函数
-    [DllImport("gdi32.dll")]
-    public static extern uint GetEnhMetaFile(StringBuilder path);
-
-
     /// <summary>
     /// 将一个标准Windows图元文件转换成增强型图元文件
     /// </summary>
@@ -214,10 +195,7 @@ public static class EmfTool
     /// </returns>
     [DllImport("gdi32.dll", EntryPoint = "SetWinMetaFileBits")]
     public static extern IntPtr SetWinMetaFileBits(uint nSize, IntPtr lpMeta16Data, IntPtr hdcRef, IntPtr lpMFP);
-    /*
-      [DllImport("gdi32.dll", EntryPoint = "SetWinMetaFileBits")]
-      public static extern int SetWinMetaFileBits(uint nSize, ref byte lpbBuffer, IntPtr hdcRef, ref METAFILEPICT lpmfp);
-    */
+
 
     /// <summary>
     /// 获取矢量图的byte
@@ -329,6 +307,15 @@ public static class EmfTool
     }
 
 
+#if false
+    // https://zhidao.baidu.com/question/646739770512964165/answer/1616737219.html?qq-pf-to=pcqq.c2c
+    //16位的函数
+    [DllImport("gdi32.dll")]
+    public static extern uint GetMetaFile(StringBuilder path);
+    //32位的函数
+    [DllImport("gdi32.dll")]
+    public static extern uint GetEnhMetaFile(StringBuilder path);
+
     /// <summary>
     /// c#获取wmf方式
     /// </summary>
@@ -349,16 +336,16 @@ public static class EmfTool
 
 
     /*
-     *   // 这是c#写入wmf流程
-     *  // c#画的wmf格式是可以的...用这样方式生成的就是可以写剪贴板
-     *  WindowsAPI.GetClientRect(doc.Window.Handle, out IntRect rcClient);
-     *  int width = rcClient.Right - rcClient.Left;
-     *  int height = rcClient.Bottom - rcClient.Top;
-     *  EmfTool.Export(wmf, width, height);//cad的命令wmfin:不能导入c#自绘的
-     *
-     *  //c#方法,但是它读取不了cad的wmf
-     *  wmfMeta = EmfTool.GetMetafile(wmf);
-     */
+    *   // 这是c#写入wmf流程
+    *  // c#画的wmf格式是可以的...用这样方式生成的就是可以写剪贴板
+    *  WindowsAPI.GetClientRect(doc.Window.Handle, out IntRect rcClient);
+    *  int width = rcClient.Right - rcClient.Left;
+    *  int height = rcClient.Bottom - rcClient.Top;
+    *  EmfTool.Export(wmf, width, height);//cad的命令wmfin:不能导入c#自绘的
+    *
+    *  //c#方法,但是它读取不了cad的wmf
+    *  wmfMeta = EmfTool.GetMetafile(wmf);
+    */
 
     /// <summary>
     /// 导出为 Emf 或 Wmf 文件
@@ -418,23 +405,5 @@ public static class EmfTool
         g.DrawLine(new Pen(Color.Black, 0.1f), 110f, 110f, 220f, 25f);
         g.DrawString("剖面图", new Font("宋体", 9f), Brushes.Green, 220f, 20f);
     }
-
-    /// <summary>
-    /// 返回对一个增强型图元文件的说明
-    /// </summary>
-    /// <param name="hemf">目标增强型图元文件的句柄</param>
-    /// <param name="cchBuffer">lpszDescription缓冲区的长度</param>
-    /// <param name="lpszDescription">指定一个预先初始化好的字串缓冲区，准备随同图元文件说明载入。
-    /// 参考CreateEnhMetaFile函数，了解增强型图元文件说明字串的具体格式</param>
-    /// <returns></returns>
-    [DllImport("gdi32", EntryPoint = "GetEnhMetaFileDescription")]
-    public static extern uint GetEnhMetaFileDescription(
-        uint hemf,
-        uint cchBuffer,
-        [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lpszDescription
-    );
-
-
-    [DllImport("gdi32", EntryPoint = "GetEnhMetaFileHeader")]
-    public static extern uint GetEnhMetaFileHeader(uint hemf, uint cbBuffer, IntPtr /*ENHMETAHEADER*/ lpemh);
+#endif
 }

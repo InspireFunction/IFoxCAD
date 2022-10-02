@@ -296,7 +296,7 @@ public static class DBDictionaryEx
         if (dict.Contains(name))
             return ObjectId.Null;
 
-        using ObjectIdCollection idc = new(ids.ToArray());//TODO 需要using吗? 这里是堆交给cad管理了?还是它将被cad克隆? 等待测试
+        using ObjectIdCollection idc = new(ids.ToArray());//需要using吗? 暂无测试
         return dict.AddGroup(name, idc);
     }
 
