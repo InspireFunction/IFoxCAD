@@ -10,7 +10,6 @@ using System.Security.Policy;
 using System.Security.Cryptography;
 
 
-
 // DWORD == uint
 // WORD == ushort
 // LONG == int
@@ -21,14 +20,14 @@ using System.Security.Cryptography;
  * Console.WriteLine(Marshal.SizeOf(typeof(StandardMetaRecord)));
  */
 
-[Serializable]
-[StructLayout(LayoutKind.Sequential, Pack = 2)]
-public struct WmfStr
-{
-    public PlaceableMetaHeader Placeable;
-    public WindowsMetaHeader Wmfhead;
-    public StandardMetaRecord Wmfrecord;
-}
+//[Serializable]
+//[StructLayout(LayoutKind.Sequential, Pack = 2)]
+//public struct WmfStr
+//{
+//    public PlaceableMetaHeader Placeable;
+//    public WindowsMetaHeader Wmfhead;
+//    public StandardMetaRecord Wmfrecord;
+//}
 
 //WMF 文件格式：
 //https://blog.51cto.com/chenyanxi/803247
@@ -56,6 +55,56 @@ public struct PlaceableMetaHeader
     /// 是活动式图元文件
     /// </summary>
     public bool IsActivity => Key == 0x9AC6CDD7;
+
+    /// <summary>
+    /// wmf转为emf<br/>
+    /// </summary>
+    /// <param name="wmfFile">文件路径</param>
+    /// <returns>成功emf指针,可以直接写入剪贴板;失败0</returns>
+    /// <exception cref="IOException"></exception>
+    public static IntPtr Wmf2Emf(string wmfFile)
+    {
+        using FileStream file = new(wmfFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); // FileShare才能进c盘
+        if (file.Length == 0)
+            throw new IOException("文件字节0长:" + file);
+        if (file.Length < 5)
+            throw new IOException("无法校验文件签名:" + file);
+
+        var fileByte = new byte[file.Length];
+        file.Read(fileByte, 0, fileByte.Length);
+        file.Close();
+
+        bool bts = WindowsAPI.BytesToStruct(fileByte, out PlaceableMetaHeader sWMF, out int sWMFsize);
+        if (!bts)
+            throw new IOException("失败:类型转换,路径:" + file);
+
+        var mpType = new MetaFilePict
+        {
+            mm = MappingModes.MM_ANISOTROPIC,
+            xExt = sWMF.Right - sWMF.Left,
+            yExt = sWMF.Bottom - sWMF.Top,
+            hMF = IntPtr.Zero
+        };
+
+        IntPtr hEMF = IntPtr.Zero;
+        int iOffset = 0;
+        if (sWMF.IsActivity)
+            iOffset = sWMFsize;
+
+        // byte[] 指针偏移
+        var arr = fileByte.Skip(iOffset).ToArray();
+        GCHandle arrHandle = GCHandle.Alloc(arr, GCHandleType.Pinned);
+
+        WindowsAPI.StructToPtr(mpType, mpPtr => {
+            hEMF = EmfTool.SetWinMetaFileBits(
+                (uint)fileByte.Length, arrHandle.AddrOfPinnedObject(), IntPtr.Zero, mpPtr);
+        });
+
+        if (arrHandle.IsAllocated)
+            arrHandle.Free();
+
+        return hEMF;
+    }
 }
 
 //紧接文件缩放信息的是 WMFHEAD, 18字节
@@ -87,12 +136,49 @@ public struct StandardMetaRecord
 // http://www.cppblog.com/zwp/archive/2012/02/25/60225.html
 [Serializable]
 [StructLayout(LayoutKind.Sequential, Pack = 2)]
-public struct METAFILEPICT
+public struct MetaFilePict
 {
-    public int mm;
+    public MappingModes mm;
     public int xExt;
     public int yExt;
     public IntPtr hMF; //内存图元文件的句柄
+}
+
+public enum MappingModes
+{
+    MM_TEXT = 1,
+    MM_LOMETRIC = 2,
+    MM_HIMETRIC = 3,
+    MM_LOENGLISH = 4,
+    MM_HIENGLISH = 5,
+    MM_TWIPS = 6,
+    MM_ISOTROPIC = 7,
+    MM_ANISOTROPIC = 8,
+}
+
+
+[StructLayout(LayoutKind.Sequential)]
+public struct ENHMETAHEADER
+{
+    public uint iType;
+    public int nSize;
+    public IntRect rclBounds;
+    public IntRect rclFrame;
+    public uint dSignature;
+    public uint nVersion;
+    public uint nBytes;
+    public uint nRecords;
+    public ushort nHandles;
+    public ushort sReserved;
+    public uint nDescription;
+    public uint offDescription;
+    public uint nPalEntries;
+    public IntSize szlDevice;
+    public IntSize szlMillimeters;
+    public uint cbPixelFormat;
+    public uint offPixelFormat;
+    public uint bOpenGL;
+    public IntSize szlMicrometers;
 }
 
 public static class EmfTool
@@ -244,70 +330,13 @@ public static class EmfTool
 
 
     /// <summary>
-    /// cad的wmf文件解析,转为emf<br/>
-    /// </summary>
-    /// <param name="cadWmfFile">文件路径</param>
-    /// <returns>emf指针,可以直接写入剪贴板</returns>
-    /// <exception cref="IOException"></exception>
-    public static IntPtr CadGetMetafile(string cadWmfFile, IntPtr hWnd, IntRect rect)
-    {
-        using FileStream file = new(cadWmfFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); // FileShare才能进c盘
-        if (file.Length == 0)
-            throw new IOException("文件字节0长:" + file);
-        if (file.Length < 5)
-            throw new IOException("无法校验文件签名:" + file);
-
-        var fileByte = new byte[file.Length];
-        file.Read(fileByte, 0, fileByte.Length);
-        file.Close();
-
-        bool bts = WindowsAPI.BytesToStruct(fileByte, out PlaceableMetaHeader sWMF, out int sWMFsize);
-        if (!bts)
-            throw new IOException("失败:类型转换,路径:" + file);
-
-        var hDC = BitmapTool.GetDC(hWnd);
-        IntPtr hEMF = IntPtr.Zero;
-        try
-        {
-            var mpType = new METAFILEPICT
-            {
-                mm = 0,//MM_ANISOTROPIC 这里是随便填的不知道 MM_ANISOTROPIC 是什么值
-                xExt = rect.Left,
-                yExt = rect.Top,
-                hMF = IntPtr.Zero
-            };
-            int iOffset = 0;
-            if (sWMF.IsActivity)
-                iOffset = sWMFsize;
-            // byte[] 指针偏移 https://blog.csdn.net/i0048egi/article/details/56063494
-            var arr = fileByte.Skip(iOffset).ToArray();
-            GCHandle hObject1 = GCHandle.Alloc(arr, GCHandleType.Pinned);
-
-            WindowsAPI.StructToPtr(mpType, mpPtr => {
-                //TODO 任务221002 这里末尾两个参数不对,没有跟cad一样有个矩形作为边界
-                hEMF = SetWinMetaFileBits((uint)arr.Length, hObject1.AddrOfPinnedObject(), hDC, mpPtr);
-                if (hObject1.IsAllocated)
-                    hObject1.Free();
-            });
-        }
-        finally
-        {
-            BitmapTool.ReleaseDC(IntPtr.Zero, hDC);
-        }
-        if (hEMF == IntPtr.Zero)
-            throw new IOException("失败:" + nameof(SetWinMetaFileBits));
-        return hEMF;
-    }
-
-
-    /// <summary>
     /// c#获取wmf方式
     /// </summary>
-    /// <param name="wmfSave"></param>
+    /// <param name="wmfFile"></param>
     /// <returns></returns>
-    public static IntPtr GetMetafile(string wmfSave)
+    public static IntPtr GetMetafile(string wmfFile)
     {
-        using FileStream file = new(wmfSave, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); // FileShare才能进c盘
+        using FileStream file = new(wmfFile, FileMode.Open, FileAccess.Read, FileShare.ReadWrite); // FileShare才能进c盘
         var hEMF2 = IntPtr.Zero;
 
         using Metafile mf = new(file);
@@ -318,6 +347,18 @@ public static class EmfTool
         return hEMF2;
     }
 
+
+    /*
+     *   // 这是c#写入wmf流程
+     *  // c#画的wmf格式是可以的...用这样方式生成的就是可以写剪贴板
+     *  WindowsAPI.GetClientRect(doc.Window.Handle, out IntRect rcClient);
+     *  int width = rcClient.Right - rcClient.Left;
+     *  int height = rcClient.Bottom - rcClient.Top;
+     *  EmfTool.Export(wmf, width, height);//cad的命令wmfin:不能导入c#自绘的
+     *
+     *  //c#方法,但是它读取不了cad的wmf
+     *  wmfMeta = EmfTool.GetMetafile(wmf);
+     */
 
     /// <summary>
     /// 导出为 Emf 或 Wmf 文件
@@ -377,4 +418,23 @@ public static class EmfTool
         g.DrawLine(new Pen(Color.Black, 0.1f), 110f, 110f, 220f, 25f);
         g.DrawString("剖面图", new Font("宋体", 9f), Brushes.Green, 220f, 20f);
     }
+
+    /// <summary>
+    /// 返回对一个增强型图元文件的说明
+    /// </summary>
+    /// <param name="hemf">目标增强型图元文件的句柄</param>
+    /// <param name="cchBuffer">lpszDescription缓冲区的长度</param>
+    /// <param name="lpszDescription">指定一个预先初始化好的字串缓冲区，准备随同图元文件说明载入。
+    /// 参考CreateEnhMetaFile函数，了解增强型图元文件说明字串的具体格式</param>
+    /// <returns></returns>
+    [DllImport("gdi32", EntryPoint = "GetEnhMetaFileDescription")]
+    public static extern uint GetEnhMetaFileDescription(
+        uint hemf,
+        uint cchBuffer,
+        [MarshalAs(UnmanagedType.LPWStr)] StringBuilder lpszDescription
+    );
+
+
+    [DllImport("gdi32", EntryPoint = "GetEnhMetaFileHeader")]
+    public static extern uint GetEnhMetaFileHeader(uint hemf, uint cbBuffer, IntPtr /*ENHMETAHEADER*/ lpemh);
 }

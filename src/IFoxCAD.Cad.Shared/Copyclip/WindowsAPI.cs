@@ -30,23 +30,6 @@ public class WindowsAPI
     [DllImport("user32.dll", SetLastError = true)]
     public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
-
-
-#if true2
-    [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
-    public static extern IntPtr CreateFile(
-        [MarshalAs(UnmanagedType.LPTStr)] string filename,
-        [MarshalAs(UnmanagedType.U4)] FileAccess access,
-        [MarshalAs(UnmanagedType.U4)] FileShare share,
-        IntPtr securityAttributes, // optional SECURITY_ATTRIBUTES struct or IntPtr.Zero
-        [MarshalAs(UnmanagedType.U4)] FileMode creationDisposition,
-        [MarshalAs(UnmanagedType.U4)] FileAttributes flagsAndAttributes,
-        IntPtr templateFile);
-
-    [DllImport("kernel32", SetLastError = true)]
-    public static extern bool CloseHandle(IntPtr hObject);/* 对象句柄 CreateFile*/
-#endif
-
     /// <summary>
     /// 锁定内存
     /// </summary>
@@ -87,7 +70,6 @@ public class WindowsAPI
     /// <returns></returns>
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern uint GlobalSize(IntPtr hMem);
-
 
     /// <summary>
     /// 锁定和释放内存

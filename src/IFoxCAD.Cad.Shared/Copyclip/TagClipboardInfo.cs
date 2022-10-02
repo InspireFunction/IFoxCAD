@@ -179,6 +179,19 @@ public struct IntRect
 }
 
 
+[StructLayout(LayoutKind.Sequential)]
+public struct IntSize
+{
+    public int cx;
+    public int cy;
+
+    public IntSize(int cx, int cy)
+    {
+        this.cx = cx;
+        this.cy = cy;
+    }
+}
+
 [Serializable]
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
