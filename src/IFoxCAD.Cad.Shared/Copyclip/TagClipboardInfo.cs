@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿#define Marshal
+
+namespace IFoxCAD.Cad;
 
 using System;
 using System.Diagnostics;
@@ -6,6 +8,8 @@ using System.Drawing.Imaging;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using System.Windows.Media.Media3D;
+using System.Xml.Linq;
 
 public class ClipboardEnv
 {
@@ -20,7 +24,7 @@ public class ClipboardEnv
 /// </summary>
 [Serializable]
 [StructLayout(LayoutKind.Sequential, Pack = 8, CharSet = CharSet.Unicode/*此参数将导致260*2*/)]
-public struct TagClipboardInfo
+public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
 {
     #region 字段,对应arx结构的,不要改动,本结构也不允许再加字段
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
@@ -145,6 +149,51 @@ public struct TagClipboardInfo
 #endif
     static extern IntPtr AcedGetAcadDwgview();
     #endregion
+
+    #region 重载运算符_比较
+    public bool Equals(TagClipboardInfo other)
+    {
+        return
+        szTempFile == other.szTempFile &&
+        szSourceFile == other.szSourceFile &&
+        szSignature == other.szSignature &&
+        nFlags == other.nFlags &&
+        dptInsert == other.dptInsert &&
+        rectGDI == other.rectGDI &&
+        mpView == other.mpView &&
+        dwThreadId == other.dwThreadId &&
+        nLen == other.nLen &&
+        nType == other.nType &&
+        chData == other.chData;
+    }
+    public static bool operator !=(TagClipboardInfo a, TagClipboardInfo b)
+    {
+        return !(a == b);
+    }
+    public static bool operator ==(TagClipboardInfo a, TagClipboardInfo b)
+    {
+        return a.Equals(b);
+    }
+    public override bool Equals(object obj)
+    {
+        return obj is TagClipboardInfo info && Equals(info);
+    }
+    public override int GetHashCode()
+    {
+        return
+           szTempFile.GetHashCode() ^
+           szSourceFile.GetHashCode() ^
+           szSignature.GetHashCode() ^
+           nFlags ^
+           dptInsert.GetHashCode() ^
+           rectGDI.GetHashCode() ^
+           mpView.GetHashCode() ^
+           dwThreadId ^
+           nLen ^
+           nType ^
+           chData.GetHashCode();
+    }
+    #endregion
 }
 
 
@@ -155,18 +204,22 @@ public struct TagClipboardInfo
 public struct IntRect
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => $"(Left:{Left},Top:{Top},Right:{Right},Bottom:{Bottom})";
+    private string DebuggerDisplay => $"(Left:{_Left},Top:{_Top},Right:{_Right},Bottom:{_Bottom})";
 
-    public int Left { get; }
-    public int Top { get; }
-    public int Right { get; }
-    public int Bottom { get; }
+    int _Left;
+    int _Top;
+    int _Right;
+    int _Bottom;
+    public int Left => _Left;
+    public int Top => _Top;
+    public int Right => _Right;
+    public int Bottom => _Bottom;
     public IntRect(int left, int top, int right, int bottom)
     {
-        Left = left;
-        Top = top;
-        Right = right;
-        Bottom = bottom;
+        _Left = left;
+        _Top = top;
+        _Right = right;
+        _Bottom = bottom;
     }
 
     static readonly IntRect _Zero = new(0, 0, 0, 0);
@@ -174,8 +227,35 @@ public struct IntRect
 
     public override string ToString()
     {
-        return $"({Left},{Top},{Right},{Bottom})";
+        return $"({_Left},{_Top},{_Right},{_Bottom})";
     }
+
+    #region 重载运算符_比较
+    public bool Equals(IntRect other)
+    {
+        return
+        _Left == other._Left &&
+        _Top == other._Top &&
+        _Right == other._Right &&
+        _Bottom == other._Bottom;
+    }
+    public static bool operator !=(IntRect a, IntRect b)
+    {
+        return !(a == b);
+    }
+    public static bool operator ==(IntRect a, IntRect b)
+    {
+        return a.Equals(b);
+    }
+    public override bool Equals(object obj)
+    {
+        return obj is IntRect d && Equals(d);
+    }
+    public override int GetHashCode()
+    {
+        return ((_Left, _Top).GetHashCode(), _Right).GetHashCode() ^ _Bottom.GetHashCode();
+    }
+    #endregion
 }
 
 
@@ -196,19 +276,22 @@ public struct IntSize
 [StructLayout(LayoutKind.Sequential, Pack = 8)]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(Point3D))]
-public struct Point3D
+public struct Point3D : IEquatable<Point3D>
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => $"(X:{X},Y:{Y},Z:{Z})";
+    private string DebuggerDisplay => $"(X:{_X},Y:{_Y},Z:{_Z})";
 
-    public double X { get; }
-    public double Y { get; }
-    public double Z { get; }
+    double _X;
+    double _Y;
+    double _Z;
+    public double X => _X;
+    public double Y => _Y;
+    public double Z => _Z;
     public Point3D(double x, double y, double z)
     {
-        X = x;
-        Y = y;
-        Z = z;
+        _X = x;
+        _Y = y;
+        _Z = z;
     }
     public static implicit operator Point3D(Point3d pt)
     {
@@ -223,6 +306,32 @@ public struct Point3D
     {
         return $"({X},{Y},{Z})";
     }
+
+    #region 重载运算符_比较
+    public bool Equals(Point3D other)
+    {
+        return
+        _X == other._X &&
+        _Y == other._Y &&
+        _Z == other._Z;
+    }
+    public static bool operator !=(Point3D a, Point3D b)
+    {
+        return !(a == b);
+    }
+    public static bool operator ==(Point3D a, Point3D b)
+    {
+        return a.Equals(b);
+    }
+    public override bool Equals(object obj)
+    {
+        return obj is Point3D d && Equals(d);
+    }
+    public override int GetHashCode()
+    {
+        return (_X, _Y).GetHashCode() ^ _Z.GetHashCode();
+    }
+    #endregion
 }
 
 /*
@@ -338,10 +447,10 @@ public partial class ClipTool
     /// 所以写入的时候必须一次性写入多个cf<br/>
     /// </summary>
     /// <param name="action">接收返回的栈空间指针用于释放</param>
-    /// <param name="isSetClipboard">true写入,false读取</param>
+    /// <param name="isWrite">true写入,false读取</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static bool OpenClipboardTask(Action<List<IntPtr>> action, bool isSetClipboard)
+    public static bool OpenClipboardTask(bool isWrite, Action<List<IntPtr>> action)
     {
         if (action == null)
             throw new ArgumentNullException(nameof(action));
@@ -353,18 +462,25 @@ public partial class ClipTool
             openFlag = OpenClipboard(IntPtr.Zero);
             if (!openFlag)
                 return false;
-            if (isSetClipboard)
+            if (isWrite)
                 EmptyClipboard();
             action.Invoke(freeDatas);
         }
         catch (Exception e)
         {
+            Debugger.Break();
             Debug.WriteLine(e.Message);
         }
         finally
         {
             for (int i = 0; i < freeDatas.Count; i++)
+            {
+#if Marshal
                 Marshal.FreeHGlobal(freeDatas[i]);
+#else
+                WindowsAPI.GlobalFree(freeDatas[i]);
+#endif
+            }
             if (openFlag)
                 CloseClipboard();
         }
@@ -380,7 +496,7 @@ public partial class ClipTool
         bool locked = false;
         T? result = default;
 
-        OpenClipboardTask(lst => {
+        ClipTool.OpenClipboardTask(false, lst => {
             // 读取剪贴板的指定数据
             var clipKeyFormat = RegisterClipboardFormat(clipKey);//ClipboardEnv.CadVer
             var clipTypeData = GetClipboardData(clipKeyFormat);
@@ -390,42 +506,15 @@ public partial class ClipTool
                 // 非托管内存块->托管对象
                 result = (T)Marshal.PtrToStructure(ptr, typeof(T));
             });
-        }, false);
+        });
 
         tag = result;
         return locked;
     }
-
-    /// <summary>
-    /// 获取剪贴板对象信息<br/>
-    /// <a href = "https://learn.microsoft.com/zh-cn/windows/win32/dataxchg/clipboard-operations">微软链接</a>
-    /// </summary>
-    /// <param name="clipKey">剪贴板的索引名</param>
-    /// <param name="clipType">封送类型</param>
-    /// <param name="clipKeyFormat">返回:索引值</param>
-    /// <param name="clipTypeData">返回:申请封送类型栈空间的指针</param>
-    /// <returns>true成功拷贝;false可能重复粘贴对象导致</returns>
-    public static bool GetClipboardFormat<T>(string clipKey, T clipType,
-                                             out uint clipKeyFormat, out IntPtr clipTypeData)
-    {
-        /*
-         * // 这种写入方式是失败的,ToString转二进制序列化的时候存在元数据
-         * using var data = new MemoryStream();
-         * var bytes = Encoding.Unicode.GetBytes(TagClipboardInfo.ToString());
-         * data.Write(bytes, 0, bytes.Length);
-         * Clipboard.SetData($"AutoCAD.r{Acap.Version.Major}", data);
-         */
-
-        clipKeyFormat = RegisterClipboardFormat(clipKey);
-        IntPtr res = IntPtr.Zero;
-        WindowsAPI.StructToPtr(clipType, clipPtr => {
-            res = clipPtr;
-        }, false);
-        clipTypeData = res;
-        return true;
-    }
 }
 
+#if true2
+// 无法备份emf内容
 public static class ClipEx
 {
     // https://blog.csdn.net/vencon_s/article/details/46345083
@@ -445,7 +534,7 @@ public static class ClipEx
     /// <returns>true成功,false失败</returns>
     public static bool SaveClip()
     {
-        bool result = ClipTool.OpenClipboardTask(free => {
+        bool result = ClipTool.OpenClipboardTask(false, free => {
             _bytes.Clear();
             _formats.Clear();
 
@@ -468,7 +557,7 @@ public static class ClipEx
                     }
                 });
             }
-        }, false);
+        });
         if (result)
             result = _formats.Count > 0;
         return result;
@@ -483,25 +572,25 @@ public static class ClipEx
         if (_formats.Count <= 0)
             return false;
 
-        bool result = ClipTool.OpenClipboardTask(free => {
+        bool result = ClipTool.OpenClipboardTask(true, free => {
             for (int i = 0; i < _formats.Count; i++)
             {
                 int size = _bytes[i].Length;
-                IntPtr si = Marshal.AllocHGlobal(size);
+                IntPtr structPtr = Marshal.AllocHGlobal(size);
                 if (size > 0)
                 {
-                    Marshal.Copy(_bytes[i], 0, si, size);
-                    ClipTool.SetClipboardData(_formats[i], si);
+                    Marshal.Copy(_bytes[i], 0, structPtr, size);
+                    ClipTool.SetClipboardData(_formats[i], structPtr);
                 }
             }
-        }, true);
+        });
 
         if (result)
             result = _formats.Count > 0;
         return result;
     }
 }
-
+#endif
 
 
 

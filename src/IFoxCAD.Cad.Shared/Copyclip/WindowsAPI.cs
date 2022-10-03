@@ -1,4 +1,5 @@
-﻿namespace IFoxCAD.Cad;
+﻿#define Marshal
+namespace IFoxCAD.Cad;
 
 using System;
 using System.Diagnostics;
@@ -44,7 +45,7 @@ public class WindowsAPI
     /// <returns></returns>
     [DllImport("kernel32.dll", SetLastError = true)]
     static extern bool GlobalUnlock(IntPtr hMem);
-#if true2
+#if !Marshal
     /// <summary>
     /// 从堆中分配内存
     /// 被代替: Marshal.AllocHGlobal
@@ -104,12 +105,12 @@ public class WindowsAPI
     /// byte数组转结构体
     /// </summary>
     /// <param name="bytes">byte数组</param>
-    /// <param name="obj">返回的结构体</param>
+    /// <param name="result">返回的结构体</param>
     /// <param name="typeSize">返回的结构大小</param>
     /// <returns>转换后的结构体</returns>
-    public static bool BytesToStruct<T>(byte[] bytes, out T? obj, out int typeSize)
+    public static bool BytesToStruct<T>(byte[] bytes, out T? result, out int typeSize)
     {
-        obj = default;
+        result = default;
         var structType = typeof(T);
         // 得到结构体的大小
         typeSize = Marshal.SizeOf(structType);
@@ -117,13 +118,22 @@ public class WindowsAPI
             return false;
 
         // 分配结构体大小的内存空间
+#if Marshal
         IntPtr structPtr = Marshal.AllocHGlobal(typeSize);
+#else
+        const int GMEM_MOVEABLE = 0x0002;
+        IntPtr structPtr = WindowsAPI.GlobalAlloc(GMEM_MOVEABLE, typeSize);
+#endif
         // 将byte数组拷到分配好的内存空间
         Marshal.Copy(bytes, 0, structPtr, typeSize);
         // 将内存空间转换为目标结构体
-        obj = (T)Marshal.PtrToStructure(structPtr, structType);
+        result = (T)Marshal.PtrToStructure(structPtr, structType);
         // 释放内存空间
+#if Marshal
         Marshal.FreeHGlobal(structPtr);
+#else
+        WindowsAPI.GlobalFree(structPtr);
+#endif
         return true;
     }
 
@@ -150,41 +160,54 @@ public class WindowsAPI
     /// <param name="structObj">要转换的结构体</param>
     /// <param name="task">输出指针</param>
     /// <param name="freeHGlobal">释放申请的内存</param>
-    /// <param name="fDeleteOld">StructureToPtr的参数</param>
+    /// <param name="lockPrt">是否锁定内存</param>
     /// <exception cref="ArgumentNullException"></exception>
     public static void StructToPtr(object? structObj,
                                    Action<IntPtr>? task = null,
                                    bool freeHGlobal = true,
-                                   bool fDeleteOld = true)
+                                   bool lockPrt = true)
     {
         if (structObj == null)
             throw new ArgumentNullException(nameof(structObj));
-
-        // 得到结构体的大小
-        int typeSize = Marshal.SizeOf(structObj);
-
-        // 分配结构体大小的内存空间
-        // 此处需要锁定吗?
-        IntPtr structPtr = Marshal.AllocHGlobal(typeSize);
-        bool locked = false;
+#if Marshal
+        IntPtr structPtr = Marshal.AllocHGlobal(Marshal.SizeOf(structObj));
+#else
+        const int GMEM_MOVEABLE = 0x0002;
+        IntPtr structPtr = WindowsAPI.GlobalAlloc(GMEM_MOVEABLE, Marshal.SizeOf(structObj));
+#endif
+        if (structPtr == IntPtr.Zero)
+            return;
         try
         {
-            locked = GlobalLockTask(structPtr, ptr => {
-                // 将结构体拷到分配好的内存空间
-                Marshal.StructureToPtr(structObj, ptr, fDeleteOld);
-                task?.Invoke(ptr);
-            });
+            if (lockPrt)
+                GlobalLockTask(structPtr, ptr => {
+                    ToPtr(structObj, task, ptr);
+                });
+            else
+                ToPtr(structObj, task, structPtr);
         }
         catch (Exception e)
         {
-            Marshal.FreeHGlobal(structPtr);
-            structPtr = IntPtr.Zero;
+            Debugger.Break();
             Debug.WriteLine(e.Message);
         }
         finally
         {
             if (freeHGlobal && structPtr != IntPtr.Zero)
+            {
+#if Marshal
                 Marshal.FreeHGlobal(structPtr);
+#else
+                WindowsAPI.GlobalFree(structPtr);
+#endif
+            }
+        }
+
+        // 将结构体拷到分配好的内存空间
+        static void ToPtr(object? structObj, Action<IntPtr>? task, IntPtr structPtr)
+        {
+            Marshal.StructureToPtr(structObj, structPtr, true);
+            task?.Invoke(structPtr);
         }
     }
 }

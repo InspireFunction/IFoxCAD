@@ -5,6 +5,7 @@
 namespace Test;
 using Autodesk.AutoCAD.DatabaseServices;
 using System;
+using System.Diagnostics;
 using System.Drawing.Imaging;
 using System.Threading;
 using System.Windows;
@@ -165,6 +166,13 @@ public class Copyclip
 
 
     /// <summary>
+    /// 读写锁,当资源处于写入模式时,<br/>
+    /// 其他线程写入需要等待本次写入结束之后才能继续写入
+    /// <a href=" https://www.cnblogs.com/Tench/p/CSharpSimpleFileWriteLock.html ">参考链接</a>
+    /// </summary>
+    static ReaderWriterLockSlim _rwLock = new();
+
+    /// <summary>
     /// 储存准备删除的文件
     /// 也可以用txt代替
     /// 如果删除出错(占用),将一直在这个集合中,直到cad关闭
@@ -177,134 +185,150 @@ public class Copyclip
     /// <param name="getPoint"></param>
     void Copy(bool getPoint, bool isEraseSsget = false)
     {
-        var dm = Acap.DocumentManager;
-        if (dm.Count == 0)
-            return;
-        var doc = dm.MdiActiveDocument;
-        if (doc.Editor == null)
-            return;
-        var psr = doc.Editor.SelectImplied();// 预选
-        if (psr.Status != PromptStatus.OK)
-            psr = doc.Editor.GetSelection();// 手选
-        if (psr.Status != PromptStatus.OK)
-            return;
-
-        // 设置基点
-        Point3d pt = Point3d.Origin;
-        var idArray = psr.Value.GetObjectIds();
-
-        var tempFile = CreateTempFileName();
-        while (File.Exists(tempFile) ||
-               File.Exists(Path.ChangeExtension(tempFile, "wmf")))
+        try
         {
-            tempFile = CreateTempFileName();
-            Thread.Sleep(1);
-        }
+            if (!_rwLock.IsWriteLockHeld)
+                _rwLock.EnterWriteLock(); // 进入写入锁
+            else
+                Debug.WriteLine("没有进入读写锁");
 
-        using var tr = new DBTrans();
-
-        #region 写入 AutoCAD.R17 数据
-        if (getPoint)
-        {
-            var pr = doc.Editor.GetPoint("\n选择基点");
-            if (pr.Status != PromptStatus.OK)
+            var dm = Acap.DocumentManager;
+            if (dm.Count == 0)
                 return;
-            pt = pr.Value;
-        }
-        else
-        {
-            // 遍历块内
-            // 获取左下角点作为基点
-            double minx = double.MaxValue;
-            double miny = double.MaxValue;
-            double minz = double.MaxValue;
-            foreach (var id in idArray)
+            var doc = dm.MdiActiveDocument;
+            if (doc.Editor == null)
+                return;
+            var psr = doc.Editor.SelectImplied();// 预选
+            if (psr.Status != PromptStatus.OK)
+                psr = doc.Editor.GetSelection();// 手选
+            if (psr.Status != PromptStatus.OK)
+                return;
+
+            // 设置基点
+            Point3d pt = Point3d.Origin;
+            var idArray = psr.Value.GetObjectIds();
+
+            var tempFile = CreateTempFileName();
+            while (File.Exists(tempFile) ||
+                   File.Exists(Path.ChangeExtension(tempFile, "wmf")))
             {
-                var ent = tr.GetObject<Entity>(id);
-                if (ent == null)
-                    continue;
-                var info = ent.GetBoundingBoxEx();
-                if (ent is BlockReference brf)
-                    info.Move(brf.Position, Point3d.Origin);
-                minx = minx > info.MinX ? info.MinX : minx;
-                miny = miny > info.MinY ? info.MinY : miny;
-                minz = minz > info.MinZ ? info.MinZ : minz;
-            }
-            pt = new(minx, miny, minz);
-        }
-
-        var cadClipType = new TagClipboardInfo(tempFile, pt);
-
-        // 克隆到目标块表内
-        using (var fileTr = new DBTrans(cadClipType.File))
-        {
-            fileTr.Task(() => {
-                using IdMapping map = new();
-                using ObjectIdCollection ids = new(idArray);
-                tr.Database.WblockCloneObjects(
-                    ids,
-                    fileTr.ModelSpace.ObjectId,
-                    map,
-                    DuplicateRecordCloning.Replace,
-                    false);
-            });
-
-            // 大于dwg07格式的,保存为07,以实现高低版本通用剪贴板
-            // 小于dwg07格式的,本工程没有支持cad06dll
-            if ((int)DwgVersion.Current >= 27)
-                fileTr.SaveFile((DwgVersion)27, false);
-        }
-
-        // 剪切时候删除
-        if (isEraseSsget)
-        {
-            idArray.ForEach(id => {
-                id.Erase();
-            });
-        }
-        #endregion
-
-        #region 写入 WMF 数据
-        // 通过cad com导出wmf,再将wmf转为emf,然后才能写入剪贴板
-        IntPtr wmfMeta = IntPtr.Zero;
-        var wmf = Path.ChangeExtension(cadClipType.File, "wmf");
-        Env.Editor.ExportWMF(wmf, idArray);
-        wmfMeta = PlaceableMetaHeader.Wmf2Emf(wmf);
-        #endregion
-
-        // 必须一次性写入剪贴板,详见 OpenClipboardTask
-        bool getFlag = false;
-        ClipTool.OpenClipboardTask(free => {
-            getFlag = ClipTool.GetClipboardFormat(ClipboardEnv.CadVer, cadClipType,
-                                     out uint cadClipFormat, out IntPtr cadClipData);
-
-            // 写入剪贴板: cad图元
-            ClipTool.SetClipboardData(cadClipFormat, cadClipData);
-            free.Add(cadClipData);
-
-            // 写入剪贴板: wmf,使得在粘贴链接的时候可以用
-            if (wmfMeta != IntPtr.Zero)
-            {
-                ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, wmfMeta);
-                EmfTool.DeleteEnhMetaFile(wmfMeta);
+                tempFile = CreateTempFileName();
+                Thread.Sleep(1);
             }
 
-            // c# cad截图 https://www.cnblogs.com/shangdishijiao/p/15166499.html
-            // 写入剪贴板: BMP位图,这是截图,不是WMF转BMP,不对
-            // BitmapTool.CaptureWndImage(doc.Window.Handle, bitmapHandle => {
-            //     ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
-            // });
-        }, true);
+            using var tr = new DBTrans();
 
-        // 成功拷贝就删除上一次的临时文件
-        if (getFlag)
-            Terminate();
+            #region 写入 AutoCAD.R17 数据
+            if (getPoint)
+            {
+                var pr = doc.Editor.GetPoint("\n选择基点");
+                if (pr.Status != PromptStatus.OK)
+                    return;
+                pt = pr.Value;
+            }
+            else
+            {
+                // 遍历块内
+                // 获取左下角点作为基点
+                double minx = double.MaxValue;
+                double miny = double.MaxValue;
+                double minz = double.MaxValue;
+                foreach (var id in idArray)
+                {
+                    var ent = tr.GetObject<Entity>(id);
+                    if (ent == null)
+                        continue;
+                    var info = ent.GetBoundingBoxEx();
+                    if (ent is BlockReference brf)
+                        info.Move(brf.Position, Point3d.Origin);
+                    minx = minx > info.MinX ? info.MinX : minx;
+                    miny = miny > info.MinY ? info.MinY : miny;
+                    minz = minz > info.MinZ ? info.MinZ : minz;
+                }
+                pt = new(minx, miny, minz);
+            }
 
-        // 加入删除队列,下次删除
-        if (!_delFile.Contains(cadClipType.File))
-            _delFile.Add(cadClipType.File);
-        if (!_delFile.Contains(wmf))
-            _delFile.Add(wmf);
+            var cadClipType = new TagClipboardInfo(tempFile, pt);
+
+            // 克隆到目标块表内
+            using (var fileTr = new DBTrans(cadClipType.File))
+            {
+                fileTr.Task(() => {
+                    using IdMapping map = new();
+                    using ObjectIdCollection ids = new(idArray);
+                    tr.Database.WblockCloneObjects(
+                        ids,
+                        fileTr.ModelSpace.ObjectId,
+                        map,
+                        DuplicateRecordCloning.Replace,
+                        false);
+                });
+
+                // 大于dwg07格式的,保存为07,以实现高低版本通用剪贴板
+                // 小于dwg07格式的,本工程没有支持cad06dll
+                if ((int)DwgVersion.Current >= 27)
+                    fileTr.SaveFile((DwgVersion)27, false);
+            }
+            #endregion
+
+            #region 写入 WMF 数据
+            // 通过cad com导出wmf,再将wmf转为emf,然后才能写入剪贴板
+            IntPtr wmfMeta = IntPtr.Zero;
+            var wmf = Path.ChangeExtension(cadClipType.File, "wmf");
+            Env.Editor.ExportWMF(wmf, idArray);
+            wmfMeta = PlaceableMetaHeader.Wmf2Emf(wmf);
+            #endregion
+
+            // 必须一次性写入剪贴板,详见 OpenClipboardTask
+            var cadClipFormat = ClipTool.RegisterClipboardFormat(ClipboardEnv.CadVer);
+            bool getFlag = ClipTool.OpenClipboardTask(true, free => {
+                // 写入剪贴板: cad图元
+                WindowsAPI.StructToPtr(cadClipType, cadClipData => {
+                    ClipTool.SetClipboardData(cadClipFormat, cadClipData);
+                }, false, false);
+
+                // 写入剪贴板: wmf,使得在粘贴链接的时候可以用
+                if (wmfMeta != IntPtr.Zero)
+                {
+                    ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, wmfMeta);
+                    EmfTool.DeleteEnhMetaFile(wmfMeta);
+                }
+
+                // c# cad截图 https://www.cnblogs.com/shangdishijiao/p/15166499.html
+                // 写入剪贴板: BMP位图,这是截图,不是WMF转BMP,不对
+                // BitmapTool.CaptureWndImage(doc.Window.Handle, bitmapHandle => {
+                //     ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
+                // });
+            });
+
+            // 成功拷贝就删除上一次的临时文件
+            if (getFlag)
+                Terminate();
+
+            // 加入删除队列,下次删除
+            if (!_delFile.Contains(cadClipType.File))
+                _delFile.Add(cadClipType.File);
+            if (!_delFile.Contains(wmf))
+                _delFile.Add(wmf);
+
+            // 剪切时候删除
+            if (isEraseSsget)
+            {
+                idArray.ForEach(id => {
+                    id.Erase();
+                });
+            }
+        }
+        catch (Exception e)
+        {
+            Debugger.Break();
+            throw e;
+        }
+        finally
+        {
+            if (_rwLock.IsWriteLockHeld)
+                _rwLock.ExitWriteLock(); // 退出写入锁
+        }
     }
 
 
@@ -314,118 +338,142 @@ public class Copyclip
     /// <param name="isBlock"></param>
     void Paste(bool isBlock)
     {
-        var dm = Acap.DocumentManager;
-        if (dm.Count == 0)
-            return;
-
-        var getClip = ClipTool.GetClipboard(ClipboardEnv.CadVer, out TagClipboardInfo tag);
-        if (!getClip)
-            return;
-        var clipboardInfo = tag;
-        Env.Print("粘贴来源: " + clipboardInfo.File);
-
-        if (!File.Exists(clipboardInfo.File))
+        try
         {
-            Env.Print("文件不存在");
-            return;
-        }
+            if (!_rwLock.IsWriteLockHeld)
+                _rwLock.EnterWriteLock(); // 进入写入锁
 
-        // 获取临时文件的图元id
-        var fileEntityIds = new List<ObjectId>();
-        using (var fileTr = new DBTrans(clipboardInfo.File,
-                                        commit: false,
-                                        openMode: FileOpenMode.OpenForReadAndAllShare))
-        {
-            foreach (var id in fileTr.ModelSpace)
-                if (id.IsOk())
-                    fileEntityIds.Add(id);
-        }
-        if (fileEntityIds.Count == 0)
-            return;
-
-        using var tr = new DBTrans();
-        tr.Editor?.SetImpliedSelection(new ObjectId[0]); // 清空选择集
-
-        // 新建块表记录
-        var btr = CreateBlockTableRecord(tr, clipboardInfo.File);
-        if (btr == null)
-            return;
-
-        /// 克隆进块表记录
-        /// 动态块粘贴之后,用ctrl+z导致动态块特性无法恢复,是因为它: <see cref="DuplicateRecordCloning.Replace"/>
-        using IdMapping map = new();
-        using ObjectIdCollection idc = new(fileEntityIds.ToArray());
-        tr.Task(() => {
-            tr.Database.WblockCloneObjects(
-                idc,
-                btr.ObjectId, // tr.Database.BlockTableId, // 粘贴目标
-                map,
-                DuplicateRecordCloning.Ignore,
-                false);
-        });
-
-        // 移动块内,从基点到原点
-        foreach (var id in btr)
-        {
-            if (!id.IsOk())
-            {
-                Env.Printl("jig预览块内有克隆失败的东西,是否天正克隆期间导致?");
-                continue;
-            }
-            var ent = tr.GetObject<Entity>(id);
-            if (ent == null)
-                continue;
-            using (ent.ForWrite())
-                ent.Move(clipboardInfo.Point, Point3d.Origin);
-        }
-
-        // 预览并获取交互点
-        // 天正此处可能存在失败:天正图元不给你jig接口调用之类的
-        using var moveJig = new JigEx((mousePoint, drawEntitys) => {
-            var blockref = new BlockReference(Point3d.Origin, btr.ObjectId);
-            blockref.Move(Point3d.Origin, mousePoint);
-            drawEntitys.Enqueue(blockref);
-        });
-        moveJig.SetOptions(clipboardInfo.Point)
-               .Keywords.Add("A", "A", "引线点粘贴(A)");
-
-        var dr = moveJig.Drag();
-        Point3d moveTo = Point3d.Origin;
-        if (dr.Status == PromptStatus.Keyword)
-            moveTo = clipboardInfo.Point;
-        else if (dr.Status == PromptStatus.OK)
-            moveTo = moveJig.MousePointWcsLast;
-        else
-        {
-            // 删除jig预览的块表记录
-            using (btr.ForWrite())
-                btr.Erase();
-            return;
-        }
-
-        if (isBlock)
-        {
-            PasteIsBlock(tr, moveJig.Entitys, moveJig.MousePointWcsLast, moveTo);
-        }
-        else
-        {
-            PasteNotBlock(tr, btr, Point3d.Origin, moveTo);
-            // 删除jig预览的块表记录
-            using (btr.ForWrite())
-                btr.Erase();
-        }
-
-        #region 读取剪贴板WMF
-        // c# 读取成功,win32直接读取剪贴板的话是不成功的
-        if (Clipboard.ContainsData(DataFormats.EnhancedMetafile))
-        {
-            var iData = Clipboard.GetDataObject();//从剪切板获取数据
-            if (!iData.GetDataPresent(DataFormats.EnhancedMetafile))
+            var dm = Acap.DocumentManager;
+            if (dm.Count == 0)
                 return;
-            var metafile = (Metafile)iData.GetData(DataFormats.EnhancedMetafile);
-            Env.Printl(nameof(Metafile) + metafile.Size.ToString());
+
+            var getClip = ClipTool.GetClipboard(ClipboardEnv.CadVer, out TagClipboardInfo tag);
+            if (!getClip)
+                return;
+            var clipboardInfo = tag;
+            Env.Print("粘贴来源: " + clipboardInfo.File);
+
+            if (!File.Exists(clipboardInfo.File))
+            {
+                Env.Print("文件不存在");
+                return;
+            }
+
+            // 获取临时文件的图元id
+            var fileEntityIds = new List<ObjectId>();
+            using (var fileTr = new DBTrans(clipboardInfo.File,
+                                            commit: false,
+                                            openMode: FileOpenMode.OpenForReadAndAllShare))
+            {
+                foreach (var id in fileTr.ModelSpace)
+                    if (id.IsOk())
+                        fileEntityIds.Add(id);
+            }
+            if (fileEntityIds.Count == 0)
+                return;
+
+            using var tr = new DBTrans();
+            tr.Editor?.SetImpliedSelection(new ObjectId[0]); // 清空选择集
+
+            // 新建块表记录
+            var btr = CreateBlockTableRecord(tr, clipboardInfo.File);
+            if (btr == null)
+                return;
+
+            /// 克隆进块表记录
+            /// 动态块粘贴之后,用ctrl+z导致动态块特性无法恢复,是因为它: <see cref="DuplicateRecordCloning.Replace"/>
+            using IdMapping map = new();
+            using ObjectIdCollection idc = new(fileEntityIds.ToArray());
+            tr.Task(() => {
+                tr.Database.WblockCloneObjects(
+                    idc,
+                    btr.ObjectId, // tr.Database.BlockTableId, // 粘贴目标
+                    map,
+                    DuplicateRecordCloning.Ignore,
+                    false);
+            });
+
+            // 移动块内,从基点到原点
+            foreach (var id in btr)
+            {
+                if (!id.IsOk())
+                {
+                    Env.Printl("jig预览块内有克隆失败的东西,是否天正克隆期间导致?");
+                    continue;
+                }
+                var ent = tr.GetObject<Entity>(id);
+                if (ent == null)
+                    continue;
+                using (ent.ForWrite())
+                    ent.Move(clipboardInfo.Point, Point3d.Origin);
+            }
+
+            // 预览并获取交互点
+            // 天正此处可能存在失败:天正图元不给你jig接口调用之类的
+            using var moveJig = new JigEx((mousePoint, drawEntitys) => {
+                var blockref = new BlockReference(Point3d.Origin, btr.ObjectId);
+                blockref.Move(Point3d.Origin, mousePoint);
+                drawEntitys.Enqueue(blockref);
+            });
+            moveJig.SetOptions(clipboardInfo.Point)
+                   .Keywords.Add("A", "A", "引线点粘贴(A)");
+
+            var dr = moveJig.Drag();
+            Point3d moveTo = Point3d.Origin;
+            if (dr.Status == PromptStatus.Keyword)
+                moveTo = clipboardInfo.Point;
+            else if (dr.Status == PromptStatus.OK)
+                moveTo = moveJig.MousePointWcsLast;
+            else
+            {
+                // 删除jig预览的块表记录
+                using (btr.ForWrite())
+                    btr.Erase();
+                return;
+            }
+
+            if (isBlock)
+            {
+                PasteIsBlock(tr, moveJig.Entitys, moveJig.MousePointWcsLast, moveTo);
+            }
+            else
+            {
+                PasteNotBlock(tr, btr, Point3d.Origin, moveTo);
+                // 删除jig预览的块表记录
+                using (btr.ForWrite())
+                    btr.Erase();
+            }
+
+            try
+            {
+                #region 读取剪贴板WMF
+                // c# 读取成功,win32直接读取剪贴板的话是不成功的
+                if (Clipboard.ContainsData(DataFormats.EnhancedMetafile))
+                {
+                    var iData = Clipboard.GetDataObject();//从剪切板获取数据
+                    if (!iData.GetDataPresent(DataFormats.EnhancedMetafile))
+                        return;
+                    var metafile = (Metafile)iData.GetData(DataFormats.EnhancedMetafile);
+                    Env.Printl(nameof(Metafile) + metafile.Size.ToString());
+                }
+                #endregion
+            }
+            catch (Exception e)
+            {
+                Debugger.Break();
+                Debug.WriteLine(e.ToString());
+            }
         }
-        #endregion
+        catch (Exception e)//{"剪贴板上的数据无效 (异常来自 HRESULT:0x800401D3 (CLIPBRD_E_BAD_DATA))"}
+        {
+            Debugger.Break();
+            Debug.WriteLine(e.ToString());
+        }
+        finally
+        {
+            if (_rwLock.IsWriteLockHeld)
+                _rwLock.ExitWriteLock(); // 退出写入锁
+        }
     }
 
     /// <summary>
