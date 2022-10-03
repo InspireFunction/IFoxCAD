@@ -494,7 +494,7 @@ public class Copyclip
                             return;
                         }
 
-                        int a4 = 2 | 4;
+                        int a4 = 0;
                         if ((a4 & 1) == 1)
                         {
                             // 此处无效
