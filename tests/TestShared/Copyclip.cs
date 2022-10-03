@@ -423,7 +423,7 @@ public class Copyclip
             if (!iData.GetDataPresent(DataFormats.EnhancedMetafile))
                 return;
             var metafile = (Metafile)iData.GetData(DataFormats.EnhancedMetafile);
-            Env.Printl("Metafile:" + metafile.Size.ToString());
+            Env.Printl(nameof(Metafile) + metafile.Size.ToString());
         }
         #endregion
     }

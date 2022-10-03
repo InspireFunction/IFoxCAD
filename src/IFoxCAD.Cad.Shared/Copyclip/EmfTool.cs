@@ -68,6 +68,10 @@ public struct PlaceableMetaHeader
         if (!bts)
             throw new IOException("失败:类型转换,路径:" + file);
 
+        // 转为emf的地址
+        IntPtr hEMF = IntPtr.Zero;
+
+        // 控制输出的时候跟cad一样带有一个矩形框边界,而不是所有图元的包围盒作为边界
         var mpType = new MetaFilePict
         {
             mm = MappingModes.MM_ANISOTROPIC,
@@ -76,22 +80,16 @@ public struct PlaceableMetaHeader
             hMF = IntPtr.Zero
         };
 
-        IntPtr hEMF = IntPtr.Zero;
+        // byte[] 指针偏移
         int iOffset = 0;
         if (sWMF.IsActivity)
             iOffset = sWMFsize;
-
-        // byte[] 指针偏移
-        var arr = fileByte.Skip(iOffset).ToArray();
-        GCHandle arrHandle = GCHandle.Alloc(arr, GCHandleType.Pinned);
+        IntPtr intPtr = Marshal.UnsafeAddrOfPinnedArrayElement(fileByte, iOffset);
 
         WindowsAPI.StructToPtr(mpType, mpPtr => {
             hEMF = EmfTool.SetWinMetaFileBits(
-                (uint)fileByte.Length, arrHandle.AddrOfPinnedObject(), IntPtr.Zero, mpPtr);
+                (uint)fileByte.Length, intPtr, IntPtr.Zero, mpPtr);
         });
-
-        if (arrHandle.IsAllocated)
-            arrHandle.Free();
 
         return hEMF;
     }
