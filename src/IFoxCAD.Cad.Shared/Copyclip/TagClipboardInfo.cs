@@ -450,13 +450,12 @@ public partial class ClipTool
     /// <param name="isWrite">true写入,false读取</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static bool OpenClipboardTask(bool isWrite, Action<List<IntPtr>> action)
+    public static bool OpenClipboardTask(bool isWrite, Action action)
     {
         if (action == null)
             throw new ArgumentNullException(nameof(action));
 
         bool openFlag = false;
-        List<IntPtr> freeDatas = new();
         try
         {
             openFlag = OpenClipboard(IntPtr.Zero);
@@ -464,7 +463,7 @@ public partial class ClipTool
                 return false;
             if (isWrite)
                 EmptyClipboard();
-            action.Invoke(freeDatas);
+            action.Invoke();
         }
         catch (Exception e)
         {
@@ -473,14 +472,6 @@ public partial class ClipTool
         }
         finally
         {
-            for (int i = 0; i < freeDatas.Count; i++)
-            {
-#if Marshal
-                Marshal.FreeHGlobal(freeDatas[i]);
-#else
-                WindowsAPI.GlobalFree(freeDatas[i]);
-#endif
-            }
             if (openFlag)
                 CloseClipboard();
         }
@@ -496,7 +487,7 @@ public partial class ClipTool
         bool locked = false;
         T? result = default;
 
-        ClipTool.OpenClipboardTask(false, lst => {
+        ClipTool.OpenClipboardTask(false, () => {
             // 读取剪贴板的指定数据
             var clipKeyFormat = RegisterClipboardFormat(clipKey);//ClipboardEnv.CadVer
             var clipTypeData = GetClipboardData(clipKeyFormat);

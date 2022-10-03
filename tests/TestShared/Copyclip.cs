@@ -189,8 +189,6 @@ public class Copyclip
         {
             if (!_rwLock.IsWriteLockHeld)
                 _rwLock.EnterWriteLock(); // 进入写入锁
-            else
-                Debug.WriteLine("没有进入读写锁");
 
             var dm = Acap.DocumentManager;
             if (dm.Count == 0)
@@ -281,11 +279,11 @@ public class Copyclip
 
             // 必须一次性写入剪贴板,详见 OpenClipboardTask
             var cadClipFormat = ClipTool.RegisterClipboardFormat(ClipboardEnv.CadVer);
-            bool getFlag = ClipTool.OpenClipboardTask(true, free => {
+            bool getFlag = ClipTool.OpenClipboardTask(true, () => {
                 // 写入剪贴板: cad图元
                 WindowsAPI.StructToPtr(cadClipType, cadClipData => {
                     ClipTool.SetClipboardData(cadClipFormat, cadClipData);
-                }, false, false);
+                }, false/*不释放内存*/, false/*不锁定内存(否则高频触发时候卡死)*/);
 
                 // 写入剪贴板: wmf,使得在粘贴链接的时候可以用
                 if (wmfMeta != IntPtr.Zero)
