@@ -6,9 +6,12 @@ namespace Test;
 using Autodesk.AutoCAD.DatabaseServices;
 using System;
 using System.Diagnostics;
+using System.Drawing;
 using System.Drawing.Imaging;
 using System.Threading;
 using System.Windows;
+using System.Windows.Media;
+using Image = System.Drawing.Image;
 
 /*
  * 0x01 (已完成)
@@ -271,10 +274,10 @@ public class Copyclip
 
             #region 写入 WMF 数据
             // 通过cad com导出wmf,再将wmf转为emf,然后才能写入剪贴板
-            IntPtr wmfMeta = IntPtr.Zero;
+            IntPtr emf = IntPtr.Zero;
             var wmf = Path.ChangeExtension(cadClipType.File, "wmf");
             Env.Editor.ExportWMF(wmf, idArray);
-            wmfMeta = PlaceableMetaHeader.Wmf2Emf(wmf);
+            emf = PlaceableMetaHeader.Wmf2Emf(wmf);
             #endregion
 
             // 必须一次性写入剪贴板,详见 OpenClipboardTask
@@ -286,18 +289,11 @@ public class Copyclip
                 }, false/*不释放内存*/, false/*不锁定内存(否则高频触发时候卡死)*/);
 
                 // 写入剪贴板: wmf,使得在粘贴链接的时候可以用
-                if (wmfMeta != IntPtr.Zero)
-                {
-                    ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, wmfMeta);
-                    EmfTool.DeleteEnhMetaFile(wmfMeta);
-                }
-
-                // c# cad截图 https://www.cnblogs.com/shangdishijiao/p/15166499.html
-                // 写入剪贴板: BMP位图,这是截图,不是WMF转BMP,不对
-                // BitmapTool.CaptureWndImage(doc.Window.Handle, bitmapHandle => {
-                //     ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
-                // });
+                if (emf != IntPtr.Zero)
+                    ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, emf);
             });
+            if (emf != IntPtr.Zero)
+                EmfTool.DeleteEnhMetaFile(emf);
 
             // 成功拷贝就删除上一次的临时文件
             if (getFlag)
@@ -454,15 +450,107 @@ public class Copyclip
             try
             {
                 #region 读取剪贴板WMF
-                // c# 读取成功,win32直接读取剪贴板的话是不成功的
-                if (Clipboard.ContainsData(DataFormats.EnhancedMetafile))
+                var msg = new StringBuilder();
+
+                int a3 = 2 | 4;
+                if ((a3 & 1) == 1)
                 {
-                    var iData = Clipboard.GetDataObject();//从剪切板获取数据
-                    if (!iData.GetDataPresent(DataFormats.EnhancedMetafile))
-                        return;
-                    var metafile = (Metafile)iData.GetData(DataFormats.EnhancedMetafile);
-                    Env.Printl(nameof(Metafile) + metafile.Size.ToString());
+                    // win32api 不成功
+                    ClipTool.OpenClipboardTask(false, () => {
+                        // 剪贴板数据保存目标数据列表
+                        List<byte[]> _bytes = new();
+                        var cf = (uint)ClipboardFormat.CF_ENHMETAFILE;
+                        var clipTypeData = ClipTool.GetClipboardData(cf);
+                        if (clipTypeData == IntPtr.Zero)
+                        {
+                            Env.Printl("失败:GetClipboardData");
+                            return;
+                        }
+
+                        // 无法锁定剪贴板emf内存,也无法获取GlobalSize
+                        bool locked = WindowsAPI.GlobalLockTask(clipTypeData, prt => {
+                            uint size = WindowsAPI.GlobalSize(prt);
+                            if (size > 0)
+                            {
+                                var buffer = new byte[size];
+                                Marshal.Copy(prt, buffer, 0, buffer.Length);
+                                _bytes.Add(buffer);
+                            }
+                        });
+                        if (!locked)
+                            Env.Printl("锁定内存失败");
+                    });
                 }
+                if ((a3 & 2) == 2)
+                {
+                    ClipTool.OpenClipboardTask(false, () => {
+                        // 无法锁定剪贴板emf内存,也无法获取GlobalSize
+                        // 需要直接通过指针跳转到指定emf结构位置
+                        var cf = (uint)ClipboardFormat.CF_ENHMETAFILE;
+                        var clipTypeData = ClipTool.GetClipboardData(cf);
+                        if (clipTypeData == IntPtr.Zero)
+                        {
+                            Env.Printl("失败:GetClipboardData");
+                            return;
+                        }
+
+                        int a4 = 2 | 4;
+                        if ((a4 & 1) == 1)
+                        {
+                            // 此处无效
+                            var len = EmfTool.GetEnhMetaFileDescription(clipTypeData, 0, null!);
+                            if (len != 0)
+                            {
+                                //PTSTR desc = (PTSTR)malloc(sizeof(TCHAR) * (len + 1));
+                                //GetEnhMetaFileDescription(clipTypeData, len, desc);
+                                EmfTool.GetEnhMetaFileDescriptionString(clipTypeData, out string desc);
+                                msg.AppendLine(desc);
+                            }
+                        }
+                        if ((a4 & 2) == 2)
+                        {
+                            // 获取文件信息
+                            var len = EmfTool.GetEnhMetaFileHeader(clipTypeData, 0, IntPtr.Zero);
+                            if (len != 0)
+                            {
+                                IntPtr header = Marshal.AllocHGlobal((int)len);
+                                len = EmfTool.GetEnhMetaFileHeader(clipTypeData, len, header);
+                                // 将内存空间转换为目标结构体
+                                var obj = (EnhMetaHeader)Marshal.PtrToStructure(header, typeof(EnhMetaHeader));
+                                msg.AppendLine(obj.ToString());
+                                Marshal.FreeHGlobal(header);
+                            }
+                        }
+                        if ((a4 & 4) == 4)
+                        {
+                            // 保存emf文件
+                            // https://blog.csdn.net/tigertianx/article/details/7098490
+                            var len = EmfTool.GetEnhMetaFileBits(clipTypeData, 0, null!);
+                            if (len != 0)
+                            {
+                                var bytes = new byte[len];
+                                _ = EmfTool.GetEnhMetaFileBits(clipTypeData, len, bytes);
+
+                                using MemoryStream ms1 = new(bytes);
+                                using var bm = Image.FromStream(ms1);//此方法emf保存成任何版本都会变成png
+                                bm.Save("D:\\桌面\\a.png");
+                            }
+                        }
+                    });
+                }
+                if ((a3 & 4) == 4)
+                {
+                    // c# 读取成功,win32直接读取剪贴板的话是不成功的
+                    if (Clipboard.ContainsData(DataFormats.EnhancedMetafile))
+                    {
+                        var iData = Clipboard.GetDataObject();//从剪切板获取数据
+                        if (!iData.GetDataPresent(DataFormats.EnhancedMetafile))
+                            return;
+                        var metafile = (Metafile)iData.GetData(DataFormats.EnhancedMetafile);
+                        msg.AppendLine("c#::" + metafile.Size.ToString());
+                    }
+                }
+                Env.Printl($"{nameof(Metafile)}:{msg}");
                 #endregion
             }
             catch (Exception e)
@@ -610,7 +698,8 @@ public class TestImageFormat
         return imf;
     }
 
-    // 此处相当于截图,可以后台用
+    // 此处相当于截图,后台没有doc不可用
+    // https://www.cnblogs.com/shangdishijiao/p/15166499.html
     [CommandMethod(nameof(CreatePreviewImage))]
     public void CreatePreviewImage()
     {
@@ -618,20 +707,26 @@ public class TestImageFormat
         if (tr.Document == null)
             return;
 
-        var size = tr.Document.Window.DeviceIndependentSize;
-        using var bmp = tr.Document.CapturePreviewImage(
+        var doc = tr.Document;
+
+        var size = doc.Window.DeviceIndependentSize;
+        using var bmp = doc.CapturePreviewImage(
             Convert.ToUInt32(size.Width),
             Convert.ToUInt32(size.Height));
 
         //保存wmf会变png,看二进制签名
-        // var outFile = Path.ChangeExtension(tr.Database.Filename, ".wmf");
-        // bmp.Save(outFile, GetFormat(outFile));
-
         var outFile = Path.ChangeExtension(tr.Database.Filename, ".bmp");
         bmp.Save(outFile, GetFormat(outFile));
-
         Env.Printl($"保存文件:{outFile}");
         Env.Printl($"保存后缀:{GetFormat(outFile)}");
+
+        // 利用winAPI截图
+        bool getFlag = ClipTool.OpenClipboardTask(true, () => {
+            BitmapTool.CaptureWndImage(doc.Window.Handle, bitmapHandle => {
+                // 写入剪贴板: BMP位图,这是截图,不是WMF转BMP,不对
+                ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
+            });
+        });
     }
 }
 #endif

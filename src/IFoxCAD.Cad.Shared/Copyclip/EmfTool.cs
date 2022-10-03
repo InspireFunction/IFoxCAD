@@ -145,8 +145,9 @@ public enum MappingModes
 }
 
 
-[StructLayout(LayoutKind.Sequential)]
-public struct ENHMETAHEADER
+[Serializable]
+[StructLayout(LayoutKind.Sequential, Pack = 2)]
+public struct EnhMetaHeader
 {
     public uint iType;
     public int nSize;
@@ -167,10 +168,66 @@ public struct ENHMETAHEADER
     public uint offPixelFormat;
     public uint bOpenGL;
     public IntSize szlMicrometers;
+
+    public override string ToString()
+    {
+        return
+            nameof(iType) + ":" + iType.ToString() + Environment.NewLine +
+            nameof(nSize) + ":" + nSize.ToString() + Environment.NewLine +
+            nameof(rclBounds) + ":" + rclBounds.ToString() + Environment.NewLine +
+            nameof(rclFrame) + ":" + rclFrame.ToString() + Environment.NewLine +
+            nameof(dSignature) + ":" + dSignature.ToString() + Environment.NewLine +
+            nameof(nVersion) + ":" + nVersion.ToString() + Environment.NewLine +
+            nameof(nBytes) + ":" + nBytes.ToString() + Environment.NewLine +
+            nameof(nRecords) + ":" + nRecords.ToString() + Environment.NewLine +
+            nameof(nHandles) + ":" + nHandles.ToString() + Environment.NewLine +
+            nameof(sReserved) + ":" + sReserved.ToString() + Environment.NewLine +
+            nameof(nDescription) + ":" + nDescription.ToString() + Environment.NewLine +
+            nameof(offDescription) + ":" + offDescription.ToString() + Environment.NewLine +
+            nameof(nPalEntries) + ":" + nPalEntries.ToString() + Environment.NewLine +
+            nameof(szlDevice) + ":" + szlDevice.ToString() + Environment.NewLine +
+            nameof(szlMillimeters) + ":" + szlMillimeters.ToString() + Environment.NewLine +
+            nameof(cbPixelFormat) + ":" + cbPixelFormat.ToString() + Environment.NewLine +
+            nameof(offPixelFormat) + ":" + offPixelFormat.ToString() + Environment.NewLine +
+            nameof(bOpenGL) + ":" + bOpenGL.ToString() + Environment.NewLine +
+            nameof(szlMicrometers) + ":" + szlMicrometers;
+    }
 }
 
 public static class EmfTool
 {
+    /// <summary>
+    /// 返回对一个增强型图元文件的说明
+    /// </summary>
+    /// <param name="hemf">目标增强型图元文件的句柄</param>
+    /// <param name="cchBuffer">lpszDescription缓冲区的长度</param>
+    /// <param name="lpDescription">指定一个预先初始化好的字串缓冲区，准备随同图元文件说明载入。
+    /// 参考CreateEnhMetaFile函数，了解增强型图元文件说明字串的具体格式</param>
+    /// <returns></returns>
+    [DllImport("gdi32.dll")]
+    public static extern uint GetEnhMetaFileDescription(
+        IntPtr hemf,
+        uint cchBuffer,
+        [MarshalAs(UnmanagedType.LPWStr)]
+        //[In,Out]
+        StringBuilder lpDescription
+        );
+
+    [System.Diagnostics.DebuggerStepThrough()]
+    [System.CodeDom.Compiler.GeneratedCode("InteropSignatureToolkit", "0.9 Beta1")]
+    public static uint GetEnhMetaFileDescriptionString(IntPtr hemf, out string lpDescription)
+    {
+        StringBuilder sb = new(1024);
+        uint methodRetVar = GetEnhMetaFileDescription(hemf, (uint)sb.Capacity, sb);
+        lpDescription = sb.ToString();
+        return methodRetVar;
+    }
+
+
+    [DllImport("gdi32.dll", EntryPoint = "GetEnhMetaFileHeader")]
+    public static extern uint GetEnhMetaFileHeader(IntPtr hemf, uint cbBuffer, IntPtr /*ENHMETAHEADER*/ lpemh);
+
+
     /// <summary>
     /// 将一个标准Windows图元文件转换成增强型图元文件
     /// </summary>
@@ -193,8 +250,6 @@ public static class EmfTool
     /// </returns>
     [DllImport("gdi32.dll", EntryPoint = "SetWinMetaFileBits")]
     public static extern IntPtr SetWinMetaFileBits(uint nSize, IntPtr lpMeta16Data, IntPtr hdcRef, IntPtr lpMFP);
-
-
     /// <summary>
     /// 获取矢量图的byte
     /// </summary>
@@ -276,7 +331,7 @@ public static class EmfTool
         IntPtr handle = mf.GetHenhmetafile();
         if (handle != IntPtr.Zero)
         {
-            uint size = GetEnhMetaFileBits(handle, 0, null!);
+            var size = GetEnhMetaFileBits(handle, 0, null!);
             if (size != 0)
             {
                 arr = new byte[size];

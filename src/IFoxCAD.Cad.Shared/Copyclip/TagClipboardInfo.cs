@@ -124,21 +124,23 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
     #endregion
 
     #region 视口指针
-    //[CommandMethod(nameof(testAcedGetAcadDwgview))]
-    //public void testAcedGetAcadDwgview()
-    //{
-    //    var dm = Acap.DocumentManager;
-    //    var doc = dm.MdiActiveDocument;
-    //    var ed = doc.Editor;
+    /*
+       [CommandMethod(nameof(testAcedGetAcadDwgview))]
+       public void testAcedGetAcadDwgview()
+       {
+           var dm = Acap.DocumentManager;
+           var doc = dm.MdiActiveDocument;
+           var ed = doc.Editor;
 
-    //    var a = AcedGetAcadDwgview().ToString(); //自动执行的时候就存在了
-    //    var b = ed.CurrentViewportObjectId.ToString();
-    //    Debug.WriteLine("a == b:" + a == b);//不对
+           var a = AcedGetAcadDwgview().ToString(); //自动执行的时候就存在了
+           var b = ed.CurrentViewportObjectId.ToString();
+           Debug.WriteLine("a == b:" + a == b);//不对
 
-    //    var tab = ed.GetCurrentView();
-    //    var c = tab.ObjectId.ToString();
-    //    Debug.WriteLine("a == c:" + a == c);//不对
-    //}
+           var tab = ed.GetCurrentView();
+           var c = tab.ObjectId.ToString();
+           Debug.WriteLine("a == c:" + a == c);//不对
+       }
+    */
 
     /// <summary>
     /// 获取视口指针
@@ -263,13 +265,18 @@ public struct IntRect
 [StructLayout(LayoutKind.Sequential)]
 public struct IntSize
 {
-    public int cx;
-    public int cy;
+    public int Hight;
+    public int Width;
 
     public IntSize(int cx, int cy)
     {
-        this.cx = cx;
-        this.cy = cy;
+        this.Hight = cx;
+        this.Width = cy;
+    }
+
+    public override string ToString()
+    {
+        return $"({Hight},{Width})";
     }
 }
 
