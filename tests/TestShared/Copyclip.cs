@@ -452,7 +452,7 @@ public class Copyclip
                 #region 读取剪贴板WMF
                 var msg = new StringBuilder();
 
-                int a3 = 2 | 4;
+                int a3 = 0;
                 if ((a3 & 1) == 1)
                 {
                     // win32api 不成功
@@ -494,7 +494,7 @@ public class Copyclip
                             return;
                         }
 
-                        int a4 = 0;
+                        int a4 = 2 | 4;
                         if ((a4 & 1) == 1)
                         {
                             // 此处无效
@@ -550,7 +550,9 @@ public class Copyclip
                         msg.AppendLine("c#::" + metafile.Size.ToString());
                     }
                 }
-                Env.Printl($"{nameof(Metafile)}:{msg}");
+
+                if (msg.Length != 0)
+                    Env.Printl($"{nameof(Metafile)}:{msg}");
                 #endregion
             }
             catch (Exception e)
