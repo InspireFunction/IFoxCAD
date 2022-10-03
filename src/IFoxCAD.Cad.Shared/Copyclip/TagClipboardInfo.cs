@@ -17,6 +17,7 @@ public class ClipboardEnv
     // public static string CadVer = $"AutoCAD.r{Acap.Version.Major}"
     // 将r17写死,代表每个cad版本都去找它,实现不隔离cad版本
     public static string CadVer = "AutoCAD.r17";
+    public static string CadCurrentVer = $"AutoCAD.r{Acap.Version.Major}";
 }
 
 /// <summary>

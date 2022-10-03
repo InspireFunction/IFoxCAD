@@ -93,7 +93,7 @@ public class Copyclip
             if (dm.Count == 0)
                 return;
             var doc = dm.MdiActiveDocument;
-            // 发送命令是因为导出WMF函数的com需要命令形式,否则将报错
+            // 发送命令是因为com导出WMF需要命令形式,否则将报错
             // 但是发送命令会导致选择集被取消了,那么就需要设置 CommandFlags.Redraw
             doc.SendStringToExecute(cmd + "\n", true, false, false);
         }
@@ -347,7 +347,15 @@ public class Copyclip
 
             var getClip = ClipTool.GetClipboard(ClipboardEnv.CadVer, out TagClipboardInfo tag);
             if (!getClip)
-                return;
+            {
+                // 在没有安装插件的高版本cad中复制,此时剪贴板是当前版本的,
+                // 那么在安装了插件的cad中需要识别这个同版本的剪贴板内容
+                // 例如天正只在某个启动的cad中加载插件,而不是全部
+                getClip = ClipTool.GetClipboard(ClipboardEnv.CadCurrentVer, out tag);
+                if (!getClip)
+                    return;
+            }
+
             var clipboardInfo = tag;
             Env.Print("粘贴来源: " + clipboardInfo.File);
 
@@ -359,9 +367,9 @@ public class Copyclip
 
             // 获取临时文件的图元id
             var fileEntityIds = new List<ObjectId>();
-            using (var fileTr = new DBTrans(clipboardInfo.File,
-                                            commit: false,
-                                            openMode: FileOpenMode.OpenForReadAndAllShare))
+            using (DBTrans fileTr = new(clipboardInfo.File,
+                                        commit: false,
+                                        openMode: FileOpenMode.OpenForReadAndAllShare))
             {
                 foreach (var id in fileTr.ModelSpace)
                     if (id.IsOk())
@@ -370,7 +378,7 @@ public class Copyclip
             if (fileEntityIds.Count == 0)
                 return;
 
-            using var tr = new DBTrans();
+            using DBTrans tr = new();
             tr.Editor?.SetImpliedSelection(new ObjectId[0]); // 清空选择集
 
             // 新建块表记录
@@ -396,7 +404,7 @@ public class Copyclip
             {
                 if (!id.IsOk())
                 {
-                    Env.Printl("jig预览块内有克隆失败的东西,是否天正克隆期间导致?");
+                    Env.Printl("jig预览块内有克隆失败的脏东西,是否天正克隆期间导致?");
                     continue;
                 }
                 var ent = tr.GetObject<Entity>(id);
@@ -413,8 +421,9 @@ public class Copyclip
                 blockref.Move(Point3d.Origin, mousePoint);
                 drawEntitys.Enqueue(blockref);
             });
-            moveJig.SetOptions(clipboardInfo.Point)
-                   .Keywords.Add("A", "A", "引线点粘贴(A)");
+            var jppo = moveJig.SetOptions(clipboardInfo.Point);
+            jppo.Keywords.Add(" ", " ", "<空格取消>");
+            jppo.Keywords.Add("A", "A", "引线点粘贴(A)");
 
             var dr = moveJig.Drag();
             Point3d moveTo = Point3d.Origin;
@@ -582,7 +591,7 @@ public class Copyclip
 //}
 
 
-#if true2
+#if !ac2008
 public class TestImageFormat
 {
     public ImageFormat GetFormat(string filename)
@@ -601,16 +610,28 @@ public class TestImageFormat
         return imf;
     }
 
-    [CommandMethod("CPI")]
+    // 此处相当于截图,可以后台用
+    [CommandMethod(nameof(CreatePreviewImage))]
     public void CreatePreviewImage()
     {
-        // Get the size of the document and capture the preview at that size
-        var size = Document.Window.DeviceIndependentSize;
-        using (var bmp = Document.CapturePreviewImage(Convert.ToUInt32(size.Width), Convert.ToUInt32(size.Height)))
-        {
-            // Save the file with the format derived from the filename
-            bmp.Save(outFile, GetFormat(outFile));
-        }
+        using DBTrans tr = new();
+        if (tr.Document == null)
+            return;
+
+        var size = tr.Document.Window.DeviceIndependentSize;
+        using var bmp = tr.Document.CapturePreviewImage(
+            Convert.ToUInt32(size.Width),
+            Convert.ToUInt32(size.Height));
+
+        //保存wmf会变png,看二进制签名
+        // var outFile = Path.ChangeExtension(tr.Database.Filename, ".wmf");
+        // bmp.Save(outFile, GetFormat(outFile));
+
+        var outFile = Path.ChangeExtension(tr.Database.Filename, ".bmp");
+        bmp.Save(outFile, GetFormat(outFile));
+
+        Env.Printl($"保存文件:{outFile}");
+        Env.Printl($"保存后缀:{GetFormat(outFile)}");
     }
 }
 #endif
