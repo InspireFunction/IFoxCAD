@@ -21,7 +21,7 @@ public class AutoAOP
 
 namespace Test
 {
-    /* 
+    /*
      * 天秀的事务注入,让你告别事务处理
      * https://www.cnblogs.com/JJBox/p/16157578.html
      */
@@ -56,7 +56,7 @@ namespace Test
         {
             // 拒绝注入就要自己开事务,通常用在循环提交事务上面.
             // 另见 报错0x02 https://www.cnblogs.com/JJBox/p/10798940.html
-            using var tr = new DBTrans();
+            using DBTrans tr = new();
         }
 
         [CommandMethod("InjectionTransaction2")]
@@ -64,5 +64,5 @@ namespace Test
         {
         }
     }
-} 
+}
 #endif

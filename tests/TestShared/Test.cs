@@ -6,7 +6,7 @@ public partial class Test
     [CommandMethod("dbtest")]
     public void Dbtest()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         if (tr.Editor is null)
             return;
         tr.Editor.WriteMessage("\n测试 Editor 属性是否工作！");
@@ -38,7 +38,7 @@ public partial class Test
     [CommandMethod("addent")]
     public void Addent()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.CurrentSpace.AddEntity(line);
         Line line1 = new(new Point3d(10, 10, 0), new Point3d(41, 1, 0));
@@ -50,7 +50,7 @@ public partial class Test
     [CommandMethod("drawarc")]
     public void Drawarc()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         Arc arc1 = EntityEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));// 起点，圆心，终点
         Arc arc2 = EntityEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);            // 起点，圆心，弧度
         Arc arc3 = EntityEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));   // 起点，圆上一点，终点
@@ -61,7 +61,7 @@ public partial class Test
     [CommandMethod("drawcircle")]
     public void DraCircle()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));                       // 起点，终点
         var circle2 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(2, 0, 0), new Point3d(0, 2, 0));// 三点画圆，成功
         var circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0));// 起点，圆心，终点，失败
@@ -82,12 +82,11 @@ public partial class Test
     [CommandMethod("layertest")]
     public void Layertest()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         tr.LayerTable.Add("1");
         tr.LayerTable.Add("2", lt => {
             lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 1);
             lt.LineWeight = LineWeight.LineWeight030;
-
         });
         tr.LayerTable.Remove("3");
         tr.LayerTable.Delete("0");
@@ -101,7 +100,7 @@ public partial class Test
     [CommandMethod("layerAdd1")]
     public void Layertest1()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor, 1));
     }
 
@@ -109,7 +108,7 @@ public partial class Test
     [CommandMethod("layerAdd2")]
     public void Layertest2()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         tr.LayerTable.Add("test2", 2);
         // tr.LayerTable["3"] = new LayerTableRecord();
     }
@@ -117,7 +116,7 @@ public partial class Test
     [CommandMethod("layerdel")]
     public void LayerDel()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         Env.Editor.WriteMessage(tr.LayerTable.Delete("0").ToString());        // 删除图层 0
         Env.Editor.WriteMessage(tr.LayerTable.Delete("Defpoints").ToString());// 删除图层 Defpoints
         Env.Editor.WriteMessage(tr.LayerTable.Delete("1").ToString());        // 删除不存在的图层 1
@@ -131,7 +130,7 @@ public partial class Test
     [CommandMethod("linedemo1")]
     public void AddLine1()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         //    tr.ModelSpace.AddEnt(line);
         //    tr.ModelSpace.AddEnts(line,circle);
 
@@ -158,7 +157,7 @@ public partial class Test
     [CommandMethod("Pldemo1")]
     public void AddPolyline1()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         Polyline pl = new();
         pl.SetDatabaseDefaults();
         pl.AddVertexAt(0, new Point2d(0, 0), 0, 0, 0);
@@ -183,7 +182,7 @@ public partial class Test
                 (new Point3d(0,10,0),0,0,0),
                 (new Point3d(5,5,0),0,0,0)
             };
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         tr.CurrentSpace.AddPline(pts);
     }
 
@@ -196,7 +195,7 @@ public partial class Test
     [CommandMethod("addxdata")]
     public void AddXdata()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var appname = "myapp2";
 
         tr.RegAppTable.Add("myapp1");
@@ -231,7 +230,7 @@ public partial class Test
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
         var ed = doc.Editor;
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         tr.RegAppTable.ForEach(id =>
             id.GetObject<RegAppTableRecord>()?.Name.Print());
         tr.RegAppTable.GetRecords().ForEach(rec => rec.Name.Print());
@@ -241,7 +240,7 @@ public partial class Test
         // var res = ed.GetEntity("\n select the entity:");
         // if (res.Status == PromptStatus.OK)
         // {
-        //    using var tr = new DBTrans();
+        //    using DBTrans tr = new();
         //    tr.RegAppTable.ForEach(id => id.GetObject<RegAppTableRecord>().Print());
         //    var data = tr.GetObject<Entity>(res.ObjectId).XData;
         //    ed.WriteMessage(data.ToString());
@@ -257,7 +256,7 @@ public partial class Test
         var res = ed.GetEntity("\n select the entity:");
         if (res.Status == PromptStatus.OK)
         {
-            using var tr = new DBTrans();
+            using DBTrans tr = new();
             var data = tr.GetObject<Entity>(res.ObjectId)!;
             data.ChangeXData(appname, DxfCode.ExtendedDataAsciiString, "change");
 
@@ -275,7 +274,7 @@ public partial class Test
         var res = ed.GetEntity("\n select the entity:");
         if (res.Status == PromptStatus.OK)
         {
-            using var tr = new DBTrans();
+            using DBTrans tr = new();
             var ent = tr.GetObject<Entity>(res.ObjectId);
             ed.WriteMessage("\n移除前:" + ent?.XData.ToString());
 
@@ -287,7 +286,7 @@ public partial class Test
     [CommandMethod("PrintLayerName")]
     public void PrintLayerName()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         foreach (var layerRecord in tr.LayerTable.GetRecords())
         {
             tr.Editor?.WriteMessage(layerRecord.Name);
@@ -324,7 +323,6 @@ public partial class Test
             {
                 result = p41.IsParallelTo(p12);
             }
-
         });
 
         Tools.TestTimes(1000000, "三次点乘", () => {
@@ -336,7 +334,6 @@ public partial class Test
             {
                 result = true;
             }
-
         });
 
         Tools.TestTimes(1000000, "三次垂直", () => {
@@ -347,7 +344,6 @@ public partial class Test
             {
                 result = true;
             }
-
         });
     }
 

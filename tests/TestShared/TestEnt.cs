@@ -5,9 +5,9 @@ public class TestEnt
     [CommandMethod("TestEntRoration")]
     public void TestEntRoration()
     {
-        var line = new Line(new(0,0,0),new(100,0,0));
+        var line = new Line(new(0, 0, 0), new(100, 0, 0));
 
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         tr.CurrentSpace.AddEntity(line);
         var line2 = (Line)line.Clone();
         tr.CurrentSpace.AddEntity(line2);
@@ -20,17 +20,14 @@ public class TestEnt
     {
         var line = new Line();
         var line1 = line as Entity;
-        Tools.TestTimes(100000, "is 匹配：", () =>
-         {
-             var t = line1 is Line;
-         });
-        Tools.TestTimes(100000, "name 匹配：", () =>
-        {
+        Tools.TestTimes(100000, "is 匹配：", () => {
+            var t = line1 is Line;
+        });
+        Tools.TestTimes(100000, "name 匹配：", () => {
             // var t = line.GetType().Name;
             var tt = line1.GetType().Name == nameof(Line);
         });
-        Tools.TestTimes(100000, "dxfname 匹配：", () =>
-        {
+        Tools.TestTimes(100000, "dxfname 匹配：", () => {
             // var t = line.GetType().Name;
             var tt = line1.GetRXClass().DxfName == nameof(Line);
         });

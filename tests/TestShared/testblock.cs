@@ -5,7 +5,7 @@ public class TestBlock
     [CommandMethod("Test_GetBoundingBoxEx")]
     public void Test_GetBoundingBoxEx()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var ents = Env.Editor.SSGet()?.Value?.GetEntities<Entity>();
         if (ents == null)
             return;
@@ -22,7 +22,7 @@ public class TestBlock
     [CommandMethod("Test_blockdef")]
     public void Test_BlockDef()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         // var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.BlockTable.Add("test",
             btr => {
@@ -57,7 +57,7 @@ public class TestBlock
     [CommandMethod("Test_blockdefchange")]
     public void Test_BlockDefChange()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         // var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         // tr.BlockTable.Change("test", btr =>
         // {
@@ -92,7 +92,7 @@ public class TestBlock
     [CommandMethod("Test_insertblockdef")]
     public void Test_InsertBlockDef()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         var line2 = new Line(new Point3d(0, 0, 0), new Point3d(-1, 1, 0));
         var att1 = new AttributeDefinition() { Position = new Point3d(10, 10, 0), Tag = "tagTest1", Height = 1, TextString = "valueTest1" };
@@ -120,16 +120,16 @@ public class TestBlock
         // tr.CurrentSpace.InsertBlock(new Point3d(4, 4, 0), "test1", new Scale3d(2), Math.PI / 4); // 测试放大2倍,旋转45度
 
         var def1 = new Dictionary<string, string>
-            {
-                { "tagTest1", "1" },
-                { "tagTest2", "2" }
-            };
+        {
+            { "tagTest1", "1" },
+            { "tagTest2", "2" }
+        };
         tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test1", atts: def1);
         var def2 = new Dictionary<string, string>
-            {
-                { "tagTest3", "1" },
-                { "tagTest4", "" }
-            };
+        {
+            { "tagTest3", "1" },
+            { "tagTest4", "" }
+        };
         tr.CurrentSpace.InsertBlock(new Point3d(10, 10, 0), "test2", atts: def2);
         tr.CurrentSpace.InsertBlock(new Point3d(-10, 0, 0), "test44");
     }
@@ -137,20 +137,19 @@ public class TestBlock
     [CommandMethod("Test_addattsdef")]
     public void Test_AddAttsDef()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var blockid = Env.Editor.GetEntity("pick block:").ObjectId;
         var blockref = tr.GetObject<BlockReference>(blockid)!.BlockTableRecord;
 
         var att1 = new AttributeDefinition() { Position = new Point3d(20, 20, 0), Tag = "addtagTest1", Height = 1, TextString = "valueTest1" };
         var att2 = new AttributeDefinition() { Position = new Point3d(10, 12, 0), Tag = "tagTest2", Height = 1, TextString = "valueTest2" };
-
-        tr.BlockTable.AddAttsToBlocks(blockref, new List<AttributeDefinition> { att1, att2 });
+        tr.BlockTable.AddAttsToBlocks(blockref, new() { att1, att2 });
     }
 
     [CommandMethod("test_blocknullbug")]
     public void Test_BlockNullBug()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
 
         var ents = new List<Entity>();
         var line5 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
@@ -164,7 +163,7 @@ public class TestBlock
     [CommandMethod("test_block_file")]
     public void Test_BlockFile()
     {
-        var tr = new DBTrans();
+        using DBTrans tr = new();
         var id = tr.BlockTable.GetBlockFrom(@"C:\Users\vic\Desktop\test.dwg", false);
         tr.CurrentSpace.InsertBlock(Point3d.Origin, id);
     }
@@ -173,15 +172,12 @@ public class TestBlock
     [CommandMethod("test_clip")]
     public void Test_ClipBlock()
     {
-        using var tr = new DBTrans();
-        tr.BlockTable.Add("test1",
-            btr => {
-                btr.Origin = new Point3d(0, 0, 0);
-                btr.AddEntity(new Line(new Point3d(0, 0, 0), new Point3d(10, 10, 0)),
-                    new Line(new Point3d(10, 10, 0), new Point3d(10, 0, 0))
-                    );
-            }
-            );
+        using DBTrans tr = new();
+        tr.BlockTable.Add("test1", btr => {
+            btr.Origin = new Point3d(0, 0, 0);
+            btr.AddEntity(new Line(new Point3d(0, 0, 0), new Point3d(10, 10, 0)),
+                          new Line(new Point3d(10, 10, 0), new Point3d(10, 0, 0)));
+        });
         // tr.BlockTable.Add("hah");
         var id = tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test1");
         var bref = tr.GetObject<BlockReference>(id)!;
@@ -196,10 +192,10 @@ public class TestBlock
     /// <summary>
     /// 给用户的测试程序，不知道对错
     /// </summary>
-    [CommandMethod("test_block_ej")]
-    public void test_block_ej()
+    [CommandMethod(nameof(Test_block_ej))]
+    public void Test_block_ej()
     {
-        using (var tr = new DBTrans())
+        using (DBTrans tr = new())
         {
             // Point3d.Origin.AddBellowToModelSpace(100, 100, 5, 3, 30);// 画波纹管
 
@@ -228,18 +224,16 @@ public class TestBlock
             entTest?.Draw();
         }
 
-        using var tr2 = new DBTrans();
-        PromptEntityOptions PEO = new("\n请选择一个块");
-        PEO.SetRejectMessage("\n对象必须是块");
-        PEO.AddAllowedClass(typeof(BlockReference), true);
+        using DBTrans tr2 = new();
+        PromptEntityOptions peo = new("\n请选择一个块");
+        peo.SetRejectMessage("\n对象必须是块");
+        peo.AddAllowedClass(typeof(BlockReference), true);
 
-        PromptEntityResult PER = Env.Editor.GetEntity(PEO);
-        if (PER.Status != PromptStatus.OK)
-        {
+        var per = Env.Editor.GetEntity(peo);
+        if (per.Status != PromptStatus.OK)
             return;
-        }
 
-        var Bref = tr2.GetObject<BlockReference>(PER.ObjectId)!;
+        var Bref = tr2.GetObject<BlockReference>(per.ObjectId)!;
         // var BTR = tr.GetObject<BlockTableRecord>(Bref.BlockTableRecord, OpenMode.ForWrite);
         //// 如果知道块名字BTRName
         // BlockTableRecord BTR = tr.GetObject<BlockTableRecord>(tr.BlockTable[blockName], OpenMode.ForWrite);
@@ -247,13 +241,12 @@ public class TestBlock
         var btr = tr2.BlockTable[Bref.Name];
 
         tr2.BlockTable.Change(btr, ltr => {
-            foreach (ObjectId OID in ltr)
+            foreach (ObjectId oid in ltr)
             {
-                var ent = tr2.GetObject<Entity>(OID);
-                using (ent!.ForWrite())
+                var ent = tr2.GetObject<Entity>(oid);
+                if (ent is MText mText)
                 {
-                    if (ent is MText mText)
-                    {
+                    using (ent.ForWrite())
                         switch (mText.Text)
                         {
                             case "$$A":
@@ -264,10 +257,15 @@ public class TestBlock
                             default:
                             break;
                         }
-                    }
-                    else if (ent is DBText dBText) { dBText.TextString = "haha"; }
-                    else if (ent is Dimension dimension)
-                    {
+                }
+                else if (ent is DBText dBText)
+                {
+                    using (ent.ForWrite())
+                        dBText.TextString = "haha";
+                }
+                else if (ent is Dimension dimension)
+                {
+                    using (ent.ForWrite())
                         switch (dimension.DimensionText)
                         {
                             case "$$pipeLen":
@@ -277,11 +275,9 @@ public class TestBlock
                             default:
                             break;
                         }
-                    }
                 }
             }
         });
-
         tr2.Editor?.Regen();
     }
 
@@ -297,7 +293,7 @@ public class TestBlock
         string blockName = "W_BLOCK_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
         // var rss = ed.GetSelection(promptOpt);
         var rss = Env.Editor.GetSelection(promptOpt);
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         if (rss.Status == PromptStatus.OK)
         {
             // SelectionSet ss = rss.Value;
@@ -444,7 +440,7 @@ public class TestBlock
             { "haha", 1 }
         };
         var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var blockref = tr.GetObject<BlockReference>(blockid)!;
         blockref.ChangeBlockProperty(pro);
         // 这是第一个函数的用法
@@ -461,7 +457,7 @@ public class TestBlock
             return;
         }
 
-        using var tr = new DBTrans(dwg);
+        using DBTrans tr = new(dwg);
         tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
             ent.ForWrite(e => e.ColorIndex = 3);
         });
@@ -480,8 +476,8 @@ public class BlockImportClass
     public void Test_Cbll()
     {
         string filename = @"C:\Users\vic\Desktop\Drawing1.dwg";
-        using var tr = new DBTrans();
-        using var tr1 = new DBTrans(filename);
+        using DBTrans tr = new();
+        using DBTrans tr1 = new(filename);
         // tr.BlockTable.GetBlockFrom(filename, true);
         string blkdefname = SymbolUtilityServices.RepairSymbolName(SymbolUtilityServices.GetSymbolNameFromPathName(filename, "dwg"), false);
         tr.Database.Insert(blkdefname, tr1.Database, false); // 插入了块定义，未插入块参照

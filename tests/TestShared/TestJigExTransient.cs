@@ -40,7 +40,7 @@ public partial class Test
         jet.Update(c2);
         // jet.UpdateAll();
 
-        var r4 = Env.Editor.GetPoint("\n此拾取无意义,仅为了暂停查看");
+        Env.Editor.GetPoint("\n此拾取无意义,仅为了暂停查看");
 
         // 加到图纸中,为测试瞬态容器可以自行dispose消失,所以未全部加入
         using DBTrans tr = new();
@@ -53,8 +53,6 @@ public partial class Test
     [CommandMethod(nameof(TestJigExTransentDim))]
     public static void TestJigExTransentDim()
     {
-        using DBTrans tr = new();
-        Editor ed = tr.Editor!;
         PromptPointOptions ppo = new("")
         {
             AppendKeywordsToMessage = false,
@@ -63,26 +61,28 @@ public partial class Test
         for (int i = 0; i < 3; i++)
         {
             ppo.Message = $"\n选择标注点{i + 1}";
-            var ppr = ed.GetPoint(ppo);
+            var ppr = Env.Editor.GetPoint(ppo);
             if (ppr.Status != PromptStatus.OK)
                 return;
             pts.Add(ppr.Value);
         }
 
-        using RotatedDimension dimension = new(
-            rotation: 0,
-            line1Point: pts[0],
-            line2Point: pts[1],
-            dimensionLinePoint: pts[2],
-            dimensionText: "<>",
-            tr.Database.Dimstyle);
+        using DBTrans tr = new();
+
+        using RotatedDimension dimension = new();
+        dimension.SetDatabaseDefaults();// cad16没有这个不显示
+        dimension.Rotation = 0;
+        dimension.XLine1Point = pts[0];
+        dimension.XLine2Point = pts[1];
+        dimension.DimLinePoint = pts[2];
+        dimension.DimensionText = "<>";
+        dimension.DimensionStyle = tr.Database.Dimstyle;
 
         using JigExTransient jet = new();
-        jet.Add(dimension);
+        jet.Add(dimension, TransientDrawingMode.Highlight);
         jet.UpdateAll();
 
-        var r4 = Env.Editor.GetPoint("\n此拾取无意义,仅为了暂停查看");
-
+        Env.Editor.GetPoint("\n此拾取无意义,仅为了暂停查看");
         tr.CurrentSpace.AddEntity(dimension);
     }
 }

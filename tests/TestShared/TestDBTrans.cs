@@ -6,7 +6,7 @@ public class TestTrans
     [CommandMethod(nameof(FileNotExist))]
     public void FileNotExist()
     {
-        using var tr = new DBTrans("test.dwg");
+        using DBTrans tr = new("test.dwg");
         tr.SaveFile((DwgVersion)24, false);
     }
 
@@ -14,7 +14,7 @@ public class TestTrans
     [CommandMethod(nameof(FileNotExist2))]
     public void FileNotExist2()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         tr.SaveFile(saveAsFile: "D:\\");
     }
 
@@ -22,10 +22,10 @@ public class TestTrans
     [CommandMethod(nameof(FileNotExist3))]
     public void FileNotExist3()
     {
-        using var tr = new DBTrans("D:\\");
+        using DBTrans tr = new("D:\\");
         tr.SaveDwgFile();
 
-        using var tr2 = new DBTrans("D:\\");
+        using DBTrans tr2 = new("D:\\");
         tr2.SaveFile(saveAsFile: "D:\\");
     }
 
@@ -34,7 +34,7 @@ public class TestTrans
     public void Testtr()
     {
         string filename = @"C:\Users\vic\Desktop\test.dwg";
-        using var tr = new DBTrans(filename);
+        using DBTrans tr = new(filename);
         tr.ModelSpace.AddCircle(new Point3d(10, 10, 0), 20);
         // tr.Database.SaveAs(filename,DwgVersion.Current);
         tr.SaveDwgFile();
@@ -42,8 +42,7 @@ public class TestTrans
     [CommandMethod("testifoxcommit")]
     public void Testifoxcommit()
     {
-
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         tr.ModelSpace.AddCircle(new Point3d(0, 0, 0), 20);
         tr.Abort();
         // tr.Commit();
@@ -55,7 +54,7 @@ public class TestTrans
     // [CommandMethod("TESTAOP")]
     // public void testaop()
     // {
-    //    // 不用 using var tr = new DBTrans();
+    //    // 不用 using DBTrans tr = new();
     //    var tr = DBTrans.Top;
     //    tr.ModelSpace.AddCircle(new Point3d(0, 0, 0), 20);
     // }
@@ -78,12 +77,12 @@ public class TestTrans
         // var pl = Env.Editor.GetEntity("pick pl").ObjectId;
 
         var tr1 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
-        using var tr2 = new DBTrans();
+        using DBTrans tr2 = new();
         var tr3 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
         var tr6 = Acap.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
         Env.Print(tr2.Transaction == tr3);
         Env.Print(tr3 == tr6);
-        using var tr4 = new DBTrans();
+        using DBTrans tr4 = new();
         var tr5 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
         var tr7 = Acap.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
         Env.Print(tr4.Transaction == tr5);
@@ -98,9 +97,5 @@ public class TestTrans
         // Env.Print(pt1.IsEqualTo(pt2,new Tolerance(0.0,1e-6)).ToString());
         // Env.Print((pt1 == pt2).ToString());
         // Env.Print((pt1 != pt2).ToString());
-
-
-
     }
-
 }

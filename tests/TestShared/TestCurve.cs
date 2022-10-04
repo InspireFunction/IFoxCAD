@@ -26,7 +26,7 @@ public class TestGraph
     [CommandMethod("testgraph")]
     public void TestGraph1()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
         if (ents == null)
             return;
@@ -37,13 +37,12 @@ public class TestGraph
             Env.Print(res.Count());
             tr.CurrentSpace.AddEntity(res);
         });
-
     }
 
     [CommandMethod("testgraphspeed")]
     public void TestGraphspeed()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
         if (ents == null)
             return;
@@ -78,11 +77,10 @@ public class TestGraph
             // 查询全部的 闭合环
             dfs.FindAll(graph);
         });
-#endif 
+#endif
         // res.ForEach((i, t) => t.ForWrite(e => e.ColorIndex = i + 1));
 
         // tr.CurrentSpace.AddEntity(res);
-
     }
 }
 
@@ -94,7 +92,7 @@ public class TestCurve
     [CommandMethod("testbreakcurve")]
     public void TestBreakCurve()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var ents = Env.Editor.SSGet()?.Value.GetEntities<Curve>();
         if (ents is null)
             return;
@@ -106,7 +104,7 @@ public class TestCurve
     [CommandMethod("testCurveCurveIntersector3d")]
     public void TestCurveCurveIntersector3d()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var ents = Env.Editor.SSGet()?
                    .Value.GetEntities<Curve>()
                    .Select(e => e?.ToCompositeCurve3d()).ToList();

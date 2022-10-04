@@ -217,7 +217,7 @@ public class Copyclip
                 Thread.Sleep(1);
             }
 
-            using var tr = new DBTrans();
+            using DBTrans tr = new();
 
             #region 写入 AutoCAD.R17 数据
             if (getPoint)
@@ -252,7 +252,7 @@ public class Copyclip
             var cadClipType = new TagClipboardInfo(tempFile, pt);
 
             // 克隆到目标块表内
-            using (var fileTr = new DBTrans(cadClipType.File))
+            using (DBTrans fileTr = new(cadClipType.File))
             {
                 fileTr.Task(() => {
                     using IdMapping map = new();

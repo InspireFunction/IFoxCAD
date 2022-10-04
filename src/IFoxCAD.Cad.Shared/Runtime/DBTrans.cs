@@ -52,7 +52,7 @@ public class DBTrans : IDisposable
              * 0x02
              * 跨文档事务出错 Autodesk.AutoCAD.Runtime.Exception:“eNotFromThisDocument”
              * Curves.GetEntities()会从Top获取事务(Top会new一个),此时会是当前文档;
-             * 然后命令文中发生了 using var tr = new DBTrans();
+             * 然后命令文中发生了 using DBTrans tr = new();
              * 当退出命令此事务释放,但是从来不释放Top,
              * 然后我新建了一个文档,再进行命令=>又进入Top,Top返回了前一个文档的事务
              * 因此所以无法清理栈,所以Dispose不触发,导致无法刷新图元和Ctrl+Z出错

@@ -8,7 +8,7 @@ public class Commands_Jig
     [CommandMethod("TestCmd_jig33")]
     public static void TestCmd_jig33()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var per = tr.Editor?.GetEntity("\n点选圆形:");
         if (per?.Status != PromptStatus.OK)
             return;
@@ -48,7 +48,7 @@ public class Commands_Jig
     [CommandMethod("TestCmd_Jig44")]
     public void TestCmd_Jig44()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var per = Env.Editor.GetEntity("\n请选择一条多段线:");
         if (per.Status != PromptStatus.OK)
             return;

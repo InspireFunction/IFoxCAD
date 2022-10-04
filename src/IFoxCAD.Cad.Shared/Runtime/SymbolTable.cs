@@ -295,7 +295,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
                                     string name,
                                     bool over)
     {
-        using var tr = new DBTrans(fileName);
+        using DBTrans tr = new(fileName);
         return GetRecordFrom(tableSelector(tr), name, over);
     }
     #endregion

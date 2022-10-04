@@ -29,7 +29,7 @@ public class Testeditor
     [CommandMethod("testzoom")]
     public void Testzoom()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         var res = Env.Editor.GetEntity("\npick ent:");
         if (res.Status == PromptStatus.OK)
             Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>()!);
@@ -37,7 +37,7 @@ public class Testeditor
     [CommandMethod("testzoomextent")]
     public void Testzoomextent()
     {
-        // using var tr = new DBTrans();
+        // using DBTrans tr = new();
         // var res = Env.Editor.GetEntity("\npick ent:");
         // if (res.Status == PromptStatus.OK)
         // {

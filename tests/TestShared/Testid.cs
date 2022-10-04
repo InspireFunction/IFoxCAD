@@ -5,7 +5,7 @@ public class Testid
     [CommandMethod("testid")]
     public void TestId()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.CurrentSpace.AddEntity(line);
         tr.Dispose();
@@ -25,11 +25,11 @@ public class Testid
 
         // }
     }
-    
+
     [CommandMethod("testmycommand")]
     public void TestMyCommand()
     {
-        using var dbtrans = new DBTrans(Env.Document, true, false);
+        using DBTrans dbtrans = new(Env.Document, true, false);
         using var trans = Env.Database.TransactionManager.StartTransaction();
 
         var l1 = new Line(new Point3d(0, 0, 0), new Point3d(100, 100, 0));
@@ -42,7 +42,7 @@ public class Testid
     [CommandMethod("testtextstyle")]
     public void TestTextStyle()
     {
-        using var tr = new DBTrans();
+        using DBTrans tr = new();
         tr.TextStyleTable.Add("宋体", "宋体.ttf", 0.8);
 
         tr.TextStyleTable.Add("宋体1", FontTTF.宋体, 0.8);
@@ -53,8 +53,7 @@ public class Testid
 
 
 
-        tr.TextStyleTable.Add("daziti", ttr =>
-        {
+        tr.TextStyleTable.Add("daziti", ttr => {
             ttr.FileName = "ascii.shx";
             ttr.BigFontFileName = "gbcbig.shx";
         });
@@ -63,8 +62,8 @@ public class Testid
     [CommandMethod("testtextstylechange")]
     public void TestTextStyleChange()
     {
-        using var tr = new DBTrans();
-        
+        using DBTrans tr = new();
+
 
         tr.TextStyleTable.AddWithChange("宋体1", "simfang.ttf", height: 5);
         tr.TextStyleTable.AddWithChange("仿宋体", "宋体.ttf");
