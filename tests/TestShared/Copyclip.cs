@@ -8,8 +8,12 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Documents;
+using System.Windows.Interop;
 using System.Windows.Media;
 using Image = System.Drawing.Image;
 
@@ -199,16 +203,18 @@ public class Copyclip
             var doc = dm.MdiActiveDocument;
             if (doc.Editor == null)
                 return;
+            ObjectId[] idArray = null!;
+#if true
             var psr = doc.Editor.SelectImplied();// 预选
             if (psr.Status != PromptStatus.OK)
                 psr = doc.Editor.GetSelection();// 手选
             if (psr.Status != PromptStatus.OK)
                 return;
+            idArray = psr.Value.GetObjectIds();
+#endif
 
             // 设置基点
             Point3d pt = Point3d.Origin;
-            var idArray = psr.Value.GetObjectIds();
-
             var tempFile = CreateTempFileName();
             while (File.Exists(tempFile) ||
                    File.Exists(Path.ChangeExtension(tempFile, "wmf")))
@@ -218,6 +224,40 @@ public class Copyclip
             }
 
             using DBTrans tr = new();
+
+
+            #region 写入 WMF 数据
+            /*
+             * 通过cadCom导出wmf(免得自己转换每种图元),
+             * 再将wmf转为emf,然后才能写入剪贴板
+             * wmf生成(win32api): https://www.cnblogs.com/5iedu/p/4706324.html
+             */
+            IntPtr hMetaFile = IntPtr.Zero;
+            {
+                var wmf = Path.ChangeExtension(tempFile, "wmf");
+                Env.Editor.ComExportWMF(wmf, idArray);
+                if (File.Exists(wmf))
+                {
+                    hMetaFile = PlaceableMetaHeader.Wmf2Emf(wmf);//emf文件句柄
+                    try { File.Delete(wmf); }
+                    catch (Exception e) { Env.Printl(e); }
+                }
+                else
+                {
+                    Env.Printl("没有创建wmf,失败");
+                }
+            }
+            if (hMetaFile != IntPtr.Zero)
+            {
+                // 此处尚未完成
+                // EmfTool.SetEnhMetaFileDescriptionEx(ref hMetaFile, "这是阿惊的emf");
+            }
+
+            // 保存文件
+            //var emfsave = Path.ChangeExtension(cadClipType.File, ".emf");
+            //EmfTool.Save(emf, emfsave);
+
+            #endregion
 
             #region 写入 AutoCAD.R17 数据
             if (getPoint)
@@ -272,14 +312,6 @@ public class Copyclip
             }
             #endregion
 
-            #region 写入 WMF 数据
-            // 通过cad com导出wmf,再将wmf转为emf,然后才能写入剪贴板
-            IntPtr emf = IntPtr.Zero;
-            var wmf = Path.ChangeExtension(cadClipType.File, "wmf");
-            Env.Editor.ExportWMF(wmf, idArray);
-            emf = PlaceableMetaHeader.Wmf2Emf(wmf);
-            #endregion
-
             // 必须一次性写入剪贴板,详见 OpenClipboardTask
             var cadClipFormat = ClipTool.RegisterClipboardFormat(ClipboardEnv.CadVer);
             bool getFlag = ClipTool.OpenClipboardTask(true, () => {
@@ -289,11 +321,11 @@ public class Copyclip
                 }, false/*不释放内存*/, false/*不锁定内存(否则高频触发时候卡死)*/);
 
                 // 写入剪贴板: wmf,使得在粘贴链接的时候可以用
-                if (emf != IntPtr.Zero)
-                    ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, emf);
+                if (hMetaFile != IntPtr.Zero)
+                    ClipTool.SetClipboardData((uint)ClipboardFormat.CF_ENHMETAFILE, hMetaFile);
             });
-            if (emf != IntPtr.Zero)
-                EmfTool.DeleteEnhMetaFile(emf);
+            if (hMetaFile != IntPtr.Zero)
+                EmfTool.DeleteEnhMetaFile(hMetaFile);
 
             // 成功拷贝就删除上一次的临时文件
             if (getFlag)
@@ -302,8 +334,6 @@ public class Copyclip
             // 加入删除队列,下次删除
             if (!_delFile.Contains(cadClipType.File))
                 _delFile.Add(cadClipType.File);
-            if (!_delFile.Contains(wmf))
-                _delFile.Add(wmf);
 
             // 剪切时候删除
             if (isEraseSsget)
@@ -352,10 +382,10 @@ public class Copyclip
                     return;
             }
 
-            var clipboardInfo = tag;
-            Env.Print("粘贴来源: " + clipboardInfo.File);
+            var cadClipType = tag;
+            Env.Print("粘贴来源: " + cadClipType.File);
 
-            if (!File.Exists(clipboardInfo.File))
+            if (!File.Exists(cadClipType.File))
             {
                 Env.Print("文件不存在");
                 return;
@@ -363,7 +393,7 @@ public class Copyclip
 
             // 获取临时文件的图元id
             var fileEntityIds = new List<ObjectId>();
-            using (DBTrans fileTr = new(clipboardInfo.File,
+            using (DBTrans fileTr = new(cadClipType.File,
                                         commit: false,
                                         openMode: FileOpenMode.OpenForReadAndAllShare))
             {
@@ -378,12 +408,13 @@ public class Copyclip
             tr.Editor?.SetImpliedSelection(new ObjectId[0]); // 清空选择集
 
             // 新建块表记录
-            var btr = CreateBlockTableRecord(tr, clipboardInfo.File);
+            var btr = CreateBlockTableRecord(tr, cadClipType.File);
             if (btr == null)
                 return;
 
             /// 克隆进块表记录
-            /// 动态块粘贴之后,用ctrl+z导致动态块特性无法恢复,是因为它: <see cref="DuplicateRecordCloning.Replace"/>
+            /// 动态块粘贴之后,用ctrl+z导致动态块特性无法恢复,
+            /// 是因为它: <see cref="DuplicateRecordCloning.Replace"/>
             using IdMapping map = new();
             using ObjectIdCollection idc = new(fileEntityIds.ToArray());
             tr.Task(() => {
@@ -407,7 +438,7 @@ public class Copyclip
                 if (ent == null)
                     continue;
                 using (ent.ForWrite())
-                    ent.Move(clipboardInfo.Point, Point3d.Origin);
+                    ent.Move(cadClipType.Point, Point3d.Origin);
             }
 
             // 预览并获取交互点
@@ -417,14 +448,14 @@ public class Copyclip
                 blockref.Move(Point3d.Origin, mousePoint);
                 drawEntitys.Enqueue(blockref);
             });
-            var jppo = moveJig.SetOptions(clipboardInfo.Point);
+            var jppo = moveJig.SetOptions(cadClipType.Point);
             jppo.Keywords.Add(" ", " ", "<空格取消>");
             jppo.Keywords.Add("A", "A", "引线点粘贴(A)");
 
             var dr = moveJig.Drag();
             Point3d moveTo = Point3d.Origin;
             if (dr.Status == PromptStatus.Keyword)
-                moveTo = clipboardInfo.Point;
+                moveTo = cadClipType.Point;
             else if (dr.Status == PromptStatus.OK)
                 moveTo = moveJig.MousePointWcsLast;
             else
@@ -453,6 +484,7 @@ public class Copyclip
                 var msg = new StringBuilder();
 
                 int a3 = 0;
+                a3 = 2 | 4;
                 if ((a3 & 1) == 1)
                 {
                     // win32api 不成功
@@ -463,7 +495,7 @@ public class Copyclip
                         var clipTypeData = ClipTool.GetClipboardData(cf);
                         if (clipTypeData == IntPtr.Zero)
                         {
-                            Env.Printl("失败:GetClipboardData");
+                            Env.Printl("失败:粘贴剪贴板emf1");
                             return;
                         }
 
@@ -490,51 +522,30 @@ public class Copyclip
                         var clipTypeData = ClipTool.GetClipboardData(cf);
                         if (clipTypeData == IntPtr.Zero)
                         {
-                            Env.Printl("失败:GetClipboardData");
+                            Env.Printl("失败:粘贴剪贴板emf2");
                             return;
                         }
 
-                        int a4 = 2 | 4;
+                        int a4 = 1 | 2 | 4;
                         if ((a4 & 1) == 1)
                         {
-                            // 此处无效
-                            var len = EmfTool.GetEnhMetaFileDescription(clipTypeData, 0, null!);
-                            if (len != 0)
-                            {
-                                //PTSTR desc = (PTSTR)malloc(sizeof(TCHAR) * (len + 1));
-                                //GetEnhMetaFileDescription(clipTypeData, len, desc);
-                                EmfTool.GetEnhMetaFileDescriptionString(clipTypeData, out string desc);
-                                msg.AppendLine(desc);
-                            }
+                            // 获取描述
+                            var desc = EmfTool.GetEnhMetaFileDescriptionEx(clipTypeData);
+                            if (!string.IsNullOrEmpty(desc))
+                                msg.AppendLine("DescriptionEx::" + desc);
                         }
                         if ((a4 & 2) == 2)
                         {
                             // 获取文件信息
-                            var len = EmfTool.GetEnhMetaFileHeader(clipTypeData, 0, IntPtr.Zero);
-                            if (len != 0)
-                            {
-                                IntPtr header = Marshal.AllocHGlobal((int)len);
-                                len = EmfTool.GetEnhMetaFileHeader(clipTypeData, len, header);
-                                // 将内存空间转换为目标结构体
-                                var obj = (EnhMetaHeader)Marshal.PtrToStructure(header, typeof(EnhMetaHeader));
-                                msg.AppendLine(obj.ToString());
-                                Marshal.FreeHGlobal(header);
-                            }
+                            var obj = EnhMetaHeader.Create(clipTypeData);
+                            if (obj != null)
+                                msg.AppendLine("EnhMetaHeader::" + obj.Value.ToString());
                         }
                         if ((a4 & 4) == 4)
                         {
-                            // 保存emf文件
-                            // https://blog.csdn.net/tigertianx/article/details/7098490
-                            var len = EmfTool.GetEnhMetaFileBits(clipTypeData, 0, null!);
-                            if (len != 0)
-                            {
-                                var bytes = new byte[len];
-                                _ = EmfTool.GetEnhMetaFileBits(clipTypeData, len, bytes);
-
-                                using MemoryStream ms1 = new(bytes);
-                                using var bm = Image.FromStream(ms1);//此方法emf保存成任何版本都会变成png
-                                bm.Save("D:\\桌面\\a.png");
-                            }
+                            // 保存文件
+                            //var emfsave = Path.ChangeExtension(cadClipType.File, ".emf");
+                            //EmfTool.Save(clipTypeData, emfsave);
                         }
                     });
                 }
@@ -547,12 +558,21 @@ public class Copyclip
                         if (!iData.GetDataPresent(DataFormats.EnhancedMetafile))
                             return;
                         var metafile = (Metafile)iData.GetData(DataFormats.EnhancedMetafile);
-                        msg.AppendLine("c#::" + metafile.Size.ToString());
+                        /*
+                            // 为什么序列化失败了呢
+                            var formatter = new BinaryFormatter();
+                            //using MemoryStream stream = new();
+                            Stream stream = new FileStream("MyFile.bin", FileMode.Create, FileAccess.Write, FileShare.None);
+                            formatter.Serialize(stream, metafile);
+                            stream.Close();
+                            //Metafile obj = (Metafile)formatter.Deserialize(stream);
+                        */
+                        msg.AppendLine($"c# Metafile::{metafile.Size}");
                     }
                 }
 
                 if (msg.Length != 0)
-                    Env.Printl($"{nameof(Metafile)}:{msg}");
+                    Env.Printl(msg);
                 #endregion
             }
             catch (Exception e)
@@ -732,3 +752,139 @@ public class TestImageFormat
     }
 }
 #endif
+
+public class OleTestClass
+{
+    // https://adndevblog.typepad.com/autocad/2012/04/update-linked-ole-object-from-net.html
+
+    /// <summary>
+    /// 更新ole链接
+    /// 如果 OLE 对象在另一个应用程序中打开,则上面的代码似乎不会更新该对象
+    /// 例如,位图在 Microsoft 画图中打开
+    /// </summary>
+    /// <param name="thisClientItem"></param>
+    /// <returns></returns>
+    [DllImport("mfc90u.dll", CallingConvention = CallingConvention.ThisCall,
+        EntryPoint = "#6766")]
+    public static extern int COleClientItem_UpdateLink(IntPtr thisClientItem);
+
+    [DllImport("acdb18.dll", CallingConvention = CallingConvention.ThisCall,
+        EntryPoint = "?getOleClientItem@AcDbOle2Frame@@QBEPAVCOleClientItem@@XZ")]
+    public static extern IntPtr AcDbOle2Frame_getOleClientItem(IntPtr thisOle2Frame);
+
+    [CommandMethod(nameof(UpdateOleClient))]
+    public void UpdateOleClient()
+    {
+        var per = Env.Editor.GetEntity("\n选择OLE更新链接");
+        if (per.Status != PromptStatus.OK)
+            return;
+
+        using DBTrans tr = new();
+        var ole2frame = tr.GetObject<Ole2Frame>(per.ObjectId);
+        if (ole2frame == null)
+            return;
+        using (ole2frame.ForWrite())
+        {
+            IntPtr ptrClientItem = AcDbOle2Frame_getOleClientItem(ole2frame.UnmanagedObject);
+            COleClientItem_UpdateLink(ptrClientItem);
+        }
+    }
+
+
+    // https://adndevblog.typepad.com/autocad/2012/06/iterating-ole-linked-entities.html
+    // 获取OLE路径
+    [CommandMethod(nameof(GetOlePath))]
+    public void GetOlePath()
+    {
+        using DBTrans tr = new();
+        foreach (ObjectId id in tr.CurrentSpace)
+        {
+            if (!id.IsOk())
+                continue;
+
+            var ole2frame = tr.GetObject<Ole2Frame>(id);
+            if (ole2frame == null)
+                continue;
+            switch (ole2frame.Type)
+            {
+                case Ole2Frame.ItemType.Static:
+                Env.Editor.WriteMessage("\n" + "Static");
+                break;
+                case Ole2Frame.ItemType.Embedded:
+                Env.Editor.WriteMessage("\n" + "Embedded");
+                break;
+                case Ole2Frame.ItemType.Link:
+                Env.Editor.WriteMessage("\n" + "Link");
+                Env.Editor.WriteMessage("\n" + ole2frame.LinkPath);
+                break;
+            }
+        }
+    }
+
+    [CommandMethod(nameof(SetOle))]
+    public void SetOle()
+    {
+        //var pr = Env.Editor.GetPoint("\n选择基点");
+        //if (pr.Status != PromptStatus.OK)
+        //    return;
+        //var pt = pr.Value;
+
+        using DBTrans tr = new();
+
+        // https://forums.autodesk.com/t5/net/how-to-create-an-ole-object-with-ole2frame/td-p/3203222
+        var oo = new Ole2Frame();
+        oo.SetDatabaseDefaults();
+        //oo.CopyFrom()
+        oo.Position2d = new(0, 0, 100, 100);
+
+        // 打印质量? https://learn.microsoft.com/zh-cn/dotnet/api/system.printing.outputquality?view=windowsdesktop-6.0
+        //oo.OutputQuality =
+        //oo.AutoOutputQuality =
+        oo.Rotation = 0.0;
+        //oo.WcsWidth = ;
+        //oo.WcsHeight = ;
+        //oo.ScaleWidth = ;
+        //oo.ScaleHeight = ;
+
+        //宽高比锁定
+        oo.LockAspect = true;
+    }
+
+#if true2
+    // https://forums.autodesk.com/t5/net/how-can-i-read-data-from-ole2frame-object-excel-through-api/td-p/7944241
+    public void GetOleForOffice()
+    {
+        using DBTrans tr = new();
+        foreach (ObjectId id in tr.CurrentSpace)
+        {
+            if (!id.IsOk())
+                continue;
+
+            var ole2frame = tr.GetObject<Ole2Frame>(id);
+            if (ole2frame == null)
+                continue;
+
+            var wb = (Microsoft.Office.Interop.Excel.Workbook)ole2frame.OleObject;
+            var ws = (Microsoft.Office.Interop.Excel.Worksheet)wb.ActiveSheet;
+            var range = (Microsoft.Office.Interop.Excel.Range)ws.UsedRange;
+
+            tb.SetSize(range.Rows.Count, range.Columns.Count);
+            tb.SetRowHeight(range.RowHeight);
+            tb.SetColumnWidth(range.ColumnWidth);
+            tb.Position = new Point3d(ole2frame.Location.X, ole2frame.Location.Y, ole2frame.Location.Z);
+            for (int row = 0; row < range.Rows.Count; row++)
+            {
+                for (int col = 0; col < range.Columns.Count; col++)
+                {
+                    tb.Cells[row, col].TextHeight = 1;
+                    var aa = (Microsoft.Office.Interop.Excel.Range)range.Cells[row + 1, col + 1];
+                    var bb = Convert.ToString(aa.Value2);
+                    tb.SetTextString(row, col, bb ?? "");
+                    tb.Cells[row, col].Alignment = CellAlignment.MiddleCenter;
+                }
+            }
+            tb.GenerateLayout();
+        }
+    }
+#endif
+}

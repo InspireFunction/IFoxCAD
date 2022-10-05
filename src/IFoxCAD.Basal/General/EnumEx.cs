@@ -89,17 +89,25 @@ public static class EnumEx
         return null;
     }
 
-
-    // TODO: 山人审核代码之后可以删除,这个完全被上面替代了
-    public static string GetDesc(this Enum val)
+    // 不按位运算的情况下,直接获取比较快捷
+    public static string GetDesc(this Enum e)
     {
-        var type = val.GetType();
-        var memberInfo = type.GetMember(val.ToString());
+        return GetDesc(e.GetType(), e.ToString());
+    }
+
+    /// <summary>
+    /// 获取字段的描述内容
+    /// </summary>
+    /// <param name="type"></param>
+    /// <param name="field"></param>
+    /// <returns></returns>
+    public static string GetDesc(this Type type, string field)
+    {
+        var memberInfo = type.GetMember(field);
         var attributes = memberInfo[0].GetCustomAttributes(typeof(DescriptionAttribute), false);
         // 如果没有定义描述,就把当前枚举值的对应名称返回
         if (attributes is null || attributes.Length != 1)
-            return val.ToString();
-
+            return field;
         return ((DescriptionAttribute)attributes.Single()).Description;
     }
 }

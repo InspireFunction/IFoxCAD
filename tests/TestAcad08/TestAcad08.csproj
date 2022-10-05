@@ -23,8 +23,9 @@
     <ItemGroup>
         <Compile Include="..\TestAcad09plus\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
     </ItemGroup>
-    <!--<ItemGroup>
-        json要求的程序集
-        <Reference Include="System.Web.Extensions" />
-    </ItemGroup>-->
+
+    <!--json要求的程序集 net45的Include需要改Update -->
+    <ItemGroup>
+        <Reference Include="System.Web.Extensions"/>
+    </ItemGroup>
 </Project>

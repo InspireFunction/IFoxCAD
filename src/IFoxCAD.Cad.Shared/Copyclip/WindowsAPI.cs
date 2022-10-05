@@ -170,21 +170,22 @@ public class WindowsAPI
         if (structObj == null)
             throw new ArgumentNullException(nameof(structObj));
 #if Marshal
-        IntPtr structPtr = Marshal.AllocHGlobal(Marshal.SizeOf(structObj));
+        IntPtr newPtr = Marshal.AllocHGlobal(Marshal.SizeOf(structObj));
 #else
         const int GMEM_MOVEABLE = 0x0002;
-        IntPtr structPtr = WindowsAPI.GlobalAlloc(GMEM_MOVEABLE, Marshal.SizeOf(structObj));
+        IntPtr newPtr = WindowsAPI.GlobalAlloc(GMEM_MOVEABLE, Marshal.SizeOf(structObj));
 #endif
-        if (structPtr == IntPtr.Zero)
+        if (newPtr == IntPtr.Zero)
             return;
         try
         {
+            // 剪贴板写入的时候不允许锁定内存,否则在频繁触发剪贴板将导致卡死程序
             if (lockPrt)
-                GlobalLockTask(structPtr, ptr => {
+                GlobalLockTask(newPtr, ptr => {
                     ToPtr(structObj, task, ptr);
                 });
             else
-                ToPtr(structObj, task, structPtr);
+                ToPtr(structObj, task, newPtr);
         }
         catch (Exception e)
         {
@@ -193,21 +194,21 @@ public class WindowsAPI
         }
         finally
         {
-            if (freeHGlobal && structPtr != IntPtr.Zero)
+            if (freeHGlobal && newPtr != IntPtr.Zero)
             {
 #if Marshal
-                Marshal.FreeHGlobal(structPtr);
+                Marshal.FreeHGlobal(newPtr);
 #else
-                WindowsAPI.GlobalFree(structPtr);
+                WindowsAPI.GlobalFree(newPtr);
 #endif
             }
         }
 
         // 将结构体拷到分配好的内存空间
-        static void ToPtr(object? structObj, Action<IntPtr>? task, IntPtr structPtr)
+        static void ToPtr(object? structObj, Action<IntPtr>? task, IntPtr newPtr)
         {
-            Marshal.StructureToPtr(structObj, structPtr, true);
-            task?.Invoke(structPtr);
+            Marshal.StructureToPtr(structObj, newPtr, true);
+            task?.Invoke(newPtr);
         }
     }
 }

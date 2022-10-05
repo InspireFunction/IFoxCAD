@@ -258,6 +258,11 @@ public struct IntRect
     {
         return ((_Left, _Top).GetHashCode(), _Right).GetHashCode() ^ _Bottom.GetHashCode();
     }
+
+    public IntRect Clone()
+    {
+        return new IntRect(_Left, _Top, _Right, _Bottom);
+    }
     #endregion
 }
 

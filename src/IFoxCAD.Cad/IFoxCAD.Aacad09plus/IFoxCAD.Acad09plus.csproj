@@ -26,16 +26,16 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
-        <PackageReference Include="Autocad.NetApi" Version="17.2.0" ExcludeAssets="runtime" />       
-     </ItemGroup>
+        <PackageReference Include="Autocad.NetApi" Version="17.2.0" ExcludeAssets="runtime"/>
+    </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
-        <PackageReference Include="Autocad.NetApi" Version="19.0.0" ExcludeAssets="runtime" />
+        <PackageReference Include="Autocad.NetApi" Version="19.0.0" ExcludeAssets="runtime"/>
     </ItemGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
-        <PackageReference Include="AutoCAD.NET" Version="20.0.1" ExcludeAssets="runtime" />
-        <PackageReference Include="System.Collections"  Version="4.3.0" />
+        <PackageReference Include="AutoCAD.NET" Version="20.0.1" ExcludeAssets="runtime"/>
+        <PackageReference Include="System.Collections" Version="4.3.0"/>
     </ItemGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>DEBUG</DefineConstants>
@@ -57,16 +57,17 @@
     </ItemGroup>
 
     <!--<ItemGroup>
-      <PackageReference Include="IndexRange" Version="1.0.2" />
+      <PackageReference Include="IndexRange" Version="1.0.2"/>
     </ItemGroup>-->
 
     <ItemGroup>
-        <ProjectReference Include="..\..\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
+        <ProjectReference Include="..\..\IFoxCAD.Basal\IFoxCAD.Basal.csproj"/>
     </ItemGroup>
 
-    <Import Project="..\..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared" />
-    <!--<ItemGroup>
-        json要求的程序集
-        <Reference Include="System.Web.Extensions" />
-    </ItemGroup>-->
+    <Import Project="..\..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared"/>
+
+    <!--json要求的程序集 net45的Include需要改Update -->
+    <ItemGroup>
+        <Reference Include="System.Web.Extensions"/>
+    </ItemGroup>
 </Project>

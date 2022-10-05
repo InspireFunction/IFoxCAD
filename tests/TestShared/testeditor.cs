@@ -67,13 +67,15 @@ public class Testeditor
     [CommandMethod(nameof(Test_ExportWMF), CommandFlags.Modal | CommandFlags.UsePickSet)]
     public void Test_ExportWMF()
     {
-        var psr = Env.Editor.SelectImplied();// 预选,如果没有设置 CommandFlags.UsePickSet 将导致PromptStatus.Error
+        var psr = Env.Editor.SelectImplied();// 预选
         if (psr.Status != PromptStatus.OK)
             psr = Env.Editor.GetSelection();// 手选
         if (psr.Status != PromptStatus.OK)
             return;
 
         var ids = psr.Value.GetObjectIds();
-        Env.Editor.ExportWMF("D:\\桌面\\aaa.dwg", ids);
+        // acad21(acad08没有)先选择再执行..会让你再选择一次
+        // 而且只发生在启动cad之后第一次执行.
+        Env.Editor.ComExportWMF("D:\\桌面\\aaa.dwg", ids);
     }
 }

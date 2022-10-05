@@ -14,11 +14,11 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />
-        <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Aacad09plus\IFoxCAD.Acad09plus.csproj" />
-        <ProjectReference Include="..\..\src\IFoxCAD.WPF\IFoxCAD.WPF.csproj" />
+        <ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj"/>
+        <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Aacad09plus\IFoxCAD.Acad09plus.csproj"/>
+        <ProjectReference Include="..\..\src\IFoxCAD.WPF\IFoxCAD.WPF.csproj"/>
     </ItemGroup>
-  
+
     <ItemGroup>
         <Compile Update="wpf\TestView.xaml.cs">
             <DependentUpon>TestView.xaml</DependentUpon>
@@ -31,9 +31,10 @@
         </Page>
     </ItemGroup>
 
-    <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
-    <!--<ItemGroup>
-        json要求的程序集
-        <Reference Include="System.Web.Extensions" />
-    </ItemGroup>-->
+    <Import Project="..\TestShared\TestShared.projitems" Label="Shared"/>
+
+    <!--json要求的程序集 net45的Include需要改Update -->
+    <ItemGroup>
+        <Reference Update="System.Web.Extensions"/>
+    </ItemGroup>
 </Project>

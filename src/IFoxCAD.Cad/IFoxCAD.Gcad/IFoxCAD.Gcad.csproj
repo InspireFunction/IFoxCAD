@@ -55,4 +55,9 @@
     </ItemGroup>
 
     <Import Project="..\..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared" />
+
+    <!--json要求的程序集 net45的Include需要改Update -->
+    <ItemGroup>
+        <Reference Include="System.Web.Extensions"/>
+    </ItemGroup>
 </Project>

@@ -8,6 +8,13 @@ using System.Diagnostics;
 using System.Windows;
 using System.Security.Policy;
 using System.Security.Cryptography;
+using System.Windows.Interop;
+using System.Text;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
+using System.Xml;
+using Point = System.Drawing.Point;
+using Size = System.Drawing.Size;
+
 
 // DWORD == uint
 // WORD == ushort
@@ -18,6 +25,37 @@ using System.Security.Cryptography;
  * Console.WriteLine(Marshal.SizeOf(typeof(WindowsMetaHeader)));
  * Console.WriteLine(Marshal.SizeOf(typeof(StandardMetaRecord)));
  */
+
+
+// https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-metafilepict
+// http://www.cppblog.com/zwp/archive/2012/02/25/60225.html
+[Serializable]
+[StructLayout(LayoutKind.Sequential, Pack = 2)]
+public struct MetaFilePict
+{
+    public MappingModes mm;
+    public int xExt;
+    public int yExt;
+    public IntPtr hMF; //内存图元文件的句柄
+}
+
+public enum MappingModes : int
+{
+    MM_TEXT = 1,
+    MM_LOMETRIC = 2,
+    MM_HIMETRIC = 3,
+    MM_LOENGLISH = 4,//逻辑坐标的单位为0.01英寸
+    MM_HIENGLISH = 5,
+    MM_TWIPS = 6,
+    MM_ISOTROPIC = 7,
+    MM_ANISOTROPIC = 8,
+
+    //Minimum and Maximum Mapping Mode values
+    MM_MIN = MM_TEXT,
+    MM_MAX = MM_ANISOTROPIC,
+    MM_MAX_FIXEDSCALE = MM_TWIPS,
+}
+
 
 //WMF 文件格式：
 //https://blog.51cto.com/chenyanxi/803247
@@ -50,7 +88,10 @@ public struct PlaceableMetaHeader
     /// wmf转为emf<br/>
     /// </summary>
     /// <param name="wmfFile">文件路径</param>
-    /// <returns>成功emf指针,可以直接写入剪贴板;失败0</returns>
+    /// <returns>
+    /// 错误: <see cref="IntPtr.Zero"/>;<br/>
+    /// 成功: 返回一个增强型图元 emf文件句柄 (位于内存中)
+    /// </returns>
     /// <exception cref="IOException"></exception>
     public static IntPtr Wmf2Emf(string wmfFile)
     {
@@ -95,6 +136,29 @@ public struct PlaceableMetaHeader
     }
 }
 
+public class Emf
+{
+    public IntPtr EmfHandle;
+
+    /// <summary>
+    /// 转换wmf到emf
+    /// </summary>
+    /// <param name="wmfFile"></param>
+    public void Wmf2Emf(string wmfFile)
+    {
+        EmfHandle = PlaceableMetaHeader.Wmf2Emf(wmfFile);//emf文件句柄
+    }
+
+    /// <summary>
+    /// 获取emf结构
+    /// </summary>
+    /// <returns></returns>
+    public EnhMetaHeader? CreateEnhMetaHeader()
+    {
+        return EnhMetaHeader.Create(EmfHandle);
+    }
+}
+
 //紧接文件缩放信息的是 WMFHEAD, 18字节
 [Serializable]
 [StructLayout(LayoutKind.Sequential, Pack = 2)]
@@ -119,110 +183,460 @@ public struct StandardMetaRecord
     public ushort[] Parameters;   /* Parameter values passed to function */
 }
 
-
-// https://learn.microsoft.com/en-us/windows/win32/api/wingdi/ns-wingdi-metafilepict
-// http://www.cppblog.com/zwp/archive/2012/02/25/60225.html
-[Serializable]
-[StructLayout(LayoutKind.Sequential, Pack = 2)]
-public struct MetaFilePict
-{
-    public MappingModes mm;
-    public int xExt;
-    public int yExt;
-    public IntPtr hMF; //内存图元文件的句柄
-}
-
-public enum MappingModes
-{
-    MM_TEXT = 1,
-    MM_LOMETRIC = 2,
-    MM_HIMETRIC = 3,
-    MM_LOENGLISH = 4,
-    MM_HIENGLISH = 5,
-    MM_TWIPS = 6,
-    MM_ISOTROPIC = 7,
-    MM_ANISOTROPIC = 8,
-}
-
-
+// 文件结构:头记录(ENHMETAHEADER),各记录(ENHMETARECORD),文件结尾(EMR_EOF)
+// https://www.cnblogs.com/5iedu/p/4706327.html
 [Serializable]
 [StructLayout(LayoutKind.Sequential, Pack = 2)]
 public struct EnhMetaHeader
 {
+    [Description("记录类型")]
     public uint iType;
-    public int nSize;
+    [Description("结构大小")]
+    public int nSize; //注意这个大小是含描述字符串的长度,即等于sizeof(ENHMETAHEADER)+nDescription*2
+    [Description("外接矩形(单位是像素)")]
     public IntRect rclBounds;
+    [Description("图片矩形(单位是 0.1 毫米)")]
     public IntRect rclFrame;
+    [Description("文件签名")]
     public uint dSignature;
+    [Description("文件版本")]
     public uint nVersion;
+    [Description("文件尺寸")]
     public uint nBytes;
+    [Description("记录数")]
     public uint nRecords;
+    [Description("句柄数")]
     public ushort nHandles;
+    [Description("保留")]
     public ushort sReserved;
+    [Description("说明文本的长度")]
     public uint nDescription;
+    [Description("说明文本的偏移量")]
     public uint offDescription;
+    [Description("调色板的元素数")]
     public uint nPalEntries;
+    [Description("分辨率(像素)")]
     public IntSize szlDevice;
+    [Description("分辨率(毫米)")]
     public IntSize szlMillimeters;
+    [Description("像素格式的尺寸")]
     public uint cbPixelFormat;
+    [Description("像素格式的起始偏移位置")]
     public uint offPixelFormat;
+    [Description("在不含OpenGL记录时,该值为FALSE")]
     public uint bOpenGL;
+    [Description("参考设备的尺寸(微米)")]
     public IntSize szlMicrometers;
 
     public override string ToString()
     {
-        return
-            nameof(iType) + ":" + iType.ToString() + Environment.NewLine +
-            nameof(nSize) + ":" + nSize.ToString() + Environment.NewLine +
-            nameof(rclBounds) + ":" + rclBounds.ToString() + Environment.NewLine +
-            nameof(rclFrame) + ":" + rclFrame.ToString() + Environment.NewLine +
-            nameof(dSignature) + ":" + dSignature.ToString() + Environment.NewLine +
-            nameof(nVersion) + ":" + nVersion.ToString() + Environment.NewLine +
-            nameof(nBytes) + ":" + nBytes.ToString() + Environment.NewLine +
-            nameof(nRecords) + ":" + nRecords.ToString() + Environment.NewLine +
-            nameof(nHandles) + ":" + nHandles.ToString() + Environment.NewLine +
-            nameof(sReserved) + ":" + sReserved.ToString() + Environment.NewLine +
-            nameof(nDescription) + ":" + nDescription.ToString() + Environment.NewLine +
-            nameof(offDescription) + ":" + offDescription.ToString() + Environment.NewLine +
-            nameof(nPalEntries) + ":" + nPalEntries.ToString() + Environment.NewLine +
-            nameof(szlDevice) + ":" + szlDevice.ToString() + Environment.NewLine +
-            nameof(szlMillimeters) + ":" + szlMillimeters.ToString() + Environment.NewLine +
-            nameof(cbPixelFormat) + ":" + cbPixelFormat.ToString() + Environment.NewLine +
-            nameof(offPixelFormat) + ":" + offPixelFormat.ToString() + Environment.NewLine +
-            nameof(bOpenGL) + ":" + bOpenGL.ToString() + Environment.NewLine +
-            nameof(szlMicrometers) + ":" + szlMicrometers;
+        //var tp = GetType();
+        //var sb = new StringBuilder();
+        //sb.AppendLine(EnumEx.GetDesc(tp, nameof(iType)) + ":" + iType);
+
+        // 输出json
+        // NET472 System.Text.Json
+        var serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
+        string jsonString = serializer.Serialize(this);
+        return jsonString;
+    }
+
+    /// <summary>
+    /// 通过wmf创建
+    /// </summary>
+    /// <param name="wmf"></param>
+    /// <returns></returns>
+    public static EnhMetaHeader? Create(string wmf)
+    {
+        var emf = PlaceableMetaHeader.Wmf2Emf(wmf);
+        if (emf == IntPtr.Zero)
+            throw new ArgumentException(null, nameof(wmf));
+        return Create(emf);
+    }
+
+    /// <summary>
+    /// 创建
+    /// </summary>
+    /// <param name="clipTypeData">
+    /// <see cref="EmfTool.GetEnhMetaFileHeader"/>参数1的结构体首地址<br/>
+    /// 也就是<see cref="EmfTool.SetWinMetaFileBits"/>的返回值
+    /// </param>
+    /// <returns></returns>
+    public static EnhMetaHeader? Create(IntPtr clipTypeData)
+    {
+        if (clipTypeData == IntPtr.Zero)
+            return null;
+
+        EnhMetaHeader? result = null;
+        var len = EmfTool.GetEnhMetaFileHeader(clipTypeData, 0, IntPtr.Zero);
+        if (len != 0)
+        {
+            IntPtr header = Marshal.AllocHGlobal((int)len);
+            EmfTool.GetEnhMetaFileHeader(clipTypeData, len, header);
+            result = (EnhMetaHeader)Marshal.PtrToStructure(header, typeof(EnhMetaHeader));
+            Marshal.FreeHGlobal(header);
+        }
+        return result;
     }
 }
 
+
+
 public static class EmfTool
 {
+    /// <summary>
+    /// 保存
+    /// </summary>
+    /// <param name="clipTypeData">GetEnhMetaFileBits 参数1的结构体首地址</param>
+    /// <param name="file">保存路径</param>
+    /// <returns></returns>
+    public static void Save(IntPtr clipTypeData, string file)
+    {
+        // 保存emf文件
+        // https://blog.csdn.net/tigertianx/article/details/7098490
+        var len = EmfTool.GetEnhMetaFileBits(clipTypeData, 0, null!);
+        if (len != 0)
+        {
+            var bytes = new byte[len];
+            _ = EmfTool.GetEnhMetaFileBits(clipTypeData, len, bytes);
+
+            using MemoryStream ms1 = new(bytes);
+            using var bm = Image.FromStream(ms1);//此方法emf保存成任何版本都会变成png
+            bm.Save(file);
+        }
+    }
+
     /// <summary>
     /// 返回对一个增强型图元文件的说明
     /// </summary>
     /// <param name="hemf">目标增强型图元文件的句柄</param>
     /// <param name="cchBuffer">lpszDescription缓冲区的长度</param>
-    /// <param name="lpDescription">指定一个预先初始化好的字串缓冲区，准备随同图元文件说明载入。
-    /// 参考CreateEnhMetaFile函数，了解增强型图元文件说明字串的具体格式</param>
+    /// <param name="lpDescription">指定一个预先初始化好的字串缓冲区,准备随同图元文件说明载入;
+    /// 参考 CreateEnhMetaFile 函数,了解增强型图元文件说明字串的具体格式</param>
     /// <returns></returns>
     [DllImport("gdi32.dll")]
-    public static extern uint GetEnhMetaFileDescription(
-        IntPtr hemf,
-        uint cchBuffer,
-        [MarshalAs(UnmanagedType.LPWStr)]
-        //[In,Out]
-        StringBuilder lpDescription
-        );
+    static extern uint GetEnhMetaFileDescription(IntPtr hemf, uint cchBuffer, [MarshalAs(UnmanagedType.LPStr)] StringBuilder lpDescription);
 
+    /// <summary>
+    /// 获取emf描述
+    /// </summary>
+    /// <param name="clipTypeData">文件句柄</param>
+    /// <returns>描述的内容</returns>
     [System.Diagnostics.DebuggerStepThrough()]
-    [System.CodeDom.Compiler.GeneratedCode("InteropSignatureToolkit", "0.9 Beta1")]
-    public static uint GetEnhMetaFileDescriptionString(IntPtr hemf, out string lpDescription)
+    //[System.CodeDom.Compiler.GeneratedCode("InteropSignatureToolkit", "0.9 Beta1")]
+    public static string? GetEnhMetaFileDescriptionEx(IntPtr clipTypeData)
     {
-        StringBuilder sb = new(1024);
-        uint methodRetVar = GetEnhMetaFileDescription(hemf, (uint)sb.Capacity, sb);
-        lpDescription = sb.ToString();
-        return methodRetVar;
+        var len = GetEnhMetaFileDescription(clipTypeData, 0, null!);
+        if (len != 0)
+        {
+            StringBuilder desc = new((int)len);
+            GetEnhMetaFileDescription(clipTypeData, (uint)desc.Capacity, desc);
+            return desc.ToString();
+        }
+        return null;
     }
 
+    public enum DeviceCap : int
+    {
+        /// <summary>
+        /// Device driver version
+        /// </summary>
+        DRIVERVERSION = 0,
+        /// <summary>
+        /// Device classification
+        /// </summary>
+        TECHNOLOGY = 2,
+        /// <summary>
+        /// Horizontal size in millimeters
+        /// </summary>
+        HORZSIZE = 4,
+        /// <summary>
+        /// Vertical size in millimeters
+        /// </summary>
+        VERTSIZE = 6,
+        /// <summary>
+        /// Horizontal width in pixels
+        /// </summary>
+        HORZRES = 8,
+        /// <summary>
+        /// Vertical height in pixels
+        /// </summary>
+        VERTRES = 10,
+        /// <summary>
+        /// Number of bits per pixel
+        /// </summary>
+        BITSPIXEL = 12,
+        /// <summary>
+        /// Number of planes
+        /// </summary>
+        PLANES = 14,
+        /// <summary>
+        /// Number of brushes the device has
+        /// </summary>
+        NUMBRUSHES = 16,
+        /// <summary>
+        /// Number of pens the device has
+        /// </summary>
+        NUMPENS = 18,
+        /// <summary>
+        /// Number of markers the device has
+        /// </summary>
+        NUMMARKERS = 20,
+        /// <summary>
+        /// Number of fonts the device has
+        /// </summary>
+        NUMFONTS = 22,
+        /// <summary>
+        /// Number of colors the device supports
+        /// </summary>
+        NUMCOLORS = 24,
+        /// <summary>
+        /// Size required for device descriptor
+        /// </summary>
+        PDEVICESIZE = 26,
+        /// <summary>
+        /// Curve capabilities
+        /// </summary>
+        CURVECAPS = 28,
+        /// <summary>
+        /// Line capabilities
+        /// </summary>
+        LINECAPS = 30,
+        /// <summary>
+        /// Polygonal capabilities
+        /// </summary>
+        POLYGONALCAPS = 32,
+        /// <summary>
+        /// Text capabilities
+        /// </summary>
+        TEXTCAPS = 34,
+        /// <summary>
+        /// Clipping capabilities
+        /// </summary>
+        CLIPCAPS = 36,
+        /// <summary>
+        /// Bitblt capabilities
+        /// </summary>
+        RASTERCAPS = 38,
+        /// <summary>
+        /// Length of the X leg
+        /// </summary>
+        ASPECTX = 40,
+        /// <summary>
+        /// Length of the Y leg
+        /// </summary>
+        ASPECTY = 42,
+        /// <summary>
+        /// Length of the hypotenuse
+        /// </summary>
+        ASPECTXY = 44,
+        /// <summary>
+        /// Shading and Blending caps
+        /// </summary>
+        SHADEBLENDCAPS = 45,
+
+        /// <summary>
+        /// Logical pixels inch in X
+        /// </summary>
+        LOGPIXELSX = 88,
+        /// <summary>
+        /// Logical pixels inch in Y
+        /// </summary>
+        LOGPIXELSY = 90,
+
+        /// <summary>
+        /// Number of entries in physical palette
+        /// </summary>
+        SIZEPALETTE = 104,
+        /// <summary>
+        /// Number of reserved entries in palette
+        /// </summary>
+        NUMRESERVED = 106,
+        /// <summary>
+        /// Actual color resolution
+        /// </summary>
+        COLORRES = 108,
+
+        // Printing related DeviceCaps. These replace the appropriate Escapes
+        /// <summary>
+        /// Physical Width in device units
+        /// </summary>
+        PHYSICALWIDTH = 110,
+        /// <summary>
+        /// Physical Height in device units
+        /// </summary>
+        PHYSICALHEIGHT = 111,
+        /// <summary>
+        /// Physical Printable Area x margin
+        /// </summary>
+        PHYSICALOFFSETX = 112,
+        /// <summary>
+        /// Physical Printable Area y margin
+        /// </summary>
+        PHYSICALOFFSETY = 113,
+        /// <summary>
+        /// Scaling factor x
+        /// </summary>
+        SCALINGFACTORX = 114,
+        /// <summary>
+        /// Scaling factor y
+        /// </summary>
+        SCALINGFACTORY = 115,
+
+        /// <summary>
+        /// Current vertical refresh rate of the display device (for displays only) in Hz
+        /// </summary>
+        VREFRESH = 116,
+        /// <summary>
+        /// Vertical height of entire desktop in pixels
+        /// </summary>
+        DESKTOPVERTRES = 117,
+        /// <summary>
+        /// Horizontal width of entire desktop in pixels
+        /// </summary>
+        DESKTOPHORZRES = 118,
+        /// <summary>
+        /// Preferred blt alignment
+        /// </summary>
+        BLTALIGNMENT = 119
+    }
+
+    [DllImport("gdi32.dll")]
+    static extern int GetDeviceCaps(IntPtr hDC, DeviceCap nIndex);
+
+    [DllImport("gdi32.dll")]
+    static extern int SetMapMode(IntPtr hDC, MappingModes fnMapMode);
+
+    [DllImport("gdi32.dll")]
+    static extern bool SetViewportOrgEx(IntPtr hDC, int x, int y, Point[] prevPoint);
+
+    [DllImport("gdi32.dll")]
+    static extern bool SetWindowOrgEx(IntPtr hDC, int x, int y, Point[] prevPoint);
+
+    [DllImport("gdi32.dll")]
+    static extern bool SetViewportExtEx(IntPtr hDC, int nExtentX, int nExtentY, Size[] prevSize);
+
+    [DllImport("gdi32.dll")]
+    static extern bool SetWindowExtEx(IntPtr hDC, int nExtentX, int nExtentY, Size[] prevSize);
+
+    [DllImport("Gdi32.dll")]
+    public static extern int CreatePen(int nPenStyle, int nWidth, int nColor);
+
+    [DllImport("Gdi32.dll")]
+    public static extern int GetStockObject(int nStockBrush);
+
+    [DllImport("Gdi32.dll")]
+    public static extern int SelectObject(IntPtr hDC, int hGdiObject);
+
+    [DllImport("Gdi32.dll")]
+    public static extern int DeleteObject(int hBitmap);
+
+    [DllImport("Gdi32.dll")]
+    public static extern int MoveToEx(IntPtr hDC, int x, int y, int nPreviousPoint);
+
+    [DllImport("Gdi32.dll")]
+    public static extern int LineTo(IntPtr hDC, int x, int y);
+
+    [DllImport("Gdi32.dll")]
+    public static extern int Rectangle(IntPtr hDC, int nLeft, int nTop, int nRight, int nBottom);
+
+    [DllImport("Gdi32.dll")]
+    public static extern bool DPtoLP(IntPtr hdc, [In, Out] Point[] lpPoints, int nCount);
+
+
+    /// <summary>
+    /// 设置emf描述
+    /// </summary>
+    /// <param name="hMetaFile">emf文件句柄</param>
+    /// <param name="desc">设置描述</param>
+    /// <returns>新的emf指针</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static void SetEnhMetaFileDescriptionEx(ref IntPtr hMetaFile, string desc)
+    {
+        if (hMetaFile == IntPtr.Zero)
+            throw new ArgumentNullException(nameof(hMetaFile));
+
+        var em = EnhMetaHeader.Create(hMetaFile);//emf结构 GetEnhMetaFileHeader
+        if (em == null)
+            return;
+
+        var emh = em.Value;
+        // 创建画布句柄
+        IntRect intRect = emh.rclFrame; //new(0, 0, 0, 0);
+        var hMetaDC = EmfTool.CreateEnhMetaFile(IntPtr.Zero, null!, ref intRect, desc);
+        if (hMetaDC == IntPtr.Zero)
+            return;
+        //SetMapMode(hMetaDC, MappingModes.MM_ANISOTROPIC); // 默认的就是这个模式
+        //SetMapMode(hMetaDC, MappingModes.MM_HIMETRIC);//逻辑单位：0.01mm
+
+        // 设置单位
+        //var size = new IntSize(0, 0);
+        //EmfTool.SetWindowExtEx(hMetaDC, 0, 0, ref size);
+        //EmfTool.SetViewportExtEx(hMetaDC, 0, 0, ref size);
+        //EmfTool.GetEnhMetaFilePaletteEntries() 统一调色
+        //SetViewportOrgEx(hMetaDC, 0, 0, null!);//将视口原点设在左下角
+
+        // 旧的克隆到新的
+        /*
+         * 第18章 图元文件_18.2 增强型图元文件(emf）（2）
+         * https://blog.51cto.com/u_15082403/3724715
+         * 方案2——利用图像的物理尺寸
+         * 通过rclFrame字段（是设备单位：0.01mm）显示出来的刻度尺，这样不管在视频显示器
+         * 打印机上,显示出来的刻度尺都较为真实
+         */
+        //目标设备信息
+        int cxMms = GetDeviceCaps(hMetaDC, DeviceCap.HORZSIZE);//宽度（单位：mm)
+        int cyMms = GetDeviceCaps(hMetaDC, DeviceCap.VERTSIZE);//高度（单位：mm)
+        var cxArea = cxMms;
+        var cyArea = cyMms;
+#if true2
+        int cxPix = GetDeviceCaps(hMetaDC, DeviceCap.HORZRES);//宽度（单位：像素）
+        int cyPix = GetDeviceCaps(hMetaDC, DeviceCap.VERTRES);//高度（单位：像素）
+        int cxImage = emh.rclFrame.Right - emh.rclFrame.Left; //单位:0.01mm
+        int cyImage = emh.rclFrame.Bottom - emh.rclFrame.Top;
+
+        // 设置之后图像就没有拉伸了,但是跑偏了
+        //将图元文件大小（0.01mm为单位）转换为像素大小
+        cxImage = cxImage * cxPix / cxMms / 100;
+        cyImage = cyImage * cyPix / cyMms / 100;
+
+        //在指定的矩形区内，水平和垂直居中显示图元文件，同时保证了区域的大小为cxImage和cyImage
+        int left = (cxArea - cxImage) / 2;
+        int right = (cxArea + cxImage) / 2;
+        int top = (cyArea - cyImage) / 2;
+        int bottom = (cyArea + cyImage) / 2;
+#else
+        cxArea = 0;
+        cyArea = 0;
+        SetMapMode(hMetaDC, MappingModes.MM_HIMETRIC);//逻辑单位：0.01mm
+        SetViewportOrgEx(hMetaDC, 0, cyArea, null!);//将视口原点设在左下角
+        var pt = new Point(cxArea, 0);
+
+        int cxImage = emh.rclFrame.Right - emh.rclFrame.Left; //单位:0.01mm
+        int cyImage = emh.rclFrame.Bottom - emh.rclFrame.Top;
+
+        //在指定的矩形区内，水平和垂直居中显示图元文件，同时保证了区域的大小为cxImage和cyImage
+        int left = (pt.X - cxImage) / 2;
+        int right = (pt.X + cxImage) / 2;
+        int top = (pt.Y + cyImage) / 2;     //注意，这里与前面例子不同
+        int bottom = (pt.Y - cyImage) / 2;  //注意，这里与前面例子不同
+#endif
+        var rect = new IntRect(left, top, right, bottom);
+
+        // 图像拉伸了
+        //bool pef = EmfTool.EnumEnhMetaFile(hMetaDC, hMetaFile, IntPtr.Zero, IntPtr.Zero, ref emhValue.rclFrame);// 这个失败
+        bool pef = EmfTool.PlayEnhMetaFile(hMetaDC, hMetaFile, ref rect);
+        if (!pef)
+        {
+            DeleteObject(hMetaDC);
+            Debugger.Break();
+            return;
+        }
+        // 删除旧的图元文件句柄,返回新的
+        var del = EmfTool.DeleteEnhMetaFile(hMetaFile);
+        if (del)
+            hMetaFile = EmfTool.CloseEnhMetaFile(hMetaDC);
+    }
 
     [DllImport("gdi32.dll", EntryPoint = "GetEnhMetaFileHeader")]
     public static extern uint GetEnhMetaFileHeader(IntPtr hemf, uint cbBuffer, IntPtr /*ENHMETAHEADER*/ lpemh);
@@ -276,16 +690,82 @@ public static class EmfTool
     public static extern bool DeleteEnhMetaFile(IntPtr hemf);
 
     /// <summary>
-    /// 创建矢量图
+    /// 创建emf<br/>
     /// https://www.cnblogs.com/5iedu/p/4706327.html
     /// </summary>
-    /// <param name="hdcRef">参考设备环境,NULL时表示以屏幕为参考</param>
-    /// <param name="szFilename">指定文件名时,创建磁盘文件(.EMF).为NULL时创建内存图元文件</param>
-    /// <param name="lpRect">用于描述图元文件的大小和位置（以0.01mm为单位）,可用它精确定义图元文件的物理尺寸</param>
+    /// <param name="hdcRef">参考设备环境,null以整个屏幕为参考</param>
+    /// <param name="szFilename">指定文件名时,创建磁盘文件(.EMF),为null时创建内存图元文件</param>
+    /// <param name="lpRect">用于描述图元文件的大小和位置(以0.01mm为单位),可用它精确定义图元文件的物理尺寸</param>
     /// <param name="lpDescription">对图元文件的一段说明.包括创建应用程序的名字、一个NULL字符、对图元文件的一段说明以及两个NULL字符.</param>
-    /// <returns>增强型图元文件DC(注意不是图元文件的句柄,要获得实际的图元文件句柄,得调用 CloseEnhMetaFile 函数)</returns>
+    /// <returns>返回画布句柄DC(图元文件句柄得调用 CloseEnhMetaFile 函数)</returns>
     [DllImport("gdi32.dll", SetLastError = true)]
-    public static extern IntPtr CreateEnhMetaFile(IntPtr hdcRef, string szFilename, IntRect lpRect, string lpDescription);
+    public static extern IntPtr CreateEnhMetaFile(IntPtr hdcRef, string szFilename, ref IntRect lpRect, string lpDescription);
+
+    [DllImport("gdi32.dll", SetLastError = true)]
+    public static extern bool DeleteObject(IntPtr hdcRef);
+
+    /// <summary>
+    /// 在指定的设备场景中画一个增强型图元文件;<br/>
+    /// 与标准图元文件不同,完成回放后,增强型图元文件会恢复设备场景以前的状态
+    /// </summary>
+    /// <param name="hdcRef">画布句柄</param>
+    /// <param name="hemf">欲描绘的emf的图元文件句柄</param>
+    /// <param name="lpRect">指定显示区域(逻辑单位)GDI会缩放图像以适应该矩形范围</param>
+    /// <returns></returns>
+    [DllImport("gdi32.dll")]
+    public static extern bool PlayEnhMetaFile(IntPtr hdcRef, IntPtr hemf, ref IntRect lpRect);
+
+    // https://blog.csdn.net/hongke457546235/article/details/17404715
+    /// <summary>
+    /// 逻辑单位设置窗口单位
+    /// {只能在 MM_ISOTROPIC 或 MM_ANISOTROPIC 模式下使用下面两个函数}
+    /// </summary>
+    /// <param name="hdcRef">画布句柄</param>
+    /// <param name="nHeight">以逻辑单位表示的新窗口区域的高度</param>
+    /// <param name="nWidth">以逻辑单位表示的新窗口区域的宽度</param>
+    /// <param name="lpSize">保存函数调用前窗口区域尺寸的SIZE结构地址,NULL则表示忽略调用前的尺寸</param>
+    [DllImport("gdi32.dll")]
+    public static extern bool SetWindowExtEx(IntPtr hdcRef, int nHeight, int nWidth, ref IntSize lpSize);
+
+    /// <summary>
+    /// 视口区域的定义
+    /// {只能在 MM_ISOTROPIC 或 MM_ANISOTROPIC 模式下使用下面两个函数}
+    /// </summary>
+    /// <param name="hdcRef"></param>
+    /// <param name="nHeight"></param>
+    /// <param name="nWidth"></param>
+    /// <param name="lpSize"></param>
+    [DllImport("gdi32.dll")]
+    public static extern bool SetViewportExtEx(IntPtr hdcRef, int nHeight, int nWidth, ref IntSize lpSize);
+
+    /// <summary>
+    /// 旧emf绘制新的hdcEMF中(即回放)
+    /// </summary>
+    /// <param name="hdcRef">画布句柄</param>
+    /// <param name="hmf">图元文件句柄</param>
+    /// <param name="proc">回调函数</param>
+    /// <param name="procParam">传给回调函数的额外参数</param>
+    /// <param name="lpRect">在指定的矩形区内显示图元文件</param>
+    /// <returns></returns>
+    [DllImport("gdi32.dll", SetLastError = true)]
+    public static extern bool EnumEnhMetaFile(IntPtr hdcRef, IntPtr hmf, IntPtr proc, IntPtr procParam, ref IntRect lpRect);
+
+    /// <summary>
+    /// 返回图元文件句柄
+    /// </summary>
+    /// <param name="hdcRef">画布句柄</param>
+    [DllImport("gdi32.dll", SetLastError = true)]
+    public static extern IntPtr CloseEnhMetaFile(IntPtr hdcRef);
+
+    // https://zhidao.baidu.com/question/646739770512964165/answer/1616737219.html?qq-pf-to=pcqq.c2c
+    //16位的函数
+    [DllImport("gdi32.dll")]
+    public static extern IntPtr GetMetaFile(string path);
+    //32位的函数
+    [DllImport("gdi32.dll")]
+    public static extern IntPtr GetEnhMetaFile(string path);
+
+
 
     /// <summary>
     /// EMF保存到文件或者路径
@@ -361,14 +841,6 @@ public static class EmfTool
 
 
 #if false
-    // https://zhidao.baidu.com/question/646739770512964165/answer/1616737219.html?qq-pf-to=pcqq.c2c
-    //16位的函数
-    [DllImport("gdi32.dll")]
-    public static extern uint GetMetaFile(StringBuilder path);
-    //32位的函数
-    [DllImport("gdi32.dll")]
-    public static extern uint GetEnhMetaFile(StringBuilder path);
-
     /// <summary>
     /// c#获取wmf方式
     /// </summary>

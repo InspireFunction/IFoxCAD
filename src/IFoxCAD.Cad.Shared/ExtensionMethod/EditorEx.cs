@@ -1097,8 +1097,8 @@ public static class EditorEx
     /// <param name="ids">选择集的对象,为null时候手选</param>
     /// <param name="wmfSetDel">是否清空选择集</param>
     /// <exception cref="ArgumentNullException"></exception>
-    public static void ExportWMF(this Editor editor, string saveFile,
-                                 ObjectId[]? ids = null, bool wmfSetDel = false)
+    public static void ComExportWMF(this Editor editor, string saveFile,
+                                    ObjectId[]? ids = null, bool wmfSetDel = false)
     {
         if (string.IsNullOrEmpty(saveFile))
             throw new ArgumentNullException(nameof(saveFile));
@@ -1129,7 +1129,10 @@ public static class EditorEx
                 psr = editor.GetSelection();// 手选
             if (psr.Status != PromptStatus.OK)
                 return;
+            ids = psr.Value.GetObjectIds();
         }
+        editor.SetImpliedSelection(ids);
+
 #if zcad
         var com = Acap.ZcadApplication;
 #else
@@ -1137,7 +1140,10 @@ public static class EditorEx
 #endif
         var doc = com.GetProperty("ActiveDocument");
         var wmfSet = doc.GetProperty("ActiveSelectionSet");
-        doc.Invoke("Export", saveFile, "wmf", wmfSet); // JPGOUT,PNGOUT
+
+        // TODO 20221007 cad21 先net选择,再进行,此处再选择一次?
+        //               cad21 调试期间无法选择性粘贴?
+        var exp = doc.Invoke("Export", saveFile, "wmf", wmfSet); // JPGOUT,PNGOUT
         if (wmfSetDel)
             wmfSet.Invoke("Delete");
     }
