@@ -49,6 +49,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建文字\AttachmentPointHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建文字\TextEntityAdd.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建文字\TextInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Runtime\RedrawEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\LateBinding.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\LispDottedPair.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\LispList.cs" />

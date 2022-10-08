@@ -63,6 +63,8 @@ public static class RedrawEx
     /// <summary>
     /// 刷新屏幕
     /// </summary>
+    /// <param name="ed">编辑器</param>
+    /// <param name="ent">图元</param>
     public static void Redraw(this Editor ed, Entity? ent = null)
     {
         // 刷新图元
