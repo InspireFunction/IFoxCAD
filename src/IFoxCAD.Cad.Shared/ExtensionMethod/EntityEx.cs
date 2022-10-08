@@ -14,9 +14,7 @@ public static class EntityEx
     public static void Flush(this Entity entity, DBTrans? trans = null)
     {
         // if (entity is null)
-        // {
         //    throw new ArgumentNullException(nameof(entity));
-        // }
         trans ??= DBTrans.Top;
         entity.RecordGraphicsModified(true);
         trans.Transaction.TransactionManager.QueueForGraphicsFlush();
