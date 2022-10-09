@@ -28,27 +28,24 @@
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>DEBUG</DefineConstants>
     </PropertyGroup>
-	
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
         <DefineConstants>$(Configuration);zcad</DefineConstants>
     </PropertyGroup>
-	
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
         <DefineConstants>$(Configuration);zcad</DefineConstants>
     </PropertyGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
-		<PackageReference Include="ZWCad.Net.2014" Version="1.0.2">
-			<ExcludeAssets>runtime</ExcludeAssets>
-		</PackageReference>
-	</ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
+        <PackageReference Include="ZWCad.Net.2014" Version="1.0.2">
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
+        <PackageReference Include="ZWCad.Net.2021" Version="1.0.1">
+            <ExcludeAssets>runtime</ExcludeAssets>
+        </PackageReference>
+    </ItemGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
-		<PackageReference Include="ZWCad.Net.2021" Version="1.0.1">
-			<ExcludeAssets>runtime</ExcludeAssets>
-		</PackageReference>
-	</ItemGroup>
-	
     <ItemGroup>
         <None Include="..\..\..\LICENSE">
             <Pack>True</Pack>
@@ -66,8 +63,8 @@
 
     <Import Project="..\..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared" />
 
-    <!--json要求的程序集 net45的Include需要改Update -->
     <ItemGroup>
-        <Reference Include="System.Web.Extensions"/>
+        <Reference Include="System.Web" />
+        <Reference Include="System.Web.Extensions" />
     </ItemGroup>
 </Project>

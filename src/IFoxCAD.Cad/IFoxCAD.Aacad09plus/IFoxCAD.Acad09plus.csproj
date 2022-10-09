@@ -25,18 +25,6 @@
         <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
-        <PackageReference Include="Autocad.NetApi" Version="17.2.0" ExcludeAssets="runtime"/>
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
-        <PackageReference Include="Autocad.NetApi" Version="19.0.0" ExcludeAssets="runtime"/>
-    </ItemGroup>
-
-    <ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
-        <PackageReference Include="AutoCAD.NET" Version="20.0.1" ExcludeAssets="runtime"/>
-        <PackageReference Include="System.Collections" Version="4.3.0"/>
-    </ItemGroup>
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
         <DefineConstants>DEBUG</DefineConstants>
     </PropertyGroup>
@@ -49,6 +37,18 @@
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
         <DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
     </PropertyGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
+        <PackageReference Include="Autocad.NetApi" Version="17.2.0" ExcludeAssets="runtime"/>
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
+        <PackageReference Include="Autocad.NetApi" Version="19.0.0" ExcludeAssets="runtime"/>
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
+        <PackageReference Include="AutoCAD.NET" Version="20.0.1" ExcludeAssets="runtime"/>
+        <PackageReference Include="System.Collections" Version="4.3.0"/>
+    </ItemGroup>
+
     <ItemGroup>
         <None Include="..\..\..\LICENSE">
             <Pack>True</Pack>
@@ -66,8 +66,8 @@
 
     <Import Project="..\..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared"/>
 
-    <!--json要求的程序集 net45的Include需要改Update -->
     <ItemGroup>
-        <Reference Include="System.Web.Extensions"/>
+        <Reference Include="System.Web" />
+        <Reference Include="System.Web.Extensions" />
     </ItemGroup>
 </Project>

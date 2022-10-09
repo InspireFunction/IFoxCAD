@@ -7,16 +7,17 @@
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
         <PlatformTarget>x64</PlatformTarget>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
-        <DefineConstants>$(Configuration);acad</DefineConstants>
+        <DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj"/>
-        <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Aacad09plus\IFoxCAD.Acad09plus.csproj"/>
-        <ProjectReference Include="..\..\src\IFoxCAD.WPF\IFoxCAD.WPF.csproj"/>
+        <ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />
+        <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Aacad09plus\IFoxCAD.Acad09plus.csproj" />
+        <ProjectReference Include="..\..\src\IFoxCAD.WPF\IFoxCAD.WPF.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -31,10 +32,10 @@
         </Page>
     </ItemGroup>
 
-    <Import Project="..\TestShared\TestShared.projitems" Label="Shared"/>
+    <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
 
-    <!--json要求的程序集 net45的Include需要改Update -->
     <ItemGroup>
-        <Reference Update="System.Web.Extensions"/>
+        <Reference Include="System.Web" />
+        <Reference Include="System.Web.Extensions" />
     </ItemGroup>
 </Project>

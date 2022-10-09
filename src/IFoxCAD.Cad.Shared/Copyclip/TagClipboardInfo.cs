@@ -1,6 +1,4 @@
-﻿#define Marshal
-
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 using System;
 using System.Diagnostics;
@@ -13,10 +11,9 @@ using System.Xml.Linq;
 
 public class ClipboardEnv
 {
-    // 此句将导致剪贴板的key隔离,从而导致cad版本隔离
-    // public static string CadVer = $"AutoCAD.r{Acap.Version.Major}"
-    // 将r17写死,代表每个cad版本都去找它,实现不隔离cad版本
+    // 0x01 将r17写死,代表每个cad版本都去找它,实现不隔离cad版本
     public static string CadVer = "AutoCAD.r17";
+    // 0x02 当前版本在r17找不到的时候找,避免按需加载插件的时候无法获取剪贴板
     public static string CadCurrentVer = $"AutoCAD.r{Acap.Version.Major}";
 }
 
@@ -261,7 +258,7 @@ public struct IntRect
 
     public IntRect Clone()
     {
-        return new IntRect(_Left, _Top, _Right, _Bottom);
+        return (IntRect)MemberwiseClone();
     }
     #endregion
 }
@@ -300,6 +297,19 @@ public struct Point3D : IEquatable<Point3D>
     public double X => _X;
     public double Y => _Y;
     public double Z => _Z;
+    public void SetX(double num)
+    {
+        _X = num;
+    }
+    public void SetY(double num)
+    {
+        _Y = num;
+    }
+    public void SetZ(double num)
+    {
+        _Z = num;
+    }
+
     public Point3D(double x, double y, double z)
     {
         _X = x;
@@ -348,12 +358,15 @@ public struct Point3D : IEquatable<Point3D>
 }
 
 /*
- * OLE 剪贴板说明
- * https://blog.csdn.net/chinabinlang/article/details/9815495
+ *  OLE 剪贴板说明 https://blog.csdn.net/chinabinlang/article/details/9815495
+ *  写入时候注意:
+ *  0x01 c#自带的是com剪贴板
+ *  最好不要使用,它不能在已经打开的剪贴板中使用,
+ *  也无法写入多个cf对象,也就是复制bitmap的时候会覆盖cad图元
+ *  Clipboard.SetImage(bitmap);
+ *  0x02
+ *  剪贴板写入各种类型 https://blog.csdn.net/glt3953/article/details/8808262
  *
- * 感觉如果桌子真的是这样做,那么粘贴链接可能还真没法做成.
- * 1,不知道桌子如何发送wmf文件,是结构体传送,还是文件路径传送.
- * 2,不知道桌子如何接收剪贴板数据,是延迟接收还是一次性写入全局变量或者文件.
  */
 
 public partial class ClipTool
@@ -444,15 +457,6 @@ public partial class ClipTool
     public static extern uint EnumClipboardFormats(uint format);
 
 
-    /*  写入时候注意:
-     *  0x01 c#自带的是com剪贴板
-     *  最好不要使用,它不能在已经打开的剪贴板中使用,
-     *  也无法写入多个cf对象,也就是复制bitmap的时候会覆盖cad图元
-     *  Clipboard.SetImage(bitmap);
-     *  0x02
-     *  剪贴板写入各种类型 https://blog.csdn.net/glt3953/article/details/8808262
-     */
-
     /// <summary>
     /// 打开剪贴板<br/>
     /// 写入之前必须清空,<br/>
@@ -519,10 +523,9 @@ public partial class ClipTool
 
 #if true2
 // 无法备份emf内容
+// https://blog.csdn.net/vencon_s/article/details/46345083
 public static class ClipEx
 {
-    // https://blog.csdn.net/vencon_s/article/details/46345083
-
     /// <summary>
     /// 剪贴板数据保存目标数据列表
     /// </summary>

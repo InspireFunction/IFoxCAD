@@ -46,6 +46,10 @@ public class WindowsAPI
     [DllImport("kernel32.dll", SetLastError = true)]
     static extern bool GlobalUnlock(IntPtr hMem);
 #if !Marshal
+    /*
+    const int GMEM_MOVEABLE = 0x0002;
+    IntPtr newPtr = WindowsAPI.GlobalAlloc(GMEM_MOVEABLE, Marshal.SizeOf(structObj));
+    */
     /// <summary>
     /// 从堆中分配内存
     /// 被代替: Marshal.AllocHGlobal
@@ -118,22 +122,13 @@ public class WindowsAPI
             return false;
 
         // 分配结构体大小的内存空间
-#if Marshal
         IntPtr structPtr = Marshal.AllocHGlobal(typeSize);
-#else
-        const int GMEM_MOVEABLE = 0x0002;
-        IntPtr structPtr = WindowsAPI.GlobalAlloc(GMEM_MOVEABLE, typeSize);
-#endif
         // 将byte数组拷到分配好的内存空间
         Marshal.Copy(bytes, 0, structPtr, typeSize);
         // 将内存空间转换为目标结构体
         result = (T)Marshal.PtrToStructure(structPtr, structType);
         // 释放内存空间
-#if Marshal
         Marshal.FreeHGlobal(structPtr);
-#else
-        WindowsAPI.GlobalFree(structPtr);
-#endif
         return true;
     }
 
@@ -169,14 +164,9 @@ public class WindowsAPI
     {
         if (structObj == null)
             throw new ArgumentNullException(nameof(structObj));
-#if Marshal
         IntPtr newPtr = Marshal.AllocHGlobal(Marshal.SizeOf(structObj));
-#else
-        const int GMEM_MOVEABLE = 0x0002;
-        IntPtr newPtr = WindowsAPI.GlobalAlloc(GMEM_MOVEABLE, Marshal.SizeOf(structObj));
-#endif
         if (newPtr == IntPtr.Zero)
-            return;
+            throw new ArgumentException(nameof(newPtr));
         try
         {
             // 剪贴板写入的时候不允许锁定内存,否则在频繁触发剪贴板将导致卡死程序
@@ -195,13 +185,7 @@ public class WindowsAPI
         finally
         {
             if (freeHGlobal && newPtr != IntPtr.Zero)
-            {
-#if Marshal
                 Marshal.FreeHGlobal(newPtr);
-#else
-                WindowsAPI.GlobalFree(newPtr);
-#endif
-            }
         }
 
         // 将结构体拷到分配好的内存空间

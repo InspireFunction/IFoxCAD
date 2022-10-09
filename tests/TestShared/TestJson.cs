@@ -1,14 +1,16 @@
 ﻿namespace TestShared;
 
-#if true2
 public class TestJson
 {
     /*
-       <ItemGroup>
-         <Reference Include="System.Web.Extensions" />
-       </ItemGroup>
+     * 需要引入:
+     * <ItemGroup>
+     *     <Reference Include="System.Web" />
+     *     <Reference Include="System.Web.Extensions" />
+     * </ItemGroup>
      */
-    protected void Page_Load(object sender, EventArgs e)
+    [CommandMethod(nameof(JavaScriptSerializer))]
+    public void JavaScriptSerializer()
     {
         var RegisteredUsers = new List<int>();
         RegisteredUsers.Add(0);
@@ -18,7 +20,6 @@ public class TestJson
 
         var serializer = new System.Web.Script.Serialization.JavaScriptSerializer();
         var serializedResult = serializer.Serialize(RegisteredUsers);
-        var deserializedResult = serializer.Deserialize<List<InterceptCopyclip>>(serializedResult);
+        var deserializedResult = serializer.Deserialize<List<int>>(serializedResult);
     }
 }
-#endif

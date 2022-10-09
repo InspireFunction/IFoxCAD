@@ -13,5 +13,9 @@
     <ItemGroup>
         <ProjectReference Include="..\..\src\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
     </ItemGroup>
- 
+
+    <ItemGroup>
+        <Reference Include="System.Web" />
+        <Reference Include="System.Web.Extensions" />
+    </ItemGroup>
 </Project>
