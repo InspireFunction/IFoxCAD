@@ -6,6 +6,7 @@ using System.Drawing.Imaging;
 using System.Text;
 using System.Threading;
 using System.Windows;
+using System.Windows.Documents;
 using System.Windows.Media.Media3D;
 using System.Xml.Linq;
 
@@ -289,32 +290,18 @@ public struct IntSize
 public struct Point3D : IEquatable<Point3D>
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => $"(X:{_X},Y:{_Y},Z:{_Z})";
+    private string DebuggerDisplay => $"(X:{X},Y:{Y},Z:{Z})";
 
-    double _X;
-    double _Y;
-    double _Z;
-    public double X => _X;
-    public double Y => _Y;
-    public double Z => _Z;
-    public void SetX(double num)
-    {
-        _X = num;
-    }
-    public void SetY(double num)
-    {
-        _Y = num;
-    }
-    public void SetZ(double num)
-    {
-        _Z = num;
-    }
-
+    /* 由于此类是用来优化,从而实现字段修改,因此直接暴露字段减少栈帧 */
+    public double X;
+    public double Y;
+    public double Z;
+ 
     public Point3D(double x, double y, double z)
     {
-        _X = x;
-        _Y = y;
-        _Z = z;
+        X = x;
+        Y = y;
+        Z = z;
     }
     public static implicit operator Point3D(Point3d pt)
     {
@@ -334,9 +321,9 @@ public struct Point3D : IEquatable<Point3D>
     public bool Equals(Point3D other)
     {
         return
-        _X == other._X &&
-        _Y == other._Y &&
-        _Z == other._Z;
+        X == other.X &&
+        Y == other.Y &&
+        Z == other.Z;
     }
     public static bool operator !=(Point3D a, Point3D b)
     {
@@ -352,7 +339,7 @@ public struct Point3D : IEquatable<Point3D>
     }
     public override int GetHashCode()
     {
-        return (_X, _Y).GetHashCode() ^ _Z.GetHashCode();
+        return (X, Y).GetHashCode() ^ Z.GetHashCode();
     }
     #endregion
 }
