@@ -117,8 +117,8 @@ public class Commands_Jig
         tr.CurrentSpace.AddEntity(jig.Entitys);
     }
 
-    [CommandMethod(nameof(Test_Loop))]
-    public void Test_Loop()
+    [CommandMethod(nameof(Test_MessageFilter))]
+    public void Test_MessageFilter()
     {
         var dm = Acap.DocumentManager;
         var ed = dm.MdiActiveDocument.Editor;

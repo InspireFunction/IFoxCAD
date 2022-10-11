@@ -308,4 +308,35 @@ public class AutoReflection
             runClassList[i].Run();
         runClassList.Clear();
     }
+
+#if Debug
+    /// <summary>
+    /// 检查当前程序域重复出现命令,
+    /// 当出现重复时候将引起断点
+    /// </summary>
+    public static void DebugCheckCmdRecurrence()
+    {
+        HashSet<string> keys = new HashSet<string>();
+        AutoReflection.AppDomainGetTypes(type => {
+            if (type.IsAbstract)
+                return;
+
+            var mets = type.GetMethods();
+            for (int ii = 0; ii < mets.Length; ii++)
+            {
+                var method = mets[ii];
+                var attr = method.GetCustomAttributes(true);
+                for (int jj = 0; jj < attr.Length; jj++)
+                {
+                    if (attr[jj] is CommandMethodAttribute att)
+                    {
+                        if (keys.Contains(att.GlobalName))
+                            Debugger.Break();
+                        keys.Add(att.GlobalName);
+                    }
+                }
+            }
+        });
+    }
+#endif
 }

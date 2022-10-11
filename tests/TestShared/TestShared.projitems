@@ -11,7 +11,7 @@
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CmdINI.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Copyclip.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Test.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestAddEntity.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestAOP.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)testblock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)testConvexHull.cs" />
@@ -19,7 +19,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestDBTrans.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestDwgFilerEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)testeditor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TestEnt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)testenv.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestFileDatabase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Testid.cs" />

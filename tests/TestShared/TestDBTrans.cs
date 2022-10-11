@@ -70,8 +70,8 @@ public class TestTrans
     // }
 
 
-    [CommandMethod(nameof(Test_Pt))]
-    public void Test_Pt()
+    [CommandMethod(nameof(Test_TopTransaction))]
+    public void Test_TopTransaction()
     {
         // var pt = Env.Editor.GetPoint("pick pt:").Value;
         // var pl = Env.Editor.GetEntity("pick pl").ObjectId;

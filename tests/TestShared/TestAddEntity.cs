@@ -1,5 +1,4 @@
 ﻿namespace Test;
-#pragma warning disable CS0219 // 变量已被赋值，但从未使用过它的值
 
 public partial class Test
 {
@@ -354,5 +353,35 @@ public partial class Test
         var doc = Acap.DocumentManager.MdiActiveDocument;
         return doc;
     }
+
+
+    [CommandMethod(nameof(Test_EntRoration))]
+    public void Test_EntRoration()
+    {
+        var line = new Line(new(0, 0, 0), new(100, 0, 0));
+
+        using DBTrans tr = new();
+        tr.CurrentSpace.AddEntity(line);
+        var line2 = (Line)line.Clone();
+        tr.CurrentSpace.AddEntity(line2);
+        line2.Rotation(new(100, 0, 0), Math.PI / 2);
+    }
+
+    [CommandMethod(nameof(Test_TypeSpeed))]
+    public void Test_TypeSpeed()
+    {
+        var line = new Line();
+        var line1 = line as Entity;
+        Tools.TestTimes(100000, "is 匹配：", () => {
+            var t = line1 is Line;
+        });
+        Tools.TestTimes(100000, "name 匹配：", () => {
+            // var t = line.GetType().Name;
+            var tt = line1.GetType().Name == nameof(Line);
+        });
+        Tools.TestTimes(100000, "dxfname 匹配：", () => {
+            // var t = line.GetType().Name;
+            var tt = line1.GetRXClass().DxfName == nameof(Line);
+        });
+    }
 }
-#pragma warning restore CS0219 // 变量已被赋值，但从未使用过它的值

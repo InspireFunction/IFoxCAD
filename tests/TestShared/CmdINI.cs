@@ -1,3 +1,6 @@
+using System.Diagnostics;
+using System.Linq;
+
 namespace Test;
 
 /// <summary>
@@ -30,6 +33,11 @@ public class AutoRegAssemEx : AutoRegAssem
         ed.WriteMessage($"\n {nameof(AutoRegAssemEx)}构造函数,开始自动执行\r\n");
 
         CmdInit.AutoRegAssemEx = this;
+
+#if Debug
+        // 此处用来反射本程序集,检查是否存在重复命令
+        AutoReflection.DebugCheckCmdRecurrence();
+#endif
     }
 }
 

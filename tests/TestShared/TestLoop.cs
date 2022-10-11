@@ -1,8 +1,8 @@
 ﻿namespace Test;
 public class TestLoop
 {
-    [CommandMethod(nameof(Test_Loop))]
-    public void Test_Loop()
+    [CommandMethod(nameof(Test_LoopList))]
+    public void Test_LoopList()
     {
         var loop = new LoopList<int>
         {

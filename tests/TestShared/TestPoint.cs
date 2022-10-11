@@ -50,8 +50,8 @@ public class TestPoint
         });
     }
 
-    [CommandMethod(nameof(Test_Point3d))]
-    public void Test_Point3d()
+    [CommandMethod(nameof(Test_Point3dHash))]
+    public void Test_Point3dHash()
     {
         Env.Print($"4位小数的hash：{new Point3d(0.0_001, 0.0_002, 0.0).GetHashCode()}");
         Env.Print($"5位小数的hash：{new Point3d(0.00_001, 0.00_002, 0.0).GetHashCode()}");
@@ -93,8 +93,8 @@ public class TestPoint
         Env.Print($"20位小数的hash：{new Point3d(0.000_000_000_000_000_000_01, 0.000_000_000_000_000_000_01, 0.0).GetHashCode()}");
     }
 
-    [CommandMethod(nameof(Test_Listequalspeed))]
-    public void Test_Listequalspeed()
+    [CommandMethod(nameof(Test_ListEqualspeed))]
+    public void Test_ListEqualspeed()
     {
         var lst1 = new List<int> { 1, 2, 3, 4 };
         var lst2 = new List<int> { 1, 2, 3, 4 };
