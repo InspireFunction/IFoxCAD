@@ -3,7 +3,7 @@
 public class TestLisp
 {
     // 定义lisp函数
-    [LispFunction("LispTest_RunLisp")]
+    [LispFunction(nameof(LispTest_RunLisp))]
     public static object LispTest_RunLisp(ResultBuffer rb)
     {
         CmdTest_RunLisp();

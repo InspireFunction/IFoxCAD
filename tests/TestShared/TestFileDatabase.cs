@@ -7,8 +7,8 @@
 
 public class TestFileDatabase
 {
-    [CommandMethod("Test_FileDatabaseInit")]
-    public void TestDatabase()
+    [CommandMethod(nameof(Test_FileDatabaseInit))]
+    public void Test_FileDatabaseInit()
     {
         try
         {
@@ -22,8 +22,7 @@ public class TestFileDatabase
         }
         catch (System.Exception e)
         {
-           System.Windows.MessageBox.Show(e.Message);
+            System.Windows.MessageBox.Show(e.Message);
         }
-
     }
 }

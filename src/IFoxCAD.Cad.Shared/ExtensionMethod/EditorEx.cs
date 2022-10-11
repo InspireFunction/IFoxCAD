@@ -13,7 +13,8 @@ public static class EditorEx
     /// <param name="point">点</param>
     /// <param name="filter">过滤器</param>
     /// <returns>选择集结果类</returns>
-    public static PromptSelectionResult SelectAtPoint(this Editor editor, Point3d point, SelectionFilter? filter = default)
+    public static PromptSelectionResult SelectAtPoint(this Editor editor, Point3d point,
+                                                      SelectionFilter? filter = default)
     {
         return editor.SelectCrossingWindow(point, point, filter);
     }
@@ -49,13 +50,26 @@ public static class EditorEx
                 };
         }
 
-        PromptSelectionResult res = editor.SelectAll(filter);
+        var res = editor.SelectAll(filter);
         return res.Value;
     }
 
-    public static PromptSelectionResult? SSGet(this Editor editor, string? mode = null, SelectionFilter? filter = null, string[]? messages = null, Dictionary<string, Action>? keywords = null)
+    /// <summary>
+    /// 选择集
+    /// </summary>
+    /// <param name="editor">命令行对象</param>
+    /// <param name="mode">模式</param>
+    /// <param name="filter">过滤器</param>
+    /// <param name="messages">消息</param>
+    /// <param name="keywords">关键字和回调函数</param>
+    /// <returns></returns>
+    public static PromptSelectionResult? SSGet(this Editor editor,
+                                               string? mode = null,
+                                               SelectionFilter? filter = null,
+                                               string[]? messages = null,
+                                               Dictionary<string, Action>? keywords = null)
     {
-        var pso = new PromptSelectionOptions();
+        PromptSelectionOptions pso = new();
         PromptSelectionResult? ss = null;
         if (mode is not null)
         {
@@ -307,18 +321,12 @@ public static class EditorEx
     //     switch (e.Input)
     //     {
     //         case "Z":
-    //             {
     //                 break;
-    //             }
     //         case "X":
-    //             {
     //                 break;
-    //             }
 
     //         case "Q":
-    //             {
     //                 break;
-    //             }
     //     }
     //     // 抛出异常,用于更新提示信息
     //     throw new ArgumentException("XuError");
@@ -1048,7 +1056,7 @@ public static class EditorEx
     {
         /*
          * 测试命令:
-         *   [CommandMethod("CmdTest_RunLisp")]
+         *   [CommandMethod(nameof(CmdTest_RunLisp))]
          *   public static void CmdTest_RunLisp()
          *   {
          *       var res = RunLisp("(setq abc 10)");

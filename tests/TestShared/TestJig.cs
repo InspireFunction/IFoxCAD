@@ -5,8 +5,8 @@ using System.Windows.Forms;
 public class Commands_Jig
 {
     // 已在数据库的图元如何进入jig
-    [CommandMethod("TestCmd_jig33")]
-    public static void TestCmd_jig33()
+    [CommandMethod(nameof(Test_Jig33))]
+    public static void Test_Jig33()
     {
         using DBTrans tr = new();
         var per = tr.Editor?.GetEntity("\n点选圆形:");
@@ -45,8 +45,8 @@ public class Commands_Jig
 
 
     // 不在数据库的图元如何进入jig
-    [CommandMethod("TestCmd_Jig44")]
-    public void TestCmd_Jig44()
+    [CommandMethod(nameof(Test_Jig44))]
+    public void Test_Jig44()
     {
         using DBTrans tr = new();
         var per = Env.Editor.GetEntity("\n请选择一条多段线:");
@@ -117,8 +117,8 @@ public class Commands_Jig
         tr.CurrentSpace.AddEntity(jig.Entitys);
     }
 
-    [CommandMethod("TestCmd_loop")]
-    public void TestCmd_loop()
+    [CommandMethod(nameof(Test_Loop))]
+    public void Test_Loop()
     {
         var dm = Acap.DocumentManager;
         var ed = dm.MdiActiveDocument.Editor;
@@ -166,8 +166,8 @@ public class Commands_Jig
     }
 
 
-    [CommandMethod("TestCmd_QuickText")]
-    static public void TestCmd_QuickText()
+    [CommandMethod(nameof(Test_QuickText))]
+    static public void Test_QuickText()
     {
         var dm = Acap.DocumentManager;
         var doc = dm.MdiActiveDocument;

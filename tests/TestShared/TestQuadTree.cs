@@ -38,7 +38,7 @@ public partial class TestQuadTree
 {
     QuadTree<CadEntity>? _quadTreeRoot;
     #region 四叉树创建并加入
-    [CommandMethod("Test_QuadTree")]
+    [CommandMethod(nameof(Test_QuadTree))]
     public void Test_QuadTree()
     {
         using DBTrans tr = new();
@@ -147,7 +147,7 @@ public partial class TestQuadTree
 #if true2
 
     // 选择加入到四叉树
-    [CommandMethod("CmdTest_QuadTree21")]
+    [CommandMethod(nameof(CmdTest_QuadTree21))]
     public void CmdTest_QuadTree21()
     {
         var dm = Acap.DocumentManager;
@@ -164,7 +164,7 @@ public partial class TestQuadTree
     }
 
     // 自动加入全图到四叉树
-    [CommandMethod("CmdTest_QuadTree20")]
+    [CommandMethod(nameof(CmdTest_QuadTree20))]
     public void CmdTest_QuadTree20()
     {
         var dm = Acap.DocumentManager;
@@ -262,7 +262,7 @@ public partial class TestQuadTree
 
     #region 节点边界显示
     // 四叉树减去节点
-    [CommandMethod("CmdTest_QuadTree0")]
+    [CommandMethod(nameof(CmdTest_QuadTree0))]
     public void CmdTest_QuadTree0()
     {
         var dm = Acap.DocumentManager;
@@ -283,7 +283,7 @@ public partial class TestQuadTree
     }
 
     // 创建节点边界
-    [CommandMethod("CmdTest_QuadTree00")]
+    [CommandMethod(nameof(CmdTest_CreateNodesRect))]
     public void CmdTest_CreateNodesRect()
     {
         var dm = Acap.DocumentManager;
@@ -335,13 +335,13 @@ public partial class TestQuadTree
 
     #region 四叉树查询节点
     // 选择范围改图元颜色
-    [CommandMethod("CmdTest_QuadTree3")]
+    [CommandMethod(nameof(CmdTest_QuadTree3))]
     public void CmdTest_QuadTree3()
     {
         Ssget(QuadTreeSelectMode.IntersectsWith);
     }
 
-    [CommandMethod("CmdTest_QuadTree4")]
+    [CommandMethod(nameof(CmdTest_QuadTree4))]
     public void CmdTest_QuadTree4()
     {
         Ssget(QuadTreeSelectMode.Contains);
@@ -380,7 +380,6 @@ public partial class TestQuadTree
     /// </summary>
     /// <param name="ed"></param>
     /// <returns></returns>
-#pragma warning disable CS8632 // 只能在 "#nullable" 注释上下文内的代码中使用可为 null 的引用类型的注释。
     public static Rect? GetCorner(Editor ed)
     {
         var optionsA = new PromptPointOptions($"{Environment.NewLine}起点位置:");
@@ -400,8 +399,6 @@ public partial class TestQuadTree
                         new Point2d(pprB.Value.X, pprB.Value.Y),
                         true);
     }
-#pragma warning restore CS8632 // 只能在 "#nullable" 注释上下文内的代码中使用可为 null 的引用类型的注释。
-
     #endregion
 }
 

@@ -98,7 +98,7 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
    - 添加代码
    
    ```c#
-   [CommandMethod("hello")]
+   [CommandMethod(nameof(Hello))]
    public void Hello()
    {
     using DBTrans tr = new();

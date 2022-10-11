@@ -15,7 +15,7 @@ public class AutoAOP
     [IFoxInitialize]
     public void Initialize()
     {
-        AOP.Run(nameof(Test));
+        AOP.Run(nameof(Test_));
     }
 }
 
@@ -29,13 +29,13 @@ namespace Test
     {
         // 类不拒绝,这里拒绝
         [IFoxRefuseInjectionTransaction]
-        [CommandMethod("IFoxRefuseInjectionTransaction")]
+        [CommandMethod(nameof(IFoxRefuseInjectionTransaction))]
         public void IFoxRefuseInjectionTransaction()
         {
         }
 
         // 不拒绝
-        [CommandMethod("InjectionTransaction")]
+        [CommandMethod(nameof(InjectionTransaction))]
         public void InjectionTransaction()
         {
             // 怎么用事务呢?
@@ -51,7 +51,7 @@ namespace Test
     {
         // 此时这个也是拒绝的..这里加特性只是无所谓
         [IFoxRefuseInjectionTransaction]
-        [CommandMethod("IFoxRefuseInjectionTransaction2")]
+        [CommandMethod(nameof(IFoxRefuseInjectionTransaction2))]
         public void IFoxRefuseInjectionTransaction2()
         {
             // 拒绝注入就要自己开事务,通常用在循环提交事务上面.
@@ -59,7 +59,7 @@ namespace Test
             using DBTrans tr = new();
         }
 
-        [CommandMethod("InjectionTransaction2")]
+        [CommandMethod(nameof(InjectionTransaction2))]
         public void InjectionTransaction2()
         {
         }

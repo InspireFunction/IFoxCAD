@@ -1,12 +1,9 @@
-﻿using Autodesk.AutoCAD.EditorInput;
-using IFoxCAD.Cad;
-
-namespace Test;
+﻿namespace Test;
 
 public class Testeditor
 {
-    [CommandMethod("tested")]
-    public void Tested()
+    [CommandMethod(nameof(Test_Editor))]
+    public void Test_Editor()
     {
         var pts = new List<Point2d>
         {
@@ -26,16 +23,16 @@ public class Testeditor
         var s = ed.GetString("qustr");
         Env.Editor.WriteMessage("");
     }
-    [CommandMethod("testzoom")]
-    public void Testzoom()
+    [CommandMethod(nameof(Test_Zoom))]
+    public void Test_Zoom()
     {
         using DBTrans tr = new();
         var res = Env.Editor.GetEntity("\npick ent:");
         if (res.Status == PromptStatus.OK)
             Env.Editor.ZoomObject(res.ObjectId.GetObject<Entity>()!);
     }
-    [CommandMethod("testzoomextent")]
-    public void Testzoomextent()
+    [CommandMethod(nameof(Test_ZoomExtents))]
+    public void Test_ZoomExtents()
     {
         // using DBTrans tr = new();
         // var res = Env.Editor.GetEntity("\npick ent:");
@@ -47,8 +44,8 @@ public class Testeditor
         Env.Editor.ZoomExtents();
     }
 
-    [CommandMethod("testssget")]
-    public void Testssget()
+    [CommandMethod(nameof(Test_Ssget))]
+    public void Test_Ssget()
     {
         var action_a = () => { Env.Print("this is a"); };
         var action_b = () => { Env.Print("this is b"); };

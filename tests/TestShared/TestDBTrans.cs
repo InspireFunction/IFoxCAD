@@ -30,8 +30,8 @@ public class TestTrans
     }
 
 
-    [CommandMethod("testtr")]
-    public void Testtr()
+    [CommandMethod(nameof(Test_SaveDwgFile))]
+    public void Test_SaveDwgFile()
     {
         string filename = @"C:\Users\vic\Desktop\test.dwg";
         using DBTrans tr = new(filename);
@@ -39,8 +39,8 @@ public class TestTrans
         // tr.Database.SaveAs(filename,DwgVersion.Current);
         tr.SaveDwgFile();
     }
-    [CommandMethod("testifoxcommit")]
-    public void Testifoxcommit()
+    [CommandMethod(nameof(Test_DBTransAbort))]
+    public void Test_DBTransAbort()
     {
         using DBTrans tr = new();
         tr.ModelSpace.AddCircle(new Point3d(0, 0, 0), 20);
@@ -51,8 +51,8 @@ public class TestTrans
     // AOP 应用 预计示例：
     // 1. 无参数
     // [AOP]
-    // [CommandMethod("TESTAOP")]
-    // public void testaop()
+    // [CommandMethod(nameof(Test_AOP1))]
+    // public void TestAOP1()
     // {
     //    // 不用 using DBTrans tr = new();
     //    var tr = DBTrans.Top;
@@ -61,8 +61,8 @@ public class TestTrans
 
     // 2. 有参数
     // [AOP("file")]
-    // [CommandMethod("TESTAOP")]
-    // public void testaop()
+    // [CommandMethod(nameof(Test_AOP2))]
+    // public void TestAOP2()
     // {
     //    // 不用 using var tr = new DBTrans(file);
     //    var tr = DBTrans.Top;
@@ -70,8 +70,8 @@ public class TestTrans
     // }
 
 
-    [CommandMethod("testpt")]
-    public void TestPt()
+    [CommandMethod(nameof(Test_Pt))]
+    public void Test_Pt()
     {
         // var pt = Env.Editor.GetPoint("pick pt:").Value;
         // var pl = Env.Editor.GetEntity("pick pl").ObjectId;

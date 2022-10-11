@@ -3,8 +3,8 @@ namespace Test;
 
 public class TestConvexHull
 {
-    [CommandMethod("testch")]
-    public void Testch()
+    [CommandMethod(nameof(Test_ConvexHull))]
+    public void Test_ConvexHull()
     {
         // using DBTrans tr = new();
         // var pts = new List<Point3d>();

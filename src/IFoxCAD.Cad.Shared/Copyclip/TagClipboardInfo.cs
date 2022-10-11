@@ -123,7 +123,7 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
 
     #region 视口指针
     /*
-       [CommandMethod(nameof(testAcedGetAcadDwgview))]
+       [CommandMethod(nameof(Test_AcedGetAcadDwgview))]
        public void testAcedGetAcadDwgview()
        {
            var dm = Acap.DocumentManager;
@@ -284,7 +284,6 @@ public struct IntSize
 }
 
 [Serializable]
-[StructLayout(LayoutKind.Sequential, Pack = 8)]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(Point3D))]
 public struct Point3D : IEquatable<Point3D>
@@ -296,7 +295,7 @@ public struct Point3D : IEquatable<Point3D>
     public double X;
     public double Y;
     public double Z;
- 
+
     public Point3D(double x, double y, double z)
     {
         X = x;

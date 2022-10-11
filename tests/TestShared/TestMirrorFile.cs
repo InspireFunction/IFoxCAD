@@ -9,7 +9,7 @@ public class MirrorFile
     /// 测试:后台打开图纸,镜像文字是否存在文字偏移
     /// 答案:不存在
     /// </summary>
-    [CommandMethod("CmdTest_MirrorFile")]
+    [CommandMethod(nameof(CmdTest_MirrorFile))]
     public static void CmdTest_MirrorFile()
     {
         using DBTrans tr = new(file, openMode: FileOpenMode.OpenForReadAndReadShare);
@@ -38,7 +38,7 @@ public class MirrorFile
     /// 测试:后台设置 dbText.IsMirroredInX 属性会令文字偏移
     /// 答案:存在,并提出解决方案
     /// </summary>
-    [CommandMethod("CmdTest_MirrorFile2")]
+    [CommandMethod(nameof(CmdTest_MirrorFile2))]
     public static void CmdTest_MirrorFile2()
     {
         using DBTrans tr = new(file);

@@ -2,8 +2,8 @@
 
 public class TestEnt
 {
-    [CommandMethod("TestEntRoration")]
-    public void TestEntRoration()
+    [CommandMethod(nameof(Test_EntRoration))]
+    public void Test_EntRoration()
     {
         var line = new Line(new(0, 0, 0), new(100, 0, 0));
 
@@ -15,8 +15,8 @@ public class TestEnt
     }
 
 
-    [CommandMethod("Testtypespeed")]
-    public void TestTypeSpeed()
+    [CommandMethod(nameof(Test_TypeSpeed))]
+    public void Test_TypeSpeed()
     {
         var line = new Line();
         var line1 = line as Entity;

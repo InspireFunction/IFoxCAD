@@ -2,8 +2,8 @@
 
 public class Class1
 {
-    [CommandMethod("testwpf")]
-    public void TestWPf()
+    [CommandMethod(nameof(Test_WPf))]
+    public void Test_WPf()
     {
         var test = new TestView();
         Acap.ShowModalWindow(test);

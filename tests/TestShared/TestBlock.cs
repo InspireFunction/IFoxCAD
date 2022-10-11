@@ -2,7 +2,7 @@
 
 public class TestBlock
 {
-    [CommandMethod("Test_GetBoundingBoxEx")]
+    [CommandMethod(nameof(Test_GetBoundingBoxEx))]
     public void Test_GetBoundingBoxEx()
     {
         using DBTrans tr = new();
@@ -19,7 +19,7 @@ public class TestBlock
     }
 
     // 块定义
-    [CommandMethod("Test_blockdef")]
+    [CommandMethod(nameof(Test_BlockDef))]
     public void Test_BlockDef()
     {
         using DBTrans tr = new();
@@ -54,7 +54,7 @@ public class TestBlock
         });
     }
     // 修改块定义
-    [CommandMethod("Test_blockdefchange")]
+    [CommandMethod(nameof(Test_BlockDefChange))]
     public void Test_BlockDefChange()
     {
         using DBTrans tr = new();
@@ -89,7 +89,7 @@ public class TestBlock
         tr.Editor?.Regen();
     }
 
-    [CommandMethod("Test_insertblockdef")]
+    [CommandMethod(nameof(Test_InsertBlockDef))]
     public void Test_InsertBlockDef()
     {
         using DBTrans tr = new();
@@ -134,7 +134,7 @@ public class TestBlock
         tr.CurrentSpace.InsertBlock(new Point3d(-10, 0, 0), "test44");
     }
 
-    [CommandMethod("Test_addattsdef")]
+    [CommandMethod(nameof(Test_AddAttsDef))]
     public void Test_AddAttsDef()
     {
         using DBTrans tr = new();
@@ -146,7 +146,7 @@ public class TestBlock
         tr.BlockTable.AddAttsToBlocks(blockref, new() { att1, att2 });
     }
 
-    [CommandMethod("test_blocknullbug")]
+    [CommandMethod(nameof(Test_BlockNullBug))]
     public void Test_BlockNullBug()
     {
         using DBTrans tr = new();
@@ -160,7 +160,7 @@ public class TestBlock
         tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test44");
     }
 
-    [CommandMethod("test_block_file")]
+    [CommandMethod(nameof(Test_BlockFile))]
     public void Test_BlockFile()
     {
         using DBTrans tr = new();
@@ -169,7 +169,7 @@ public class TestBlock
     }
 
 
-    [CommandMethod("test_clip")]
+    [CommandMethod(nameof(Test_ClipBlock))]
     public void Test_ClipBlock()
     {
         using DBTrans tr = new();
@@ -189,11 +189,9 @@ public class TestBlock
         bref1?.ClipBlockRef(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
     }
 
-    /// <summary>
-    /// 给用户的测试程序，不知道对错
-    /// </summary>
-    [CommandMethod(nameof(Test_block_ej))]
-    public void Test_block_ej()
+    // 给用户的测试程序，不知道对错
+    [CommandMethod(nameof(Test_Block_ej))]
+    public void Test_Block_ej()
     {
         using (DBTrans tr = new())
         {
@@ -281,8 +279,8 @@ public class TestBlock
         tr2.Editor?.Regen();
     }
 
-    [CommandMethod("W_KSZK")]
-    public void QuickBlockDef()
+    [CommandMethod(nameof(Test_QuickBlockDef2))]
+    public void Test_QuickBlockDef2()
     {
         // Database db = HostApplicationServices.WorkingDatabase;
         Editor ed = Acap.DocumentManager.MdiActiveDocument.Editor;
@@ -367,22 +365,22 @@ public class TestBlock
         // }
     }
 
-    [CommandMethod("test_quickblockdef")]
-    public void Test_QuickBlockDef()
+    [CommandMethod(nameof(Test_QuickBlockDef1))]
+    public void Test_QuickBlockDef1()
     {
-        Database db = HostApplicationServices.WorkingDatabase;
-        Editor ed = Acap.DocumentManager.MdiActiveDocument.Editor;
+        var dm = Acap.DocumentManager;
+        var doc = dm.MdiActiveDocument;
+        var db = doc.Database;
+        var ed = doc.Editor;
+
         PromptSelectionOptions promptOpt = new()
         {
             MessageForAdding = "请选择需要快速制作块的对象"
         };
         string blockName = "W_BLOCK_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
-        var rss = ed.GetSelection(promptOpt);
-        // var rss = Env.Editor.GetSelection(promptOpt);
+        var rss = Env.Editor.GetSelection(promptOpt);
         if (rss.Status != PromptStatus.OK)
-        {
             return;
-        }
 
         using var tr = db.TransactionManager.StartTransaction();
         var ids = rss.Value.GetObjectIds();
@@ -420,7 +418,7 @@ public class TestBlock
         // ed.Regen();
     }
 
-    public void TestWblock()
+    void Wblock()
     {
         var curdb = HostApplicationServices.WorkingDatabase;
         PromptSelectionOptions opts = new()
@@ -433,7 +431,7 @@ public class TestBlock
         db.SaveAs(@"c:\test.dwg", DwgVersion.Current);
     }
 
-    public void TestChangeDynameicBlock()
+    void ChangeDynameicBlock()
     {
         var pro = new Dictionary<string, object>
         {
@@ -446,8 +444,8 @@ public class TestBlock
         // 这是第一个函数的用法
     }
 
-    [CommandMethod("TestBack")]
-    public void TestBack()
+    [CommandMethod(nameof(Test_Back))]
+    public void Test_Back()
     {
         string dir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
         string dwg = dir + "\\test.dwg";
@@ -472,7 +470,7 @@ public class TestBlock
 
 public class BlockImportClass
 {
-    [CommandMethod("Test_CBLL")]
+    [CommandMethod(nameof(Test_Cbll))]
     public void Test_Cbll()
     {
         string filename = @"C:\Users\vic\Desktop\Drawing1.dwg";
@@ -484,55 +482,31 @@ public class BlockImportClass
     }
 
 #if !NET35
-    [CommandMethod("Test_CombineBlocksIntoLibrary")]
+    [CommandMethod(nameof(Test_CombineBlocksIntoLibrary))]
     public void Test_CombineBlocksIntoLibrary()
     {
-        Document doc =
-            Acap.DocumentManager.MdiActiveDocument;
+        Document doc = Acap.DocumentManager.MdiActiveDocument;
         Editor ed = doc.Editor;
         Database destDb = doc.Database;
 
-        // Get name of folder from which to load and import blocks
-
-        PromptResult pr =
-          ed.GetString("\nEnter the folder of source drawings: ");
+        PromptResult pr = ed.GetString("\nEnter the folder of source drawings: ");
 
         if (pr.Status != PromptStatus.OK)
             return;
         string pathName = pr.StringResult;
-
-        // Check the folder exists
-
         if (!Directory.Exists(pathName))
         {
-            ed.WriteMessage(
-              "\nDirectory does not exist: {0}", pathName
-            );
+            ed.WriteMessage("\nDirectory does not exist: {0}", pathName);
             return;
         }
-
-        // Get the names of our DWG files in that folder
-
         string[] fileNames = Directory.GetFiles(pathName, "*.dwg");
-
-        // A counter for the files we've imported
-
         int imported = 0, failed = 0;
-
-        // For each file in our list
-
         foreach (string fileName in fileNames)
         {
-            // Double-check we have a DWG file (probably unnecessary)
-
-            if (fileName.EndsWith(
-                  ".dwg",
-                  StringComparison.InvariantCultureIgnoreCase
-                )
-            )
+            if (fileName.EndsWith(".dwg",
+                StringComparison.InvariantCultureIgnoreCase))
             {
                 // Catch exceptions at the file level to allow skipping
-
                 try
                 {
                     // Suggestion from Thorsten Meinecke...

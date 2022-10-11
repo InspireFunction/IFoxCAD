@@ -3,8 +3,8 @@ namespace Test;
 
 public partial class Test
 {
-    [CommandMethod(nameof(TestJigExTransient))]
-    public void TestJigExTransient()
+    [CommandMethod(nameof(Test_JigExTransient))]
+    public void Test_JigExTransient()
     {
         // 先取1点,建2个圆
         var getpt = Env.Editor.GetPoint("\n选择点");
@@ -50,8 +50,8 @@ public partial class Test
         // tr.CurrentSpace.AddEntity(jet.Entities);
     }
 
-    [CommandMethod(nameof(TestJigExTransentDim))]
-    public static void TestJigExTransentDim()
+    [CommandMethod(nameof(Test_JigExTransentDim))]
+    public static void Test_JigExTransentDim()
     {
         PromptPointOptions ppo = new("")
         {

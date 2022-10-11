@@ -3,8 +3,8 @@
 
 public partial class Test
 {
-    [CommandMethod("dbtest")]
-    public void Dbtest()
+    [CommandMethod(nameof(Test_DBTrans))]
+    public void Test_DBTrans()
     {
         using DBTrans tr = new();
         if (tr.Editor is null)
@@ -35,8 +35,8 @@ public partial class Test
     }
 
     // add entity test
-    [CommandMethod("addent")]
-    public void Addent()
+    [CommandMethod(nameof(Test_Addent))]
+    public void Test_Addent()
     {
         using DBTrans tr = new();
         Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
@@ -47,8 +47,8 @@ public partial class Test
         tr.PaperSpace.AddEntity(line2);
     }
 
-    [CommandMethod("drawarc")]
-    public void Drawarc()
+    [CommandMethod(nameof(Test_Drawarc))]
+    public void Test_Drawarc()
     {
         using DBTrans tr = new();
         Arc arc1 = EntityEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));// 起点，圆心，终点
@@ -58,8 +58,8 @@ public partial class Test
         tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));// 起点，圆上一点，终点
     }
 
-    [CommandMethod("drawcircle")]
-    public void DraCircle()
+    [CommandMethod(nameof(Test_DrawCircle))]
+    public void Test_DrawCircle()
     {
         using DBTrans tr = new();
         var circle1 = EntityEx.CreateCircle(new Point3d(0, 0, 0), new Point3d(1, 0, 0));                       // 起点，终点
@@ -67,20 +67,16 @@ public partial class Test
         var circle3 = EntityEx.CreateCircle(new Point3d(-2, 0, 0), new Point3d(0, 0, 0), new Point3d(2, 0, 0));// 起点，圆心，终点，失败
         tr.CurrentSpace.AddEntity(circle1, circle2!);
         if (circle3 is not null)
-        {
             tr.CurrentSpace.AddEntity(circle3);
-        }
         else
-        {
             tr.Editor?.WriteMessage("三点画圆失败");
-        }
         tr.CurrentSpace.AddEntity(circle3!);
         tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));// 三点画圆，成功
         tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 2, 0));// 起点，圆上一点，终点(共线)
     }
 
-    [CommandMethod("layertest")]
-    public void Layertest()
+    [CommandMethod(nameof(Test_LayerAdd0))]
+    public void Test_LayerAdd0()
     {
         using DBTrans tr = new();
         tr.LayerTable.Add("1");
@@ -97,24 +93,24 @@ public partial class Test
 
 
     // 添加图层
-    [CommandMethod("layerAdd1")]
-    public void Layertest1()
+    [CommandMethod(nameof(Test_LayerAdd1))]
+    public void Test_LayerAdd1()
     {
         using DBTrans tr = new();
         tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor, 1));
     }
 
     // 添加图层
-    [CommandMethod("layerAdd2")]
-    public void Layertest2()
+    [CommandMethod(nameof(Test_LayerAdd2))]
+    public void Test_LayerAdd2()
     {
         using DBTrans tr = new();
         tr.LayerTable.Add("test2", 2);
         // tr.LayerTable["3"] = new LayerTableRecord();
     }
     // 删除图层
-    [CommandMethod("layerdel")]
-    public void LayerDel()
+    [CommandMethod(nameof(Test_LayerDel))]
+    public void Test_LayerDel()
     {
         using DBTrans tr = new();
         Env.Editor.WriteMessage(tr.LayerTable.Delete("0").ToString());        // 删除图层 0
@@ -127,8 +123,8 @@ public partial class Test
     }
 
     // 添加直线
-    [CommandMethod("linedemo1")]
-    public void AddLine1()
+    [CommandMethod(nameof(Test_AddLine1))]
+    public void Test_AddLine1()
     {
         using DBTrans tr = new();
         //    tr.ModelSpace.AddEnt(line);
@@ -154,8 +150,8 @@ public partial class Test
     }
 
     // 增加多段线1
-    [CommandMethod("Pldemo1")]
-    public void AddPolyline1()
+    [CommandMethod(nameof(Test_AddPolyline1))]
+    public void Test_AddPolyline1()
     {
         using DBTrans tr = new();
         Polyline pl = new();
@@ -171,8 +167,8 @@ public partial class Test
     }
 
     // 增加多段线2
-    [CommandMethod("pldemo2")]
-    public void Addpl2()
+    [CommandMethod(nameof(Test_AddPolyline2))]
+    public void Test_AddPolyline2()
     {
         var pts = new List<(Point3d, double, double, double)>
             {
@@ -192,8 +188,8 @@ public partial class Test
 
 
     // 测试扩展数据
-    [CommandMethod("addxdata")]
-    public void AddXdata()
+    [CommandMethod(nameof(Test_AddXdata))]
+    public void Test_AddXdata()
     {
         using DBTrans tr = new();
         var appname = "myapp2";
@@ -225,8 +221,8 @@ public partial class Test
         tr.CurrentSpace.AddEntity(line);
     }
 
-    [CommandMethod("getxdata")]
-    public void GetXdata()
+    [CommandMethod(nameof(Test_GetXdata))]
+    public void Test_GetXdata()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
         var ed = doc.Editor;
@@ -247,8 +243,8 @@ public partial class Test
         // }
     }
 
-    [CommandMethod("changexdata")]
-    public void Changexdata()
+    [CommandMethod(nameof(Test_Changexdata))]
+    public void Test_Changexdata()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
         var ed = doc.Editor;
@@ -265,8 +261,8 @@ public partial class Test
     }
 
 
-    [CommandMethod("removexdata")]
-    public void Removexdata()
+    [CommandMethod(nameof(Test_Removexdata))]
+    public void Test_Removexdata()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
         var ed = doc.Editor;
@@ -283,8 +279,8 @@ public partial class Test
         }
     }
 
-    [CommandMethod("PrintLayerName")]
-    public void PrintLayerName()
+    [CommandMethod(nameof(Test_PrintLayerName))]
+    public void Test_PrintLayerName()
     {
         using DBTrans tr = new();
         foreach (var layerRecord in tr.LayerTable.GetRecords())
@@ -299,8 +295,8 @@ public partial class Test
     }
 
 
-    [CommandMethod("testrec")]
-    public void TestRec()
+    [CommandMethod(nameof(Test_Rec))]
+    public void Test_Rec()
     {
         Point2d p1 = new(10000.2, 100000.5);
         Point2d p2 = new(15000.9, 100000.5);

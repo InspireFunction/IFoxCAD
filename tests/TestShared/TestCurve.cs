@@ -1,11 +1,9 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
-
-namespace Test;
+﻿namespace Test;
 
 public class TestGraph
 {
-    [CommandMethod("testpointindict")]
-    public void TestPointInDict()
+    [CommandMethod(nameof(Test_PointInDict))]
+    public void Test_PointInDict()
     {
         var pt1 = new Point3d(0.0255, 0.452, 0);
         var pt2 = new Point3d(0.0255001, 0.452003, 0);
@@ -23,8 +21,8 @@ public class TestGraph
         Env.Print(dict[pt1]);
     }
 
-    [CommandMethod("testgraph")]
-    public void TestGraph1()
+    [CommandMethod(nameof(Test_Graph1))]
+    public void Test_Graph1()
     {
         using DBTrans tr = new();
         var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
@@ -39,8 +37,8 @@ public class TestGraph
         });
     }
 
-    [CommandMethod("testgraphspeed")]
-    public void TestGraphspeed()
+    [CommandMethod(nameof(Test_Graphspeed))]
+    public void Test_Graphspeed()
     {
         using DBTrans tr = new();
         var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
@@ -89,8 +87,8 @@ public class TestGraph
 
 public class TestCurve
 {
-    [CommandMethod("testbreakcurve")]
-    public void TestBreakCurve()
+    [CommandMethod(nameof(Test_BreakCurve))]
+    public void Test_BreakCurve()
     {
         using DBTrans tr = new();
         var ents = Env.Editor.SSGet()?.Value.GetEntities<Curve>();
@@ -101,8 +99,8 @@ public class TestCurve
         tr.CurrentSpace.AddEntity(tt);
     }
 
-    [CommandMethod("testCurveCurveIntersector3d")]
-    public void TestCurveCurveIntersector3d()
+    [CommandMethod(nameof(Test_CurveCurveIntersector3d))]
+    public void Test_CurveCurveIntersector3d()
     {
         using DBTrans tr = new();
         var ents = Env.Editor.SSGet()?

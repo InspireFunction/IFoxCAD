@@ -148,27 +148,4 @@ public partial class Test
         Env.Printl("GetEnv:" + Env.GetEnv("abc"));
         Env.Printl("GetEnv PATH:" + Env.GetEnv("PATH"));
     }
-
-
-#if !NET35 && !NET40
-
-    // 通过此功能获取全部变量,尚不清楚此处如何设置,没有通过测试
-    [CommandMethod(nameof(Test_GetvarAll))]
-    public static void Test_GetvarAll()
-    {
-        GetvarAll();
-    }
-
-    public static Dictionary<string, object> GetvarAll()
-    {
-        var dict = new Dictionary<string, object>();
-        var en = new SystemVariableEnumerator();
-        while (en.MoveNext())
-        {
-            Console.WriteLine(en.Current.Name + "-----" + en.Current.Value);// Value会出现异常
-            dict.Add(en.Current.Name, en.Current.Value);
-        }
-        return dict;
-    }
-#endif
 }
