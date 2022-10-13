@@ -6,30 +6,6 @@
 /// </summary>
 public static class EntityEx
 {
-    #region 实体刷新
-    // 此处已经被RedrawEx代替
-
-    /// <summary>
-    /// 刷新实体显示
-    /// </summary>
-    /// <param name="entity">实体对象</param>
-    public static void Flush(this Entity entity, DBTrans? trans = null)
-    {
-        // if (entity is null)
-        //    throw new ArgumentNullException(nameof(entity));
-        trans ??= DBTrans.Top;
-        entity.RecordGraphicsModified(true);
-        trans.Transaction.TransactionManager.QueueForGraphicsFlush();
-        trans.Document?.TransactionManager.FlushGraphics();
-    }
-
-    /// <summary>
-    /// 刷新实体显示
-    /// </summary>
-    /// <param name="id">实体id</param>
-    public static void Flush(this ObjectId id) => Flush(DBTrans.Top.GetObject<Entity>(id)!);
-    #endregion
-
     #region 多段线端点坐标
     /// <summary>
     /// 获取二维多段线的端点坐标

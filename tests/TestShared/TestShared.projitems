@@ -13,15 +13,15 @@
     <Compile Include="$(MSBuildThisFileDirectory)Copyclip.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestAddEntity.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestAOP.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Testblock.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestConvexHull.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestCurve.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestDBTrans.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestDwgFilerEx.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Testeditor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Testenv.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestEditor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestEnv.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestFileDatabase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Testid.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestId.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestJig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestJigExTransient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestJson.cs" />
@@ -31,7 +31,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestMirrorFile.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestPoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestQuadTree.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Testselectfilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestSelectfilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestXrefEx.cs" />
   </ItemGroup>
 </Project>

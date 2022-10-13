@@ -1,7 +1,7 @@
 ﻿namespace IFoxCAD.Cad;
 
 [Flags]
-public enum BrightEntity : byte
+public enum BrightEntity
 {
     /// <summary>
     /// 块更新
@@ -31,10 +31,14 @@ public enum BrightEntity : byte
     /// 隐藏图元
     /// </summary>
     VisibleFalse = 64,
+    /// <summary>
+    /// 平移更新,可以令ctrl+z撤回时候保证刷新
+    /// </summary>
+    MoveZero = 128,
 }
 
 [Flags]
-public enum BrightEditor : byte
+public enum BrightEditor
 {
     /// <summary>
     /// 刷新屏幕,图元不生成(例如块还是旧的显示)
@@ -64,14 +68,14 @@ public static class RedrawEx
     /// 刷新屏幕
     /// </summary>
     /// <param name="ed">编辑器</param>
-    /// <param name="ent">图元</param>
+    /// <param name="ent">图元,调用时候图元必须提权</param>
     public static void Redraw(this Editor ed, Entity? ent = null)
     {
         // 刷新图元
         ent?.Redraw(BrightEntity.Draw |
                     BrightEntity.RecordGraphicsModified |
-                    BrightEntity.RecomputeDimensionBlock);
-
+                    BrightEntity.RecomputeDimensionBlock |
+                    BrightEntity.MoveZero);
         // 刷新
         ed.Redraw(BrightEditor.UpdateScreen);
 
@@ -104,8 +108,8 @@ public static class RedrawEx
     {
         if ((bright & BrightEditor.UpdateScreen) == BrightEditor.UpdateScreen)
         {
-            // Acap.UpdateScreen();// 两个函数底层差不多
-            // 仅刷新屏幕,图元不生成(例如块还是旧的显示)
+            // 两个函数底层差不多
+            // Acap.UpdateScreen();
             ed.UpdateScreen();
         }
 
@@ -125,11 +129,11 @@ public static class RedrawEx
     /// <summary>
     /// 更改图元显示
     /// </summary>
-    /// <param name="ent">图元</param>
+    /// <param name="ent">图元,调用时候图元必须提权</param>
     /// <param name="bright">更新的方式</param>
     public static void Redraw(this Entity ent, BrightEntity bright)
     {
-        // 调用时候必须 ent.UpgradeOpen(),参数true表示关闭图元后进行UpData,实现局部刷新块.
+        // 调用时候图元必须提权,参数true表示关闭图元后进行UpData,实现局部刷新块.
         if ((bright & BrightEntity.RecordGraphicsModified) == BrightEntity.RecordGraphicsModified)
             ent.RecordGraphicsModified(true);
 
@@ -151,5 +155,37 @@ public static class RedrawEx
 
         if ((bright & BrightEntity.VisibleFalse) == BrightEntity.VisibleFalse)
             ent.Visible = false;
+
+        // 戴耀辉:
+        // 删除块内图元的时候需要刷新块,
+        // 用 RecordGraphicsModified 显示是没有问题,
+        // 但是 ctrl+z 撤销会有显示问题,
+        // 所以平移0可以在撤回数据库的时候刷新指定图元
+        if ((bright & BrightEntity.MoveZero) == BrightEntity.MoveZero)
+            ent.Move(Point3d.Origin, Point3d.Origin);
     }
+
+
+    #region 实体刷新
+    /// <summary>
+    /// 刷新实体显示
+    /// </summary>
+    /// <param name="entity">实体对象</param>
+    [Obsolete("此处已经被RedrawEx代替")]
+    public static void Flush(this Entity entity, DBTrans? trans = null)
+    {
+        trans ??= DBTrans.Top;
+        entity.RecordGraphicsModified(true);
+        trans.Transaction.TransactionManager.QueueForGraphicsFlush();
+        trans.Document?.TransactionManager.FlushGraphics();
+    }
+
+    /// <summary>
+    /// 刷新实体显示
+    /// </summary>
+    /// <param name="id">实体id</param>
+    [Obsolete("此处已经被RedrawEx代替")]
+    public static void Flush(this ObjectId id)
+        => Flush(DBTrans.Top.GetObject<Entity>(id)!);
+    #endregion
 }
