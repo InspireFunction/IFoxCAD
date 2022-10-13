@@ -1,7 +1,52 @@
-﻿namespace TestShared;
+﻿using System.Diagnostics;
+
+namespace TestShared;
 
 public class TestMarshal
 {
+    [CommandMethod(nameof(Test_DebuggerStepThrough))]
+    public void Test_DebuggerStepThrough()
+    {
+        DebuggerStepThrough(() => {
+            for (int i = 0; i < 10; i++)//断点可以进入此处
+            {
+            }
+        });
+    }
+
+    [System.Diagnostics.DebuggerStepThrough]
+    public void DebuggerStepThrough(Action action)
+    {
+        //throw new ArgumentNullException(nameof(action));//可以抛出
+        int a = 0;//断点无法进入此处
+        int b = 0;
+        action?.Invoke();
+        int c = 0;
+        int d = 0;
+    }
+
+    [CommandMethod(nameof(Test_ImplicitPoint3D))]
+    public void Test_ImplicitPoint3D()
+    {
+        // 无法用指针转换类型,所以隐式转换是无法不new的,
+        // 貌似是因为
+        // 如果发生了获取对象的成员引用指针,没有new的话,会发生引用不计数...造成GC释放失效...
+        // 而微软没有提供一种计数转移的方法...造成我无法实现此操作...
+        unsafe
+        {
+            Point3d pt1 = new(1, 56, 89);
+            var a1 = (Point3D*)&pt1;
+            Debug.WriteLine("指针类型转换,获取x::" + a1->X);
+
+            var a = (IntPtr)(&pt1);//explicit 显式转换 == new
+            var pt2 = (Point3D)Marshal.PtrToStructure(a, typeof(Point3D));
+            Debug.WriteLine("pt1转IntPtr地址::" + (int)&a);
+            Debug.WriteLine("pt1地址::" + (int)&pt1);
+            Debug.WriteLine("pt2地址::" + (int)&pt2);
+            Debug.Assert(&pt1 == &pt2);//不相等,是申请了新内存
+        }
+    }
+
     [CommandMethod(nameof(Test_Marshal))]
     public void Test_Marshal()
     {
@@ -24,7 +69,7 @@ public class TestMarshal
         // 0x03 此方法仍然需要不安全操作,而且多了几个函数调用...
         unsafe
         {
-            var p = (IntPtr)(IntPtr*)&pt;
+            var p = new IntPtr(&pt);
             var result2 = (Point3D)Marshal.PtrToStructure(p, typeof(Point3D));
             result2.X = 220;
             Marshal.StructureToPtr(result2, p, true);

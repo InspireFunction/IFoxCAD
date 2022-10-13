@@ -7,6 +7,8 @@
 public static class EntityEx
 {
     #region 实体刷新
+    // 此处已经被RedrawEx代替
+
     /// <summary>
     /// 刷新实体显示
     /// </summary>

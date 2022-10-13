@@ -2,13 +2,7 @@
 
 using System;
 using System.Diagnostics;
-using System.Drawing.Imaging;
 using System.Text;
-using System.Threading;
-using System.Windows;
-using System.Windows.Documents;
-using System.Windows.Media.Media3D;
-using System.Xml.Linq;
 
 public class ClipboardEnv
 {
@@ -197,7 +191,7 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
     #endregion
 }
 
-
+[ComVisible(true)]
 [Serializable]
 [StructLayout(LayoutKind.Sequential)]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
@@ -264,10 +258,16 @@ public struct IntRect
     #endregion
 }
 
-
+[ComVisible(true)]
+[Serializable]
+[DebuggerDisplay("{DebuggerDisplay,nq}")]
+[DebuggerTypeProxy(typeof(IntSize))]
 [StructLayout(LayoutKind.Sequential)]
 public struct IntSize
 {
+    [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+    private string DebuggerDisplay => $"(Hight:{Hight},Width:{Width})";
+
     public int Hight;
     public int Width;
 
@@ -283,6 +283,7 @@ public struct IntSize
     }
 }
 
+[ComVisible(true)]
 [Serializable]
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(Point3D))]
@@ -310,7 +311,6 @@ public struct Point3D : IEquatable<Point3D>
     {
         return new Point3d(pt.X, pt.Y, pt.Z);
     }
-
     public override string ToString()
     {
         return $"({X},{Y},{Z})";
@@ -453,6 +453,7 @@ public partial class ClipTool
     /// <param name="isWrite">true写入,false读取</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
+    [System.Diagnostics.DebuggerStepThrough]
     public static bool OpenClipboardTask(bool isWrite, Action action)
     {
         if (action == null)
@@ -485,6 +486,7 @@ public partial class ClipTool
     /// 获取剪贴板
     /// </summary>
     /// <param name="clipKey">剪贴板的索引名</param>
+    /// <param name="tag">返回的结构</param>
     public static bool GetClipboard<T>(string clipKey, out T? tag)
     {
         bool locked = false;

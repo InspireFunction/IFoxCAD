@@ -37,6 +37,7 @@ public static class ObjectIdEx
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>指定类型对象集合</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<T?> GetObject<T>(this IEnumerable<ObjectId> ids,
                                                OpenMode mode = OpenMode.ForRead,
                                                Transaction? tr = default,
@@ -59,7 +60,6 @@ public static class ObjectIdEx
     }
     #endregion GetObject
 
-    // Acad08缺少 id.ObjectClass 如何补偿?
     public static RXClass ObjectClass(this ObjectId id)
     {
 #if NET35

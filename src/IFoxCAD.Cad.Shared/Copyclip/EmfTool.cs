@@ -322,8 +322,8 @@ public static class EmfTool
     /// </summary>
     /// <param name="clipTypeData">文件句柄</param>
     /// <returns>描述的内容</returns>
-    [System.Diagnostics.DebuggerStepThrough()]
-    //[System.CodeDom.Compiler.GeneratedCode("InteropSignatureToolkit", "0.9 Beta1")]
+    [System.Diagnostics.DebuggerStepThrough]
+    [System.CodeDom.Compiler.GeneratedCode("InteropSignatureToolkit", "0.9 Beta1")]//初始化时指定生成代码的工具的名称和版本
     public static string? GetEnhMetaFileDescriptionEx(IntPtr clipTypeData)
     {
         var len = GetEnhMetaFileDescription(clipTypeData, 0, null!);

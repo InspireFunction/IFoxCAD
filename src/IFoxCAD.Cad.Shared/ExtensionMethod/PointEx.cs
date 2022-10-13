@@ -20,8 +20,8 @@ public static class PointEx
         };
     }
 
-    // 为了频繁触发所以弄个全局变量
-    static Plane? _Plane;
+    // 为了频繁触发所以弄个缓存
+    static Plane? _PlaneCache;
     /// <summary>
     /// 两点计算弧度范围0到2Pi
     /// </summary>
@@ -32,10 +32,10 @@ public static class PointEx
     public static double GetAngle(this Point3d startPoint, Point3d endPoint, Vector3d? direction = null)
     {
         if (direction != null)
-            _Plane = new Plane(Point3d.Origin, direction.Value);
-        if (_Plane == null)
-            _Plane = new Plane(Point3d.Origin, Vector3d.ZAxis);
-        return startPoint.GetVectorTo(endPoint).AngleOnPlane(_Plane);
+            _PlaneCache = new Plane(Point3d.Origin, direction.Value);
+        if (_PlaneCache == null)
+            _PlaneCache = new Plane(Point3d.Origin, Vector3d.ZAxis);
+        return startPoint.GetVectorTo(endPoint).AngleOnPlane(_PlaneCache);
     }
     /// <summary>
     /// 两点计算弧度范围0到2Pi
@@ -94,6 +94,7 @@ public static class PointEx
     /// <summary>
     /// 首尾相连
     /// </summary>
+    [System.Diagnostics.DebuggerStepThrough]
     public static void End2End(this Point2dCollection ptcol)
     {
         if (ptcol == null)
@@ -114,6 +115,7 @@ public static class PointEx
     /// <summary>
     /// 首尾相连
     /// </summary>
+    [System.Diagnostics.DebuggerStepThrough]
     public static void End2End(this Point3dCollection ptcol)
     {
         if (ptcol == null)

@@ -7,7 +7,6 @@ using System.Drawing;
 /// </summary>
 public static class GeometryEx
 {
-
     #region Point&Circle
 
     /// <summary>
@@ -345,21 +344,21 @@ public static class GeometryEx
         switch (pnts.Count)
         {
             case 0:
-                ptlst = null;
-                return null;
+            ptlst = null;
+            return null;
 
             case 1:
-                ptlst = new LoopList<Point2d> { pnts[0] };
-                return new CircularArc2d(pnts[0], 0);
+            ptlst = new LoopList<Point2d> { pnts[0] };
+            return new CircularArc2d(pnts[0], 0);
 
             case 2:
-                return GetMinCircle(pnts[0], pnts[1], out ptlst);
+            return GetMinCircle(pnts[0], pnts[1], out ptlst);
 
             case 3:
-                return GetMinCircle(pnts[0], pnts[1], pnts[2], out ptlst);
+            return GetMinCircle(pnts[0], pnts[1], pnts[2], out ptlst);
 
             case 4:
-                return GetMinCircle(pnts[0], pnts[1], pnts[2], pnts[3], out ptlst);
+            return GetMinCircle(pnts[0], pnts[1], pnts[2], pnts[3], out ptlst);
         }
 
         // 按前三点计算最小包围圆

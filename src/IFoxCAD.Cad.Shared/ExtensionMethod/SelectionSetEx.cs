@@ -11,6 +11,7 @@ public static class SelectionSetEx
     /// </summary>
     /// <param name="ss">选择集</param>
     /// <returns>已选择的对象集合</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<SelectedObject> GetSelectedObjects(this SelectionSet ss)
     {
         return ss.Cast<SelectedObject>();
@@ -22,6 +23,7 @@ public static class SelectionSetEx
     /// <typeparam name="T">已选择的对象泛型</typeparam>
     /// <param name="ss">选择集</param>
     /// <returns>已选择的对象集合</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<T> GetSelectObjects<T>(this SelectionSet ss) where T : SelectedObject
     {
         return ss.Cast<SelectedObject>().OfType<T>();
@@ -33,6 +35,7 @@ public static class SelectionSetEx
     /// <typeparam name="T">图元类型</typeparam>
     /// <param name="ss">选择集</param>
     /// <returns>已选择的对象id集合</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<ObjectId> GetObjectIds<T>(this SelectionSet ss) where T : Entity
     {
         string dxfName = RXClass.GetClass(typeof(T)).DxfName;
@@ -47,6 +50,7 @@ public static class SelectionSetEx
     /// </summary>
     /// <param name="ss">选择集</param>
     /// <returns>分组后的类型/对象id集合</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<IGrouping<string, ObjectId>> GetObjectIdGroup(this SelectionSet ss)
     {
         return
@@ -68,6 +72,7 @@ public static class SelectionSetEx
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>图元集合</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<T?> GetEntities<T>(this SelectionSet ss,
                                                 OpenMode openMode = OpenMode.ForRead,
                                                 DBTrans? tr = default,
@@ -95,6 +100,7 @@ public static class SelectionSetEx
     /// <param name="tr">事务</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
+    [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<T>(this SelectionSet ss,
                                   Action<T?> action,
                                   OpenMode openMode = OpenMode.ForRead,
@@ -118,6 +124,7 @@ public static class SelectionSetEx
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <exception cref="ArgumentNullException"></exception>
+    [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<T>(this SelectionSet ss,
                                  Action<T?, LoopState> action,
                                  OpenMode openMode = OpenMode.ForRead,

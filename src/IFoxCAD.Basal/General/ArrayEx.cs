@@ -1,6 +1,6 @@
 ﻿namespace IFoxCAD.Basal;
 
-/* 
+/*
  * 由于linq的函数大部分带有状态机,而cad是一个单机程序,
  * 使用状态机会变得缓慢,因此我们设计的时候着重于时间优化,
  * 本工具类在着重于数组遍历时候替代linq
@@ -37,6 +37,7 @@ public static class ArrayEx
     /// 传出参数2:数组结尾<br/>
     /// 返回值比较结尾为<see langword="true"/>就移除<br/>
     /// </param>
+    [System.Diagnostics.DebuggerStepThrough]
     public static void Deduplication<T>(List<T> lst, Func<T, T, bool> func)
     {
         // 头和尾比较,满足条件移除尾巴
@@ -51,5 +52,4 @@ public static class ArrayEx
             }
         }
     }
-
 }

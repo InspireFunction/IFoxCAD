@@ -527,14 +527,16 @@ public class FileEx
     {
         if (dir is null)
             throw new ArgumentException(nameof(dir));
-        if (!Directory.Exists(dir)) // 如果存在这个文件夹删除之
+        if (!Directory.Exists(dir)) // 存在文件夹
             return;
-        foreach (string d in Directory.GetFileSystemEntries(dir))
+        var se = Directory.GetFileSystemEntries(dir);
+        for (int i = 0; i < se.Length; i++)
         {
-            if (File.Exists(d))
-                File.Delete(d); // 直接删除其中的文件
+            if (File.Exists(se[i]))
+                try { File.Delete(se[i]); /*直接删除其中的文件*/  }
+                catch { }
             else
-                DeleteFolder(d); // 递归删除子文件夹
+                DeleteFolder(se[i]); // 递归删除子文件夹
         }
         Directory.Delete(dir, true); // 删除已空文件夹
     }

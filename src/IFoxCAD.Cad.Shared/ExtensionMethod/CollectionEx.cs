@@ -13,6 +13,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="ids">对象id的迭代器</param>
     /// <returns>对象id集合,记得释放</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static ObjectIdCollection ToCollection(this IEnumerable<ObjectId> ids)
     {
         return new ObjectIdCollection(ids.ToArray());
@@ -24,6 +25,7 @@ public static class CollectionEx
     /// <typeparam name="T">对象类型</typeparam>
     /// <param name="objs">实体对象的迭代器</param>
     /// <returns>实体集合,记得释放</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static DBObjectCollection ToCollection<T>(this IEnumerable<T> objs) where T : DBObject
     {
         DBObjectCollection objCol = new();
@@ -37,6 +39,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="doubles">double 数值迭代器</param>
     /// <returns>数值集合,它没有Dispose</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static DoubleCollection ToCollection(this IEnumerable<double> doubles)
     {
         return new DoubleCollection(doubles.ToArray());
@@ -47,6 +50,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="pts">二维点迭代器</param>
     /// <returns>二维点集合,!acad记得释放</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static Point2dCollection ToCollection(this IEnumerable<Point2d> pts)
     {
         return new Point2dCollection(pts.ToArray());
@@ -57,6 +61,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="pts">三维点迭代器</param>
     /// <returns>三维点集合,记得释放</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static Point3dCollection ToCollection(this IEnumerable<Point3d> pts)
     {
         return new Point3dCollection(pts.ToArray());
@@ -67,6 +72,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="ids">对象id集合</param>
     /// <returns>对象id列表</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static List<ObjectId> ToList(this ObjectIdCollection ids)
     {
         return ids.Cast<ObjectId>().ToList();
@@ -79,6 +85,7 @@ public static class CollectionEx
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
+    [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
         if (action == null)
@@ -94,6 +101,7 @@ public static class CollectionEx
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
+    [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<int, T> action)
     {
         if (action == null)
@@ -113,6 +121,7 @@ public static class CollectionEx
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
+    [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<int, T, LoopState> action)
     {
         if (action == null)
@@ -145,6 +154,7 @@ public static class CollectionEx
     /// <param name="name">关键字</param>
     /// <param name="keywordName">关键字容器字段名</param>
     /// <returns>true含有</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static bool Contains(this KeywordCollection collection, string name,
                                 KeywordName keywordName = KeywordName.GlobalName)
     {
@@ -196,8 +206,6 @@ public static class CollectionEx
                 }
             }
             break;
-            default:
-            break;
         }
         return contains;
     }
@@ -208,6 +216,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="collection"></param>
     /// <returns></returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static Dictionary<string, string> GetDict(this KeywordCollection collection)
     {
         Dictionary<string, string> map = new();
@@ -231,6 +240,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="idmap"></param>
     /// <returns></returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static List<ObjectId> GetKeys(this IdMapping idmap)
     {
         List<ObjectId> ids = new();
@@ -244,6 +254,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="idmap"></param>
     /// <returns></returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static List<ObjectId> GetValues(this IdMapping idmap)
     {
         List<ObjectId> ids = new();
@@ -257,6 +268,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="mapping"></param>
     /// <returns></returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static Dictionary<ObjectId, ObjectId> ToDictionary(this IdMapping mapping)
     {
         var keyValuePairs = new Dictionary<ObjectId, ObjectId>();

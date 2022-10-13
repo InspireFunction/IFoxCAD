@@ -2,6 +2,10 @@
 
 public static class Tools
 {
+    /// <summary>
+    /// 计时器
+    /// </summary>
+    [System.Diagnostics.DebuggerStepThrough]
     public static void TestTimes2(int count, string message, Action action)
     {
         System.Diagnostics.Stopwatch watch = new();
@@ -23,6 +27,7 @@ public static class Tools
     /// <summary>
     /// 纳秒计时器
     /// </summary>
+    [System.Diagnostics.DebuggerStepThrough]
     public static void TestTimes(int count, string message, Action action,
         Timer.TimeEnum timeEnum = Timer.TimeEnum.Millisecond)
     {
@@ -35,17 +40,17 @@ public static class Tools
         switch (timeEnum)
         {
             case Timer.TimeEnum.Second:
-                timeNameZn = " 秒";
-                break;
+            timeNameZn = " 秒";
+            break;
             case Timer.TimeEnum.Millisecond:
-                timeNameZn = " 毫秒";
-                break;
+            timeNameZn = " 毫秒";
+            break;
             case Timer.TimeEnum.Microsecond:
-                timeNameZn = " 微秒";
-                break;
+            timeNameZn = " 微秒";
+            break;
             case Timer.TimeEnum.Nanosecond:
-                timeNameZn = " 纳秒";
-                break;
+            timeNameZn = " 纳秒";
+            break;
         }
 
         Env.Print($"{message} 代码执行 {count} 次的时间：{time} ({timeNameZn})");
@@ -56,12 +61,10 @@ public static class Tools
 // 测试例子,同时验证两个计时器
 var stopwatch = new Stopwatch();
 Timer.RunTime(() => {
-
     stopwatch.Start();
     for (int i = 0; i < 10000000; i++)
         i++;
     stopwatch.Stop();
-
 }, Timer.TimeEnum.Millisecond, "运行:");
 Console.WriteLine("运行毫秒:" + stopwatch.ElapsedMilliseconds);
  */
@@ -125,7 +128,7 @@ public class Timer
     }
 
     /// <summary>
-    /// 停止计时器 
+    /// 停止计时器
     /// </summary>
     public void Stop()
     {
@@ -151,17 +154,17 @@ public class Timer
         switch (timeEnum)
         {
             case TimeEnum.Second:
-                time = nanoSecond.Second;
-                break;
+            time = nanoSecond.Second;
+            break;
             case TimeEnum.Millisecond:
-                time = nanoSecond.Millisecond;
-                break;
+            time = nanoSecond.Millisecond;
+            break;
             case TimeEnum.Microsecond:
-                time = nanoSecond.Microsecond;
-                break;
+            time = nanoSecond.Microsecond;
+            break;
             case TimeEnum.Nanosecond:
-                time = nanoSecond.Nanosecond;
-                break;
+            time = nanoSecond.Nanosecond;
+            break;
         }
         if (msg != null)
         {
@@ -169,17 +172,17 @@ public class Timer
             switch (timeEnum)
             {
                 case TimeEnum.Second:
-                    timeNameZn = " 秒";
-                    break;
+                timeNameZn = " 秒";
+                break;
                 case TimeEnum.Millisecond:
-                    timeNameZn = " 毫秒";
-                    break;
+                timeNameZn = " 毫秒";
+                break;
                 case TimeEnum.Microsecond:
-                    timeNameZn = " 微秒";
-                    break;
+                timeNameZn = " 微秒";
+                break;
                 case TimeEnum.Nanosecond:
-                    timeNameZn = " 纳秒";
-                    break;
+                timeNameZn = " 纳秒";
+                break;
             }
             Env.Print(msg + " " + time + timeNameZn);
         }

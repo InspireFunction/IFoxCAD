@@ -25,6 +25,7 @@ public abstract class OpLogi : OpFilter, IEnumerable<OpFilter>
     /// 获取过滤条件
     /// </summary>
     /// <returns>TypedValue迭代器</returns>
+    //[System.Diagnostics.DebuggerStepThrough]
     public override IEnumerable<TypedValue> GetValues()
     {
         yield return First;

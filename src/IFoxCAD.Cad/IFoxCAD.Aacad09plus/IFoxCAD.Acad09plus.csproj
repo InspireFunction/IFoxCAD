@@ -22,6 +22,7 @@
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
 

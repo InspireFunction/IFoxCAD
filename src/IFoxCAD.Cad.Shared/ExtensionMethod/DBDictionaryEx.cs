@@ -12,6 +12,7 @@ public static class DBDictionaryEx
     /// <param name="dict">字典</param>
     /// <param name="trans">事务</param>
     /// <returns>对象迭代器</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<T> GetAllObjects<T>(this DBDictionary dict, DBTrans? trans = null) where T : DBObject
     {
         trans ??= DBTrans.Top;
@@ -103,9 +104,7 @@ public static class DBDictionaryEx
         if (id.IsNull)
         {
             using (obj.ForWrite())
-            {
                 obj.CreateExtensionDictionary();
-            }
 
             id = obj.ExtensionDictionary;
         }
