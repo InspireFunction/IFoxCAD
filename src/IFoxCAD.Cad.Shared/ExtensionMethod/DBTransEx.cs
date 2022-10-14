@@ -40,7 +40,7 @@ public static class DBTransEx
                 tr.BlockTable.ForEach(tabRec => {
                     if (!tabRec.IsFromExternalReference)
                         ids.Add(tabRec.Id);
-                });
+                }, checkIdOk: true);
         }
         if ((sym & SymModes.DimStyleTable) == SymModes.DimStyleTable)
             GetAllIds(tr, tr.DimStyleTable, ids, excludeXref);

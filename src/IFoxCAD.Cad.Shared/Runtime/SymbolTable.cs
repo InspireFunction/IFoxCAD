@@ -322,13 +322,13 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// </summary>
     /// <param name="task">要运行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
-    /// <param name="checkIdOk">检查id是否删除,默认false</param>
+    /// <param name="checkIdOk">检查id是否删除,默认true</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     [System.Diagnostics.DebuggerStepThrough]
     public void ForEach(Action<TRecord> task,
                         OpenMode openMode = OpenMode.ForRead,
-                        bool checkIdOk = false,
+                        bool checkIdOk = true,
                         bool openErased = false,
                         bool openLockedLayer = false)
     {
@@ -342,13 +342,13 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// </summary>
     /// <param name="task">要执行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
-    /// <param name="checkIdOk">检查id是否删除,默认false</param>
+    /// <param name="checkIdOk">检查id是否删除,默认true</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     [System.Diagnostics.DebuggerStepThrough]
     public void ForEach(Action<TRecord, LoopState> task,
                         OpenMode openMode = OpenMode.ForRead,
-                        bool checkIdOk = false,
+                        bool checkIdOk = true,
                         bool openErased = false,
                         bool openLockedLayer = false)
     {
@@ -362,13 +362,13 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// </summary>
     /// <param name="task">要执行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
-    /// <param name="checkIdOk">检查id是否删除,默认false</param>
+    /// <param name="checkIdOk">检查id是否删除,默认true</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     [System.Diagnostics.DebuggerStepThrough]
     public void ForEach(Action<TRecord, LoopState, int> task,
                         OpenMode openMode = OpenMode.ForRead,
-                        bool checkIdOk = false,
+                        bool checkIdOk = true,
                         bool openErased = false,
                         bool openLockedLayer = false)
     {
@@ -384,6 +384,8 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
             var record = GetRecord(id, openMode, openErased, openLockedLayer);
             if (record is not null)
                 task.Invoke(record, state, i);
+            if (!state.IsRun)
+                break;
             i++;
         }
     }

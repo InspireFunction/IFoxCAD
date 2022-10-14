@@ -230,7 +230,7 @@ public partial class Test
             id.GetObject<RegAppTableRecord>()?.Name.Print());
         tr.RegAppTable.GetRecords().ForEach(rec => rec.Name.Print());
         tr.RegAppTable.GetRecordNames().ForEach(name => name.Print());
-        tr.RegAppTable.ForEach(re => re.Name.Print());
+        tr.RegAppTable.ForEach(re => re.Name.Print(), checkIdOk: true);
 
         // var res = ed.GetEntity("\n select the entity:");
         // if (res.Status == PromptStatus.OK)

@@ -13,9 +13,9 @@ public class TestTrans
         tr.BlockTable.ForEach(action: (id, state, index) => { });
 
         // 符号表扩展(会顶替泛型扩展)
-        tr.BlockTable.ForEach((btr) => { }, OpenMode.ForRead, true);
-        tr.BlockTable.ForEach((btr, state) => { }, OpenMode.ForRead, true);
-        tr.BlockTable.ForEach((btr, state, index) => { }, OpenMode.ForRead, true);
+        tr.BlockTable.ForEach((btr) => { }, OpenMode.ForRead, checkIdOk: true);
+        tr.BlockTable.ForEach((btr, state) => { }, OpenMode.ForRead, checkIdOk: true);
+        tr.BlockTable.ForEach((btr, state, index) => { }, OpenMode.ForRead, checkIdOk: true);
 
         // 修改:此处有缺陷:cad08会获取已经删除的块表记录,需要检查id.IsOk(),用ForEach代替
         tr.BlockTable.Change("块表记录", btr => {
