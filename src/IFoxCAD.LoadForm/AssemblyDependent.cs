@@ -502,7 +502,8 @@ public class FileEx
             string destFile = Path.Combine(destPath, Path.GetFileName(c));
             // 覆盖模式
             if (File.Exists(destFile))
-                File.Delete(destFile);
+                try { File.Delete(destFile); }
+                catch { }
             File.Move(c, destFile);
         });
         // 获得源文件下所有目录文件

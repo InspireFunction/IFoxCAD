@@ -19,18 +19,18 @@ public static class AcadVersion
                             .GetValueNames();
 
             var _versions = new List<CadVersion>();
-            foreach (var rootkey in copys)
+            for (int i = 0; i < copys.Length; i++)
             {
-                if (!Regex.IsMatch(rootkey, _pattern))
+                if (!Regex.IsMatch(copys[i], _pattern))
                     continue;
 
-                var gs = Regex.Match(rootkey, _pattern).Groups;
+                var gs = Regex.Match(copys[i], _pattern).Groups;
                 var ver = new CadVersion
                 {
-                    ProductRootKey = rootkey,
+                    ProductRootKey = copys[i],
                     ProductName = Registry.LocalMachine
                                 .OpenSubKey("SOFTWARE")
-                                .OpenSubKey(rootkey)
+                                .OpenSubKey(copys[i])
                                 .GetValue("ProductName")
                                 .ToString(),
 
@@ -62,9 +62,9 @@ public static class AcadVersion
         var gs = Regex.Match(acver, @"(\d+)\.(\d+).*?").Groups;
         int major = int.Parse(gs[1].Value);
         int minor = int.Parse(gs[2].Value);
-        foreach (var ver in Versions)
-            if (ver.Major == major && ver.Minor == minor)
-                return ver;
+        for (int i = 0; i < Versions.Count; i++)
+            if (Versions[i].Major == major && Versions[i].Minor == minor)
+                return Versions[i];
         return null;
     }
 }
