@@ -13,13 +13,11 @@ public static class EntityEx
     /// <param name="pl2d">二维多段线</param>
     /// <param name="tr">事务</param>
     /// <returns>端点坐标集合</returns>
-    public static IEnumerable<Point3d> GetPoints(this Polyline2d pl2d, DBTrans? tr = null)
+    public static IEnumerable<Point3d> GetPoints(this Polyline2d pl2d, DBTrans? trans = null)
     {
-        tr ??= DBTrans.Top;
+        trans ??= DBTrans.Top;
         foreach (ObjectId id in pl2d)
-        {
-            yield return tr.GetObject<Vertex2d>(id)!.Position;
-        }
+            yield return trans.GetObject<Vertex2d>(id)!.Position;
     }
 
     /// <summary>
@@ -28,13 +26,11 @@ public static class EntityEx
     /// <param name="pl3d">三维多段线</param>
     /// <param name="tr">事务</param>
     /// <returns>端点坐标集合</returns>
-    public static IEnumerable<Point3d> GetPoints(this Polyline3d pl3d, DBTrans? tr = null)
+    public static IEnumerable<Point3d> GetPoints(this Polyline3d pl3d, DBTrans? trans = null)
     {
-        tr ??= DBTrans.Top;
+        trans ??= DBTrans.Top;
         foreach (ObjectId id in pl3d)
-        {
-            yield return tr.GetObject<PolylineVertex3d>(id, OpenMode.ForRead)!.Position;
-        }
+            yield return trans.GetObject<PolylineVertex3d>(id, OpenMode.ForRead)!.Position;
     }
 
     /// <summary>
@@ -47,7 +43,7 @@ public static class EntityEx
         return
             Enumerable
             .Range(0, pl.NumberOfVertices)
-            .Select(i => pl.GetPoint3dAt(i));
+            .Select(pl.GetPoint3dAt);
     }
     #endregion
 

@@ -1,5 +1,6 @@
 ﻿namespace IFoxCAD.Basal;
 
+#line hidden // 调试的时候跳过它
 /// <summary>
 /// 控制循环结束
 /// </summary>
@@ -22,3 +23,4 @@ public class LoopState
     public void Stop() => _LoopStateFlags = PLS_STOPPED;
     public void Break() => _LoopStateFlags = PLS_BROKEN;
 }
+#line default

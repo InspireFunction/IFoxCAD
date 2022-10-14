@@ -1,4 +1,6 @@
-﻿namespace Test;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+
+namespace Test;
 
 public class MirrorFile
 {
@@ -14,11 +16,10 @@ public class MirrorFile
     {
         using DBTrans tr = new(file, fileOpenMode: FileOpenMode.OpenForReadAndReadShare);
         tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
-            foreach (ObjectId entId in modelSpace)
-            {
+            modelSpace.ForEach(entId => {
                 var dbText = tr.GetObject<DBText>(entId, OpenMode.ForRead)!;
                 if (dbText is null)
-                    continue;
+                    return;
 
                 dbText.UpgradeOpen();
                 var pos = dbText.Position;
@@ -27,7 +28,7 @@ public class MirrorFile
                 dbText.Mirror(Point3d.Origin, new Point3d(0, 1, 0));
                 // text.Move(Point3d.Origin, pos);
                 dbText.DowngradeOpen();
-            }
+            });
         });
         var ver = (DwgVersion)27;/*AC1021 AutoCAD 2007/2008/2009.*/
         tr.Database.SaveAs(fileSave, ver);
@@ -45,8 +46,7 @@ public class MirrorFile
         tr.Task(() => {
             var yaxis = new Point3d(0, 1, 0);
             tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
-                foreach (ObjectId entId in modelSpace)
-                {
+                modelSpace.ForEach(entId => {
                     var entity = tr.GetObject<Entity>(entId, OpenMode.ForWrite)!;
                     if (entity is DBText dbText)
                     {
@@ -66,7 +66,7 @@ public class MirrorFile
                         };
                         dbText.AdjustAlignment(tr.Database);
                     }
-                }
+                });
             });
         });
         tr.Database.SaveAs(fileSave, (DwgVersion)27 /*AC1021 AutoCAD 2007/2008/2009.*/);

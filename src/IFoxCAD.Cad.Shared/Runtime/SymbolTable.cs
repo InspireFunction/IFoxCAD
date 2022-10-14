@@ -167,24 +167,17 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <summary>
     /// 修改符号表
     /// </summary>
-    /// <param name="record">符号表记录</param>
-    /// <param name="action">修改委托</param>
-    static void Change(TRecord record, Action<TRecord> action)
-    {
-        using (record.ForWrite())
-            action.Invoke(record);
-    }
-
-    /// <summary>
-    /// 修改符号表
-    /// </summary>
     /// <param name="name">符号表记录名</param>
     /// <param name="action">修改委托</param>
+    [System.Diagnostics.DebuggerStepThrough]
     public void Change(string name, Action<TRecord> action)
     {
         var record = GetRecord(name);
         if (record is not null)
-            Change(record, action);
+        {
+            using (record.ForWrite())
+                action.Invoke(record);
+        }
     }
 
     /// <summary>
@@ -192,11 +185,15 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// </summary>
     /// <param name="id">符号表记录id</param>
     /// <param name="action">修改委托</param>
+    [System.Diagnostics.DebuggerStepThrough]
     public void Change(ObjectId id, Action<TRecord> action)
     {
         var record = GetRecord(id);
         if (record is not null)
-            Change(record, action);
+        {
+            using (record.ForWrite())
+                action.Invoke(record);
+        }
     }
     #endregion
 
@@ -209,6 +206,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>符号表记录</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public TRecord? GetRecord(ObjectId id,
                               OpenMode openMode = OpenMode.ForRead,
                               bool openErased = false,
@@ -225,6 +223,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>符号表记录</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public TRecord? GetRecord(string name,
                               OpenMode openMode = OpenMode.ForRead,
                               bool openErased = false,
@@ -317,15 +316,15 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     #endregion
 
     #region 遍历
+#line hidden // 调试的时候跳过它
     /// <summary>
-    /// 遍历集合的迭代器,执行委托
+    /// 遍历符号表,执行委托
     /// </summary>
     /// <param name="task">要运行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="checkIdOk">检查id是否删除,默认true</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
-    [System.Diagnostics.DebuggerStepThrough]
     public void ForEach(Action<TRecord> task,
                         OpenMode openMode = OpenMode.ForRead,
                         bool checkIdOk = true,
@@ -333,19 +332,18 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
                         bool openLockedLayer = false)
     {
         ForEach((a, _, _) => {
-            task.Invoke(a);
+            task.Invoke(a);//由于此处是委托,所以 DebuggerStepThrough 特性会进入,改用预处理方式避免
         }, openMode, checkIdOk, openErased, openLockedLayer);
     }
 
     /// <summary>
-    /// 遍历集合的迭代器,执行委托(允许循环中断)
+    /// 遍历符号表,执行委托(允许循环中断)
     /// </summary>
     /// <param name="task">要执行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="checkIdOk">检查id是否删除,默认true</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
-    [System.Diagnostics.DebuggerStepThrough]
     public void ForEach(Action<TRecord, LoopState> task,
                         OpenMode openMode = OpenMode.ForRead,
                         bool checkIdOk = true,
@@ -358,7 +356,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     }
 
     /// <summary>
-    /// 遍历集合的迭代器,执行委托(允许循环中断,输出索引值)
+    /// 遍历符号表,执行委托(允许循环中断,输出索引值)
     /// </summary>
     /// <param name="task">要执行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
@@ -389,6 +387,8 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
             i++;
         }
     }
+#line default
+
     #endregion
 
     #region IEnumerable<ObjectId> 成员

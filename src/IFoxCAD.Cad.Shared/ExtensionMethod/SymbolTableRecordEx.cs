@@ -321,6 +321,7 @@ public static class SymbolTableRecordEx
     #region 获取实体/实体id
     /// <summary>
     /// 获取块表记录内的指定类型的实体
+    /// (此处不会检查id.IsOk())
     /// </summary>
     /// <typeparam name="T">实体类型</typeparam>
     /// <param name="btr">块表记录</param>
@@ -470,4 +471,54 @@ public static class SymbolTableRecordEx
     #endregion
 
     #endregion
+
+    #region 遍历
+#line hidden // 调试的时候跳过它
+    /// <summary>
+    /// 遍历符号表记录,执行委托
+    /// </summary>
+    /// <param name="task">要运行的委托</param>
+    public static void ForEach<TRecord>(this TRecord record, Action<ObjectId> task)
+          where TRecord : SymbolTableRecord, IEnumerable
+    {
+        ForEach(record, (a, _, _) => {
+            task.Invoke(a);//由于此处是委托,所以 DebuggerStepThrough 特性会进入,改用预处理方式避免
+        });
+    }
+
+    /// <summary>
+    /// 遍历符号表记录,执行委托(允许循环中断)
+    /// </summary>
+    /// <param name="task">要执行的委托</param>
+    public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, LoopState> task)
+          where TRecord : SymbolTableRecord, IEnumerable
+    {
+        ForEach(record, (a, b, _) => {
+            task.Invoke(a, b);
+        });
+    }
+
+    /// <summary>
+    /// 遍历符号表记录,执行委托(允许循环中断,输出索引值)
+    /// </summary>
+    /// <param name="task">要执行的委托</param>
+    [System.Diagnostics.DebuggerStepThrough]
+    public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, LoopState, int> task)
+        where TRecord : SymbolTableRecord, IEnumerable
+    {
+        if (task == null)
+            throw new ArgumentNullException(nameof(task));
+
+        LoopState state = new();/*这种方式比Action改Func更友好*/
+        int i = 0;
+        foreach (ObjectId id in record)
+        {
+            task.Invoke(id, state, i);
+            if (!state.IsRun)
+                break;
+            i++;
+        }
+    }
+    #endregion
+#line default
 }

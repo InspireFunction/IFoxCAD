@@ -316,7 +316,7 @@ public class AutoReflection
     /// </summary>
     public static void DebugCheckCmdRecurrence()
     {
-        HashSet<string> keys = new HashSet<string>();
+        HashSet<string> keys = new();
         AutoReflection.AppDomainGetTypes(type => {
             if (type.IsAbstract)
                 return;
@@ -336,7 +336,7 @@ public class AutoReflection
                     }
                 }
             }
-        });
+        }, Assembly.GetCallingAssembly().GetName().Name);
     }
 #endif
 }

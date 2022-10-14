@@ -4,27 +4,6 @@ namespace TestShared;
 
 public class TestMarshal
 {
-    [CommandMethod(nameof(Test_DebuggerStepThrough))]
-    public void Test_DebuggerStepThrough()
-    {
-        DebuggerStepThrough(() => {
-            for (int i = 0; i < 10; i++)//断点可以进入此处
-            {
-            }
-        });
-    }
-
-    [System.Diagnostics.DebuggerStepThrough]
-    public void DebuggerStepThrough(Action action)
-    {
-        //throw new ArgumentNullException(nameof(action));//可以抛出
-        int a = 0;//断点无法进入此处
-        int b = 0;
-        action?.Invoke();
-        int c = 0;
-        int d = 0;
-    }
-
     [CommandMethod(nameof(Test_ImplicitPoint3D))]
     public void Test_ImplicitPoint3D()
     {

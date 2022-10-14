@@ -74,17 +74,17 @@ public static class SelectionSetEx
     /// <returns>图元集合</returns>
     [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<T?> GetEntities<T>(this SelectionSet ss,
-                                                OpenMode openMode = OpenMode.ForRead,
-                                                DBTrans? tr = default,
-                                                bool openErased = false,
-                                                bool openLockedLayer = false) where T : Entity
+                                                 OpenMode openMode = OpenMode.ForRead,
+                                                 DBTrans? trans = null,
+                                                 bool openErased = false,
+                                                 bool openLockedLayer = false) where T : Entity
     {
         if (ss is null)
             throw new ArgumentNullException(nameof(ss));
 
-        tr ??= DBTrans.Top;
+        trans ??= DBTrans.Top;
         return ss.GetObjectIds()
-                 .Select(id => tr.GetObject<T>(id, openMode, openErased, openLockedLayer))
+                 .Select(id => trans.GetObject<T>(id, openMode, openErased, openLockedLayer))
                  .Where(ent => ent != null);
     }
     #endregion
@@ -120,7 +120,7 @@ public static class SelectionSetEx
     /// <param name="ss">选择集</param>
     /// <param name="action">处理函数;(图元,终止方式)</param>
     /// <param name="openMode">打开模式</param>
-    /// <param name="tr">事务</param>
+    /// <param name="trans">事务</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <exception cref="ArgumentNullException"></exception>
@@ -128,15 +128,17 @@ public static class SelectionSetEx
     public static void ForEach<T>(this SelectionSet ss,
                                  Action<T?, LoopState> action,
                                  OpenMode openMode = OpenMode.ForRead,
-                                 DBTrans? tr = default,
+                                 DBTrans? trans = null,
                                  bool openErased = false,
                                  bool openLockedLayer = false) where T : Entity
     {
         if (action == null)
             throw new ArgumentNullException(nameof(action));
 
+        trans ??= DBTrans.Top;
+
         LoopState state = new();
-        var ents = ss.GetEntities<T>(openMode, tr, openErased, openLockedLayer);
+        var ents = ss.GetEntities<T>(openMode, trans, openErased, openLockedLayer);
         foreach (var ent in ents)
         {
             action.Invoke(ent, state);

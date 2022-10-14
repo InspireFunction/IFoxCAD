@@ -81,17 +81,17 @@ public static class CollectionEx
 
 
 
+#line hidden // 调试的时候跳过它
     /// <summary>
     /// 遍历集合,执行委托
     /// </summary>
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
-    [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
         source.ForEach((a, _, _) => {
-            action.Invoke(a);
+            action.Invoke(a);//由于此处是委托,所以 DebuggerStepThrough 特性会进入,改用预处理方式避免
         });
     }
 
@@ -101,7 +101,6 @@ public static class CollectionEx
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
-    [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<T, LoopState> action)
     {
         source.ForEach((a, b, _) => {
@@ -128,6 +127,9 @@ public static class CollectionEx
             i++;
         }
     }
+#line default
+
+
 
 
     #region 关键字集合

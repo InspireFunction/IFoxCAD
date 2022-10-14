@@ -230,7 +230,7 @@ public partial class Test
             id.GetObject<RegAppTableRecord>()?.Name.Print());
         tr.RegAppTable.GetRecords().ForEach(rec => rec.Name.Print());
         tr.RegAppTable.GetRecordNames().ForEach(name => name.Print());
-        tr.RegAppTable.ForEach(re => re.Name.Print(), checkIdOk: true);
+        tr.RegAppTable.ForEach(re => re.Name.Print(), checkIdOk: false);
 
         // var res = ed.GetEntity("\n select the entity:");
         // if (res.Status == PromptStatus.OK)
@@ -311,6 +311,7 @@ public partial class Test
 
 
         const double pi90 = Math.PI / 2;
+        pi90.Print();
 
         Tools.TestTimes(1000000, "对角线", () => {
             var result = false;
@@ -322,13 +323,10 @@ public partial class Test
 
         Tools.TestTimes(1000000, "三次点乘", () => {
             var result = false;
-
             if (Math.Abs(p12.DotProduct(p23)) < 1e8 &&
                 Math.Abs(p23.DotProduct(p34)) < 1e8 &&
                 Math.Abs(p34.DotProduct(p41)) < 1e8)
-            {
                 result = true;
-            }
         });
 
         Tools.TestTimes(1000000, "三次垂直", () => {
@@ -336,9 +334,7 @@ public partial class Test
             if (p12.IsParallelTo(p23) &&
                 p23.IsParallelTo(p34) &&
                 p34.IsParallelTo(p41))
-            {
                 result = true;
-            }
         });
     }
 

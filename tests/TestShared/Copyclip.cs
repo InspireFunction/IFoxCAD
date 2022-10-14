@@ -397,9 +397,10 @@ public class Copyclip
                                         commit: false,
                                         fileOpenMode: FileOpenMode.OpenForReadAndAllShare))
             {
-                foreach (var id in fileTr.ModelSpace)
+                fileTr.ModelSpace.ForEach(id => {
                     if (id.IsOk())
                         fileEntityIds.Add(id);
+                });
             }
             if (fileEntityIds.Count == 0)
                 return;
@@ -690,7 +691,7 @@ public class Copyclip
 //        if (action == null)
 //            throw new ArgumentNullException(nameof(action));
 
-//        tr ??= DBTrans.Top;
+//        trans ??= DBTrans.Top;
 
 //        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
 //        if (btr == null)

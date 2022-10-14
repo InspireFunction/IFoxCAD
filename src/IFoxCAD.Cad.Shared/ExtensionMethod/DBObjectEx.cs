@@ -106,6 +106,7 @@ public static class DBObjectEx
 
     #region 读写模式切换
 
+#line hidden // 调试的时候跳过它
     /// <summary>
     /// 实体自动管理读写函数
     /// </summary>
@@ -175,5 +176,6 @@ public static class DBObjectEx
 
         #endregion IDisposable 成员
     }
+#line default
     #endregion
 }
