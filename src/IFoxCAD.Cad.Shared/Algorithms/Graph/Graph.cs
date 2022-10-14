@@ -254,6 +254,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// <summary>
     /// 克隆此图;目测是深克隆
     /// </summary>
+    [System.Diagnostics.DebuggerStepThrough]
     public Graph Clone()
     {
         var newGraph = new Graph();
@@ -270,11 +271,13 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
         return Clone();
     }
 
+    [System.Diagnostics.DebuggerStepThrough]
     public IEnumerator GetEnumerator()
     {
         return VerticesAsEnumberable.GetEnumerator();
     }
 
+    [System.Diagnostics.DebuggerStepThrough]
     IEnumerator<IGraphVertex>? IEnumerable<IGraphVertex>.GetEnumerator()
     {
         return GetEnumerator() as IEnumerator<IGraphVertex>;
@@ -422,7 +425,7 @@ public sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
 
     #region 构造
     /// <summary>
-    /// 无向图中边的定义 
+    /// 无向图中边的定义
     /// </summary>
     /// <param name="target">下一点</param>
     /// <param name="edge">下一点之间的曲线</param>
@@ -575,8 +578,8 @@ public sealed class DepthFirst
                 // 将重复的路径进行过滤,并把新的路径存入结果
                 var cur = RotateToSmallest(visited); // O(n)
                 var inv = Invert(cur,cur[0]); // O(n)
-                 
-                var curstr = Gethashstring(cur,inv); 
+
+                var curstr = Gethashstring(cur,inv);
                 // Env.Print(curstr);
                 if (Isnew(curstr))
                 {

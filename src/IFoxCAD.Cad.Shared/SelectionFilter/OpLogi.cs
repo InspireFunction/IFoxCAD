@@ -41,8 +41,10 @@ public abstract class OpLogi : OpFilter, IEnumerable<OpFilter>
     /// 获取迭代器
     /// </summary>
     /// <returns>OpFilter迭代器</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public abstract IEnumerator<OpFilter> GetEnumerator();
 
+    [System.Diagnostics.DebuggerStepThrough]
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
@@ -77,6 +79,7 @@ public class OpNot : OpLogi
     /// 获取迭代器
     /// </summary>
     /// <returns>OpFilter迭代器</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public override IEnumerator<OpFilter> GetEnumerator()
     {
         yield return Value;
@@ -121,6 +124,7 @@ public class OpXor : OpLogi
     /// 获取迭代器
     /// </summary>
     /// <returns>选择集过滤器类型迭代器</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public override IEnumerator<OpFilter> GetEnumerator()
     {
         yield return Left;

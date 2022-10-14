@@ -780,19 +780,19 @@ namespace System.Collections.Generic
         #endregion
 
         #region IEnumerable<T> members
+        [System.Diagnostics.DebuggerStepThrough]
         public Enumerator GetEnumerator()
         {
             return new Enumerator(this);
         }
 
-
-
-
+        [System.Diagnostics.DebuggerStepThrough]
         IEnumerator<T> IEnumerable<T>.GetEnumerator()
         {
             return new Enumerator(this);
         }
 
+        [System.Diagnostics.DebuggerStepThrough]
         IEnumerator IEnumerable.GetEnumerator()
         {
             return new Enumerator(this);

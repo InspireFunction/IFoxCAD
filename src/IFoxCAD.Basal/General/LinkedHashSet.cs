@@ -19,7 +19,7 @@ public class LinkedHashSet<T> : ICollection<T> where T : IComparable
 
     public bool Add(T item)
     {
-        if (m_Dictionary.ContainsKey(item)) 
+        if (m_Dictionary.ContainsKey(item))
             return false;
         var node = m_LinkedList.AddLast(item);
         m_Dictionary.Add(item, node);
@@ -97,16 +97,15 @@ public class LinkedHashSet<T> : ICollection<T> where T : IComparable
         get { return m_Dictionary.Count; }
     }
 
-    public void For(LoopListNode<T> from, Action<int,T,T> action)
+    public void For(LoopListNode<T> from, Action<int, T, T> action)
     {
         var first = from;
         var last = from;
-        if(first is null) return;
+        if (first is null) return;
 
         for (int i = 0; i < Count; i++)
         {
-            
-            action.Invoke(i,first!.Value, last!.Value);
+            action.Invoke(i, first!.Value, last!.Value);
             first = first.Next;
             last = last.Previous;
         }
@@ -117,11 +116,13 @@ public class LinkedHashSet<T> : ICollection<T> where T : IComparable
         return m_LinkedList.ToList();
     }
 
+    [System.Diagnostics.DebuggerStepThrough]
     public IEnumerator<T> GetEnumerator()
     {
         return m_LinkedList.GetEnumerator();
     }
 
+    [System.Diagnostics.DebuggerStepThrough]
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
@@ -146,7 +147,7 @@ public class LinkedHashSet<T> : ICollection<T> where T : IComparable
 
     public LinkedHashSet<T> Clone()
     {
-        var newset = new LinkedHashSet<T>();    
+        var newset = new LinkedHashSet<T>();
         foreach (var item in this)
         {
             newset.Add(item);

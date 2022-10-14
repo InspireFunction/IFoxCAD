@@ -104,6 +104,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// 环链表构造函数
     /// </summary>
     /// <param name="values">节点迭代器</param>
+    [System.Diagnostics.DebuggerStepThrough]
     public LoopList(IEnumerable<T> values)
     {
         var ge = values.GetEnumerator();
@@ -389,6 +390,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public LoopListNode<T> AddLast(T value)
     {
         return Add(value);
@@ -398,6 +400,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// 容器内容全部加入到末尾
     /// </summary>
     /// <param name="list"></param>
+    [System.Diagnostics.DebuggerStepThrough]
     public void AddRange(IEnumerable<T> list)
     {
         var ge = list.GetEnumerator();
@@ -455,18 +458,18 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         switch (Count)
         {
             case 0:
-                return false;
+            return false;
 
             case 1:
-                First = null;
-                break;
+            First = null;
+            break;
 
             default:
-                LoopListNode<T> last = Last!;
-                First = First!.Next;
-                First!.Previous = last;
-                last.Next = First;
-                break;
+            LoopListNode<T> last = Last!;
+            First = First!.Next;
+            First!.Previous = last;
+            last.Next = First;
+            break;
         }
         Count--;
         return true;
@@ -481,17 +484,17 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         switch (Count)
         {
             case 0:
-                return false;
+            return false;
 
             case 1:
-                First = null;
-                break;
+            First = null;
+            break;
 
             default:
-                LoopListNode<T> last = Last!.Previous!;
-                last.Next = First;
-                First!.Previous = last;
-                break;
+            LoopListNode<T> last = Last!.Previous!;
+            last.Next = First;
+            First!.Previous = last;
+            break;
         }
         Count--;
         return true;
@@ -630,6 +633,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// </summary>
     /// <param name="from"></param>
     /// <returns></returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public IEnumerable<LoopListNode<T>> GetNodes(LoopListNode<T> from)
     {
         var node = from;
@@ -640,12 +644,11 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         }
     }
 
-
-
     /// <summary>
     /// 获取节点的查询器
     /// </summary>
     /// <returns></returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public IEnumerable<LoopListNode<T>> GetNodes()
     {
         LoopListNode<T> node = First!;
@@ -660,6 +663,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// 获取节点值的查询器
     /// </summary>
     /// <returns></returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public IEnumerator<T> GetEnumerator()
     {
         LoopListNode<T> node = First!;
@@ -670,10 +674,12 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         }
     }
 
+    [System.Diagnostics.DebuggerStepThrough]
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
     #region IEnumerable 成员
 
+    [System.Diagnostics.DebuggerStepThrough]
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     #endregion IEnumerable 成员
@@ -724,7 +730,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /* 山人说无法分辨ICloneable接口是深浅克隆,
      * 因此不要在泛型模板实现克隆函数,
      * 让用户自己来 new(xx)实现浅克隆,所以也不提供Clone()了
-     * 
+     *
      * 因此约定了:CopyTo(T,index)是深克隆;MemberwiseClone()是浅克隆;
      * public object Clone()
      * {

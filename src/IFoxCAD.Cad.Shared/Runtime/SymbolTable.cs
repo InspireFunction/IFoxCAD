@@ -307,6 +307,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="action">要运行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="checkIdOk">检查id是否删除,默认false</param>
+    [System.Diagnostics.DebuggerStepThrough]
     public void ForEach(Action<TRecord> action,
                         OpenMode openMode = OpenMode.ForRead,
                         bool checkIdOk = false)
@@ -328,6 +329,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="action">要执行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="checkIdOk">检查id是否删除,默认false</param>
+    [System.Diagnostics.DebuggerStepThrough]
     public void ForEach(Action<TRecord, LoopState> action,
                         OpenMode openMode = OpenMode.ForRead,
                         bool checkIdOk = false)
@@ -347,13 +349,14 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     #endregion
 
     #region IEnumerable<ObjectId> 成员
-
+    [System.Diagnostics.DebuggerStepThrough]
     public IEnumerator<ObjectId> GetEnumerator()
     {
         foreach (var id in CurrentSymbolTable)
             yield return id;
     }
 
+    [System.Diagnostics.DebuggerStepThrough]
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();

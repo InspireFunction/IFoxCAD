@@ -96,6 +96,7 @@ public abstract class OpList : OpLogi
     /// 过滤器迭代器
     /// </summary>
     /// <returns>OpFilter迭代器</returns>
+    [System.Diagnostics.DebuggerStepThrough]
     public override IEnumerator<OpFilter> GetEnumerator()
     {
         foreach (var value in _lst)
