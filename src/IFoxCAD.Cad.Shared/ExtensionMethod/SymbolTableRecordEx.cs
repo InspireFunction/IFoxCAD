@@ -289,8 +289,9 @@ public static class SymbolTableRecordEx
     {
         Polyline pl = new();
         pl.SetDatabaseDefaults();
-        pts.ForEach((i, vertex) => {
-            pl.AddVertexAt(i, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
+
+        pts.ForEach((vertex, state, index) => {
+            pl.AddVertexAt(index, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
         });
 
         return btr.AddEnt(pl, action, trans);
@@ -323,13 +324,13 @@ public static class SymbolTableRecordEx
     /// </summary>
     /// <typeparam name="T">实体类型</typeparam>
     /// <param name="btr">块表记录</param>
-    /// <param name="mode">打开模式</param>
+    /// <param name="openMode">打开模式</param>
     /// <param name="trans">事务</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>实体集合</returns>
     public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr,
-                                                OpenMode mode = OpenMode.ForRead,
+                                                OpenMode openMode = OpenMode.ForRead,
                                                 Transaction? trans = default,
                                                 bool openErased = false,
                                                 bool openLockedLayer = false) where T : Entity
@@ -338,7 +339,7 @@ public static class SymbolTableRecordEx
         return
             btr
             .Cast<ObjectId>()
-            .Select(id => trans.GetObject(id, mode, openErased, openLockedLayer))
+            .Select(id => trans.GetObject(id, openMode, openErased, openLockedLayer))
             .OfType<T>();
     }
 

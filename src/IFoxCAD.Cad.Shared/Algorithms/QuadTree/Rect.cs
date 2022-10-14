@@ -138,7 +138,9 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     #endregion
 
     #region 构造
-    public Rect() { }
+    public Rect()
+    {
+    }
 
     /// <summary>
     /// 矩形类
@@ -450,7 +452,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     }
 
     /// <summary>
-    /// 叉积,二维叉乘计算 
+    /// 叉积,二维叉乘计算
     /// </summary>
     /// <param name="o">原点</param>
     /// <param name="a">oa向量</param>
@@ -480,8 +482,8 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
         var pts = ToPoints();
         Polyline pl = new();
         pl.SetDatabaseDefaults();
-        pts.ForEach((i, vertex) => {
-            pl.AddVertexAt(i, vertex, 0, 0, 0);
+        pts.ForEach((vertex, state, index) => {
+            pl.AddVertexAt(index, vertex, 0, 0, 0);
         });
         return pl;
     }
@@ -600,6 +602,4 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     #endregion
 
     #endregion
-
-
 }

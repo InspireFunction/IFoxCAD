@@ -79,6 +79,8 @@ public static class CollectionEx
     }
 
 
+
+
     /// <summary>
     /// 遍历集合,执行委托
     /// </summary>
@@ -88,50 +90,39 @@ public static class CollectionEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
-        foreach (var element in source)
-            action.Invoke(element);
+        source.ForEach((a, _, _) => {
+            action.Invoke(a);
+        });
     }
+
     /// <summary>
-    /// 遍历集合,执行委托<br/>
-    /// 输出索引值
+    /// 遍历集合,执行委托(允许循环中断)
     /// </summary>
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
     [System.Diagnostics.DebuggerStepThrough]
-    public static void ForEach<T>(this IEnumerable<T> source, Action<int, T> action)
+    public static void ForEach<T>(this IEnumerable<T> source, Action<T, LoopState> action)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
-        int i = 0;
-        foreach (var element in source)
-        {
-            action.Invoke(i, element);
-            i++;
-        }
+        source.ForEach((a, b, _) => {
+            action.Invoke(a, b);
+        });
     }
+
     /// <summary>
-    /// 遍历集合,执行委托<br/>
-    /// 输出索引值,允许循环中断
+    /// 遍历集合,执行委托(允许循环中断,输出索引值)
     /// </summary>
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
     [System.Diagnostics.DebuggerStepThrough]
-    public static void ForEach<T>(this IEnumerable<T> source, Action<int, T, LoopState> action)
+    public static void ForEach<T>(this IEnumerable<T> source, Action<T, LoopState, int> action)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
         LoopState state = new();/*这种方式比Action改Func更友好*/
         int i = 0;
         foreach (var element in source)
         {
-            action.Invoke(i, element, state);
+            action.Invoke(element, state, i);
             if (!state.IsRun)
                 break;
             i++;

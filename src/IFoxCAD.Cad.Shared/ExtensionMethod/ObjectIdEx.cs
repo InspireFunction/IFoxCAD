@@ -12,19 +12,19 @@ public static class ObjectIdEx
     /// </summary>
     /// <typeparam name="T">指定的泛型</typeparam>
     /// <param name="id">对象id</param>
-    /// <param name="mode">打开模式</param>
+    /// <param name="openMode">打开模式</param>
     /// <param name="tr">事务</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>指定类型对象</returns>
     public static T? GetObject<T>(this ObjectId id,
-                                 OpenMode mode = OpenMode.ForRead,
+                                 OpenMode openMode = OpenMode.ForRead,
                                  Transaction? tr = default,
                                  bool openErased = false,
                                  bool openLockedLayer = false) where T : DBObject
     {
         tr ??= DBTrans.Top.Transaction;
-        return tr.GetObject(id, mode, openErased, openLockedLayer) as T;
+        return tr.GetObject(id, openMode, openErased, openLockedLayer) as T;
     }
 
     /// <summary>
@@ -32,19 +32,19 @@ public static class ObjectIdEx
     /// </summary>
     /// <typeparam name="T">指定的泛型</typeparam>
     /// <param name="ids">对象id集合</param>
-    /// <param name="mode">打开模式</param>
+    /// <param name="openMode">打开模式</param>
     /// <param name="tr">事务</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>指定类型对象集合</returns>
     [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<T?> GetObject<T>(this IEnumerable<ObjectId> ids,
-                                               OpenMode mode = OpenMode.ForRead,
+                                               OpenMode openMode = OpenMode.ForRead,
                                                Transaction? tr = default,
                                                bool openErased = false,
                                                bool openLockedLayer = false) where T : DBObject
     {
-        return ids.Select(id => id.GetObject<T>(mode, tr, openErased, openLockedLayer));
+        return ids.Select(id => id.GetObject<T>(openMode, tr, openErased, openLockedLayer));
     }
 
     /// <summary>

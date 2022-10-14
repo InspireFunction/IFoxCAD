@@ -12,8 +12,7 @@ public class MirrorFile
     [CommandMethod(nameof(CmdTest_MirrorFile))]
     public static void CmdTest_MirrorFile()
     {
-        using DBTrans tr = new(file, openMode: FileOpenMode.OpenForReadAndReadShare);
-
+        using DBTrans tr = new(file, fileOpenMode: FileOpenMode.OpenForReadAndReadShare);
         tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
             foreach (ObjectId entId in modelSpace)
             {

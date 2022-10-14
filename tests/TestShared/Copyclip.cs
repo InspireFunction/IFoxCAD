@@ -395,7 +395,7 @@ public class Copyclip
             var fileEntityIds = new List<ObjectId>();
             using (DBTrans fileTr = new(cadClipType.File,
                                         commit: false,
-                                        openMode: FileOpenMode.OpenForReadAndAllShare))
+                                        fileOpenMode: FileOpenMode.OpenForReadAndAllShare))
             {
                 foreach (var id in fileTr.ModelSpace)
                     if (id.IsOk())

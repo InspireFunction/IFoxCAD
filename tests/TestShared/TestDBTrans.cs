@@ -2,6 +2,29 @@
 
 public class TestTrans
 {
+    [CommandMethod(nameof(CmdTest_ForEachDemo))]
+    public static void CmdTest_ForEachDemo()
+    {
+        using DBTrans tr = new();
+
+        // 泛型扩展(用变量名来使用它)
+        tr.BlockTable.ForEach(action: (id) => { });
+        tr.BlockTable.ForEach(action: (id, state) => { });
+        tr.BlockTable.ForEach(action: (id, state, index) => { });
+
+        // 符号表扩展(会顶替泛型扩展)
+        tr.BlockTable.ForEach((btr) => { }, OpenMode.ForRead, true);
+        tr.BlockTable.ForEach((btr, state) => { }, OpenMode.ForRead, true);
+        tr.BlockTable.ForEach((btr, state, index) => { }, OpenMode.ForRead, true);
+
+        // 修改:此处有缺陷:cad08会获取已经删除的块表记录,需要检查id.IsOk(),用ForEach代替
+        tr.BlockTable.Change("块表记录", btr => {
+        });
+        // 修改:此处无缺陷
+        tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
+        });
+    }
+
     // 后台:不存在路径的dwg会在桌面进行临时保存
     [CommandMethod(nameof(FileNotExist))]
     public void FileNotExist()

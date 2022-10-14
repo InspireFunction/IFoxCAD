@@ -1,3 +1,5 @@
+using static System.Windows.Forms.AxHost;
+
 namespace IFoxCAD.Cad;
 
 public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
@@ -167,12 +169,10 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// </summary>
     /// <param name="record">符号表记录</param>
     /// <param name="action">修改委托</param>
-    private static void Change(TRecord record, Action<TRecord> action)
+    static void Change(TRecord record, Action<TRecord> action)
     {
         using (record.ForWrite())
             action.Invoke(record);
-        // 调用regen()函数可能会导致卡顿
-        // Env.Editor.Regen();
     }
 
     /// <summary>
@@ -205,17 +205,33 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// 获取符号表记录
     /// </summary>
     /// <param name="id">符号表记录的id</param>
-    /// <param name="openMode">打开模式，默认为只读</param>
+    /// <param name="openMode">打开模式</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>符号表记录</returns>
-    public TRecord? GetRecord(ObjectId id, OpenMode openMode = OpenMode.ForRead) => /*id.IsNull ? null : */DTrans.GetObject<TRecord>(id, openMode);
+    public TRecord? GetRecord(ObjectId id,
+                              OpenMode openMode = OpenMode.ForRead,
+                              bool openErased = false,
+                              bool openLockedLayer = false)
+    {
+        return DTrans.GetObject<TRecord>(id, openMode, openErased, openLockedLayer);
+    }
 
     /// <summary>
     /// 获取符号表记录
     /// </summary>
     /// <param name="name">符号表记录名</param>
-    /// <param name="openMode">打开模式，默认为只读</param>
+    /// <param name="openMode">打开模式</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>符号表记录</returns>
-    public TRecord? GetRecord(string name, OpenMode openMode = OpenMode.ForRead) => GetRecord(this[name], openMode);
+    public TRecord? GetRecord(string name,
+                              OpenMode openMode = OpenMode.ForRead,
+                              bool openErased = false,
+                              bool openLockedLayer = false)
+    {
+        return GetRecord(this[name], openMode, openErased, openLockedLayer);
+    }
 
     /// <summary>
     /// 获取符号表记录
@@ -302,48 +318,73 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
 
     #region 遍历
     /// <summary>
-    /// 遍历集合的迭代器,执行action委托
+    /// 遍历集合的迭代器,执行委托
     /// </summary>
-    /// <param name="action">要运行的委托</param>
+    /// <param name="task">要运行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="checkIdOk">检查id是否删除,默认false</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     [System.Diagnostics.DebuggerStepThrough]
-    public void ForEach(Action<TRecord> action,
+    public void ForEach(Action<TRecord> task,
                         OpenMode openMode = OpenMode.ForRead,
-                        bool checkIdOk = false)
+                        bool checkIdOk = false,
+                        bool openErased = false,
+                        bool openLockedLayer = false)
     {
-        foreach (var id in this)
-        {
-            if (checkIdOk && !id.IsOk())
-                continue;
-            var record = GetRecord(id, openMode);
-            if (record is not null)
-                action(record);
-        }
+        ForEach((a, _, _) => {
+            task.Invoke(a);
+        }, openMode, checkIdOk, openErased, openLockedLayer);
     }
 
-
     /// <summary>
-    /// 遍历集合的迭代器,执行action委托
+    /// 遍历集合的迭代器,执行委托(允许循环中断)
     /// </summary>
-    /// <param name="action">要执行的委托</param>
+    /// <param name="task">要执行的委托</param>
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="checkIdOk">检查id是否删除,默认false</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     [System.Diagnostics.DebuggerStepThrough]
-    public void ForEach(Action<TRecord, LoopState> action,
+    public void ForEach(Action<TRecord, LoopState> task,
                         OpenMode openMode = OpenMode.ForRead,
-                        bool checkIdOk = false)
+                        bool checkIdOk = false,
+                        bool openErased = false,
+                        bool openLockedLayer = false)
     {
+        ForEach((a, b, _) => {
+            task.Invoke(a, b);
+        }, openMode, checkIdOk, openErased, openLockedLayer);
+    }
+
+    /// <summary>
+    /// 遍历集合的迭代器,执行委托(允许循环中断,输出索引值)
+    /// </summary>
+    /// <param name="task">要执行的委托</param>
+    /// <param name="openMode">打开模式,默认为只读</param>
+    /// <param name="checkIdOk">检查id是否删除,默认false</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
+    [System.Diagnostics.DebuggerStepThrough]
+    public void ForEach(Action<TRecord, LoopState, int> task,
+                        OpenMode openMode = OpenMode.ForRead,
+                        bool checkIdOk = false,
+                        bool openErased = false,
+                        bool openLockedLayer = false)
+    {
+        if (task == null)
+            throw new ArgumentNullException(nameof(task));
+
         LoopState state = new();/*这种方式比Action改Func更友好*/
+        int i = 0;
         foreach (var id in this)
         {
             if (checkIdOk && !id.IsOk())
                 continue;
-            var record = GetRecord(id, openMode);
+            var record = GetRecord(id, openMode, openErased, openLockedLayer);
             if (record is not null)
-                action(record, state);
-            if (!state.IsRun)
-                break;
+                task.Invoke(record, state, i);
+            i++;
         }
     }
     #endregion

@@ -129,11 +129,11 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="fileName">要打开的文件名</param>
     /// <param name="commit">事务是否提交</param>
-    /// <param name="openMode">开图模式</param>
+    /// <param name="fileOpenMode">开图模式</param>
     /// <param name="password">密码</param>
     public DBTrans(string fileName,
                    bool commit = true,
-                   FileOpenMode openMode = FileOpenMode.OpenForReadAndWriteNoShare,
+                   FileOpenMode fileOpenMode = FileOpenMode.OpenForReadAndWriteNoShare,
                    string? password = null)
     {
         if (fileName == null || string.IsNullOrEmpty(fileName.Trim()))
@@ -172,7 +172,7 @@ public class DBTrans : IDisposable
 #if ac2008
                     // FileAccess fileAccess = FileAccess.Read;
                     FileShare fileShare = FileShare.Read;
-                    switch (openMode)
+                    switch (fileOpenMode)
                     {
                         case FileOpenMode.OpenTryForReadShare:// 这个是什么状态??
                         // fileAccess = FileAccess.ReadWrite;
@@ -200,7 +200,7 @@ public class DBTrans : IDisposable
 
                     Database.ReadDwgFile(_fileName, fileShare, true, password);
 #else
-                    Database.ReadDwgFile(_fileName, openMode, true, password);
+                    Database.ReadDwgFile(_fileName, fileOpenMode, true, password);
 #endif
                 }
                 Database.CloseInput(true);
@@ -357,16 +357,16 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <typeparam name="T">要获取的图元对象的类型</typeparam>
     /// <param name="id">对象id</param>
-    /// <param name="mode">打开模式,默认为只读</param>
+    /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>图元对象,类型不匹配时返回 <see langword="null"/> </returns>
     public T? GetObject<T>(ObjectId id,
-                           OpenMode mode = OpenMode.ForRead,
+                           OpenMode openMode = OpenMode.ForRead,
                            bool openErased = false,
                            bool openLockedLayer = false) where T : DBObject
     {
-        return Transaction.GetObject(id, mode, openErased, openLockedLayer) as T;
+        return Transaction.GetObject(id, openMode, openErased, openLockedLayer) as T;
     }
 
     /// <summary>

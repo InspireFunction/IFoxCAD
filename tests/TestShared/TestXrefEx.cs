@@ -8,7 +8,7 @@ public class TestCmd_BindXrefs
     {
         string fileName = @"D:\Test.dwg";
         using var tr = new DBTrans(fileName,
-            openMode: FileOpenMode.OpenForReadAndAllShare/*后台绑定特别注意*/);
+            fileOpenMode: FileOpenMode.OpenForReadAndAllShare/*后台绑定特别注意*/);
         tr.XrefFactory(XrefModes.Bind);
         tr.SaveDwgFile();
     }
