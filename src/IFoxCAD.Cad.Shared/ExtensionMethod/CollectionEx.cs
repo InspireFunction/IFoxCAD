@@ -1,5 +1,7 @@
 ﻿using System.ComponentModel;
+using System.Diagnostics;
 using System.Xml.Linq;
+using static System.Windows.Forms.AxHost;
 
 namespace IFoxCAD.Cad;
 
@@ -79,20 +81,22 @@ public static class CollectionEx
     }
 
 
-
-
-#line hidden // 调试的时候跳过它
     /// <summary>
     /// 遍历集合,执行委托
     /// </summary>
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
+    //[DebuggerHidden]
+    [DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
-        source.ForEach((a, _, _) => {
-            action.Invoke(a);//由于此处是委托,所以 DebuggerStepThrough 特性会进入,改用预处理方式避免
-        });
+        // 这里不要嵌套调用ForEach,因为断点设置的原因
+        //source.ForEach((a, _, _) => {
+        //    action.Invoke(a);//由于此处是委托,所以 DebuggerStepThrough 特性会进入,改用预处理方式避免
+        //});
+        foreach (var element in source)
+            action.Invoke(element);
     }
 
     /// <summary>
@@ -101,11 +105,21 @@ public static class CollectionEx
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
+    [DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<T, LoopState> action)
     {
-        source.ForEach((a, b, _) => {
-            action.Invoke(a, b);
-        });
+        // 这里不要嵌套调用ForEach,因为断点设置的原因
+        //source.ForEach((a, b, _) => {
+        //    action.Invoke(a, b);
+        //});
+
+        LoopState state = new();/*这种方式比Action改Func更友好*/
+        foreach (var element in source)
+        {
+            action.Invoke(element, state);
+            if (!state.IsRun)
+                break;
+        }
     }
 
     /// <summary>
@@ -114,7 +128,7 @@ public static class CollectionEx
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<T, LoopState, int> action)
     {
         LoopState state = new();/*这种方式比Action改Func更友好*/
@@ -127,9 +141,6 @@ public static class CollectionEx
             i++;
         }
     }
-#line default
-
-
 
 
     #region 关键字集合

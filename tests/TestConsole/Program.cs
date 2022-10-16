@@ -4,9 +4,68 @@ using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using TestConsole;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Diagnostics;
 
 
+namespace CalculatorDemo
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            int nResult = AddTwoNumbers(10, 20);
+            Console.WriteLine(nResult);
 
+            AddTwoNumbers22((a, b) => {
+                Console.WriteLine(a + b);
+            });
+
+            var a = new int[] { 1, 2, 3, 4, 5, 6, 78, 9, 92, };
+            a.ForEach(a => {
+                Console.WriteLine(a);
+            });
+        }
+
+        [DebuggerHidden]
+        private static int AddTwoNumbers(int nNum1, int nNum2)
+        {
+            return Add(nNum1, nNum2);
+        }
+        private static int Add(int op1, int op2)
+        {
+            return op1 + op2;
+        }
+
+        [DebuggerHidden]
+        private static void AddTwoNumbers22(Action<int, int> action)
+        {
+            action(10, 20);
+        }
+    }
+
+    public static class Fors
+    {
+        /// <summary>
+        /// 遍历集合,执行委托
+        /// </summary>
+        /// <typeparam name="T">集合值的类型</typeparam>
+        /// <param name="source">集合</param>
+        /// <param name="action">委托</param>
+        [DebuggerHidden]
+        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+        {
+            foreach (var element in source)
+            {
+                action.Invoke(element);
+            }
+        }
+    }
+}
+
+#if true2
 
 Console.WriteLine("***************************************************");
 
@@ -95,3 +154,4 @@ public enum Season : byte
     Winter
 }
 #endregion
+#endif

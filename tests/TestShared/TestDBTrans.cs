@@ -1,4 +1,6 @@
-﻿namespace Test;
+﻿using System.Diagnostics;
+
+namespace Test;
 
 public class TestTrans
 {
@@ -8,9 +10,24 @@ public class TestTrans
         using DBTrans tr = new();
 
         // 泛型扩展(用变量名来使用它)
-        tr.BlockTable.ForEach(action: (id) => { });
-        tr.BlockTable.ForEach(action: (id, state) => { });
-        tr.BlockTable.ForEach(action: (id, state, index) => { });
+        tr.BlockTable.ForEach(action: (id) => {
+            //Debugger.Break();// 为什么cad工程不能断点进入呢?
+            id.Print();
+            Console.WriteLine(id);
+        });
+
+        //tr.BlockTable.ForEach(asdad);
+        //void asdad(object id)
+        //{
+        //    id.Print();
+        //}
+
+        tr.BlockTable.ForEach(action: (id, state) => {
+            id.Print();
+        });
+        tr.BlockTable.ForEach(action: (id, state, index) => {
+            id.Print();
+        });
 
         // 符号表扩展(会顶替泛型扩展)
         tr.BlockTable.ForEach((btr) => { // 预处理设置不进入ForEach函数体内
@@ -37,6 +54,8 @@ public class TestTrans
             });
         });
     }
+
+
 
     // 后台:不存在路径的dwg会在桌面进行临时保存
     [CommandMethod(nameof(FileNotExist))]
