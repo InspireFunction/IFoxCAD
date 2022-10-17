@@ -63,14 +63,14 @@ public static class EditorEx
     /// <param name="messages">消息</param>
     /// <param name="keywords">关键字和回调函数</param>
     /// <returns></returns>
-    public static PromptSelectionResult? SSGet(this Editor editor,
-                                               string? mode = null,
-                                               SelectionFilter? filter = null,
-                                               string[]? messages = null,
-                                               Dictionary<string, Action>? keywords = null)
+    public static PromptSelectionResult SSGet(this Editor editor,
+                                              string? mode = null,
+                                              SelectionFilter? filter = null,
+                                              string[]? messages = null,
+                                              Dictionary<string, Action>? keywords = null)
     {
         PromptSelectionOptions pso = new();
-        PromptSelectionResult? ss = null;
+        PromptSelectionResult ss;
         if (mode is not null)
         {
             mode = mode.ToUpper();
@@ -110,9 +110,10 @@ public static class EditorEx
             else
                 ss = editor.GetSelection(pso);
         }
-        catch (Exception e)
+        catch (Exception)
         {
-            editor.WriteMessage($"\nKey is {e.Message}");
+            //editor.WriteMessage($"\nKey is {e.Message}");
+            throw;
         }
         return ss;
     }

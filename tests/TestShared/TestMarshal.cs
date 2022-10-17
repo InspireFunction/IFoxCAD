@@ -4,6 +4,39 @@ namespace TestShared;
 
 public class TestMarshal
 {
+    [CommandMethod(nameof(Test_ChangeLinePoint))]
+    public void Test_ChangeLinePoint()
+    {
+        var prs = Env.Editor.SSGet("\n 选择直线");
+        if (prs.Status != PromptStatus.OK)
+            return;
+
+        using DBTrans tr = new();
+
+        prs.Value.GetObjectIds().ForEach(id => {
+            var line = id.GetObject<Line>();
+            if (line == null)
+                return;
+            using (line.ForWrite())
+                unsafe
+                {
+                    // 不允许直接 &这个表达式进行取址(因为它是属性,不是字段)
+                    // 实际上就是默认拷贝一份副本出来
+                    var p1 = line.StartPoint;
+                    ((Point3D*)&p1)->X = 0;
+                    ((Point3D*)&p1)->Y = 0;
+                    ((Point3D*)&p1)->Z = 0;
+                    line.StartPoint = p1;// 又放回去,节省了一个变量
+
+                    var p2 = line.EndPoint;
+                    ((Point3D*)&p2)->X = 100;
+                    ((Point3D*)&p2)->Y = 100;
+                    ((Point3D*)&p2)->Z = 0;
+                    line.EndPoint = p2;
+                }
+        });
+    }
+
     [CommandMethod(nameof(Test_ImplicitPoint3D))]
     public void Test_ImplicitPoint3D()
     {
