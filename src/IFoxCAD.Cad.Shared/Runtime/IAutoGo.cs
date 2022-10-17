@@ -326,26 +326,49 @@ public class AutoReflection
     public static void DebugCheckCmdRecurrence()
     {
         HashSet<string> keys = new();
-        AutoReflection.AppDomainGetTypes(type => {
-            if (type.IsAbstract)
-                return;
 
+        // 本dll中存在冲突命令,此时cad自动接口可以运行,但是加载命令之后会报错,因此利用断点告诉程序员
+        AutoReflection.AppDomainGetTypes(type => {
             var mets = type.GetMethods();
             for (int ii = 0; ii < mets.Length; ii++)
             {
                 var method = mets[ii];
                 var attr = method.GetCustomAttributes(true);
                 for (int jj = 0; jj < attr.Length; jj++)
-                {
                     if (attr[jj] is CommandMethodAttribute att)
                     {
                         if (keys.Contains(att.GlobalName))
                             Debugger.Break();
                         keys.Add(att.GlobalName);
                     }
-                }
             }
         }, Assembly.GetCallingAssembly().GetName().Name);
+
+        // 其他dll中存在冲突命令,此时会覆盖命令,友好的提示程序员
+        keys.Clear();
+        HashSet<string> msgMod = new();
+        AutoReflection.AppDomainGetTypes(type => {
+            var mets = type.GetMethods();
+            for (int ii = 0; ii < mets.Length; ii++)
+            {
+                var method = mets[ii];
+                var attr = method.GetCustomAttributes(true);
+                for (int jj = 0; jj < attr.Length; jj++)
+                    if (attr[jj] is CommandMethodAttribute att)
+                    {
+                        if (keys.Contains(att.GlobalName))
+                            msgMod.Add(att.GlobalName);
+                        keys.Add(att.GlobalName);
+                    }
+            }
+        });
+        var sb = new StringBuilder();
+        foreach (string key in msgMod)
+            sb.AppendLine(key);
+        Env.Printl("当前cad环境加载的多个DLL中存在重复命令将被覆盖:");
+        Env.Printl("{");
+        Env.Printl(sb.ToString());
+        Env.Printl("}");
     }
 #endif
 }
