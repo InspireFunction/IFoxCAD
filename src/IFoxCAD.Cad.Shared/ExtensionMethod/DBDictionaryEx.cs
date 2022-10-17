@@ -108,7 +108,7 @@ public static class DBDictionaryEx
 
             id = obj.ExtensionDictionary;
         }
-        return id.GetObject<DBDictionary>(tr: trans);
+        return id.GetObject<DBDictionary>(trans: trans);
     }
 
     #region 数据表

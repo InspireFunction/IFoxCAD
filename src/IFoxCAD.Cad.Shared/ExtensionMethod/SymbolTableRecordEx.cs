@@ -104,14 +104,11 @@ public static class SymbolTableRecordEx
         trans ??= DBTrans.Top.Transaction;
         using (btr.ForWrite())
         {
-            return ents
-                .Select(
-                    ent => {
-                        ObjectId id = btr.AppendEntity(ent);
-                        trans.AddNewlyCreatedDBObject(ent, true);
-                        return id;
-                    })
-                .ToList();
+            return ents.Select(ent => {
+                ObjectId id = btr.AppendEntity(ent);
+                trans.AddNewlyCreatedDBObject(ent, true);
+                return id;
+            }).ToList();
         }
     }
 
@@ -137,9 +134,9 @@ public static class SymbolTableRecordEx
     /// <param name="action">图元属性设置委托</param>
     /// <param name="trans">事务管理器</param>
     /// <returns>图元id</returns>
-    private static ObjectId AddEnt<T>(this BlockTableRecord btr, T ent, Action<T>? action, Transaction? trans) where T : Entity
+    private static ObjectId AddEnt<T>(this BlockTableRecord btr, T ent,
+                                      Action<T>? action, Transaction? trans = null) where T : Entity
     {
-        // trans ??= DBTrans.Top.Transaction;
         action?.Invoke(ent);
         return btr.AddEntity(ent, trans);
     }
@@ -148,16 +145,15 @@ public static class SymbolTableRecordEx
     /// </summary>
     /// <param name="btr">块表</param>
     /// <param name="action">返回图元的委托</param>
-    /// <param name="transaction">事务</param>
+    /// <param name="trans">事务</param>
     /// <returns>图元id，如果委托返回 null，则为 ObjectId.Null</returns>
-    public static ObjectId AddEnt(this BlockTableRecord btr, Func<Entity> action, Transaction? transaction)
+    public static ObjectId AddEnt(this BlockTableRecord btr, Func<Entity> action, Transaction? trans = null)
     {
-        // transaction ??= DBTrans.Top.Transaction;
         var ent = action.Invoke();
         if (ent is null)
             return ObjectId.Null;
 
-        return btr.AddEntity(ent, transaction);
+        return btr.AddEntity(ent, trans);
     }
 
     /// <summary>
@@ -170,7 +166,7 @@ public static class SymbolTableRecordEx
     /// <param name="action">直线属性设置委托</param>
     /// <returns>直线的id</returns>
     public static ObjectId AddLine(this BlockTableRecord btr, Point3d start, Point3d end,
-                                   Action<Line>? action = default, Transaction? trans = default)
+                                   Action<Line>? action = null, Transaction? trans = null)
     {
         var line = new Line(start, end);
         return btr.AddEnt(line, action, trans);
@@ -185,7 +181,7 @@ public static class SymbolTableRecordEx
     /// <param name="trans">事务管理器</param>
     /// <returns>圆的id</returns>
     public static ObjectId AddCircle(this BlockTableRecord btr, Point3d center, double radius,
-                                     Action<Circle>? action = default, Transaction? trans = default)
+                                     Action<Circle>? action = null, Transaction? trans = null)
     {
         var circle = new Circle(center, Vector3d.ZAxis, radius);
         return btr.AddEnt(circle, action, trans);
@@ -202,7 +198,7 @@ public static class SymbolTableRecordEx
     /// <param name="trans">事务管理器</param>
     /// <returns>三点有外接圆则返回圆的id，否则返回ObjectId.Null</returns>
     public static ObjectId AddCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2,
-                                     Action<Circle>? action = default, Transaction? trans = default)
+                                     Action<Circle>? action = null, Transaction? trans = null)
     {
         var circle = EntityEx.CreateCircle(p0, p1, p2);
         // return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
@@ -222,11 +218,10 @@ public static class SymbolTableRecordEx
     /// <param name="trans">事务管理器</param>
     /// <returns>轻多段线id</returns>
     public static ObjectId AddPline(this BlockTableRecord btr,
-        List<BulgeVertexWidth> bvws,
-        double? constantWidth = null,
-        bool isClosed = true,
-        Action<Polyline>? action = default,
-        Transaction? trans = default)
+                                    List<BulgeVertexWidth> bvws,
+                                    double? constantWidth = null,
+                                    bool isClosed = true,
+                                    Action<Polyline>? action = null, Transaction? trans = null)
     {
         Polyline pl = new();
         pl.SetDatabaseDefaults();
@@ -256,11 +251,11 @@ public static class SymbolTableRecordEx
     /// <returns>轻多段线id</returns>
     public static ObjectId AddPline(this BlockTableRecord btr,
                                     List<Point3d> pts,
-                                    List<double>? bulges = default,
-                                    List<double>? startWidths = default,
-                                    List<double>? endWidths = default,
-                                    Action<Polyline>? action = default,
-                                    Transaction? trans = default)
+                                    List<double>? bulges = null,
+                                    List<double>? startWidths = null,
+                                    List<double>? endWidths = null,
+                                    Action<Polyline>? action = null,
+                                    Transaction? trans = null)
     {
         bulges ??= new(new double[pts.Count]);
         startWidths ??= new(new double[pts.Count]);
@@ -284,8 +279,8 @@ public static class SymbolTableRecordEx
     /// <returns>轻多段线id</returns>
     public static ObjectId AddPline(this BlockTableRecord btr,
                                     List<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,
-                                    Action<Polyline>? action = default,
-                                    Transaction? trans = default)
+                                    Action<Polyline>? action = null,
+                                    Transaction? trans = null)
     {
         Polyline pl = new();
         pl.SetDatabaseDefaults();
@@ -309,7 +304,7 @@ public static class SymbolTableRecordEx
     /// <returns>圆弧id</returns>
     public static ObjectId AddArc(this BlockTableRecord btr,
                                   Point3d startPoint, Point3d pointOnArc, Point3d endPoint,
-                                  Action<Arc>? action = default, Transaction? trans = default)
+                                  Action<Arc>? action = null, Transaction? trans = null)
     {
         var arc = EntityEx.CreateArc(startPoint, pointOnArc, endPoint);
         return btr.AddEnt(arc, action, trans);
@@ -332,7 +327,7 @@ public static class SymbolTableRecordEx
     /// <returns>实体集合</returns>
     public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr,
                                                 OpenMode openMode = OpenMode.ForRead,
-                                                Transaction? trans = default,
+                                                Transaction? trans = null,
                                                 bool openErased = false,
                                                 bool openLockedLayer = false) where T : Entity
     {
@@ -378,7 +373,7 @@ public static class SymbolTableRecordEx
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>绘制顺序表</returns>
     public static DrawOrderTable? GetDrawOrderTable(this BlockTableRecord btr,
-                                                    Transaction? trans = default,
+                                                    Transaction? trans = null,
                                                     bool openErased = false,
                                                     bool openLockedLayer = false)
     {
@@ -404,7 +399,7 @@ public static class SymbolTableRecordEx
                                        string blockName,
                                        Scale3d scale = default,
                                        double rotation = default,
-                                       Dictionary<string, string>? atts = default,
+                                       Dictionary<string, string>? atts = null,
                                        Transaction? trans = null)
     {
         trans ??= DBTrans.Top.Transaction;
@@ -429,7 +424,7 @@ public static class SymbolTableRecordEx
                                        ObjectId blockId,
                                        Scale3d scale = default,
                                        double rotation = default,
-                                       Dictionary<string, string>? atts = default,
+                                       Dictionary<string, string>? atts = null,
                                        Transaction? trans = null)
     {
         trans ??= DBTrans.Top.Transaction;
@@ -444,7 +439,8 @@ public static class SymbolTableRecordEx
             Rotation = rotation
         };
         var objid = blockTableRecord.AddEntity(blockref);
-        if (atts != default)
+
+        if (atts != null)
         {
             var btr = DBTrans.Top.GetObject<BlockTableRecord>(blockref.BlockTableRecord)!;
             if (btr.HasAttributeDefinitions)
@@ -519,6 +515,6 @@ public static class SymbolTableRecordEx
             i++;
         }
     }
-    #endregion
 #line default
+    #endregion
 }

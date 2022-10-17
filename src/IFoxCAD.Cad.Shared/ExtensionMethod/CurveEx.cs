@@ -621,13 +621,9 @@ public static class CurveEx
                 break;
             }
             if (nc3d is null)
-            {
                 nc3d = nc3dtemp;
-            }
             else if (nc3dtemp is not null)
-            {
                 nc3d.JoinWith(nc3dtemp);
-            }
         }
         return nc3d;
     }
