@@ -14,6 +14,7 @@ public class MirrorFile
     [CommandMethod(nameof(CmdTest_MirrorFile))]
     public static void CmdTest_MirrorFile()
     {
+        var yaxis = new Point3d(0, 1, 0);
         using DBTrans tr = new(file, fileOpenMode: FileOpenMode.OpenForReadAndReadShare);
         tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
             modelSpace.ForEach(entId => {
@@ -25,7 +26,7 @@ public class MirrorFile
                 var pos = dbText.Position;
                 // text.Move(pos, Point3d.Origin);
                 // Y轴
-                dbText.Mirror(Point3d.Origin, new Point3d(0, 1, 0));
+                dbText.Mirror(Point3d.Origin, yaxis);
                 // text.Move(Point3d.Origin, pos);
                 dbText.DowngradeOpen();
             });

@@ -5,6 +5,8 @@
 /// </summary>
 public static class Curve2dEx
 {
+    internal static readonly Plane _planeCache = new();
+
     #region Curve2d
 
     /// <summary>
@@ -64,13 +66,9 @@ public static class Curve2dEx
     public static Curve ToCurve(this CircularArc2d ca2d)
     {
         if (ca2d.IsClosed())
-        {
             return ToCircle(ca2d);
-        }
         else
-        {
             return ToArc(ca2d);
-        }
     }
 
     /// <summary>
@@ -82,8 +80,8 @@ public static class Curve2dEx
     {
         return
             new Circle(
-                new Point3d(new Plane(), c2d.Center),
-                new Vector3d(0, 0, 1),
+                new Point3d(_planeCache, c2d.Center),
+                Vector3d.ZAxis,
                 c2d.Radius);
     }
 
@@ -110,7 +108,7 @@ public static class Curve2dEx
 
         return
             new Arc(
-                new Point3d(new Plane(), a2d.Center),
+                new Point3d(_planeCache, a2d.Center),
                 Vector3d.ZAxis,
                 a2d.Radius,
                 startangle,
@@ -142,12 +140,10 @@ public static class Curve2dEx
     /// <returns>实体椭圆弧</returns>
     public static Ellipse ToCurve(this EllipticalArc2d ea2d)
     {
-        Plane plane = new();
-        Ellipse ell =
-            new(
-                new Point3d(plane, ea2d.Center),
-                new Vector3d(0, 0, 1),
-                new Vector3d(plane, ea2d.MajorAxis) * ea2d.MajorRadius,
+        Ellipse ell = new(
+                new Point3d(_planeCache, ea2d.Center),
+                Vector3d.ZAxis,
+                new Vector3d(_planeCache, ea2d.MajorAxis) * ea2d.MajorRadius,
                 ea2d.MinorRadius / ea2d.MajorRadius,
                 0,
                 Math.PI * 2);
@@ -178,13 +174,11 @@ public static class Curve2dEx
     /// <returns>实体类构造线</returns>
     public static Xline ToCurve(this Line2d line2d)
     {
-        Plane plane = new();
-        return
-            new Xline
-            {
-                BasePoint = new Point3d(plane, line2d.PointOnLine),
-                SecondPoint = new Point3d(plane, line2d.PointOnLine + line2d.Direction)
-            };
+        return new Xline
+        {
+            BasePoint = new Point3d(_planeCache, line2d.PointOnLine),
+            SecondPoint = new Point3d(_planeCache, line2d.PointOnLine + line2d.Direction)
+        };
     }
 
     /// <summary>
@@ -241,11 +235,10 @@ public static class Curve2dEx
     /// <returns>实体类直线</returns>
     public static Line ToCurve(this LineSegment2d ls2d)
     {
-        Plane plane = new();
         return
             new Line(
-                new Point3d(plane, ls2d.StartPoint),
-                new Point3d(plane, ls2d.EndPoint));
+                new Point3d(_planeCache, ls2d.StartPoint),
+                new Point3d(_planeCache, ls2d.EndPoint));
     }
 
     #endregion LineSegment2d
@@ -272,18 +265,16 @@ public static class Curve2dEx
     /// <returns>实体类样条曲线</returns>
     public static Spline ToCurve(this NurbCurve2d nc2d)
     {
-        int i;
-        Plane plane = new();
         using Point3dCollection ctlpnts = new();
-        for (i = 0; i < nc2d.NumControlPoints; i++)
-            ctlpnts.Add(new Point3d(plane, nc2d.GetControlPointAt(i)));
+        for (int i = 0; i < nc2d.NumControlPoints; i++)
+            ctlpnts.Add(new Point3d(_planeCache, nc2d.GetControlPointAt(i)));
 
         DoubleCollection knots = new();
-        foreach (double knot in nc2d.Knots)
-            knots.Add(knot);
+        for (int i = 0; i < nc2d.Knots.Count; i++)
+            knots.Add(nc2d.Knots[i]);
 
         DoubleCollection weights = new();
-        for (i = 0; i < nc2d.NumWeights; i++)
+        for (int i = 0; i < nc2d.NumWeights; i++)
             weights.Add(nc2d.GetWeightAt(i));
 
         NurbCurve2dData ncdata = nc2d.DefinitionData;

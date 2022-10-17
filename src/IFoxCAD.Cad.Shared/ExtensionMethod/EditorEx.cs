@@ -666,34 +666,32 @@ public static class EditorEx
         if ((short)Env.GetVar("TILEMODE") == 1)
             throw new ArgumentException("TILEMODE == 1..Espace papier uniquement");
 
-        Database db = editor.Document.Database;
-        Matrix3d mat;
-        using (var tr = db.TransactionManager.StartTransaction())
+        Matrix3d mat = Matrix3d.Identity;
+        using DBTrans tr = new();
+        var vp = tr.GetObject<Viewport>(editor.CurrentViewportObjectId);
+        if (vp == null)
+            return mat;
+
+        if (vp.Number == 1)
         {
-            var openErased = false;
-            var openLockedLayer = false;
-            var vp = tr.GetObject(editor.CurrentViewportObjectId, OpenMode.ForRead,
-                                  openErased, openLockedLayer) as Viewport;
-            if (vp?.Number == 1)
+            try
             {
-                try
-                {
-                    editor.SwitchToModelSpace();
-                    vp = tr.GetObject(editor.CurrentViewportObjectId, OpenMode.ForRead,
-                                      openErased, openLockedLayer) as Viewport;
-                    editor.SwitchToPaperSpace();
-                }
-                catch
-                {
-                    throw new Exception("Aucun fenêtre active...ErrorStatus.InvalidInput");
-                }
+                editor.SwitchToModelSpace();
+                vp = tr.GetObject<Viewport>(editor.CurrentViewportObjectId);
+                editor.SwitchToPaperSpace();
             }
-            Point3d vCtr = new(vp!.ViewCenter.X, vp.ViewCenter.Y, 0.0);
-            mat = Matrix3d.Displacement(vCtr.GetAsVector().Negate());
-            mat = Matrix3d.Displacement(vp.CenterPoint.GetAsVector()) * mat;
-            mat = Matrix3d.Scaling(vp.CustomScale, vp.CenterPoint) * mat;
-            tr.Commit();
+            catch
+            {
+                throw new Exception("Aucun fenêtre active...ErrorStatus.InvalidInput");
+            }
         }
+        if (vp == null)
+            return mat;
+
+        Point3d vCtr = new(vp.ViewCenter.X, vp.ViewCenter.Y, 0.0);
+        mat = Matrix3d.Displacement(vCtr.GetAsVector().Negate());
+        mat = Matrix3d.Displacement(vp.CenterPoint.GetAsVector()) * mat;
+        mat = Matrix3d.Scaling(vp.CustomScale, vp.CenterPoint) * mat;
         return mat;
     }
 
@@ -801,25 +799,23 @@ public static class EditorEx
     /// <param name="maxPoint">窗口右上点</param>
     public static void ZoomWindow(this Editor ed, Point3d minPoint, Point3d maxPoint)
     {
-        ViewTableRecord cvtr = ed.GetCurrentView();
         ViewTableRecord vtr = new();
-        vtr.CopyFrom(cvtr);
+        vtr.CopyFrom(ed.GetCurrentView());
 
-        Point3d[] oldpnts = new Point3d[] { minPoint, maxPoint };
-        Point3d[] pnts = new Point3d[8];
-        Point3d[] dpnts = new Point3d[8];
+        var oldpnts = new Point3d[] { minPoint, maxPoint };
+        var pnts = new Point3d[8];
+        var dpnts = new Point3d[8];
+
+        var mat = ed.GetMatrixFromWcsToMDcs();
         for (int i = 0; i < 2; i++)
-        {
             for (int j = 0; j < 2; j++)
-            {
                 for (int k = 0; k < 2; k++)
                 {
                     int n = i * 4 + j * 2 + k;
                     pnts[n] = new Point3d(oldpnts[i][0], oldpnts[j][1], oldpnts[k][2]);
-                    dpnts[n] = pnts[n].TransformBy(ed.GetMatrixFromWcsToMDcs());
+                    dpnts[n] = pnts[n].TransformBy(mat);
                 }
-            }
-        }
+
         double xmin, xmax, ymin, ymax;
         xmin = xmax = dpnts[0][0];
         ymin = ymax = dpnts[0][1];
@@ -833,7 +829,8 @@ public static class EditorEx
 
         vtr.Width = xmax - xmin;
         vtr.Height = ymax - ymin;
-        vtr.CenterPoint = (dpnts[0] + (dpnts[7] - dpnts[0]) / 2).Convert2d(new Plane());
+        vtr.CenterPoint = (dpnts[0] + (dpnts[7] - dpnts[0]) / 2)
+                          .Convert2d(Curve2dEx._planeCache);
 
         ed.SetCurrentView(vtr);
         ed.Regen();

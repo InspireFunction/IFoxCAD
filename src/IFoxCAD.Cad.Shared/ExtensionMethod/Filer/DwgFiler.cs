@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using System.Web.Script.Serialization;
+
+namespace IFoxCAD.Cad;
 /*
   Arx自定义实体类,加 读函数（assertReadEnabled）和写函数（assertWriteEnabled）
 
@@ -33,9 +35,11 @@ public class DwgFiler : Cad_DwgFiler
     public List<Handle> HandleList;
     public int HandleListPt = 0;
     [NonSerialized]
+    [ScriptIgnore]
     public List<ObjectId> HardOwnershipIdList;
     public int HardOwnershipIdListPt = 0;
     [NonSerialized]
+    [ScriptIgnore]
     public List<ObjectId> HardPointerIdList;
     public int HardPointerIdListPt = 0;
     public List<short> Int16List;
@@ -53,9 +57,11 @@ public class DwgFiler : Cad_DwgFiler
     public List<Scale3d> Scale3dList;
     public int Scale3dListPt = 0;
     [NonSerialized]
+    [ScriptIgnore]
     public List<ObjectId> SoftOwnershipIdList;
     public int SoftOwnershipIdListPt = 0;
     [NonSerialized]
+    [ScriptIgnore]
     public List<ObjectId> SoftPointerIdList;
     public int SoftPointerIdListPt = 0;
     public List<string> StringList;
@@ -78,33 +84,33 @@ public class DwgFiler : Cad_DwgFiler
         m_Position = 0;
         m_FilerType = FilerType.CopyFiler;
         m_FilerStatus = Cad_ErrorStatus.OK;
-        AddressList = new List<IntPtr>();
-        BinaryChunkList = new List<byte[]>();
-        BooleanList = new List<bool>();
-        ByteList = new List<byte>();
-        BytesList = new List<byte[]>();
-        DoubleList = new List<double>();
-        HandleList = new List<Handle>();
-        HardOwnershipIdList = new List<ObjectId>();
-        HardPointerIdList = new List<ObjectId>();
-        Int16List = new List<short>();
-        Int32List = new List<int>();
+        AddressList = new();
+        BinaryChunkList = new();
+        BooleanList = new();
+        ByteList = new();
+        BytesList = new();
+        DoubleList = new();
+        HandleList = new();
+        HardOwnershipIdList = new();
+        HardPointerIdList = new();
+        Int16List = new();
+        Int32List = new();
 #if !NET35
-        Int64List = new List<long>();
+        Int64List = new();
 #endif
-        Point2dList = new List<Point2d>();
-        Point3dList = new List<Point3d>();
-        Scale3dList = new List<Scale3d>();
-        SoftOwnershipIdList = new List<ObjectId>();
-        SoftPointerIdList = new List<ObjectId>();
-        StringList = new List<string>();
-        Uint16List = new List<ushort>();
-        Uint32List = new List<uint>();
+        Point2dList = new();
+        Point3dList = new();
+        Scale3dList = new();
+        SoftOwnershipIdList = new();
+        SoftPointerIdList = new();
+        StringList = new();
+        Uint16List = new();
+        Uint32List = new();
 #if !NET35
-        Uint64List = new List<ulong>();
+        Uint64List = new();
 #endif
-        Vector2dList = new List<Vector2d>();
-        Vector3dList = new List<Vector3d>();
+        Vector2dList = new();
+        Vector3dList = new();
     }
 
 #if NET35
@@ -112,10 +118,7 @@ public class DwgFiler : Cad_DwgFiler
 #else
     public override long Position => m_Position;
 #endif
-    public override FilerType FilerType
-    {
-        get { return this.m_FilerType; }
-    }
+    public override FilerType FilerType => m_FilerType;
 
     public override Cad_ErrorStatus FilerStatus
     {
@@ -126,7 +129,7 @@ public class DwgFiler : Cad_DwgFiler
     public override IntPtr ReadAddress()
     {
         if (AddressList.Count == 0)
-            return new IntPtr();
+            return new();
         return AddressList[AddressListPt++];
     }
 
@@ -169,21 +172,21 @@ public class DwgFiler : Cad_DwgFiler
     public override Handle ReadHandle()
     {
         if (HandleList.Count == 0)
-            return new Handle();
+            return new();
         return HandleList[HandleListPt++];
     }
 
     public override ObjectId ReadHardOwnershipId()
     {
         if (HardOwnershipIdList.Count == 0)
-            return new ObjectId();
+            return new();
         return HardOwnershipIdList[HardOwnershipIdListPt++];
     }
 
     public override ObjectId ReadHardPointerId()
     {
         if (HardPointerIdList.Count == 0)
-            return new ObjectId();
+            return new();
         return HardPointerIdList[HardPointerIdListPt++];
     }
 
@@ -213,35 +216,35 @@ public class DwgFiler : Cad_DwgFiler
     public override Point2d ReadPoint2d()
     {
         if (Point2dList.Count == 0)
-            return new Point2d();
+            return new();
         return Point2dList[Point2dListPt++];
     }
 
     public override Point3d ReadPoint3d()
     {
         if (Point3dList.Count == 0)
-            return new Point3d();
+            return new();
         return Point3dList[Point3dListPt++];
     }
 
     public override Scale3d ReadScale3d()
     {
         if (Scale3dList.Count == 0)
-            return new Scale3d();
+            return new();
         return Scale3dList[Scale3dListPt++];
     }
 
     public override ObjectId ReadSoftOwnershipId()
     {
         if (SoftOwnershipIdList.Count == 0)
-            return new ObjectId();
+            return new();
         return SoftOwnershipIdList[SoftOwnershipIdListPt++];
     }
 
     public override ObjectId ReadSoftPointerId()
     {
         if (SoftPointerIdList.Count == 0)
-            return new ObjectId();
+            return new();
         return SoftPointerIdList[SoftPointerIdListPt++];
     }
 
@@ -278,14 +281,14 @@ public class DwgFiler : Cad_DwgFiler
     public override Vector2d ReadVector2d()
     {
         if (Vector2dList.Count == 0)
-            return new Vector2d();
+            return new();
         return Vector2dList[Vector2dListPt++];
     }
 
     public override Vector3d ReadVector3d()
     {
         if (Vector3dList.Count == 0)
-            return new Vector3d();
+            return new();
         return Vector3dList[Vector3dListPt++];
     }
 
@@ -491,62 +494,6 @@ public class DwgFiler : Cad_DwgFiler
 
     public override string ToString()
     {
-        int ptCount = AddressListPt +
-                      BinaryChunkListPt +
-                      BooleanListPt +
-                      ByteListPt +
-                      BytesListPt +
-                      DoubleListPt +
-                      HandleListPt +
-                      HardOwnershipIdListPt +
-                      HardPointerIdListPt +
-                      Int16ListPt +
-                      Int32ListPt +
-#if !NET35
-                      Int64ListPt +
-#endif
-                      Point2dListPt +
-                      Point3dListPt +
-                      Scale3dListPt +
-                      SoftOwnershipIdListPt +
-                      SoftPointerIdListPt +
-                      StringListPt +
-                      uint16ListPt +
-                      uint32ListPt +
-#if !NET35
-                      uint64ListPt +
-#endif
-                      Vector2dListPt +
-                      Vector3dListPt;
-
-        int ltCount = AddressList.Count +
-                      BinaryChunkList.Count +
-                      BooleanList.Count +
-                      ByteList.Count +
-                      BytesList.Count +
-                      DoubleList.Count +
-                      HandleList.Count +
-                      HardOwnershipIdList.Count +
-                      HardPointerIdList.Count +
-                      Int16List.Count +
-                      Int32List.Count +
-#if !NET35
-                      Int64List.Count +
-#endif
-                      Point2dList.Count +
-                      Point3dList.Count +
-                      Scale3dList.Count +
-                      SoftOwnershipIdList.Count +
-                      SoftPointerIdList.Count +
-                      StringList.Count +
-                      Uint16List.Count +
-                      Uint32List.Count +
-#if !NET35
-                      Uint64List.Count +
-#endif
-                      Vector2dList.Count +
-                      Vector3dList.Count;
-
-        return "\nDataIn::" + ptCount + "\nDataOut::" + ltCount;
+        return new JavaScriptSerializer().Serialize(this);
     }
 }

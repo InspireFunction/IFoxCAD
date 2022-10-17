@@ -182,7 +182,7 @@ public static class GeometryEx
         CircularArc2d? ca2d = null;
 
         // 遍历C43的组合,环链表的优势在这里
-        foreach (LoopListNode<Point2d> firstNode in iniptlst.GetNodes())
+        foreach (var firstNode in iniptlst.GetNodes())
         {
             // 获取各组合下三点的最小包围圆
             var secondNode = firstNode.Next;
@@ -560,7 +560,7 @@ public static class GeometryEx
         matdata[10] = z;
         matdata[11] = point.Z * (1 - z);
         matdata[15] = 1;
-        return new Matrix3d(matdata);
+        return new(matdata);
     }
 
     /// <summary>
@@ -572,7 +572,7 @@ public static class GeometryEx
     {
         int width = (int)Math.Floor(ext.MaxPoint.X - ext.MinPoint.X);
         int height = (int)Math.Ceiling(ext.MaxPoint.Y - ext.MinPoint.Y);
-        return new Size(width, height);
+        return new(width, height);
     }
 
     /// <summary>
@@ -582,7 +582,7 @@ public static class GeometryEx
     /// <returns>二维点</returns>
     public static Point2d Point2d(this Point3d pt)
     {
-        return new Point2d(pt.X, pt.Y);
+        return new(pt.X, pt.Y);
     }
     /// <summary>
     /// 将三维点集转换为二维点集
@@ -597,20 +597,11 @@ public static class GeometryEx
     /// 将二维点转换为三维点
     /// </summary>
     /// <param name="pt">二维点</param>
-    /// <returns>三维点</returns>
-    public static Point3d Point3d(this Point2d pt)
-    {
-        return new Point3d(pt.X, pt.Y, 0);
-    }
-    /// <summary>
-    /// 将二维点转换为三维点
-    /// </summary>
-    /// <param name="pt">二维点</param>
     /// <param name="z">Z值</param>
     /// <returns>三维点</returns>
-    public static Point3d Point3d(this Point2d pt, double z)
+    public static Point3d Point3d(this Point2d pt, double z = 0)
     {
-        return new Point3d(pt.X, pt.Y, z);
+        return new(pt.X, pt.Y, z);
     }
 
     /// <summary>
@@ -621,7 +612,9 @@ public static class GeometryEx
     /// <returns>返回两个点之间的中点</returns>
     public static Point3d GetMidPointTo(this Point3d pt1, Point3d pt2)
     {
-        return new Point3d((pt1.X + pt2.X) * 0.5, (pt1.Y + pt2.Y) * 0.5, (pt1.Z + pt2.Z) * 0.5);
+        return new(pt1.X * 0.5 + pt2.X * 0.5,
+                   pt1.Y * 0.5 + pt2.Y * 0.5,
+                   pt1.Z * 0.5 + pt2.Z * 0.5);
     }
 
     /// <summary>
@@ -632,7 +625,9 @@ public static class GeometryEx
     /// <returns>返回两个点之间的中点</returns>
     public static Point2d GetMidPointTo(this Point2d pt1, Point2d pt2)
     {
-        return new Point2d((pt1.X + pt2.X) * 0.5, (pt1.Y + pt2.Y) * 0.5);
+        // (pt1 + pt2) / 2; // 溢出风险
+        return new(pt1.X * 0.5 + pt2.X * 0.5,
+                   pt1.Y * 0.5 + pt2.Y * 0.5);
     }
 
     /// <summary>
