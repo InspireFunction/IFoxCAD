@@ -1,5 +1,6 @@
 namespace IFoxCAD.Cad;
 
+using System.Collections.ObjectModel;
 using System.Diagnostics;
 
 /// <summary>
@@ -200,7 +201,7 @@ public class AutoReflection
 #if DEBUG
                         ++error;
 #endif
-                        action(type);
+                        action.Invoke(type);
                     }
                 }
             }
@@ -222,17 +223,15 @@ public class AutoReflection
     /// <returns></returns>
     void GetInterfaceFunctions(List<RunClass> runClassList, string methodName)
     {
-        const string sqid = nameof(Sequence) + "Id";
-
         AppDomainGetTypes(type => {
+            // 接口的静态类屏蔽,继承接口无法使用静态类,因此跳过
             if (type.IsAbstract)
                 return;
 
             var ints = type.GetInterfaces();
             for (int sss = 0; sss < ints.Length; sss++)
             {
-                var inters = ints[sss];
-                if (inters.Name != nameof(IFoxAutoGo))
+                if (ints[sss].Name != nameof(IFoxAutoGo))
                     continue;
 
                 Sequence? sequence = null;
@@ -242,19 +241,20 @@ public class AutoReflection
                 for (int jj = 0; jj < mets.Length; jj++)
                 {
                     var method = mets[jj];
+
+                    // 接口的静态方法屏蔽,继承的方法也不可能是静态的,因此跳过
                     if (method.IsAbstract)
                         continue;
 
-                    if (method.Name == sqid)
+                    if (method.Name == nameof(IFoxAutoGo.SequenceId))
                     {
                         var obj = method.Invoke();
                         if (obj is not null)
                             sequence = (Sequence)obj;
                         continue;
                     }
-                    else if (method.Name == methodName)
+                    if (method.Name == methodName)
                         initialize = method;
-
                     if (initialize is not null && sequence is not null)
                         break;
                 }
@@ -275,13 +275,22 @@ public class AutoReflection
     void GetAttributeFunctions(List<RunClass> initialize, List<RunClass> terminate)
     {
         AppDomainGetTypes(type => {
-            if (type.IsAbstract)
+            if (!type.IsClass)
                 return;
+
+            // 特性的静态类不屏蔽
+            //if (type.IsAbstract)
+            //    return;
 
             var mets = type.GetMethods();
             for (int ii = 0; ii < mets.Length; ii++)
             {
                 var method = mets[ii];
+
+                // 特性的静态方法不屏蔽
+                //if (method.IsAbstract)
+                //    continue;
+
                 var attr = method.GetCustomAttributes(true);
                 for (int jj = 0; jj < attr.Length; jj++)
                 {

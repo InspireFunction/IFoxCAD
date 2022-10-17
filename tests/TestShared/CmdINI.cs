@@ -1,6 +1,3 @@
-using System.Diagnostics;
-using System.Linq;
-
 namespace Test;
 
 /// <summary>
@@ -27,19 +24,15 @@ public class AutoRegAssemEx : AutoRegAssem
 {
     public AutoRegAssemEx() : base(AutoRegConfig.All)
     {
-        var dm = Acap.DocumentManager;
-        var doc = dm.MdiActiveDocument;
-        var ed = doc.Editor;
-        ed.WriteMessage($"\n {nameof(AutoRegAssemEx)}构造函数,开始自动执行\r\n");
-
+        Env.Printl($"{nameof(AutoRegAssemEx)}构造函数,开始自动执行\r\n");
         CmdInit.AutoRegAssemEx = this;
-
 #if Debug
         // 此处用来反射本程序集,检查是否存在重复命令
         AutoReflection.DebugCheckCmdRecurrence();
 #endif
     }
 }
+
 
 public class CmdInit
 {
@@ -51,13 +44,9 @@ public class CmdInit
     [CommandMethod(nameof(IFoxAddReg))]
     public void IFoxAddReg()
     {
-        var dm = Acap.DocumentManager;
-        var doc = dm.MdiActiveDocument;
-        var ed = doc.Editor;
-        ed.WriteMessage($"\n 加入注册表");
+        Env.Printl($"加入注册表");
 
-        if (AutoRegAssemEx is null)
-            AutoRegAssemEx = new();
+        AutoRegAssemEx ??= new();
         AutoRegAssemEx.RegApp();
     }
 
@@ -67,10 +56,7 @@ public class CmdInit
     [CommandMethod(nameof(IFoxRemoveReg))]
     public void IFoxRemoveReg()
     {
-        var dm = Acap.DocumentManager;
-        var doc = dm.MdiActiveDocument;
-        var ed = doc.Editor;
-        ed.WriteMessage($"\n 卸载注册表");
+        Env.Printl($"卸载注册表");
 
         // 防止卸载两次,不然会报错的
         AutoRegAssemEx?.UnRegApp();
@@ -78,64 +64,70 @@ public class CmdInit
     }
 }
 
-
 /*
- * 自动执行特性例子:
+ * 自动执行:特性
  */
 public class Cmd_IFoxInitialize
 {
     [IFoxInitialize]
-    public void NameCasual()
-    {
-        var dm = Acap.DocumentManager;
-        var doc = dm.MdiActiveDocument;
-        var ed = doc.Editor;
-        ed.WriteMessage("\n 开始自动执行 可以分开多个类和多个函数 \r\n");
-    }
-
-    [IFoxInitialize]
-    public void NameCasualtest()
-    {
-        var dm = Acap.DocumentManager;
-        var doc = dm.MdiActiveDocument;
-        var ed = doc.Editor;
-        ed.WriteMessage("\n 开始自动执行 又一次测试 \r\n");
-    }
-
-    [IFoxInitialize]
     public void Initialize()
     {
-        var dm = Acap.DocumentManager;
-        var doc = dm.MdiActiveDocument;
-        var ed = doc.Editor;
-        ed.WriteMessage("\n 开始自动执行 Initialize \r\n");
+        Env.Printl($"开始自动执行,可以分开多个类和多个函数:{nameof(Cmd_IFoxInitialize)}.{nameof(Initialize)}");
     }
 
-    [IFoxInitialize(isInitialize: false)]
+    [IFoxInitialize]
+    public void Initialize2()
+    {
+        Env.Printl($"开始自动执行,可以分开多个类和多个函数,又一次测试:{nameof(Cmd_IFoxInitialize)}.{nameof(Initialize2)}");
+    }
+
+    //[IFoxInitialize(isInitialize: false)]
+    //public void Terminate()
+    //{
+    //    try
+    //    {
+    //        // 注意此时编辑器已经回收,所以此句引发错误
+    //        // 您可以写一些其他的释放动作,例如资源回收之类的
+    //        Env.Printl($"\n 结束自动执行 Terminate \r\n");
+    //    }
+    //    catch (System.Exception e)
+    //    {
+    //        System.Windows.Forms.MessageBox.Show(e.Message);
+    //    }
+    //}
+
+    [IFoxInitialize]
+    public static void StaticInitialize()
+    {
+        Env.Printl($"开始自动执行,静态调用:{nameof(Cmd_IFoxInitialize)}.{nameof(StaticInitialize)}");
+    }
+}
+
+/*
+ * 自动执行:接口
+ */
+public class Cmd_IFoxInitializeInterface : IFoxAutoGo
+{
+    public void Initialize()
+    {
+        Env.Printl($"开始自动执行,接口调用:{nameof(Cmd_IFoxInitializeInterface)}.{nameof(Initialize)}");
+    }
+
+    public Sequence SequenceId()
+    {
+        return Sequence.Last;
+    }
+
     public void Terminate()
     {
-        // try
-        // {
-        //    var dm = Acap.DocumentManager;
-        //    var doc = dm.MdiActiveDocument;
-        //    var ed = doc.Editor; // 注意此时编辑器已经回收,所以此句没用,并引发错误
-        //    ed.WriteMessage("\n 结束自动执行 Terminate \r\n");
-        // }
-        // catch (System.Exception)
-        // {
-        // }
+        //    try
+        //    {
+        //        // 注意此时编辑器已经回收,所以此句没用,并引发错误
+        //        Env.Printl($"结束自动执行 {nameof(Cmd_IFoxInitializeInterface)}.Terminate \r\n");
+        //    }
+        //    catch (System.Exception e)
+        //    {
+        //        System.Windows.Forms.MessageBox.Show(e.Message);
+        //    }
     }
-
-    // [IFoxInitialize]
-    // public void Initialize()
-    // {
-    //    // 文档管理器将比此接口前创建,因此此句会执行
-    //    Acap.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\nload....");
-    // }
-    // [IFoxInitialize(Sequence.First, false)]
-    // public void Terminate()
-    // {
-    //    // 文档管理器将比此接口前死亡,因此此句不会执行
-    //    Acap.DocumentManager.MdiActiveDocument?.Editor.WriteMessage("\nunload....");
-    // }
 }
