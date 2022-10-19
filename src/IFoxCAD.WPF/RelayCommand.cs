@@ -16,7 +16,6 @@ public class RelayCommand : ICommand
     /// <param name="execute">执行函数</param>
     public RelayCommand(Action<object> execute) : this(execute, null)
     {
-
     }
     /// <summary>
     /// 初始化 <see cref="RelayCommand"/> 类.
@@ -38,16 +37,12 @@ public class RelayCommand : ICommand
         add
         {
             if (_canExecute is not null)
-            {
                 CommandManager.RequerySuggested += value;
-            }
         }
         remove
         {
             if (_canExecute is not null)
-            {
                 CommandManager.RequerySuggested -= value;
-            }
         }
     }
     /// <summary>
@@ -87,7 +82,6 @@ public class RelayCommand<T> : ICommand
     /// <param name="execute">执行函数</param>
     public RelayCommand(Action<T> execute) : this(execute, (o) => true)
     {
-
     }
 
     /// <summary>
@@ -109,16 +103,12 @@ public class RelayCommand<T> : ICommand
         add
         {
             if (_canExecute is not null)
-            {
                 CommandManager.RequerySuggested += value;
-            }
         }
         remove
         {
             if (_canExecute is not null)
-            {
                 CommandManager.RequerySuggested -= value;
-            }
         }
     }
     /// <summary>
@@ -131,9 +121,7 @@ public class RelayCommand<T> : ICommand
     public bool CanExecute(object parameter)
     {
         if (_canExecute is null)
-        {
             return true;
-        }
         return _canExecute((T)parameter);
     }
     /// <summary>
@@ -143,9 +131,7 @@ public class RelayCommand<T> : ICommand
     public void Execute(object parameter)
     {
         if (_execute is not null && CanExecute(parameter))
-        {
             _execute((T)parameter);
-        }
     }
 }
 
@@ -161,13 +147,9 @@ public class EventCommand : TriggerAction<DependencyObject>
     protected override void Invoke(object parameter)
     {
         if (CommandParameter is not null)
-        {
             parameter = CommandParameter;
-        }
         if (Command is not null)
-        {
             Command.Execute(parameter);
-        }
     }
     /// <summary>
     /// 事件

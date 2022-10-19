@@ -28,13 +28,13 @@ public class EventBindingExtension : MarkupExtension
         if (serviceProvider is null)
             throw new ArgumentNullException(nameof(serviceProvider));
         if (serviceProvider.GetService(typeof(IProvideValueTarget)) is not IProvideValueTarget targetProvider)
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(message: $"{nameof(ProvideValue)}:{nameof(IProvideValueTarget)}");
 
         if (targetProvider.TargetObject is not FrameworkElement targetObject)
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(message: $"{nameof(ProvideValue)}:{nameof(FrameworkElement)}");
 
         if (targetProvider.TargetProperty is not MemberInfo memberInfo)
-            throw new InvalidOperationException();
+            throw new InvalidOperationException(message: $"{nameof(ProvideValue)}:{nameof(MemberInfo)}");
 
         if (string.IsNullOrWhiteSpace(Command))
         {
@@ -61,7 +61,7 @@ public class EventBindingExtension : MarkupExtension
         {
             // var info = memberInfo as MethodInfo;
             // var methodInfo = info;
-            ParameterInfo[] pars = methodInfo.GetParameters();
+            var pars = methodInfo.GetParameters();
             eventHandlerType = pars[1].ParameterType;
         }
 
@@ -72,9 +72,9 @@ public class EventBindingExtension : MarkupExtension
     private object? CreateHandler(MemberInfo memberInfo, string cmdName, Type targetType)
 #pragma warning restore IDE0060 // 删除未使用的参数
     {
-        Type? eventHandlerType = GetEventHandlerType(memberInfo);
-
-        if (eventHandlerType is null) return null;
+        var eventHandlerType = GetEventHandlerType(memberInfo);
+        if (eventHandlerType is null)
+            return null;
 
         var handlerInfo = eventHandlerType.GetMethod("Invoke");
         var method = new DynamicMethod("", handlerInfo.ReturnType,
@@ -88,21 +88,20 @@ public class EventBindingExtension : MarkupExtension
         gen.Emit(OpCodes.Ldarg, 0);
         gen.Emit(OpCodes.Ldarg, 1);
         gen.Emit(OpCodes.Ldstr, cmdName);
+
         if (CommandParameter is null)
-        {
             gen.Emit(OpCodes.Ldnull);
-        }
         else
-        {
             gen.Emit(OpCodes.Ldstr, CommandParameter);
-        }
+
         gen.Emit(OpCodes.Call, getMethod);
         gen.Emit(OpCodes.Ret);
 
         return method.CreateDelegate(eventHandlerType);
     }
 
-    static readonly MethodInfo getMethod = typeof(EventBindingExtension).GetMethod("HandlerIntern", new Type[] { typeof(object), typeof(object), typeof(string), typeof(string) });
+    static readonly MethodInfo getMethod = typeof(EventBindingExtension)
+        .GetMethod("HandlerIntern", new Type[] { typeof(object), typeof(object), typeof(string), typeof(string) });
 
 #pragma warning disable IDE0051 // 删除未使用的私有成员
     static void Handler(object sender, object args)
@@ -133,7 +132,8 @@ public class EventBindingExtension : MarkupExtension
     internal static ICommand? GetCommand(FrameworkElement target, string cmdName)
     {
         var vm = FindViewModel(target);
-        if (vm is null) return null;
+        if (vm is null)
+            return null;
 
         var vmType = vm.GetType();
         var cmdProp = vmType.GetProperty(cmdName);
@@ -141,11 +141,9 @@ public class EventBindingExtension : MarkupExtension
             return cmdProp.GetValue(vm) as ICommand;
 #if DEBUG
         throw new Exception("EventBinding path error: '" + cmdName + "' property not found on '" + vmType + "' 'DelegateCommand'");
-#endif
-
-#pragma warning disable CS0162 // 检测到无法访问的代码
+#else
         return null;
-#pragma warning restore CS0162 // 检测到无法访问的代码
+#endif
     }
 
     internal static object GetCommandParameter(FrameworkElement target, object args, string commandParameter)
@@ -162,29 +160,30 @@ public class EventBindingExtension : MarkupExtension
 
     internal static ViewModelBase? FindViewModel(FrameworkElement? target)
     {
-        if (target is null) return null;
-
-        if (target.DataContext is ViewModelBase vm) return vm;
-
-        var parent = target.GetParentObject() as FrameworkElement;
-
-        return FindViewModel(parent);
+        if (target is null)
+            return null;
+        if (target.DataContext is ViewModelBase vm)
+            return vm;
+        return FindViewModel(target.GetParentObject() as FrameworkElement);
     }
 
     internal static object FollowPropertyPath(object target, string path, Type? valueType = null)
     {
-        if (target is null) throw new ArgumentNullException(nameof(target));
-        if (path is null) throw new ArgumentNullException(nameof(path));
+        if (target is null)
+            throw new ArgumentNullException(nameof(target));
+        if (path is null)
+            throw new ArgumentNullException(nameof(path));
 
-        Type currentType = valueType ?? target.GetType();
-
-        foreach (string propertyName in path.Split('.'))
+        valueType ??= target.GetType();
+        var spls = path.Split('.');
+        for (int i = 0; i < spls.Length; i++)
         {
-            PropertyInfo property = currentType.GetProperty(propertyName);
-            if (property is null) throw new NullReferenceException("property");
+            var property = valueType.GetProperty(spls[i]);
+            if (property is null)
+                throw new NullReferenceException("property");
 
             target = property.GetValue(target);
-            currentType = property.PropertyType;
+            valueType = property.PropertyType;
         }
         return target;
     }

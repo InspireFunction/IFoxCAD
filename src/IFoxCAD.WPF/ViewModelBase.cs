@@ -16,7 +16,6 @@ public class ViewModelBase : INotifyPropertyChanged
     /// <param name="propertyName">属性名</param>
     public void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
-
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
     /// <summary>
@@ -29,7 +28,8 @@ public class ViewModelBase : INotifyPropertyChanged
     /// <returns>成功返回 <see langword="true"/>，反之 <see langword="false"/></returns>
     protected virtual bool Set<T>(ref T storage, T value, [CallerMemberName] string propertyName = "")
     {
-        if (object.Equals(storage, value)) return false;
+        if (object.Equals(storage, value))
+            return false;
 
         storage = value;
         this.OnPropertyChanged(propertyName);
@@ -53,6 +53,6 @@ public class ViewModelBase : INotifyPropertyChanged
     /// <returns>WPF命令</returns>
     protected RelayCommand CreateCommand(Action<object> executeMethod, Func<object, bool> canExecuteMethod)
     {
-        return new RelayCommand(executeMethod, canExecuteMethod);
+        return new(executeMethod, canExecuteMethod);
     }
 }

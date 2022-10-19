@@ -14,19 +14,21 @@ public static class DependencyObjectExtensions
     {
         if (child is null) return null;
 
-        if (child is ContentElement contentElement)
+        if (child is ContentElement ce)
         {
-            DependencyObject parent = ContentOperations.GetParent(contentElement);
-            if (parent is not null) return parent;
+            var parent = ContentOperations.GetParent(ce);
+            if (parent is not null)
+                return parent;
 
-            FrameworkContentElement? fce = contentElement as FrameworkContentElement;
+            var fce = ce as FrameworkContentElement;
             return fce?.Parent;
         }
 
-        if (child is FrameworkElement frameworkElement)
+        if (child is FrameworkElement fe)
         {
-            DependencyObject parent = frameworkElement.Parent;
-            if (parent is not null) return parent;
+            var parent = fe.Parent;
+            if (parent is not null)
+                return parent;
         }
 
         return VisualTreeHelper.GetParent(child);

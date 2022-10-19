@@ -6,12 +6,19 @@ public class EnumSelection<T> : INotifyPropertyChanged where T : struct, ICompar
     private readonly bool canDeselect; // Can be deselected? (Radio buttons cannot deselect, checkboxes can)
     private readonly T blankValue; // what is considered the "blank" value if it can be deselected?
 
-    public EnumSelection(T value) : this(value, false, default) { }
-    public EnumSelection(T value, bool canDeselect) : this(value, canDeselect, default) { }
-    public EnumSelection(T value, T blankValue) : this(value, true, blankValue) { }
+    public EnumSelection(T value) : this(value, false, default)
+    {
+    }
+    public EnumSelection(T value, bool canDeselect) : this(value, canDeselect, default)
+    {
+    }
+    public EnumSelection(T value, T blankValue) : this(value, true, blankValue)
+    {
+    }
     public EnumSelection(T value, bool canDeselect, T blankValue)
     {
-        if (!typeof(T).IsEnum) throw new ArgumentException($"{nameof(T)} must be an enum type"); // I really wish there was a way to constrain generic types to enums...
+        if (!typeof(T).IsEnum)
+            throw new ArgumentException($"{nameof(T)} must be an enum type"); // I really wish there was a way to constrain generic types to enums...
         isFlagged = typeof(T).IsDefined(typeof(FlagsAttribute), false);
 
         this.value = value;
@@ -46,7 +53,8 @@ public class EnumSelection<T> : INotifyPropertyChanged where T : struct, ICompar
                 int iValue = (int)(object)this.value;
                 int iKey = (int)(object)key;
 
-                if (((iValue & iKey) == iKey) == value) return;
+                if ((iValue & iKey) == iKey == value)
+                    return;
 
                 if (value)
                     Value = (T)(object)(iValue | iKey);
