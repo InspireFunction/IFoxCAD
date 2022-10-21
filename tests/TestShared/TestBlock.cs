@@ -2,6 +2,27 @@
 
 public class TestBlock
 {
+    // 一个命令就把块编辑搞定,减少用户记忆命令
+    [CommandMethod(nameof(Test_Refedit), CommandFlags.Redraw | CommandFlags.Session)]
+    public void Test_Refedit()
+    {
+        Env.Printl($"{nameof(Test_Refedit)}-在位编辑块/在位保存块");
+
+        // 全部用lisp发送命令是为了空格还是本命令
+        // 打开了块编辑器,就关闭掉,保存提示
+        if ((short)Env.GetVar("BlockEditor") == 1)
+        {
+            Env.Editor.RunLisp("(command \"_.bclose\")");
+            return;
+        }
+        // 0x01 非在位编辑状态: 先选择块参照,然后在位编辑
+        // 0x02 在位编辑状态:   关闭并保存
+        if (Env.GetVar("RefEditName").ToString() == "")//显示正在编辑的参照名称
+            Env.Editor.RunLisp("(command \"_.refedit\")");//直接点选可以有嵌套层次
+        else
+            Env.Editor.RunLisp("(command \"_.refclose\" \"s\")");
+    }
+
     [CommandMethod(nameof(Test_GetBoundingBoxEx))]
     public void Test_GetBoundingBoxEx()
     {
