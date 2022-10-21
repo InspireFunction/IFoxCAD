@@ -48,10 +48,15 @@ public class DwgFilerEx
     /// </summary>
     /// <param name="json"></param>
     /// <returns></returns>
-    public DwgFilerEx? DeserializeObject(string json)
+    public static DwgFilerEx? DeserializeObject(string json)
     {
-        throw new ArgumentException();
-        // return JsonConvert.DeserializeObject<DwgFilerEx>(json);// 反序列化*字符串转类
+#if NewtonsoftJson
+        return JsonConvert.DeserializeObject<DwgFilerEx>(json);
+#else
+        JavaScriptSerializer serializer = new();
+        serializer.RegisterConverters(new[] { new ObjectIdConverter() });
+        return serializer.Deserialize<DwgFilerEx>(json);
+#endif
     }
 
     /// <summary>
@@ -60,18 +65,17 @@ public class DwgFilerEx
     /// <returns></returns>
     public string SerializeObject()
     {
-        throw new ArgumentException();
-        // return JsonConvert.SerializeObject(DwgFiler, Formatting.Indented);  // 序列化*类转字符串
+#if NewtonsoftJson
+        return JsonConvert.SerializeObject(DwgFiler, Formatting.Indented);
+#else
+        JavaScriptSerializer serializer = new();
+        serializer.RegisterConverters(new[] { new ObjectIdConverter() });
+        return serializer.Serialize(DwgFiler);
+#endif
     }
 
     public override string ToString()
     {
-        // 替换中括号以外的字符串,替换逗号为换行符 https://bbs.csdn.net/topics/370134253
-        // var str = SerializeObject();
-        // str = str.Substring(1, str.Length - 2);
-        // str = Regex.Replace(str, @"(?:,)(?![^\[]*?\])", "\r\n");
-        // return str;
-
         return DwgFiler.ToString();
     }
 

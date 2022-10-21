@@ -1,6 +1,5 @@
-﻿using System.Web.Script.Serialization;
+﻿namespace IFoxCAD.Cad;
 
-namespace IFoxCAD.Cad;
 /*
   Arx自定义实体类,加 读函数（assertReadEnabled）和写函数（assertWriteEnabled）
 
@@ -9,7 +8,9 @@ namespace IFoxCAD.Cad;
   [Newtonsoft.Json.JsonIgnore] 设置成员 不可序列化
 */
 
-
+#if NewtonsoftJson
+[JsonConverter(typeof(ObjectIdConverter))]
+#endif
 [Serializable]
 public class DwgFiler : Cad_DwgFiler
 {
@@ -34,12 +35,12 @@ public class DwgFiler : Cad_DwgFiler
     public int DoubleListPt = 0;
     public List<Handle> HandleList;
     public int HandleListPt = 0;
-    [NonSerialized]
-    [ScriptIgnore]
+    //[NonSerialized]
+    //[ScriptIgnore]
     public List<ObjectId> HardOwnershipIdList;
     public int HardOwnershipIdListPt = 0;
-    [NonSerialized]
-    [ScriptIgnore]
+    //[NonSerialized]
+    //[ScriptIgnore]
     public List<ObjectId> HardPointerIdList;
     public int HardPointerIdListPt = 0;
     public List<short> Int16List;
@@ -56,12 +57,12 @@ public class DwgFiler : Cad_DwgFiler
     public int Point3dListPt = 0;
     public List<Scale3d> Scale3dList;
     public int Scale3dListPt = 0;
-    [NonSerialized]
-    [ScriptIgnore]
+    //[NonSerialized]
+    //[ScriptIgnore]
     public List<ObjectId> SoftOwnershipIdList;
     public int SoftOwnershipIdListPt = 0;
-    [NonSerialized]
-    [ScriptIgnore]
+    //[NonSerialized]
+    //[ScriptIgnore]
     public List<ObjectId> SoftPointerIdList;
     public int SoftPointerIdListPt = 0;
     public List<string> StringList;
@@ -494,6 +495,12 @@ public class DwgFiler : Cad_DwgFiler
 
     public override string ToString()
     {
-        return new JavaScriptSerializer().Serialize(this);
+#if NewtonsoftJson
+        return JsonConvert.SerializeObject(this, Formatting.Indented);
+#else
+        JavaScriptSerializer serializer = new();
+        serializer.RegisterConverters(new[] { new ObjectIdConverter() });
+        return serializer.Serialize(this);
+#endif
     }
 }
