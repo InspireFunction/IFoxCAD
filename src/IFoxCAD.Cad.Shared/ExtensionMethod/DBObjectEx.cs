@@ -8,53 +8,6 @@ namespace IFoxCAD.Cad;
 public static class DBObjectEx
 {
     #region Xdata扩展
-
-    /// <summary>
-    /// 获取appName的索引区间
-    /// </summary>
-    /// <param name="data">xdata</param>
-    /// <param name="appName">注册名称</param>
-    /// <param name="dxfCodes">任务组码对象</param>
-    /// <returns>返回任务组码的索引</returns>
-    static List<int> GetXdataAppIndex(XDataList data, string appName, DxfCode[] dxfCodes)
-    {
-        List<int> acIndex = new();
-        int appNameIndex = -1;
-        // int appNameIndexNext = -1;
-
-        // 先找到属于它的名字索引,然后再找到下一个不属于它名字的索引,移除中间部分
-        for (int i = 0; i < data.Count; i++)
-        {
-            if (data[i].TypeCode == (short)DxfCode.ExtendedDataRegAppName)
-            {
-                if (data[i].Value.ToString() == appName)
-                {
-                    appNameIndex = i;
-                    continue;
-                }
-                if (appNameIndex != -1)
-                {
-                    // 找到了后面的appName
-                    // appNameIndexNext = i;
-                    break;
-                }
-            }
-            if (appNameIndex != -1 && // 找next的时候,获取任务(移除)的对象
-                dxfCodes.Contains((DxfCode)data[i].TypeCode))
-                acIndex.Add(i);
-        }
-
-        // 当前app索引
-        // if (appNameIndex == -1)
-        // return;
-
-        // 下一个app索引,如果是空,就为末尾
-        // if (appNameIndexNext == -1)
-        //    appNameIndexNext = data.Count;
-
-        return acIndex;
-    }
-
     /// <summary>
     /// 删除扩展数据
     /// </summary>
@@ -69,7 +22,7 @@ public static class DBObjectEx
 
         // 测试命令 addxdata removexdata
         // 移除指定App的扩展
-        var indexs = GetXdataAppIndex(data, appName, new DxfCode[] { dxfCode });
+        var indexs = data.GetXdataAppIndex(appName, new DxfCode[] { dxfCode });
         if (indexs.Count == 0)
             return;
 
@@ -79,6 +32,25 @@ public static class DBObjectEx
         using (obj.ForWrite())
             obj.XData = data;
     }
+    /// <summary>
+    /// 删除扩展数据
+    /// </summary>
+    /// <param name="obj">对象实例</param>
+    /// <param name="appName">应用程序名称</param>
+    public static void RemoveXData(this DBObject obj, string appName)
+    {
+        if (obj.XData == null)
+            return;
+        foreach (var data in obj.XData)
+        {
+            // 直接赋值进去等于清空名称
+            using var rb = new ResultBuffer();
+            rb.Add(new((int)DxfCode.ExtendedDataRegAppName, appName));
+            using (obj.ForWrite())
+                obj.XData = rb;
+        }
+    }
+
     /// <summary>
     /// 修改扩展数据
     /// </summary>
@@ -92,7 +64,7 @@ public static class DBObjectEx
             return;
         XDataList data = obj.XData;
 
-        var indexs = GetXdataAppIndex(data, appName, new DxfCode[] { dxfCode });
+        var indexs = data.GetXdataAppIndex(appName, new DxfCode[] { dxfCode });
         if (indexs.Count == 0)
             return;
 

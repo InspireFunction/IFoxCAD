@@ -41,6 +41,84 @@ public class XDataList : TypedValueList
         Add((int)code, obj);
     }
 
+    /// <summary>
+    /// 是否含有注册名
+    /// </summary>
+    /// <param name="appName">注册名</param>
+    public bool Contains(string appName)
+    {
+        bool result = false;
+        RangeTask(appName, (tv, state, i) => {
+            result = true;
+            state.Break();
+        });
+        return result;
+    }
+
+    /// <summary>
+    /// 注册名下含有指定成员
+    /// </summary>
+    /// <param name="appName">注册名</param>
+    /// <param name="value">内容</param>
+    public bool Contains(string appName, object value)
+    {
+        bool result = false;
+        RangeTask(appName, (tv, state, i) => {
+            if (tv.Value.Equals(value))
+            {
+                result = true;
+                state.Break();
+            }
+        });
+        return result;
+    }
+
+    /// <summary>
+    /// 获取appName的索引区间
+    /// </summary>
+    /// <param name="appName">注册名称</param>
+    /// <param name="dxfCodes">任务组码对象</param>
+    /// <returns>返回任务组码的索引</returns>
+    public List<int> GetXdataAppIndex(string appName, DxfCode[] dxfCodes)
+    {
+        List<int> indexs = new();
+        RangeTask(appName, (tv, state, i) => {
+            if (dxfCodes.Contains((DxfCode)tv.TypeCode))
+                indexs.Add(i);
+        });
+        return indexs;
+    }
+
+    /// <summary>
+    /// 区间任务
+    /// </summary>
+    /// <param name="action"></param>
+    void RangeTask(string appName, Action<TypedValue, LoopState, int> action)
+    {
+        LoopState state = new();
+        // 在名称和名称之间找
+        int appNameIndex = -1;
+        for (int i = 0; i < this.Count; i++)
+        {
+            if (this[i].TypeCode == (short)DxfCode.ExtendedDataRegAppName)
+            {
+                if (this[i].Value.ToString() == appName)
+                {
+                    appNameIndex = i;
+                    continue;
+                }
+                if (appNameIndex != -1)//找到了下一个名称
+                    break;
+            }
+            if (appNameIndex != -1) // 找下一个的时候,获取任务(移除)的对象
+            {
+                action(this[i], state, i);
+                if (!state.IsRun)
+                    break;
+            }
+        }
+    }
+
     #endregion
 
     #region 转换器

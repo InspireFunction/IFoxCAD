@@ -1,4 +1,7 @@
-﻿namespace Test;
+﻿using System.Diagnostics;
+using System.Web.UI.WebControls;
+
+namespace Test;
 
 public partial class Test
 {
@@ -184,9 +187,8 @@ public partial class Test
 
 
 
-
-
     // 测试扩展数据
+    // 增
     [CommandMethod(nameof(Test_AddXdata))]
     public void Test_AddXdata()
     {
@@ -219,18 +221,38 @@ public partial class Test
 
         tr.CurrentSpace.AddEntity(line);
     }
+    // 删
+    [CommandMethod(nameof(Test_RemoveXdata))]
+    public void Test_RemoveXdata()
+    {
+        var appname = "myapp2";
+        var res = Env.Editor.GetEntity("\n select the entity:");
+        if (res.Status == PromptStatus.OK)
+        {
+            using DBTrans tr = new();
+            var ent = tr.GetObject<Entity>(res.ObjectId);
+            if (ent == null || ent.XData == null)
+                return;
 
+            Env.Printl("\n移除前:" + ent.XData.ToString());
+
+            ent.RemoveXData(appname, DxfCode.ExtendedDataAsciiString);
+            Env.Printl("\n移除成员后:" + ent.XData.ToString());
+
+            ent.RemoveXData(appname);
+            Env.Printl("\n移除appName后:" + ent.XData.ToString());
+        }
+    }
+    // 查
     [CommandMethod(nameof(Test_GetXdata))]
     public void Test_GetXdata()
     {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        var ed = doc.Editor;
         using DBTrans tr = new();
         tr.RegAppTable.ForEach(id =>
             id.GetObject<RegAppTableRecord>()?.Name.Print());
         tr.RegAppTable.GetRecords().ForEach(rec => rec.Name.Print());
         tr.RegAppTable.GetRecordNames().ForEach(name => name.Print());
-        tr.RegAppTable.ForEach(re => re.Name.Print(), checkIdOk: false);
+        tr.RegAppTable.ForEach(reg => reg.Name.Print(), checkIdOk: false);
 
         // var res = ed.GetEntity("\n select the entity:");
         // if (res.Status == PromptStatus.OK)
@@ -240,43 +262,49 @@ public partial class Test
         //    var data = tr.GetObject<Entity>(res.ObjectId).XData;
         //    ed.WriteMessage(data.ToString());
         // }
-    }
 
-    [CommandMethod(nameof(Test_Changexdata))]
-    public void Test_Changexdata()
+        // 查询appName里面是否含有某个
+        var appname = "myapp2";
+        var res = Env.Editor.GetEntity("\n select the entity:");
+        if (res.Status == PromptStatus.OK)
+        {
+            var ent = tr.GetObject<Entity>(res.ObjectId);
+            if (ent == null || ent.XData == null)
+                return;
+
+            XDataList data = ent.XData;
+            if (data.Contains(appname))
+                Env.Printl("含有appName:" + appname);
+            else
+                Env.Printl("不含有appName:" + appname);
+
+            var str = "要移除的我";
+            if (data.Contains(appname, str))
+                Env.Printl("含有内容:" + str);
+            else
+                Env.Printl("不含有内容:" + str);
+        }
+    }
+    // 改
+    [CommandMethod(nameof(Test_ChangeXdata))]
+    public void Test_ChangeXdata()
     {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        var ed = doc.Editor;
         var appname = "myapp";
-        var res = ed.GetEntity("\n select the entity:");
+        var res = Env.Editor.GetEntity("\n select the entity:");
         if (res.Status == PromptStatus.OK)
         {
             using DBTrans tr = new();
             var data = tr.GetObject<Entity>(res.ObjectId)!;
             data.ChangeXData(appname, DxfCode.ExtendedDataAsciiString, "change");
 
-            ed.WriteMessage(data.XData.ToString());
+            Env.Printl(data.XData.ToString());
         }
     }
 
 
-    [CommandMethod(nameof(Test_Removexdata))]
-    public void Test_Removexdata()
-    {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        var ed = doc.Editor;
-        var appname = "myapp2";
-        var res = ed.GetEntity("\n select the entity:");
-        if (res.Status == PromptStatus.OK)
-        {
-            using DBTrans tr = new();
-            var ent = tr.GetObject<Entity>(res.ObjectId);
-            ed.WriteMessage("\n移除前:" + ent?.XData.ToString());
 
-            ent?.RemoveXData(appname, DxfCode.ExtendedDataAsciiString);
-            ed.WriteMessage("\n移除后:" + ent?.XData.ToString());
-        }
-    }
+
+
 
     [CommandMethod(nameof(Test_PrintLayerName))]
     public void Test_PrintLayerName()
