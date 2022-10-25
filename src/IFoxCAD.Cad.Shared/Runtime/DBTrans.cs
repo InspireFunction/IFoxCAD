@@ -14,13 +14,13 @@ using System.Windows.Forms;
 public class DBTrans : IDisposable
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => "StackCount:" + dBTrans.Count;
+    private string DebuggerDisplay => ToString(" | ");
 
     #region 私有字段
     /// <summary>
     /// 文档锁
     /// </summary>
-    private readonly DocumentLock? documentLock;
+    private readonly DocumentLock? _documentLock;
     /// <summary>
     /// 是否提交事务
     /// </summary>
@@ -28,7 +28,7 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 事务栈
     /// </summary>
-    private static readonly Stack<DBTrans> dBTrans = new();
+    private static readonly Stack<DBTrans> _dBTrans = new();
     /// <summary>
     /// 文件名
     /// </summary>
@@ -63,13 +63,12 @@ public class DBTrans : IDisposable
              */
 
             // 由于大量的函数依赖本属性,强迫用户先开启事务
-            if (dBTrans.Count == 0)
+            if (_dBTrans.Count == 0)
                 throw new ArgumentNullException("事务栈没有任何事务,请在调用前创建:" + nameof(DBTrans));
-            var trans = dBTrans.Peek();
+            var trans = _dBTrans.Peek();
             return trans;
         }
     }
-
     /// <summary>
     /// 文档
     /// </summary>
@@ -104,9 +103,9 @@ public class DBTrans : IDisposable
         Transaction = Database.TransactionManager.StartTransaction();
         _commit = commit;
         if (doclock)
-            documentLock = Document.LockDocument();
+            _documentLock = Document.LockDocument();
 
-        dBTrans.Push(this);
+        _dBTrans.Push(this);
     }
 
     /// <summary>
@@ -120,7 +119,7 @@ public class DBTrans : IDisposable
         Database = database;
         Transaction = Database.TransactionManager.StartTransaction();
         _commit = commit;
-        dBTrans.Push(this);
+        _dBTrans.Push(this);
     }
 
     /// <summary>
@@ -131,10 +130,12 @@ public class DBTrans : IDisposable
     /// <param name="commit">事务是否提交</param>
     /// <param name="fileOpenMode">开图模式</param>
     /// <param name="password">密码</param>
+    /// <param name="activeOpen">后台打开false;前台打开true(必须设置CommandFlags.Session)</param>
     public DBTrans(string fileName,
                    bool commit = true,
                    FileOpenMode fileOpenMode = FileOpenMode.OpenForReadAndWriteNoShare,
-                   string? password = null)
+                   string? password = null,
+                   bool activeOpen = false)
     {
         if (fileName == null || string.IsNullOrEmpty(fileName.Trim()))
             throw new ArgumentNullException(nameof(fileName));
@@ -145,71 +146,89 @@ public class DBTrans : IDisposable
         // 因此用 _fileName 储存
         if (!File.Exists(_fileName))
         {
-            // 第二个参数如果使用了false,那么将导致关闭cad的时候出现致命错误;cad08测试
-            // Unhandled Access Violation Reading Ox113697a0 Exception at 4b4154h
-            Database = new Database(true, true);
+            if (activeOpen)
+            {
+                throw new IOException("错误:事务栈明确为前台开图时,文件不存在");
+            }
+            else
+            {
+                // cad08测试:
+                // 第2个参数使用false,将导致关闭cad的时候出现致命错误:
+                // Unhandled Access Violation Reading Ox113697a0 Exception at 4b4154h
+                Database = new Database(true, true);
+            }
         }
         else
         {
             var doc = Acap.DocumentManager
                      .Cast<Document>()
                      .FirstOrDefault(doc => doc.Name == _fileName);
-            if (doc is not null)
+
+            if (activeOpen)
             {
+                if (doc is null)
+                {
+                    try
+                    {
+                        // 需要设置命令标记: CommandFlags.Session
+                        // 若没有设置: Open()之后的会进入中断状态(不会执行)
+                        bool forReadOnly = false;
+                        if ((fileOpenMode & FileOpenMode.OpenForReadAndReadShare) == FileOpenMode.OpenForReadAndReadShare)
+                            forReadOnly = true;
+                        doc = Acap.DocumentManager.Open(fileName, forReadOnly, password);
+                    }
+                    catch (Exception e)
+                    {
+                        throw new IOException("错误:此文件打开错误: " + fileName + "\n错误信息:" + e.Message);
+                    }
+                }
+                // 需要设置命令标记: CommandFlags.Session
+                // 若没有设置: 0x01 IsActive 在初始化时会异常,
+                //            0x02 赋值代码之后不会继续执行
+                if (!doc.IsDisposed)
+                {
+                    if (!doc.IsActive)
+                        Acap.DocumentManager.MdiActiveDocument = doc;
+
+                    // 必须要锁图,否则 Editor?.Redraw() 的 tm.QueueForGraphicsFlush() 将报错提示文档锁
+                    _documentLock = doc.LockDocument();
+                }
+
                 Database = doc.Database;
                 Document = doc;
                 Editor = doc.Editor;
             }
             else
             {
-                Database = new Database(false, true);
-                if (Path.GetExtension(_fileName).ToLower().Contains("dxf"))
+                if (doc is null)
                 {
-                    Database.DxfIn(_fileName, null);
+                    Database = new Database(false, true);
+                    if (Path.GetExtension(_fileName).ToLower().Contains("dxf"))
+                    {
+                        Database.DxfIn(_fileName, null);
+                    }
+                    else
+                    {
+#if ac2008
+                        Database.ReadDwgFile(_fileName, FileOpenModeHelper.GetFileShare(fileOpenMode), true, password);
+#else
+                        Database.ReadDwgFile(_fileName, fileOpenMode, true, password);
+#endif
+                    }
+                    Database.CloseInput(true);
                 }
                 else
                 {
-#if ac2008
-                    // FileAccess fileAccess = FileAccess.Read;
-                    FileShare fileShare = FileShare.Read;
-                    switch (fileOpenMode)
-                    {
-                        case FileOpenMode.OpenTryForReadShare:// 这个是什么状态??
-                        // fileAccess = FileAccess.ReadWrite;
-                        fileShare = FileShare.ReadWrite;
-                        break;
-                        case FileOpenMode.OpenForReadAndAllShare:// 完美匹配
-                        // fileAccess = FileAccess.ReadWrite;
-                        fileShare = FileShare.ReadWrite;
-                        break;
-                        case FileOpenMode.OpenForReadAndWriteNoShare:// 完美匹配
-                        // fileAccess = FileAccess.ReadWrite;
-                        fileShare = FileShare.None;
-                        break;
-                        case FileOpenMode.OpenForReadAndReadShare:// 完美匹配
-                        // fileAccess = FileAccess.Read;
-                        fileShare = FileShare.Read;
-                        break;
-                        default:
-                        break;
-                    }
-
-                    // 这个会致命错误
-                    // using FileStream fileStream = new(_fileName, FileMode.Open, fileAccess, fileShare);
-                    // Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(), true, password);
-
-                    Database.ReadDwgFile(_fileName, fileShare, true, password);
-#else
-                    Database.ReadDwgFile(_fileName, fileOpenMode, true, password);
-#endif
+                    Database = doc.Database;
+                    Document = doc;
+                    Editor = doc.Editor;
                 }
-                Database.CloseInput(true);
             }
         }
 
         Transaction = Database.TransactionManager.StartTransaction();
         _commit = commit;
-        dBTrans.Push(this);
+        _dBTrans.Push(this);
     }
     #endregion
 
@@ -637,30 +656,62 @@ public class DBTrans : IDisposable
         if (IsDisposed) return;
         IsDisposed = true;
 
-
-        if (_commit)// disposing
+        // 致命错误时候此处是空,直接跳过
+        if (Transaction != null)
         {
-            // 刷新队列(后台不刷新)
-            Editor?.Redraw();
+            if (_commit)// disposing
+            {
+                // 刷新队列(后台不刷新)
+                Editor?.Redraw();
 
-            // 调用cad的事务进行提交,释放托管状态(托管对象)
-            Transaction.Commit();
+                // 调用cad的事务进行提交,释放托管状态(托管对象)
+                Transaction.Commit();
+            }
+            else
+            {
+                // 否则取消所有的修改
+                Transaction.Abort();
+            }
+
+            // 将cad事务进行销毁
+            if (!Transaction.IsDisposed)
+                Transaction.Dispose();
+
+            // 将文档锁销毁
+            _documentLock?.Dispose();
         }
-        else
-        {
-            // 否则取消所有的修改
-            Transaction.Abort();
-        }
-
-        // 将cad事务进行销毁
-        if (!Transaction.IsDisposed)
-            Transaction.Dispose();
-
-        // 将文档锁销毁
-        documentLock?.Dispose();
 
         // 将当前事务栈弹栈
-        dBTrans.Pop();
+        _dBTrans.Pop();
+    }
+    #endregion
+
+    #region ToString
+    public override string ToString()
+    {
+        return ToString(null, null);
+    }
+    public string ToString(IFormatProvider? provider)
+    {
+        return ToString(null, provider);
+    }
+    public string ToString(string? format = null, IFormatProvider? formatProvider = null)
+    {
+        List<string> lines = new();
+        lines.Add($"StackCount = {_dBTrans.Count}");
+        lines.Add($"_fileName = \"{_fileName}\"");
+        lines.Add($"_commit = {_commit}");
+        lines.Add($"_documentLock = {_documentLock != null}");
+
+        lines.Add($"Document = {Document != null}");
+        lines.Add($"Editor = {Editor != null}");
+        lines.Add($"Transaction = {Transaction != null}");
+        lines.Add($"Database = {Database != null}");
+
+        if (!string.IsNullOrEmpty(format))
+            return string.Join(format, lines.ToArray());
+
+        return string.Join("\n", lines.ToArray());
     }
     #endregion
 }

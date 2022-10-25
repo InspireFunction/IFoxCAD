@@ -1,9 +1,13 @@
-﻿using System.Diagnostics;
-
-namespace Test;
+﻿namespace Test;
 
 public class TestTrans
 {
+    [CommandMethod(nameof(CmdTest_DBTransActiveOpenDwg), CommandFlags.Session)]
+    public static void CmdTest_DBTransActiveOpenDwg()
+    {
+        using DBTrans tr = new(@"D:\桌面\AA.dwg", activeOpen: true);
+    }
+
     [CommandMethod(nameof(CmdTest_ForEachDemo))]
     public static void CmdTest_ForEachDemo()
     {
