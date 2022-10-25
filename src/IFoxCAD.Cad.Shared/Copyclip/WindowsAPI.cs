@@ -105,6 +105,7 @@ public class WindowsAPI
     }
 
 
+
     /// <summary>
     /// byte数组转结构体
     /// </summary>
@@ -195,6 +196,165 @@ public class WindowsAPI
             task?.Invoke(newPtr);
         }
     }
+
+
+    #region imm32
+    /// <summary>
+    /// 获取输入法的虚拟键码
+    /// </summary>
+    /// <param name="hWnd"></param>
+    /// <returns></returns>
+    [DllImport("imm32.dll")]
+    public static extern IntPtr ImmGetVirtualKey(IntPtr hWnd);
+    /// <summary>
+    /// 获取输入法状态
+    /// </summary>
+    /// <param name="himc">输入法标识符</param>
+    /// <param name="lpdw">输入模式</param>
+    /// <param name="lpdw2">指向函数在其中检索句子模式值的变量的指针</param>
+    /// <returns></returns>
+    [DllImport("imm32.dll")]
+    public static extern bool ImmGetConversionStatus(IntPtr himc, out int lpdw, out int lpdw2);
+
+    /// <summary>
+    /// 获取指定窗口的输入法状态
+    /// </summary>
+    /// <param name="hwnd">窗口句柄</param>
+    /// <returns></returns>
+    [DllImport("imm32.dll")]
+    public static extern IntPtr ImmGetContext(IntPtr hwnd);
+    /// <summary>
+    /// 设置输入法的当前状态
+    /// </summary>
+    /// <param name="hwnd">窗口句柄</param>
+    /// <param name="fOpen"></param>
+    /// <returns></returns>
+    [DllImport("imm32.dll")]
+    public static extern bool ImmSetOpenStatus(IntPtr hwnd, bool fOpen);
+    /// <summary>
+    /// 输入法打开状态
+    /// </summary>
+    /// <param name="hwnd"></param>
+    /// <returns>非0值打开，0值关闭</returns>
+    [DllImport("imm32.dll")]
+    public static extern bool ImmGetOpenStatus(IntPtr hwnd);
+    #endregion
+
+    #region user32
+    /// <summary>
+    /// 获取当前窗口
+    /// </summary>
+    /// <returns>当前窗口标识符</returns>
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+    /// <summary>
+    /// 将一个消息的组成部分合成一个消息并放入对应线程消息队列的方法
+    /// </summary>
+    /// <param name="hhwnd">控件句柄</param>
+    /// <param name="msg">消息是什么。键盘按键、鼠标点击还是其他</param>
+    /// <param name="wparam"></param>
+    /// <param name="lparam"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll")]
+    public static extern bool PostMessage(IntPtr hhwnd, int msg, IntPtr wparam, IntPtr lparam);
+    /// <summary>
+    /// 发送击键
+    /// </summary>
+    /// <param name="bVk"></param>
+    /// <param name="bScan"></param>
+    /// <param name="dwFlags"></param>
+    /// <param name="dwExtraInfo"></param>
+    [DllImport("user32.dll")]
+    public static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+    /// <summary>
+    /// 获取窗口文字的长度
+    /// </summary>
+    /// <param name="hWnd">窗口标识符</param>
+    /// <returns>文字长度</returns>
+    [DllImport("user32.dll")]
+    public static extern int GetWindowTextLength(IntPtr hWnd);
+    /// <summary>
+    /// 获取窗口的标题
+    /// </summary>
+    /// <param name="hWnd">窗口标识符</param>
+    /// <param name="text">窗口文字</param>
+    /// <param name="count">文字长度</param>
+    /// <returns></returns>
+    [DllImport("User32.dll", CharSet = CharSet.Auto)]
+    public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int nMaxCount);
+
+    /// <summary>
+    /// 获取某个线程的输入法布局
+    /// </summary>
+    /// <param name="threadid">线程ID</param>
+    /// <returns>布局码</returns>
+    [DllImport("user32.dll")]
+    public static extern int GetKeyboardLayout(int threadid);
+    /// <summary>
+    /// 获取按键的当前状态
+    /// </summary>
+    /// <param name="nVirtKey">按键虚拟代码</param>
+    /// <returns>按键状态值，高位为1表示按下（<0），0表示弹起（>0）</returns>
+    [DllImport("user32.dll")]
+    public static extern short GetKeyState(int nVirtKey);
+    /// <summary>
+    /// 检索指定窗口所属的类的名称。
+    /// </summary>
+    /// <param name="hWnd">窗口标识符</param>
+    /// <param name="lpClassName"></param>
+    /// <param name="nMaxCount"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+    [DllImport("user32.DLL", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+    public static extern IntPtr GetTopWindow(IntPtr hWnd);
+
+
+    /// <summary>
+    /// 获取线程对应的窗体信息
+    /// </summary>
+    /// <param name="idThread">线程</param>
+    /// <param name="lpgui"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    static extern bool GetGUIThreadInfo(uint idThread, ref GuiThreadInfo lpgui);
+
+    /// <summary>
+    /// 获取线程对应的窗体信息
+    /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
+    public struct GuiThreadInfo
+    {
+        public int cbSize;
+        public int flags;
+        public IntPtr hwndActive;
+        public IntPtr hwndFocus;
+        public IntPtr hwndCapture;
+        public IntPtr hwndMenuOwner;
+        public IntPtr hwndMoveSize;
+        public IntPtr hwndCaret;
+        public System.Drawing.Rectangle rcCaret;
+
+        public static GuiThreadInfo Create(uint windowThreadProcessId)
+        {
+            if (windowThreadProcessId == 0)
+                throw new ArgumentNullException(nameof(windowThreadProcessId));
+
+            GuiThreadInfo gti = new();
+            gti.cbSize = Marshal.SizeOf(gti);
+            GetGUIThreadInfo(windowThreadProcessId, ref gti);
+            return gti;
+        }
+    }
+    #endregion
+
+    [DllImport("kernel32.dll")]
+    public static extern int GetCurrentThreadId();
 }
 
 
