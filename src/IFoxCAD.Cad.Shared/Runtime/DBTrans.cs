@@ -162,7 +162,7 @@ public class DBTrans : IDisposable
         {
             var doc = Acap.DocumentManager
                      .Cast<Document>()
-                     .FirstOrDefault(doc => doc.Name == _fileName);
+                     .FirstOrDefault(doc => !doc.IsDisposed && doc.Name == _fileName);
 
             if (activeOpen)
             {
@@ -170,29 +170,23 @@ public class DBTrans : IDisposable
                 {
                     try
                     {
-                        // 需要设置命令标记: CommandFlags.Session
-                        // 若没有设置: Open()之后的会进入中断状态(不会执行)
-                        bool forReadOnly = false;
-                        if ((fileOpenMode & FileOpenMode.OpenForReadAndReadShare) == FileOpenMode.OpenForReadAndReadShare)
-                            forReadOnly = true;
-                        doc = Acap.DocumentManager.Open(fileName, forReadOnly, password);
+                        // 设置命令标记: CommandFlags.Session
+                        // 若没有设置: Open()之后的会进入中断状态(不会执行,直到切换文档ctrl+tab或者关闭文档)
+                        doc = Acap.DocumentManager.Open(fileName, fileOpenMode == FileOpenMode.OpenForReadAndReadShare, password);
                     }
                     catch (Exception e)
                     {
-                        throw new IOException("错误:此文件打开错误: " + fileName + "\n错误信息:" + e.Message);
+                        throw new IOException($"错误:此文件打开错误:{fileName}\n错误信息:{e.Message}");
                     }
                 }
-                // 需要设置命令标记: CommandFlags.Session
-                // 若没有设置: 0x01 IsActive 在初始化时会异常,
-                //            0x02 赋值代码之后不会继续执行
-                if (!doc.IsDisposed)
-                {
-                    if (!doc.IsActive)
-                        Acap.DocumentManager.MdiActiveDocument = doc;
+                // 设置命令标记: CommandFlags.Session
+                // 若没有设置: doc.IsActive 会异常
+                if (!doc.IsActive)
+                    Acap.DocumentManager.MdiActiveDocument = doc;
 
-                    // 必须要锁图,否则 Editor?.Redraw() 的 tm.QueueForGraphicsFlush() 将报错提示文档锁
-                    _documentLock = doc.LockDocument();
-                }
+                // Open()是跨文档,所以必须要锁文档
+                // 否则 Editor?.Redraw() 的 tm.QueueForGraphicsFlush() 将报错提示文档锁
+                _documentLock = doc.LockDocument();
 
                 Database = doc.Database;
                 Document = doc;
