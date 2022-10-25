@@ -365,10 +365,13 @@ public class AutoReflection
         var sb = new StringBuilder();
         foreach (string key in msgMod)
             sb.AppendLine(key);
-        Env.Printl("当前cad环境加载的多个DLL中存在重复命令将被覆盖:");
-        Env.Printl("{");
-        Env.Printl(sb.ToString());
-        Env.Printl("}");
+        if (sb.Length != 0)
+        {
+            Env.Printl("当前cad环境加载的多个DLL中存在重复命令将被覆盖:");
+            Env.Printl("{");
+            Env.Printl(sb.ToString());
+            Env.Printl("}");
+        }
     }
 #endif
 }

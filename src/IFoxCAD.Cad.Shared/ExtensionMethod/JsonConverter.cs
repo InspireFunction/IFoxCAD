@@ -72,7 +72,7 @@ public class ObjectIdConverter : JavaScriptConverter
     /// <summary>
     /// 约束类型
     /// </summary>
-    public override IEnumerable<Type> SupportedTypes => new Type[] { typeof(ObjectId) };
+    public override IEnumerable<Type> SupportedTypes => new[] { typeof(ObjectId) };
 
     /// <summary>
     /// 序列化_写入json
@@ -100,16 +100,16 @@ public class ObjectIdConverter : JavaScriptConverter
         if (type != typeof(ObjectId))
             return null!;
 
-        ObjectId id = new();
+        ObjectId id = ObjectId.Null;
         try
         {
-            if (dictionary.TryGetValue(_id, out object value))
+            if (dictionary.TryGetValue(_id, out object va))
             {
                 using DBTrans tr = new();
-                id = tr.GetObjectId(value.ToString());
+                id = tr.GetObjectId(va.ToString());
             }
         }
-        catch { return ObjectId.Null; }
+        catch { }
         return id;
     }
 }
