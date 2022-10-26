@@ -61,6 +61,10 @@ public enum AssemLoadType
 public enum AutoRegConfig
 {
     /// <summary>
+    /// 不进行任何操作
+    /// </summary>
+    Undefined = 0,
+    /// <summary>
     /// 注册表
     /// </summary>
     Regedit = 1,
@@ -72,7 +76,6 @@ public enum AutoRegConfig
     /// 反射接口
     /// </summary>
     ReflectionInterface = 4,
-
     /// <summary>
     /// 移除教育版
     /// </summary>
