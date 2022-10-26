@@ -14,7 +14,7 @@
 public abstract class AutoRegAssem : IExtensionApplication
 {
     #region 字段
-    readonly AutoReflection _autoRef;
+    readonly AutoReflection? _autoRef;
     readonly AssemInfo _info;
     #endregion
 
@@ -71,8 +71,12 @@ public abstract class AutoRegAssem : IExtensionApplication
         // 实例化了 AutoClass 之后会自动执行 IFoxAutoGo 接口下面的类,
         // 以及自动执行特性 [IFoxInitialize]
         // 类库用户不在此处进行其他代码,而是实现特性
-        _autoRef = new AutoReflection(_info.Name, autoRegConfig);
-        _autoRef.Initialize();
+        if ((autoRegConfig & AutoRegConfig.ReflectionInterface) == AutoRegConfig.ReflectionInterface ||
+            (autoRegConfig & AutoRegConfig.ReflectionAttribute) == AutoRegConfig.ReflectionAttribute)
+        {
+            _autoRef = new AutoReflection(_info.Name, autoRegConfig);
+            _autoRef.Initialize();
+        }
     }
     #endregion
 
@@ -165,11 +169,13 @@ public abstract class AutoRegAssem : IExtensionApplication
 
     // 这里的是不会自动执行的
     public void Initialize() { }
-    public void Terminate() { }
+    public void Terminate()
+    {
+    }
 
     ~AutoRegAssem()
     {
-        _autoRef.Terminate();
+        _autoRef?.Terminate();
     }
     #endregion RegApp
 }
