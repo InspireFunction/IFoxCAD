@@ -495,7 +495,8 @@ public static class Env
     static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #endif
 
-#if zcad // TODO: 中望没有测试,此处仅为不报错;本工程所有含有"中望"均存在问题
+    // TODO: 中望没有测试,此处仅为不报错;本工程所有含有"中望"均存在问题
+#if zcad
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "zcedGetEnv")]
     static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);

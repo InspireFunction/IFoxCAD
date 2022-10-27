@@ -30,6 +30,8 @@ global using Acgi = GrxCAD.GraphicsInterface;
 global using GrxCAD.DatabaseServices.Filters;
 global using GrxCAD;
 
+global using GrxCAD.Internal;
+
 // jig命名空间会引起Viewport/Polyline等等重义,最好逐个引入 using Autodesk.AutoCAD.GraphicsInterface
 global using GrxCAD.GraphicsInterface;
 global using WorldDraw = GrxCAD.GraphicsInterface.WorldDraw;

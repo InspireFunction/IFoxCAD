@@ -1,3 +1,5 @@
+using IFoxCAD.Cad;
+
 #if ac2008 // NET35
 namespace Autodesk.AutoCAD.DatabaseServices
 {
@@ -51,5 +53,39 @@ namespace Autodesk.AutoCAD.DatabaseServices
         }
     }
 }
+#endif
 
+#if NET35
+namespace Autodesk.AutoCAD.Internal
+{
+    public class Utils
+    {
+        [DllImport("user32.dll")]
+        static extern IntPtr SetFocus(IntPtr hWnd);
+
+        public static void SetFocusToDwgView()
+        {
+            // TODO 20221027 等待验证
+            IntPtr window;
+            if (Acap.DocumentManager.Count == 0)
+            {
+                window = Acap.MainWindow.Handle;
+            }
+            else
+            {
+                // 它们是层级关系
+                // Main
+                // -->MDI(大小被 DwgView 局限)
+                // ---->docW(比MDI大)
+                // -------->msctls_statusbar32
+                // -------->DwgView
+                var docW = Acap.DocumentManager.MdiActiveDocument.Window.Handle;
+                var msctls_statusbar32 = WindowsAPI.GetTopWindow(docW);
+                window = WindowsAPI.GetWindow(msctls_statusbar32, 2U);
+            }
+            if (window != IntPtr.Zero)
+                SetFocus(window);
+        }
+    }
+}
 #endif

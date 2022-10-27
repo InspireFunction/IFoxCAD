@@ -601,9 +601,7 @@ public static class EditorEx
             pnt + vec
         };
         for (int i = 1; i < numEdges; i++)
-        {
             pnts.Add(pnt + vec.RotateBy(angle * i));
-        }
 
         editor.DrawVectors(pnts, colorIndex, true);
     }
@@ -1147,11 +1145,30 @@ public static class EditorEx
         var doc = com.GetProperty("ActiveDocument");
         var wmfSet = doc.GetProperty("ActiveSelectionSet");
 
-        // TODO 20221007 cad21 先net选择,再进行,此处再选择一次?
-        //               cad21 调试期间无法选择性粘贴?
+        // TODO 20221007 导出wmf的bug
+        // cad21 先net选择,再进行,此处再选择一次?
+        // cad21 调试期间无法选择性粘贴?
         var exp = doc.Invoke("Export", saveFile, "wmf", wmfSet); // JPGOUT,PNGOUT
         if (wmfSetDel)
             wmfSet.Invoke("Delete");
     }
     #endregion
+
+    /// <summary>
+    /// 可以发送透明命令的状态<br/>
+    /// 福萝卜:这个应该是修正ribbon里输入丢焦点的问题,低版本可以不要
+    /// </summary>
+    /// <param name="ed"></param>
+    /// <returns></returns>
+    public static bool IsQuiescentForTransparentCommand(this Editor ed)
+    {
+#if NET35
+        //if (ed.IsQuiescent)
+        //{
+        //}
+        return true;
+#else
+        return ed.IsQuiescentForTransparentCommand;
+#endif
+    }
 }

@@ -58,11 +58,18 @@ class RunClass
 {
     public Sequence Sequence { get; }
     readonly MethodInfo _methodInfo;
-
-    public RunClass(MethodInfo method, Sequence sequence)
+    object? _instance;
+    /// <summary>
+    /// 执行此方法
+    /// </summary>
+    /// <param name="method"></param>
+    /// <param name="sequence"></param>
+    /// <param name="instance">已经创建的对象</param>
+    public RunClass(MethodInfo method, Sequence sequence, object? instance = null)
     {
         _methodInfo = method;
         Sequence = sequence;
+        _instance = instance;
     }
 
     /// <summary>
@@ -70,7 +77,7 @@ class RunClass
     /// </summary>
     public void Run()
     {
-        _methodInfo.Invoke();
+        _methodInfo.Invoke(ref _instance);
     }
 }
 
@@ -114,7 +121,9 @@ public class AutoReflection
                 GetAttributeFunctions(_InitializeList, _TerminateList);
 
             if ((_autoRegConfig & AutoRegConfig.ReflectionInterface) == AutoRegConfig.ReflectionInterface)
-                GetInterfaceFunctions(_InitializeList, nameof(Initialize));
+            {
+                GetInterfaceFunctions(_InitializeList, nameof(Initialize), _TerminateList, nameof(Terminate));
+            }
 
             if (_InitializeList.Count > 0)
             {
@@ -134,8 +143,8 @@ public class AutoReflection
     {
         try
         {
-            if ((_autoRegConfig & AutoRegConfig.ReflectionInterface) == AutoRegConfig.ReflectionInterface)
-                GetInterfaceFunctions(_TerminateList, nameof(Terminate));
+            //if ((_autoRegConfig & AutoRegConfig.ReflectionInterface) == AutoRegConfig.ReflectionInterface)
+            //    GetInterfaceFunctions(_TerminateList, nameof(Terminate));
 
             if (_TerminateList.Count > 0)
             {
@@ -221,7 +230,8 @@ public class AutoReflection
     /// <param name="runClassList">储存要运行的方法</param>
     /// <param name="methodName">查找方法名</param>
     /// <returns></returns>
-    void GetInterfaceFunctions(List<RunClass> runClassList, string methodName)
+    void GetInterfaceFunctions(List<RunClass> initializes, string initializeName,
+                               List<RunClass> terminates, string terminateName)
     {
         AppDomainGetTypes(type => {
             // 接口的静态类屏蔽,继承接口无法使用静态类,因此跳过
@@ -236,6 +246,8 @@ public class AutoReflection
 
                 Sequence? sequence = null;
                 MethodInfo? initialize = null;
+                MethodInfo? terminate = null;
+                object? instance = null;
 
                 var mets = type.GetMethods();
                 for (int jj = 0; jj < mets.Length; jj++)
@@ -248,22 +260,35 @@ public class AutoReflection
 
                     if (method.Name == nameof(IFoxAutoGo.SequenceId))
                     {
-                        var obj = method.Invoke();
+                        // 避免触发两次构造函数,所以这里需要ref构造的对象出来
+                        var obj = method.Invoke(ref instance);
                         if (obj is not null)
                             sequence = (Sequence)obj;
                         continue;
                     }
-                    if (method.Name == methodName)
+                    if (method.Name == initializeName)
+                    {
                         initialize = method;
-                    if (initialize is not null && sequence is not null)
+                        continue;
+                    }
+                    if (method.Name == terminateName)
+                    {
+                        terminate = method;
+                        continue;
+                    }
+                    if (sequence is not null && initialize is not null && terminate is not null)
                         break;
                 }
 
-                if (initialize is null)
-                    continue;
-
+                // 避免在terminate释放的时候去再次构造,所以需要一次性收集
+                // 若是释放的时候去再次构造:
+                // 0x01 initialize构造的字段拥有的资源就处于系统释放了,这是不合理的
+                // 0x02 同时也发生了,为了释放而去构造这个操作
                 var seq = sequence is null ? Sequence.Last : sequence.Value;
-                runClassList.Add(new RunClass(initialize, seq));
+                if (initialize is not null)
+                    initializes.Add(new(initialize, seq, instance));
+                if (terminate is not null)
+                    terminates.Add(new(terminate, seq, instance));
                 break;
             }
         }, _dllName);
@@ -272,7 +297,8 @@ public class AutoReflection
     /// <summary>
     /// 收集特性下的函数
     /// </summary>
-    void GetAttributeFunctions(List<RunClass> initialize, List<RunClass> terminate)
+    void GetAttributeFunctions(List<RunClass> initializes,
+                               List<RunClass> terminates)
     {
         AppDomainGetTypes(type => {
             if (!type.IsClass)
@@ -298,9 +324,9 @@ public class AutoReflection
                     {
                         var runc = new RunClass(method, jjAtt.SequenceId);
                         if (jjAtt.IsInitialize)
-                            initialize.Add(runc);
+                            initializes.Add(runc);
                         else
-                            terminate.Add(runc);
+                            terminates.Add(runc);
                         break;
                     }
                 }

@@ -2,14 +2,16 @@
 
 internal static class MethodInfoHelper
 {
+#if cache
     private static readonly Dictionary<MethodInfo, object> methodDic = new();
+#endif
 
     /// <summary>
     /// 执行函数
     /// </summary>
     /// <param name="methodInfo">函数</param>
     /// <param name="instance">已经外部创建的对象,为空则此处创建</param>
-    public static object? Invoke(this MethodInfo methodInfo, object? instance = null)
+    public static object? Invoke(this MethodInfo methodInfo, ref object? instance)
     {
         if (methodInfo == null)
             throw new ArgumentNullException(nameof(methodInfo));
@@ -28,22 +30,31 @@ internal static class MethodInfoHelper
         }
         else
         {
+#if cache
             // 原命令的函数指针进入此处
             // object instance;
             if (methodDic.ContainsKey(methodInfo))
                 instance = methodDic[methodInfo];
-
+#endif
             if (instance == null)
             {
                 var reftype = methodInfo.ReflectedType;
-                if (reftype == null) return null;
+                if (reftype == null)
+                    return null;
+
                 var fullName = reftype.FullName; // 命名空间+类
-                if (fullName == null) return null;
-                var type = reftype.Assembly.GetType(fullName);// 通过程序集反射创建类+
-                if (type == null) return null;
-                instance = Activator.CreateInstance(type);
+                if (fullName == null)
+                    return null;
+
+                var type = reftype.Assembly.GetType(fullName);
+                if (type == null)
+                    return null;
+
+                instance = Activator.CreateInstance(type);// 构造类
+#if cache
                 if (!type.IsAbstract)// 无法创建抽象类成员
                     methodDic.Add(methodInfo, instance);
+#endif
             }
             if (instance != null)
                 result = methodInfo.Invoke(instance, null); // 非静态,调用实例化方法

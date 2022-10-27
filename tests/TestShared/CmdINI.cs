@@ -1,3 +1,5 @@
+using System.Diagnostics;
+
 namespace Test;
 
 /// <summary>
@@ -69,10 +71,12 @@ public class CmdInit
  */
 public class Cmd_IFoxInitialize
 {
+    int TestInt = 0;
+
     [IFoxInitialize]
     public void Initialize()
     {
-        Env.Printl($"开始自动执行,可以分开多个类和多个函数:{nameof(Cmd_IFoxInitialize)}.{nameof(Initialize)}");
+        Env.Printl($"开始自动执行,可以分开多个类和多个函数:{nameof(Cmd_IFoxInitialize)}.{nameof(Initialize)}+{TestInt}");
     }
 
     [IFoxInitialize]
@@ -89,6 +93,8 @@ public class Cmd_IFoxInitialize
     //        // 注意此时编辑器已经回收,所以此句引发错误
     //        // 您可以写一些其他的释放动作,例如资源回收之类的
     //        Env.Printl($"\n 结束自动执行 Terminate \r\n");
+    //        // 改用
+    //        Debug.WriteLine($"\n 结束自动执行 Terminate \r\n");
     //    }
     //    catch (System.Exception e)
     //    {
@@ -103,14 +109,16 @@ public class Cmd_IFoxInitialize
     }
 }
 
+
 /*
  * 自动执行:接口
  */
 public class Cmd_IFoxInitializeInterface : IFoxAutoGo
 {
-    public void Initialize()
+    int TestInt = 0;
+    public Cmd_IFoxInitializeInterface()
     {
-        Env.Printl($"开始自动执行,接口调用:{nameof(Cmd_IFoxInitializeInterface)}.{nameof(Initialize)}");
+        Env.Printl($"开始自动执行,{nameof(IFoxAutoGo)}接口调用:{nameof(Cmd_IFoxInitializeInterface)}::{TestInt}");
     }
 
     public Sequence SequenceId()
@@ -118,8 +126,14 @@ public class Cmd_IFoxInitializeInterface : IFoxAutoGo
         return Sequence.Last;
     }
 
+    public void Initialize()
+    {
+        Env.Printl($"开始自动执行,{nameof(IFoxAutoGo)}接口调用:{nameof(Initialize)}::{TestInt}");
+    }
+
     public void Terminate()
     {
+        Debug.WriteLine($"开始自动执行,{nameof(IFoxAutoGo)}接口调用:{nameof(Terminate)}::{TestInt}");
         //    try
         //    {
         //        // 注意此时编辑器已经回收,所以此句没用,并引发错误

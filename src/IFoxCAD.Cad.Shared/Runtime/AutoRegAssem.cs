@@ -14,8 +14,8 @@
 public abstract class AutoRegAssem : IExtensionApplication
 {
     #region 字段
-    readonly AutoReflection? _autoRef;
     readonly AssemInfo _info;
+    readonly AutoReflection? _autoRef;
     #endregion
 
     #region 静态方法
@@ -23,12 +23,10 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// 程序集的路径
     /// </summary>
     public static FileInfo Location => new(Assembly.GetCallingAssembly().Location);
-
     /// <summary>
     /// 程序集的目录
     /// </summary>
     public static DirectoryInfo CurrDirectory => Location.Directory;
-
     /// <summary>
     /// 获取程序集的目录
     /// </summary>
@@ -38,7 +36,6 @@ public abstract class AutoRegAssem : IExtensionApplication
     {
         if (assem is null)
             throw new(nameof(assem));
-
         return new FileInfo(assem.Location).Directory;
     }
     #endregion
@@ -168,7 +165,9 @@ public abstract class AutoRegAssem : IExtensionApplication
     }
 
     // 这里的是不会自动执行的
-    public void Initialize() { }
+    public void Initialize()
+    {
+    }
     public void Terminate()
     {
     }

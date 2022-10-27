@@ -349,6 +349,7 @@ public partial class Test
             }
         });
 
+#pragma warning disable CS0219 // 变量已被赋值，但从未使用过它的值
         Tools.TestTimes(1000000, "三次点乘", () => {
             var result = false;
             if (Math.Abs(p12.DotProduct(p23)) < 1e8 &&
@@ -364,6 +365,7 @@ public partial class Test
                 p34.IsParallelTo(p41))
                 result = true;
         });
+#pragma warning restore CS0219 // 变量已被赋值，但从未使用过它的值
     }
 
     public Database Getdb()
