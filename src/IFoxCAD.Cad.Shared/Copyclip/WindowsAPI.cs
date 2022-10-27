@@ -5,7 +5,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 
-public class WindowsAPI
+public partial class WindowsAPI
 {
     // https://blog.csdn.net/haelang/article/details/45147121
     [DllImport("kernel32.dll")]
@@ -264,8 +264,8 @@ public class WindowsAPI
     /// <param name="bScan"></param>
     /// <param name="dwFlags"></param>
     /// <param name="dwExtraInfo"></param>
-    [DllImport("user32.dll")]
-    public static extern void keybd_event(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
+    [DllImport("user32.dll", EntryPoint = "keybd_event")]
+    public static extern void KeybdEvent(byte bVk, byte bScan, int dwFlags, int dwExtraInfo);
     /// <summary>
     /// 获取窗口文字的长度
     /// </summary>
@@ -355,6 +355,226 @@ public class WindowsAPI
 
     [DllImport("kernel32.dll")]
     public static extern int GetCurrentThreadId();
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr SetFocus(IntPtr hWnd);
+}
+
+
+
+public partial class WindowsAPI
+{
+    // [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    // internal static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr GetFocus();
+
+    [DllImport("user32.dll ")]
+    public static extern IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr GetParent(IntPtr hWnd);
+
+    [DllImport("kernel32.dll")]
+    public static extern long GetHandleInformation(long hObject, ref long lpdwFlags);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBackX86 lpfn, long hmod, int dwThreadId);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBack lpfn, int hmod, int dwThreadId);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBackX64 lpfn, long hmod, int dwThreadId);
+
+    [DllImport("user32.dll")]
+    public static extern int UnhookWindowsHookEx(IntPtr hHook);
+
+    [DllImport("user32.dll")]
+    public static extern int CallNextHookEx(IntPtr hHook, int ncode, int wParam, long lParam);
+
+    [DllImport("user32.dll")]
+    public static extern int CallNextHookEx(int hHook, int ncode, int wParam, int lParam);
+
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr GetModuleHandle(string ModuleName);
+
+    [DllImport("user32.dll")]
+    public static extern int ToAscii(int uVirtKey, int uScancode, byte[] lpdKeyState, byte[] lpwTransKey, int fuState);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr GetActiveWindow();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern long GetWindowThreadProcessId(IntPtr hwnd, ref int lpdwProcessId);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool IsIconic(int hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowEnabled(IntPtr hWnd);
+
+    public delegate IntPtr CallBackX86(int nCode, int wParam, int lParam);
+    public delegate IntPtr CallBackX64(int nCode, int wParam, long lParam);
+    public delegate IntPtr CallBack(int nCode, int wParam, int lParam);
+    public enum HookType
+    {
+        WH_KEYBOARD = 2,
+        WH_KEYBOARD_LL = 13,
+        WH_MOUSE_LL = 14,
+    }
+
+    [DllImport("user32.dll")]
+    public static extern bool GetWindowRect(IntPtr hwnd, ref IntRect lpRect);
+}
+
+
+public partial class WindowsAPI
+{
+    [ComVisible(true)]
+    [Serializable]
+    [StructLayout(LayoutKind.Sequential)]
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerTypeProxy(typeof(IntRect))]
+    public struct IntRect
+    {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private string DebuggerDisplay => $"(Left:{_Left},Top:{_Top},Right:{_Right},Bottom:{_Bottom})";
+
+        int _Left;
+        int _Top;
+        int _Right;
+        int _Bottom;
+        public int Left => _Left;
+        public int Top => _Top;
+        public int Right => _Right;
+        public int Bottom => _Bottom;
+        public int Width => checked(Right - Left);
+        public int Height => checked(Bottom - Top);
+
+        public IntRect(int left, int top, int right, int bottom)
+        {
+            _Left = left;
+            _Top = top;
+            _Right = right;
+            _Bottom = bottom;
+        }
+
+        static readonly IntRect _Zero = new(0, 0, 0, 0);
+        public static IntRect Zero => _Zero;
+
+        public override string ToString() => $"({_Left},{_Top},{_Right},{_Bottom})";
+
+        #region 重载运算符_比较
+        public bool Equals(IntRect other)
+        {
+            return
+            _Left == other._Left &&
+            _Top == other._Top &&
+            _Right == other._Right &&
+            _Bottom == other._Bottom;
+        }
+        public static bool operator !=(IntRect a, IntRect b)
+        {
+            return !(a == b);
+        }
+        public static bool operator ==(IntRect a, IntRect b)
+        {
+            return a.Equals(b);
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is IntRect d && Equals(d);
+        }
+        public override int GetHashCode()
+        {
+            return ((_Left, _Top).GetHashCode(), _Right).GetHashCode() ^ _Bottom.GetHashCode();
+        }
+
+        public IntRect Clone()
+        {
+            return (IntRect)MemberwiseClone();
+        }
+        #endregion
+    }
+
+    [ComVisible(true)]
+    [Serializable]
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerTypeProxy(typeof(IntSize))]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct IntSize
+    {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private string DebuggerDisplay => $"(Hight:{Hight},Width:{Width})";
+        public int Hight;
+        public int Width;
+
+        public IntSize(int cx, int cy)
+        {
+            Hight = cx;
+            Width = cy;
+        }
+        public override string ToString() => $"({Hight},{Width})";
+    }
+
+    [ComVisible(true)]
+    [Serializable]
+    [DebuggerDisplay("{DebuggerDisplay,nq}")]
+    [DebuggerTypeProxy(typeof(Point3D))]
+    public struct Point3D : IEquatable<Point3D>
+    {
+        [DebuggerBrowsable(DebuggerBrowsableState.Never)]
+        private string DebuggerDisplay => $"(X:{X},Y:{Y},Z:{Z})";
+
+        /* 由于此类是用来优化,从而实现字段修改,因此直接暴露字段减少栈帧 */
+        public double X;
+        public double Y;
+        public double Z;
+
+        public Point3D(double x, double y, double z)
+        {
+            X = x;
+            Y = y;
+            Z = z;
+        }
+        public static implicit operator Point3D(Point3d pt)
+        {
+            return new Point3D(pt.X, pt.Y, pt.Z);
+        }
+        public static implicit operator Point3d(Point3D pt)
+        {
+            return new Point3d(pt.X, pt.Y, pt.Z);
+        }
+        public override string ToString() => $"({X},{Y},{Z})";
+
+        #region 重载运算符_比较
+        public bool Equals(Point3D other)
+        {
+            return
+            X == other.X &&
+            Y == other.Y &&
+            Z == other.Z;
+        }
+        public static bool operator !=(Point3D a, Point3D b)
+        {
+            return !(a == b);
+        }
+        public static bool operator ==(Point3D a, Point3D b)
+        {
+            return a.Equals(b);
+        }
+        public override bool Equals(object obj)
+        {
+            return obj is Point3D d && Equals(d);
+        }
+        public override int GetHashCode()
+        {
+            return (X, Y).GetHashCode() ^ Z.GetHashCode();
+        }
+        #endregion
+    }
 }
 
 

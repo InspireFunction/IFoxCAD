@@ -8,7 +8,7 @@ public class ShowWPFWindowCentered
     internal static bool Show(Window window, bool modal)
     {
         new WindowInteropHelper(window).Owner = Acap.MainWindow.Handle;
-        WindowsAPI.RECT lpRect = new();
+        WindowsAPI.IntRect lpRect = new();
         WindowsAPI.GetWindowRect(Acap.MainWindow.Handle, ref lpRect);
 
         var dpi = DPI.CurrentDPI();

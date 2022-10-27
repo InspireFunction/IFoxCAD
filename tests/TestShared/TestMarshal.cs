@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using static IFoxCAD.Cad.WindowsAPI;
 
 namespace TestShared;
 

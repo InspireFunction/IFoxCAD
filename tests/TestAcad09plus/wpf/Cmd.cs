@@ -1,6 +1,6 @@
 ﻿namespace Test.wpf;
 
-public class Class1
+public class Cmd
 {
     [CommandMethod(nameof(Test_WPf))]
     public void Test_WPf()

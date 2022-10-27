@@ -60,9 +60,6 @@ namespace Autodesk.AutoCAD.Internal
 {
     public class Utils
     {
-        [DllImport("user32.dll")]
-        static extern IntPtr SetFocus(IntPtr hWnd);
-
         public static void SetFocusToDwgView()
         {
             IntPtr window;
@@ -83,7 +80,7 @@ namespace Autodesk.AutoCAD.Internal
                 window = WindowsAPI.GetWindow(msctls_statusbar32, 2U);
             }
             if (window != IntPtr.Zero)
-                SetFocus(window);
+                WindowsAPI.SetFocus(window);
         }
     }
 }

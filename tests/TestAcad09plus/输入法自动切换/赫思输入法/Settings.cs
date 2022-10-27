@@ -73,34 +73,28 @@ public class Settings
         if (!File.Exists(MySettingsPath))
             return;
 
-        var xmlReader = XmlReader.Create(MySettingsPath);
+        using var xmlReader = XmlReader.Create(MySettingsPath);
         while (xmlReader.Read())
         {
             if (xmlReader.NodeType != XmlNodeType.Element)
                 continue;
-
             string left = xmlReader.Name.ToLower();
-            if (left != "use")
+            switch (left)
             {
-                if (left != "userfilter")
-                {
-                    if (left == "imestyle")
-                    {
-                        int.TryParse(xmlReader.ReadInnerXml(), out int imes);
-                        _IMEStyle = (IMEStyleS)imes;
-                    }
-                }
-                else
-                {
-                    _UserFilter = xmlReader.ReadInnerXml().ToUpper();
-                }
-            }
-            else
-            {
+                case "use":
                 bool.TryParse(xmlReader.ReadInnerXml(), out _Use);
+                break;
+                case "userfilter":
+                _UserFilter = xmlReader.ReadInnerXml().ToUpper();
+                break;
+                case "imestyle":
+                {
+                    int.TryParse(xmlReader.ReadInnerXml(), out int imes);
+                    _IMEStyle = (IMEStyleS)imes;
+                }
+                break;
             }
         }
-        xmlReader.Close();
     }
 
     internal static void SaveSettings()

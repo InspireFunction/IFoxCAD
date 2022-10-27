@@ -133,7 +133,7 @@ public class BitmapTool
         if (hMemDC == IntPtr.Zero)
             return;
 
-        WindowsAPI.GetClientRect(hWnd, out IntRect rcClient);
+        WindowsAPI.GetClientRect(hWnd, out WindowsAPI.IntRect rcClient);
         int width = rcClient.Right - rcClient.Left;
         int height = rcClient.Bottom - rcClient.Top;
 

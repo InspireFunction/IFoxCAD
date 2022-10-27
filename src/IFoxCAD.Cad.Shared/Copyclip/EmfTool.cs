@@ -14,6 +14,7 @@ using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
 using System.Xml;
 using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
+using static IFoxCAD.Cad.WindowsAPI;
 
 
 // DWORD == uint

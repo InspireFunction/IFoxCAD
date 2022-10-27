@@ -135,7 +135,17 @@ public class IMEControl
 
         if (Settings.IMEStyle != Settings.IMEStyleS.Global)
         {
-            HookProc = MyKeyboardProc;
+            HookProc = (int nCode, int wParam, int lParam) => {
+                if (nCode >= 0)
+                {
+                    bool flag = !(lParam > 0 & (lParam & -1073741823) == 1) ||
+                                (Control.ModifierKeys != Keys.None && Control.ModifierKeys != Keys.Shift) ||
+                                !IMEHook(nCode, wParam, lParam);
+                    if (!flag)
+                        return (IntPtr)1;
+                }
+                return (IntPtr)WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
+            };
             hnexthookproc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD, HookProc, 0, WindowsAPI.GetCurrentThreadId());
             return;
         }
@@ -144,119 +154,69 @@ public class IMEControl
         if (Marshal.SizeOf(typeof(IntPtr)) == 4)
         {
             HookProcX86 = (nCode, wParam, lParam) => {
-                return (IntPtr)MyKeyboardProcX86(nCode, wParam, lParam);
+                if (!MK1(nCode, wParam) && Mk2(nCode, wParam, new IntPtr(lParam)))
+                    return (IntPtr)1;
+                return (IntPtr)WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
             };
             hnexthookproc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX86, moduleHandle, 0);
         }
         else
         {
             HookProcX64 = (nCode, wParam, lParam) => {
-                return (IntPtr)MyKeyboardProcX64(nCode, wParam, lParam);
+                if (!MK1(nCode, wParam) && Mk2(nCode, wParam, new IntPtr(lParam)))
+                    return (IntPtr)1;
+                return (IntPtr)WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
             };
             hnexthookproc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX64, moduleHandle, 0);
         }
     }
 
-    public static IntPtr MyKeyboardProc(int nCode, int wParam, int lParam)
+    static bool MK1(int nCode, int wParam)
     {
-        if (nCode >= 0)
-        {
-            bool flag = !(lParam > 0 & (lParam & -1073741823) == 1) ||
-                        (Control.ModifierKeys != Keys.None && Control.ModifierKeys != Keys.Shift) ||
-                        !IMEHook(nCode, wParam, lParam);
-            if (!flag)
-                return (IntPtr)1;
-        }
-        return (IntPtr)WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
+        return !Settings.Use ||
+                WindowsAPI.IsIconic(Acap.MainWindow.Handle.ToInt32()) ||
+                WindowsAPI.GetKeyState(91) < 0 ||
+                WindowsAPI.GetKeyState(92) < 0 ||
+                wParam != WM_KEYDOWN ||
+                nCode < 0;
     }
 
-    static int MyKeyboardProcX64(int nCode, int wParam, long lParam)
+    static bool Mk2(int nCode, int wParam, IntPtr lParam)
     {
-        if (!Settings.Use ||
-            WindowsAPI.IsIconic(Acap.MainWindow.Handle.ToInt32()) ||
-            WindowsAPI.GetKeyState(91) < 0 ||
-            WindowsAPI.GetKeyState(92) < 0 ||
-            wParam != WM_KEYDOWN ||
-            nCode < 0)
-            return WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
+        IntPtr focus;
+        if (Marshal.SizeOf(typeof(IntPtr)) == 4)
+            focus = WindowsAPI.GetFocus();
+        else
+            focus = WindowsAPI.GetForegroundWindow();
 
-        IFoxCAD.Cad.WindowsAPI.GetWindowThreadProcessId(WindowsAPI.GetForegroundWindow(), out uint lpdwProcessId);
+        WindowsAPI.GetWindowThreadProcessId(focus, out uint lpdwProcessId);
         if (lpdwProcessId != AcadPID)
-            return WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
+            return false;
 
-        var keyb = KeyboardHookStruct.Create(new IntPtr(lParam));
-        switch (Control.ModifierKeys)
+        if (Control.ModifierKeys == Keys.None)
         {
-            case Keys.None:
-            {
-                if (WindowsAPI.GetKeyState(162) < 0 ||
-                    WindowsAPI.GetKeyState(163) < 0 ||
-                    WindowsAPI.GetKeyState(17) < 0 ||
-                    WindowsAPI.GetKeyState(262144) < 0)
-                    return WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
-
-                if (IMEHook(nCode, keyb.vkCode, 0))
-                    return 1;
-                break;
-            }
-            case Keys.Shift:
-            {
-                if (IMEHook(nCode, keyb.vkCode, 0))
-                    return 1;
-                break;
-            }
+            var hook = KeyboardHookStruct.Create(lParam);
+            if (WindowsAPI.GetKeyState(162) < 0 || WindowsAPI.GetKeyState(163) < 0 ||
+                WindowsAPI.GetKeyState(17) < 0 || WindowsAPI.GetKeyState(262144) < 0)
+                return false;
+            if (IMEHook(nCode, hook.vkCode, 0))
+                return true;
         }
-        return WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
-    }
-
-    static int MyKeyboardProcX86(int nCode, int wParam, int lParam)
-    {
-        if (!Settings.Use ||
-            WindowsAPI.IsIconic(Acap.MainWindow.Handle.ToInt32()) ||
-            WindowsAPI.GetKeyState(91) < 0 ||
-            WindowsAPI.GetKeyState(92) < 0 ||
-            wParam != WM_KEYDOWN ||
-            nCode < 0)
-            return WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
-
-        IFoxCAD.Cad.WindowsAPI.GetWindowThreadProcessId(WindowsAPI.GetFocus(), out uint lpdwProcessId);
-        if (lpdwProcessId != AcadPID)
-            return WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
-
-        var keyb = KeyboardHookStruct.Create(new IntPtr(lParam));
-        switch (Control.ModifierKeys)
+        if (Control.ModifierKeys == Keys.Shift)
         {
-            case Keys.None:
-            {
-                if (WindowsAPI.GetKeyState(162) < 0 ||
-                    WindowsAPI.GetKeyState(163) < 0 ||
-                    WindowsAPI.GetKeyState(17) < 0 ||
-                    WindowsAPI.GetKeyState(262144) < 0)
-                    return WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
-
-                if (IMEHook(nCode, keyb.vkCode, 0))
-                    return 1;
-                break;
-            }
-            case Keys.Shift:
-            {
-                if (IMEHook(nCode, keyb.vkCode, 0))
-                    return 1;
-                break;
-            }
+            var hook = KeyboardHookStruct.Create(lParam);
+            if (IMEHook(nCode, hook.vkCode, 0))
+                return true;
         }
-        return WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
+        return false;
     }
 
     static void CheckLowLevelHooksTimeout()
     {
         const string llh = "LowLevelHooksTimeout";
-
-        RegistryKey hkml = Registry.CurrentUser;
-        RegistryKey registryKey = hkml.OpenSubKey("Control Panel\\Desktop", true);
+        using var registryKey = Registry.CurrentUser.OpenSubKey("Control Panel\\Desktop", true);
         if ((int)registryKey.GetValue(llh, 0) == 0)
             registryKey.SetValue(llh, 25000, RegistryValueKind.DWord);
-        registryKey.Close();
     }
 
     public struct KeyboardHookStruct

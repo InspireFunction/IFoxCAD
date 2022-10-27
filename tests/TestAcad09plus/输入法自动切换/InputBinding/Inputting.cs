@@ -1,8 +1,11 @@
 ﻿#pragma warning disable 0169
 
 /*
- * 福萝卜说他的是用键盘钩子制作的
- * 此处不是键盘钩子,并且08还需要把文档栏工程的子类化拉取过来才可以使用
+ * 0x01 赫思是键盘钩子:
+ *      可以在08.+使用;
+ * 0x02 InputBinding是切换输入法:
+ *      目前仅高版本,
+ *      08需要把文档栏工程的子类化拉取过来才可以使用
  */
 
 namespace InputBinding;
@@ -62,7 +65,7 @@ public class Inputting
     }
 
     #region NewThread1
-    [IFoxInitialize]
+    //[IFoxInitialize] 需要自动加载时候启动它,但是它和赫思冲突
     public void InputBindingInitialize()
     {
         InputHelper.LoadConfig();
@@ -490,54 +493,54 @@ public class Inputting
         {
             if (_iMode3 == -1)
                 Thread.Sleep(400);
-            keybd_event(16, 0, 0, 0);
-            keybd_event(16, 0, 2, 0);
+            KeybdEvent(16, 0, 0, 0);
+            KeybdEvent(16, 0, 2, 0);
         }
         else if (InputVar.CT)
         {
             if (_iMode3 == -1)
                 Thread.Sleep(400);
-            keybd_event(17, 0, 0, 0);
-            keybd_event(17, 0, 2, 0);
+            KeybdEvent(17, 0, 0, 0);
+            KeybdEvent(17, 0, 2, 0);
         }
         else if (InputVar.CK)
         {
             if (_iMode3 == -1)
                 Thread.Sleep(400);
-            keybd_event(17, 0, 0, 0);
-            keybd_event(32, 0, 0, 0);
-            keybd_event(32, 0, 2, 0);
-            keybd_event(17, 0, 2, 0);
+            KeybdEvent(17, 0, 0, 0);
+            KeybdEvent(32, 0, 0, 0);
+            KeybdEvent(32, 0, 2, 0);
+            KeybdEvent(17, 0, 2, 0);
             if (GetKeyState(20) != 1)
                 return;
-            keybd_event(20, 0, 0, 0);
-            keybd_event(20, 0, 2, 0);
+            KeybdEvent(20, 0, 0, 0);
+            KeybdEvent(20, 0, 2, 0);
         }
         else if (InputVar.CS)
         {
             if (_iMode3 == -1)
                 Thread.Sleep(400);
-            keybd_event(16, 0, 0, 0);
-            keybd_event(17, 0, 0, 0);
-            keybd_event(17, 0, 2, 0);
-            keybd_event(16, 0, 2, 0);
+            KeybdEvent(16, 0, 0, 0);
+            KeybdEvent(17, 0, 0, 0);
+            KeybdEvent(17, 0, 2, 0);
+            KeybdEvent(16, 0, 2, 0);
             if (GetKeyState(20) != 1)
                 return;
-            keybd_event(20, 0, 0, 0);
-            keybd_event(20, 0, 2, 0);
+            KeybdEvent(20, 0, 0, 0);
+            KeybdEvent(20, 0, 2, 0);
         }
         else if (InputVar.AS)
         {
             if (_iMode3 == -1)
                 Thread.Sleep(400);
-            keybd_event(91, 0, 0, 0);
-            keybd_event(32, 0, 0, 0);
-            keybd_event(32, 0, 2, 0);
-            keybd_event(91, 0, 2, 0);
+            KeybdEvent(91, 0, 0, 0);
+            KeybdEvent(32, 0, 0, 0);
+            KeybdEvent(32, 0, 2, 0);
+            KeybdEvent(91, 0, 2, 0);
             if (GetKeyState(20) != 1)
                 return;
-            keybd_event(20, 0, 0, 0);
-            keybd_event(20, 0, 2, 0);
+            KeybdEvent(20, 0, 0, 0);
+            KeybdEvent(20, 0, 2, 0);
         }
         else
         {
