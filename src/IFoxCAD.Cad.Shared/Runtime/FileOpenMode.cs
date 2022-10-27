@@ -65,7 +65,6 @@ namespace Autodesk.AutoCAD.Internal
 
         public static void SetFocusToDwgView()
         {
-            // TODO 20221027 等待验证
             IntPtr window;
             if (Acap.DocumentManager.Count == 0)
             {

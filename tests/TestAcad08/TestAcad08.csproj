@@ -29,4 +29,21 @@
         <Reference Include="System.Web" />
         <Reference Include="System.Web.Extensions" />
     </ItemGroup>
+
+    <ItemGroup>
+        <!--xaml的cs文件引入:用**或者逐个引入-->
+        <Compile Include="..\TestAcad09plus\输入法自动切换\赫思输入法\*.cs" Link="赫思输入法\%(FileName)%(Extension)" />
+        
+        <Compile Include="..\TestAcad09plus\输入法自动切换\赫思输入法\Window\*.cs" Link="赫思输入法\Window\%(FileName)%(Extension)" />
+        <Page Include="..\TestAcad09plus\输入法自动切换\赫思输入法\Window\*.xaml" Link="赫思输入法\Window\%(FileName)%(Extension)">
+            <!--有这行才可以在测试WPF的时候产生 InitializeComponent(); -->
+            <Generator>MSBuild:Compile</Generator>
+        </Page>
+        
+        <Compile Include="..\TestAcad09plus\输入法自动切换\赫思输入法\ResourceDictionary\*.cs" Link="赫思输入法\ResourceDictionary\%(FileName)%(Extension)" />
+        <Page Include="..\TestAcad09plus\输入法自动切换\赫思输入法\ResourceDictionary\*.xaml" Link="赫思输入法\ResourceDictionary\%(FileName)%(Extension)">
+            <!--有这行才可以在测试WPF的时候产生 InitializeComponent(); -->
+            <Generator>MSBuild:Compile</Generator>
+        </Page>
+    </ItemGroup>
 </Project>
