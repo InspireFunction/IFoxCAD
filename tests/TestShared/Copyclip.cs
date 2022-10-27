@@ -442,9 +442,9 @@ public class Copyclip
             // 预览并获取交互点
             // 天正此处可能存在失败:天正图元不给你jig接口调用之类的
             using var moveJig = new JigEx((mousePoint, drawEntitys) => {
-                var blockref = new BlockReference(Point3d.Origin, btr.ObjectId);
-                blockref.Move(Point3d.Origin, mousePoint);
-                drawEntitys.Enqueue(blockref);
+                var brf = new BlockReference(Point3d.Origin, btr.ObjectId);
+                brf.Move(Point3d.Origin, mousePoint);
+                drawEntitys.Enqueue(brf);
             });
             var jppo = moveJig.SetOptions(cadClipType.Point);
             jppo.Keywords.Add(" ", " ", "<空格取消>");

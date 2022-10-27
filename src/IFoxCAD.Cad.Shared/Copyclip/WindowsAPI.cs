@@ -7,29 +7,28 @@ using System.Threading;
 
 public partial class WindowsAPI
 {
+    #region kernel32
     // https://blog.csdn.net/haelang/article/details/45147121
     [DllImport("kernel32.dll")]
     public extern static uint GetLastError();
 
-    /// <summary>
-    /// 获取窗口客户区的大小,客户区为窗口中除标题栏,菜单栏之外的地方
-    /// </summary>
-    /// <param name="hwnd"></param>
-    /// <param name="lpRect"></param>
-    /// <returns></returns>
-    [DllImport("user32.dll", CharSet = CharSet.Auto, EntryPoint = "GetClientRect")]
-    public static extern bool GetClientRect(IntPtr hwnd, out IntRect lpRect);
+    [DllImport("kernel32.dll")]
+    public static extern long GetHandleInformation(long hObject, ref long lpdwFlags);
+
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr GetModuleHandle(string ModuleName);
+
+    [DllImport("kernel32.dll")]
+    public static extern int GetCurrentThreadId();
 
     /// <summary>
-    /// 查找主线程<br/>
-    /// 代替<see cref="AppDomain.GetCurrentThreadId()"/><br/>
-    /// 托管线程和他们不一样: <see cref="Thread.CurrentThread.ManagedThreadId"/>
+    /// 获取要引入的函数,将符号名或标识号转换为DLL内部地址
     /// </summary>
-    /// <param name="hWnd">主窗口</param>
-    /// <param name="lpdwProcessId">进程ID</param>
-    /// <returns>线程ID</returns>
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+    /// <param name="hModule">exe/dll句柄</param>
+    /// <param name="procName">接口名</param>
+    /// <returns></returns>
+    [DllImport("kernel32.dll", SetLastError = true, CharSet = CharSet.Ansi, ExactSpelling = true)]
+    public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
     /// <summary>
     /// 锁定内存
@@ -103,8 +102,6 @@ public partial class WindowsAPI
         finally { GlobalUnlock(data); }
         return true;
     }
-
-
 
     /// <summary>
     /// byte数组转结构体
@@ -197,7 +194,11 @@ public partial class WindowsAPI
         }
     }
 
+    #endregion
+}
 
+public partial class WindowsAPI
+{
     #region imm32
     /// <summary>
     /// 获取输入法的虚拟键码
@@ -239,8 +240,40 @@ public partial class WindowsAPI
     [DllImport("imm32.dll")]
     public static extern bool ImmGetOpenStatus(IntPtr hwnd);
     #endregion
+}
 
+public partial class WindowsAPI
+{
     #region user32
+
+    /// <summary>
+    /// 获取窗口客户区的大小,客户区为窗口中除标题栏,菜单栏之外的地方
+    /// </summary>
+    /// <param name="hwnd"></param>
+    /// <param name="lpRect"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll", CharSet = CharSet.Auto, EntryPoint = "GetClientRect")]
+    public static extern bool GetClientRect(IntPtr hwnd, out IntRect lpRect);
+
+    /// <summary>
+    /// 查找主线程<br/>
+    /// 代替<see cref="AppDomain.GetCurrentThreadId()"/><br/>
+    /// 托管线程和他们不一样: <see cref="Thread.CurrentThread.ManagedThreadId"/>
+    /// </summary>
+    /// <param name="hWnd">主窗口</param>
+    /// <param name="lpdwProcessId">进程ID</param>
+    /// <returns>线程ID</returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+    /// <summary>
+    /// 焦点
+    /// </summary>
+    /// <param name="hWnd"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll")]
+    public static extern IntPtr SetFocus(IntPtr hWnd);
+
     /// <summary>
     /// 获取当前窗口
     /// </summary>
@@ -282,6 +315,10 @@ public partial class WindowsAPI
     /// <returns></returns>
     [DllImport("User32.dll", CharSet = CharSet.Auto)]
     public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int nMaxCount);
+
+    // [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
+    // internal static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
+
 
     /// <summary>
     /// 获取某个线程的输入法布局
@@ -351,21 +388,6 @@ public partial class WindowsAPI
             return gti;
         }
     }
-    #endregion
-
-    [DllImport("kernel32.dll")]
-    public static extern int GetCurrentThreadId();
-
-    [DllImport("user32.dll")]
-    public static extern IntPtr SetFocus(IntPtr hWnd);
-}
-
-
-
-public partial class WindowsAPI
-{
-    // [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
-    // internal static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
 
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetFocus();
@@ -376,9 +398,23 @@ public partial class WindowsAPI
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetParent(IntPtr hWnd);
 
-    [DllImport("kernel32.dll")]
-    public static extern long GetHandleInformation(long hObject, ref long lpdwFlags);
+    [DllImport("user32.dll")]
+    public static extern int ToAscii(int uVirtKey, int uScancode, byte[] lpdKeyState, byte[] lpwTransKey, int fuState);
 
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern IntPtr GetActiveWindow();
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern long GetWindowThreadProcessId(IntPtr hwnd, ref int lpdwProcessId);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    public static extern bool IsIconic(int hWnd);
+
+    [DllImport("user32.dll")]
+    public static extern bool IsWindowEnabled(IntPtr hWnd);
+    #endregion
+
+    #region 钩子
     [DllImport("user32.dll")]
     public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBackX86 lpfn, long hmod, int dwThreadId);
 
@@ -397,24 +433,6 @@ public partial class WindowsAPI
     [DllImport("user32.dll")]
     public static extern int CallNextHookEx(int hHook, int ncode, int wParam, int lParam);
 
-    [DllImport("kernel32.dll")]
-    public static extern IntPtr GetModuleHandle(string ModuleName);
-
-    [DllImport("user32.dll")]
-    public static extern int ToAscii(int uVirtKey, int uScancode, byte[] lpdKeyState, byte[] lpwTransKey, int fuState);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern IntPtr GetActiveWindow();
-
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern long GetWindowThreadProcessId(IntPtr hwnd, ref int lpdwProcessId);
-
-    [DllImport("user32.dll", SetLastError = true)]
-    public static extern bool IsIconic(int hWnd);
-
-    [DllImport("user32.dll")]
-    public static extern bool IsWindowEnabled(IntPtr hWnd);
-
     public delegate IntPtr CallBackX86(int nCode, int wParam, int lParam);
     public delegate IntPtr CallBackX64(int nCode, int wParam, long lParam);
     public delegate IntPtr CallBack(int nCode, int wParam, int lParam);
@@ -424,6 +442,7 @@ public partial class WindowsAPI
         WH_KEYBOARD_LL = 13,
         WH_MOUSE_LL = 14,
     }
+    #endregion
 
     [DllImport("user32.dll")]
     public static extern bool GetWindowRect(IntPtr hwnd, ref IntRect lpRect);
@@ -576,43 +595,3 @@ public partial class WindowsAPI
         #endregion
     }
 }
-
-
-#if true2
-// arx剪贴板头文件的枚举
-enum eClipInfoFlags
-{
-    kbDragGeometry = 0x01,
-};
-
-enum eXrefType
-{
-    kXrefTypeAttach = 1,
-    kXrefTypeOverlay = 2
-};
-
-enum eExpandedClipDataTypes
-{
-    kDcPlotStyles = 1,
-    kDcXrefs = 2,
-    kDcLayouts = 3,
-    kDcBlocks = 4,
-    kDcLayers = 5,
-    kDcDrawings = 6,
-    kDcLinetypes = 7,
-    kDcTextStyles = 8,
-    kDcDimStyles = 9,
-    kDcBlocksWithAttdef = 10,
-    //#ifdef ADCHATCH
-    kDcHatches = 11,
-    //#endif
-    kTpXrefs = 12,
-    kTpImages = 13,
-    kTpTable = 14,
-    kDcTableStyles = 15,
-    kDcMultileaderStyles = 16,
-    kDcVisualStyles = 17,
-    kDcSectionViewStyles = 18,
-    kDcDetailViewStyles = 19,
-};
-#endif

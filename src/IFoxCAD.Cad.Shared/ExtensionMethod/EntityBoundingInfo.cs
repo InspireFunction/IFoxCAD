@@ -172,17 +172,18 @@ public class EntityBoundingInfo
         // 错误类型处理
         if (ent is AttributeDefinition) // 属性定义
             return new(Point3d.Origin, Point3d.Origin, false);
-        else if (ent is Xline xline)// 参照线
+        if (ent is Xline xline)// 参照线
             return new(xline.BasePoint, xline.BasePoint, true);
-        else if (ent is Ray ray)// 射线
+        if (ent is Ray ray)// 射线
             return new(ray.BasePoint, ray.BasePoint, true);
 #endif
         // 指定类型处理
         if (ent is BlockReference brf)
             return GetBoxInfoInBlockReference(brf);
-        else if (ent is MText mText)
+        if (ent is MText mText)
             return GetBoxInfoInMText(mText);
-        else if (!_typeNames.Contains(ent.GetType().Name)) // 屏蔽天正等等缺失包围盒的类型
+
+        if (!_typeNames.Contains(ent.GetType().Name)) // 屏蔽天正等等缺失包围盒的类型
             try
             {
                 return new(ent.GeometricExtents.MinPoint, ent.GeometricExtents.MaxPoint, true);

@@ -160,11 +160,12 @@ public class TestBlock
     {
         using DBTrans tr = new();
         var blockid = Env.Editor.GetEntity("pick block:").ObjectId;
-        var blockref = tr.GetObject<BlockReference>(blockid)!.BlockTableRecord;
-
+        var btf = tr.GetObject<BlockReference>(blockid);
+        if (btf is null)
+            return;
         var att1 = new AttributeDefinition() { Position = new Point3d(20, 20, 0), Tag = "addtagTest1", Height = 1, TextString = "valueTest1" };
         var att2 = new AttributeDefinition() { Position = new Point3d(10, 12, 0), Tag = "tagTest2", Height = 1, TextString = "valueTest2" };
-        tr.BlockTable.AddAttsToBlocks(blockref, new() { att1, att2 });
+        tr.BlockTable.AddAttsToBlocks(btf.BlockTableRecord, new() { att1, att2 });
     }
 
     [CommandMethod(nameof(Test_BlockNullBug))]
@@ -201,13 +202,13 @@ public class TestBlock
         });
         // tr.BlockTable.Add("hah");
         var id = tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test1");
-        var bref = tr.GetObject<BlockReference>(id)!;
+        var brf1 = tr.GetObject<BlockReference>(id)!;
         var pts = new List<Point3d> { new Point3d(3, 3, 0), new Point3d(7, 3, 0), new Point3d(7, 7, 0), new Point3d(3, 7, 0) };
-        bref.ClipBlockRef(pts);
+        brf1.ClipBlockRef(pts);
 
         var id1 = tr.CurrentSpace.InsertBlock(new Point3d(20, 20, 0), "test1");
-        var bref1 = tr.GetObject<BlockReference>(id);
-        bref1?.ClipBlockRef(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
+        var brf2 = tr.GetObject<BlockReference>(id);
+        brf2?.ClipBlockRef(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
     }
 
     // 给用户的测试程序，不知道对错
@@ -239,8 +240,8 @@ public class TestBlock
             });
 
             var id = tr.ModelSpace.InsertBlock(Point3d.Origin, blockdef);// 插入块参照
-            var entTest = tr.GetObject<BlockReference>(id);
-            entTest?.Draw();
+            var brf = tr.GetObject<BlockReference>(id);
+            brf?.Draw();
         }
 
         using DBTrans tr2 = new();
@@ -252,12 +253,12 @@ public class TestBlock
         if (per.Status != PromptStatus.OK)
             return;
 
-        var Bref = tr2.GetObject<BlockReference>(per.ObjectId)!;
+        var brf2 = tr2.GetObject<BlockReference>(per.ObjectId)!;
         // var BTR = tr.GetObject<BlockTableRecord>(Bref.BlockTableRecord, OpenMode.ForWrite);
         //// 如果知道块名字BTRName
         // BlockTableRecord BTR = tr.GetObject<BlockTableRecord>(tr.BlockTable[blockName], OpenMode.ForWrite);
 
-        var btr = tr2.BlockTable[Bref.Name];
+        var btr = tr2.BlockTable[brf2.Name];
 
         tr2.BlockTable.Change(btr, ltr => {
             foreach (ObjectId oid in ltr)
@@ -427,12 +428,12 @@ public class TestBlock
         // {
         // var bt = tr1.GetObject(db.BlockTableId, OpenMode.ForRead) as BlockTable;
         var btr1 = tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite) as BlockTableRecord;
-        var br = new BlockReference(Point3d.Origin, bt[blockName])
+        var brf = new BlockReference(Point3d.Origin, bt[blockName])
         {
             ScaleFactors = default
         };
-        btr1!.AppendEntity(br);
-        tr.AddNewlyCreatedDBObject(br, true);
+        btr1!.AppendEntity(brf);
+        tr.AddNewlyCreatedDBObject(brf, true);
         btr1.DowngradeOpen();
         ed.Regen();
         tr.Commit();
@@ -460,8 +461,8 @@ public class TestBlock
         };
         var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
         using DBTrans tr = new();
-        var blockref = tr.GetObject<BlockReference>(blockid)!;
-        blockref.ChangeBlockProperty(pro);
+        var brf = tr.GetObject<BlockReference>(blockid)!;
+        brf.ChangeBlockProperty(pro);
         // 这是第一个函数的用法
     }
 
