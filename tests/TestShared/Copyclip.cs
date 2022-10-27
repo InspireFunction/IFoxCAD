@@ -6,16 +6,9 @@ namespace Test;
 using Autodesk.AutoCAD.DatabaseServices;
 using System;
 using System.Diagnostics;
-using System.Drawing;
 using System.Drawing.Imaging;
-using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Documents;
-using System.Windows.Interop;
-using System.Windows.Media;
-using Image = System.Drawing.Image;
 
 /*
  * 0x01 (已完成)
@@ -51,6 +44,7 @@ public class Copyclip
     void DocumentManager_DocumentLockModeChanged(object sender, DocumentLockModeChangedEventArgs e)
     {
         var up = e.GlobalCommandName.ToUpper();
+
         string? cmd = null;
 #if COPYCLIP
         if (up == "COPYCLIP")// 复制
@@ -202,9 +196,10 @@ public class Copyclip
             if (dm.Count == 0)
                 return;
             var doc = dm.MdiActiveDocument;
-            if (doc.Editor == null)
+            if (doc == null)
                 return;
-            ObjectId[] idArray = null!;
+
+            ObjectId[] idArray;
 #if true
             var psr = doc.Editor.SelectImplied();// 预选
             if (psr.Status != PromptStatus.OK)
@@ -250,7 +245,7 @@ public class Copyclip
             }
             if (hMetaFile != IntPtr.Zero)
             {
-                // 此处尚未完成
+                // 克隆一个,并写入描述...此处尚未完成
                 // EmfTool.SetEnhMetaFileDescriptionEx(ref hMetaFile, "这是阿惊的emf");
             }
 
@@ -310,6 +305,8 @@ public class Copyclip
                 // 小于dwg07格式的,本工程没有支持cad06dll
                 if ((int)DwgVersion.Current >= 27)
                     fileTr.SaveFile((DwgVersion)27, false);
+                else
+                    throw new ArgumentException($"版本过低,无法保存,版本号:{DwgVersion.Current}");
             }
             #endregion
 
@@ -394,8 +391,7 @@ public class Copyclip
 
             // 获取临时文件的图元id
             var fileEntityIds = new List<ObjectId>();
-            using (DBTrans fileTr = new(cadClipType.File,
-                                        commit: false,
+            using (DBTrans fileTr = new(cadClipType.File, commit: false,
                                         fileOpenMode: FileOpenMode.OpenForReadAndAllShare))
             {
                 fileTr.ModelSpace.ForEach(id => {
@@ -677,31 +673,6 @@ public class Copyclip
         return Path.GetTempPath() + "A$" + t1 + t2[0] + ".DWG";
     }
 }
-
-//public static class BlockReferenceHelper
-//{
-//    /// <summary>
-//    /// 遍历块内
-//    /// </summary>
-//    /// <param name="brf"></param>
-//    /// <param name="action"></param>
-//    /// <param name="tr"></param>
-//    /// <exception cref="ArgumentNullException"></exception>
-//    public static void ForEach(this BlockReference brf, Action<ObjectId> action, DBTrans? tr = null)
-//    {
-//        if (action == null)
-//            throw new ArgumentNullException(nameof(action));
-
-//        trans ??= DBTrans.Top;
-
-//        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
-//        if (btr == null)
-//            return;
-//        foreach (var id in btr)
-//            action.Invoke(id);
-//    }
-//}
-
 
 #if !ac2008
 public class TestImageFormat

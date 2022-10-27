@@ -409,5 +409,66 @@ public static class EntityEx
     {
         return EntityBoundingInfo.GetBoundingInfo(ent);
     }
+
+#line hidden
+    /// <summary>
+    /// 遍历块内
+    /// </summary>
+    /// <param name="brf"></param>
+    /// <param name="action"></param>
+    /// <param name="tr"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    [System.Diagnostics.DebuggerStepThrough]
+    public static void ForEach(this BlockReference brf, Action<ObjectId> action, DBTrans? tr = null)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        tr ??= DBTrans.Top;
+        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
+        if (btr == null)
+            return;
+        btr.ForEach(action);
+    }
+    /// <summary>
+    /// 遍历块内
+    /// </summary>
+    /// <param name="brf"></param>
+    /// <param name="action"></param>
+    /// <param name="tr"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    [System.Diagnostics.DebuggerStepThrough]
+    public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState> action, DBTrans? tr = null)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        tr ??= DBTrans.Top;
+        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
+        if (btr == null)
+            return;
+        btr.ForEach(action);
+    }
+    /// <summary>
+    /// 遍历块内
+    /// </summary>
+    /// <param name="brf"></param>
+    /// <param name="action"></param>
+    /// <param name="tr"></param>
+    /// <exception cref="ArgumentNullException"></exception>
+    [System.Diagnostics.DebuggerStepThrough]
+    public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState, int> action, DBTrans? tr = null)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        tr ??= DBTrans.Top;
+        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
+        if (btr == null)
+            return;
+        btr.ForEach(action);
+    }
+#line default
+
     #endregion
 }

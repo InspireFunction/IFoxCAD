@@ -477,9 +477,8 @@ public static class SymbolTableRecordEx
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId> task)
           where TRecord : SymbolTableRecord, IEnumerable
     {
-        ForEach(record, (a, _, _) => {
-            task.Invoke(a);//由于此处是委托,所以 DebuggerStepThrough 特性会进入,改用预处理方式避免
-        });
+        foreach (ObjectId id in record)
+            task.Invoke(id);
     }
 
     /// <summary>
@@ -489,9 +488,13 @@ public static class SymbolTableRecordEx
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, LoopState> task)
           where TRecord : SymbolTableRecord, IEnumerable
     {
-        ForEach(record, (a, b, _) => {
-            task.Invoke(a, b);
-        });
+        LoopState state = new();/*这种方式比Action改Func更友好*/
+        foreach (ObjectId id in record)
+        {
+            task.Invoke(id, state);
+            if (!state.IsRun)
+                break;
+        }
     }
 
     /// <summary>
@@ -505,8 +508,8 @@ public static class SymbolTableRecordEx
         if (task == null)
             throw new ArgumentNullException(nameof(task));
 
-        LoopState state = new();/*这种方式比Action改Func更友好*/
         int i = 0;
+        LoopState state = new();/*这种方式比Action改Func更友好*/
         foreach (ObjectId id in record)
         {
             task.Invoke(id, state, i);
