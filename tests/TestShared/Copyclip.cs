@@ -29,7 +29,7 @@ public class Copyclip
 {
     #region 命令
 #if test
-    [IFoxInitialize]
+    //[IFoxInitialize] 惊惊: 遇到了高版本无法导出WMF,放弃此功能,等待有缘人
     public void Init()
     {
         Acap.DocumentManager.DocumentLockModeChanged

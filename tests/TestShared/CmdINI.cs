@@ -1,3 +1,5 @@
+//#define givePeopleTest
+
 using System.Diagnostics;
 
 namespace Test;
@@ -26,11 +28,13 @@ public class AutoRegAssemEx : AutoRegAssem
 {
     public AutoRegAssemEx() : base(AutoRegConfig.All)
     {
-        Env.Printl($"{nameof(AutoRegAssemEx)}构造函数,开始自动执行\r\n");
         CmdInit.AutoRegAssemEx = this;
+#if givePeopleTest
 #if Debug
         // 此处用来反射本程序集,检查是否存在重复命令
         AutoReflection.DebugCheckCmdRecurrence();
+#endif
+        Env.Printl($"{nameof(AutoRegAssemEx)}构造函数,开始自动执行\r\n");
 #endif
     }
 }
@@ -66,6 +70,7 @@ public class CmdInit
     }
 }
 
+#if givePeopleTest
 /*
  * 自动执行:特性
  */
@@ -145,3 +150,4 @@ public class Cmd_IFoxInitializeInterface : IFoxAutoGo
         //    }
     }
 }
+#endif
