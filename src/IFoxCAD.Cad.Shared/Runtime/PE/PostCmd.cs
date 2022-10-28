@@ -17,7 +17,7 @@ public class PostCmd
         {
             string str = "acedCommand";
             _AcedCommand =
-                AcadPeInfo.GetDelegate<DelegateAcedCommand>(str, AcadPeEnum.All);
+                AcadPeInfo.GetDelegate<DelegateAcedCommand>(str, AcadPeEnum.ExeAndCore);
         }
         if (_AcedCommand is null)
             return -1;
@@ -42,7 +42,7 @@ public class PostCmd
         {
             string str = "acedPostCommand";
             _AcedPostCommand =
-                AcadPeInfo.GetDelegate<DelegateAcedPostCommand>(str, AcadPeEnum.All);
+                AcadPeInfo.GetDelegate<DelegateAcedPostCommand>(str, AcadPeEnum.ExeAndCore);
         }
         // 不然到CAD之后会乱码
         byte[] bytes = Encoding.Unicode.GetBytes(strExpr);
@@ -63,7 +63,7 @@ public class PostCmd
         {
             string str = "acedInvoke";
             _AcedInvoke =
-                AcadPeInfo.GetDelegate<DelegateAcedInvoke>(str, AcadPeEnum.All);
+                AcadPeInfo.GetDelegate<DelegateAcedInvoke>(str, AcadPeEnum.ExeAndCore);
         }
         // 不然到CAD之后会乱码
         byte[] bytes = Encoding.Unicode.GetBytes(strExpr);
@@ -106,7 +106,7 @@ public class PostCmd
             if (Acap.Version.Major >= 20)// 2015.+
                 str += "S";
             _AcedCmd =
-                AcadPeInfo.GetDelegate<DelegateAcedCmd>(str, AcadPeEnum.All);
+                AcadPeInfo.GetDelegate<DelegateAcedCmd>(str, AcadPeEnum.ExeAndCore);
         }
         if (_AcedCmd is null)
             return -1;

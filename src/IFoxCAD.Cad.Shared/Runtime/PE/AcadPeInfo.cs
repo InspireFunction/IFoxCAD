@@ -8,7 +8,8 @@ public enum AcadPeEnum : byte
 {
     AcadExe = 1,
     AccoreDll = 2,
-    All = AcadExe | AccoreDll,
+    Acdb = 4,
+    ExeAndCore = AcadExe | AccoreDll,
 }
 
 // 这里的枚举对应 GetMethodException 错误值
@@ -31,9 +32,9 @@ public class AcadPeInfo
         {
             if (_PeForAcadExe is null)
             {
-                // 拿到acad.exe路径,获取所有的函数名
-                var acadexeFullName = Process.GetCurrentProcess().MainModule.FileName;
-                _PeForAcadExe = new PeInfo(acadexeFullName);
+                // 获取此acad.exe获取所有的函数名
+                var file = Process.GetCurrentProcess().MainModule.FileName;
+                _PeForAcadExe = new PeInfo(file);
             }
             return _PeForAcadExe;
         }
@@ -46,13 +47,30 @@ public class AcadPeInfo
         {
             if (_PeForAccoreDll is null)
             {
-                // 拿到accore.dll路径,获取所有的函数名
-                var acadexeFullName = Process.GetCurrentProcess().MainModule.FileName;
-                var accore = Path.GetDirectoryName(acadexeFullName) + "\\accore.dll";
-                if (File.Exists(accore))// 08没有,高版本分离的
-                    _PeForAccoreDll = new PeInfo(accore);
+                // 获取此dll所有的函数名
+                var file = Process.GetCurrentProcess().MainModule.FileName;
+                var dll = Path.GetDirectoryName(file) + "\\accore.dll";
+                if (File.Exists(dll))// 08没有,高版本分离的
+                    _PeForAccoreDll = new PeInfo(dll);
             }
             return _PeForAccoreDll;
+        }
+    }
+
+    static PeInfo? _PeForAcdbDll;
+    public static PeInfo? PeForAcdbDll
+    {
+        get
+        {
+            if (_PeForAcdbDll is null)
+            {
+                // 获取此dll所有的函数名
+                var file = Process.GetCurrentProcess().MainModule.FileName;
+                var dll = Path.GetDirectoryName(file) + $"\\acdb{Acap.Version.Major}.dll";
+                if (File.Exists(dll))
+                    _PeForAcdbDll = new PeInfo(dll);
+            }
+            return _PeForAcdbDll;
         }
     }
 
@@ -68,10 +86,12 @@ public class AcadPeInfo
             {
                 _Methods = new();
 
-                if ((_acadPeEnum & AcadPeEnum.AcadExe) == AcadPeEnum.AcadExe && PeForAcadExe != null)
+                if ((_acadPeEnum & AcadPeEnum.AcadExe) == AcadPeEnum.AcadExe)
                     GetPeMethod(PeForAcadExe);
-                if ((_acadPeEnum & AcadPeEnum.AccoreDll) == AcadPeEnum.AccoreDll && PeForAccoreDll != null)
+                if ((_acadPeEnum & AcadPeEnum.AccoreDll) == AcadPeEnum.AccoreDll)
                     GetPeMethod(PeForAccoreDll);
+                if ((_acadPeEnum & AcadPeEnum.Acdb) == AcadPeEnum.Acdb)
+                    GetPeMethod(PeForAcdbDll);
             }
             return _Methods;
         }
@@ -125,8 +145,11 @@ public class AcadPeInfo
     /// </summary>
     /// <param name="peInfo">Pe信息:可能来自exe/dll</param>
     /// <returns>错误信息</returns>
-    GetMethodErrorNum GetPeMethod(PeInfo peInfo)
+    GetMethodErrorNum GetPeMethod(PeInfo? peInfo)
     {
+        if (peInfo == null)
+            throw new ArgumentNullException(nameof(peInfo));
+
         var identifyStr = _findFuncName + ";" + peInfo.FullName;
         if (_Dict.ContainsKey(identifyStr))// 如果已经找过,直接返回
         {
