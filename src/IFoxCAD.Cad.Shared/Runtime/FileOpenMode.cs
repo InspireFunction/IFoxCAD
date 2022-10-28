@@ -1,5 +1,3 @@
-using IFoxCAD.Cad;
-
 #if ac2008 // NET35
 namespace Autodesk.AutoCAD.DatabaseServices
 {
@@ -76,11 +74,11 @@ namespace Autodesk.AutoCAD.Internal
                 // -------->msctls_statusbar32
                 // -------->DwgView
                 var docW = Acap.DocumentManager.MdiActiveDocument.Window.Handle;
-                var msctls_statusbar32 = WindowsAPI.GetTopWindow(docW);
-                window = WindowsAPI.GetWindow(msctls_statusbar32, 2U);
+                var msctls_statusbar32 = IFoxCAD.Cad.WindowsAPI.GetTopWindow(docW);
+                window = IFoxCAD.Cad.WindowsAPI.GetWindow(msctls_statusbar32, 2U);
             }
             if (window != IntPtr.Zero)
-                WindowsAPI.SetFocus(window);
+                IFoxCAD.Cad.WindowsAPI.SetFocus(window);
         }
     }
 }

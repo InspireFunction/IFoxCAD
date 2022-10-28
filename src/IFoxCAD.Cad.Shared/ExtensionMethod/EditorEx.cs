@@ -1020,14 +1020,12 @@ public static class EditorEx
     [System.Security.SuppressUnmanagedCodeSecurity]// 初始化默认值
     static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
 
-#pragma warning disable CA2101 // 指定对 P/Invoke 字符串参数进行封送处理
 #if NET35
     [DllImport("acad.exe",
 #else
     [DllImport("accore.dll",
 #endif
     CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ads_queueexpr")]
-#pragma warning restore CA2101 // 指定对 P/Invoke 字符串参数进行封送处理
     static extern int Ads_queueexpr(string strExpr);
 
     public enum RunLispFlag : byte
@@ -1037,6 +1035,24 @@ public static class EditorEx
         SendStringToExecute = 4,
     }
 
+    /*
+     * 测试命令:
+     *   [CommandMethod(nameof(CmdTest_RunLisp))]
+     *   public static void CmdTest_RunLisp()
+     *   {
+     *       var res = RunLisp("(setq abc 10)");
+     *   }
+     * 调用方式:
+     *    (command "CmdTest_RunLisp1")
+     * bug说明:
+     *    AcedEvaluateLisp 接口
+     *    在高版本调用时候没有运行成功,使得 !abc 没有值
+     *    在cad08成功,此bug与CommandFlags无关
+     * 解决方案:
+     *   0x01 用异步接口,但是这样是显式调用了:
+     *        (setq thisdrawing (vla-get-activedocument (vlax-get-acad-object)))(vla-SendCommand thisdrawing "CmdTest_RunLisp1 ")
+     *   0x02 使用 Ads_queueexpr 接口
+     */
     /// <summary>
     /// 发送lisp语句字符串到cad执行
     /// </summary>
@@ -1044,35 +1060,13 @@ public static class EditorEx
     /// <param name="lispCode">lisp语句</param>
     /// <param name="flag">运行方式</param>
     /// <returns>缓冲结果,返回值</returns>
-#pragma warning disable IDE0060 // 删除未使用的参数
-    public static ResultBuffer? RunLisp(this Editor ed,
-        string lispCode,
-        RunLispFlag flag = RunLispFlag.AdsQueueexpr)
-#pragma warning restore IDE0060 // 删除未使用的参数
+    public static ResultBuffer? RunLisp(this Editor ed, string lispCode, RunLispFlag flag = RunLispFlag.AdsQueueexpr)
     {
-        /*
-         * 测试命令:
-         *   [CommandMethod(nameof(CmdTest_RunLisp))]
-         *   public static void CmdTest_RunLisp()
-         *   {
-         *       var res = RunLisp("(setq abc 10)");
-         *   }
-         * 调用方式:
-         *    (command "CmdTest_RunLisp1")
-         * bug说明:
-         *    AcedEvaluateLisp 接口
-         *    在高版本调用时候没有运行成功,使得 !abc 没有值
-         *    在cad08成功,此bug与CommandFlags无关
-         * 解决方案:
-         *   0x01 用异步接口,但是这样是显式调用了:
-         *        (setq thisdrawing (vla-get-activedocument (vlax-get-acad-object)))(vla-SendCommand thisdrawing "CmdTest_RunLisp1 ")
-         *   0x02 使用 Ads_queueexpr 接口
-         */
         if ((flag & RunLispFlag.AdsQueueexpr) == RunLispFlag.AdsQueueexpr)
         {
             // 这个在08/12发送lisp不会出错,但是发送bo命令出错了.
             // 0x01 设置 CommandFlags.Session 可以同步,
-            // 0x02 自执行发送lisp都是异步,(用来发送 含有(command)的lisp的)
+            // 0x02 自执行发送lisp都是异步,用来发送 含有(command)的lisp的
             _ = Ads_queueexpr(lispCode + "\n");
         }
         if ((flag & RunLispFlag.AcedEvaluateLisp) == RunLispFlag.AcedEvaluateLisp)
