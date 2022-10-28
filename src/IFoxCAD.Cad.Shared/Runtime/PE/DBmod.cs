@@ -45,7 +45,7 @@ public class DBmodEx
     /// Dbmod 不被修改的任务
     /// </summary>
     /// <param name="action"></param>
-    public static void DbmodReductionTask(Action action)
+    public static void DBmodTask(Action action)
     {
         var dm = Acap.DocumentManager;
         if (dm.Count == 0)
@@ -54,16 +54,17 @@ public class DBmodEx
         if (doc is null)
             return;
         var db = doc.Database;
-        var old = DBmod;
+
+        var bak = DBmod;
         action.Invoke();
-        if (old == DBmod.DatabaseNoModifies && DBmod != DBmod.DatabaseNoModifies)
+        if (bak == DBmod.DatabaseNoModifies && DBmod != DBmod.DatabaseNoModifies)
             AcdbSetDbmod(db.UnmanagedObject, DBmod.DatabaseNoModifies);
     }
 
     //[CommandMethod(nameof(TestCmd_AcdbSetDbmodChange))]
     //public void TestCmd_AcdbSetDbmodChange()
     //{
-    //    DbmodReductionTask(() => {
+    //    DbmodTask(() => {
     //        using DBTrans tr = new();
     //        Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
     //        tr.CurrentSpace.AddEntity(line);
