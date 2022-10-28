@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using System.Windows.Controls;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 获取数据库修改状态
@@ -27,18 +29,15 @@ public class DBmodEx
     public static DBmod DBmod => (DBmod)byte.Parse(Env.GetVar("dbmod").ToString());
 
     delegate long DelegateAcdbSetDbmod(IntPtr db, DBmod newValue);
-    static DelegateAcdbSetDbmod? _AcdbSetDbmod;
+    static DelegateAcdbSetDbmod? acdbSetDbmod;//别改名称
+
     public static long AcdbSetDbmod(IntPtr db, DBmod newValue)
     {
-        if (_AcdbSetDbmod is null)
-        {
-            string str = "acdbSetDbmod";
-            _AcdbSetDbmod =
-                AcadPeInfo.GetDelegate<DelegateAcdbSetDbmod>(str, AcadPeEnum.Acdb);
-        }
-        if (_AcdbSetDbmod is null)
+        acdbSetDbmod ??= AcadPeInfo.GetDelegate<DelegateAcdbSetDbmod>(
+                            nameof(acdbSetDbmod), AcadPeEnum.Acdb);
+        if (acdbSetDbmod is null)
             return -1;
-        return _AcdbSetDbmod.Invoke(db, newValue);// 调用方法
+        return acdbSetDbmod.Invoke(db, newValue);// 调用方法
     }
 
     /// <summary>
@@ -53,18 +52,40 @@ public class DBmodEx
         var doc = dm.MdiActiveDocument;
         if (doc is null)
             return;
-        var db = doc.Database;
 
         var bak = DBmod;
         action.Invoke();
         if (bak == DBmod.DatabaseNoModifies && DBmod != DBmod.DatabaseNoModifies)
-            AcdbSetDbmod(db.UnmanagedObject, DBmod.DatabaseNoModifies);
+            AcdbSetDbmod(doc.Database.UnmanagedObject, DBmod.DatabaseNoModifies);
     }
+
+    static bool _flag = true;
+    /// <summary>
+    /// 请在无法处理的初始化才使用它
+    /// (源泉在初始化的时候进行了修改数据库,所以必须要用一个新线程等待lisp执行完成才可以)
+    /// </summary>
+    public static void DatabaseNoModifies()
+    {
+        if (_flag)//仅执行一次,在初始化时候
+        {
+            var dm = Acap.DocumentManager;
+            if (dm.Count == 0)
+                return;
+            var doc = dm.MdiActiveDocument;
+            if (doc is null)
+                return;
+
+            if (DBmod != DBmod.DatabaseNoModifies)
+                AcdbSetDbmod(doc.Database.UnmanagedObject, DBmod.DatabaseNoModifies);
+            _flag = false;
+        }
+    }
+
 
     //[CommandMethod(nameof(TestCmd_AcdbSetDbmodChange))]
     //public void TestCmd_AcdbSetDbmodChange()
     //{
-    //    DbmodTask(() => {
+    //    DBmodTask(() => {
     //        using DBTrans tr = new();
     //        Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
     //        tr.CurrentSpace.AddEntity(line);

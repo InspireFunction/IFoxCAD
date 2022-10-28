@@ -7,21 +7,17 @@ public class PostCmd
      *static extern int AcedCommand(IntPtr vlist);
     */
     delegate int DelegateAcedCommand(IntPtr strExpr);
-    static DelegateAcedCommand? _AcedCommand;
+    static DelegateAcedCommand? acedCommand;//别改名称
     /// <summary>
     /// 发送命令(同步)
     /// </summary>
     public static int AcedCommand(IntPtr strExpr)
     {
-        if (_AcedCommand is null)
-        {
-            string str = "acedCommand";
-            _AcedCommand =
-                AcadPeInfo.GetDelegate<DelegateAcedCommand>(str, AcadPeEnum.ExeAndCore);
-        }
-        if (_AcedCommand is null)
+        acedCommand ??= AcadPeInfo.GetDelegate<DelegateAcedCommand>(
+                            nameof(acedCommand), AcadPeEnum.ExeAndCore);
+        if (acedCommand is null)
             return -1;
-        return _AcedCommand.Invoke(strExpr);// 调用方法
+        return acedCommand.Invoke(strExpr);// 调用方法
     }
 
 
@@ -31,46 +27,39 @@ public class PostCmd
      *public static extern int AcedPostCommand(string strExpr);
     */
     delegate int DelegateAcedPostCommand(byte[] strExpr);
-    static DelegateAcedPostCommand? _AcedPostCommand;
+    static DelegateAcedPostCommand? acedPostCommand;//别改名称
     /// <summary>
     /// 发送命令(同步)
     /// 这个可以在多线程发送
     /// </summary>
     public static int AcedPostCommand(string strExpr)
     {
-        if (_AcedPostCommand is null)
-        {
-            string str = "acedPostCommand";
-            _AcedPostCommand =
-                AcadPeInfo.GetDelegate<DelegateAcedPostCommand>(str, AcadPeEnum.ExeAndCore);
-        }
+        acedPostCommand ??= AcadPeInfo.GetDelegate<DelegateAcedPostCommand>(
+                                nameof(acedPostCommand), AcadPeEnum.ExeAndCore);
+
         // 不然到CAD之后会乱码
         byte[] bytes = Encoding.Unicode.GetBytes(strExpr);
-
-        if (_AcedPostCommand is null)
+        if (acedPostCommand is null)
             return -1;
-        return _AcedPostCommand.Invoke(bytes);// 调用方法
+        return acedPostCommand.Invoke(bytes);// 调用方法
     }
 
     delegate int DelegateAcedInvoke(byte[] strExpr);
-    static DelegateAcedInvoke? _AcedInvoke;
+    static DelegateAcedInvoke? acedInvoke;//别改名称
     /// <summary>
     /// 发送命令(同步)
     /// </summary>
     public static int AcedInvoke(string strExpr)
     {
-        if (_AcedInvoke is null)
-        {
-            string str = "acedInvoke";
-            _AcedInvoke =
-                AcadPeInfo.GetDelegate<DelegateAcedInvoke>(str, AcadPeEnum.ExeAndCore);
-        }
+        acedInvoke ??= AcadPeInfo.GetDelegate<DelegateAcedInvoke>(
+                            nameof(acedInvoke), AcadPeEnum.ExeAndCore);
+
         // 不然到CAD之后会乱码
         byte[] bytes = Encoding.Unicode.GetBytes(strExpr);
 
-        if (_AcedInvoke is null)
+        if (acedInvoke is null)
             return -1;
-        return _AcedInvoke.Invoke(bytes);// 调用方法
+        return acedInvoke.Invoke(bytes);// 调用方法
     }
 
 
@@ -92,7 +81,7 @@ public class PostCmd
     }
      */
     delegate int DelegateAcedCmd(IntPtr rb);
-    static DelegateAcedCmd? _AcedCmd;
+    static DelegateAcedCmd? acedCmd;//别改名称
     /// <summary>
     /// 发送命令(同步)如果2015.+这里报错,那么表示vs需要提权测试
     /// </summary>
@@ -100,17 +89,19 @@ public class PostCmd
     {
         if (Acap.DocumentManager.IsApplicationContext)
             return 0;
-        if (_AcedCmd is null)
+        if (acedCmd is null)
         {
-            string str = "acedCmd";
+            string str = nameof(acedCmd);
             if (Acap.Version.Major >= 20)// 2015.+
                 str += "S";
-            _AcedCmd =
-                AcadPeInfo.GetDelegate<DelegateAcedCmd>(str, AcadPeEnum.ExeAndCore);
+
+            acedCmd = AcadPeInfo.GetDelegate<DelegateAcedCmd>(
+                            str, AcadPeEnum.ExeAndCore);
         }
-        if (_AcedCmd is null)
+        if (acedCmd is null)
             return -1;
-        var reNum = _AcedCmd.Invoke(args.UnmanagedObject);
+
+        var reNum = acedCmd.Invoke(args.UnmanagedObject);
         if (reNum != 5100)// 5100正确
             throw new ArgumentException("发送命令出错,是否vs权限不足?");
         return reNum;
@@ -128,7 +119,7 @@ public class PostCmd
         var App = Acap.AcadApplication;
 #endif
         // activeDocument 加载lisp第二个文档有问题,似乎要切换了才能
-        var activeDocument = App.GetType().InvokeMember("ActiveDocument", BindingFlags.GetProperty, null, App, null);
-        return activeDocument?.GetType().InvokeMember("SendCommand", BindingFlags.InvokeMethod, null, activeDocument, commandArray);
+        var doc = App.GetType().InvokeMember("ActiveDocument", BindingFlags.GetProperty, null, App, null);
+        return doc?.GetType().InvokeMember("SendCommand", BindingFlags.InvokeMethod, null, doc, commandArray);
     }
 }
