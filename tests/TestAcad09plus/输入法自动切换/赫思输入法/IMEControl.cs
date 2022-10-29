@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
-using System.Windows.Forms;
+﻿namespace Gstar_IMEFilter;
 
-namespace Gstar_IMEFilter;
+using System.Diagnostics;
+using System.Windows.Forms;
 
 public class IMEControl
 {
@@ -250,6 +250,12 @@ public class IMEControl
             registryKey.SetValue(llh, 25000, RegistryValueKind.DWord);
     }
 
+
+    [ComVisible(true)]
+    [Serializable]
+    //[DebuggerDisplay("{DebuggerDisplay,nq}")]
+    //[DebuggerTypeProxy(typeof(KeyboardHookStruct))]
+    [StructLayout(LayoutKind.Sequential)]
     public struct KeyboardHookStruct
     {
         public int vkCode;
@@ -258,9 +264,9 @@ public class IMEControl
         public int Time;
         public int DwExtraInfo;
 
-        public static KeyboardHookStruct Create(IntPtr lParam)
+        public static KeyboardHookStruct Create(IntPtr intPtr)
         {
-            return (KeyboardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyboardHookStruct));
+            return (KeyboardHookStruct)Marshal.PtrToStructure(intPtr, typeof(KeyboardHookStruct));
         }
     }
 }

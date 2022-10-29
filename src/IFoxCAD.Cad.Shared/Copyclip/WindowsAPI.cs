@@ -4,6 +4,7 @@ namespace IFoxCAD.Cad;
 using System;
 using System.Diagnostics;
 using System.Threading;
+using System.Windows.Forms;
 
 public partial class WindowsAPI
 {
@@ -544,6 +545,7 @@ public partial class WindowsAPI
     [Serializable]
     [DebuggerDisplay("{DebuggerDisplay,nq}")]
     [DebuggerTypeProxy(typeof(Point3D))]
+    [StructLayout(LayoutKind.Sequential)]
     public struct Point3D : IEquatable<Point3D>
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
@@ -569,6 +571,17 @@ public partial class WindowsAPI
             return new Point3d(pt.X, pt.Y, pt.Z);
         }
         public override string ToString() => $"({X},{Y},{Z})";
+
+        public static Point3D Create(IntPtr intPtr)
+        {
+            return (Point3D)Marshal.PtrToStructure(intPtr, typeof(Point3D));
+        }
+
+        public void PutCreate(IntPtr intPtr)
+        {
+            Marshal.StructureToPtr(this, intPtr, true);
+        }
+
 
         #region 重载运算符_比较
         public bool Equals(Point3D other)

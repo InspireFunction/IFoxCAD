@@ -51,14 +51,14 @@ public static class DBDictionaryEx
     /// <param name="dict">字典</param>
     /// <param name="trans">事务</param>
     /// <param name="key">键</param>
-    /// <param name="obj">值</param>
-    public static void SetAt<T>(this DBDictionary dict, string key, T obj, Transaction? trans = null) where T : DBObject
+    /// <param name="newValue">值</param>
+    public static void SetAt<T>(this DBDictionary dict, string key, T newValue, Transaction? trans = null) where T : DBObject
     {
         trans ??= DBTrans.Top.Transaction;
         using (dict.ForWrite())
         {
-            dict.SetAt(key, obj);
-            trans.AddNewlyCreatedDBObject(obj, true);
+            dict.SetAt(key, newValue);
+            trans.AddNewlyCreatedDBObject(newValue, true);
         }
     }
 
@@ -72,10 +72,10 @@ public static class DBDictionaryEx
     /// <returns>扩展数据</returns>
     public static XRecordDataList? GetXRecord(this DBDictionary dict, string key)
     {
-        Xrecord? rec = dict.GetAt<Xrecord>(key);
-        if (rec is not null)
-            return rec.Data;
-        return null;
+        var rec = dict.GetAt<Xrecord>(key);
+        if (rec is null)
+            return null;
+        return rec.Data;
     }
 
     /// <summary>
@@ -86,8 +86,8 @@ public static class DBDictionaryEx
     /// <param name="key">键值</param>
     public static void SetXRecord(this DBDictionary dict, string key, XRecordDataList rb)
     {
-        using var data = new Xrecord { Data = rb };
-        dict.SetAt<Xrecord>(key, data);
+        using var newValue = new Xrecord { Data = rb };
+        dict.SetAt<Xrecord>(key, newValue);
     }
     #endregion
 
@@ -124,10 +124,12 @@ public static class DBDictionaryEx
         DataTable table = new();
         foreach (var t in colTypes)
             table.AppendColumn(t.Value, t.Key);
+
         var ncol = colTypes.Count;
-        var nrow = content.GetLength(0);
         var types = new CellType[ncol];
         colTypes.Values.CopyTo(types, 0);
+
+        var nrow = content.GetLength(0);
         for (int i = 0; i < nrow; i++)
         {
             DataCellCollection row = new();
@@ -208,7 +210,10 @@ public static class DBDictionaryEx
     /// <param name="createSubDictionary">是否创建子字典</param>
     /// <param name="dictNames">键值列表</param>
     /// <returns>字典</returns>
-    public static DBDictionary? GetSubDictionary(this DBDictionary dict, bool createSubDictionary, IEnumerable<string> dictNames, DBTrans? trans = null)
+    public static DBDictionary? GetSubDictionary(this DBDictionary dict,
+        bool createSubDictionary,
+        IEnumerable<string> dictNames,
+        DBTrans? trans = null)
     {
         DBDictionary? newdict = null;
         trans ??= DBTrans.Top;

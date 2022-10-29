@@ -85,7 +85,7 @@ public class TestMarshal
             var p = new IntPtr(&pt);
             var result2 = (Point3D)Marshal.PtrToStructure(p, typeof(Point3D));
             result2.X = 220;
-            Marshal.StructureToPtr(result2, p, true);
+            result2.PutCreate(p);
         }
         "封送法:".Print();
         pt.Print();
