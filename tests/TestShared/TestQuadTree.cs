@@ -87,7 +87,7 @@ public partial class TestQuadTree
 
         // 随机图元生成
         List<CadEntity> ces = new();  // 用于随机获取图元
-        Timer.RunTime(() => {
+        Tools.TestTimes(1, "画圆消耗时间:", () => {
             // 生成外边界和随机圆形
             var grc = GenerateRandomCircle(maximumItems, dbExt);
             foreach (var ent in grc)
@@ -111,13 +111,13 @@ public partial class TestQuadTree
                 var dbPointCe = new CadEntity(entId, entRect);
                 ces.Add(dbPointCe);
             }
-        }, Timer.TimeEnum.Millisecond, "画圆消耗时间:");// 30万图元±3秒.cad2021
+        });// 30万图元±3秒.cad2021
 
         // 测试只加入四叉树的时间
-        Timer.RunTime(() => {
+        Tools.TestTimes(1, "插入四叉树时间:", () => {
             for (int i = 0; i < ces.Count; i++)
                 _quadTreeRoot.Insert(ces[i]);
-        }, Timer.TimeEnum.Millisecond, "插入四叉树时间:");// 30万图元±0.7秒.cad2021
+        });// 30万图元±0.7秒.cad2021
 
         tr.Editor?.WriteMessage($"\n加入图元数量:{maximumItems}");
     }
