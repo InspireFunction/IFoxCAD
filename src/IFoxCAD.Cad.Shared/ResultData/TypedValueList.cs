@@ -57,7 +57,8 @@ public class TypedValueList : List<TypedValue>
     /// <returns>ResultBuffer 字符串</returns>
     public override string ToString()
     {
-        return new ResultBuffer(this).ToString();
+        using ResultBuffer a = new(this);
+        return a.ToString();
     }
     #endregion
 }

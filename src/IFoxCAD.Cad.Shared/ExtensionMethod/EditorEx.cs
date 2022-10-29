@@ -1073,13 +1073,14 @@ public static class EditorEx
         {
             _ = AcedEvaluateLisp(lispCode, out IntPtr rb);
             if (rb != IntPtr.Zero)
-                return DisposableWrapper.Create(typeof(ResultBuffer), rb, true) as ResultBuffer;
+                return (ResultBuffer)DisposableWrapper.Create(typeof(ResultBuffer), rb, true);
         }
         if ((flag & RunLispFlag.SendStringToExecute) == RunLispFlag.SendStringToExecute)
         {
             var dm = Acap.DocumentManager;
             var doc = dm.MdiActiveDocument;
-            doc.SendStringToExecute(lispCode + "\n", false, false, false);
+            if (doc != null)
+                doc.SendStringToExecute(lispCode + "\n", false, false, false);
         }
         return null;
     }

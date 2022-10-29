@@ -34,7 +34,7 @@ public class LispList : TypedValueList
             value.InsertRange(1, this);
             return value;
         }
-    } 
+    }
     #endregion
 
     #region 添加数据
@@ -184,7 +184,7 @@ public class LispList : TypedValueList
     /// <summary>
     /// LispList 隐式转换到 ResultBuffer
     /// </summary>
-    /// <param name="values">TypedValueList 实例</param>
+    /// <param name="values">TypedValueList 实例,要using</param>
     public static implicit operator ResultBuffer(LispList values) => new(values.Value.ToArray());
     /// <summary>
     /// TypedValue 数组隐式转换到 LispList
