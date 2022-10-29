@@ -267,7 +267,7 @@ public partial class WindowsAPI
     public static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
     /// <summary>
-    /// 焦点
+    /// 设置焦点
     /// </summary>
     /// <param name="hWnd"></param>
     /// <returns></returns>
@@ -327,11 +327,13 @@ public partial class WindowsAPI
     /// <returns>布局码</returns>
     [DllImport("user32.dll")]
     public static extern int GetKeyboardLayout(int threadid);
+
+
     /// <summary>
     /// 获取按键的当前状态
     /// </summary>
     /// <param name="nVirtKey">按键虚拟代码</param>
-    /// <returns>按键状态值，高位为1表示按下（<0），0表示弹起（>0）</returns>
+    /// <returns>表示没按下&gt;0;按下&lt;0</returns>
     [DllImport("user32.dll")]
     public static extern short GetKeyState(int nVirtKey);
     /// <summary>

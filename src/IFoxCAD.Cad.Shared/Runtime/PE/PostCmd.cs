@@ -112,13 +112,13 @@ public class PostCmd
     {
         object[] commandArray = { args + "\n" };
 #if zcad
-        var App = Acap.ZcadApplication;
+        var com = Acap.ZcadApplication;
 #else
-        var App = Acap.AcadApplication;
+        var com = Acap.AcadApplication;
 #endif
         // activeDocument 加载lisp第二个文档有问题,似乎要切换了才能
-        var doc = App.GetType()
-            .InvokeMember("ActiveDocument", BindingFlags.GetProperty, null, App, null);
+        var doc = com.GetType()
+            .InvokeMember("ActiveDocument", BindingFlags.GetProperty, null, com, null);
         doc?.GetType()
             .InvokeMember("SendCommand", BindingFlags.InvokeMethod, null, doc, commandArray);// 返回值是null
     }

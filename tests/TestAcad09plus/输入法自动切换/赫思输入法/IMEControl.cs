@@ -6,6 +6,7 @@ namespace Gstar_IMEFilter;
 public class IMEControl
 {
     static readonly Regex CMDReg = new("\\(C:.*\\)");
+    /*某些窗口没有 WM_KEYDOWN 消息，就只有 WM_KEYUP 消息*/
     const int WM_KEYDOWN = 256;
     const int WM_KEYUP = 257;
     //const int WM_CHAR = 258;
@@ -13,17 +14,19 @@ public class IMEControl
 
     internal static string[] DefaultCMDs;
     internal static List<string> ExceptCMDs;
-    internal static int AcadPID;
     internal static IntPtr hnexthookproc;
     internal static WindowsAPI.CallBackX86? HookProcX86;
     internal static WindowsAPI.CallBackX64? HookProcX64;
     internal static WindowsAPI.CallBack? HookProc;
 
+    internal static Process _Process;
+    internal static int AcadPID => _Process.Id;
+
     static IMEControl()
     {
         DefaultCMDs = new string[] { "MTEXT", "DDEDIT", "MTEDIT", "TABLEDIT", "MLEADER", "QLEADER", "MLEADERCONTENTEDIT", "MLEADEREDIT", "TEXTEDIT", "TEXT", "QLEADER" };
         ExceptCMDs = new();
-        AcadPID = Process.GetCurrentProcess().Id;
+        _Process = Process.GetCurrentProcess();
         hnexthookproc = IntPtr.Zero;
         CheckLowLevelHooksTimeout();
 
@@ -38,6 +41,9 @@ public class IMEControl
             DefaultCMDs = lines.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
     }
 
+    // 优化内存,减少消息循环时候,频繁创建此类
+    static StringBuilder _lpClassName = new(byte.MaxValue);
+
     public static bool IMEHook(int nCode, int wParam, int lParam)
     {
         var dm = Acap.DocumentManager;
@@ -49,59 +55,74 @@ public class IMEControl
         if (!WindowsAPI.IsWindowEnabled(Acap.MainWindow.Handle))
             return false;
 
+        // 括免命令进行中输入会触发,实现在括免命令中允许输入法
         string input = doc.CommandInProgress;
         Match match = CMDReg.Match(input);
         if (match.Success)
             input = input.Substring(checked(match.Index + 3), checked(match.Length - 4));
-
         if (ExceptCMDs.Contains(input.ToUpper()))
             return false;
 
-        if (wParam >= 65 && wParam <= 90
-            || (wParam == 32 || wParam == 188)
-            || (wParam == 190 || wParam == 222 || (wParam == 189 || wParam == 13))
-            || (wParam == 187 || wParam == 186 || (wParam == 191 || wParam == 192) ||
-               (wParam == 219 || wParam == 220 || (wParam == 221 || wParam == 222)))
-            || (wParam == 223 || wParam >= 48 && wParam <= 57 || (wParam == 27 || wParam >= 96 && wParam <= 105) || wParam == 110))
+        // 键盘按键值
+        if ((65 <= wParam && wParam <= 90/*a~z*/) ||
+            (48 <= wParam && wParam <= 57/*数字键*/) ||
+            (96 <= wParam && wParam <= 105/*小数字键盘数字*/) ||
+             wParam == 27/*esc*/ ||
+             wParam == 32/*空格*/ ||
+             wParam == 13/*回车,大小回车都是它*/ ||
+             wParam == 186/*;*/ ||
+             wParam == 187/*=*/ ||
+             wParam == 188/*,*/ ||
+             wParam == 189/*-*/ ||
+             wParam == 190/*.*/ ||
+             wParam == 191/*?*/ ||
+             wParam == 192/*`~*/ ||
+             wParam == 219/*[*/ ||
+             wParam == 220/*\*/ ||
+             wParam == 221/*]*/ ||
+             wParam == 222/*'*/ ||
+             wParam == 223 ||
+             wParam == 110/*小数字键盘.*/)
         {
-            StringBuilder lpClassName1 = new(byte.MaxValue);
-            IntPtr focus = WindowsAPI.GetFocus();
-            WindowsAPI.GetClassName(focus, lpClassName1, checked(lpClassName1.Capacity + 1));
+            //Debug.WriteLine(wParam);
 
-            string left = lpClassName1.ToString().ToLower();
-            if (left.StartsWith("afx"))
+            var focus = WindowsAPI.GetFocus();
+            WindowsAPI.GetClassName(focus, _lpClassName, checked(_lpClassName.Capacity + 1));
+
+            string left = _lpClassName.ToString().ToLower();
+            if (left.StartsWith("afx"))// 在08输入的都从这里进入
             {
-                WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(65537));
+                //Debug.WriteLine("afx");
+
+                WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x10001));
                 return true;
             }
 
-            if (left.StartsWith("hwndwrapper"))
+            if (left.StartsWith("hwndwrapper"))//cad21会进入,高版本的命令提示器?
             {
-                IntPtr parent = WindowsAPI.GetParent(focus);
+                //Debug.WriteLine("hwndwrapper");
 
+                var parent = WindowsAPI.GetParent(focus);
                 StringBuilder lpString = new(byte.MaxValue);
                 WindowsAPI.GetWindowText(parent, lpString, checked(lpString.Capacity + 1));
-                if (lpString.ToString().ToLower() == "CLI Palette".ToLower())
+                if (lpString.ToString().ToLower() != "cli palette")//"CLI Palette".ToLower()
                 {
-                    WindowsAPI.PostMessage(focus, WM_KEYUP, new IntPtr(wParam), new IntPtr(65537));
-                    return true;
+                    WindowsAPI.GetClassName(parent, _lpClassName, checked(_lpClassName.Capacity + 1));
+                    if (!_lpClassName.ToString().ToLower().StartsWith("afxmdiframe"))
+                        return false;
                 }
-
-                StringBuilder lpClassName2 = new(byte.MaxValue);
-                WindowsAPI.GetClassName(parent, lpClassName2, checked(lpClassName2.Capacity + 1));
-                if (lpClassName2.ToString().ToLower().StartsWith("afxmdiframe"))
-                {
-                    WindowsAPI.PostMessage(focus, WM_KEYUP, new IntPtr(wParam), new IntPtr(65537));
-                    return true;
-                }
+                WindowsAPI.PostMessage(focus, WM_KEYUP, new IntPtr(wParam), new IntPtr(0x10001));
+                return true;
             }
 
             if (left.StartsWith("edit"))
             {
-                IntPtr parent = WindowsAPI.GetParent(focus);
-                StringBuilder lpClassName2 = new(byte.MaxValue);
-                WindowsAPI.GetClassName(parent, lpClassName2, checked(lpClassName2.Capacity + 1));
-                if (lpClassName2.ToString().ToLower().StartsWith("afx") && WindowsAPI.GetParent(parent) != doc.Window.Handle)
+                //Debug.WriteLine("edit");
+
+                var parent = WindowsAPI.GetParent(focus);
+                WindowsAPI.GetClassName(parent, _lpClassName, checked(_lpClassName.Capacity + 1));
+                if (_lpClassName.ToString().ToLower().StartsWith("afx") &&
+                    WindowsAPI.GetParent(parent) != doc.Window.Handle)
                 {
                     WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(3735553));
                     return true;
@@ -109,18 +130,21 @@ public class IMEControl
             }
 
             if (left == "cicerouiwndframe")
+            {
+                //Debug.WriteLine("cicerouiwndframe");
                 return true;
+            }
         }
         return false;
     }
 
     internal static void UnIMEHook()
     {
-        if (!(hnexthookproc != IntPtr.Zero))
-            return;
-
-        WindowsAPI.UnhookWindowsHookEx(hnexthookproc);
-        hnexthookproc = IntPtr.Zero;
+        if (hnexthookproc != IntPtr.Zero)
+        {
+            WindowsAPI.UnhookWindowsHookEx(hnexthookproc);
+            hnexthookproc = IntPtr.Zero;
+        }
     }
 
     internal static void SetIMEHook()
@@ -150,7 +174,7 @@ public class IMEControl
             return;
         }
 
-        var moduleHandle = (long)WindowsAPI.GetModuleHandle(Process.GetCurrentProcess().MainModule.ModuleName);
+        var moduleHandle = (long)WindowsAPI.GetModuleHandle(_Process.MainModule.ModuleName);
         if (Marshal.SizeOf(typeof(IntPtr)) == 4)
         {
             HookProcX86 = (nCode, wParam, lParam) => {
@@ -196,8 +220,10 @@ public class IMEControl
         if (Control.ModifierKeys == Keys.None)
         {
             var hook = KeyboardHookStruct.Create(lParam);
-            if (WindowsAPI.GetKeyState(162) < 0 || WindowsAPI.GetKeyState(163) < 0 ||
-                WindowsAPI.GetKeyState(17) < 0 || WindowsAPI.GetKeyState(262144) < 0)
+            if (WindowsAPI.GetKeyState(162) < 0 ||
+                WindowsAPI.GetKeyState(163) < 0 ||
+                WindowsAPI.GetKeyState(17) < 0 ||
+                WindowsAPI.GetKeyState(262144) < 0)
                 return false;
             if (IMEHook(nCode, hook.vkCode, 0))
                 return true;
@@ -211,6 +237,11 @@ public class IMEControl
         return false;
     }
 
+    /// <summary>
+    /// 注册表增加低级钩子超时处理,防止系统不允许,
+    /// 否则:偶发性出现 键盘钩子不能用了,而且退出时产生 1404 错误
+    /// https://www.cnblogs.com/songr/p/5131655.html
+    /// </summary>
     static void CheckLowLevelHooksTimeout()
     {
         const string llh = "LowLevelHooksTimeout";

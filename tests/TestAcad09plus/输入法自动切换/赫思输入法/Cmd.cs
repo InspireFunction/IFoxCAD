@@ -24,6 +24,7 @@ public class Cmd
     [CommandMethod(nameof(Gstar_IMEFilterSettings))]
     public void Gstar_IMEFilterSettings()
     {
+        /*cad21若使用进程模式,则搜狗拦截不到,并且破坏了内存*/
         Autodesk.AutoCAD.Internal.Utils.SetFocusToDwgView();
         ShowWPFWindowCentered.Show(new SettingsWindow(), true);
     }
