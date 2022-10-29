@@ -1,6 +1,4 @@
-﻿using System.Windows.Controls;
-
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 获取数据库修改状态
@@ -8,7 +6,7 @@ namespace IFoxCAD.Cad;
 /// 相关链接</a>
 /// </summary>
 [Flags]
-public enum DBmod : byte
+public enum DBmod : short
 {
     [Description("数据库冇修改")]
     DatabaseNoModifies = 0,
@@ -26,7 +24,7 @@ public enum DBmod : byte
 
 public class DBmodEx
 {
-    public static DBmod DBmod => (DBmod)byte.Parse(Env.GetVar("dbmod").ToString());
+    public static DBmod DBmod => (DBmod)Env.GetVar("dbmod");
 
     delegate long DelegateAcdbSetDbmod(IntPtr db, DBmod newValue);
     static DelegateAcdbSetDbmod? acdbSetDbmod;//别改名称
@@ -66,7 +64,7 @@ public class DBmodEx
     /// </summary>
     public static void DatabaseNoModifies()
     {
-        if (_flag)//仅执行一次,在初始化时候
+        if (_flag)// 仅执行一次,在初始化时候
         {
             var dm = Acap.DocumentManager;
             if (dm.Count == 0)
