@@ -38,36 +38,6 @@ public class TestCmd_XRecord
 
                 using (pl.ForWrite())
                     pl.SerializeToXRecord(datas);
-
-                // 写入
-
-                // 读取
-                //foreach (var nodItem in tr.NamedObjectsDict)
-                //{
-                //    var name = nodItem.Key.ToString();
-                //    var id = nodItem.Value;
-                //    if (!id.IsOk())
-                //        continue;
-
-                //    var obj = id.GetObject<DBObject>();
-                //    if (obj is DBDictionary dic)// 条目
-                //    {
-                //        nameSizes.Add(new(name, dic.Count, id));
-                //    }
-                //    else if (obj is Xrecord xRec)
-                //    {
-                //        var buffer = xRec.Data; // 是data不是xdata
-                //        if (buffer is not null)
-                //        {
-                //            var values = buffer.AsArray();
-                //            nameSizes.Add(new(name, values.Length, id));
-                //        }
-                //    }
-                //    else
-                //    {
-                //        Env.Printl("关联标注的反应器??");
-                //    }
-                //}
             }
         });
     }
