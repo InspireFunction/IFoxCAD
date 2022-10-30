@@ -224,7 +224,7 @@ public static class DBDictionaryEx
 
             foreach (string name in dictNames)
             {
-                if (dict!.Contains(name))
+                if (dict.Contains(name))
                 {
                     newdict = dict.GetAt<DBDictionary>(name, trans);
                 }
@@ -247,7 +247,6 @@ public static class DBDictionaryEx
                     return null;
             }
         }
-
         return newdict;
     }
 

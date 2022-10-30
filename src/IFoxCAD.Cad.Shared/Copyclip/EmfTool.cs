@@ -16,7 +16,6 @@ using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
 using static IFoxCAD.Cad.WindowsAPI;
 
-
 // DWORD == uint
 // WORD == ushort
 // LONG == int
@@ -106,7 +105,7 @@ public struct PlaceableMetaHeader
         file.Read(fileByte, 0, fileByte.Length);
         file.Close();
 
-        bool bts = WindowsAPI.BytesToStruct(fileByte, out PlaceableMetaHeader sWMF, out int sWMFsize);
+        bool bts = BytesToStruct(fileByte, out PlaceableMetaHeader sWMF, out int sWMFsize);
         if (!bts)
             throw new IOException("失败:类型转换,路径:" + file);
 
@@ -126,13 +125,12 @@ public struct PlaceableMetaHeader
         int iOffset = 0;
         if (sWMF.IsActivity)
             iOffset = sWMFsize;
-        IntPtr intPtr = Marshal.UnsafeAddrOfPinnedArrayElement(fileByte, iOffset);
-
-        WindowsAPI.StructToPtr(mpType, mpPtr => {
+        IntPtr fileIntPtr = Marshal.UnsafeAddrOfPinnedArrayElement(fileByte, iOffset);
+        unsafe
+        {
             hEMF = EmfTool.SetWinMetaFileBits(
-                (uint)fileByte.Length, intPtr, IntPtr.Zero, mpPtr);
-        });
-
+                (uint)fileByte.Length, fileIntPtr, IntPtr.Zero, new IntPtr(&mpType));
+        }
         return hEMF;
     }
 }
@@ -156,6 +154,8 @@ public class Emf
     /// <returns></returns>
     public EnhMetaHeader? CreateEnhMetaHeader()
     {
+        if (EmfHandle == IntPtr.Zero)
+            return null;
         return EnhMetaHeader.Create(EmfHandle);
     }
 }
@@ -247,11 +247,11 @@ public struct EnhMetaHeader
     /// </summary>
     /// <param name="wmf"></param>
     /// <returns></returns>
-    public static EnhMetaHeader? Create(string wmf)
+    public static EnhMetaHeader Create(string wmf)
     {
         var emf = PlaceableMetaHeader.Wmf2Emf(wmf);
         if (emf == IntPtr.Zero)
-            throw new ArgumentException(null, nameof(wmf));
+            throw new ArgumentException(nameof(emf));
         return Create(emf);
     }
 
@@ -263,20 +263,16 @@ public struct EnhMetaHeader
     /// 也就是<see cref="EmfTool.SetWinMetaFileBits"/>的返回值
     /// </param>
     /// <returns></returns>
-    public static EnhMetaHeader? Create(IntPtr clipTypeData)
+    public static EnhMetaHeader Create(IntPtr clipTypeData)
     {
-        if (clipTypeData == IntPtr.Zero)
-            return null;
-
-        EnhMetaHeader? result = null;
         var len = EmfTool.GetEnhMetaFileHeader(clipTypeData, 0, IntPtr.Zero);
-        if (len != 0)
-        {
-            IntPtr header = Marshal.AllocHGlobal((int)len);
-            EmfTool.GetEnhMetaFileHeader(clipTypeData, len, header);
-            result = (EnhMetaHeader)Marshal.PtrToStructure(header, typeof(EnhMetaHeader));
-            Marshal.FreeHGlobal(header);
-        }
+        if (len == 0)
+            throw new ArgumentException(nameof(len));
+
+        IntPtr header = Marshal.AllocHGlobal((int)len);
+        EmfTool.GetEnhMetaFileHeader(clipTypeData, len, header);
+        var result = (EnhMetaHeader)Marshal.PtrToStructure(header, typeof(EnhMetaHeader));
+        Marshal.FreeHGlobal(header);
         return result;
     }
 }
@@ -557,11 +553,7 @@ public static class EmfTool
         if (hMetaFile == IntPtr.Zero)
             throw new ArgumentNullException(nameof(hMetaFile));
 
-        var em = EnhMetaHeader.Create(hMetaFile);//emf结构 GetEnhMetaFileHeader
-        if (em == null)
-            return;
-
-        var emh = em.Value;
+        var emh = EnhMetaHeader.Create(hMetaFile);//emf结构 GetEnhMetaFileHeader
         // 创建画布句柄
         IntRect intRect = emh.rclFrame; //new(0, 0, 0, 0);
         var hMetaDC = EmfTool.CreateEnhMetaFile(IntPtr.Zero, null!, ref intRect, desc);

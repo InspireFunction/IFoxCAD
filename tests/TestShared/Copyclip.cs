@@ -29,11 +29,20 @@ public class Copyclip
 {
     #region 命令
 #if test
-    //[IFoxInitialize] 惊惊: 遇到了高版本无法导出WMF,放弃此功能,等待有缘人
+    static bool _IsRunIFoxCopyClip = false;
+    [IFoxInitialize] // 惊惊: 遇到了高版本无法导出WMF,放弃此功能,等待有缘人
     public void Init()
     {
         Acap.DocumentManager.DocumentLockModeChanged
             += DocumentManager_DocumentLockModeChanged;
+        Env.Printl($"※剪贴板控制※\n{nameof(Copyclip_Switch)} - 切换开关\n");
+    }
+
+    [CommandMethod(nameof(Copyclip_Switch))]
+    public void Copyclip_Switch()
+    {
+        _IsRunIFoxCopyClip = !_IsRunIFoxCopyClip;
+        Env.Printl("已经 " + (_IsRunIFoxCopyClip ? "开启" : "禁用") + " 剪贴板+");
     }
 
     /// <summary>
@@ -43,6 +52,9 @@ public class Copyclip
     /// <param name="e"></param>
     void DocumentManager_DocumentLockModeChanged(object sender, DocumentLockModeChangedEventArgs e)
     {
+        if (!_IsRunIFoxCopyClip)
+            return;
+
         var up = e.GlobalCommandName.ToUpper();
 
         string? cmd = null;
@@ -252,7 +264,6 @@ public class Copyclip
             // 保存文件
             //var emfsave = Path.ChangeExtension(cadClipType.File, ".emf");
             //EmfTool.Save(emf, emfsave);
-
             #endregion
 
             #region 写入 AutoCAD.R17 数据
@@ -312,11 +323,13 @@ public class Copyclip
 
             // 必须一次性写入剪贴板,详见 OpenClipboardTask
             var cadClipFormat = ClipTool.RegisterClipboardFormat(ClipboardEnv.CadVer);
+
+            // 剪贴板需要的指针: 克隆一个新的,不释放内存,不锁定内存(否则高频触发时候卡死)
+            var cadClipData = cadClipType.CloneToIntPtr();
+
             bool getFlag = ClipTool.OpenClipboardTask(true, () => {
                 // 写入剪贴板: cad图元
-                WindowsAPI.StructToPtr(cadClipType, cadClipData => {
-                    ClipTool.SetClipboardData(cadClipFormat, cadClipData);
-                }, false/*不释放内存*/, false/*不锁定内存(否则高频触发时候卡死)*/);
+                ClipTool.SetClipboardData(cadClipFormat, cadClipData);
 
                 // 写入剪贴板: wmf,使得在粘贴链接的时候可以用
                 if (hMetaFile != IntPtr.Zero)
@@ -524,7 +537,8 @@ public class Copyclip
                             return;
                         }
 
-                        int a4 = 1 | 2 | 4;
+                        int a4 = 1;
+                        //int a4 = 1 | 2 | 4;
                         if ((a4 & 1) == 1)
                         {
                             // 获取描述
@@ -536,8 +550,7 @@ public class Copyclip
                         {
                             // 获取文件信息
                             var obj = EnhMetaHeader.Create(clipTypeData);
-                            if (obj != null)
-                                msg.AppendLine("EnhMetaHeader::" + obj.Value.ToString());
+                            msg.AppendLine("EnhMetaHeader::" + obj.ToString());
                         }
                         if ((a4 & 4) == 4)
                         {

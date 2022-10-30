@@ -124,7 +124,7 @@ public partial class WindowsAPI
         IntPtr structPtr = Marshal.AllocHGlobal(typeSize);
         // 将byte数组拷到分配好的内存空间
         Marshal.Copy(bytes, 0, structPtr, typeSize);
-        // 将内存空间转换为目标结构体
+        // 将内存空间转换为目标结构体,转类型的时候会拷贝一次
         result = (T)Marshal.PtrToStructure(structPtr, structType);
         // 释放内存空间
         Marshal.FreeHGlobal(structPtr);
@@ -133,21 +133,29 @@ public partial class WindowsAPI
 
     /// <summary>
     /// 结构体转byte数组
+    /// <a href="https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/builtin-types/unmanaged-types">unmanaged</a>
     /// </summary>
     /// <param name="structObj">要转换的结构体</param>
-    public static byte[] StructToBytes(object? structObj)
+    public static byte[] StructToBytes<T>(T structObj) where T : unmanaged
     {
         // 得到结构体的大小
-        int typeSize = Marshal.SizeOf(structObj);
+        var typeSize = Marshal.SizeOf(structObj);
         // 从内存空间拷到byte数组
-        byte[] bytes = new byte[typeSize];
-
-        StructToPtr(structObj, structPtr => {
-            Marshal.Copy(structPtr, bytes, 0, typeSize);
-        });
+        var bytes = new byte[typeSize];
+        unsafe
+        {
+            Marshal.Copy(new IntPtr(&structObj), bytes, 0, typeSize);
+        }
+#if true20221030
+         // 安全写法效率太低了
+         StructToPtr(structObj, structPtr => {
+             Marshal.Copy(structPtr, bytes, 0, typeSize);
+         });
+#endif
         return bytes;
     }
 
+#if true20221030
     /// <summary>
     /// 结构体转指针
     /// </summary>
@@ -156,25 +164,32 @@ public partial class WindowsAPI
     /// <param name="freeHGlobal">释放申请的内存</param>
     /// <param name="lockPrt">是否锁定内存</param>
     /// <exception cref="ArgumentNullException"></exception>
-    public static void StructToPtr(object? structObj,
+    public static void StructToPtr<T>(T structObj,
                                    Action<IntPtr>? task = null,
                                    bool freeHGlobal = true,
                                    bool lockPrt = true)
     {
-        if (structObj == null)
-            throw new ArgumentNullException(nameof(structObj));
         IntPtr newPtr = Marshal.AllocHGlobal(Marshal.SizeOf(structObj));
         if (newPtr == IntPtr.Zero)
             throw new ArgumentException(nameof(newPtr));
+
         try
         {
             // 剪贴板写入的时候不允许锁定内存,否则在频繁触发剪贴板将导致卡死程序
             if (lockPrt)
+            {
                 GlobalLockTask(newPtr, ptr => {
-                    ToPtr(structObj, task, ptr);
+                    // 将结构体拷到分配好的内存空间
+                    Marshal.StructureToPtr(structObj, newPtr, true);
+                    task?.Invoke(newPtr);
                 });
+            }
             else
-                ToPtr(structObj, task, newPtr);
+            {
+                // 将结构体拷到分配好的内存空间
+                Marshal.StructureToPtr(structObj, newPtr, true);
+                task?.Invoke(newPtr);
+            }
         }
         catch (Exception e)
         {
@@ -186,15 +201,8 @@ public partial class WindowsAPI
             if (freeHGlobal && newPtr != IntPtr.Zero)
                 Marshal.FreeHGlobal(newPtr);
         }
-
-        // 将结构体拷到分配好的内存空间
-        static void ToPtr(object? structObj, Action<IntPtr>? task, IntPtr newPtr)
-        {
-            Marshal.StructureToPtr(structObj, newPtr, true);
-            task?.Invoke(newPtr);
-        }
     }
-
+#endif
     #endregion
 }
 

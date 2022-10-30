@@ -5,6 +5,16 @@ namespace TestShared;
 
 public class TestMarshal
 {
+    [CommandMethod(nameof(TestToBytes))]
+    public void TestToBytes()
+    {
+        var pt = new Point3d(123, 456, 789);
+        var bytes = StructToBytes(pt);
+        BytesToStruct(bytes, out Point3d pt2, out int pt2size);
+        Env.Printl(pt2);
+        Env.Printl(pt2size);
+    }
+
     [CommandMethod(nameof(Test_ChangeLinePoint))]
     public void Test_ChangeLinePoint()
     {
