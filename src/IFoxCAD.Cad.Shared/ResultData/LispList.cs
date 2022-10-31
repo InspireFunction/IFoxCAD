@@ -46,9 +46,8 @@ public class LispList : TypedValueList
     public override void Add(int code, object? obj)
     {
         if (code < 5000)
-        {
             throw new System.Exception("传入的组码值不是 lisp数据 有效范围！");
-        }
+
         Add(new TypedValue(code, obj));
     }
 

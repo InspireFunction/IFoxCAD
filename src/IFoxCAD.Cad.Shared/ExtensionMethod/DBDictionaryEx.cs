@@ -86,7 +86,9 @@ public static class DBDictionaryEx
     /// <param name="key">键值</param>
     public static void SetXRecord(this DBDictionary dict, string key, XRecordDataList rb)
     {
-        using var newValue = new Xrecord { Data = rb };
+        // DxfCode.300  字符串可以写 Data
+        // DxfCode.1004 内存流不给写 Data,只能去写 XData
+        using Xrecord newValue = new() { Data = rb };
         dict.SetAt<Xrecord>(key, newValue);
     }
     #endregion

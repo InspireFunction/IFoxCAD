@@ -26,7 +26,7 @@ public class XDataList : TypedValueList
     public override void Add(int code, object obj)
     {
         if (code < 1000 || code > 1071)
-            throw new System.Exception("传入的组码值不是XData有效范围!");
+            throw new System.Exception("传入的组码值不是 XData 有效范围!");
 
         Add(new TypedValue(code, obj));
     }

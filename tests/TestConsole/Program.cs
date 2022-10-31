@@ -9,7 +9,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 
-
+#if true
 namespace CalculatorDemo
 {
     class Program
@@ -64,6 +64,7 @@ namespace CalculatorDemo
         }
     }
 }
+#endif
 
 #if true2
 

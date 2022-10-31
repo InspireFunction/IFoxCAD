@@ -1,10 +1,12 @@
-﻿#if NewtonsoftJson
+﻿//#define ExtendedDataBinaryChunk
+#define XTextString
 
-namespace Test_XRecord;
-
+#if NewtonsoftJson
 using System.Diagnostics;
 using Newtonsoft.Json;
 using static IFoxCAD.Cad.WindowsAPI;
+
+namespace Test_XRecord;
 
 public class TestCmd_XRecord
 {
@@ -37,7 +39,10 @@ public class TestCmd_XRecord
                 }
 
                 using (pl.ForWrite())
+                {
                     pl.SerializeToXRecord(datas);
+                    //pl.SerializeToXRecord(datas);
+                }
             }
         });
     }
@@ -56,17 +61,44 @@ public class TestCmd_XRecord
             var pl = prs.ObjectId.GetObject<Entity>();
             if (pl == null)
                 return;
+#if XTextString
             datas = pl.DeserializeToXRecord<TestABCList>();
+#endif
+
+#if ExtendedDataBinaryChunk
+            // 这里有数据容量限制,而且很小
+            var xd = pl.GetXDictionary();
+            if (xd == null)
+                return;
+            if (xd.XData == null)
+                return;
+
+            XDataList data = xd.XData;
+            var sb = new StringBuilder();
+            data.ForEach(a => {
+                if (a.TypeCode == (short)DxfCode.ExtendedDataBinaryChunk)
+                    if (a.Value is byte[] bytes)
+                        sb.Append(Encoding.UTF8.GetString(bytes));
+            });
+            datas = JsonConvert.DeserializeObject<TestABCList>(sb.ToString(), XRecordHelper._sset);
+#endif
         });
         if (datas == null)
+        {
+            Env.Printl("没有反序列的东西");
             return;
+        }
+
+        var sb = new StringBuilder();
         for (int i = 0; i < datas.Count; i++)
-            Env.Printl(datas[i]);
+            sb.Append(datas[i]);
+        Env.Printl(sb);
     }
 }
 
 public static class XRecordHelper
 {
+    #region 序列化方式
     internal static JsonSerializerSettings _sset = new()
     {
         Formatting = Formatting.Indented,
@@ -85,22 +117,41 @@ public static class XRecordHelper
             return;
 
         // XRecordDataList 不能超过2G大小
-        const int G2 = 2147483647;
+        const int GigaByte2 = 2147483647;
+        // 单条只能 16KiBit => 2048 * 16 == 32768
+        const int KiBit16 = (2048 * 16) - 1;
 
-        var json = JsonConvert.SerializeObject(data, _sset);
-        var buffer = Encoding.UTF8.GetBytes(json);
+        // 就算这个写法支持,计算机也不一定有那么多内存,所以遇到此情况最好换成内存拷贝
+        var json = JsonConvert.SerializeObject(data, _sset);// 此时内存占用了2G
+        var buffer = Encoding.UTF8.GetBytes(json);          // 此时内存又占用了2G..
 
-        if (buffer.Length < G2)
-        {
-            Set16<T>(xd, json, buffer);
-            return;
-        }
-        // 大于2G
-        BytesTask(buffer, G2, bts => {
-            Set16<T>(xd, json, bts);
+        BytesTask(buffer, GigaByte2, bts => {
+#if XTextString
+            XRecordDataList datas = new();
+            BytesTask(buffer, KiBit16, bts => {
+                datas.Add(DxfCode.XTextString, Encoding.UTF8.GetString(bts)); // 这对的
+                // datas.Add(DxfCode.XTextString, bts);//这样bte变成 "System.Byte[]"
+            });
+            xd.SetXRecord(typeof(T).FullName, datas);
+#endif
+
+#if ExtendedDataBinaryChunk
+            // 这里有数据容量限制,而且很小
+            var appname = typeof(T).FullName;
+            DBTrans.Top.RegAppTable.Add(appname);
+
+            XDataList datas = new();
+            datas.Add(DxfCode.ExtendedDataRegAppName, appname);
+            BytesTask(buffer, KiBit16, bts => {
+                datas.Add(DxfCode.ExtendedDataBinaryChunk, bts);
+            });
+            using (xd.ForWrite())
+                xd.XData = datas; // Autodesk.AutoCAD.Runtime.Exception:“eXdataSizeExceeded”
+#endif
         });
     }
 
+    [DebuggerHidden]
     static void BytesTask(byte[] buffer, int max, Action<byte[]> action)
     {
         int index = 0;
@@ -118,25 +169,6 @@ public static class XRecordHelper
 
             action.Invoke(bts);
         }
-    }
-
-    private static void Set16<T>(DBDictionary xd, string json, byte[] buffer)
-    {
-        // 单条只能 16KiBit => 2048 * 16 == 32768
-        const int KiBit16 = 2048 * 16;
-
-        XRecordDataList datas = new();
-        if (buffer.Length < KiBit16)
-        {
-            datas.Add(DxfCode.XTextString, json);
-        }
-        else
-        {
-            BytesTask(buffer, KiBit16, bts => {
-                datas.Add(DxfCode.XTextString, Encoding.UTF8.GetString(bts));
-            });
-        }
-        xd.SetXRecord(typeof(T).FullName, datas);
     }
 
     /// <summary>
@@ -161,6 +193,67 @@ public static class XRecordHelper
 
         return JsonConvert.DeserializeObject<T>(sb.ToString(), _sset);
     }
+    #endregion
+
+#if NET35
+    /// <summary>
+    /// 设置描述(容量无限)
+    /// </summary>
+    /// <param name="db"></param>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    public static void SetSummaryInfoAtt(this Database db, string key, string value)
+    {
+        var info = new DatabaseSummaryInfoBuilder(db.SummaryInfo);
+        if (!info.CustomProperties.ContainsKey(key))
+            info.CustomProperties.Add(key, value);
+        else
+            info.CustomProperties[key] = value;
+        db.SummaryInfo = info.ToDatabaseSummaryInfo();
+    }
+    /// <summary>
+    /// 获取描述
+    /// </summary>
+    /// <param name="db"></param>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    public static object? GetSummaryInfoAtt(this Database db, string key)
+    {
+        var info = new DatabaseSummaryInfoBuilder(db.SummaryInfo);
+        if (info.CustomProperties.ContainsKey(key))
+            return info.CustomProperties[key];
+        return null;
+    }
+#else
+    /// <summary>
+    /// 设置描述(容量无限)
+    /// </summary>
+    /// <param name="db"></param>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    public static void SetSummaryInfoAtt(this Database db, string key, object value)
+    {
+        var info = new DatabaseSummaryInfoBuilder(db.SummaryInfo);
+        if (!info.CustomPropertyTable.Contains(key))
+            info.CustomPropertyTable.Add(key, value);
+        else
+            info.CustomPropertyTable[key] = value;
+        db.SummaryInfo = info.ToDatabaseSummaryInfo();
+    }
+    /// <summary>
+    /// 获取描述
+    /// </summary>
+    /// <param name="db"></param>
+    /// <param name="key"></param>
+    /// <param name="value"></param>
+    public static object? GetSummaryInfoAtt(this Database db, string key)
+    {
+        var info = new DatabaseSummaryInfoBuilder(db.SummaryInfo);
+        if (info.CustomPropertyTable.Contains(key))
+            return info.CustomPropertyTable[key];
+        return null;
+    }
+#endif
 }
 
 public class TestABCList : List<TestABC>
