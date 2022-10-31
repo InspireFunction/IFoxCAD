@@ -105,9 +105,11 @@ public struct PlaceableMetaHeader
         file.Read(fileByte, 0, fileByte.Length);
         file.Close();
 
-        bool bts = BytesToStruct(fileByte, out PlaceableMetaHeader sWMF, out int sWMFsize);
-        if (!bts)
+        var ss = BytesToStruct<PlaceableMetaHeader>(fileByte);
+        if (ss == null)
             throw new IOException("失败:类型转换,路径:" + file);
+
+        var sWMF = ss.Value;
 
         // 转为emf的地址
         IntPtr hEMF = IntPtr.Zero;
@@ -124,12 +126,16 @@ public struct PlaceableMetaHeader
         // byte[] 指针偏移
         int iOffset = 0;
         if (sWMF.IsActivity)
-            iOffset = sWMFsize;
-        IntPtr fileIntPtr = Marshal.UnsafeAddrOfPinnedArrayElement(fileByte, iOffset);
+            iOffset = Marshal.SizeOf(typeof(PlaceableMetaHeader));
+
         unsafe
         {
-            hEMF = EmfTool.SetWinMetaFileBits(
-                (uint)fileByte.Length, fileIntPtr, IntPtr.Zero, new IntPtr(&mpType));
+            // 安全指针方法
+            //IntPtr fileIntPtr = Marshal.UnsafeAddrOfPinnedArrayElement(fileByte, iOffset);
+            // 不安全指针方法
+            fixed (byte* fileIntPtr = &fileByte[iOffset])
+                hEMF = EmfTool.SetWinMetaFileBits(
+                    (uint)fileByte.Length, new IntPtr(fileIntPtr), IntPtr.Zero, new IntPtr(&mpType));
         }
         return hEMF;
     }

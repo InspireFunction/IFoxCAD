@@ -8,11 +8,10 @@ public class TestMarshal
     [CommandMethod(nameof(TestToBytes))]
     public void TestToBytes()
     {
-        var pt = new Point3d(123, 456, 789);
-        var bytes = StructToBytes(pt);
-        BytesToStruct(bytes, out Point3d pt2, out int pt2size);
-        Env.Printl(pt2);
-        Env.Printl(pt2size);
+        var ptA = new Point3d(123, 456, 789);
+        var bytes = StructToBytes(ptA);
+        var ptB = BytesToStruct<Point3d>(bytes);
+        Env.Printl(ptB!.Value);
     }
 
     [CommandMethod(nameof(Test_ChangeLinePoint))]

@@ -108,27 +108,48 @@ public partial class WindowsAPI
     /// byte数组转结构体
     /// </summary>
     /// <param name="bytes">byte数组</param>
-    /// <param name="result">返回的结构体</param>
     /// <param name="typeSize">返回的结构大小</param>
-    /// <returns>转换后的结构体</returns>
-    public static bool BytesToStruct<T>(byte[] bytes, out T? result, out int typeSize)
+    /// <returns>返回的结构体</returns>
+    [Obsolete("效率太低", true)]
+    public static T? BytesToStruct<T>(byte[] bytes, out int typeSize)
     {
-        result = default;
         var structType = typeof(T);
-        // 得到结构体的大小
         typeSize = Marshal.SizeOf(structType);
         if (typeSize > bytes.Length)
-            return false;
+            return default;
 
+        // 安全写法效率太低了
         // 分配结构体大小的内存空间
         IntPtr structPtr = Marshal.AllocHGlobal(typeSize);
+
         // 将byte数组拷到分配好的内存空间
         Marshal.Copy(bytes, 0, structPtr, typeSize);
-        // 将内存空间转换为目标结构体,转类型的时候会拷贝一次
-        result = (T)Marshal.PtrToStructure(structPtr, structType);
+        // 将内存空间转换为目标结构体;
+        // 转类型的时候会拷贝一次,看它们地址验证 &result != &structPtr
+        var result = (T)Marshal.PtrToStructure(structPtr, structType);
+
         // 释放内存空间
         Marshal.FreeHGlobal(structPtr);
-        return true;
+        return result;
+    }
+
+    /// <summary>
+    /// byte数组转结构体
+    /// </summary>
+    /// <param name="bytes">byte数组</param>
+    /// <returns>返回的结构体</returns>
+    public static T? BytesToStruct<T>(byte[] bytes) where T : unmanaged
+    {
+        T? result = null;
+        unsafe
+        {
+            // 安全指针方法
+            // var pB = Marshal.UnsafeAddrOfPinnedArrayElement(bytes, 0);
+            // 不安全指针方法
+            fixed (byte* pB = &bytes[0])
+                result = (T)Marshal.PtrToStructure(new IntPtr(pB), typeof(T));
+        }
+        return result;
     }
 
     /// <summary>

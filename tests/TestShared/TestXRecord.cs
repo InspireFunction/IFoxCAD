@@ -39,10 +39,7 @@ public class TestCmd_XRecord
                 }
 
                 using (pl.ForWrite())
-                {
                     pl.SerializeToXRecord(datas);
-                    //pl.SerializeToXRecord(datas);
-                }
             }
         });
     }
@@ -130,7 +127,7 @@ public static class XRecordHelper
             XRecordDataList datas = new();
             BytesTask(buffer, KiBit16, bts => {
                 datas.Add(DxfCode.XTextString, Encoding.UTF8.GetString(bts)); // 这对的
-                // datas.Add(DxfCode.XTextString, bts);//这样bte变成 "System.Byte[]"
+                // datas.Add(DxfCode.XTextString, bts);//这样 bts 变成 "System.Byte[]"
             });
             xd.SetXRecord(typeof(T).FullName, datas);
 #endif
