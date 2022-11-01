@@ -9,11 +9,9 @@
  */
 
 namespace InputBinding;
-
 using Autodesk.AutoCAD.Internal;
 using System.Threading;
 using System.Windows.Forms;
-using static WindowsAPI;
 
 public class Inputting
 {
@@ -114,7 +112,7 @@ public class Inputting
                 && InputVar.CmdActive
                 && IsTrigger()
                 && _hwndCapture == IntPtr.Zero
-                && GetKeyboardLayout(GetCurrentThreadId()) < 0;
+                && WindowsAPI.GetKeyboardLayout(WindowsAPI.GetCurrentThreadId()) < 0;
         }
 
         public bool PreFilterMessage(ref Message m)
@@ -128,9 +126,9 @@ public class Inputting
 
             if (m.Msg == 512 && _shiftYN1 && AcadVersion19())
             {
-                _hanCount1Add = GetWindowTextLength(_hwndCaret);
+                _hanCount1Add = WindowsAPI.GetWindowTextLength(_hwndCaret);
                 StringBuilder text = new(2 * _hanCount1Add);
-                GetWindowText(_hwndFocus, text, text.Capacity);
+                WindowsAPI.GetWindowText(_hwndFocus, text, text.Capacity);
                 if (!text.ToString().Contains(InputVar.StatusBar))
                 {
                     Utils.SetFocusToDwgView();
@@ -146,9 +144,9 @@ public class Inputting
             {
                 if (!_shiftYN1 && AcadVersion19())
                 {
-                    _hanCount1Add = GetWindowTextLength(_hwndCaret);
+                    _hanCount1Add = WindowsAPI.GetWindowTextLength(_hwndCaret);
                     StringBuilder text = new(2 * _hanCount1Add);
-                    GetWindowText(_hwndFocus, text, text.Capacity);
+                    WindowsAPI.GetWindowText(_hwndFocus, text, text.Capacity);
                     if (!text.ToString().Contains(InputVar.StatusBar))
                     {
                         Utils.SetFocusToDwgView();
@@ -166,7 +164,7 @@ public class Inputting
 
             IntPtr window = IntPtr.Zero;
 
-            var virtualKey = ImmGetVirtualKey(m.HWnd);
+            var virtualKey = WindowsAPI.ImmGetVirtualKey(m.HWnd);
             var vk = (int)virtualKey;
             if (vk != 16 && vk != 17 && vk != 18 && vk != 91 && InputVar.CmdActive)
             {
@@ -174,22 +172,22 @@ public class Inputting
                 if (_hwndFocus == _hwndCaret)
                 {
                     Env.Printl(InputVar.CmdStr);
-                    StringBuilder text = new(2 * GetWindowTextLength(_hwndCaret));
-                    GetWindowText(_hwndCaret, text, text.Capacity);
+                    StringBuilder text = new(2 * WindowsAPI.GetWindowTextLength(_hwndCaret));
+                    WindowsAPI.GetWindowText(_hwndCaret, text, text.Capacity);
                     if (text.ToString().Contains(InputVar.CmdStr))
                         containCmdStr = true;
                 }
 
                 if (containCmdStr || IsTrigger())
                 {
-                    _hanCount1Add = GetWindowTextLength(_hwndCaret);
+                    _hanCount1Add = WindowsAPI.GetWindowTextLength(_hwndCaret);
                     StringBuilder text = new(2 * _hanCount1Add);
-                    GetWindowText(_hwndFocus, text, text.Capacity);
+                    WindowsAPI.GetWindowText(_hwndFocus, text, text.Capacity);
 
                     if (text.ToString().Contains(InputVar.StatusBar))
                         return false;
 
-                    ImmGetConversionStatus(ImmGetContext(_hwndFocus), out _iMode3, out _);
+                    WindowsAPI.ImmGetConversionStatus(WindowsAPI.ImmGetContext(_hwndFocus), out _iMode3, out _);
                     if (_hwndCapture == IntPtr.Zero)
                         Utils.SetFocusToDwgView();
 
@@ -198,13 +196,13 @@ public class Inputting
                     {
                         if (containCmdStr)
                             window = _hwndCaret;
-                        else if (!InputVar.DY)
+                        else if (!InputVar.去多余字母)
                         {
                             var doc = Acap.DocumentManager.MdiActiveDocument;
-                            window = GetWindow(GetTopWindow(doc.Window.Handle), 2U);
+                            window = WindowsAPI.GetWindow(WindowsAPI.GetTopWindow(doc.Window.Handle), 2U);
                         }
                     }
-                    else if (!InputVar.DY || _hwndCapture != IntPtr.Zero)
+                    else if (!InputVar.去多余字母 || _hwndCapture != IntPtr.Zero)
                         window = m.HWnd;
                 }
             }
@@ -213,7 +211,7 @@ public class Inputting
 
             if (window != IntPtr.Zero)
             {
-                PostMessage(window, m.Msg, virtualKey, m.LParam);
+                WindowsAPI.PostMessage(window, m.Msg, virtualKey, m.LParam);
                 return true;
             }
             return false;
@@ -235,21 +233,21 @@ public class Inputting
             && (InputVar.CmdActive || !InputVar.TextEditor || _hwndActive == _hwndFocus))
             return;
 
-        _hanCount1Add = GetWindowTextLength(_hwndFocus);
+        _hanCount1Add = WindowsAPI.GetWindowTextLength(_hwndFocus);
         StringBuilder text = new(2 * _hanCount1Add);
-        GetWindowText(_hwndFocus, text, text.Capacity);
+        WindowsAPI.GetWindowText(_hwndFocus, text, text.Capacity);
 
         var textStr = text.ToString();
         if (textStr != string.Empty && !textStr.Contains(InputVar.StatusBar))
         {
-            var context = ImmGetContext(_hwndFocus);
-            ImmGetConversionStatus(context, out _iMode1, out _);
-            _status = ImmGetOpenStatus(context);
+            var context = WindowsAPI.ImmGetContext(_hwndFocus);
+            WindowsAPI.ImmGetConversionStatus(context, out _iMode1, out _);
+            _status = WindowsAPI.ImmGetOpenStatus(context);
 
             _hanCount1 = GetHanNum(textStr);
             var length = _hanCount1Add - 2 * _hanCount1;
 
-            if (InputVar.Windows10 || InputVar.CK || InputVar.CS || InputVar.AS)
+            if (InputVar.Windows10 || InputVar.CtrlAndSpace || InputVar.CtrlAndShift || InputVar.WinAndSpace)
             {
                 if (!InputVar.CMD)
                 {
@@ -263,7 +261,7 @@ public class Inputting
                 else
                     InputVar.CMD = false;
             }
-            else if (InputVar.SF || InputVar.CT)
+            else if (InputVar.Shift || InputVar.Ctrl)
             {
                 if (_iMode3 != -1)
                 {
@@ -301,9 +299,9 @@ public class Inputting
         var length = hanCountAdd - 2 * hanCount;
 
         IsTrigger();
-        var context = ImmGetContext(_hwndFocus);
-        ImmGetConversionStatus(context, out _iMode1, out _);
-        _status = ImmGetOpenStatus(context);
+        var context = WindowsAPI.ImmGetContext(_hwndFocus);
+        WindowsAPI.ImmGetConversionStatus(context, out _iMode1, out _);
+        _status = WindowsAPI.ImmGetOpenStatus(context);
 
         new Thread(() => {
             _mre3.WaitOne();
@@ -315,7 +313,7 @@ public class Inputting
             }
 
             Thread.Sleep(50);
-            if (InputVar.Windows10 || InputVar.CK || InputVar.CS || InputVar.AS)
+            if (InputVar.Windows10 || InputVar.CtrlAndSpace || InputVar.CtrlAndShift || InputVar.WinAndSpace)
             {
                 if (!(_status && length > hanCount))
                     if (_status || length > hanCount)
@@ -324,8 +322,8 @@ public class Inputting
             }
             else
             {
-                if (!InputVar.SF
-                    && !InputVar.CT || length <= hanCount
+                if (!InputVar.Shift
+                    && !InputVar.Ctrl || length <= hanCount
                     && _iMode3 == _iMode1
                     && _iMode3 != -1 || length > hanCount
                     && _iMode3 > _iMode1
@@ -369,11 +367,11 @@ public class Inputting
             Thread.Sleep(100);
 
             IsTrigger();
-            var context = ImmGetContext(_hwndFocus);
-            ImmGetConversionStatus(context, out _iMode1, out _);
-            _status = ImmGetOpenStatus(context);
+            var context = WindowsAPI.ImmGetContext(_hwndFocus);
+            WindowsAPI.ImmGetConversionStatus(context, out _iMode1, out _);
+            _status = WindowsAPI.ImmGetOpenStatus(context);
 
-            if (InputVar.Windows10 || InputVar.CK || InputVar.CS || InputVar.AS)
+            if (InputVar.Windows10 || InputVar.CtrlAndSpace || InputVar.CtrlAndShift || InputVar.WinAndSpace)
             {
                 if (_status && length > hanCount)
                 {
@@ -397,7 +395,7 @@ public class Inputting
             }
             else
             {
-                if (!InputVar.SF && !InputVar.CT)
+                if (!InputVar.Shift && !InputVar.Ctrl)
                     return;
                 if (length <= hanCount && _iMode3 == _iMode1 && _iMode3 != -1)
                 {
@@ -448,11 +446,11 @@ public class Inputting
                 Thread.Sleep(100);
 
                 IsTrigger();
-                var context = ImmGetContext(_hwndFocus);
-                ImmGetConversionStatus(context, out _iMode1, out _);
-                _status = ImmGetOpenStatus(context);
+                var context = WindowsAPI.ImmGetContext(_hwndFocus);
+                WindowsAPI.ImmGetConversionStatus(context, out _iMode1, out _);
+                _status = WindowsAPI.ImmGetOpenStatus(context);
 
-                if (InputVar.Windows10 || InputVar.CK || InputVar.CS || InputVar.AS)
+                if (InputVar.Windows10 || InputVar.CtrlAndSpace || InputVar.CtrlAndShift || InputVar.WinAndSpace)
                 {
                     if (_status && length > hanCount)
                         PressKey();
@@ -462,8 +460,8 @@ public class Inputting
                 }
                 else
                 {
-                    if (!InputVar.SF
-                        && !InputVar.CT || length <= hanCount
+                    if (!InputVar.Shift
+                        && !InputVar.Ctrl || length <= hanCount
                         && _iMode3 == _iMode1
                         && _iMode3 != -1 || length > hanCount
                         && _iMode3 > _iMode1
@@ -485,62 +483,65 @@ public class Inputting
     }
 
     /// <summary>
-    /// 处理按键事件
+    /// 切换输入法
     /// </summary>
     public static void PressKey()
     {
-        if (InputVar.SF)
+        // 需要用户先设置一下自己是怎么切换输入法的
+        // 16 == shift
+        // 32 回车
+        if (InputVar.Shift)
         {
             if (_iMode3 == -1)
                 Thread.Sleep(400);
-            KeybdEvent(16, 0, 0, 0);
-            KeybdEvent(16, 0, 2, 0);
+            WindowsAPI.KeybdEvent(16, 0, 0, 0);
+            WindowsAPI.KeybdEvent(16, 0, 2, 0);
         }
-        else if (InputVar.CT)
+        else if (InputVar.Ctrl)
         {
             if (_iMode3 == -1)
                 Thread.Sleep(400);
-            KeybdEvent(17, 0, 0, 0);
-            KeybdEvent(17, 0, 2, 0);
+            WindowsAPI.KeybdEvent(17, 0, 0, 0);
+            WindowsAPI.KeybdEvent(17, 0, 2, 0);
         }
-        else if (InputVar.CK)
+        else if (InputVar.CtrlAndSpace)
         {
             if (_iMode3 == -1)
                 Thread.Sleep(400);
-            KeybdEvent(17, 0, 0, 0);
-            KeybdEvent(32, 0, 0, 0);
-            KeybdEvent(32, 0, 2, 0);
-            KeybdEvent(17, 0, 2, 0);
-            if (GetKeyState(20) != 1)
+            WindowsAPI.KeybdEvent(17, 0, 0, 0);
+            WindowsAPI.KeybdEvent(32, 0, 0, 0);
+            WindowsAPI.KeybdEvent(32, 0, 2, 0);
+            WindowsAPI.KeybdEvent(17, 0, 2, 0);
+            if (WindowsAPI.GetKeyState(20) != 1)
                 return;
-            KeybdEvent(20, 0, 0, 0);
-            KeybdEvent(20, 0, 2, 0);
+            WindowsAPI.KeybdEvent(20, 0, 0, 0);
+            WindowsAPI.KeybdEvent(20, 0, 2, 0);
         }
-        else if (InputVar.CS)
+        else if (InputVar.CtrlAndShift)
         {
             if (_iMode3 == -1)
                 Thread.Sleep(400);
-            KeybdEvent(16, 0, 0, 0);
-            KeybdEvent(17, 0, 0, 0);
-            KeybdEvent(17, 0, 2, 0);
-            KeybdEvent(16, 0, 2, 0);
-            if (GetKeyState(20) != 1)
+            WindowsAPI.KeybdEvent(16, 0, 0, 0);
+            WindowsAPI.KeybdEvent(17, 0, 0, 0);
+            WindowsAPI.KeybdEvent(17, 0, 2, 0);
+            WindowsAPI.KeybdEvent(16, 0, 2, 0);
+            if (WindowsAPI.GetKeyState(20) != 1)
                 return;
-            KeybdEvent(20, 0, 0, 0);
-            KeybdEvent(20, 0, 2, 0);
+            WindowsAPI.KeybdEvent(20, 0, 0, 0);
+            WindowsAPI.KeybdEvent(20, 0, 2, 0);
         }
-        else if (InputVar.AS)
+        else if (InputVar.WinAndSpace)
         {
             if (_iMode3 == -1)
                 Thread.Sleep(400);
-            KeybdEvent(91, 0, 0, 0);
-            KeybdEvent(32, 0, 0, 0);
-            KeybdEvent(32, 0, 2, 0);
-            KeybdEvent(91, 0, 2, 0);
-            if (GetKeyState(20) != 1)
+            WindowsAPI.KeybdEvent(91, 0, 0, 0);
+            WindowsAPI.KeybdEvent(32, 0, 0, 0);
+            WindowsAPI.KeybdEvent(32, 0, 2, 0);
+            WindowsAPI.KeybdEvent(91, 0, 2, 0);
+            if (WindowsAPI.GetKeyState(20) != 1)
                 return;
-            KeybdEvent(20, 0, 0, 0);
-            KeybdEvent(20, 0, 2, 0);
+            WindowsAPI.KeybdEvent(20, 0, 0, 0);
+            WindowsAPI.KeybdEvent(20, 0, 2, 0);
         }
         else
         {
@@ -556,9 +557,9 @@ public class Inputting
         Thread.Sleep(100);
 
         IsTrigger();
-        var context = ImmGetContext(_hwndFocus);
-        ImmGetConversionStatus(context, out _iMode2, out _);
-        _status = ImmGetOpenStatus(context);
+        var context = WindowsAPI.ImmGetContext(_hwndFocus);
+        WindowsAPI.ImmGetConversionStatus(context, out _iMode2, out _);
+        _status = WindowsAPI.ImmGetOpenStatus(context);
 
         var length = _hanCount1Add - 2 * _hanCount1;
 
@@ -588,8 +589,8 @@ public class Inputting
     /// <returns></returns>
     public static bool IsTrigger()
     {
-        var pid = GetWindowThreadProcessId(GetForegroundWindow(), out uint lpdwProcessId);
-        var lpgui = GuiThreadInfo.Create(pid);
+        var pid = WindowsAPI.GetWindowThreadProcessId(WindowsAPI.GetForegroundWindow(), out uint lpdwProcessId);
+        var lpgui = WindowsAPI.GuiThreadInfo.Create(pid);
         _hwndActive = lpgui.hwndActive;
         _hwndFocus = lpgui.hwndFocus;
         _hwndCaret = lpgui.hwndCaret;
@@ -618,13 +619,14 @@ public class Inputting
 
 public class InputVar
 {
-    public static bool DY;
-    public static bool SF;
-    public static bool CT;
-    public static bool CK;
-    public static bool CS;
-    public static bool AS;
-    public static bool SL;
+    public static bool 去多余字母;
+    public static bool Shift;
+    public static bool Ctrl;
+    public static bool CtrlAndSpace;
+    public static bool CtrlAndShift;
+    public static bool WinAndSpace;
+
+    public static bool 增加字母;
     public static bool DK;
     public static bool CMD;
 
@@ -674,22 +676,22 @@ public class InputHelper
     {
         if (!File.Exists(Section))
         {
-            InputVar.SF = true;
+            InputVar.Shift = true;
             return;
         }
         var str = GetValue(Section, "Shift切换");
-        InputVar.SF = str == "True";
+        InputVar.Shift = str == "True";
         str = GetValue(Section, "Ctrl切换");
-        InputVar.CT = str == "True";
+        InputVar.Ctrl = str == "True";
         str = GetValue(Section, "Ctrl+空格");
-        InputVar.CK = str == "True";
+        InputVar.CtrlAndSpace = str == "True";
         str = GetValue(Section, "Ctrl+Shift");
-        InputVar.CS = str == "True";
+        InputVar.CtrlAndShift = str == "True";
         str = GetValue(Section, "Win+空格");
-        InputVar.AS = str == "True";
+        InputVar.WinAndSpace = str == "True";
         str = GetValue(Section, "去多余字母");
-        InputVar.DY = str == "True";
+        InputVar.去多余字母 = str == "True";
         str = GetValue(Section, "增加字母");
-        InputVar.SL = str == "True";
+        InputVar.增加字母 = str == "True";
     }
 }

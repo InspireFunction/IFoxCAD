@@ -266,7 +266,7 @@ public partial class WindowsAPI
     /// 输入法打开状态
     /// </summary>
     /// <param name="hwnd"></param>
-    /// <returns>非0值打开，0值关闭</returns>
+    /// <returns>非0打开,0关闭;(true中文,false英文)</returns>
     [DllImport("imm32.dll")]
     public static extern bool ImmGetOpenStatus(IntPtr hwnd);
     #endregion
