@@ -5,6 +5,8 @@ using System.Windows.Forms;
 
 public class IMEControl
 {
+    internal static HashSet<string> DefaultCMDs;
+    internal static HashSet<string> ExceptCMDs;
     static readonly Regex CMDReg = new("\\(C:.*\\)");
     /*某些窗口没有 WM_KEYDOWN 消息，就只有 WM_KEYUP 消息*/
     const int WM_KEYDOWN = 256;
@@ -12,38 +14,46 @@ public class IMEControl
     //const int WM_CHAR = 258;
     //const int WM_KILLFOCUS = 8;
 
-    internal static string[] DefaultCMDs;
-    internal static List<string> ExceptCMDs;
-    internal static IntPtr hnexthookproc;
     internal static WindowsAPI.CallBackX86? HookProcX86;
     internal static WindowsAPI.CallBackX64? HookProcX64;
     internal static WindowsAPI.CallBack? HookProc;
-
+    internal static IntPtr _NextHookProc;//挂载成功的标记
     internal static Process _Process;
     internal static int AcadPID => _Process.Id;
 
     static IMEControl()
     {
-        DefaultCMDs = new string[] { "MTEXT", "DDEDIT", "MTEDIT", "TABLEDIT", "MLEADER", "QLEADER", "MLEADERCONTENTEDIT", "MLEADEREDIT", "TEXTEDIT", "TEXT", "QLEADER" };
-        ExceptCMDs = new();
+        _NextHookProc = IntPtr.Zero;
         _Process = Process.GetCurrentProcess();
-        hnexthookproc = IntPtr.Zero;
         CheckLowLevelHooksTimeout();
 
+        ExceptCMDs = new();
+        DefaultCMDs = new() { "MTEXT", "DDEDIT", "MTEDIT", "TABLEDIT", "MLEADER",
+            "QLEADER", "MLEADERCONTENTEDIT", "MLEADEREDIT", "TEXTEDIT", "TEXT", "QLEADER" };
         string? lines = null;
         var ftFile = Path.Combine(Settings.MyDir, "ExceptCMDs.ft");
         if (File.Exists(ftFile))
             lines = File.ReadAllText(ftFile, Encoding.UTF8);
         else
             Debug.WriteLine("配置文件丢失: " + ftFile);
-
         if (lines != null)
-            DefaultCMDs = lines.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+        {
+            var ls = lines.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+            for (int i = 0; i < ls.Length; i++)
+                DefaultCMDs.Add(ls[i]);
+        }
     }
 
     // 优化内存,减少消息循环时候,频繁创建此类
     static StringBuilder _lpClassName = new(byte.MaxValue);
 
+    /// <summary>
+    /// 钩子的消息处理
+    /// </summary>
+    /// <param name="nCode"></param>
+    /// <param name="wParam"></param>
+    /// <param name="lParam"></param>
+    /// <returns>false不终止回调,true终止回调</returns>
     public static bool IMEHook(int nCode, int wParam, int lParam)
     {
         var dm = Acap.DocumentManager;
@@ -88,11 +98,23 @@ public class IMEControl
 
             var focus = WindowsAPI.GetFocus();
             WindowsAPI.GetClassName(focus, _lpClassName, checked(_lpClassName.Capacity + 1));
-
             string left = _lpClassName.ToString().ToLower();
             if (left.StartsWith("afx"))// 在08输入的都从这里进入
             {
-                //Debug.WriteLine("afx");
+                Debug.WriteLine($"afx::{DateTime.Now}");
+
+                {
+                    // cad启动时候会滚动某些信息,此时立马鼠标点入到vs中,此时vs无法输入,
+                    // 被拦截到了"afx"处理,然后所有的输入都跑cad了,需要加入如下代码
+                    var focusW = WindowsAPI.GetForegroundWindow();
+                    WindowsAPI.GetClassName(focusW, _lpClassName, checked(_lpClassName.Capacity + 1));
+                    left = _lpClassName.ToString().ToLower();
+                    // 点入vs是 hwndwrapper
+                    // 点入qq是 txguifoundation
+                    Debug.WriteLine($"{left}.....{DateTime.Now}");
+                    if (!left.StartsWith("afx"))
+                        return false;
+                }
 
                 WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x10001));
                 return true;
@@ -100,9 +122,11 @@ public class IMEControl
 
             if (left.StartsWith("hwndwrapper"))//cad21会进入,高版本的命令提示器?
             {
-                //Debug.WriteLine("hwndwrapper");
+                Debug.WriteLine($"hwndwrapper::{DateTime.Now}");
 
                 var parent = WindowsAPI.GetParent(focus);
+                if (parent == IntPtr.Zero)
+                    return false;
                 StringBuilder lpString = new(byte.MaxValue);
                 WindowsAPI.GetWindowText(parent, lpString, checked(lpString.Capacity + 1));
                 if (lpString.ToString().ToLower() != "cli palette")//"CLI Palette".ToLower()
@@ -117,7 +141,7 @@ public class IMEControl
 
             if (left.StartsWith("edit"))
             {
-                //Debug.WriteLine("edit");
+                Debug.WriteLine($"edit::{DateTime.Now}");
 
                 var parent = WindowsAPI.GetParent(focus);
                 WindowsAPI.GetClassName(parent, _lpClassName, checked(_lpClassName.Capacity + 1));
@@ -131,6 +155,7 @@ public class IMEControl
 
             if (left == "cicerouiwndframe")
             {
+                Debug.WriteLine($"cicerouiwndframe::{DateTime.Now}");
                 //Debug.WriteLine("cicerouiwndframe");
                 return true;
             }
@@ -140,37 +165,40 @@ public class IMEControl
 
     internal static void UnIMEHook()
     {
-        if (hnexthookproc != IntPtr.Zero)
+        if (_NextHookProc != IntPtr.Zero)
         {
-            WindowsAPI.UnhookWindowsHookEx(hnexthookproc);
-            hnexthookproc = IntPtr.Zero;
+            WindowsAPI.UnhookWindowsHookEx(_NextHookProc);
+            _NextHookProc = IntPtr.Zero;
         }
     }
 
     internal static void SetIMEHook()
     {
         UnIMEHook();
-        ExceptCMDs.Clear();
-        if (hnexthookproc != IntPtr.Zero || !Settings.Use)
+        if (_NextHookProc != IntPtr.Zero || !Settings.Use)
             return;
 
-        ExceptCMDs.AddRange(DefaultCMDs);
-        ExceptCMDs.AddRange(Settings.UserFilter.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries));
+        ExceptCMDs.Clear();
+        foreach (var item in DefaultCMDs)
+            ExceptCMDs.Add(item);
+        var ss = Settings.UserFilter.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var item in ss)
+            ExceptCMDs.Add(item);
 
         if (Settings.IMEStyle != Settings.IMEStyleS.Global)
         {
-            HookProc = (int nCode, int wParam, int lParam) => {
+            HookProc = (nCode, wParam, lParam) => {
                 if (nCode >= 0)
                 {
-                    bool flag = !(lParam > 0 & (lParam & -1073741823) == 1) ||
+                    bool flag = !((lParam > 0) & ((lParam & -1073741823) == 1)) ||
                                 (Control.ModifierKeys != Keys.None && Control.ModifierKeys != Keys.Shift) ||
                                 !IMEHook(nCode, wParam, lParam);
                     if (!flag)
                         return (IntPtr)1;
                 }
-                return (IntPtr)WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
+                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
             };
-            hnexthookproc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD, HookProc, 0, WindowsAPI.GetCurrentThreadId());
+            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD, HookProc, 0, WindowsAPI.GetCurrentThreadId());
             return;
         }
 
@@ -180,18 +208,18 @@ public class IMEControl
             HookProcX86 = (nCode, wParam, lParam) => {
                 if (!MK1(nCode, wParam) && Mk2(nCode, wParam, new IntPtr(lParam)))
                     return (IntPtr)1;
-                return (IntPtr)WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
+                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
             };
-            hnexthookproc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX86, moduleHandle, 0);
+            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX86, moduleHandle, 0);
         }
         else
         {
             HookProcX64 = (nCode, wParam, lParam) => {
                 if (!MK1(nCode, wParam) && Mk2(nCode, wParam, new IntPtr(lParam)))
                     return (IntPtr)1;
-                return (IntPtr)WindowsAPI.CallNextHookEx(hnexthookproc, nCode, wParam, lParam);
+                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
             };
-            hnexthookproc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX64, moduleHandle, 0);
+            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX64, moduleHandle, 0);
         }
     }
 
@@ -217,21 +245,23 @@ public class IMEControl
         if (lpdwProcessId != AcadPID)
             return false;
 
+        KeyboardHookStruct? key = null;
         if (Control.ModifierKeys == Keys.None)
         {
-            var hook = KeyboardHookStruct.Create(lParam);
+            key = KeyboardHookStruct.Create(lParam);
             if (WindowsAPI.GetKeyState(162) < 0 ||
                 WindowsAPI.GetKeyState(163) < 0 ||
                 WindowsAPI.GetKeyState(17) < 0 ||
-                WindowsAPI.GetKeyState(262144) < 0)
+                WindowsAPI.GetKeyState(262144/*alt键*/) < 0)
                 return false;
-            if (IMEHook(nCode, hook.vkCode, 0))
+
+            if (IMEHook(nCode, key.Value.VkCode, 0))
                 return true;
         }
-        if (Control.ModifierKeys == Keys.Shift)
+        else if (Control.ModifierKeys == Keys.Shift)
         {
-            var hook = KeyboardHookStruct.Create(lParam);
-            if (IMEHook(nCode, hook.vkCode, 0))
+            key ??= KeyboardHookStruct.Create(lParam);
+            if (IMEHook(nCode, key.Value.VkCode, 0))
                 return true;
         }
         return false;
@@ -250,7 +280,9 @@ public class IMEControl
             registryKey.SetValue(llh, 25000, RegistryValueKind.DWord);
     }
 
-
+    /// <summary>
+    /// Hook键盘数据结构
+    /// </summary>
     [ComVisible(true)]
     [Serializable]
     //[DebuggerDisplay("{DebuggerDisplay,nq}")]
@@ -258,15 +290,20 @@ public class IMEControl
     [StructLayout(LayoutKind.Sequential)]
     public struct KeyboardHookStruct
     {
-        public int vkCode;
-        public int ScanCode;
-        public int Flags;
-        public int Time;
-        public int DwExtraInfo;
+        public int VkCode;        // 键码,该代码必须有一个价值的范围1至254
+        public int ScanCode;      // 指定的硬件扫描码的关键
+        public int Flags;         // 键标志
+        public int Time;          // 指定的时间戳记的这个讯息
+        public int DwExtraInfo;   // 指定额外信息相关的信息
 
-        public static KeyboardHookStruct Create(IntPtr intPtr)
+        public static KeyboardHookStruct Create(IntPtr lParam)
         {
-            return (KeyboardHookStruct)Marshal.PtrToStructure(intPtr, typeof(KeyboardHookStruct));
+            return (KeyboardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyboardHookStruct));
+        }
+
+        public void ToPtr(IntPtr lParam)
+        {
+            Marshal.StructureToPtr(this, lParam, true);
         }
     }
 }

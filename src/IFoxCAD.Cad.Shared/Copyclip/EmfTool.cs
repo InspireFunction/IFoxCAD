@@ -1,20 +1,13 @@
 ﻿namespace IFoxCAD.Cad;
 
 using System;
-using System.Drawing.Drawing2D;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Diagnostics;
-using System.Windows;
-using System.Security.Policy;
-using System.Security.Cryptography;
-using System.Windows.Interop;
 using System.Text;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TextBox;
-using System.Xml;
+using static IFoxCAD.Cad.WindowsAPI;
 using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
-using static IFoxCAD.Cad.WindowsAPI;
 
 // DWORD == uint
 // WORD == ushort
@@ -158,10 +151,10 @@ public class Emf
     /// 获取emf结构
     /// </summary>
     /// <returns></returns>
-    public EnhMetaHeader? CreateEnhMetaHeader()
+    public EnhMetaHeader CreateEnhMetaHeader()
     {
         if (EmfHandle == IntPtr.Zero)
-            return null;
+            throw new ArgumentException(nameof(EmfHandle) + "== IntPtr.Zero");
         return EnhMetaHeader.Create(EmfHandle);
     }
 }
@@ -262,22 +255,23 @@ public struct EnhMetaHeader
     }
 
     /// <summary>
-    /// 创建
+    /// 通过emf指针创建
     /// </summary>
-    /// <param name="clipTypeData">
-    /// <see cref="EmfTool.GetEnhMetaFileHeader"/>参数1的结构体首地址<br/>
+    /// <param name="emf"><see cref="EmfTool.GetEnhMetaFileHeader"/>参数1的结构体首地址<br/>
     /// 也就是<see cref="EmfTool.SetWinMetaFileBits"/>的返回值
     /// </param>
     /// <returns></returns>
-    public static EnhMetaHeader Create(IntPtr clipTypeData)
+    public static EnhMetaHeader Create(IntPtr emf)
     {
-        var len = EmfTool.GetEnhMetaFileHeader(clipTypeData, 0, IntPtr.Zero);
+        var len = EmfTool.GetEnhMetaFileHeader(emf, 0, IntPtr.Zero);
         if (len == 0)
             throw new ArgumentException(nameof(len));
 
         IntPtr header = Marshal.AllocHGlobal((int)len);
-        EmfTool.GetEnhMetaFileHeader(clipTypeData, len, header);
+        EmfTool.GetEnhMetaFileHeader(emf, len, header);//这里是切割获取内部的bytes,存放在header
+
         var result = (EnhMetaHeader)Marshal.PtrToStructure(header, typeof(EnhMetaHeader));
+
         Marshal.FreeHGlobal(header);
         return result;
     }

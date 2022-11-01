@@ -449,26 +449,20 @@ public partial class WindowsAPI
     #region 钩子
     [DllImport("user32.dll")]
     public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBackX86 lpfn, long hmod, int dwThreadId);
-
     [DllImport("user32.dll")]
     public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBack lpfn, int hmod, int dwThreadId);
-
     [DllImport("user32.dll")]
     public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBackX64 lpfn, long hmod, int dwThreadId);
-
     [DllImport("user32.dll")]
-    public static extern int UnhookWindowsHookEx(IntPtr hHook);
-
+    public static extern IntPtr UnhookWindowsHookEx(IntPtr hHook);
     [DllImport("user32.dll")]
-    public static extern int CallNextHookEx(IntPtr hHook, int ncode, int wParam, long lParam);
-
+    public static extern IntPtr CallNextHookEx(IntPtr hHook, int ncode, int wParam, long lParam);
     [DllImport("user32.dll")]
-    public static extern int CallNextHookEx(int hHook, int ncode, int wParam, int lParam);
-
+    public static extern IntPtr CallNextHookEx(int hHook, int ncode, int wParam, int lParam);
     public delegate IntPtr CallBackX86(int nCode, int wParam, int lParam);
     public delegate IntPtr CallBackX64(int nCode, int wParam, long lParam);
     public delegate IntPtr CallBack(int nCode, int wParam, int lParam);
-    public enum HookType
+    public enum HookType : int
     {
         WH_KEYBOARD = 2,
         WH_KEYBOARD_LL = 13,
@@ -601,14 +595,14 @@ public partial class WindowsAPI
         }
         public override string ToString() => $"({X},{Y},{Z})";
 
-        public static Point3D Create(IntPtr intPtr)
+        public static Point3D Create(IntPtr lParam)
         {
-            return (Point3D)Marshal.PtrToStructure(intPtr, typeof(Point3D));
+            return (Point3D)Marshal.PtrToStructure(lParam, typeof(Point3D));
         }
 
-        public void PutCreate(IntPtr intPtr)
+        public void ToPtr(IntPtr lParam)
         {
-            Marshal.StructureToPtr(this, intPtr, true);
+            Marshal.StructureToPtr(this, lParam, true);
         }
 
 

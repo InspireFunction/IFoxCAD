@@ -325,7 +325,7 @@ public class Copyclip
             var cadClipFormat = ClipTool.RegisterClipboardFormat(ClipboardEnv.CadVer);
 
             // 剪贴板需要的指针: 克隆一个新的,不释放内存,不锁定内存(否则高频触发时候卡死)
-            var cadClipData = cadClipType.CloneToIntPtr();
+            var cadClipData = cadClipType.CloneToPtr();
 
             bool getFlag = ClipTool.OpenClipboardTask(true, () => {
                 // 写入剪贴板: cad图元

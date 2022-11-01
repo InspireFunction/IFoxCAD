@@ -28,7 +28,7 @@ public partial class SettingsWindow : Window
     {
         CBox.SelectedIndex = (int)Settings.IMEStyle;
         ExCMD.Text = Settings.UserFilter;
-        DeCMD.Text = string.Join(",", IMEControl.DefaultCMDs);
+        DeCMD.Text = string.Join(",", IMEControl.DefaultCMDs.ToArray());
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)

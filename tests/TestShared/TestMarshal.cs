@@ -60,9 +60,7 @@ public class TestMarshal
             var a1 = (Point3D*)&pt1;
             Debug.WriteLine("指针类型转换,获取x::" + a1->X);
 
-            var a = (IntPtr)(&pt1);//explicit 显式转换 == new
-            var pt2 = (Point3D)Marshal.PtrToStructure(a, typeof(Point3D));
-            Debug.WriteLine("pt1转IntPtr地址::" + (int)&a);
+            var pt2 = Point3D.Create(new IntPtr(&pt1));
             Debug.WriteLine("pt1地址::" + (int)&pt1);
             Debug.WriteLine("pt2地址::" + (int)&pt2);
             Debug.Assert(&pt1 == &pt2);//不相等,是申请了新内存
@@ -92,15 +90,15 @@ public class TestMarshal
         unsafe
         {
             var p = new IntPtr(&pt);
-            var result2 = (Point3D)Marshal.PtrToStructure(p, typeof(Point3D));
+            var result2 = Point3D.Create(p);
             result2.X = 220;
-            result2.PutCreate(p);
+            result2.ToPtr(p);
         }
         "封送法:".Print();
         pt.Print();
 
         // 拷贝到数组,还原指针到结构,最后将内存空间转换为目标结构体
-        // 这不闹嘛~
+        // 浪费内存,这不闹嘛~
         int typeSize = Marshal.SizeOf(pt);
         byte[] bytes = new byte[typeSize];
         IntPtr structPtr = Marshal.AllocHGlobal(Marshal.SizeOf(pt));

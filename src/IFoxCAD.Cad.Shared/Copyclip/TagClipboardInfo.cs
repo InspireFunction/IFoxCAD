@@ -190,12 +190,12 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
            chData.GetHashCode();
     }
 
-    public IntPtr CloneToIntPtr()
+    public IntPtr CloneToPtr()
     {
-        var newPtr = Marshal.AllocHGlobal(Marshal.SizeOf(this));
-        if (newPtr != IntPtr.Zero)
-            Marshal.StructureToPtr(this, newPtr, true);
-        return newPtr;
+        var lParam = Marshal.AllocHGlobal(Marshal.SizeOf(this));
+        if (lParam != IntPtr.Zero)
+            Marshal.StructureToPtr(this, lParam, true);
+        return lParam;
     }
     #endregion
 }
