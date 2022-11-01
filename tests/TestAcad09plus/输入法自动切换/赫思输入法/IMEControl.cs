@@ -3,23 +3,26 @@
 using System.Diagnostics;
 using System.Windows.Forms;
 
+
+
 public class IMEControl
 {
     internal static HashSet<string> DefaultCMDs;
     internal static HashSet<string> ExceptCMDs;
+
     static readonly Regex CMDReg = new("\\(C:.*\\)");
     /*某些窗口没有 WM_KEYDOWN 消息，就只有 WM_KEYUP 消息*/
     const int WM_KEYDOWN = 256;
     const int WM_KEYUP = 257;
-    //const int WM_CHAR = 258;
-    //const int WM_KILLFOCUS = 8;
 
     internal static WindowsAPI.CallBackX86? HookProcX86;
     internal static WindowsAPI.CallBackX64? HookProcX64;
     internal static WindowsAPI.CallBack? HookProc;
     internal static IntPtr _NextHookProc;//挂载成功的标记
     internal static Process _Process;
-    internal static int AcadPID => _Process.Id;
+
+    // 优化内存,减少消息循环时候,频繁创建此类
+    static StringBuilder _lpClassName = new(byte.MaxValue);
 
     static IMEControl()
     {
@@ -42,20 +45,41 @@ public class IMEControl
             for (int i = 0; i < ls.Length; i++)
                 DefaultCMDs.Add(ls[i]);
         }
+
+        Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
     }
 
-    // 优化内存,减少消息循环时候,频繁创建此类
-    static StringBuilder _lpClassName = new(byte.MaxValue);
+    // TODO 关键字是中文输入,自动切换到英文 CommandLineMonitor 可以获取关键字
+
+    // 此状态用于括免命令图中自动切换到中文,
+    // 命令中依然能够切换到英文输入,
+    // 命令结束时候从否决事件恢复拦截
+    public static LoopState SendKeyState = new();
+    static void DocumentManager_DocumentLockModeChanged(object sender, DocumentLockModeChangedEventArgs e)
+    {
+        if (e.GlobalCommandName == "#")
+            return;
+        if (!e.GlobalCommandName.StartsWith("#"))
+            return;
+        var up = e.GlobalCommandName.ToUpper()[1..];
+
+        if (ExceptCMDs.Contains(up))
+            SendKeyState = new();
+    }
+
 
     /// <summary>
     /// 钩子的消息处理
-    /// </summary>
+    /// </summary>r
     /// <param name="nCode"></param>
     /// <param name="wParam"></param>
     /// <param name="lParam"></param>
     /// <returns>false不终止回调,true终止回调</returns>
     public static bool IMEHook(int nCode, int wParam, int lParam)
     {
+        if (SendKeyState.IsExceptional)
+            return false;
+
         var dm = Acap.DocumentManager;
         if (dm.Count == 0)
             return false;
@@ -70,8 +94,80 @@ public class IMEControl
         Match match = CMDReg.Match(input);
         if (match.Success)
             input = input.Substring(checked(match.Index + 3), checked(match.Length - 4));
+
         if (ExceptCMDs.Contains(input.ToUpper()))
+        {
+            // 检测是否中文状态,不是就切为中文状态
+            // 切换只能发生在第一次,第2+次需要不执行
+            var focusW = WindowsAPI.GetForegroundWindow();
+            var context = WindowsAPI.ImmGetContext(focusW);
+            WindowsAPI.ImmGetConversionStatus(context, out int mode/*输入模式*/, out _);
+            if (!WindowsAPI.ImmGetOpenStatus(context))
+            {
+                Debug.WriteLine("现在是英文,切换到中文");
+                SendKeyState.Exceptional();
+                switch (Settings.IMEInputSwitch)
+                {
+                    case IMESwitchMode.Shift:
+                    {
+                        WindowsAPI.KeybdEvent(16, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(16, 0, 2, 0);
+                    }
+                    break;
+                    case IMESwitchMode.Ctrl:
+                    {
+                        WindowsAPI.KeybdEvent(17, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(17, 0, 2, 0);
+                    }
+                    break;
+                    case IMESwitchMode.CtrlAndSpace:
+                    {
+                        WindowsAPI.KeybdEvent(17, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(32, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(32, 0, 2, 0);
+                        WindowsAPI.KeybdEvent(17, 0, 2, 0);
+                        if (WindowsAPI.GetKeyState(20) == 1)
+                        {
+                            WindowsAPI.KeybdEvent(20, 0, 0, 0);
+                            WindowsAPI.KeybdEvent(20, 0, 2, 0);
+                        }
+                    }
+                    break;
+                    case IMESwitchMode.CtrlAndShift:
+                    {
+                        WindowsAPI.KeybdEvent(16, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(17, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(17, 0, 2, 0);
+                        WindowsAPI.KeybdEvent(16, 0, 2, 0);
+                        if (WindowsAPI.GetKeyState(20) == 1)
+                        {
+                            WindowsAPI.KeybdEvent(20, 0, 0, 0);
+                            WindowsAPI.KeybdEvent(20, 0, 2, 0);
+                        }
+                    }
+                    break;
+                    case IMESwitchMode.WinAndSpace:
+                    {
+                        WindowsAPI.KeybdEvent(91, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(32, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(32, 0, 2, 0);
+                        WindowsAPI.KeybdEvent(91, 0, 2, 0);
+                        if (WindowsAPI.GetKeyState(20) == 1)
+                        {
+                            WindowsAPI.KeybdEvent(20, 0, 0, 0);
+                            WindowsAPI.KeybdEvent(20, 0, 2, 0);
+                        }
+                    }
+                    break;
+                }
+            }
+            else
+            {
+                Debug.WriteLine("现在是中文,保持不变,在命令否决事件上面恢复拦截");
+                SendKeyState.Exceptional();
+            }
             return false;
+        }
 
         // 键盘按键值
         if ((65 <= wParam && wParam <= 90/*a~z*/) ||
@@ -104,14 +200,14 @@ public class IMEControl
                 Debug.WriteLine($"afx::{DateTime.Now}");
 
                 {
-                    // cad启动时候会滚动某些信息,此时立马鼠标点入到vs中,此时vs无法输入,
-                    // 被拦截到了"afx"处理,然后所有的输入都跑cad了,需要加入如下代码
+                    // cad启动时候会滚动某些信息,此时立马鼠标点入到vs中,
+                    // 此时vs无法输入,被拦截到了"afx"处理,然后所有的输入都跑cad了,需要加入如下代码:
                     var focusW = WindowsAPI.GetForegroundWindow();
                     WindowsAPI.GetClassName(focusW, _lpClassName, checked(_lpClassName.Capacity + 1));
                     left = _lpClassName.ToString().ToLower();
                     // 点入vs是 hwndwrapper
                     // 点入qq是 txguifoundation
-                    Debug.WriteLine($"{left}.....{DateTime.Now}");
+                    Debug.WriteLine($"afx...{left}...{DateTime.Now}");
                     if (!left.StartsWith("afx"))
                         return false;
                 }
@@ -156,7 +252,6 @@ public class IMEControl
             if (left == "cicerouiwndframe")
             {
                 Debug.WriteLine($"cicerouiwndframe::{DateTime.Now}");
-                //Debug.WriteLine("cicerouiwndframe");
                 return true;
             }
         }
@@ -185,7 +280,7 @@ public class IMEControl
         foreach (var item in ss)
             ExceptCMDs.Add(item);
 
-        if (Settings.IMEStyle != Settings.IMEStyleS.Global)
+        if (Settings.IMEStyle != IMEHookStyle.Global)
         {
             HookProc = (nCode, wParam, lParam) => {
                 if (nCode >= 0)
@@ -242,7 +337,7 @@ public class IMEControl
             focus = WindowsAPI.GetForegroundWindow();
 
         WindowsAPI.GetWindowThreadProcessId(focus, out uint lpdwProcessId);
-        if (lpdwProcessId != AcadPID)
+        if (lpdwProcessId != _Process.Id)
             return false;
 
         KeyboardHookStruct? key = null;

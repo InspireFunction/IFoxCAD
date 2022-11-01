@@ -1,14 +1,14 @@
 ﻿using System.Xml;
 
 namespace Gstar_IMEFilter;
-
 public class Settings
 {
     static string _MyDir = "";
     static string _MySettingsPath = "";
     static bool _Use = true;
     internal static string _UserFilter = "";
-    internal static IMEStyleS _IMEStyle = IMEStyleS.Global;
+    internal static IMEHookStyle _IMEStyle = IMEHookStyle.Global;
+    internal static IMESwitchMode _IMEInputSwitch = IMESwitchMode.Shift;
 
     internal static string MyDir
     {
@@ -55,7 +55,7 @@ public class Settings
         }
     }
 
-    public static IMEStyleS IMEStyle
+    public static IMEHookStyle IMEStyle
     {
         get => _IMEStyle;
         set
@@ -65,6 +65,18 @@ public class Settings
             _IMEStyle = value;
             SaveSettings();
             IMEControl.SetIMEHook();
+        }
+    }
+
+    public static IMESwitchMode IMEInputSwitch
+    {
+        get => _IMEInputSwitch;
+        set
+        {
+            if (_IMEInputSwitch == value)
+                return;
+            _IMEInputSwitch = value;
+            SaveSettings();
         }
     }
 
@@ -82,15 +94,25 @@ public class Settings
             switch (left)
             {
                 case "use":
-                bool.TryParse(xmlReader.ReadInnerXml(), out _Use);
+                {
+                    bool.TryParse(xmlReader.ReadInnerXml(), out _Use);
+                }
                 break;
                 case "userfilter":
-                _UserFilter = xmlReader.ReadInnerXml().ToUpper();
+                {
+                    _UserFilter = xmlReader.ReadInnerXml().ToUpper();
+                }
                 break;
                 case "imestyle":
                 {
-                    int.TryParse(xmlReader.ReadInnerXml(), out int imes);
-                    _IMEStyle = (IMEStyleS)imes;
+                    int.TryParse(xmlReader.ReadInnerXml(), out int ime);
+                    _IMEStyle = (IMEHookStyle)ime;
+                }
+                break;
+                case "imeinputswitch":
+                {
+                    int.TryParse(xmlReader.ReadInnerXml(), out int ime);
+                    _IMEInputSwitch = (IMESwitchMode)ime;
                 }
                 break;
             }
@@ -112,20 +134,25 @@ public class Settings
             xmlWriter.WriteComment("输入法＋");
 
             xmlWriter.WriteStartElement("settings");
-            xmlWriter.WriteStartElement("use");
-            xmlWriter.WriteString(Use.ToString());
-            xmlWriter.WriteEndElement();
+            {
+                xmlWriter.WriteStartElement("use");
+                xmlWriter.WriteString(Use.ToString());
+                xmlWriter.WriteEndElement();
 
-            xmlWriter.WriteStartElement("userfilter");
-            xmlWriter.WriteString(UserFilter);
-            xmlWriter.WriteEndElement();
-            xmlWriter.WriteStartElement("imestyle");
+                xmlWriter.WriteStartElement("userfilter");
+                xmlWriter.WriteString(UserFilter);
+                xmlWriter.WriteEndElement();
 
-            xmlWriter.WriteString(((int)IMEStyle).ToString());
-            xmlWriter.WriteEndElement();
+                xmlWriter.WriteStartElement("imestyle");
+                xmlWriter.WriteString(((int)IMEStyle).ToString());
+                xmlWriter.WriteEndElement();
+
+                xmlWriter.WriteStartElement("imeinputswitch");
+                xmlWriter.WriteString(((int)IMEInputSwitch).ToString());
+                xmlWriter.WriteEndElement();
+            }
             xmlWriter.WriteEndElement();
             xmlWriter.WriteEndDocument();
-
             xmlWriter.Close();
         }
         catch (Exception ex)
@@ -133,10 +160,25 @@ public class Settings
             throw ex;
         }
     }
+}
 
-    public enum IMEStyleS
-    {
-        Global,
-        Process,
-    }
+/// <summary>
+/// 钩子样式
+/// </summary>
+public enum IMEHookStyle : int
+{
+    Global,//全局钩子控制
+    Process,//进程钩子控制
+}
+
+/// <summary>
+/// 切换输入法方式
+/// </summary>
+public enum IMESwitchMode : int
+{
+    Shift,
+    Ctrl,
+    CtrlAndSpace,
+    CtrlAndShift,
+    WinAndSpace,
 }
