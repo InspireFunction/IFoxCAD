@@ -29,7 +29,7 @@ public class TestPoint
         foreach (var item in ss1)
         {
             if (item.X > 3 && item.X < 7)
-                Debug.WriteLine(item);
+                Debugx.Printl(item);
             else if (item.X >= 7)
                 break;
         }

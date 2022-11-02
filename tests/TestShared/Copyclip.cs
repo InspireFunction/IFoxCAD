@@ -589,13 +589,13 @@ public class Copyclip
             catch (Exception e)
             {
                 Debugger.Break();
-                Debug.WriteLine(e.ToString());
+                Debugx.Printl(e);
             }
         }
         catch (Exception e)//{"剪贴板上的数据无效 (异常来自 HRESULT:0x800401D3 (CLIPBRD_E_BAD_DATA))"}
         {
             Debugger.Break();
-            Debug.WriteLine(e.ToString());
+            Debugx.Printl(e);
         }
         finally
         {

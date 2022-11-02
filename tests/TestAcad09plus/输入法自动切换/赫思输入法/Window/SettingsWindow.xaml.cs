@@ -21,6 +21,7 @@ public partial class SettingsWindow : Window
         Settings._IMEStyle = (IMEHookStyle)CBox.SelectedIndex;
         Settings.SaveSettings();
         IMEControl.SetIMEHook();
+        IMEControl.SaveFt();
         DialogResult = true;
     }
 
@@ -28,7 +29,7 @@ public partial class SettingsWindow : Window
     {
         CBox.SelectedIndex = (int)Settings.IMEStyle;
         ExCMD.Text = Settings.UserFilter;
-        DeCMD.Text = string.Join(",", IMEControl.DefaultCMDs.ToArray());
+        DeCMD.Text = string.Join(",", IMEControl.DefaultCmds.ToArray());
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)

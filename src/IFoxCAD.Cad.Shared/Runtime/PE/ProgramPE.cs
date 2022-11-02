@@ -25,7 +25,7 @@ using System.Text;
             var str = System.Text.Encoding.Default.GetString(item as byte[]);
             sb.Append(str);
         }
-        Debug.WriteLine(sb.ToString());
+        Debugx.Printl(sb.ToString());
 
         // 原作者的封装
         var ss = pe.GetPETable();

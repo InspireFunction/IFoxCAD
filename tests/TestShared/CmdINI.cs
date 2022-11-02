@@ -99,7 +99,7 @@ public class Cmd_IFoxInitialize
     //        // 您可以写一些其他的释放动作,例如资源回收之类的
     //        Env.Printl($"\n 结束自动执行 Terminate \r\n");
     //        // 改用
-    //        Debug.WriteLine($"\n 结束自动执行 Terminate \r\n");
+    //        Debugx.Printl($"\n 结束自动执行 Terminate \r\n");
     //    }
     //    catch (System.Exception e)
     //    {
@@ -138,7 +138,7 @@ public class Cmd_IFoxInitializeInterface : IFoxAutoGo
 
     public void Terminate()
     {
-        Debug.WriteLine($"开始自动执行,{nameof(IFoxAutoGo)}接口调用:{nameof(Terminate)}::{TestInt}");
+        Debugx.Printl($"开始自动执行,{nameof(IFoxAutoGo)}接口调用:{nameof(Terminate)}::{TestInt}");
         //    try
         //    {
         //        // 注意此时编辑器已经回收,所以此句没用,并引发错误

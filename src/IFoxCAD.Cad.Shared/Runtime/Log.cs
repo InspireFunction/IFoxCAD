@@ -282,27 +282,27 @@ public static class LogHelper
                 switch (target)
                 {
                     case LogTarget.File:
-                        logger = new FileLogger();
-                        logger.WriteLog(logtxtJson);
-                        break;
+                    logger = new FileLogger();
+                    logger.WriteLog(logtxtJson);
+                    break;
                     case LogTarget.FileNotException:
-                        logger = new FileLogger();
-                        logger.WriteLog(logtxtJson);
-                        break;
+                    logger = new FileLogger();
+                    logger.WriteLog(logtxtJson);
+                    break;
                     case LogTarget.Database:
-                        logger = new DBLogger();
-                        logger.WriteLog(logtxtJson);
-                        break;
+                    logger = new DBLogger();
+                    logger.WriteLog(logtxtJson);
+                    break;
                     case LogTarget.EventLog:
-                        logger = new EventLogger();
-                        logger.WriteLog(logtxtJson);
-                        break;
+                    logger = new EventLogger();
+                    logger.WriteLog(logtxtJson);
+                    break;
                 }
             }
 
             if (FlagOutVsOutput)
             {
-                Debug.WriteLine("错误日志: " + LogAddress);
+                Debugx.Printl("错误日志: " + LogAddress);
                 Debug.Write(logtxtJson);
             }
             return logtxtJson;
@@ -437,9 +437,9 @@ public static class Log
 
             if (printDebugWindow)
             {
-                Debug.WriteLine("错误日志: " + _logAddress);
+                Debugx.Printl("错误日志: " + _logAddress);
                 Debug.Write(logtxtJson);
-                // Debugger.Break(); 
+                // Debugger.Break();
                 // Debug.Assert(false, "终止进程");
             }
             return logtxtJson;
@@ -449,5 +449,5 @@ public static class Log
             _logWriteLock.ExitWriteLock();// 解锁 读写锁
         }
     }
-} 
+}
 #endif

@@ -4,8 +4,8 @@
 /// 子节点
 /// </summary>
 /// <typeparam name="TEntity"></typeparam>
-public class QuadTreeNode<TEntity> 
-    : Rect 
+public class QuadTreeNode<TEntity>
+    : Rect
     where TEntity : QuadEntity
 {
     #region 成员
@@ -108,13 +108,13 @@ public class QuadTreeNode<TEntity>
     /// <param name="depth">节点深度</param>
     public QuadTreeNode(Rect box, QuadTreeNode<TEntity>? parent, int depth)
     {
-        _X       = box._X;
-        _Y       = box._Y;
-        _Right   = box._Right;
-        _Top     = box._Top;
+        _X = box._X;
+        _Y = box._Y;
+        _Right = box._Right;
+        _Top = box._Top;
 
-        Parent   = parent;
-        Depth    = depth;
+        Parent = parent;
+        Depth = depth;
         Contents = new();
     }
     #endregion
@@ -160,7 +160,7 @@ public class QuadTreeNode<TEntity>
     {
         if (!Contains(ent))
         {
-            // Debug.WriteLine("不在四叉树边界范围");
+            // Debugx.Printl("不在四叉树边界范围");
             // Trace.WriteLine("不在四叉树边界范围");
             return null;
         }
@@ -547,30 +547,30 @@ public class QuadTreeNode<TEntity>
                 switch (findMode)
                 {
                     case QuadTreeFindMode.Top:
-                        {
-                            // 下格才获取上格,否则导致做了无用功,上格就直接获取邻居了
-                            if (parent.LeftBottomTree == queryNode || parent.RightBottomTree == queryNode)
-                                resultEntity = GetNearestNeighbor(parent, findMode, queryArea);
-                        }
-                        break;
+                    {
+                        // 下格才获取上格,否则导致做了无用功,上格就直接获取邻居了
+                        if (parent.LeftBottomTree == queryNode || parent.RightBottomTree == queryNode)
+                            resultEntity = GetNearestNeighbor(parent, findMode, queryArea);
+                    }
+                    break;
                     case QuadTreeFindMode.Bottom:
-                        {
-                            if (parent.LeftTopTree == queryNode || parent.RightTopTree == queryNode)
-                                resultEntity = GetNearestNeighbor(parent, findMode, queryArea);
-                        }
-                        break;
+                    {
+                        if (parent.LeftTopTree == queryNode || parent.RightTopTree == queryNode)
+                            resultEntity = GetNearestNeighbor(parent, findMode, queryArea);
+                    }
+                    break;
                     case QuadTreeFindMode.Left:
-                        {
-                            if (parent.RightTopTree == queryNode || parent.RightBottomTree == queryNode)
-                                resultEntity = GetNearestNeighbor(parent, findMode, queryArea);
-                        }
-                        break;
+                    {
+                        if (parent.RightTopTree == queryNode || parent.RightBottomTree == queryNode)
+                            resultEntity = GetNearestNeighbor(parent, findMode, queryArea);
+                    }
+                    break;
                     case QuadTreeFindMode.Right:
-                        {
-                            if (parent.LeftTopTree == queryNode || parent.LeftBottomTree == queryNode)
-                                resultEntity = GetNearestNeighbor(parent, findMode, queryArea);
-                        }
-                        break;
+                    {
+                        if (parent.LeftTopTree == queryNode || parent.LeftBottomTree == queryNode)
+                            resultEntity = GetNearestNeighbor(parent, findMode, queryArea);
+                    }
+                    break;
                 }
             }
             if (resultEntity is not null)
@@ -614,54 +614,50 @@ public class QuadTreeNode<TEntity>
         switch (findMode)
         {
             case QuadTreeFindMode.Top:
-                {
-                    // 取出Y比queryArea的还大的一个,是最近的那个
-                    var qy = qcent.Y;
-                    queryNode.ContentsSubTree(lst);
-                    lst.ForEach(ent =>
-                    {
-                        if (ent.CenterPoint.Y > qy)
-                            lst.Add(ent);
-                    });
-                    lst = lst.OrderBy(ent => ent.CenterPoint.Y).ToList();
-                }
-                break;
+            {
+                // 取出Y比queryArea的还大的一个,是最近的那个
+                var qy = qcent.Y;
+                queryNode.ContentsSubTree(lst);
+                lst.ForEach(ent => {
+                    if (ent.CenterPoint.Y > qy)
+                        lst.Add(ent);
+                });
+                lst = lst.OrderBy(ent => ent.CenterPoint.Y).ToList();
+            }
+            break;
             case QuadTreeFindMode.Bottom:
-                {
-                    var qy = qcent.Y;
-                    queryNode.ContentsSubTree(lst);
-                    lst.ForEach(ent =>
-                    {
-                        if (ent.CenterPoint.Y < qy)
-                            lst.Add(ent);
-                    });
-                    lst = lst.OrderByDescending(ent => ent.CenterPoint.Y).ToList();
-                }
-                break;
+            {
+                var qy = qcent.Y;
+                queryNode.ContentsSubTree(lst);
+                lst.ForEach(ent => {
+                    if (ent.CenterPoint.Y < qy)
+                        lst.Add(ent);
+                });
+                lst = lst.OrderByDescending(ent => ent.CenterPoint.Y).ToList();
+            }
+            break;
             case QuadTreeFindMode.Left:
-                {
-                    var qx = qcent.Y;
-                    queryNode.ContentsSubTree(lst);
-                    lst.ForEach(ent =>
-                    {
-                        if (ent.CenterPoint.X > qx)
-                            lst.Add(ent);
-                    });
-                    lst = lst.OrderBy(ent => ent.CenterPoint.X).ToList();
-                }
-                break;
+            {
+                var qx = qcent.Y;
+                queryNode.ContentsSubTree(lst);
+                lst.ForEach(ent => {
+                    if (ent.CenterPoint.X > qx)
+                        lst.Add(ent);
+                });
+                lst = lst.OrderBy(ent => ent.CenterPoint.X).ToList();
+            }
+            break;
             case QuadTreeFindMode.Right:
-                {
-                    var qx = qcent.Y;
-                    queryNode.ContentsSubTree(lst);
-                    lst.ForEach(ent =>
-                    {
-                        if (ent.CenterPoint.X < qx)
-                            lst.Add(ent);
-                    });
-                    lst = lst.OrderByDescending(ent => ent.CenterPoint.X).ToList();
-                }
-                break;
+            {
+                var qx = qcent.Y;
+                queryNode.ContentsSubTree(lst);
+                lst.ForEach(ent => {
+                    if (ent.CenterPoint.X < qx)
+                        lst.Add(ent);
+                });
+                lst = lst.OrderByDescending(ent => ent.CenterPoint.X).ToList();
+            }
+            break;
         }
 
         if (lst.Count > 0)
@@ -705,62 +701,62 @@ public class QuadTreeNode<TEntity>
         switch (findMode)
         {
             case QuadTreeFindMode.Top:
-                {
-                    // 判断当前节点在父节点的位置,如果是在 下格 就取对应的 上格
-                    if (tar == parent.LeftBottomTree)
-                        return parent.LeftTopTree;
-                    if (tar == parent.RightBottomTree)
-                        return parent.RightTopTree;
-                    // 否则就是上格
-                    // 找父节点的北方邻居..也就是在爷节点上面找
-                    // 递归,此时必然是 下格,就必然返回 上格,然后退出递归
-                    var parentNeibor = FindNeiborNode(parent, QuadTreeFindMode.Top);
-                    // 父节点的北方邻居 无 子节点
-                    if (parentNeibor is null || parentNeibor.RightTopTree is null)
-                        return parentNeibor;// 返回父节点的北方邻居,比较大
-                                            // 父节点的北方邻居 有 子节点,剩下条件就只有这两
+            {
+                // 判断当前节点在父节点的位置,如果是在 下格 就取对应的 上格
+                if (tar == parent.LeftBottomTree)
+                    return parent.LeftTopTree;
+                if (tar == parent.RightBottomTree)
+                    return parent.RightTopTree;
+                // 否则就是上格
+                // 找父节点的北方邻居..也就是在爷节点上面找
+                // 递归,此时必然是 下格,就必然返回 上格,然后退出递归
+                var parentNeibor = FindNeiborNode(parent, QuadTreeFindMode.Top);
+                // 父节点的北方邻居 无 子节点
+                if (parentNeibor is null || parentNeibor.RightTopTree is null)
+                    return parentNeibor;// 返回父节点的北方邻居,比较大
+                                        // 父节点的北方邻居 有 子节点,剩下条件就只有这两
 
-                    // 如果直接返回,那么是(相同或更大),
-                    // 而找邻近图元需要的是这个(相同或更大)下面的图元,在外面对这个格子内图元用坐标分析就好了
-                    if (tar == parent.LeftTopTree)
-                        return parentNeibor.LeftBottomTree;
-                    return parentNeibor.RightBottomTree;
-                }
+                // 如果直接返回,那么是(相同或更大),
+                // 而找邻近图元需要的是这个(相同或更大)下面的图元,在外面对这个格子内图元用坐标分析就好了
+                if (tar == parent.LeftTopTree)
+                    return parentNeibor.LeftBottomTree;
+                return parentNeibor.RightBottomTree;
+            }
             case QuadTreeFindMode.Bottom:
-                {
-                    if (tar == parent.LeftTopTree)
-                        return parent.LeftBottomTree;
-                    if (tar == parent.RightTopTree)
-                        return parent.RightBottomTree;
-                    var parentNeibor = FindNeiborNode(parent, QuadTreeFindMode.Bottom);
-                    if (parentNeibor is null || parentNeibor.RightTopTree is null)
-                        return parentNeibor;
-                    if (tar == parent.LeftBottomTree)
-                        return parentNeibor.LeftTopTree;
-                    return parentNeibor.RightTopTree;
-                }
+            {
+                if (tar == parent.LeftTopTree)
+                    return parent.LeftBottomTree;
+                if (tar == parent.RightTopTree)
+                    return parent.RightBottomTree;
+                var parentNeibor = FindNeiborNode(parent, QuadTreeFindMode.Bottom);
+                if (parentNeibor is null || parentNeibor.RightTopTree is null)
+                    return parentNeibor;
+                if (tar == parent.LeftBottomTree)
+                    return parentNeibor.LeftTopTree;
+                return parentNeibor.RightTopTree;
+            }
             case QuadTreeFindMode.Right:
-                {
-                    if (tar == parent.LeftTopTree)
-                        return parent.RightTopTree;
-                    if (tar == parent.LeftBottomTree)
-                        return parent.RightBottomTree;
-                    var parentNeibor = FindNeiborNode(parent, QuadTreeFindMode.Right);
-                    if (tar == parent.RightTopTree)
-                        return parentNeibor?.LeftTopTree;
-                    return parentNeibor?.LeftBottomTree;
-                }
+            {
+                if (tar == parent.LeftTopTree)
+                    return parent.RightTopTree;
+                if (tar == parent.LeftBottomTree)
+                    return parent.RightBottomTree;
+                var parentNeibor = FindNeiborNode(parent, QuadTreeFindMode.Right);
+                if (tar == parent.RightTopTree)
+                    return parentNeibor?.LeftTopTree;
+                return parentNeibor?.LeftBottomTree;
+            }
             case QuadTreeFindMode.Left:
-                {
-                    if (tar == parent.RightTopTree)
-                        return parent.LeftTopTree;
-                    if (tar == parent.RightBottomTree)
-                        return parent.LeftBottomTree;
-                    var parentNeibor = FindNeiborNode(parent, QuadTreeFindMode.Left);
-                    if (tar == parent.LeftTopTree)
-                        return parentNeibor?.RightTopTree;
-                    return parentNeibor?.RightBottomTree;
-                }
+            {
+                if (tar == parent.RightTopTree)
+                    return parent.LeftTopTree;
+                if (tar == parent.RightBottomTree)
+                    return parent.LeftBottomTree;
+                var parentNeibor = FindNeiborNode(parent, QuadTreeFindMode.Left);
+                if (tar == parent.LeftTopTree)
+                    return parentNeibor?.RightTopTree;
+                return parentNeibor?.RightBottomTree;
+            }
         }
         return null;
     }

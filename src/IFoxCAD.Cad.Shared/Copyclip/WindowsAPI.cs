@@ -215,7 +215,7 @@ public partial class WindowsAPI
         catch (Exception e)
         {
             Debugger.Break();
-            Debug.WriteLine(e.Message);
+            Debugx.Printl(e.Message);
         }
         finally
         {

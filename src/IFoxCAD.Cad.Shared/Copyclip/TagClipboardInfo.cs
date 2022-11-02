@@ -127,11 +127,11 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
 
            var a = AcedGetAcadDwgview().ToString(); //自动执行的时候就存在了
            var b = ed.CurrentViewportObjectId.ToString();
-           Debug.WriteLine("a == b:" + a == b);//不对
+           Debugx.Printl("a == b:" + a == b);//不对
 
            var tab = ed.GetCurrentView();
            var c = tab.ObjectId.ToString();
-           Debug.WriteLine("a == c:" + a == c);//不对
+           Debugx.Printl("a == c:" + a == c);//不对
        }
     */
 
@@ -330,7 +330,7 @@ public partial class ClipTool
         catch (Exception e)
         {
             Debugger.Break();
-            Debug.WriteLine(e.Message);
+            Debugx.Printl(e.Message);
         }
         finally
         {

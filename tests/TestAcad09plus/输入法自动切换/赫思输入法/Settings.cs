@@ -129,7 +129,7 @@ public class Settings
                 NewLineChars = Environment.NewLine
             };
 
-            XmlWriter xmlWriter = XmlWriter.Create(MySettingsPath, settings);
+            using var xmlWriter = XmlWriter.Create(MySettingsPath, settings);
             xmlWriter.WriteStartDocument(1 != 0);
             xmlWriter.WriteComment("输入法＋");
 
@@ -153,7 +153,6 @@ public class Settings
             }
             xmlWriter.WriteEndElement();
             xmlWriter.WriteEndDocument();
-            xmlWriter.Close();
         }
         catch (Exception ex)
         {

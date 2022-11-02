@@ -312,10 +312,11 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
             throw new ArgumentNullException(nameof(ptList));
 
         var pts = ptList.ToList();
-        /*  消重,不这里设置,否则这不是一个正确的单元测试
-            *  // var ptList = pts.Distinct().ToList();
-            *  var ptList = pts.DistinctExBy((a, b) => a.DistanceTo(b) < 1e-6).ToList();
-            */
+        /*
+         *  消重,不这里设置,否则这不是一个正确的单元测试
+         *  // var ptList = pts.Distinct().ToList();
+         *  var ptList = pts.DistinctExBy((a, b) => a.DistanceTo(b) < 1e-6).ToList();
+         */
         if (ptList.Count == 5)
         {
             // 首尾点相同移除最后

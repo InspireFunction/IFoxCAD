@@ -58,11 +58,11 @@ public class TestMarshal
         {
             Point3d pt1 = new(1, 56, 89);
             var a1 = (Point3D*)&pt1;
-            Debug.WriteLine("指针类型转换,获取x::" + a1->X);
+            Debugx.Printl("指针类型转换,获取x::" + a1->X);
 
             var pt2 = Point3D.Create(new IntPtr(&pt1));
-            Debug.WriteLine("pt1地址::" + (int)&pt1);
-            Debug.WriteLine("pt2地址::" + (int)&pt2);
+            Debugx.Printl("pt1地址::" + (int)&pt1);
+            Debugx.Printl("pt2地址::" + (int)&pt2);
             Debug.Assert(&pt1 == &pt2);//不相等,是申请了新内存
         }
     }
