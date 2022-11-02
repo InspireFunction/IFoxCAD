@@ -1,7 +1,6 @@
 ﻿namespace Gstar_IMEFilter;
 
 using System.Diagnostics;
-using System.Windows.Controls;
 using System.Windows.Forms;
 using Control = System.Windows.Forms.Control;
 
@@ -15,11 +14,9 @@ public class IMEControl
     const int WM_KEYDOWN = 256;
     const int WM_KEYUP = 257;
 
-    internal static WindowsAPI.CallBackX86? HookProcX86;
-    internal static WindowsAPI.CallBackX64? HookProcX64;
-    internal static WindowsAPI.CallBack? HookProc;
-    internal static IntPtr _NextHookProc;//挂载成功的标记
-    internal static Process _Process;
+    static WindowsAPI.CallBack? _hookProc;
+    static IntPtr _nextHookProc;
+    static Process _process;
 
     // 优化内存,减少消息循环时候,频繁创建此类
     static StringBuilder _lpClassName = new(byte.MaxValue);
@@ -27,8 +24,8 @@ public class IMEControl
 
     static IMEControl()
     {
-        _NextHookProc = IntPtr.Zero;
-        _Process = Process.GetCurrentProcess();
+        _nextHookProc = IntPtr.Zero;
+        _process = Process.GetCurrentProcess();
         WindowsAPI.CheckLowLevelHooksTimeout();
 
         ExceptCMDs = new();
@@ -58,7 +55,7 @@ public class IMEControl
     // var commandLineMonitor = CommandLineMonitorServices.Instance().GetCommandLineMonitor(doc);
 
     /// <summary>
-    /// 此状态用于括免命令图中自动切换到中文,<br/>
+    /// 此状态用于豁免命令图中自动切换到中文,<br/>
     /// 命令中依然能够切换到英文输入,<br/>
     /// 命令结束时候从否决事件恢复拦截<br/>
     /// </summary>
@@ -80,7 +77,7 @@ public class IMEControl
     static void IMESwitch()
     {
         // 检测是否中文状态,不是就切为中文状态
-        // 切换只能发生在第一次,第2+次需要不执行
+        // 切换只能发生在第一次,第2.+次需要不执行
         var focusW = WindowsAPI.GetForegroundWindow();
         var context = WindowsAPI.ImmGetContext(focusW);
         WindowsAPI.ImmGetConversionStatus(context, out int mode/*输入模式*/, out _);
@@ -162,7 +159,7 @@ public class IMEControl
     internal static void SetIMEHook()
     {
         UnIMEHook();
-        if (_NextHookProc != IntPtr.Zero || !Settings.Use)
+        if (_nextHookProc != IntPtr.Zero || !Settings.Use)
             return;
 
         ExceptCMDs.Clear();
@@ -174,40 +171,35 @@ public class IMEControl
 
         if (Settings.IMEStyle != IMEHookStyle.Global)
         {
-            HookProc = (nCode, wParam, lParam) => {
+            _hookProc = (nCode, wParam, lParam) => {
                 if (nCode >= 0)
                 {
-                    bool flag = !((lParam > 0) & ((lParam & -1073741823) == 1)) ||
+                    // 这里会处理键入时留存首字母的问题
+                    var lp = lParam.ToInt64();
+                    bool flag = !((lp > 0) & ((lp & -1073741823/*0xC0000001 按下了一次的意思吧*/) == 1)) ||
                                 (Control.ModifierKeys != Keys.None && Control.ModifierKeys != Keys.Shift) ||
                                 !IMEHook(nCode, wParam, lParam);
                     if (!flag)
                         return (IntPtr)1;
                 }
-                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
+                return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
             };
-            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD, HookProc, 0, WindowsAPI.GetCurrentThreadId());
+            _nextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD, _hookProc,
+                                                        IntPtr.Zero, WindowsAPI.GetCurrentThreadId());
             return;
         }
 
-        var moduleHandle = (long)WindowsAPI.GetModuleHandle(_Process.MainModule.ModuleName);
-        if (Marshal.SizeOf(typeof(IntPtr)) == 4)
-        {
-            HookProcX86 = (nCode, wParam, lParam) => {
-                if (!MK1(nCode, wParam) && Mk2(nCode, wParam, new IntPtr(lParam)))
+        var moduleHandle = WindowsAPI.GetModuleHandle(_process.MainModule.ModuleName);
+        _hookProc = (nCode, wParam, lParam) => {
+            if (nCode >= 0)
+            {
+                if (!MK1(wParam) && Mk2(nCode, wParam, lParam))
                     return (IntPtr)1;
-                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
-            };
-            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX86, moduleHandle, 0);
-        }
-        else
-        {
-            HookProcX64 = (nCode, wParam, lParam) => {
-                if (!MK1(nCode, wParam) && Mk2(nCode, wParam, new IntPtr(lParam)))
-                    return (IntPtr)1;
-                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
-            };
-            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX64, moduleHandle, 0);
-        }
+            }
+            return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
+        };
+        _nextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL,
+                                                    _hookProc, moduleHandle, 0);
     }
 
     /// <summary>
@@ -217,7 +209,7 @@ public class IMEControl
     /// <param name="wParam"></param>
     /// <param name="lParam"></param>
     /// <returns>false不终止回调,true终止回调</returns>
-    public static bool IMEHook(int nCode, int wParam, int lParam)
+    public static bool IMEHook(int nCode, int wParam, IntPtr lParam)
     {
         if (SendKeyState.IsExceptional)
             return false;
@@ -231,7 +223,7 @@ public class IMEControl
         if (!WindowsAPI.IsWindowEnabled(Acap.MainWindow.Handle))
             return false;
 
-        // 括免命令进行中输入会触发,实现在括免命令中允许输入法
+        // 豁免命令进行中输入会触发,实现在豁免命令中允许输入法
         string input = doc.CommandInProgress;
         Match match = CMDReg.Match(input);
         if (match.Success)
@@ -332,14 +324,13 @@ public class IMEControl
         return false;
     }
 
-    static bool MK1(int nCode, int wParam)
+    static bool MK1(int wParam)
     {
         return !Settings.Use ||
                 WindowsAPI.IsIconic(Acap.MainWindow.Handle.ToInt32()) ||
                 WindowsAPI.GetKeyState(91) < 0 ||
                 WindowsAPI.GetKeyState(92) < 0 ||
-                wParam != WM_KEYDOWN ||
-                nCode < 0;
+                wParam != WM_KEYDOWN;
     }
 
     static bool Mk2(int nCode, int wParam, IntPtr lParam)
@@ -351,7 +342,7 @@ public class IMEControl
             focus = WindowsAPI.GetForegroundWindow();
 
         WindowsAPI.GetWindowThreadProcessId(focus, out uint lpdwProcessId);
-        if (lpdwProcessId != _Process.Id)
+        if (lpdwProcessId != _process.Id)
             return false;
 
         WindowsAPI.KeyboardHookStruct? key = null;
@@ -364,13 +355,13 @@ public class IMEControl
                 WindowsAPI.GetKeyState(262144/*alt键*/) < 0)
                 return false;
 
-            if (IMEHook(nCode, key.Value.VkCode, 0))
+            if (IMEHook(nCode, key.Value.VkCode, IntPtr.Zero))
                 return true;
         }
         else if (Control.ModifierKeys == Keys.Shift)
         {
             key ??= WindowsAPI.KeyboardHookStruct.Create(lParam);
-            if (IMEHook(nCode, key.Value.VkCode, 0))
+            if (IMEHook(nCode, key.Value.VkCode, IntPtr.Zero))
                 return true;
         }
         return false;
@@ -381,10 +372,10 @@ public class IMEControl
     /// </summary>
     internal static void UnIMEHook()
     {
-        if (_NextHookProc != IntPtr.Zero)
+        if (_nextHookProc != IntPtr.Zero)
         {
-            WindowsAPI.UnhookWindowsHookEx(_NextHookProc);
-            _NextHookProc = IntPtr.Zero;
+            WindowsAPI.UnhookWindowsHookEx(_nextHookProc);
+            _nextHookProc = IntPtr.Zero;
         }
     }
 }

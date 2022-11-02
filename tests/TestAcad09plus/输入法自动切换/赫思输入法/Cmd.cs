@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace Gstar_IMEFilter;
+﻿namespace Gstar_IMEFilter;
 
 public class Cmd
 {
@@ -18,8 +16,6 @@ public class Cmd
             IMEControl.UnIMEHook();
         };
     }
-
-
 
     [CommandMethod(nameof(Gstar_IMEFilter1))]
     public void Gstar_IMEFilter1()

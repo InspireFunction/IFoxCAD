@@ -165,7 +165,7 @@ public class Settings
 /// <summary>
 /// 钩子样式
 /// </summary>
-public enum IMEHookStyle : int
+public enum IMEHookStyle : byte
 {
     Global,//全局钩子控制
     Process,//进程钩子控制
@@ -174,7 +174,7 @@ public enum IMEHookStyle : int
 /// <summary>
 /// 切换输入法方式
 /// </summary>
-public enum IMESwitchMode : int
+public enum IMESwitchMode : byte
 {
     Shift,
     Ctrl,

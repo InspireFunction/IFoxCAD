@@ -447,22 +447,14 @@ public partial class WindowsAPI
     #endregion
 
     #region 钩子
+    public delegate IntPtr CallBack(int nCode, int wParam, IntPtr lParam);
     [DllImport("user32.dll")]
-    public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBackX86 lpfn, long hmod, int dwThreadId);
-    [DllImport("user32.dll")]
-    public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBack lpfn, int hmod, int dwThreadId);
-    [DllImport("user32.dll")]
-    public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBackX64 lpfn, long hmod, int dwThreadId);
+    public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBack lpfn, IntPtr hmod, int dwThreadId);
     [DllImport("user32.dll")]
     public static extern IntPtr UnhookWindowsHookEx(IntPtr hHook);
     [DllImport("user32.dll")]
-    public static extern IntPtr CallNextHookEx(IntPtr hHook, int ncode, int wParam, long lParam);
-    [DllImport("user32.dll")]
-    public static extern IntPtr CallNextHookEx(int hHook, int ncode, int wParam, int lParam);
-    public delegate IntPtr CallBackX86(int nCode, int wParam, int lParam);
-    public delegate IntPtr CallBackX64(int nCode, int wParam, long lParam);
-    public delegate IntPtr CallBack(int nCode, int wParam, int lParam);
-    public enum HookType : int
+    public static extern IntPtr CallNextHookEx(IntPtr hHook, int ncode, int wParam, IntPtr lParam);
+    public enum HookType : byte
     {
         WH_KEYBOARD = 2,
         WH_KEYBOARD_LL = 13,
@@ -507,14 +499,14 @@ public partial class WindowsAPI
             registryKey.SetValue(llh, 25000, RegistryValueKind.DWord);
     }
     #endregion
-
-    [DllImport("user32.dll")]
-    public static extern bool GetWindowRect(IntPtr hwnd, ref IntRect lpRect);
 }
 
 
 public partial class WindowsAPI
 {
+    [DllImport("user32.dll")]
+    public static extern bool GetWindowRect(IntPtr hwnd, ref IntRect lpRect);
+
     [ComVisible(true)]
     [Serializable]
     [StructLayout(LayoutKind.Sequential)]
