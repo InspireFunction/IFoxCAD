@@ -9,6 +9,7 @@
     <Import_RootNamespace>TestShared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)TestStatusBar.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CmdINI.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Copyclip.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestAddEntity.cs" />

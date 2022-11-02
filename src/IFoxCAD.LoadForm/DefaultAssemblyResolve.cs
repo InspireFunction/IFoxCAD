@@ -51,6 +51,9 @@ public class AssemblyHelper
             for (int i = 0; i < cadAss.Length; i++)
                 sb.AppendLine("-------匹配对象:: " + GetAssemblyName(cadAss[i].GetName().FullName));
             Debug.WriteLine(sb.ToString());
+
+            Debug.WriteLine("无法处理的错误,杀死当前进程");
+            System.Diagnostics.Process.GetCurrentProcess().Kill();
             //Debugger.Break();
         }
         return result;
