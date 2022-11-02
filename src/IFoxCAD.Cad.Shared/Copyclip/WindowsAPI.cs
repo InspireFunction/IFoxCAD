@@ -468,6 +468,44 @@ public partial class WindowsAPI
         WH_KEYBOARD_LL = 13,
         WH_MOUSE_LL = 14,
     }
+    /// <summary>
+    /// Hook键盘数据结构
+    /// </summary>
+    [ComVisible(true)]
+    [Serializable]
+    //[DebuggerDisplay("{DebuggerDisplay,nq}")]
+    //[DebuggerTypeProxy(typeof(KeyboardHookStruct))]
+    [StructLayout(LayoutKind.Sequential)]
+    public struct KeyboardHookStruct
+    {
+        public int VkCode;        // 键码,该代码必须有一个价值的范围1至254
+        public int ScanCode;      // 指定的硬件扫描码的关键
+        public int Flags;         // 键标志
+        public int Time;          // 指定的时间戳记的这个讯息
+        public int DwExtraInfo;   // 指定额外信息相关的信息
+
+        public static KeyboardHookStruct Create(IntPtr lParam)
+        {
+            return (KeyboardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyboardHookStruct));
+        }
+
+        public void ToPtr(IntPtr lParam)
+        {
+            Marshal.StructureToPtr(this, lParam, true);
+        }
+    }
+    /// <summary>
+    /// 注册表增加低级钩子超时处理,防止系统不允许,
+    /// 否则:偶发性出现 键盘钩子不能用了,而且退出时产生 1404 错误
+    /// https://www.cnblogs.com/songr/p/5131655.html
+    /// </summary>
+    public static void CheckLowLevelHooksTimeout()
+    {
+        const string llh = "LowLevelHooksTimeout";
+        using var registryKey = Registry.CurrentUser.OpenSubKey("Control Panel\\Desktop", true);
+        if ((int)registryKey.GetValue(llh, 0) == 0)
+            registryKey.SetValue(llh, 25000, RegistryValueKind.DWord);
+    }
     #endregion
 
     [DllImport("user32.dll")]

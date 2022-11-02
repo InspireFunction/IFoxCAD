@@ -1,9 +1,9 @@
 ﻿namespace Gstar_IMEFilter;
 
 using System.Diagnostics;
+using System.Windows.Controls;
 using System.Windows.Forms;
-
-
+using Control = System.Windows.Forms.Control;
 
 public class IMEControl
 {
@@ -23,25 +23,28 @@ public class IMEControl
 
     // 优化内存,减少消息循环时候,频繁创建此类
     static StringBuilder _lpClassName = new(byte.MaxValue);
+    static string[] _separator = new string[] { "," };
 
     static IMEControl()
     {
         _NextHookProc = IntPtr.Zero;
         _Process = Process.GetCurrentProcess();
-        CheckLowLevelHooksTimeout();
+        WindowsAPI.CheckLowLevelHooksTimeout();
 
         ExceptCMDs = new();
         DefaultCMDs = new() { "MTEXT", "DDEDIT", "MTEDIT", "TABLEDIT", "MLEADER",
             "QLEADER", "MLEADERCONTENTEDIT", "MLEADEREDIT", "TEXTEDIT", "TEXT", "QLEADER" };
+
         string? lines = null;
         var ftFile = Path.Combine(Settings.MyDir, "ExceptCMDs.ft");
         if (File.Exists(ftFile))
             lines = File.ReadAllText(ftFile, Encoding.UTF8);
         else
             Debug.WriteLine("配置文件丢失: " + ftFile);
+
         if (lines != null)
         {
-            var ls = lines.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
+            var ls = lines.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
             for (int i = 0; i < ls.Length; i++)
                 DefaultCMDs.Add(ls[i]);
         }
@@ -49,11 +52,16 @@ public class IMEControl
         Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
     }
 
-    // TODO 关键字是中文输入,自动切换到英文 CommandLineMonitor 可以获取关键字
+    #region 切换输入法
+    // TODO 关键字是中文输入,自动切换到英文
+    // 命令行监控服务 实例 得到命令行监控
+    // var commandLineMonitor = CommandLineMonitorServices.Instance().GetCommandLineMonitor(doc);
 
-    // 此状态用于括免命令图中自动切换到中文,
-    // 命令中依然能够切换到英文输入,
-    // 命令结束时候从否决事件恢复拦截
+    /// <summary>
+    /// 此状态用于括免命令图中自动切换到中文,<br/>
+    /// 命令中依然能够切换到英文输入,<br/>
+    /// 命令结束时候从否决事件恢复拦截<br/>
+    /// </summary>
     public static LoopState SendKeyState = new();
     static void DocumentManager_DocumentLockModeChanged(object sender, DocumentLockModeChangedEventArgs e)
     {
@@ -62,11 +70,145 @@ public class IMEControl
         if (!e.GlobalCommandName.StartsWith("#"))
             return;
         var up = e.GlobalCommandName.ToUpper()[1..];
-
         if (ExceptCMDs.Contains(up))
             SendKeyState = new();
     }
 
+    /// <summary>
+    /// 切换输入法
+    /// </summary>
+    static void IMESwitch()
+    {
+        // 检测是否中文状态,不是就切为中文状态
+        // 切换只能发生在第一次,第2+次需要不执行
+        var focusW = WindowsAPI.GetForegroundWindow();
+        var context = WindowsAPI.ImmGetContext(focusW);
+        WindowsAPI.ImmGetConversionStatus(context, out int mode/*输入模式*/, out _);
+        if (!WindowsAPI.ImmGetOpenStatus(context))
+        {
+            Debug.WriteLine("现在是英文状态,切换到中文");
+            SendKeyState.Exceptional();
+
+            switch (Settings.IMEInputSwitch)
+            {
+                case IMESwitchMode.Shift:
+                {
+                    WindowsAPI.KeybdEvent(16, 0, 0, 0);
+                    WindowsAPI.KeybdEvent(16, 0, 2, 0);
+                }
+                break;
+                case IMESwitchMode.Ctrl:
+                {
+                    WindowsAPI.KeybdEvent(17, 0, 0, 0);
+                    WindowsAPI.KeybdEvent(17, 0, 2, 0);
+                }
+                break;
+                case IMESwitchMode.CtrlAndSpace:
+                {
+                    WindowsAPI.KeybdEvent(17, 0, 0, 0);
+                    WindowsAPI.KeybdEvent(32, 0, 0, 0);
+                    WindowsAPI.KeybdEvent(32, 0, 2, 0);
+                    WindowsAPI.KeybdEvent(17, 0, 2, 0);
+                    if (WindowsAPI.GetKeyState(20) == 1)
+                    {
+                        WindowsAPI.KeybdEvent(20, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(20, 0, 2, 0);
+                    }
+                }
+                break;
+                case IMESwitchMode.CtrlAndShift:
+                {
+                    WindowsAPI.KeybdEvent(16, 0, 0, 0);
+                    WindowsAPI.KeybdEvent(17, 0, 0, 0);
+                    WindowsAPI.KeybdEvent(17, 0, 2, 0);
+                    WindowsAPI.KeybdEvent(16, 0, 2, 0);
+                    if (WindowsAPI.GetKeyState(20) == 1)
+                    {
+                        WindowsAPI.KeybdEvent(20, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(20, 0, 2, 0);
+                    }
+                }
+                break;
+                case IMESwitchMode.WinAndSpace:
+                {
+                    WindowsAPI.KeybdEvent(91, 0, 0, 0);
+                    WindowsAPI.KeybdEvent(32, 0, 0, 0);
+                    WindowsAPI.KeybdEvent(32, 0, 2, 0);
+                    WindowsAPI.KeybdEvent(91, 0, 2, 0);
+                    if (WindowsAPI.GetKeyState(20) == 1)
+                    {
+                        WindowsAPI.KeybdEvent(20, 0, 0, 0);
+                        WindowsAPI.KeybdEvent(20, 0, 2, 0);
+                    }
+                }
+                break;
+            }
+        }
+        else
+        {
+            // 中文状态虽然不变,
+            // 但是为了避免命令中用户手动切换 中文切换到英文,然后再触发上面 英文状态转中文逻辑,
+            // 所以此处也要设置状态
+            // 在命令否决事件上面恢复拦截
+            Debug.WriteLine("现在是中文状态,保持不变");
+            SendKeyState.Exceptional();
+        }
+    }
+    #endregion
+
+    /// <summary>
+    /// 设置钩子
+    /// </summary>
+    internal static void SetIMEHook()
+    {
+        UnIMEHook();
+        if (_NextHookProc != IntPtr.Zero || !Settings.Use)
+            return;
+
+        ExceptCMDs.Clear();
+        foreach (var item in DefaultCMDs)
+            ExceptCMDs.Add(item);
+        var ss = Settings.UserFilter.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
+        foreach (var item in ss)
+            ExceptCMDs.Add(item);
+
+        if (Settings.IMEStyle != IMEHookStyle.Global)
+        {
+            HookProc = (nCode, wParam, lParam) => {
+                if (nCode >= 0)
+                {
+                    bool flag = !((lParam > 0) & ((lParam & -1073741823) == 1)) ||
+                                (Control.ModifierKeys != Keys.None && Control.ModifierKeys != Keys.Shift) ||
+                                !IMEHook(nCode, wParam, lParam);
+                    if (!flag)
+                        return (IntPtr)1;
+                }
+                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
+            };
+            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD, HookProc, 0, WindowsAPI.GetCurrentThreadId());
+            return;
+        }
+
+        var moduleHandle = (long)WindowsAPI.GetModuleHandle(_Process.MainModule.ModuleName);
+        if (Marshal.SizeOf(typeof(IntPtr)) == 4)
+        {
+            HookProcX86 = (nCode, wParam, lParam) => {
+                if (!MK1(nCode, wParam) && Mk2(nCode, wParam, new IntPtr(lParam)))
+                    return (IntPtr)1;
+                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
+            };
+            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX86, moduleHandle, 0);
+        }
+        else
+        {
+            HookProcX64 = (nCode, wParam, lParam) => {
+                if (!MK1(nCode, wParam) && Mk2(nCode, wParam, new IntPtr(lParam)))
+                    return (IntPtr)1;
+                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
+            };
+            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX64, moduleHandle, 0);
+        }
+    }
 
     /// <summary>
     /// 钩子的消息处理
@@ -97,75 +239,7 @@ public class IMEControl
 
         if (ExceptCMDs.Contains(input.ToUpper()))
         {
-            // 检测是否中文状态,不是就切为中文状态
-            // 切换只能发生在第一次,第2+次需要不执行
-            var focusW = WindowsAPI.GetForegroundWindow();
-            var context = WindowsAPI.ImmGetContext(focusW);
-            WindowsAPI.ImmGetConversionStatus(context, out int mode/*输入模式*/, out _);
-            if (!WindowsAPI.ImmGetOpenStatus(context))
-            {
-                Debug.WriteLine("现在是英文,切换到中文");
-                SendKeyState.Exceptional();
-                switch (Settings.IMEInputSwitch)
-                {
-                    case IMESwitchMode.Shift:
-                    {
-                        WindowsAPI.KeybdEvent(16, 0, 0, 0);
-                        WindowsAPI.KeybdEvent(16, 0, 2, 0);
-                    }
-                    break;
-                    case IMESwitchMode.Ctrl:
-                    {
-                        WindowsAPI.KeybdEvent(17, 0, 0, 0);
-                        WindowsAPI.KeybdEvent(17, 0, 2, 0);
-                    }
-                    break;
-                    case IMESwitchMode.CtrlAndSpace:
-                    {
-                        WindowsAPI.KeybdEvent(17, 0, 0, 0);
-                        WindowsAPI.KeybdEvent(32, 0, 0, 0);
-                        WindowsAPI.KeybdEvent(32, 0, 2, 0);
-                        WindowsAPI.KeybdEvent(17, 0, 2, 0);
-                        if (WindowsAPI.GetKeyState(20) == 1)
-                        {
-                            WindowsAPI.KeybdEvent(20, 0, 0, 0);
-                            WindowsAPI.KeybdEvent(20, 0, 2, 0);
-                        }
-                    }
-                    break;
-                    case IMESwitchMode.CtrlAndShift:
-                    {
-                        WindowsAPI.KeybdEvent(16, 0, 0, 0);
-                        WindowsAPI.KeybdEvent(17, 0, 0, 0);
-                        WindowsAPI.KeybdEvent(17, 0, 2, 0);
-                        WindowsAPI.KeybdEvent(16, 0, 2, 0);
-                        if (WindowsAPI.GetKeyState(20) == 1)
-                        {
-                            WindowsAPI.KeybdEvent(20, 0, 0, 0);
-                            WindowsAPI.KeybdEvent(20, 0, 2, 0);
-                        }
-                    }
-                    break;
-                    case IMESwitchMode.WinAndSpace:
-                    {
-                        WindowsAPI.KeybdEvent(91, 0, 0, 0);
-                        WindowsAPI.KeybdEvent(32, 0, 0, 0);
-                        WindowsAPI.KeybdEvent(32, 0, 2, 0);
-                        WindowsAPI.KeybdEvent(91, 0, 2, 0);
-                        if (WindowsAPI.GetKeyState(20) == 1)
-                        {
-                            WindowsAPI.KeybdEvent(20, 0, 0, 0);
-                            WindowsAPI.KeybdEvent(20, 0, 2, 0);
-                        }
-                    }
-                    break;
-                }
-            }
-            else
-            {
-                Debug.WriteLine("现在是中文,保持不变,在命令否决事件上面恢复拦截");
-                SendKeyState.Exceptional();
-            }
+            IMESwitch();
             return false;
         }
 
@@ -200,13 +274,13 @@ public class IMEControl
                 Debug.WriteLine($"afx::{DateTime.Now}");
 
                 {
-                    // cad启动时候会滚动某些信息,此时立马鼠标点入到vs中,
-                    // 此时vs无法输入,被拦截到了"afx"处理,然后所有的输入都跑cad了,需要加入如下代码:
+                    // cad08启动时候会滚动某些信息,此时立马鼠标狂点入到vs中,vs就会无法输入
+                    // 会被拦截到了"afx"处理,然后所有的输入都跑cad了,需要加入如下代码:
                     var focusW = WindowsAPI.GetForegroundWindow();
                     WindowsAPI.GetClassName(focusW, _lpClassName, checked(_lpClassName.Capacity + 1));
                     left = _lpClassName.ToString().ToLower();
-                    // 点入vs是 hwndwrapper
-                    // 点入qq是 txguifoundation
+                    // 狂点入vs是 hwndwrapper
+                    // 狂点入qq是 txguifoundation
                     Debug.WriteLine($"afx...{left}...{DateTime.Now}");
                     if (!left.StartsWith("afx"))
                         return false;
@@ -258,66 +332,6 @@ public class IMEControl
         return false;
     }
 
-    internal static void UnIMEHook()
-    {
-        if (_NextHookProc != IntPtr.Zero)
-        {
-            WindowsAPI.UnhookWindowsHookEx(_NextHookProc);
-            _NextHookProc = IntPtr.Zero;
-        }
-    }
-
-    internal static void SetIMEHook()
-    {
-        UnIMEHook();
-        if (_NextHookProc != IntPtr.Zero || !Settings.Use)
-            return;
-
-        ExceptCMDs.Clear();
-        foreach (var item in DefaultCMDs)
-            ExceptCMDs.Add(item);
-        var ss = Settings.UserFilter.Split(new string[] { "," }, StringSplitOptions.RemoveEmptyEntries);
-        foreach (var item in ss)
-            ExceptCMDs.Add(item);
-
-        if (Settings.IMEStyle != IMEHookStyle.Global)
-        {
-            HookProc = (nCode, wParam, lParam) => {
-                if (nCode >= 0)
-                {
-                    bool flag = !((lParam > 0) & ((lParam & -1073741823) == 1)) ||
-                                (Control.ModifierKeys != Keys.None && Control.ModifierKeys != Keys.Shift) ||
-                                !IMEHook(nCode, wParam, lParam);
-                    if (!flag)
-                        return (IntPtr)1;
-                }
-                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
-            };
-            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD, HookProc, 0, WindowsAPI.GetCurrentThreadId());
-            return;
-        }
-
-        var moduleHandle = (long)WindowsAPI.GetModuleHandle(_Process.MainModule.ModuleName);
-        if (Marshal.SizeOf(typeof(IntPtr)) == 4)
-        {
-            HookProcX86 = (nCode, wParam, lParam) => {
-                if (!MK1(nCode, wParam) && Mk2(nCode, wParam, new IntPtr(lParam)))
-                    return (IntPtr)1;
-                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
-            };
-            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX86, moduleHandle, 0);
-        }
-        else
-        {
-            HookProcX64 = (nCode, wParam, lParam) => {
-                if (!MK1(nCode, wParam) && Mk2(nCode, wParam, new IntPtr(lParam)))
-                    return (IntPtr)1;
-                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
-            };
-            _NextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL, HookProcX64, moduleHandle, 0);
-        }
-    }
-
     static bool MK1(int nCode, int wParam)
     {
         return !Settings.Use ||
@@ -340,10 +354,10 @@ public class IMEControl
         if (lpdwProcessId != _Process.Id)
             return false;
 
-        KeyboardHookStruct? key = null;
+        WindowsAPI.KeyboardHookStruct? key = null;
         if (Control.ModifierKeys == Keys.None)
         {
-            key = KeyboardHookStruct.Create(lParam);
+            key = WindowsAPI.KeyboardHookStruct.Create(lParam);
             if (WindowsAPI.GetKeyState(162) < 0 ||
                 WindowsAPI.GetKeyState(163) < 0 ||
                 WindowsAPI.GetKeyState(17) < 0 ||
@@ -355,7 +369,7 @@ public class IMEControl
         }
         else if (Control.ModifierKeys == Keys.Shift)
         {
-            key ??= KeyboardHookStruct.Create(lParam);
+            key ??= WindowsAPI.KeyboardHookStruct.Create(lParam);
             if (IMEHook(nCode, key.Value.VkCode, 0))
                 return true;
         }
@@ -363,42 +377,14 @@ public class IMEControl
     }
 
     /// <summary>
-    /// 注册表增加低级钩子超时处理,防止系统不允许,
-    /// 否则:偶发性出现 键盘钩子不能用了,而且退出时产生 1404 错误
-    /// https://www.cnblogs.com/songr/p/5131655.html
+    /// 卸载钩子
     /// </summary>
-    static void CheckLowLevelHooksTimeout()
+    internal static void UnIMEHook()
     {
-        const string llh = "LowLevelHooksTimeout";
-        using var registryKey = Registry.CurrentUser.OpenSubKey("Control Panel\\Desktop", true);
-        if ((int)registryKey.GetValue(llh, 0) == 0)
-            registryKey.SetValue(llh, 25000, RegistryValueKind.DWord);
-    }
-
-    /// <summary>
-    /// Hook键盘数据结构
-    /// </summary>
-    [ComVisible(true)]
-    [Serializable]
-    //[DebuggerDisplay("{DebuggerDisplay,nq}")]
-    //[DebuggerTypeProxy(typeof(KeyboardHookStruct))]
-    [StructLayout(LayoutKind.Sequential)]
-    public struct KeyboardHookStruct
-    {
-        public int VkCode;        // 键码,该代码必须有一个价值的范围1至254
-        public int ScanCode;      // 指定的硬件扫描码的关键
-        public int Flags;         // 键标志
-        public int Time;          // 指定的时间戳记的这个讯息
-        public int DwExtraInfo;   // 指定额外信息相关的信息
-
-        public static KeyboardHookStruct Create(IntPtr lParam)
+        if (_NextHookProc != IntPtr.Zero)
         {
-            return (KeyboardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyboardHookStruct));
-        }
-
-        public void ToPtr(IntPtr lParam)
-        {
-            Marshal.StructureToPtr(this, lParam, true);
+            WindowsAPI.UnhookWindowsHookEx(_NextHookProc);
+            _NextHookProc = IntPtr.Zero;
         }
     }
 }
