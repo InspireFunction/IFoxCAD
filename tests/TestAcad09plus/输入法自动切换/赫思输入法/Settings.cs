@@ -1,13 +1,13 @@
-﻿using System.Xml;
+﻿using System.Diagnostics;
+using System.Xml;
 
 namespace Gstar_IMEFilter;
 public class Settings
 {
     static string _MyDir = "";
     static string _MySettingsPath = "";
-    static bool _Use = true;
     internal static string _UserFilter = "";
-    internal static IMEHookStyle _IMEStyle = IMEHookStyle.Global;
+    internal static IMEHookStyle _IMEHookStyle = IMEHookStyle.Global;
     internal static IMESwitchMode _IMEInputSwitch = IMESwitchMode.Shift;
 
     internal static string MyDir
@@ -42,27 +42,14 @@ public class Settings
         }
     }
 
-    public static bool Use
+    public static IMEHookStyle IMEHookStyle
     {
-        get => _Use;
+        get => _IMEHookStyle;
         set
         {
-            if (_Use == value)
+            if (_IMEHookStyle == value)
                 return;
-            _Use = value;
-            SaveSettings();
-            IMEControl.SetIMEHook();
-        }
-    }
-
-    public static IMEHookStyle IMEStyle
-    {
-        get => _IMEStyle;
-        set
-        {
-            if (_IMEStyle == value)
-                return;
-            _IMEStyle = value;
+            _IMEHookStyle = value;
             SaveSettings();
             IMEControl.SetIMEHook();
         }
@@ -85,37 +72,40 @@ public class Settings
         if (!File.Exists(MySettingsPath))
             return;
 
-        using var xmlReader = XmlReader.Create(MySettingsPath);
-        while (xmlReader.Read())
+        try
         {
-            if (xmlReader.NodeType != XmlNodeType.Element)
-                continue;
-            string left = xmlReader.Name.ToLower();
-            switch (left)
+            using var xmlReader = XmlReader.Create(MySettingsPath);
+            while (xmlReader.Read())
             {
-                case "use":
+                if (xmlReader.NodeType != XmlNodeType.Element)
+                    continue;
+                string left = xmlReader.Name.ToLower();
+                switch (left)
                 {
-                    bool.TryParse(xmlReader.ReadInnerXml(), out _Use);
+                    case "userfilter":
+                    {
+                        _UserFilter = xmlReader.ReadInnerXml().ToUpper();
+                    }
+                    break;
+                    case "imehookstyle":
+                    {
+                        int.TryParse(xmlReader.ReadInnerXml(), out int ime);
+                        _IMEHookStyle = (IMEHookStyle)ime;
+                    }
+                    break;
+                    case "imeinputswitch":
+                    {
+                        int.TryParse(xmlReader.ReadInnerXml(), out int ime);
+                        _IMEInputSwitch = (IMESwitchMode)ime;
+                    }
+                    break;
                 }
-                break;
-                case "userfilter":
-                {
-                    _UserFilter = xmlReader.ReadInnerXml().ToUpper();
-                }
-                break;
-                case "imestyle":
-                {
-                    int.TryParse(xmlReader.ReadInnerXml(), out int ime);
-                    _IMEStyle = (IMEHookStyle)ime;
-                }
-                break;
-                case "imeinputswitch":
-                {
-                    int.TryParse(xmlReader.ReadInnerXml(), out int ime);
-                    _IMEInputSwitch = (IMESwitchMode)ime;
-                }
-                break;
             }
+        }
+        catch (Exception ex)
+        {
+            Debugger.Break();
+            throw ex;
         }
     }
 
@@ -135,16 +125,12 @@ public class Settings
 
             xmlWriter.WriteStartElement("settings");
             {
-                xmlWriter.WriteStartElement("use");
-                xmlWriter.WriteString(Use.ToString());
-                xmlWriter.WriteEndElement();
-
                 xmlWriter.WriteStartElement("userfilter");
                 xmlWriter.WriteString(UserFilter);
                 xmlWriter.WriteEndElement();
 
-                xmlWriter.WriteStartElement("imestyle");
-                xmlWriter.WriteString(((int)IMEStyle).ToString());
+                xmlWriter.WriteStartElement("imehookstyle");
+                xmlWriter.WriteString(((int)IMEHookStyle).ToString());
                 xmlWriter.WriteEndElement();
 
                 xmlWriter.WriteStartElement("imeinputswitch");
@@ -156,6 +142,7 @@ public class Settings
         }
         catch (Exception ex)
         {
+            Debugger.Break();
             throw ex;
         }
     }
@@ -175,9 +162,16 @@ public enum IMEHookStyle : byte
 /// </summary>
 public enum IMESwitchMode : byte
 {
+    [Description("输入法关闭")]
+    Disable,
+    [Description("输入法开启:Shift")]
     Shift,
+    [Description("输入法开启:Ctrl")]
     Ctrl,
+    [Description("输入法开启:CtrlAndSpace")]
     CtrlAndSpace,
+    [Description("输入法开启:CtrlAndShift")]
     CtrlAndShift,
+    [Description("输入法开启:WinAndSpace")]
     WinAndSpace,
 }

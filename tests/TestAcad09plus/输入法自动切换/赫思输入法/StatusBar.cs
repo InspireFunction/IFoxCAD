@@ -1,15 +1,14 @@
-﻿namespace Test;
-using Autodesk.AutoCAD.Windows;
-using IFoxCAD.Cad;
+﻿namespace Gstar_IMEFilter;
 
-public class TestStatusBar
+using Autodesk.AutoCAD.Windows;
+using System.Windows.Forms;
+
+public class StatusBar
 {
     static string _name = nameof(Gstar_IMEFilter);
     static Pane? _pane = null;
 
-    [IFoxInitialize]
-    [CommandMethod(nameof(TestAddPane))]
-    public static void TestAddPane()
+    public static void IMEAddPane()
     {
         if (_pane is not null)
             return;
@@ -32,17 +31,19 @@ public class TestStatusBar
         _pane = new()
         {
             ToolTipText = _name,
-            Text = "打开",
-            Style = PaneStyles.Command | PaneStyles.PopUp/* | PaneStyles.NoBorders | PaneStyles.Stretch | PaneStyles.PopUp|PaneStyles.PopOut*/,
+            Text = GetUseText(),
+            Style = PaneStyles.Command | PaneStyles.PopUp,
+            /* PaneStyles.NoBorders |
+             * PaneStyles.Stretch |
+             * PaneStyles.PopOut
+             */
         };
         _pane.MouseDown += Pane_MouseDown;
         panes.Insert(0, _pane);
         Acap.StatusBar.Update();
     }
 
-    // 删除Pane
-    [CommandMethod(nameof(TestRemovePane))]
-    public static void TestRemovePane()
+    public static void IMERemovePane()
     {
         if (_pane is null)
             return;
@@ -65,52 +66,40 @@ public class TestStatusBar
         //System.Windows.Forms.Application.DoEvents();
     }
 
-    [CommandMethod(nameof(PaneSwitch))]
-    public static void PaneSwitch()
+    static string GetUseText()
     {
-        if (_pane is null)
-            TestAddPane();
-        else
-            TestRemovePane();
-    }
-
-    /// <summary>
-    /// 改变状态既能命令又能点击
-    /// </summary>
-    [CommandMethod(nameof(ChangePaneType))]
-    public static void ChangePaneType()
-    {
-        if (_pane is null)
-            return;
-        _pane.Text = _pane.Text == "打开" ? "关闭" : "打开";
-        //cad08要加这个才会变字,而高版本不用
-        Acap.StatusBar.Update();
+        return EnumEx.GetDesc(Settings.IMEInputSwitch);
     }
 
     static void Pane_MouseDown(object sender, StatusBarMouseDownEventArgs e)
     {
+        // 它就只支持两个枚举
         switch (e.Button)
         {
-            case System.Windows.Forms.MouseButtons.Left:
+            case MouseButtons.Left:
             {
-                ChangePaneType();
-                Env.Printl("按了左键");
+                if (_pane is null)
+                    return;
+
+                var max = Enum.GetValues(typeof(IMESwitchMode)).Cast<byte>().Max();
+                // 防白痴,一直点选择模式,最后是关闭.右键可以直接关闭
+                if ((int)Settings.IMEInputSwitch + 1 < max)
+                    ++Settings.IMEInputSwitch;
+                else
+                    Settings.IMEInputSwitch = 0;
+                _pane.Text = GetUseText();
+                Acap.StatusBar.Update();
             }
             break;
-            case System.Windows.Forms.MouseButtons.None:
-            break;
-            case System.Windows.Forms.MouseButtons.Right:
+            case MouseButtons.Right:
             {
-                Env.Printl("按了右键,弹菜单");
+                if (_pane is null)
+                    return;
+
+                Settings.IMEInputSwitch = 0;
+                _pane.Text = GetUseText();
+                Acap.StatusBar.Update();
             }
-            break;
-            case System.Windows.Forms.MouseButtons.Middle:
-            break;
-            case System.Windows.Forms.MouseButtons.XButton1:
-            break;
-            case System.Windows.Forms.MouseButtons.XButton2:
-            break;
-            default:
             break;
         }
     }

@@ -172,7 +172,7 @@ public class IMEControl
     internal static void SetIMEHook()
     {
         UnIMEHook();
-        if (_nextHookProc != IntPtr.Zero || !Settings.Use)
+        if (_nextHookProc != IntPtr.Zero)
             return;
 
         ExceptCmds.Clear();
@@ -182,7 +182,7 @@ public class IMEControl
         foreach (var item in ss)
             ExceptCmds.Add(item);
 
-        if (Settings.IMEStyle == IMEHookStyle.Process)
+        if (Settings.IMEHookStyle == IMEHookStyle.Process)
         {
             Debugx.Printl($"切换到进程钩子控制:{DateTime.Now}");
             _hookProc = (nCode, wParam, lParam) => {
@@ -213,7 +213,7 @@ public class IMEControl
             return;
         }
 
-        if (Settings.IMEStyle == IMEHookStyle.Global)
+        if (Settings.IMEHookStyle == IMEHookStyle.Global)
         {
             Debugx.Printl($"切换到全局钩子控制:{DateTime.Now}");
             var moduleHandle = WindowsAPI.GetModuleHandle(_process.MainModule.ModuleName);
@@ -370,11 +370,11 @@ public class IMEControl
 
     static bool MK1(int wParam)
     {
-        return !Settings.Use ||
-                WindowsAPI.IsIconic(Acap.MainWindow.Handle.ToInt32()) ||
-                WindowsAPI.GetKeyState(91) < 0 ||
-                WindowsAPI.GetKeyState(92) < 0 ||
-                wParam != WM_KEYDOWN;
+        return Settings.IMEInputSwitch == 0 ||
+               WindowsAPI.IsIconic(Acap.MainWindow.Handle.ToInt32()) ||
+               WindowsAPI.GetKeyState(91) < 0 ||
+               WindowsAPI.GetKeyState(92) < 0 ||
+               wParam != WM_KEYDOWN;
     }
 
     static bool Mk2(int nCode, int wParam, IntPtr lParam)

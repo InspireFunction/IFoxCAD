@@ -18,7 +18,7 @@ public partial class SettingsWindow : Window
     private void Button_Click(object sender, RoutedEventArgs e)
     {
         Settings._UserFilter = ExCMD.Text;
-        Settings._IMEStyle = (IMEHookStyle)CBox.SelectedIndex;
+        Settings._IMEHookStyle = (IMEHookStyle)CBox.SelectedIndex;
         Settings.SaveSettings();
         IMEControl.SetIMEHook();
         IMEControl.SaveFt();
@@ -27,7 +27,7 @@ public partial class SettingsWindow : Window
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
-        CBox.SelectedIndex = (int)Settings.IMEStyle;
+        CBox.SelectedIndex = (int)Settings.IMEHookStyle;
         ExCMD.Text = Settings.UserFilter;
         DeCMD.Text = string.Join(",", IMEControl.DefaultCmds.ToArray());
     }

@@ -29,7 +29,7 @@ public class DocReactor
 
     static void CommandWillStart(object sender, CommandEventArgs e)
     {
-        if (!Settings.Use || ((Document)sender).Editor.IsQuiescentForTransparentCommand())
+        if (Settings.IMEInputSwitch == 0 || ((Document)sender).Editor.IsQuiescentForTransparentCommand())
             return;
 
         var gName = e.GlobalCommandName;
