@@ -446,7 +446,7 @@ public partial class WindowsAPI
     public static extern bool IsWindowEnabled(IntPtr hWnd);
     #endregion
 
-    #region 钩子
+    #region 键盘钩子
     public delegate IntPtr CallBack(int nCode, int wParam, IntPtr lParam);
     [DllImport("user32.dll")]
     public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBack lpfn, IntPtr hmod, int dwThreadId);
@@ -480,7 +480,6 @@ public partial class WindowsAPI
         {
             return (KeyboardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyboardHookStruct));
         }
-
         public void ToPtr(IntPtr lParam)
         {
             Marshal.StructureToPtr(this, lParam, true);

@@ -70,20 +70,20 @@ public class StatusBar
     {
         return EnumEx.GetDesc(Settings.IMEInputSwitch);
     }
-    static readonly int _IMESwitchModeMax = Enum.GetValues(typeof(IMESwitchMode)).Cast<byte>().Max();
+    static readonly IMESwitchMode _ismMax = Enum.GetValues(typeof(IMESwitchMode)).Cast<IMESwitchMode>().Max();
 
     static void Pane_MouseDown(object sender, StatusBarMouseDownEventArgs e)
     {
+        if (_pane is null)
+            return;
+
         // 它就只支持两个枚举
         switch (e.Button)
         {
             case MouseButtons.Left:
             {
-                if (_pane is null)
-                    return;
-
-                // 防白痴,一直点选择模式,最后是关闭.右键可以直接关闭
-                if ((int)Settings.IMEInputSwitch < _IMESwitchModeMax)
+                // 防白痴,一个环形选择模式
+                if (Settings.IMEInputSwitch < _ismMax)
                     ++Settings.IMEInputSwitch;
                 else
                     Settings.IMEInputSwitch = 0;
@@ -93,9 +93,7 @@ public class StatusBar
             break;
             case MouseButtons.Right:
             {
-                if (_pane is null)
-                    return;
-
+                // 右键可以直接关闭
                 Settings.IMEInputSwitch = 0;
                 _pane.Text = GetUseText();
                 Acap.StatusBar.Update();
