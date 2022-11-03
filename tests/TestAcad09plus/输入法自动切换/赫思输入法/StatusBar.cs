@@ -70,6 +70,7 @@ public class StatusBar
     {
         return EnumEx.GetDesc(Settings.IMEInputSwitch);
     }
+    static readonly int _IMESwitchModeMax = Enum.GetValues(typeof(IMESwitchMode)).Cast<byte>().Max();
 
     static void Pane_MouseDown(object sender, StatusBarMouseDownEventArgs e)
     {
@@ -81,9 +82,8 @@ public class StatusBar
                 if (_pane is null)
                     return;
 
-                var max = Enum.GetValues(typeof(IMESwitchMode)).Cast<byte>().Max();
                 // 防白痴,一直点选择模式,最后是关闭.右键可以直接关闭
-                if ((int)Settings.IMEInputSwitch + 1 < max)
+                if ((int)Settings.IMEInputSwitch < _IMESwitchModeMax)
                     ++Settings.IMEInputSwitch;
                 else
                     Settings.IMEInputSwitch = 0;

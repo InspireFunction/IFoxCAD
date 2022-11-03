@@ -158,20 +158,21 @@ public enum IMEHookStyle : byte
 }
 
 /// <summary>
-/// 切换输入法方式
+/// 切换输入法方式<br/>
+/// 作用的地方仅为输入豁免命令时候自动切换到中文
 /// </summary>
 public enum IMESwitchMode : byte
 {
-    [Description("输入法关闭")]
+    [Description("输入法拦截关闭")]
     Disable,
-    [Description("输入法开启:Shift")]
+    [Description("输入法拦截开启:Shift")]
     Shift,
-    [Description("输入法开启:Ctrl")]
+    [Description("输入法拦截开启:Ctrl")]
     Ctrl,
-    [Description("输入法开启:CtrlAndSpace")]
+    [Description("输入法拦截开启:CtrlAndSpace")]
     CtrlAndSpace,
-    [Description("输入法开启:CtrlAndShift")]
+    [Description("输入法拦截开启:CtrlAndShift")]
     CtrlAndShift,
-    [Description("输入法开启:WinAndSpace")]
+    [Description("输入法拦截开启:WinAndSpace")]
     WinAndSpace,
 }
