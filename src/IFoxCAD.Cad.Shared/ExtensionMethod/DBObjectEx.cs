@@ -69,7 +69,7 @@ public static class DBObjectEx
             return;
 
         for (int i = indexs.Count - 1; i >= 0; i--)
-            data[i] = new TypedValue((short)dxfCode, newvalue);
+            data[indexs[i]] = new TypedValue((short)dxfCode, newvalue);
 
         using (obj.ForWrite())
             obj.XData = data;

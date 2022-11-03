@@ -188,6 +188,7 @@ public partial class Test
 
 
     // 测试扩展数据
+    static readonly string _appname = "myapp2";
     // 增
     [CommandMethod(nameof(Test_AddXdata))]
     public void Test_AddXdata()
@@ -225,7 +226,6 @@ public partial class Test
     [CommandMethod(nameof(Test_RemoveXdata))]
     public void Test_RemoveXdata()
     {
-        var appname = "myapp2";
         var res = Env.Editor.GetEntity("\n select the entity:");
         if (res.Status == PromptStatus.OK)
         {
@@ -236,10 +236,10 @@ public partial class Test
 
             Env.Printl("\n移除前:" + ent.XData.ToString());
 
-            ent.RemoveXData(appname, DxfCode.ExtendedDataAsciiString);
+            ent.RemoveXData(_appname, DxfCode.ExtendedDataAsciiString);
             Env.Printl("\n移除成员后:" + ent.XData.ToString());
 
-            ent.RemoveXData(appname);
+            ent.RemoveXData(_appname);
             Env.Printl("\n移除appName后:" + ent.XData.ToString());
         }
     }
@@ -264,7 +264,7 @@ public partial class Test
         // }
 
         // 查询appName里面是否含有某个
-        var appname = "myapp2";
+
         var res = Env.Editor.GetEntity("\n select the entity:");
         if (res.Status == PromptStatus.OK)
         {
@@ -273,13 +273,13 @@ public partial class Test
                 return;
 
             XDataList data = ent.XData;
-            if (data.Contains(appname))
-                Env.Printl("含有appName:" + appname);
+            if (data.Contains(_appname))
+                Env.Printl("含有appName:" + _appname);
             else
-                Env.Printl("不含有appName:" + appname);
+                Env.Printl("不含有appName:" + _appname);
 
             var str = "要移除的我";
-            if (data.Contains(appname, str))
+            if (data.Contains(_appname, str))
                 Env.Printl("含有内容:" + str);
             else
                 Env.Printl("不含有内容:" + str);
@@ -289,20 +289,17 @@ public partial class Test
     [CommandMethod(nameof(Test_ChangeXdata))]
     public void Test_ChangeXdata()
     {
-        var appname = "myapp";
         var res = Env.Editor.GetEntity("\n select the entity:");
-        if (res.Status == PromptStatus.OK)
-        {
-            using DBTrans tr = new();
-            var data = tr.GetObject<Entity>(res.ObjectId)!;
-            data.ChangeXData(appname, DxfCode.ExtendedDataAsciiString, "change");
+        if (res.Status != PromptStatus.OK)
+            return;
+        using DBTrans tr = new();
+        var data = tr.GetObject<Entity>(res.ObjectId)!;
+        data.ChangeXData(_appname, DxfCode.ExtendedDataAsciiString, "change");
 
-            Env.Printl(data.XData.ToString());
-        }
+        if (data.XData == null)
+            return;
+        Env.Printl(data.XData.ToString());
     }
-
-
-
 
 
 
