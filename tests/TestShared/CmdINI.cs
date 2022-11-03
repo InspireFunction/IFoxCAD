@@ -68,6 +68,22 @@ public class CmdInit
         AutoRegAssemEx?.UnRegApp();
         AutoRegAssemEx = null;
     }
+
+    [CommandMethod(nameof(Debugx))]
+    public void Debugx()
+    {
+        var flag = Environment.GetEnvironmentVariable("debugx", EnvironmentVariableTarget.User);
+        if (flag == null || flag == "0")
+        {
+            Environment.SetEnvironmentVariable("debugx", "1", EnvironmentVariableTarget.User);
+            Env.Printl($"vs输出 -- 已启用");
+        }
+        else
+        {
+            Environment.SetEnvironmentVariable("debugx", "0", EnvironmentVariableTarget.User);
+            Env.Printl($"vs输出 -- 已禁用");
+        }
+    }
 }
 
 #if givePeopleTest

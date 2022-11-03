@@ -517,7 +517,7 @@ public static class Env
     public static string GetEnv(string? name)
     {
         // 它将混合查询以下路径:
-        // acad2008注册表路径: 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R17.1\ACAD - 6001:804\FixedProfile\General
+        // acad2008注册表路径: 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R17.1\ACAD-6001:804\FixedProfile\General
         // 用户: 计算机\HKEY_CURRENT_USER\Environment
         // 系统: 计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
 
