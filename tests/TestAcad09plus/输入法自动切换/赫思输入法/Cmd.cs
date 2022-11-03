@@ -9,10 +9,6 @@ public class Cmd
         DocReactor.IntialReactor();
         Settings.LoadSettings();
         IMEControl.SetIMEHook();
-        Acap.QuitWillStart += (s, e) => {
-            IMEControl.UnIMEHook();
-            IMEControl.SaveFt();
-        };
         StatusBar.IMEAddPane();
     }
 

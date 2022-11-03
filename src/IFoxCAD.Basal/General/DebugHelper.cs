@@ -3,19 +3,22 @@
 public static class Debugx
 {
     /// <summary>
-    /// cad命令切换: IFoxDebugx
+    /// cad命令切换: Debugx
     /// </summary>
-    /// <param name="message"></param>
-    public static void Printl(object message)
+    /// <param name="message">打印信息</param>
+    /// <param name="time">打印时间</param>
+    public static void Printl(object message, bool time = true)
     {
         var flag = Environment.GetEnvironmentVariable("debugx", EnvironmentVariableTarget.User);
         if (flag == null || flag == "0")
             return;
-        var str = message + $"::{DateTime.Now.ToLongDateString() + DateTime.Now.TimeOfDay}";
+
+        if (time)
+            message = $"{DateTime.Now.ToLongDateString() + DateTime.Now.TimeOfDay}::" + message;
 #if DEBUG
-        System.Diagnostics.Debug.WriteLine(str);
+        System.Diagnostics.Debug.WriteLine(message);
 #else
-        System.Diagnostics.Trace.WriteLine(str);
+        System.Diagnostics.Trace.WriteLine(message);
 #endif
     }
 }

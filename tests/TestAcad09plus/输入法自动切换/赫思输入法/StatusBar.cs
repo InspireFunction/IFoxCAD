@@ -86,7 +86,7 @@ public class StatusBar
                 if (Settings.IMEInputSwitch < _ismMax)
                     ++Settings.IMEInputSwitch;
                 else
-                    Settings.IMEInputSwitch = 0;
+                    Settings.IMEInputSwitch = IMESwitchMode.Disable;
                 _pane.Text = GetUseText();
                 Acap.StatusBar.Update();
             }
@@ -94,7 +94,7 @@ public class StatusBar
             case MouseButtons.Right:
             {
                 // 右键可以直接关闭
-                Settings.IMEInputSwitch = 0;
+                Settings.IMEInputSwitch = IMESwitchMode.Disable;
                 _pane.Text = GetUseText();
                 Acap.StatusBar.Update();
             }
