@@ -5,7 +5,7 @@ public class Cmd
     [IFoxInitialize]
     public void Initialize()
     {
-        Env.Printl($"※输入法＋控制※{nameof(Gstar_IMEFilterSettings)} - 设置");
+        Env.Printl($"※拦截输入法控制※{nameof(Gstar_IMEFilterSettings)} - 设置");
         DocReactor.IntialReactor();
         Settings.LoadSettings();
         IMEControl.SetIMEHook();

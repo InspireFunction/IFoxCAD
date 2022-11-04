@@ -138,7 +138,7 @@ public class Settings
 
             using var xmlWriter = XmlWriter.Create(MySettingsPath, settings);
             xmlWriter.WriteStartDocument(1 != 0);
-            xmlWriter.WriteComment("输入法＋");
+            xmlWriter.WriteComment("拦截输入法");
 
             xmlWriter.WriteStartElement(nameof(Settings));
             {
