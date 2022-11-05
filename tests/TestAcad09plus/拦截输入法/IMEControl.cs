@@ -381,7 +381,7 @@ public class IMEControl
     /// 豁免命令处理
     /// </summary>
     /// <returns></returns>
-    static bool ExceptCmdsTask()
+    static bool ExceptCmds_AutoEn2Cn_Task()
     {
         var dm = Acap.DocumentManager;
         if (dm.Count == 0)
@@ -442,7 +442,7 @@ public class IMEControl
             //Debugx.Printl(wParam);
 
             // 先判断键入的数字更快,再判断豁免命令
-            if (!ExceptCmdsTask())
+            if (!ExceptCmds_AutoEn2Cn_Task())
                 return false;
 
             var focus = WindowsAPI.GetFocus();
