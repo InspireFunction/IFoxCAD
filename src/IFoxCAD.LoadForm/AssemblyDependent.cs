@@ -1,5 +1,6 @@
 ﻿#define HarmonyPatch
 #define HarmonyPatch_1
+//#define HarmonyPatch_2
 
 namespace IFoxCAD.LoadEx;
 
@@ -16,12 +17,22 @@ public class AssemblyDependent : IDisposable
 
     #region 字段和事件
     /// <summary>
-    /// 当前域加载事件,运行时出错的话,就靠这个事件来解决
+    /// 当前域加载事件<br/>
+    /// 运行时出错的话,就靠这个事件来解决
     /// </summary>
     public event ResolveEventHandler CurrentDomainAssemblyResolveEvent
     {
         add { AppDomain.CurrentDomain.AssemblyResolve += value; }
         remove { AppDomain.CurrentDomain.AssemblyResolve -= value; }
+    }
+
+    /// <summary>
+    /// 当前域参照加载事件
+    /// </summary>
+    public event ResolveEventHandler CurrentDomainReflectionOnlyAssemblyResolveEvent
+    {
+        add { AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve += value; }
+        remove { AppDomain.CurrentDomain.ReflectionOnlyAssemblyResolve -= value; }
     }
 
     /// <summary>
@@ -38,6 +49,7 @@ public class AssemblyDependent : IDisposable
     {
         // 初始化一次,反复load
         CurrentDomainAssemblyResolveEvent += AssemblyHelper.DefaultAssemblyResolve;
+        CurrentDomainReflectionOnlyAssemblyResolveEvent += AssemblyHelper.ReflectionOnlyAssemblyResolve;
     }
     #endregion
 
@@ -401,6 +413,7 @@ public class AssemblyDependent : IDisposable
         IsDisposed = true;
 
         CurrentDomainAssemblyResolveEvent -= AssemblyHelper.DefaultAssemblyResolve;
+        CurrentDomainReflectionOnlyAssemblyResolveEvent -= AssemblyHelper.ReflectionOnlyAssemblyResolve;
     }
     #endregion
 }

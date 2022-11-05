@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Basal;
+﻿using System.Threading;
+
+namespace IFoxCAD.Basal;
 
 public static class Debugx
 {
@@ -14,11 +16,17 @@ public static class Debugx
             return;
 
         if (time)
-            message = $"{DateTime.Now.ToLongDateString() + DateTime.Now.TimeOfDay}::" + message;
+            message = $"{DateTime.Now.ToLongDateString() + DateTime.Now.TimeOfDay}\n" +
+            $"\t\tThreadId:{Thread.CurrentThread.ManagedThreadId}\n" +
+            $"\t\t{message}";
 #if DEBUG
+        //System.Diagnostics.Debug.Indent();
         System.Diagnostics.Debug.WriteLine(message);
+        //System.Diagnostics.Debug.Unindent();
 #else
+        //System.Diagnostics.Debug.Indent();
         System.Diagnostics.Trace.WriteLine(message);
+        //System.Diagnostics.Debug.Unindent();
 #endif
     }
 }
