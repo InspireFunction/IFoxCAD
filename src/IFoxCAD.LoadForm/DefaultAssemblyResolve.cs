@@ -47,28 +47,15 @@ public class AssemblyHelper
             if (GetAssemblyName(cadAss[i].GetName().FullName) == ag)
                 result = cadAss[i];
 
-        // 惊惊:我的 cad21+vs22容易触发这个WPF资源的问题
-        // 偶发性,怀疑是载入顺序的导致
-        // 当cad界面完成之后找的话,大概率能够通过下面语句跳过
-        // 如果初始化遇到了,
-        // 0x01 或者是某个多线程忘记lock变量,然后导致整个逻辑错误
-        // 0x02 建议重新安装
         if (result == null)
         {
-            //args.Name = "Microsoft.VisualStudio.DesignTools.WpfTap.resources, Version=17.0.0.0, Culture=zh-CN, PublicKeyToken=b03f5f7f11d50a3a"
-            if (e.Name.Contains("Microsoft.VisualStudio.DesignTools.WpfTap.resources"))
-            {
-                Debug.WriteLine($"{nameof(LoadEx)}::程序集找不到::Microsoft.VisualStudio.DesignTools.WpfTap.resources");
-                //var str = @"C:\Program Files\Microsoft Visual Studio\2022\Enterprise\Common7\IDE\CommonExtensions\Microsoft\XamlDiagnostics\Framework\x64\Microsoft.VisualStudio.DesignTools.WpfTap.dll";
-                //result = Assembly.Load(str);// 这里又循环到开头了
-                //result = Assembly.ReflectionOnlyLoad(str);// 这里又循环到开头了,提示它是保护的
-
-                // 这里不是抓资源的程序集,而是抓了它本体,然后发现偶尔能通过,很奇怪.
-                for (int i = 0; i < cadAss.Length; i++)
-                    if (cadAss[i].GetName().Name.Contains("WpfTap"))
-                        result = cadAss[i];
-            }
-            Thread.Sleep(5000);
+            // 惊惊: cad21+vs22 容易触发这个资源的问题
+            // https://stackoverflow.com/questions/4368201/
+            string[] fields = e.Name.Split(',');
+            string name = fields[0];
+            string culture = fields[2];
+            if (name.EndsWith(".resources") && !culture.EndsWith("neutral"))
+                return null;
         }
 
         if (result == null)
