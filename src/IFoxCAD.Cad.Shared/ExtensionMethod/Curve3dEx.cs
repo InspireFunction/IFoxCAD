@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using System.Runtime.CompilerServices;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 三维解析类曲线转换为三维实体曲线扩展类
@@ -12,6 +14,7 @@ public static class Curve3dEx
     /// <param name="d1">第一个数</param>
     /// <param name="d2">第二个数</param>
     /// <returns>两个数的差值的绝对值小于容差返回 <see langword="true"/>,反之返回 <see langword="false"/></returns>
+    [MethodImpl]
     public static bool IsEqualPoint(this Tolerance tol, double d1, double d2)
     {
         return Math.Abs(d1 - d2) < tol.EqualPoint;
@@ -24,14 +27,14 @@ public static class Curve3dEx
     /// </summary>
     /// <param name="c3d">三维解析类曲线</param>
     /// <returns>曲线参数的列表</returns>
-    public static List<double> GetParamsAtIntersectionPoints(this Curve3d c3d)
+    public static List<double> GetParamsAtIntersectionPoints(this Curve3d c3d, bool sort = true)
     {
         CurveCurveIntersector3d cci = new(c3d, c3d, Vector3d.ZAxis);
         List<double> pars = new();
         for (int i = 0; i < cci.NumberOfIntersectionPoints; i++)
             pars.AddRange(cci.GetIntersectionParameters(i));
-
-        pars.Sort();
+        if (sort)
+            pars.Sort();
         return pars;
     }
 

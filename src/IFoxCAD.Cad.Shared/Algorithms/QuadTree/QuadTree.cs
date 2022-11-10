@@ -180,26 +180,26 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
         {
             case QuadTreeSelectMode.IntersectsWith:
             case QuadTreeSelectMode.Contains:
-                /* 由于红黑树的方法 _points.GetViewBetween()
-                 * 过滤只能过滤X区间,Y区间还是要过滤,
-                 * 那么我就只能用这样的方法加速了
-                 * 
-                 * 而更好的方式是不用红黑树,去加入一个点云数据来进行,可谓是编程无极限....
-                 */
-                while (ptge.MoveNext())
+            /* 由于红黑树的方法 _points.GetViewBetween()
+             * 过滤只能过滤X区间,Y区间还是要过滤,
+             * 那么我就只能用这样的方法加速了
+             *
+             * 而更好的方式是不用红黑树,去加入一个点云数据来进行,可谓是编程无极限....
+             */
+            while (ptge.MoveNext())
+            {
+                var ptEnt = ptge.Current;
+                if (rect._X <= ptEnt._X && ptEnt._X <= rect._Right)
                 {
-                    var ptEnt = ptge.Current;
-                    if (rect._X <= ptEnt._X && ptEnt._X <= rect._Right)
-                    {
-                        if (rect._Y <= ptEnt._Y && ptEnt._Y <= rect.Top)
-                            results.Add(ptEnt);
-                    }
-                    else if (ptEnt._X > rect._Right)
-                        break;// 超过后面范围就break,因为红黑树已经排序
+                    if (rect._Y <= ptEnt._Y && ptEnt._Y <= rect.Top)
+                        results.Add(ptEnt);
                 }
-                break;
+                else if (ptEnt._X > rect._Right)
+                    break;// 超过后面范围就break,因为红黑树已经排序
+            }
+            break;
             default:
-                throw new("四叉树:" + nameof(selectMode));
+            throw new("四叉树:" + nameof(selectMode));
         }
         return results;
     }

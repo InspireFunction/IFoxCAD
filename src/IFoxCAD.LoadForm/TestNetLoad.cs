@@ -4,8 +4,8 @@ namespace Test;
 public class NetLoad
 {
     static IFoxCAD.LoadEx.LoaderForm? _form;
-    [CommandMethod("loadx")]
-    public static void Test_NetLoadx()
+    [CommandMethod(nameof(Loadx))]
+    public static void Loadx()
     {
         if (_form == null || _form.IsDisposed)
             _form = new();

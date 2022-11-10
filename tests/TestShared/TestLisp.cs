@@ -11,7 +11,7 @@ public class TestLisp
     }
 
     // 模态命令,只有当CAD发出命令提示或当前没有其他的命令或程序活动的时候才可以被触发
-    [CommandMethod("CmdTest_RunLisp1", CommandFlags.Modal)]
+    [CommandMethod("CmdTest_RunLisp1")]
     // 透明命令,可以在一个命令提示输入的时候触发例如正交切换,zoom等
     [CommandMethod("CmdTest_RunLisp2", CommandFlags.Transparent)]
     // 选择图元之后执行命令将可以从 <see cref="Editor.GetSelection()"/> 获取图元

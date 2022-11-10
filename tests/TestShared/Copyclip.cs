@@ -33,8 +33,7 @@ public class Copyclip
     [IFoxInitialize] // 惊惊: 遇到了高版本无法导出WMF,放弃此功能,等待有缘人
     public void Init()
     {
-        Acap.DocumentManager.DocumentLockModeChanged
-            += DocumentManager_DocumentLockModeChanged;
+        Acap.DocumentManager.DocumentLockModeChanged += Dm_VetoCommand;
         Env.Printl($"※剪贴板控制※\n{nameof(Copyclip_Switch)} - 切换开关\n");
     }
 
@@ -50,8 +49,10 @@ public class Copyclip
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
-    void DocumentManager_DocumentLockModeChanged(object sender, DocumentLockModeChangedEventArgs e)
+    void Dm_VetoCommand(object sender, DocumentLockModeChangedEventArgs e)
     {
+        if (string.IsNullOrEmpty(e.GlobalCommandName) || e.GlobalCommandName == "#")
+            return;
         if (!_IsRunIFoxCopyClip)
             return;
 

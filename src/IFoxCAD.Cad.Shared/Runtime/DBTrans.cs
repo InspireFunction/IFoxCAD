@@ -670,10 +670,9 @@ public class DBTrans : IDisposable
             // 将cad事务进行销毁
             if (!Transaction.IsDisposed)
                 Transaction.Dispose();
-
-            // 将文档锁销毁
-            _documentLock?.Dispose();
         }
+        // 将文档锁销毁
+        _documentLock?.Dispose();
 
         // 将当前事务栈弹栈
         _dBTrans.Pop();

@@ -91,5 +91,5 @@ public static Dictionary<string, string> GetEnumDic(Type enumType)
         }
     }
     return dic;
-} 
+}
 #endif

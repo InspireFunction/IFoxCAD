@@ -120,13 +120,8 @@ internal sealed partial class SR
         string res = sys.resources.GetString(name, culture);
         System.Diagnostics.Debug.Assert(res != null, string.Format(CultureInfo.CurrentCulture, "String resource {0} not found.", new object[] { name }));
         if (args != null && args.Length > 0)
-        {
             return string.Format(CultureInfo.CurrentCulture, res, args);
-        }
-        else
-        {
-            return res;
-        }
+        return res;
     }
 
     internal static string GetString(string name)

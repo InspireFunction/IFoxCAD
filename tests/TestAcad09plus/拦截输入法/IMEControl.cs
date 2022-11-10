@@ -311,6 +311,7 @@ public class IMEControl
         if (_nextHookProc != IntPtr.Zero)
             return;
 
+        #region 读取配置
         ExceptCmds_AutoEn2Cn.Clear();
         {
             foreach (var item in DefaultCmds_AutoEn2Cn)
@@ -328,6 +329,7 @@ public class IMEControl
             foreach (var item in ss)
                 ExceptCmds_AutoCn2En.Add(item);
         }
+        #endregion
 
         if (Settings.IMEHookStyle == IMEHookStyle.Process)
         {

@@ -424,7 +424,7 @@ public partial class WindowsAPI
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetFocus();
 
-    [DllImport("user32.dll ")]
+    [DllImport("user32.dll")]
     public static extern IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam);
 
     [DllImport("user32.dll", SetLastError = true)]

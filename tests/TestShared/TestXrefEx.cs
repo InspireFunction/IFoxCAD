@@ -3,7 +3,7 @@
 public class TestCmd_BindXrefs
 {
     //后台绑定
-    [CommandMethod("Test_Bind1")]
+    [CommandMethod(nameof(Test_Bind1))]
     public static void Test_Bind1()
     {
         string fileName = @"D:\Test.dwg";
@@ -14,7 +14,7 @@ public class TestCmd_BindXrefs
     }
 
     //前台绑定
-    [CommandMethod("Test_Bind2")]
+    [CommandMethod(nameof(Test_Bind2))]
     public static void Test_Bind2()
     {
         using var tr = new DBTrans();

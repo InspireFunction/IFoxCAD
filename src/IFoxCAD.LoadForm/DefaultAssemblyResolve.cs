@@ -1,7 +1,6 @@
 namespace IFoxCAD.LoadEx;
 
 using System.Diagnostics;
-using System.Threading;
 
 public class AssemblyHelper
 {
@@ -49,12 +48,19 @@ public class AssemblyHelper
 
         if (result == null)
         {
-            // 惊惊: cad21+vs22 容易触发这个资源的问题
+            // 惊惊: acad21+vs22 容易触发这个资源的问题
             // https://stackoverflow.com/questions/4368201/
             string[] fields = e.Name.Split(',');
             string name = fields[0];
             string culture = fields[2];
             if (name.EndsWith(".resources") && !culture.EndsWith("neutral"))
+                return null;
+        }
+
+        if (result == null)
+        {
+            // acad08debug的时候查看一些变量时候,会弹出找不到它,并且闪退
+            if (ag == "Microsoft.CSharp")
                 return null;
         }
 

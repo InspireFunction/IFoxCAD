@@ -74,10 +74,10 @@ public class AcadPeInfo
         }
     }
 
+    List<PeFunction>? _Methods; // 这个不是静态的
     /// <summary>
     /// 同名函数指针们
     /// </summary>
-    static List<PeFunction>? _Methods;
     public List<PeFunction>? Methods
     {
         get
@@ -148,7 +148,7 @@ public class AcadPeInfo
     GetMethodErrorNum GetPeMethod(PeInfo? peInfo)
     {
         if (peInfo == null)
-            throw new ArgumentNullException(nameof(peInfo));
+            return GetMethodErrorNum.NoFuncName;// cad08需要检查 AccoreDll 的时候跳过
 
         var identifyStr = _findFuncName + ";" + peInfo.FullName;
         if (_Dict.ContainsKey(identifyStr))// 如果已经找过,直接返回

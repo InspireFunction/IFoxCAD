@@ -1,7 +1,7 @@
 ﻿namespace IFoxCAD.Cad;
 
 [Flags]
-public enum BrightEntity
+public enum BrightEntity : int
 {
     /// <summary>
     /// 块更新
@@ -38,7 +38,7 @@ public enum BrightEntity
 }
 
 [Flags]
-public enum BrightEditor
+public enum BrightEditor : int
 {
     /// <summary>
     /// 刷新屏幕,图元不生成(例如块还是旧的显示)
