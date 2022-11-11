@@ -149,18 +149,16 @@ public static class Curve3dEx
     /// <param name="c3d">三维复合曲线</param>
     /// <param name="pars">曲线参数列表</param>
     /// <returns>三维复合曲线列表</returns>
-    public static List<CompositeCurve3d> GetSplitCurves(this CompositeCurve3d c3d, List<double> pars)
+    public static List<CompositeCurve3d>? GetSplitCurves(this CompositeCurve3d c3d, List<double> pars)
     {
         // 曲线参数剔除重复的
         pars.Sort();
         for (int i = pars.Count - 1; i > 0; i--)
-        {
             if (Tolerance.Global.IsEqualPoint(pars[i], pars[i - 1]))
                 pars.RemoveAt(i);
-        }
 
         if (pars.Count == 0)
-            return new List<CompositeCurve3d>();
+            return null;
 
         // 这个是曲线参数类
         var inter = c3d.GetInterval();
@@ -169,31 +167,27 @@ public static class Curve3dEx
         if (c3ds.Length == 1 && c3ds[0].IsClosed())
         {
             // 闭合曲线不允许打断于一点
-            if (pars.Count > 1)
+            if (pars.Count < 2)
+                return null;
+
+            // 如果包含起点
+            if (Tolerance.Global.IsEqualPoint(pars[0], inter.LowerBound))
             {
-                // 如果包含起点
-                if (Tolerance.Global.IsEqualPoint(pars[0], inter.LowerBound))
+                pars[0] = inter.LowerBound;
+                // 又包含终点,去除终点
+                if (Tolerance.Global.IsEqualPoint(pars[^1], inter.UpperBound))
                 {
-                    pars[0] = inter.LowerBound;
-                    // 又包含终点，去除终点
-                    if (Tolerance.Global.IsEqualPoint(pars[^1], inter.UpperBound))
-                    {
-                        pars.RemoveAt(pars.Count - 1);
-                        if (pars.Count == 1)
-                            return new List<CompositeCurve3d>();
-                    }
+                    pars.RemoveAt(pars.Count - 1);
+                    if (pars.Count == 1)
+                        return null;
                 }
-                else if (Tolerance.Global.IsEqualPoint(pars[^1], inter.UpperBound))
-                {
-                    pars[^1] = inter.UpperBound;
-                }
-                // 加入第一点以支持反向打断
-                pars.Add(pars[0]);
             }
-            else
+            else if (Tolerance.Global.IsEqualPoint(pars[^1], inter.UpperBound))
             {
-                return new List<CompositeCurve3d>();
+                pars[^1] = inter.UpperBound;
             }
+            // 加入第一点以支持反向打断
+            pars.Add(pars[0]);
         }
         else
         {
@@ -244,7 +238,7 @@ public static class Curve3dEx
 
         if (c3d.IsClosed() && c3ds.Length > 1)
         {
-            var cus1 = curves[curves.Count - 1].GetCurves();
+            var cus1 = curves[^1].GetCurves();
             var cus2 = curves[0].GetCurves();
             var cs = cus1.Combine2(cus2);
             curves[^1] = new CompositeCurve3d(cs);

@@ -98,12 +98,7 @@ public struct PlaceableMetaHeader
         file.Read(fileByte, 0, fileByte.Length);
         file.Close();
 
-        var ss = BytesToStruct<PlaceableMetaHeader>(fileByte);
-        if (ss == null)
-            throw new IOException("失败:类型转换,路径:" + file);
-
-        var sWMF = ss.Value;
-
+        var sWMF = BytesToStruct<PlaceableMetaHeader>(fileByte);
         // 转为emf的地址
         IntPtr hEMF = IntPtr.Zero;
 

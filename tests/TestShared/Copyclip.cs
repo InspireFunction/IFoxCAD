@@ -79,7 +79,7 @@ public class Copyclip
 #if PASTECLIP
         if (up == "PASTECLIP")// 粘贴
         {
-            // TODO === 完成之后此处将会移除
+            // === 完成之后此处将会移除
             // 粘贴文本的生成单行文字/多行文字,这些还需要自己去实现
             var getClip = ClipTool.GetClipboard(ClipboardEnv.CadVer, out TagClipboardInfo tag);
             if (!getClip)
@@ -91,7 +91,7 @@ public class Copyclip
         }
         else if (up == "PASTEBLOCK") //ctrl+shift+v 粘贴为块
         {
-            // TODO === 完成之后此处将会移除
+            // === 完成之后此处将会移除
             var getClip = ClipTool.GetClipboard(ClipboardEnv.CadVer, out TagClipboardInfo tag);
             if (!getClip)
                 return;

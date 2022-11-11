@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
 
 namespace IFoxCAD.Cad;
 
@@ -256,7 +257,8 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// 一个点在内部就是碰撞
     /// </summary>
     /// <param name="rect"></param>
-    /// <returns></returns>
+    /// <returns>true内部</returns>
+    [MethodImpl]
     public bool IntersectsWith(Rect rect)
     {
         return rect._X <= _Right && _X <= rect._Right &&

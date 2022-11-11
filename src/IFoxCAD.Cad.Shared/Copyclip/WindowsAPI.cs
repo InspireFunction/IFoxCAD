@@ -3,6 +3,7 @@ namespace IFoxCAD.Cad;
 
 using System;
 using System.Diagnostics;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Windows.Forms;
 
@@ -138,16 +139,19 @@ public partial class WindowsAPI
     /// </summary>
     /// <param name="bytes">byte数组</param>
     /// <returns>返回的结构体</returns>
-    public static T? BytesToStruct<T>(byte[] bytes) where T : unmanaged
+    [MethodImpl]
+    public static T? BytesToStruct<T>(byte[] bytes)
     {
-        T? result = null;
+        T? result = default;
         unsafe
         {
             // 安全指针方法
             // var pB = Marshal.UnsafeAddrOfPinnedArrayElement(bytes, 0);
             // 不安全指针方法
             fixed (byte* pB = &bytes[0])
-                result = (T)Marshal.PtrToStructure(new IntPtr(pB), typeof(T));
+            {
+                result = (T?)Marshal.PtrToStructure(new IntPtr(pB), typeof(T));
+            }
         }
         return result;
     }
@@ -157,7 +161,8 @@ public partial class WindowsAPI
     /// <a href="https://learn.microsoft.com/zh-cn/dotnet/csharp/language-reference/builtin-types/unmanaged-types">unmanaged</a>
     /// </summary>
     /// <param name="structObj">要转换的结构体</param>
-    public static byte[] StructToBytes<T>(T structObj) where T : unmanaged
+    [MethodImpl]
+    public static byte[] StructToBytes<T>(T structObj) where T : unmanaged/*非托管的T从来不为空*/
     {
         // 得到结构体的大小
         var typeSize = Marshal.SizeOf(structObj);

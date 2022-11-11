@@ -11,7 +11,7 @@ public class TestMarshal
         var ptA = new Point3d(123, 456, 789);
         var bytes = StructToBytes(ptA);
         var ptB = BytesToStruct<Point3d>(bytes);
-        Env.Printl(ptB!.Value);
+        Env.Printl(ptB);
     }
 
     [CommandMethod(nameof(Test_ChangeLinePoint))]

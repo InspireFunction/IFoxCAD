@@ -67,7 +67,7 @@ public class HatchConverter
 
     readonly List<HatchConverterData> _hcDatas;
     /// <summary>
-    /// 生成的填充边界id
+    /// 填充边界id(生成的/已存在反应器的直接提取)
     /// </summary>
     public List<ObjectId> BoundaryIds;
     #endregion
@@ -90,10 +90,33 @@ public class HatchConverter
     {
         _oldHatch = hatch;
 
-        // 不能在提取信息的时候进行新建cad图元,
-        // 否则cad将会提示遗忘释放
-        hatch.ForEach(loop => {
-            var hcData = new HatchConverterData();
+        if (hatch.Associative)
+        {
+            // 填充边界反应器
+            var assIds = hatch.GetAssociatedObjectIds();
+            if (assIds != null)
+            {
+                foreach (ObjectId id in assIds)
+                    if (id.IsOk())
+                        BoundaryIds.Add(id);
+
+                if (BoundaryIds.Count == 0)
+                {
+                    throw new ArgumentException("关联的填充边界被删除后没有清理反应器,请调用:" +
+                        "\n hatch.RemoveAssociatedObjectIds()" +
+                        "\n hatch.Associative = false");
+                }
+            }
+        }
+    }
+
+    /// <summary>
+    /// 提取边界信息
+    /// </summary>
+    public void GetBoundarysData()
+    {
+        _oldHatch?.ForEach(loop => {
+            HatchConverterData hcData = new();
 
             bool isCurve2d = true;
             if (loop.IsPolyline)
@@ -239,7 +262,7 @@ public class HatchConverter
     /// 创建边界图元
     /// </summary>
     /// <param name="outEnts">返回图元</param>
-    public void CreateBoundaryEntitys(List<Entity> outEnts)
+    public void CreateBoundary(List<Entity> outEnts)
     {
         for (int i = 0; i < _hcDatas.Count; i++)
         {
@@ -294,15 +317,11 @@ public class HatchConverter
         bool createHatchFlag = true,
         Transaction? trans = null)
     {
-        // 重设边界之前肯定是有边界才可以
-        if (BoundaryIds.Count == 0)
-        {
-            List<Entity> boundaryEntitys = new();
-            CreateBoundaryEntitys(boundaryEntitys);
-            boundaryEntitys.ForEach(ent => {
-                BoundaryIds.Add(btrOfAddEntitySpace.AddEntity(ent));
-            });
-        }
+        List<Entity> boEnts = new();
+        CreateBoundary(boEnts);
+        boEnts.ForEach(ent => {
+            BoundaryIds.Add(btrOfAddEntitySpace.AddEntity(ent));
+        });
 
         if (!createHatchFlag)
             return ObjectId.Null;
@@ -333,16 +352,16 @@ public class HatchConverter
         return newHatchId;
     }
 
-
     /// <summary>
     /// 重设边界
     /// </summary>
     /// <param name="hatch"></param>
     /// <param name="boundaryAssociative">边界关联</param>
-    void ResetBoundary(Hatch hatch,
-        bool boundaryAssociative = true)
+    void ResetBoundary(Hatch hatch, bool boundaryAssociative = true)
     {
-        // 删除原有边界
+        if (BoundaryIds.Count == 0)
+            return;
+
         while (hatch.NumberOfLoops != 0)
             hatch.RemoveLoopAt(0);
 

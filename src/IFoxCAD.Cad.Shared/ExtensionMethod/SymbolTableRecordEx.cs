@@ -309,8 +309,6 @@ public static class SymbolTableRecordEx
         var arc = EntityEx.CreateArc(startPoint, pointOnArc, endPoint);
         return btr.AddEnt(arc, action, trans);
     }
-
-    // TODO: 所有涉及默认无参构造的实体类型，都需要调用SetDatabaseDefaults();
     #endregion
 
     #region 获取实体/实体id
