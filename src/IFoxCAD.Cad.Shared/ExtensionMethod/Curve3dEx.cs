@@ -152,11 +152,13 @@ public static class Curve3dEx
     public static List<CompositeCurve3d>? GetSplitCurves(this CompositeCurve3d c3d, List<double> pars)
     {
         // 曲线参数剔除重复的
-        pars.Sort();
-        for (int i = pars.Count - 1; i > 0; i--)
-            if (Tolerance.Global.IsEqualPoint(pars[i], pars[i - 1]))
-                pars.RemoveAt(i);
-
+        if (pars.Count > 0)
+        {
+            pars.Sort();
+            for (int i = pars.Count - 1; i > 0; i--)
+                if (Tolerance.Global.IsEqualPoint(pars[i], pars[i - 1]))
+                    pars.RemoveAt(i);
+        }
         if (pars.Count == 0)
             return null;
 
@@ -203,9 +205,10 @@ public static class Curve3dEx
         }
 
         List<CompositeCurve3d> curves = new();
+        List<Curve3d> cc3ds = new();
         for (int i = 0; i < pars.Count - 1; i++)
         {
-            List<Curve3d> cc3ds = new();
+            cc3ds.Clear();
             // 复合曲线参数转换到包含曲线参数
             var cp1 = c3d.GlobalToLocalParameter(pars[i]);
             var cp2 = c3d.GlobalToLocalParameter(pars[i + 1]);
@@ -223,27 +226,28 @@ public static class Curve3dEx
                     c3ds[cp1.SegmentIndex].GetSubCurve(
                         cp1.LocalParameter,
                         inter.UpperBound));
+
                 for (int j = cp1.SegmentIndex + 1; j < cp2.SegmentIndex; j++)
-                {
                     cc3ds.Add((Curve3d)c3ds[j].Clone());
-                }
+
                 inter = c3ds[cp2.SegmentIndex].GetInterval();
                 cc3ds.Add(
                     c3ds[cp2.SegmentIndex].GetSubCurve(
                         inter.LowerBound,
                         cp2.LocalParameter));
             }
-            curves.Add(new CompositeCurve3d(cc3ds.ToArray()));
+            curves.Add(new(cc3ds.ToArray()));
         }
 
-        if (c3d.IsClosed() && c3ds.Length > 1)
-        {
-            var cus1 = curves[^1].GetCurves();
-            var cus2 = curves[0].GetCurves();
-            var cs = cus1.Combine2(cus2);
-            curves[^1] = new CompositeCurve3d(cs);
-            curves.RemoveAt(0);
-        }
+        // 封闭多段线 口口 并排形状,第二个口切割不成功,注释下面就成功了
+        //if (c3d.IsClosed() && c3ds.Length > 1)
+        //{
+        //    var cus1 = curves[^1].GetCurves();
+        //    var cus2 = curves[0].GetCurves();
+        //    var cs = cus1.Combine2(cus2);
+        //    curves[^1] = new(cs);
+        //    curves.RemoveAt(0);
+        //}
         return curves;
     }
 

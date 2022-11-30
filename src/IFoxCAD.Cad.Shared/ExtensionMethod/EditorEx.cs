@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using IFoxCAD.Com;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 命令行扩展类
@@ -1079,8 +1081,7 @@ public static class EditorEx
         {
             var dm = Acap.DocumentManager;
             var doc = dm.MdiActiveDocument;
-            if (doc != null)
-                doc.SendStringToExecute(lispCode + "\n", false, false, false);
+            doc?.SendStringToExecute(lispCode + "\n", false, false, false);
         }
         return null;
     }
