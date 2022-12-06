@@ -14,25 +14,25 @@ using System.Windows.Forms;
 public class DBTrans : IDisposable
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => ToString(" | ");
+    string DebuggerDisplay => ToString(" | ");
 
     #region 私有字段
     /// <summary>
+    /// 事务栈
+    /// </summary>
+    static readonly Stack<DBTrans> _dBTrans = new();
+    /// <summary>
     /// 文档锁
     /// </summary>
-    private readonly DocumentLock? _documentLock;
+    readonly DocumentLock? _documentLock;
     /// <summary>
     /// 是否提交事务
     /// </summary>
-    private readonly bool _commit;
-    /// <summary>
-    /// 事务栈
-    /// </summary>
-    private static readonly Stack<DBTrans> _dBTrans = new();
+    bool _commit;
     /// <summary>
     /// 文件名
     /// </summary>
-    private readonly string? _fileName;
+    readonly string? _fileName;
     #endregion
 
     #region 公开属性
@@ -606,7 +606,8 @@ public class DBTrans : IDisposable
     /// </summary>
     public void Abort()
     {
-        Dispose(false);
+        _commit = false;
+        Dispose();
     }
 
     /// <summary>
@@ -614,7 +615,8 @@ public class DBTrans : IDisposable
     /// </summary>
     public void Commit()
     {
-        Dispose(true);
+        _commit = true;
+        Dispose();
     }
 
     public bool IsDisposed { get; private set; } = false;
@@ -653,11 +655,10 @@ public class DBTrans : IDisposable
         // 致命错误时候此处是空,直接跳过
         if (Transaction != null)
         {
-            if (_commit)// disposing
+            if (_commit)
             {
                 // 刷新队列(后台不刷新)
                 Editor?.Redraw();
-
                 // 调用cad的事务进行提交,释放托管状态(托管对象)
                 Transaction.Commit();
             }
