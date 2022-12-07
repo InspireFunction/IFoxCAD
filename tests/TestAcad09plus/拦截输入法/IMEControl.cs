@@ -356,7 +356,7 @@ public class IMEControl
                 }
                 return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
             };
-            _nextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD, _hookProc,
+            _nextHookProc = WindowsAPI.SetWindowsHookEx(HookType.WH_KEYBOARD, _hookProc,
                                                         IntPtr.Zero, WindowsAPI.GetCurrentThreadId());
             return;
         }
@@ -373,7 +373,7 @@ public class IMEControl
                 }
                 return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
             };
-            _nextHookProc = WindowsAPI.SetWindowsHookEx(WindowsAPI.HookType.WH_KEYBOARD_LL,
+            _nextHookProc = WindowsAPI.SetWindowsHookEx(HookType.WH_KEYBOARD_LL,
                                                         _hookProc, moduleHandle, 0);
             return;
         }

@@ -1,12 +1,9 @@
 ﻿#define Marshal
-namespace IFoxCAD.Cad;
-
-using System;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
-using System.Windows.Forms;
 
+namespace IFoxCAD.Cad;
 public partial class WindowsAPI
 {
     #region kernel32
@@ -459,12 +456,6 @@ public partial class WindowsAPI
     public static extern IntPtr UnhookWindowsHookEx(IntPtr hHook);
     [DllImport("user32.dll")]
     public static extern IntPtr CallNextHookEx(IntPtr hHook, int ncode, int wParam, IntPtr lParam);
-    public enum HookType : byte
-    {
-        WH_KEYBOARD = 2,
-        WH_KEYBOARD_LL = 13,
-        WH_MOUSE_LL = 14,
-    }
     /// <summary>
     /// Hook键盘数据结构
     /// </summary>
@@ -495,16 +486,15 @@ public partial class WindowsAPI
     /// 否则:偶发性出现 键盘钩子不能用了,而且退出时产生 1404 错误
     /// https://www.cnblogs.com/songr/p/5131655.html
     /// </summary>
-    public static void CheckLowLevelHooksTimeout()
+    public static void CheckLowLevelHooksTimeout(int setLowLevel = 25000)
     {
         const string llh = "LowLevelHooksTimeout";
         using var registryKey = Registry.CurrentUser.OpenSubKey("Control Panel\\Desktop", true);
-        if ((int)registryKey.GetValue(llh, 0) == 0)
-            registryKey.SetValue(llh, 25000, RegistryValueKind.DWord);
+        if ((int)registryKey.GetValue(llh, 0) < setLowLevel)
+            registryKey.SetValue(llh, setLowLevel, RegistryValueKind.DWord);
     }
     #endregion
 }
-
 
 public partial class WindowsAPI
 {

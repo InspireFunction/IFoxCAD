@@ -83,6 +83,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpLogi.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Copyclip\WindowsAPI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\WindowsAPI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\Enums.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\MouseHook.cs" />
   </ItemGroup>
 </Project>
