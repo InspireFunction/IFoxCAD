@@ -362,6 +362,16 @@ public class HatchConverter
         if (BoundaryIds.Count == 0)
             return;
 
+        // todo ------ acad08分离填充报错: Microsoft Visual Studio C 运行库在 acad.exe 中检测到一个错误
+        // 0x01 测试命令 CmdTest_CreateHatch 创建是可以分离的,
+        // 那么可能是 克隆后 修改导致的,
+        // 我是克隆了之后移除原有边界,为了一些xdata之类的
+        // 0x02 测试了 hatch.SetDatabaseDefaults(); 并不是因为这个
+        // 0x03 测试了 v1110 不移除原有边界,而是加入了之后再移除旧的边界,也是一样
+        // 要处理这个问题,我想:自己实现一个分离填充,不用cad自带的,然后单独填充每个.
+        // 填充边界的算法是扫描线算法.这样就可以绕过去了...发现过于麻烦,放弃...
+
+        // v1110 删除原有边界
         while (hatch.NumberOfLoops != 0)
             hatch.RemoveLoopAt(0);
 

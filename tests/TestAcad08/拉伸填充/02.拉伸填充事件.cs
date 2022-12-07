@@ -701,7 +701,7 @@ public class HatchPickEvent : IDisposable
             return;
         if (e.DBObject.IsErased)
             return;
-        //是我生成的填充才删除关联
+        // 是我生成的填充才删除关联
         if (e.DBObject is Hatch hatch)
         {
             if (HatchPickEnv.IsMeCreate(hatch))
