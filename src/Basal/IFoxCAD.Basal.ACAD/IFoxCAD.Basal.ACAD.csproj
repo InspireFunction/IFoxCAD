@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<AnalysisLevel>None</AnalysisLevel>
+	</PropertyGroup>
+
+	<Import Project="..\IFoxCAD.Basal.Shared\IFoxCAD.Basal.Shared.projitems" Label="Shared" />
+	
+
+</Project>

@@ -61,10 +61,6 @@
       <PackageReference Include="IndexRange" Version="1.0.2"/>
     </ItemGroup>-->
 
-    <ItemGroup>
-        <ProjectReference Include="..\..\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
-    </ItemGroup>
-
     <Import Project="..\..\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems" Label="Shared" />
 
     <ItemGroup>

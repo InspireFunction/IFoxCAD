@@ -40,6 +40,14 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Gcad", "src\IFoxCAD
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Zcad", "src\IFoxCAD.Cad\IFoxCAD.Zcad\IFoxCAD.Zcad.csproj", "{751D15FC-B664-4B71-BB99-529E22EE1C4F}"
 EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Basal", "Basal", "{1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}"
+EndProject
+Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IFoxCAD.Basal.Shared", "src\Basal\IFoxCAD.Basal.Shared\IFoxCAD.Basal.Shared.shproj", "{C823514A-2BC2-45C2-ACED-18924A7B80BF}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFoxCAD.Basal.ACAD", "src\Basal\IFoxCAD.Basal.ACAD\IFoxCAD.Basal.ACAD.csproj", "{D1951425-0DE8-4DFB-B5F9-E79574D2F32D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFoxCAD.Basal.Source", "src\Basal\IFoxCAD.Basal.Source\IFoxCAD.Basal.Source.csproj", "{BF0A5851-549D-48AC-9EE6-2AB866090D24}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -86,6 +94,14 @@ Global
 		{751D15FC-B664-4B71-BB99-529E22EE1C4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{751D15FC-B664-4B71-BB99-529E22EE1C4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{751D15FC-B664-4B71-BB99-529E22EE1C4F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1951425-0DE8-4DFB-B5F9-E79574D2F32D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1951425-0DE8-4DFB-B5F9-E79574D2F32D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1951425-0DE8-4DFB-B5F9-E79574D2F32D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1951425-0DE8-4DFB-B5F9-E79574D2F32D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BF0A5851-549D-48AC-9EE6-2AB866090D24}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BF0A5851-549D-48AC-9EE6-2AB866090D24}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BF0A5851-549D-48AC-9EE6-2AB866090D24}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BF0A5851-549D-48AC-9EE6-2AB866090D24}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -100,6 +116,9 @@ Global
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD} = {C0BEFC15-6DF7-4636-BC76-4A0B88231470}
 		{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57} = {465C4E39-FBA2-417A-AB31-BDC01601F420}
 		{751D15FC-B664-4B71-BB99-529E22EE1C4F} = {465C4E39-FBA2-417A-AB31-BDC01601F420}
+		{C823514A-2BC2-45C2-ACED-18924A7B80BF} = {1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}
+		{D1951425-0DE8-4DFB-B5F9-E79574D2F32D} = {1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}
+		{BF0A5851-549D-48AC-9EE6-2AB866090D24} = {1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {31D6C754-CF6B-4AB0-9861-6923DD312350}
@@ -110,8 +129,11 @@ Global
 		src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems*{751d15fc-b664-4b71-bb99-529e22ee1c4f}*SharedItemsImports = 5
 		src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems*{82fb8450-b971-4e30-859f-4b2ddb81f590}*SharedItemsImports = 13
 		tests\TestShared\TestShared.projitems*{8c573180-523d-427d-8030-caa7d6b5eb6b}*SharedItemsImports = 5
+		src\Basal\IFoxCAD.Basal.Shared\IFoxCAD.Basal.Shared.projitems*{bf0a5851-549d-48ac-9ee6-2ab866090d24}*SharedItemsImports = 5
+		src\Basal\IFoxCAD.Basal.Shared\IFoxCAD.Basal.Shared.projitems*{c823514a-2bc2-45c2-aced-18924a7b80bf}*SharedItemsImports = 13
 		src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems*{cc46e4e2-90df-48f5-b3d7-83fafed58f2a}*SharedItemsImports = 5
 		tests\TestShared\TestShared.projitems*{ced63d2d-0af6-4831-806d-5e8e9b0d0a07}*SharedItemsImports = 13
 		src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems*{d0ce63a9-2dba-4263-9749-e8cd3ea0db57}*SharedItemsImports = 5
+		src\Basal\IFoxCAD.Basal.Shared\IFoxCAD.Basal.Shared.projitems*{d1951425-0de8-4dfb-b5f9-e79574d2f32d}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
