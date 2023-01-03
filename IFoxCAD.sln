@@ -32,8 +32,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAcad09plus", "tests\Tes
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{C0BEFC15-6DF7-4636-BC76-4A0B88231470}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.LoadEx", "src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj", "{BFA1C130-8D87-45D0-8E79-301C1841A7A1}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Gcad", "src\IFoxCAD.Cad\IFoxCAD.Gcad\IFoxCAD.Gcad.csproj", "{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Zcad", "src\IFoxCAD.Cad\IFoxCAD.Zcad\IFoxCAD.Zcad.csproj", "{751D15FC-B664-4B71-BB99-529E22EE1C4F}"
@@ -42,9 +40,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Basal", "Basal", "{1A5C27C1
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IFoxCAD.Basal.Shared", "src\Basal\IFoxCAD.Basal.Shared\IFoxCAD.Basal.Shared.shproj", "{C823514A-2BC2-45C2-ACED-18924A7B80BF}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFoxCAD.Basal.ACAD", "src\Basal\IFoxCAD.Basal.ACAD\IFoxCAD.Basal.ACAD.csproj", "{D1951425-0DE8-4DFB-B5F9-E79574D2F32D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Basal.ACAD", "src\Basal\IFoxCAD.Basal.ACAD\IFoxCAD.Basal.ACAD.csproj", "{D1951425-0DE8-4DFB-B5F9-E79574D2F32D}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "IFoxCAD.Basal.Source", "src\Basal\IFoxCAD.Basal.Source\IFoxCAD.Basal.Source.csproj", "{BF0A5851-549D-48AC-9EE6-2AB866090D24}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Basal.Source", "src\Basal\IFoxCAD.Basal.Source\IFoxCAD.Basal.Source.csproj", "{BF0A5851-549D-48AC-9EE6-2AB866090D24}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -76,10 +74,6 @@ Global
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{BFA1C130-8D87-45D0-8E79-301C1841A7A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{BFA1C130-8D87-45D0-8E79-301C1841A7A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{BFA1C130-8D87-45D0-8E79-301C1841A7A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{BFA1C130-8D87-45D0-8E79-301C1841A7A1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57}.Release|Any CPU.ActiveCfg = Release|Any CPU
