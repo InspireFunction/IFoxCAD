@@ -7,7 +7,7 @@
 		<AnalysisLevel>None</AnalysisLevel>
 	</PropertyGroup>
 
-	<Import Project="..\IFoxCAD.Basal.Shared\IFoxCAD.Basal.Shared.projitems" Label="Shared" />
+	<Import Project="..\IFox.Basal.Shared\IFox.Basal.Shared.projitems" Label="Shared" />
 	
 
 </Project>

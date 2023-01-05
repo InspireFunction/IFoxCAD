@@ -22,7 +22,7 @@
 	</PropertyGroup>
 
 	<!--共享项目的连接要放在构建源码包的流程之前-->
-	<Import Project="..\IFoxCAD.Basal.Shared\IFoxCAD.Basal.Shared.projitems" Label="Shared" />
+	<Import Project="..\IFox.CAD.Shared\IFox.CAD.Shared.projitems" Label="Shared" />
 
 	<ItemGroup>
 		<Compile Update="@(Compile)">
@@ -38,11 +38,10 @@
 	<!--放一个文件的目的是解决源码包项目里无实用代码导致出现： 不能编译既无依赖又无代码的错误。
 	然后这个文件可以是空文件 也可以是引用过来的文件，用于欺骗编译器。同时不打包进入nuget。-->
 	<ItemGroup>
-		<Compile Include="..\IFoxCAD.Basal.ACAD\GlobalUsings.cs" Link="\%(FileName)%(Extension)" >
+		<Compile Include="..\IFox.CAD.ACAD\GlobalUsings.cs" Link="\%(FileName)%(Extension)">
 			<Pack>false</Pack>
 		</Compile>
 	</ItemGroup>
-
 	<ItemGroup>
 		<PackageReference Remove="@(PackageReference)" />
 	</ItemGroup>

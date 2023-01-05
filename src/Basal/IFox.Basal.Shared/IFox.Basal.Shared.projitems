@@ -6,7 +6,7 @@
     <SharedGUID>c823514a-2bc2-45c2-aced-18924a7b80bf</SharedGUID>
   </PropertyGroup>
   <PropertyGroup Label="Configuration">
-    <Import_RootNamespace>IFoxCAD.Basal.Shared</Import_RootNamespace>
+    <Import_RootNamespace>IFox.Basal.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="$(MSBuildThisFileDirectory)CLS\Index.cs" />
