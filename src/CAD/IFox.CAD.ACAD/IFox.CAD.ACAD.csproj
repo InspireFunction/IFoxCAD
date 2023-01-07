@@ -1,22 +1,10 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
 	<PropertyGroup>
 		<TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
 		
-	
-		<!--<UseWPF>true</UseWPF>
-		<UseWindowsForms>true</UseWindowsForms>-->
-
-	
-		
-		<EnableNETAnalyzers>true</EnableNETAnalyzers>
-		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-	
-		
-		
-		
-		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
 	</PropertyGroup>
 
 	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -50,13 +38,17 @@
 		</None>
 	</ItemGroup>
 
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Basal\IFox.Basal\IFox.Basal.csproj" />
+	</ItemGroup>
+
+	<Import Project="..\IFox.CAD.Shared\IFox.CAD.Shared.projitems" Label="Shared" />
 
 
-
-	<!--<ItemGroup>
+	<ItemGroup>
 		<Reference Include="System.Web" />
 		<Reference Include="System.Web.Extensions" />
-	</ItemGroup>-->
+	</ItemGroup>
 
 
 </Project>

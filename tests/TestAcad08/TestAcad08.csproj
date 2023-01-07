@@ -14,11 +14,6 @@
         <DefineConstants>$(Configuration);acad;ac2008;ac2009;NewtonsoftJson</DefineConstants>
     </PropertyGroup>
 
-    <ItemGroup>
-        <!--<ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />-->
-        <ProjectReference Include="..\..\src\IFoxCAD.Cad\IFoxCAD.Aacad08\IFoxCAD.Acad08.csproj" />
-    </ItemGroup>
-
     <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
 
     <ItemGroup>

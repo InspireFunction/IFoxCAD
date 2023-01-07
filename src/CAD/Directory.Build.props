@@ -1,14 +1,22 @@
 ﻿<Project>
-    <!--需要设置的内容-->
-    <PropertyGroup>
+
+    <PropertyGroup> <!--需要设置的内容-->
         <Version>0.5.0-alpha4</Version>
         <PackageReleaseNotes>支持源码包。</PackageReleaseNotes>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <LangVersion>preview</LangVersion>
-	    <Nullable>enable</Nullable>
+	<PropertyGroup>
+		<LangVersion>preview</LangVersion>
+		<Nullable>enable</Nullable>
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<OutputPath>$(MSBuildThisFileDirectory)bin\$(Configuration)\</OutputPath>
+		<EnableNETAnalyzers>true</EnableNETAnalyzers>
+		<EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	</PropertyGroup>
+		
+	
+    <PropertyGroup><!--nuget包信息-->
         <Company>InspireFunction</Company>
         <Authors>xsfhlzh;vicwjb;liuqihong</Authors>
         <Copyright>InspireFunction</Copyright>
@@ -19,8 +27,7 @@
 	    <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
 	    <RepositoryType>git</RepositoryType>
 	    <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET;GStarCAD;ZWCAD</PackageTags>
-        <OutputPath>$(MSBuildThisFileDirectory)bin\$(Configuration)\</OutputPath>
-		
+
     </PropertyGroup>
 
 </Project>

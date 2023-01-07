@@ -1,7 +1,41 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
-  <PropertyGroup>
-    <TargetFramework>netstandard2.0</TargetFramework>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFrameworks>NET48</TargetFrameworks>
 
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
+
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+		<DefineConstants>DEBUG</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
+		<DefineConstants>$(Configuration);gcad</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
+		<PackageReference Include="GrxCAD.Net.2022" Version="1.0.0">
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Basal\IFox.Basal\IFox.Basal.csproj" />
+	</ItemGroup>
+
+	<Import Project="..\IFox.CAD.Shared\IFox.CAD.Shared.projitems" Label="Shared" />
+
+	<ItemGroup>
+		<Reference Include="System.Web" />
+		<Reference Include="System.Web.Extensions" />
+	</ItemGroup>
 </Project>

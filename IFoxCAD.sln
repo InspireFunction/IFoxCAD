@@ -16,14 +16,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.WPF", "src\IFoxCAD.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsole", "tests\TestConsole\TestConsole.csproj", "{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Acad08", "src\IFoxCAD.Cad\IFoxCAD.Aacad08\IFoxCAD.Acad08.csproj", "{36F87D06-88B3-45E3-A2A8-0FC737B25428}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "IFox.Cad.Library", "IFox.Cad.Library", "{465C4E39-FBA2-417A-AB31-BDC01601F420}"
-EndProject
-Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IFoxCAD.Cad.Shared", "src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.shproj", "{82FB8450-B971-4E30-859F-4B2DDB81F590}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Acad09plus", "src\IFoxCAD.Cad\IFoxCAD.Aacad09plus\IFoxCAD.Acad09plus.csproj", "{CC46E4E2-90DF-48F5-B3D7-83FAFED58F2A}"
-EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TestShared", "tests\TestShared\TestShared.shproj", "{CED63D2D-0AF6-4831-806D-5E8E9B0D0A07}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAcad08", "tests\TestAcad08\TestAcad08.csproj", "{8C573180-523D-427D-8030-CAA7D6B5EB6B}"
@@ -31,10 +23,6 @@ EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAcad09plus", "tests\TestAcad09plus\TestAcad09plus.csproj", "{5F478F68-19BC-4A3A-AF39-8728F8D396DD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{C0BEFC15-6DF7-4636-BC76-4A0B88231470}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Gcad", "src\IFoxCAD.Cad\IFoxCAD.Gcad\IFoxCAD.Gcad.csproj", "{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFoxCAD.Zcad", "src\IFoxCAD.Cad\IFoxCAD.Zcad\IFoxCAD.Zcad.csproj", "{751D15FC-B664-4B71-BB99-529E22EE1C4F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Basal", "Basal", "{1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}"
 	ProjectSection(SolutionItems) = preProject
@@ -76,16 +64,6 @@ Global
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}.Release|Any CPU.Build.0 = Release|Any CPU
-		{36F87D06-88B3-45E3-A2A8-0FC737B25428}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{36F87D06-88B3-45E3-A2A8-0FC737B25428}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{36F87D06-88B3-45E3-A2A8-0FC737B25428}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{36F87D06-88B3-45E3-A2A8-0FC737B25428}.Release|Any CPU.Build.0 = Release|Any CPU
-		{82FB8450-B971-4E30-859F-4B2DDB81F590}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{82FB8450-B971-4E30-859F-4B2DDB81F590}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC46E4E2-90DF-48F5-B3D7-83FAFED58F2A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{CC46E4E2-90DF-48F5-B3D7-83FAFED58F2A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{CC46E4E2-90DF-48F5-B3D7-83FAFED58F2A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{CC46E4E2-90DF-48F5-B3D7-83FAFED58F2A}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8C573180-523D-427D-8030-CAA7D6B5EB6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8C573180-523D-427D-8030-CAA7D6B5EB6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8C573180-523D-427D-8030-CAA7D6B5EB6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -94,14 +72,6 @@ Global
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57}.Release|Any CPU.Build.0 = Release|Any CPU
-		{751D15FC-B664-4B71-BB99-529E22EE1C4F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{751D15FC-B664-4B71-BB99-529E22EE1C4F}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{751D15FC-B664-4B71-BB99-529E22EE1C4F}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{751D15FC-B664-4B71-BB99-529E22EE1C4F}.Release|Any CPU.Build.0 = Release|Any CPU
 		{FF4E1CDE-EEB3-4BE8-8C1D-6B5B17A299C7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{FF4E1CDE-EEB3-4BE8-8C1D-6B5B17A299C7}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{FF4E1CDE-EEB3-4BE8-8C1D-6B5B17A299C7}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -132,14 +102,9 @@ Global
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955} = {C0BEFC15-6DF7-4636-BC76-4A0B88231470}
-		{36F87D06-88B3-45E3-A2A8-0FC737B25428} = {465C4E39-FBA2-417A-AB31-BDC01601F420}
-		{82FB8450-B971-4E30-859F-4B2DDB81F590} = {465C4E39-FBA2-417A-AB31-BDC01601F420}
-		{CC46E4E2-90DF-48F5-B3D7-83FAFED58F2A} = {465C4E39-FBA2-417A-AB31-BDC01601F420}
 		{CED63D2D-0AF6-4831-806D-5E8E9B0D0A07} = {C0BEFC15-6DF7-4636-BC76-4A0B88231470}
 		{8C573180-523D-427D-8030-CAA7D6B5EB6B} = {C0BEFC15-6DF7-4636-BC76-4A0B88231470}
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD} = {C0BEFC15-6DF7-4636-BC76-4A0B88231470}
-		{D0CE63A9-2DBA-4263-9749-E8CD3EA0DB57} = {465C4E39-FBA2-417A-AB31-BDC01601F420}
-		{751D15FC-B664-4B71-BB99-529E22EE1C4F} = {465C4E39-FBA2-417A-AB31-BDC01601F420}
 		{FF4E1CDE-EEB3-4BE8-8C1D-6B5B17A299C7} = {1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}
 		{C823514A-2BC2-45C2-ACED-18924A7B80BF} = {1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}
 		{D0C6824C-53A3-4C16-AE7B-3227F18C5039} = {1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}
@@ -154,17 +119,15 @@ Global
 	EndGlobalSection
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{20f254f7-aee5-42ae-a9b3-149bbdc7397f}*SharedItemsImports = 13
-		src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems*{36f87d06-88b3-45e3-a2a8-0fc737b25428}*SharedItemsImports = 5
+		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{3d7d095d-ef0a-40b3-9776-5f08c61fd614}*SharedItemsImports = 5
 		tests\TestShared\TestShared.projitems*{5f478f68-19bc-4a3a-af39-8728f8d396dd}*SharedItemsImports = 5
-		src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems*{751d15fc-b664-4b71-bb99-529e22ee1c4f}*SharedItemsImports = 5
-		src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems*{82fb8450-b971-4e30-859f-4b2ddb81f590}*SharedItemsImports = 13
 		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{88f3cf78-23f5-494b-9d8f-2c6b4467e0b4}*SharedItemsImports = 5
 		tests\TestShared\TestShared.projitems*{8c573180-523d-427d-8030-caa7d6b5eb6b}*SharedItemsImports = 5
 		src\Basal\IFox.Basal.Shared\IFox.Basal.Shared.projitems*{c823514a-2bc2-45c2-aced-18924a7b80bf}*SharedItemsImports = 13
-		src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems*{cc46e4e2-90df-48f5-b3d7-83fafed58f2a}*SharedItemsImports = 5
 		tests\TestShared\TestShared.projitems*{ced63d2d-0af6-4831-806d-5e8e9b0d0a07}*SharedItemsImports = 13
 		src\Basal\IFox.Basal.Shared\IFox.Basal.Shared.projitems*{d0c6824c-53a3-4c16-ae7b-3227f18c5039}*SharedItemsImports = 5
-		src\IFoxCAD.Cad.Shared\IFoxCAD.Cad.Shared.projitems*{d0ce63a9-2dba-4263-9749-e8cd3ea0db57}*SharedItemsImports = 5
+		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{ef20e632-70a9-40eb-8c9a-539fd85fafad}*SharedItemsImports = 5
+		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{f388f4b9-f636-414a-9bc9-2b008517b441}*SharedItemsImports = 5
 		src\Basal\IFox.Basal.Shared\IFox.Basal.Shared.projitems*{ff4e1cde-eeb3-4be8-8c1d-6b5b17a299c7}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal
