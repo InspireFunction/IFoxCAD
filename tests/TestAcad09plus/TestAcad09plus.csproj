@@ -15,11 +15,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <!--<ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />-->
-        <ProjectReference Include="..\..\src\IFoxCAD.WPF\IFoxCAD.WPF.csproj" />
-    </ItemGroup>
-
-    <ItemGroup>
         <Compile Update="wpf\TestView.xaml.cs">
             <DependentUpon>TestView.xaml</DependentUpon>
         </Compile>
