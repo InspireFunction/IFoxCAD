@@ -3,13 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.1.32113.165
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{786E7347-B116-4F26-9AEF-33EB0AB88D58}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{786E7347-B116-4F26-9AEF-33EB0AB88D58}"
 	ProjectSection(SolutionItems) = preProject
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
-		LICENSE = LICENSE
-		README.md = README.md
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsole", "tests\TestConsole\TestConsole.csproj", "{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}"
@@ -51,6 +49,19 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WPF", "WPF", "{1EE1F817-39D3-43E5-B087-E7AD4D0BEC93}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFox.WPF", "src\WPF\IFox.WPF.csproj", "{6ED0A677-6621-4493-AF58-71C2BF31DFCE}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{DA8EA8E7-A98E-4565-A3BF-97855988DB8E}"
+	ProjectSection(SolutionItems) = preProject
+		docs\0x01代码规范.md = docs\0x01代码规范.md
+		docs\DBTrans.md = docs\DBTrans.md
+		LICENSE = LICENSE
+		README.md = README.md
+		docs\SelectionFilter.md = docs\SelectionFilter.md
+		docs\SymbolTable.md = docs\SymbolTable.md
+		docs\WPF.md = docs\WPF.md
+		docs\关于IFoxCAD的架构说明.md = docs\关于IFoxCAD的架构说明.md
+		docs\关于扩展函数的说明.md = docs\关于扩展函数的说明.md
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
