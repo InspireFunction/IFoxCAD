@@ -68,12 +68,12 @@ public static class SelectionSetEx
     /// <typeparam name="T">指定类型</typeparam>
     /// <param name="ss">选择集</param>
     /// <param name="openMode">打开模式</param>
-    /// <param name="tr">事务</param>
+    /// <param name="trans">事务</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>图元集合</returns>
     [System.Diagnostics.DebuggerStepThrough]
-    public static IEnumerable<T?> GetEntities<T>(this SelectionSet ss,
+    public static IEnumerable<T> GetEntities<T>(this SelectionSet ss,
                                                  OpenMode openMode = OpenMode.ForRead,
                                                  DBTrans? trans = null,
                                                  bool openErased = false,
@@ -85,7 +85,8 @@ public static class SelectionSetEx
         trans ??= DBTrans.Top;
         return ss.GetObjectIds()
                  .Select(id => trans.GetObject<T>(id, openMode, openErased, openLockedLayer))
-                 .Where(ent => ent != null);
+                 .Where(ent => ent != null)
+                 .OfType<T>();
     }
     #endregion
 
