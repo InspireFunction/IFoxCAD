@@ -20,7 +20,7 @@
 	    <RepositoryType>git</RepositoryType>
 	    <PackageTags>IFoxCAD;C#;NET;Common;Basal</PackageTags>
         <OutputPath>$(MSBuildThisFileDirectory)bin\$(Configuration)\</OutputPath>
-		
+		<GenerateDocumentationFile>True</GenerateDocumentationFile>
     </PropertyGroup>
 
 </Project>

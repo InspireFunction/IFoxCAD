@@ -11,6 +11,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\Basal\IFox.Basal\IFox.Basal.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Reference Include="System.Web" />
         <Reference Include="System.Web.Extensions" />
     </ItemGroup>

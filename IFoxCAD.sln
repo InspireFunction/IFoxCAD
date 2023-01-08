@@ -14,8 +14,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestConsole", "tests\TestCo
 EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "TestShared", "tests\TestShared\TestShared.shproj", "{CED63D2D-0AF6-4831-806D-5E8E9B0D0A07}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAcad08", "tests\TestAcad08\TestAcad08.csproj", "{8C573180-523D-427D-8030-CAA7D6B5EB6B}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestAcad09plus", "tests\TestAcad09plus\TestAcad09plus.csproj", "{5F478F68-19BC-4A3A-AF39-8728F8D396DD}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{C0BEFC15-6DF7-4636-BC76-4A0B88231470}"
@@ -73,10 +71,6 @@ Global
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955}.Release|Any CPU.Build.0 = Release|Any CPU
-		{8C573180-523D-427D-8030-CAA7D6B5EB6B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8C573180-523D-427D-8030-CAA7D6B5EB6B}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8C573180-523D-427D-8030-CAA7D6B5EB6B}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8C573180-523D-427D-8030-CAA7D6B5EB6B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -116,7 +110,6 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{E2873F0B-CAD2-45E8-8FF0-C05C0C6AD955} = {C0BEFC15-6DF7-4636-BC76-4A0B88231470}
 		{CED63D2D-0AF6-4831-806D-5E8E9B0D0A07} = {C0BEFC15-6DF7-4636-BC76-4A0B88231470}
-		{8C573180-523D-427D-8030-CAA7D6B5EB6B} = {C0BEFC15-6DF7-4636-BC76-4A0B88231470}
 		{5F478F68-19BC-4A3A-AF39-8728F8D396DD} = {C0BEFC15-6DF7-4636-BC76-4A0B88231470}
 		{FF4E1CDE-EEB3-4BE8-8C1D-6B5B17A299C7} = {1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}
 		{C823514A-2BC2-45C2-ACED-18924A7B80BF} = {1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}
@@ -136,7 +129,6 @@ Global
 		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{3d7d095d-ef0a-40b3-9776-5f08c61fd614}*SharedItemsImports = 5
 		tests\TestShared\TestShared.projitems*{5f478f68-19bc-4a3a-af39-8728f8d396dd}*SharedItemsImports = 5
 		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{88f3cf78-23f5-494b-9d8f-2c6b4467e0b4}*SharedItemsImports = 5
-		tests\TestShared\TestShared.projitems*{8c573180-523d-427d-8030-caa7d6b5eb6b}*SharedItemsImports = 5
 		src\Basal\IFox.Basal.Shared\IFox.Basal.Shared.projitems*{c823514a-2bc2-45c2-aced-18924a7b80bf}*SharedItemsImports = 13
 		tests\TestShared\TestShared.projitems*{ced63d2d-0af6-4831-806d-5e8e9b0d0a07}*SharedItemsImports = 13
 		src\Basal\IFox.Basal.Shared\IFox.Basal.Shared.projitems*{d0c6824c-53a3-4c16-ae7b-3227f18c5039}*SharedItemsImports = 5

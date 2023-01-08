@@ -15,6 +15,11 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\..\src\CAD\IFox.CAD.ACAD\IFox.CAD.ACAD.csproj" />
+      <ProjectReference Include="..\..\src\WPF\IFox.WPF.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
         <Compile Update="wpf\TestView.xaml.cs">
             <DependentUpon>TestView.xaml</DependentUpon>
         </Compile>
