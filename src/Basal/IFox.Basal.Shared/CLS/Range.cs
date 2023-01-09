@@ -4,8 +4,11 @@
 
 namespace System;
 
-using System.Runtime.CompilerServices;
+#if !NORANGE
 
+#if NET45
+using System.Runtime.CompilerServices;
+#endif
 
 /// <summary>Represent a range has start and end indexes.</summary>
 /// <remarks>
@@ -100,3 +103,5 @@ public readonly struct Range : IEquatable<Range>
         return (start, end - start);
     }
 }
+
+#endif

@@ -5,13 +5,16 @@
         <Nullable>enable</Nullable>
 
         <OutputType>Exe</OutputType>
-        <TargetFramework>NET45</TargetFramework>
+        <TargetFramework>NET47</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-      <ProjectReference Include="..\..\src\Basal\IFox.Basal\IFox.Basal.csproj" />
+      <PackageReference Include="IFox.Basal.Source" Version="0.5.0-alpha4">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
     </ItemGroup>
 
     <ItemGroup>

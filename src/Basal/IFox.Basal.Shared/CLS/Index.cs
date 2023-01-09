@@ -3,9 +3,11 @@
 // See the LICENSE file in the project root for more information.
 
 namespace System;
+#if !NOINDEX
 
+#if NET45
 using System.Runtime.CompilerServices;
-
+#endif
 /// <summary>Represent a type can be used to index a collection either from the start or the end.</summary>
 /// <remarks>
 /// Index is used by the C# compiler to support the new index syntax
@@ -145,3 +147,5 @@ public readonly struct Index : IEquatable<Index>
         return ((uint)Value).ToString();
     }
 }
+
+#endif

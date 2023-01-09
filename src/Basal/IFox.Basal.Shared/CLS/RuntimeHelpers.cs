@@ -1,14 +1,23 @@
-﻿#if NET35
+﻿
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
 namespace System.Runtime.CompilerServices;
 
-// 编译提示多个程序集中定义,屏蔽不了,但是不影响编译
-// #pragma warning disable CS1685 // 类型与导入类型冲突
-public static class RuntimeHelpers
-// #pragma warning restore CS1685 // 类型与导入类型冲突
+/*
+ * 1.编译提示多个程序集中定义,屏蔽不了,但是不影响编译
+ * 2.发现可以通过定义一个条件编译常量来进行屏蔽。
+ * 3.普通包会提示编译器缺少GetSubArray函数，但是源码包不会。所以解决方案就是使用普通包的时候安装TA.System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray nuget包来解决，此包为一个符号包，生成多余的dll
+ */
+
+
+#if !NORuntimeHelpers
+/// <summary>
+/// 
+/// </summary>
+internal static class RuntimeHelpers
+
 {
     /// <summary>
     /// Slices the specified array using the specified range.

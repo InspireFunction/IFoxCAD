@@ -3,7 +3,7 @@
 // See the LICENSE file in the project root for more information.
 
 // 如果要用range的语法比如 a[1..3]，那么需要将本文件复制到你的项目里
-#if true
+#if false
 namespace System.Runtime.CompilerServices
 {
     internal static class RuntimeHelpers

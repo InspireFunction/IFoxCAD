@@ -16,6 +16,7 @@ namespace CalculatorDemo
     {
         static void Main(string[] args)
         {
+#if false
             int nResult = AddTwoNumbers(10, 20);
             Console.WriteLine(nResult);
 
@@ -27,7 +28,18 @@ namespace CalculatorDemo
             a.ForEach(a => {
                 Console.WriteLine(a);
             });
+#endif
+
+            var aa = new int[] { 1, 2, 3, 4, 5, 6, 78, 9, 92, };
+            Console.WriteLine(aa[1..2]);
+
         }
+
+        private static int addtuple((int ,int ) b)
+        {
+            return b.Item1 + b.Item2;
+        }
+
 
         [DebuggerHidden]
         private static int AddTwoNumbers(int nNum1, int nNum2)
