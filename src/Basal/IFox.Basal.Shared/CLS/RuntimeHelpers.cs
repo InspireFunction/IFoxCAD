@@ -8,7 +8,7 @@ namespace System.Runtime.CompilerServices;
 /*
  * 1.编译提示多个程序集中定义,屏蔽不了,但是不影响编译
  * 2.发现可以通过定义一个条件编译常量来进行屏蔽。
- * 3.普通包会提示编译器缺少GetSubArray函数，但是源码包不会。所以解决方案就是使用普通包的时候安装TA.System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray nuget包来解决，此包为一个符号包，生成多余的dll
+ * 3.普通包会提示编译器缺少GetSubArray函数，但是源码包不会。所以解决方案就是使用普通包的时候安装TA.System.Runtime.CompilerServices.RuntimeHelpers.GetSubArray nuget包来解决，此包为一个符号包，不会生成多余的dll
  */
 
 

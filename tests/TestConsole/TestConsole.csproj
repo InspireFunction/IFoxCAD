@@ -5,16 +5,15 @@
         <Nullable>enable</Nullable>
 
         <OutputType>Exe</OutputType>
-        <TargetFramework>NET47</TargetFramework>
+        <TargetFramework>NET40</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
+		<DefineConstants>NOINDEX;NORANGE;NOVALUETUPLE</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="IFox.Basal.Source" Version="0.5.0-alpha4">
-        <PrivateAssets>all</PrivateAssets>
-        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-      </PackageReference>
+      <PackageReference Include="IFox.Basal" Version="0.5.0-alpha6" />
+      <PackageReference Include="IndexRange" Version="1.0.2" />
     </ItemGroup>
 
     <ItemGroup>

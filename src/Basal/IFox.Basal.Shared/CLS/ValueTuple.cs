@@ -2,7 +2,7 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 
 // #pragma warning disable SA1141 // explicitly not using tuple syntax in tuple implementation
-
+#if !NOVALUETUPLE
 
 using System.Diagnostics;
 using System.Numerics.Hashing;
@@ -20,9 +20,11 @@ using System.Numerics.Hashing;
 
 /* 
  * 1. 元组是net47之后提供的特性，所以net47之前的版本是都没有的
- * 2. 通过定义常量的办法将元组屏蔽
+ * 2. 通过定义常量的办法将元组屏蔽，很奇怪的是源码包可以，但是普通包不行，所以推荐使用源码包  index和range的情况类似
+ *    这种问题就没有很好的解决方式，因为用了ifox就不能用其他的index，range，valuetuple类库，但是其他的三方库却依赖
+ *    这些类库，所以还是使用源码包吧。
 */
-#if !NOTUPLEVALUE
+
 #if NET35
 namespace System.Collections
 {
@@ -67,6 +69,7 @@ namespace System.Numerics.Hashing
 
 namespace System
 {
+
     // internal static class SR
     internal sealed partial class SR
     {
@@ -2143,6 +2146,7 @@ namespace System
             }
         }
     }
+
 }
 
 #endif

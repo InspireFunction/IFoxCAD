@@ -31,8 +31,14 @@ namespace CalculatorDemo
 #endif
 
             var aa = new int[] { 1, 2, 3, 4, 5, 6, 78, 9, 92, };
-            Console.WriteLine(aa[1..2]);
+            Console.WriteLine(aa[1..^2]);
 
+
+            var time = Timer.RunTime(() => {
+                for (int i = 0; i < 10000000; i++)
+                    i++;
+            }, Timer.TimeEnum.Second);
+            Console.WriteLine($"代码执行的时间：{time}");
         }
 
         private static int addtuple((int ,int ) b)
