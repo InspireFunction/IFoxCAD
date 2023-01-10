@@ -17,8 +17,17 @@ public class Testenv
     public void Test_Dimblk()
     {
         Env.Dimblk = Env.DimblkType.Dot;
+        Env.Print(Env.Dimblk);
+        Env.Print(Env.GetDimblkId(Env.DimblkType.Dot));
         Env.Dimblk = Env.DimblkType.Defult;
+        Env.Print(Env.Dimblk);
+        Env.Print(Env.GetDimblkId(Env.DimblkType.Defult));
         Env.Dimblk = Env.DimblkType.Oblique;
+        Env.Print(Env.Dimblk);
+        Env.Print(Env.GetDimblkId(Env.DimblkType.Oblique));
+        Env.Dimblk = Env.DimblkType.ArchTick;
+        Env.Print(Env.Dimblk);
+        Env.Print(Env.GetDimblkId(Env.DimblkType.ArchTick));
     }
     [CommandMethod(nameof(Test_Dimblk1))]
     public void Test_Dimblk1()

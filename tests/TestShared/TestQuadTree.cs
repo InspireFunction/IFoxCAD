@@ -139,7 +139,7 @@ public partial class TestQuadTree
         {
             var x = rand.Next(x1, x2) + rand.NextDouble();
             var y = rand.Next(y1, y2) + rand.NextDouble();
-            yield return EntityEx.CreateCircle(new Point3d(x, y, 0), rand.Next(1, 100)); // 起点，终点
+            yield return CircleEx.CreateCircle(new Point3d(x, y, 0), rand.Next(1, 100)); // 起点，终点
         }
     }
 

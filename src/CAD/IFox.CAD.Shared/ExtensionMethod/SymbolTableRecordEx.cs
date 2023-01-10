@@ -200,7 +200,7 @@ public static class SymbolTableRecordEx
     public static ObjectId AddCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2,
                                      Action<Circle>? action = null, Transaction? trans = null)
     {
-        var circle = EntityEx.CreateCircle(p0, p1, p2);
+        var circle = CircleEx.CreateCircle(p0, p1, p2);
         // return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
         if (circle is null)
             throw new ArgumentNullException(nameof(circle), "对象为 null");
@@ -306,7 +306,7 @@ public static class SymbolTableRecordEx
                                   Point3d startPoint, Point3d pointOnArc, Point3d endPoint,
                                   Action<Arc>? action = null, Transaction? trans = null)
     {
-        var arc = EntityEx.CreateArc(startPoint, pointOnArc, endPoint);
+        var arc = ArcEx.CreateArc(startPoint, pointOnArc, endPoint);
         return btr.AddEnt(arc, action, trans);
     }
     #endregion
