@@ -48,6 +48,9 @@ public class HatchInfo
     /// 角度
     /// </summary>
     double Angle => _hatch.PatternAngle;
+
+    // 延后处理角度
+    private double _angle;
     #endregion
 
     #region 构造
@@ -74,7 +77,7 @@ public class HatchInfo
             throw new ArgumentException("填充比例不允许小于等于0");
 
         _hatch.PatternScale = hatchScale;// 填充比例
-        _hatch.PatternAngle = hatchAngle;// 填充角度
+        _angle = hatchAngle;// 填充角度
         _boundaryAssociative = boundaryAssociative;
 
         hatchOrigin ??= Point2d.Origin;
@@ -188,6 +191,10 @@ public class HatchInfo
         else
             _hatch.SetHatchPattern(_patternTypeHatch, _hatchName);
 
+        // 处理充填角度
+        _hatch.PatternAngle = _angle;
+
+
         // 关联边界,如果不先添加数据库空间内就会出错
         // 为 true 会加入反应器,因此比较慢(二维码将会十几秒才生成好),视需求而定.
         _hatch.Associative = _boundaryAssociative;
@@ -239,15 +246,37 @@ public class HatchInfo
     void AppendLoop(IEnumerable<ObjectId> boundaryIds,
                     HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
-        using ObjectIdCollection obIds = new();
+        ObjectIdCollection obIds = new();
         // 边界是闭合的,而且已经加入数据库
         // 填充闭合环类型.最外面
-        foreach (var border in boundaryIds)
+
+        // 此段代码会出错的原因在于  如果是直线围成的闭合区域，
+        // 那么每次添加的其实一条直线，而直线不构成loop，所以不符合预期的数据，出错
+        try
         {
-            obIds.Clear();
-            obIds.Add(border);
-            _hatch.AppendLoop(hatchLoopTypes, obIds);
+            foreach (var border in boundaryIds)
+            {
+                obIds.Clear();
+                obIds.Add(border);
+                _hatch.AppendLoop(hatchLoopTypes, obIds);
+            } // 此段代码会出错
         }
+        catch (Exception ex)
+        {
+
+            Env.Print(ex.Message);
+            Env.Print("发生错误，传入的边界不符合要求，请核实传入的边界是否为闭合边界列表,而不是组成边界的图元列表");
+            throw;
+        }
+        
+        // 下面这行代码出错的原因是： 添加了重复的线条,需要进行剔除
+        // _hatch.AppendLoop(hatchLoopTypes, boundaryIds.ToCollection());
+
+        // 这个函数还需要进行改造：
+        // 1. 明确传入的 boundaryIds 到底是多个边界，还是一个边界的子图元
+        // 2. 根据传入的参数的不同 需要不同的处理措施
+        // 3. 临时性措施 try一下抛异常，让用户确保传入的参数是准确的
+
     }
 
     /// <summary>

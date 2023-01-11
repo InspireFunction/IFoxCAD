@@ -21,6 +21,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestEditor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestEnv.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestFileDatabase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestHatchinfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestId.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestJig.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestJigExTransient.cs" />
