@@ -55,9 +55,19 @@ public interface IGraph
     /// <param name="vertex"></param>
     /// <returns></returns>
     HashSet<IEdge> GetAdjacencyEdge(IGraphVertex vertex);
+    /// <summary>
+    /// 当前的节点
+    /// </summary>
     IGraphVertex? ReferenceVertex { get; }
-
+    /// <summary>
+    /// 删除节点
+    /// </summary>
+    /// <param name="pt">节点的坐标</param>
     void RemoveVertex(Point3d pt);
+    /// <summary>
+    /// 删除边
+    /// </summary>
+    /// <param name="curve">曲线</param>
     void RemoveEdge(Curve3d curve);
 
 }

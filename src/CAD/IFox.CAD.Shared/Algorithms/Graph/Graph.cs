@@ -21,7 +21,9 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// 为加快索引,引入hash检索
     /// </summary>
     readonly Dictionary<string, IGraphVertex> vertexs = new();
-
+    /// <summary>
+    /// 节点数量
+    /// </summary>
     public int VerticesCount => vertices.Count;
 
     /// <summary>
@@ -51,6 +53,9 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     #endregion
 
     #region 构造函数
+    /// <summary>
+    /// 
+    /// </summary>
     public Graph()
     {
         insertCount = 0; // 每次新建对象就将顶点顺序号归零
@@ -271,6 +276,10 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
         return Clone();
     }
 
+    /// <summary>
+    /// 节点迭代器
+    /// </summary>
+    /// <returns></returns>
     [System.Diagnostics.DebuggerStepThrough]
     public IEnumerator GetEnumerator()
     {
@@ -282,7 +291,9 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     {
         return GetEnumerator() as IEnumerator<IGraphVertex>;
     }
-
+    /// <summary>
+    /// 节点迭代器
+    /// </summary>
     public IEnumerable<IGraphVertex> VerticesAsEnumberable =>
         vertices.Select(x => x.Key);
     #endregion
@@ -324,7 +335,13 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
 public sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, IComparable, IComparable<IGraphVertex>
 {
     #region 属性
+    /// <summary>
+    /// 数据
+    /// </summary>
     public Point3d Data { get; set; }
+    /// <summary>
+    /// 索引
+    /// </summary>
     public int Index { get; set; }
     #endregion
 
@@ -342,11 +359,20 @@ public sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, ICompa
     #endregion
 
     #region 重载运算符_比较
+    /// <summary>
+    /// 是否相等
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public bool Equals(IGraphVertex other)
     {
         return Index == other.Index;
     }
-
+    /// <summary>
+    /// 是否相等
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
     public override bool Equals(object obj)
     {
         if (obj is null)
@@ -356,12 +382,19 @@ public sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, ICompa
         else
             return Equals(vertex);
     }
-
+    /// <summary>
+    /// 计算hashcode
+    /// </summary>
+    /// <returns></returns>
     public override int GetHashCode()
     {
         return Index;
     }
-
+    /// <summary>
+    /// 比较大小
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public int CompareTo(IGraphVertex other)
     {
         if (Equals(other))
@@ -377,7 +410,12 @@ public sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, ICompa
     {
         return CompareTo(other);
     }
-
+    /// <summary>
+    /// 比较大小
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
+    /// <exception cref="ArgumentException"></exception>
     public int CompareTo(object obj)
     {
         if (obj is null)
@@ -393,7 +431,12 @@ public sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, ICompa
             throw new ArgumentException("Object is not a IGraphVertex");
         }
     }
-
+    /// <summary>
+    /// 相等
+    /// </summary>
+    /// <param name="person1"></param>
+    /// <param name="person2"></param>
+    /// <returns></returns>
     public static bool operator ==(GraphVertex person1, GraphVertex person2)
     {
         if (person1 is null || person2 is null)
@@ -401,7 +444,12 @@ public sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, ICompa
 
         return person1.Equals(person2);
     }
-
+    /// <summary>
+    /// 不相等
+    /// </summary>
+    /// <param name="person1"></param>
+    /// <param name="person2"></param>
+    /// <returns></returns>
     public static bool operator !=(GraphVertex person1, GraphVertex person2)
     {
         if (person1 is null || person2 is null)
@@ -419,7 +467,13 @@ public sealed class GraphVertex : IGraphVertex, IEquatable<IGraphVertex>, ICompa
 public sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
 {
     #region 属性
+    /// <summary>
+    /// 顶点
+    /// </summary>
     public IGraphVertex TargetVertex { get; set; }
+    /// <summary>
+    /// 边
+    /// </summary>
     public Curve3d TargetEdge { get; set; }
     #endregion
 
@@ -437,6 +491,11 @@ public sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
     #endregion
 
     #region 重载运算符_比较
+    /// <summary>
+    /// 是否相等
+    /// </summary>
+    /// <param name="other"></param>
+    /// <returns></returns>
     public bool Equals(GraphEdge other)
     {
         if (other is null)
@@ -444,6 +503,11 @@ public sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
         return TargetVertex == other.TargetVertex &&
                TargetEdge == other.TargetEdge;
     }
+    /// <summary>
+    /// 是否相等
+    /// </summary>
+    /// <param name="obj"></param>
+    /// <returns></returns>
     public override bool Equals(object obj)
     {
         if (obj is null)
@@ -453,11 +517,20 @@ public sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
         else
             return Equals(personObj);
     }
-
+    /// <summary>
+    /// 获取hashcode
+    /// </summary>
+    /// <returns></returns>
     public override int GetHashCode()
     {
         return (TargetVertex.GetHashCode(), TargetEdge.GetHashCode()).GetHashCode();
     }
+    /// <summary>
+    /// 相等
+    /// </summary>
+    /// <param name="person1"></param>
+    /// <param name="person2"></param>
+    /// <returns></returns>
     public static bool operator ==(GraphEdge person1, GraphEdge person2)
     {
         if (person1 is null || person2 is null)
@@ -465,6 +538,12 @@ public sealed class GraphEdge : IEdge, IEquatable<GraphEdge>
 
         return person1.Equals(person2);
     }
+    /// <summary>
+    /// 不相等
+    /// </summary>
+    /// <param name="person1"></param>
+    /// <param name="person2"></param>
+    /// <returns></returns>
     public static bool operator !=(GraphEdge person1, GraphEdge person2)
     {
         if (person1 is null || person2 is null)

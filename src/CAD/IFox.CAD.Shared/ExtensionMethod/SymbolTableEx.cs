@@ -184,11 +184,7 @@ public static class SymbolTableEx
     /// <returns>块定义Id</returns>
     public static ObjectId GetBlockFrom(this SymbolTable<BlockTable, BlockTableRecord> table, string fileName, bool over)
     {
-        // FileInfo fi = new(fileName);
-        // string blkdefname = fi.Name;
-        // if (blkdefname.Contains("."))
-        //    blkdefname = blkdefname.Substring(0, blkdefname.LastIndexOf('.'));
-
+        
         string blkdefname = SymbolUtilityServices.RepairSymbolName(
             SymbolUtilityServices.GetSymbolNameFromPathName(fileName, "dwg"), false);
 

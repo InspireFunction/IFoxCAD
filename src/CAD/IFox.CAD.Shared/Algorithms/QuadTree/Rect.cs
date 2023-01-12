@@ -9,6 +9,10 @@ namespace IFoxCAD.Cad;
 public class TolerancePoint2d : IEqualityComparer<Point2d>
 {
     readonly double _tolerance;
+    /// <summary>
+    /// 构造函数
+    /// </summary>
+    /// <param name="tolerance">容差</param>
     public TolerancePoint2d(double tolerance = 1e-6)
     {
         _tolerance = tolerance;
@@ -472,13 +476,17 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <param name="o">直线点1</param>
     /// <param name="a">直线点2</param>
     /// <param name="b">判断点</param>
-    /// <returns>b点在oa的逆时针<see cref="true"/></returns>
+    /// <returns>b点在oa的逆时针时为 <see langword="true"/></returns>
     static bool CrossAclockwise(Point2d o, Point2d a, Point2d b)
     {
         return Cross(o, a, b) > -1e-6;// 浮点数容差考虑
     }
 
 #if !WinForm
+    /// <summary>
+    /// 创建矩形范围多段线
+    /// </summary>
+    /// <returns>多段线对象</returns>
     public Entity ToPolyLine()
     {
         var bv = new List<BulgeVertex>();

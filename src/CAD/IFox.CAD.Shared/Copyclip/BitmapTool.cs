@@ -1,7 +1,9 @@
 ﻿namespace IFoxCAD.Cad;
 
 using System;
-
+/// <summary>
+/// bitmap工具类
+/// </summary>
 public class BitmapTool
 {
     //  https://blog.csdn.net/shellching/article/details/18405185
@@ -24,7 +26,12 @@ public class BitmapTool
     /// <returns></returns>
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetDC(IntPtr hWnd);
-
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="hWnd"></param>
+    /// <param name="hDC"></param>
+    /// <returns></returns>
     [DllImport("user32.dll")]
     public static extern bool ReleaseDC(IntPtr hWnd, IntPtr hDC);
 
@@ -96,9 +103,13 @@ public class BitmapTool
     [DllImport("gdi32.dll", EntryPoint = "BitBlt", SetLastError = true)]
     [return: MarshalAs(UnmanagedType.Bool)]
     public static extern bool BitBlt([In] IntPtr hdc, int nXDest, int nYDest, int nWidth, int nHeight, [In] IntPtr hdcSrc, int nXSrc, int nYSrc, TernaryRasterOperations dwRop);
-
+    /// <summary>
+    /// A raster-operation code enum
+    /// </summary>
     public enum TernaryRasterOperations : uint
     {
+
+#pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
         SRCCOPY = 0x00CC0020,
         SRCPAINT = 0x00EE0086,
         SRCAND = 0x008800C6,
@@ -115,6 +126,7 @@ public class BitmapTool
         BLACKNESS = 0x00000042,
         WHITENESS = 0x00FF0062,
         CAPTUREBLT = 0x40000000 //only if WinVer >= 5.0.0 (see wingdi.h)
+#pragma warning restore CS1591 // 缺少对公共可见类型或成员的 XML 注释
     }
 
     /// <summary>

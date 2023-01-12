@@ -1,6 +1,8 @@
 ﻿#pragma warning disable CA2211 // 非常量字段应当不可见
 namespace IFoxCAD.Cad;
-
+/// <summary>
+/// 四叉树环境变量
+/// </summary>
 public class QuadTreeEvn
 {
     /// <summary>

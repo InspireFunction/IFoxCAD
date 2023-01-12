@@ -5,8 +5,14 @@
 /// </summary>
 public enum QuadTreeSelectMode
 {
-    IntersectsWith, // 碰撞到就选中
-    Contains,       // 全包含才选中
+    /// <summary>
+    /// 碰撞到就选中
+    /// </summary>
+    IntersectsWith, 
+    /// <summary>
+    /// 全包含才选中
+    /// </summary>
+    Contains,     
 }
 
 /// <summary>
@@ -14,8 +20,20 @@ public enum QuadTreeSelectMode
 /// </summary>
 public enum QuadTreeFindMode
 {
-    Top    = 1,  // 上
-    Bottom = 2,  // 下
-    Left   = 4,  // 左
-    Right  = 8,  // 右
+    /// <summary>
+    /// 上
+    /// </summary>
+    Top    = 1,  
+    /// <summary>
+    /// 下
+    /// </summary>
+    Bottom = 2,  
+    /// <summary>
+    /// 左
+    /// </summary>
+    Left   = 4, 
+    /// <summary>
+    /// 右
+    /// </summary>
+    Right  = 8,  
 }

@@ -388,8 +388,8 @@ public class QuadTreeNode<TEntity>
     /// <summary>
     /// 查询范围内的实体
     /// </summary>
-    /// <param name="queryArea">查询矩形</pasram>
-    /// <returns></returns>
+    /// <param name="queryArea">查询矩形</param>
+    /// <param name="results">查询结果</param>
     public void Query(Rect queryArea, List<TEntity> results)
     {
         GetCurrentContents(queryArea, results);

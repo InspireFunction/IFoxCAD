@@ -138,7 +138,9 @@ public class AutoReflection
         }
     }
 
-    // 关闭cad的时候会自动执行
+    /// <summary>
+    /// 关闭cad的时候会自动执行
+    /// </summary>
     public void Terminate()
     {
         try
