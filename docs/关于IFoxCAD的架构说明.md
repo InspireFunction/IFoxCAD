@@ -1,4 +1,74 @@
-# 关于IFoxCAD的架构说明
+# IFoxCAD的架构说明
+
+AutoCAD 的 .net api 的架构是如下这样的：
+
+1. Application 对象
+
+```mermaid
+graph LR;
+a(Application)-->DocumentManager
+a-->DocumentWindowCollection
+a-->InfoCenter
+a-->MainWindow
+a-->MenuBar
+a-->MenuGroups
+a-->Preferences
+a-->Publisher
+a-->StatusBar
+a-->UserConfigurationManager
+```
+
+2. Document 对象
+
+```mermaid
+graph LR;
+Application-->DocumentManager-->b[Document]
+b-->Database
+b-->Editor
+b-->GraphicsManager
+b-->StatusBar
+b-->TransactionManager
+b-->UserData
+b-->Window
+```
+
+3. Database 对象
+
+```mermaid
+flowchart TB;
+subgraph NamedDictionaris
+  direction TB
+  Layout-Dictionary-->Object
+  Others-->OtherObject
+end
+subgraph Tables
+  direction TB
+  BlockTable-->BlockTableRecord-->Entity
+  OthersTable-->OthersTableRecord
+end
+Application-->DocumentManager-->Document-->d[Database]-->Tables
+d-->NamedDictionaris
+```
+
+4. Transation 对象
+   
+```mermaid
+flowchart LR;
+subgraph Transation
+    direction LR
+    f(StartTransation)--modify objects-->e{isOK}
+    e--Yes-->h(commit)
+    e--No-->abort
+end
+h--write-->d[Database]
+g[Document or Database]--start-->f
+```
+
+ 
+
+
+
+
 
 IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核，即DBTrans、SymbolTable、ResultData、SelectFilter等基础类，其他的功能都通过扩展方法的方式来实现。
 
@@ -7,33 +77,42 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
 ## 一、组织结构图
 
 - IFoxCAD
-    - IFoxCAD.Basal - cad以外常用的类库
-        - LinqEx - linq扩展类
-        - LoopList - 环链表
-    - IFoxCAD.Cad - cad相关的类库
-        - Runtime - 包含系统级别的功能
-            - AcadVersion - cad版本号类
-            - AssemInfo - 程序集信息
-            - AutoRegAssem - 程序集加载类型
-            - DBTrans - 事务处理类
-            - Env - 系统管理类
-            - SymbolTable - 符号表类
-        - ExtensionMethod - 扩展函数，以Ex结尾
-            - SymbolTableEx - 符号表扩展类
-            - SymbolTableRecordEx - 符号表记录扩展类 
-            - EntityEx - 实体扩展类   
-            - 。。。。。。  
-        - ResultData
-            - 待补充。。。
-        - SelectionFilter
-            - 待补充。。。
-    - IFoxCAD.WPF - wpf的mvvm模式相关的类库
-            - 待补充。。。
-
-  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225449_2b18eb89_9063830.png "屏幕截图.png")
-  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225550_840a862a_9063830.png "屏幕截图.png")
-  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225525_b246bbd2_9063830.png "屏幕截图.png")
-## 二、关于DBTrans类的说明
+  
+  - IFoxCAD.Basal - cad以外常用的类库
+  
+  - LinqEx - linq扩展类
+  
+  - LoopList - 环链表
+  
+  - IFoxCAD.Cad - cad相关的类库
+  
+  - Runtime - 包含系统级别的功能
+    
+    - AcadVersion - cad版本号类
+    - AssemInfo - 程序集信息
+    - AutoRegAssem - 程序集加载类型
+    - DBTrans - 事务处理类
+    - Env - 系统管理类
+    - SymbolTable - 符号表类
+  
+  - ExtensionMethod - 扩展函数，以Ex结尾
+    
+    - SymbolTableEx - 符号表扩展类
+    - SymbolTableRecordEx - 符号表记录扩展类 
+    - EntityEx - 实体扩展类   
+    - 。。。。。。  
+  
+  - ResultData
+    
+    - 待补充。。。
+  
+  - SelectionFilter
+    
+    - 待补充。。。
+  
+  - IFoxCAD.WPF - wpf的mvvm模式相关的类库
+  
+  ## 二、关于DBTrans类的说明
 
 ### 2.1 为什么要构建DBTrans类？
 
@@ -50,9 +129,11 @@ DBTrans类里基本的封装就是Transaction，然后是Document、Database、E
 DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的相关类库，通过这些属性就可以对数据进行相应的操作。特别是符号表中最常用的就是块表，通过对块表的操作来实现添加图元等。
 
 ### 2.3 DBTrans类应该具有的成员
+
 为了尽量少的封装方法，减少类的复杂度，目前计划的方法主要为：
 
 属性:
+
 - Top  ---返回当前事务
 - Database  ---数据库
 - Document  ---文档
@@ -60,11 +141,13 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 - Trans  ---事务管理器
 
 构造函数:
+
 - DBTrans(Document doc = null, bool commit = true)
 - DBTrans(Database database, bool commit = true)
 - DBTrans(string fileName, bool commit = true)
 
 符号表:
+
 - BlockTable 块表
 - LayerTable 层表
 - TextStyleTable 文字样式表
@@ -76,10 +159,12 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 - ViewportTable 视口表
 
 方法:
+
 - GetObject  ---根据对象id获取图元对象
 - 。。。
 
 接口:
+
 - Abort ---放弃事务
 - Commit ---提交事务
 - Dispose --- 执行与释放非托管资源
@@ -96,10 +181,13 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 - 有了这个类，DBTrans类就可以直接通过属性获取符号表的关联关系，然后进行符号表的处理。
 
 ### 3.2 SymbolTable类应该具有的成员
+
 属性:
+
 - CurrentSymbolTable  ---当前的符号表对象
 
 方法:
+
 - this  ---索引器符号表记录函数
 - Add  ---添加符号表记录函数
 - Remove --- 删除符号表记录函数(层表请使用扩展方法Delete)
@@ -112,12 +200,3 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 特殊说明：当符号表为块表时，上述函数实际操作的是块定义、属性定义等。所以为了添加图元，需要特殊写法，原因在于cad的实体都是存在符号表记录里的，通常为模型这个块表记录。
 
 # 慢慢完善，想到哪写到哪。。。
-
-
-
-
-
-
-
-
-

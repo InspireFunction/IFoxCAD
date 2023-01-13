@@ -1,7 +1,7 @@
 ﻿<Project>
 
     <PropertyGroup> <!--需要设置的内容-->
-        <Version>0.5.0-alpha4</Version>
+        <Version>0.5.0-alpha6</Version>
         <PackageReleaseNotes>支持源码包。</PackageReleaseNotes>
     </PropertyGroup>
 
@@ -27,7 +27,7 @@
 	    <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
 	    <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
 	    <RepositoryType>git</RepositoryType>
-	    <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET;GStarCAD;ZWCAD</PackageTags>
+	    <PackageTags>IFox;CAD;AutoCad;C#;NET;GStarCAD;ZWCAD</PackageTags>
 
     </PropertyGroup>
 

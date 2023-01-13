@@ -18,7 +18,7 @@
 	    <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
 	    <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
 	    <RepositoryType>git</RepositoryType>
-	    <PackageTags>IFoxCAD;C#;NET;Common;Basal</PackageTags>
+	    <PackageTags>IFox;C#;NET;Common;Basal</PackageTags>
         <OutputPath>$(MSBuildThisFileDirectory)bin\$(Configuration)\</OutputPath>
 		<GenerateDocumentationFile>True</GenerateDocumentationFile>
     </PropertyGroup>

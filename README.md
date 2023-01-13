@@ -1,27 +1,76 @@
-# IFoxCAD
-
-#### 释义
-IFox中：
-- IF：为Inspire Function（中文名：跃动方程）的首字母缩写
-- Fox：起初 **雪山飞狐（又狐哥）** 在明经论坛发布了[开源库](http://bbs.mjtd.com/thread-75701-1-1.html)，后来狐哥自己的项目进行了极大的丰富后形成NFox类库。
-
-   在 **落魄山人（又小山山）** 开始学习c#开发后，由于这个人过于懒，不想自己写基础的函数了，所以厚颜无耻的跟狐哥要来了 **NFox** 的源码。
-
-   在学习了一阵源码后，发现狐哥的代码惊天地，泣鬼神，惊为天人，直接跪服，从此成为狐哥的脑残粉。
-
-   为不使明珠蒙尘，特向狐哥申请是否可以开源，经原作者狐哥同意，正式发布 **NFox** 开源类库。
-
-   后来本人多次二逼操作后， **NFox** 莫名无法运行，找不到原因，以及原代码嵌套引用多，逻辑复杂，痛定思痛，遂放弃 **NFox** 的开发，基于 **NFox** 重构为 **IFox** ,重新发布开源项目，取名为`IF+Fox=IFox`，一语双关，简洁而不简单。当然这些都是掩饰，其实就是 **I(爱)Fox(狐哥)** 。
-
- **Inspire Function（中文名：跃动方程）及 IFoxCad 的名字均为小轩轩起名** 
-
-#### 介绍
+# IFoxCAD 说明
 
 基于.NET的Cad二次开发类库。
+
+#### 一、项目来源
+
+起初 **雪山飞狐（又狐哥）** 在明经论坛发布了[开源库](http://bbs.mjtd.com/thread-75701-1-1.html)，后来狐哥自己的项目进行了极大的丰富后形成NFox类库。然后 **落魄山人** 在征得 雪山飞狐的同意后，对NFox类库进行了整理，增加了注释等，重新发布了NFox类库。
+
+后来，经过一段时间的更新后，由于莫名其妙的原因NFox类库挂掉了。而这时山人同学已经基本吃透NFox类库，考虑到NFox的封装过于复杂，遂进行了重构。
+
+重构的类库命名为IFoxCAD， 寓意为：**I(爱)Fox(狐哥)**，本项目发布于**Inspire Function（中文名：跃动方程）** 组织下，感谢 **小轩轩** 给起的名字。
 
 可以加群交流：
 
 ![ifoxcad用户交流群群二维码](./docs/png/ifoxcad用户交流群群二维码.png)
+
+#### 二、 快速入门
+
+- 打开vs，新建一个standard类型的类库项目，**注意，需要选择类型的时候一定要选standard2.0** 
+
+- 双击项目，打开项目文件：
+  
+  - 修改项目文件里的`<TargetFramework>netcore2.0</TargetFramework>`为`<TargetFrameworks>NET45</TargetFrameworks>`。其中的net45，可以改为NET45以上的标准TFM（如：net45、net46、net47等等）。同时可以指定多版本。具体的详细的教程见 [VS通过添加不同引用库，建立多条件编译](https://www.yuque.com/vicwjb/zqpcd0/ufbwyl)。
+  
+  - 在 `<PropertyGroup> xxx </PropertyGroup>` 中增加 `<LangVersion>preview</LangVersion>`，主要是为了支持最新的语法，本项目采用了最新的语法编写。项目文件现在的内容类似如下：
+
+```xml
+<Project Sdk="Microsoft.NET.Sdk">
+   <PropertyGroup>
+       <TargetFramework>net45</TargetFramework>
+       <LangVersion>preview</LangVersion>
+   </PropertyGroup>
+</Project>
+```
+
+- 右键项目文件，选择管理nuget程序包。
+
+- 在nuget程序里搜索**ifox**，记得将包括预发行版打钩。截止本文最后更新时，nuget上最新的版本为ifox.cad.source 0.5.0-alpha6版本和ifox.Basal.source 0.5.0-alpha6版本。点击安装就可以。
+
+- 添加引用，在新建的项目里的cs文件里添加相关的引用
+
+```csharp
+using Autodesk.AutoCAD.ApplicationServices;
+using Autodesk.AutoCAD.EditorInput;
+using Autodesk.AutoCAD.Runtime;
+using Autodesk.AutoCAD.Geometry;
+using Autodesk.AutoCAD.DatabaseServices;
+using IFoxCAD.Cad;
+```
+
+- 添加代码
+
+```csharp
+[CommandMethod(nameof(Hello))]
+public void Hello()
+{
+     using DBTrans tr = new();
+     var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+     tr.CurrentSpace.AddEntity(line1);
+     // 如果您没有添加<LangVersion>preview</LangVersion>到项目文件里的话：按如下旧语法：
+     // using(var tr = new DBTrans())
+     // {
+     //     var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+     //     tr.CurrentSpace.AddEntity(line1);
+     // }
+}
+```
+
+这段代码就是在cad的当前空间内添加了一条直线。
+
+- F6生成，然后打开cad，netload命令将刚刚生成的dll加载。
+
+- 运行hello命令，然后缩放一下视图，现在一条直线和一个圆已经显示在屏幕上了。
 
 #### 软件架构及相关说明
 
@@ -43,11 +92,10 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 
 2. 一些全局命名空间的缺少,我们也建议您使用全局命名空间来补充,
    您只需要按照`IFoxCAD.Cad`的`GlobalUsings.cs`文件一样添加就好了.
+
 3. 若您使用acad08版本,需要在您的工程中设置`ac2008`和`ac2009`(大小写敏感)两个预定义标签.
    方能启用08工程中缺少的09工程才有的类.
    同时我们在`IFoxCAD.Cad`中提供了这两个例子.
-
-
 
 #### IFoxCad 项目模版
 
@@ -63,61 +111,7 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 
 1. 快速入门
    
-   - 打开vs，新建一个standard类型的类库项目，**注意，需要选择类型的时候一定要选standard2.0** ![](./docs/png/standard.png)
-   
-   - 双击项目，打开项目文件：
-     
-     - 修改项目文件里的`<TargetFramework>netcore2.0</TargetFramework>`为`<TargetFrameworks>NET45</TargetFrameworks>`。其中的net45，可以改为NET45以上的标准TFM（如：net45、net46、net47等等）。同时可以指定多版本。具体的详细的教程见 [VS通过添加不同引用库，建立多条件编译]( https://www.yuque.com/vicwjb/zqpcd0/ufbwyl)。
-     
-     - 在 `<PropertyGroup> xxx  </PropertyGroup>` 中增加 `<LangVersion>preview</LangVersion>`，主要是为了支持最新的语法，本项目采用了最新的语法编写。项目文件现在的内容类似如下：
-     
-     ```xml
-     <Project Sdk="Microsoft.NET.Sdk">
-        <PropertyGroup>
-            <TargetFramework>net45</TargetFramework>
-            <LangVersion>preview</LangVersion>
-        </PropertyGroup>
-     </Project>
-     ```
-   
-   - 右键项目文件，选择管理nuget程序包。![](./docs/png/nuget1.png)
-   
-   - 在nuget程序里搜索**ifoxcad**，直接选择最新的版本（如果您是 **net40** 或者 **net35** 的用户，可以安装 **0.1.6** 版本），然后点击安装**IFoxCAD.Cad**，nuget会自动安装ifoxcad依赖的库。(按下图绿色框框里选择浏览，程序包来源选择nuget.org，安装IFoxCAD.Cad包。IFoxCAD.Basal是IFoxCAD.Cad的依赖项会自动安装，如果要开发wpf界面的话，可以安装IFoxCAD.WPF，提供了简单的mvvm支持)![](./docs/png/nuget.png)
-   
-   - 添加引用
-   
-   ```c#
-   using Autodesk.AutoCAD.ApplicationServices;
-   using Autodesk.AutoCAD.EditorInput;
-   using Autodesk.AutoCAD.Runtime;
-   using Autodesk.AutoCAD.Geometry;
-   using Autodesk.AutoCAD.DatabaseServices;
-   using IFoxCAD.Cad;
-   ```
-   
-   - 添加代码
-   
-   ```c#
-   [CommandMethod(nameof(Hello))]
-   public void Hello()
-   {
-    using DBTrans tr = new();
-    var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-    tr.CurrentSpace.AddEntity(line1);
-    // 如果您没有添加<LangVersion>preview</LangVersion>到项目文件里的话：按如下旧语法：
-    // using(var tr = new DBTrans())
-    // {
-    //     var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-    //     tr.CurrentSpace.AddEntity(line1);
-    // }
-   }
-   ```
-   
-   这段代码就是在cad的当前空间内添加了一条直线。
-   
-   - F6生成，然后打开cad，netload命令将刚刚生成的dll加载。
-   
-   - 运行hello命令，然后缩放一下视图，现在一条直线和一个圆已经显示在屏幕上了。
+   - 
 
 2. [事务管理器用法](/docs/DBTrans.md)
 
@@ -181,13 +175,11 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
        }
    }
    ```
-   
-   
-   
+
 7. 天秀的打开模式提权
-
+   
    由于cad的对象是有打开模式，是否可写等等，为了安全起见，在处理对象时，一般是用读模式打开，然后需要写数据的时候在提权为写模式，然后在降级到读模式，但是这个过程中，很容易漏掉某些步骤，然后cad崩溃。为了处理这些情况，内裤提供了提权类来保证读写模式的有序转换。
-
+   
    ```c#
    using(line.ForWrite()) // 开启对象写模式提权事务
    {
@@ -197,10 +189,6 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 
 8. 未完待续。。。。
 
-
-
-
-
 #### 屏蔽IFox.Basal的元组功能
 
 由于c#在每个版本提供的元组功能不一样(有的中间版本缺少),所以IFox内置了元组功能,但是内置元组又会引起某些用户的工程冲突.
@@ -208,11 +196,11 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 因此您需要制作一个影子工程:
 
 1. 您需要具备使用git子模块的能力,引用jing分支中的源码.
-
+   
    子模块是为了保证您不修改IFox项目,因为你需要定期`git pull`更新组织提供的内容.
-
+   
    熟悉子模块之后,你需要把IFox项目一个个加入你的解决方案,
-
+   
    除了本次主角IFox.Basal.
 
 2. 在子模块文件夹外新建 IFox.Basal(影) 文件夹
@@ -220,7 +208,7 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 3. 复制 IFox.Basal(本) 的 .csproj 到上一步的文件夹.
 
 4. 修改 .csproj(影) 利用引用链接的方式进行引用 IFox.Basal(本) 的文件,不引用CLS就等于屏蔽了元组
-
+   
    ```xml
    <ItemGroup>
        <Compile Include="..\ifoxcad\src\IFoxCAD.Basal\General\*.cs" Link="General\%(FileName)%(Extension)" />
@@ -231,8 +219,7 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 5. 修改 .csproj(影) 引入微软提供的元组 nuget: `System.ValueTuple` (或者你喜欢的)
 
 6. 解决方案加入 .csproj(影) 之后被内部其他项目引用.
- 
+
 这个方法便可以把 影子工程 独立在IFox项目外,令`git pull`仍然有效,
 
 并且 本体工程 不做大更改的时候,影子工程更新幅度非常少,也多亏csproj改版了,不然也没有这个骚操作.
-
