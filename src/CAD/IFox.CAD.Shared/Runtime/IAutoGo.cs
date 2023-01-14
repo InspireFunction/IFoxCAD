@@ -132,7 +132,7 @@ public class AutoReflection
                 RunFunctions(_InitializeList);
             }
         }
-        catch (System.Exception e)
+        catch 
         {
             Debugger.Break();
         }
