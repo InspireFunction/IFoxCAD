@@ -68,19 +68,49 @@ public void Hello()
 
 这段代码就是在cad的当前空间内添加了一条直线。
 
-- F6生成，然后打开cad，netload命令将刚刚生成的dll加载。
+- 生成，然后打开cad，netload命令将刚刚生成的dll加载。如果需要调试需要设置启动程序为cad。
 
-- 运行hello命令，然后缩放一下视图，现在一条直线和一个圆已经显示在屏幕上了。
+- 运行hello命令，然后缩放一下视图，现在一条直线和一个圆已经显示在屏幕上了
+
+#### 三、屏蔽IFox的元组、索引、范围功能
+
+<mark>特别提醒：</mark> 考虑到早期的框架没有提供System.Range类型、System.Index类型、System.ValueTuple类型，本项目IFox.Basal包里包含了他们。 如果引用了包含System.Range等类型的第三方包（如IndexRange等），请在项目文件中定义NOINDEX、NORANGE、NOVALUETUPLE常量，以避免重复定义。上述代码能起作用的前提是用源码包，普通包暂时无解。
+
+```xml
+<DefineConstants>NOINDEX;NORANGE;NOVALUETUPLE</DefineConstants>
+```
+
+#### 四、编译 IFox 源码工程
+
+由于vs2022抛弃了某几个net版本，所以我们同时安装vs2019和vs2022，然后使用vs2022;
+其中的原因是vs2019拥有全部net版本,而vs2022拥有最新的分析器和语法。
+
+编译本项目需要你准备好git，具体的安装教程可以去网上搜索一下。当然也可以利用vs的git来完成。
+
+首先在gitee上fork本项目到你的账号，然后clone到本地。
+
+原生git使用命令行，打开终端/powershell/cmd，cd到你要存放的目录，然后运行下面的命令，把里面的yourname替换为你的名字，这样就在本地创建了一个ifoxcad文件夹，里面就是本项目的所有源码。
+
+```
+git clone https://gitee.com/yourname/ifoxcad.git
+```
+
+当然也可以采用vs的图形化操作，打开vs，选择 克隆存储库-->填入仓库地址和存放路径-->点击克隆。新手小白推荐用此办法。
+
+打开ifoxcad文件夹，双击解决方案文件，打开vs，等待项目打开，加载nuget包，然后生成就可以了。
+
+**切记，不要用低版本的vs打开本项目，因为本项目采用了某些新的语法，所以老版本的vs是是兼容的。**
+
+#### IFoxCad 项目模版
+
+可以在vs扩展菜单-管理扩展中搜索ifoxcad，即可安装项目模板。使用项目模版可以方便的创建支持多目标多版本的使用ifoxcad类库的项目和类。如果无法在vs的市场里下载，就去上面的QQ群里下载。
 
 #### 软件架构及相关说明
 
 - [软件架构说明](/docs/关于IFoxCAD的架构说明.md)
 - [扩展函数说明](/docs/关于扩展函数的说明.md)
 
-#### 编译 IFox 源码工程
-
-由于vs2022抛弃了某几个net版本，所以我们同时安装vs2019和vs2022，然后使用vs2022;
-其中的原因是vs2019拥有全部net版本,而vs2022拥有最新的分析器和语法.
+#### 
 
 #### 让 IFox 作为您的子模块
 
@@ -97,9 +127,7 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
    方能启用08工程中缺少的09工程才有的类.
    同时我们在`IFoxCAD.Cad`中提供了这两个例子.
 
-#### IFoxCad 项目模版
-
-可以在vs扩展菜单-管理扩展中搜索ifoxcad，即可安装项目模板。使用项目模版可以方便的创建支持多目标多版本的使用ifoxcad类库的项目和类。如果无法在vs的市场里下载，就去上面的QQ群里下载。
+#### 
 
 #### 安装教程
 

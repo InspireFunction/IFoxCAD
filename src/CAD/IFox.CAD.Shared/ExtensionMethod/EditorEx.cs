@@ -847,7 +847,7 @@ public static class EditorEx
     }
 
     /// <summary>
-    /// 缩放比例
+    /// 按范围缩放
     /// </summary>
     /// <param name="ed">命令行对象</param>
     /// <param name="CenPt">中心点</param>
