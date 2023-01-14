@@ -187,7 +187,7 @@ public static class CurveEx
             if (pars1.Count > 0)
             {
                 var c3ds = gc1.GetSplitCurves(pars1);
-                if (c3ds.Count > 1)
+                if (c3ds is not null && c3ds.Count > 1)
                 {
                     foreach (var c3d in c3ds)
                     {
