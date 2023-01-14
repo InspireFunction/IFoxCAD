@@ -1,8 +1,8 @@
 ﻿<Project>
 
     <PropertyGroup> <!--需要设置的内容-->
-        <Version>0.5.0-alpha7</Version>
-        <PackageReleaseNotes>调整winapi到basal。</PackageReleaseNotes>
+        <Version>0.5.0</Version>
+        <PackageReleaseNotes>发布0.5版本</PackageReleaseNotes>
     </PropertyGroup>
 
 	<PropertyGroup>

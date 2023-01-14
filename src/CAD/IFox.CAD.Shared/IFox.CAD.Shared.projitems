@@ -68,6 +68,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\AcadVersion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\AOP.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\AssemInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Runtime\AutoLoad.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\AutoRegAssem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\CadVersion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\DBTrans.cs" />

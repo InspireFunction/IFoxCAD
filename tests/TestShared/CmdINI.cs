@@ -1,5 +1,5 @@
 //#define givePeopleTest
-
+#if false
 using System.Diagnostics;
 
 namespace Test;
@@ -167,3 +167,17 @@ public class Cmd_IFoxInitializeInterface : IFoxAutoGo
     }
 }
 #endif
+#endif
+
+public class Init : AutoLoad
+{
+    public override void Initialize()
+    {
+        Env.Print("loading...");
+    }
+
+    public override void Terminate()
+    {
+        Env.Print("unloading...");
+    }
+}
