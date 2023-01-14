@@ -1,9 +1,10 @@
 ﻿namespace IFoxCAD.Cad;
 
+using IFoxCAD.Com;
 using System;
 using System.Diagnostics;
 using System.Text;
-using static IFoxCAD.Cad.WindowsAPI;
+using static IFoxCAD.Basal.WindowsAPI;
 
 public class ClipboardEnv
 {
@@ -40,7 +41,7 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
 
     #region 属性,可以改动
     public string File => szTempFile;
-    public Point3d Point => dptInsert;
+    public Point3d Point => new Point3d(dptInsert.X, dptInsert.Y, dptInsert.Z);
 
 #pragma warning disable CA2211 // 非常量字段应当不可见
     public static IntPtr AcadDwgview
@@ -64,7 +65,7 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
         szSourceFile = string.Empty;
         szSignature = "R15";  //恒定是这个
         nFlags = 0;
-        dptInsert = insert;
+        dptInsert = new Point3D(insert.X, insert.Y, insert.Z);
         rectGDI = IntRect.Zero;
         nLen = 0;
         nType = 0;

@@ -13,7 +13,6 @@
 
     <ItemGroup>
       <PackageReference Include="IFox.Basal" Version="0.5.0-alpha6" />
-      <PackageReference Include="IndexRange" Version="1.0.2" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,9 +1,6 @@
 ﻿#define Marshal
-using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using System.Threading;
 
-namespace IFoxCAD.Cad;
+namespace IFoxCAD.Basal;
 public partial class WindowsAPI
 {
     #region kernel32
@@ -609,14 +606,14 @@ public partial class WindowsAPI
             Y = y;
             Z = z;
         }
-        public static implicit operator Point3D(Point3d pt)
-        {
-            return new Point3D(pt.X, pt.Y, pt.Z);
-        }
-        public static implicit operator Point3d(Point3D pt)
-        {
-            return new Point3d(pt.X, pt.Y, pt.Z);
-        }
+        //public static implicit operator Point3D(Point3d pt)
+        //{
+        //    return new Point3D(pt.X, pt.Y, pt.Z);
+        //}
+        //public static implicit operator Point3d(Point3D pt)
+        //{
+        //    return new Point3d(pt.X, pt.Y, pt.Z);
+        //}
         public override string ToString() => $"({X},{Y},{Z})";
 
         public static Point3D Create(IntPtr lParam)

@@ -74,11 +74,11 @@ namespace Autodesk.AutoCAD.Internal
                 // -------->msctls_statusbar32
                 // -------->DwgView
                 var docW = Acap.DocumentManager.MdiActiveDocument.Window.Handle;
-                var msctls_statusbar32 = IFoxCAD.Cad.WindowsAPI.GetTopWindow(docW);
-                window = IFoxCAD.Cad.WindowsAPI.GetWindow(msctls_statusbar32, 2U);
+                var msctls_statusbar32 = IFoxCAD.Basal.WindowsAPI.GetTopWindow(docW);
+                window = IFoxCAD.Basal.WindowsAPI.GetWindow(msctls_statusbar32, 2U);
             }
             if (window != IntPtr.Zero)
-                IFoxCAD.Cad.WindowsAPI.SetFocus(window);
+                IFoxCAD.Basal.WindowsAPI.SetFocus(window);
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿#if true
-namespace IFoxCAD.Cad;
+namespace IFoxCAD.Basal;
 
 // https://blog.csdn.net/qq_43812868/article/details/108587936
 [Flags]

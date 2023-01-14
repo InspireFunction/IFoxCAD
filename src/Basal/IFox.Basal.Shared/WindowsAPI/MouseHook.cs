@@ -1,10 +1,4 @@
-﻿namespace IFoxCAD.Cad;
-
-using System;
-using System.Diagnostics;
-using System.Drawing;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
+﻿namespace IFoxCAD.Basal;
 
 public class MouseHook
 {

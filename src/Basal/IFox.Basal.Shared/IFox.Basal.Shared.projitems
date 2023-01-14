@@ -31,5 +31,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Sortedset\Sortedset.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Sortedset\SR.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Sortedset\ThrowHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\Enums.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\MouseHook.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\WindowsAPI.cs" />
   </ItemGroup>
 </Project>

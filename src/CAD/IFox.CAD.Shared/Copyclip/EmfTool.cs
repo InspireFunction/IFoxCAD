@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Text;
-using static IFoxCAD.Cad.WindowsAPI;
+using static IFoxCAD.Basal.WindowsAPI;
 using Point = System.Drawing.Point;
 using Size = System.Drawing.Size;
 

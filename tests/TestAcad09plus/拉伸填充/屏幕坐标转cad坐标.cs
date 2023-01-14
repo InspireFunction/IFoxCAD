@@ -2,7 +2,7 @@
 namespace JoinBoxAcad;
 
 using System.Drawing;
-using static IFoxCAD.Cad.WindowsAPI;
+using static IFoxCAD.Basal.WindowsAPI;
 
 public partial class Screen
 {
