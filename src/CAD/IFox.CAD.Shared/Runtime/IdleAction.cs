@@ -1,4 +1,4 @@
-﻿namespace IFox.CAD;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 空闲执行

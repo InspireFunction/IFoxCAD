@@ -74,6 +74,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\Env.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\FileOpenMode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\IAutoGo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Runtime\IdleAction.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\LateBinding.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\Log.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\MethodInfoHelper.cs" />
