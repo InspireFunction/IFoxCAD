@@ -105,6 +105,8 @@ git clone https://gitee.com/yourname/ifoxcad.git
 
 可以在vs扩展菜单-管理扩展中搜索ifoxcad，即可安装项目模板。使用项目模版可以方便的创建支持多目标多版本的使用ifoxcad类库的项目和类。如果无法在vs的市场里下载，就去上面的QQ群里下载。
 
+项目模版里的自动加载选择了简单api，ifox还提供了一套功能更强大的api，具体的可以参考[自动加载很初始化](/docs/autoreg/md)。
+
 #### 软件架构及相关说明
 
 - [软件架构说明](/docs/关于IFoxCAD的架构说明.md)
@@ -149,60 +151,7 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
 
 5. [WPF支持](/docs/WPF.md)
 
-6. 天秀的自动加载与初始化
-   
-   为了将程序集的初始化和通过写注册表的方式实现自动加载统一设置，减少每次重复的工作量，类裤提供了`AutoRegAssem`抽象类来完成此功能，只要在需要初始化的类继承`AutoRegAssem`类，然后实现`Initialize()` 和`Terminate()`两个函数就可以了。
-   特别强调的是，一个程序集里只能有一个类继承，不管是不是同一个命名空间。
-   
-   但是为了满足开闭原则，使用特性进行分段初始化是目前最佳选择
-   
-   ```c#
-    using Autodesk.AutoCAD.Runtime;
-    using IFoxCAD.Cad;
-    using System;
-    using System.Reflection;
-   
-   /*
-    * 自动执行接口
-    * 这里必须要实现一次这个接口,才能使用 IFoxInitialize 特性进行自动执行
-    */
-   public class CmdINI : AutoRegAssem
-   {
-       // 这里可以写任何普通的函数，也可以写下面 AutoTest 类里的实现了 IFoxInitialize 特性的初始化函数
-       // 继承AutoRegAssem的主要作用是写注册表用来自动加载dll，同时执行实现了 IFoxInitialize 特性的函数
-       // 注意这里的自动执行是在cad启动后，加载了dll之后执行，而不是运行命令后执行。
-   
-       [IFoxInitialize]
-       public void InitOne()
-       { 
-           // TODO 您想在加载dll之后自动执行的函数
-           // 可以随便在哪里类里 可以多次实现 IFoxInitialize 特性
-       }
-   
-   }
-   
-   // 其他的类中的函数:
-   // 实现自动接口之后,在任意一个函数上面使用此特性,减少每次改动 CmdINI 类
-   public class AutoTest
-   {
-       [IFoxInitialize]
-       public void Initialize()
-       { 
-           // TODO 您想在加载dll之后自动执行的函数
-       }
-       [IFoxInitialize]
-       public void InitTwo()
-       { 
-           // TODO 您想在加载dll之后自动执行的函数
-           // 可以随便在哪里类里 可以多次实现 IFoxInitialize 特性
-       }
-       [IFoxInitialize(isInitialize: false)] // 特性的参数为false的时候就表示卸载时执行的函数
-       public void Terminate()
-       {
-            // TODO 您想在关闭cad时自动执行的函数
-       }
-   }
-   ```
+6. [自动加载与初始化](/docs/autoreg.md)
 
 7. 天秀的打开模式提权
    
