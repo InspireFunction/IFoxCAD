@@ -105,7 +105,7 @@ git clone https://gitee.com/yourname/ifoxcad.git
 
 可以在vs扩展菜单-管理扩展中搜索ifoxcad，即可安装项目模板。使用项目模版可以方便的创建支持多目标多版本的使用ifoxcad类库的项目和类。如果无法在vs的市场里下载，就去上面的QQ群里下载。
 
-项目模版里的自动加载选择了简单api，ifox还提供了一套功能更强大的api，具体的可以参考[自动加载很初始化](/docs/autoreg/md)。
+项目模版里的自动加载选择了简单api，ifox还提供了一套功能更强大的api，具体的可以参考[自动加载很初始化](/docs/autoreg.md)。
 
 #### 软件架构及相关说明
 
