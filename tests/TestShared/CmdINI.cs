@@ -173,11 +173,16 @@ public class Init : AutoLoad
 {
     public override void Initialize()
     {
+        
         Env.Print("loading...");
+        // 将程序的目录加入信任路径
+        AppendSupportPath(CurrentDirectory.FullName);
     }
 
     public override void Terminate()
     {
-        Env.Print("unloading...");
+        // 这里不能调用输出函数，因为这个函数执行的时候，已经没有editor对象了。
+        // 所以如果不是想要在cad关闭的时候清理某些东西，这里不用写任何的代码。
+
     }
 }

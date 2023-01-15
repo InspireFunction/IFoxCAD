@@ -15,7 +15,7 @@ public abstract class AutoLoad : IExtensionApplication
     /// <summary>
     /// 程序集的目录
     /// </summary>
-    public static DirectoryInfo CurrDirectory => Location.Directory;
+    public static DirectoryInfo CurrentDirectory => Location.Directory;
 
     /// <summary>
     /// 获取程序集的目录
@@ -45,7 +45,6 @@ public abstract class AutoLoad : IExtensionApplication
         if (!SearchForReg())
         {
             RegApp();
-            AppendSupportPath(CurrDirectory.FullName);
         }
 
     }
@@ -63,7 +62,7 @@ public abstract class AutoLoad : IExtensionApplication
         return ackey.CreateSubKey("Applications");
     }
 
-    private void AppendSupportPath(string path)
+    protected void AppendSupportPath(string path)
     {
 #if NET35
         string key = HostApplicationServices.Current.RegistryProductRootKey;
