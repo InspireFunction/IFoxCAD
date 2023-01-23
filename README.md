@@ -101,25 +101,33 @@ git clone https://gitee.com/yourname/ifoxcad.git
 
 **切记，不要用低版本的vs打开本项目，因为本项目采用了某些新的语法，所以老版本的vs是是兼容的。**
 
-#### IFoxCad 项目模版
+#### 五、IFoxCad 项目模版
 
 可以在vs扩展菜单-管理扩展中搜索ifoxcad，即可安装项目模板。使用项目模版可以方便的创建支持多目标多版本的使用ifoxcad类库的项目和类。如果无法在vs的市场里下载，就去上面的QQ群里下载。
 
-项目模版里的自动加载选择了简单api，ifox还提供了一套功能更强大的api，具体的可以参考[自动加载很初始化](/docs/autoreg.md)。
+项目模版里的自动加载选择了简单api，ifox还提供了一套功能更强大的api，具体的可以参考[自动加载和初始化](/docs/autoreg.md)。
 
-#### 软件架构及相关说明
+#### 六、使用IFoxCad的几种方式
 
-- [软件架构说明](/docs/关于IFoxCAD的架构说明.md)
-- [扩展函数说明](/docs/关于扩展函数的说明.md)
+目前ifox提供了三种使用方式，**建议一般的用户使用第二种源码包的形式。有志于本项目发展并想提交点代码的可以选择第三种。**
 
-#### 
+- 第一种是直接使用普通的nuget包。
+  
+  此种方式使用便捷，只要在项目中引用了IFox.CAD.ACAD的包，就可以直接使用了。缺点一是无法控制ifox提供的元组功能的屏蔽，导致和其他的三方包的冲突；二是生成目录里带有ifox的dll。
 
-#### 让 IFox 作为您的子模块
+- 第二种是使用源码包。
+  
+  此种方式使用便捷，只要在项目中引用了IFox.Basal.Source和IFox.CAD.Source两个nuget包就可以直接使用了。优点就是使用简单，生成的目录里没有ifox的dll，同时还可以通过定义预处理常量的方式屏蔽ifox提供的元组等功能。缺点就是无法修改源码。
 
-IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一个多cad版本分支,您可以利用此作为您的[git项目子模块](https://www.cnblogs.com/JJBox/p/13876501.html#_label13).
+- 第三种是使用git子模块。
+  
+  此种方法使用步骤复杂，需要熟悉git及其子模块的使用，需要引用ifox里的共享项目文件。优点就是可以使用最新的代码，可以修改代码。具体的可以参考如下说明进行：
 
-子模块是以`共享工程`的方式加入到您的工程的,其为`IFoxCAD.Cad.Shared`:
-
+- **让 IFox 作为您的子模块**
+  
+  IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一个多cad版本分支,您可以利用此作为您的[git项目子模块](https://www.cnblogs.com/JJBox/p/13876501.html#_label13).
+  
+  子模块是以`共享工程`的方式加入到您的工程的,其为`IFoxCAD.Cad.Shared`:
 1. 千万不要用`IFoxCAD.Cad`内的工程作为引用,否则您将遭遇cad加载失效.
 
 2. 一些全局命名空间的缺少,我们也建议您使用全局命名空间来补充,
@@ -129,49 +137,12 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
    方能启用08工程中缺少的09工程才有的类.
    同时我们在`IFoxCAD.Cad`中提供了这两个例子.
 
-#### 
-
-#### 安装教程
-
-1. 新建net standard 类库
-2. 修改项目`.csproj`的`TargetFrameworks`为net45，保存重加载项目，这里需要注意和cad版本对照.
-3. 右键项目，管理nuget程序包，搜索ifoxcad，安装最新版就可以了.
-
-#### 使用说明
-
-1. 快速入门
-   
-   - 
-
-2. [事务管理器用法](/docs/DBTrans.md)
-
-3. [选择集过滤器用法](/docs/SelectionFilter.md)
-
-4. [符号表用法](/docs/SymbolTable.md)
-
-5. [WPF支持](/docs/WPF.md)
-
-6. [自动加载与初始化](/docs/autoreg.md)
-
-7. 天秀的打开模式提权
-   
-   由于cad的对象是有打开模式，是否可写等等，为了安全起见，在处理对象时，一般是用读模式打开，然后需要写数据的时候在提权为写模式，然后在降级到读模式，但是这个过程中，很容易漏掉某些步骤，然后cad崩溃。为了处理这些情况，内裤提供了提权类来保证读写模式的有序转换。
-   
-   ```c#
-   using(line.ForWrite()) // 开启对象写模式提权事务
-   {
-     // 处理代码
-   } // 关闭事务自动处理读写模式
-   ```
-
-8. 未完待续。。。。
-
-#### 屏蔽IFox.Basal的元组功能
-
-由于c#在每个版本提供的元组功能不一样(有的中间版本缺少),所以IFox内置了元组功能,但是内置元组又会引起某些用户的工程冲突.
-
-因此您需要制作一个影子工程:
-
+4. 上面的例子告诉了大家如何使用子模块，建议直接利用testjingsource分支进行操作。
+- **屏蔽IFox.Basal的元组功能**
+  
+  由于c#在每个版本提供的元组功能不一样(有的中间版本缺少),所以IFox内置了元组功能,但是内置元组又会引起某些用户的工程冲突.
+  
+  因此您需要制作一个影子工程:
 1. 您需要具备使用git子模块的能力,引用jing分支中的源码.
    
    子模块是为了保证您不修改IFox项目,因为你需要定期`git pull`更新组织提供的内容.
@@ -188,15 +159,49 @@ IFox的[jing分支](https://gitee.com/inspirefunction/ifoxcad/tree/jing/)是一�
    
    ```xml
    <ItemGroup>
-       <Compile Include="..\ifoxcad\src\IFoxCAD.Basal\General\*.cs" Link="General\%(FileName)%(Extension)" />
-       <Compile Include="..\ifoxcad\src\IFoxCAD.Basal\Sortedset\*.cs" Link="Sortedset\%(FileName)%(Extension)" />
+     <Compile Include="..\ifoxcad\src\IFoxCAD.Basal\General\*.cs" Link="General\%(FileName)%(Extension)" />
+     <Compile Include="..\ifoxcad\src\IFoxCAD.Basal\Sortedset\*.cs" Link="Sortedset\%(FileName)%(Extension)" />
    </ItemGroup>
    ```
 
 5. 修改 .csproj(影) 引入微软提供的元组 nuget: `System.ValueTuple` (或者你喜欢的)
 
 6. 解决方案加入 .csproj(影) 之后被内部其他项目引用.
+   
+   这个方法便可以把 影子工程 独立在IFox项目外,令`git pull`仍然有效,
+   
+   并且 本体工程 不做大更改的时候,影子工程更新幅度非常少,也多亏csproj改版了,不然也没有这个骚操作.
 
-这个方法便可以把 影子工程 独立在IFox项目外,令`git pull`仍然有效,
+#### 软件架构及相关说明
 
-并且 本体工程 不做大更改的时候,影子工程更新幅度非常少,也多亏csproj改版了,不然也没有这个骚操作.
+1. [软件架构说明](/docs/关于IFoxCAD的架构说明.md)
+
+2. [扩展函数说明](/docs/关于扩展函数的说明.md)
+
+3. [事务管理器用法](/docs/DBTrans.md)
+
+4. [选择集过滤器用法](/docs/SelectionFilter.md)
+
+5. [符号表用法](/docs/SymbolTable.md)
+
+6. [WPF支持](/docs/WPF.md)
+
+7. [自动加载与初始化](/docs/autoreg.md)
+
+8. 天秀的打开模式提权
+   
+   由于cad的对象是有打开模式，是否可写等等，为了安全起见，在处理对象时，一般是用读模式打开，然后需要写数据的时候在提权为写模式，然后在降级到读模式，但是这个过程中，很容易漏掉某些步骤，然后cad崩溃。为了处理这些情况，内裤提供了提权类来保证读写模式的有序转换。
+   
+   ```csharp
+   // 第一种方式，采用的是事务管理的模式
+   using(line.ForWrite()) // 开启对象写模式提权事务
+   {
+     // 处理代码
+   } // 关闭事务自动处理读写模式
+   // 第二种方式，采用的是委托的形式
+   line.ForWrite(e => {
+     // 处理代码
+   });
+   ```
+
+9. 未完待续。。。。

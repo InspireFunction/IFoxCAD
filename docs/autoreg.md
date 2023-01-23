@@ -11,9 +11,9 @@
 
 ### 2、功能版
 
-使用特性进行分段初始化是目前最佳选择
+使用特性进行分段初始化是目前最佳选择，下面的说明已和最新版本不符，等待修正吧。
 
-```c#
+```csharp
  using Autodesk.AutoCAD.Runtime;
  using IFoxCAD.Cad;
  using System;
@@ -60,5 +60,3 @@ public class AutoTest
     }
 }
 ```
-
-- 

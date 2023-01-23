@@ -51,7 +51,7 @@ d-->NamedDictionaris
 ```
 
 4. Transation 对象
-   
+
 ```mermaid
 flowchart LR;
 subgraph Transation
@@ -63,12 +63,6 @@ end
 h--write-->d[Database]
 g[Document or Database]--start-->f
 ```
-
- 
-
-
-
-
 
 IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核，即DBTrans、SymbolTable、ResultData、SelectFilter等基础类，其他的功能都通过扩展方法的方式来实现。
 
