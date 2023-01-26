@@ -1,4 +1,6 @@
-﻿namespace TestConsole;
+﻿using System.Runtime.InteropServices;
+
+namespace TestConsole;
 
 [Flags]
 public enum PlugIn
@@ -11,7 +13,7 @@ public enum PlugIn
     IMinCad = 4,
 
     Lisp = JoinBox | YuanQuan | IMinCad,
-     
+
     DOCBAR = 8,
     DUOTAB = 16,
 

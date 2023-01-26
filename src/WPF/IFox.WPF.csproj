@@ -11,6 +11,7 @@
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <Version>0.4</Version>
         <Authors>xsfhlzh;vicwjb</Authors>
+        <Authors>xsfhlzh;vicwjb;liuqihong</Authors>
         <Company>InspireFunction</Company>
         <Description>WPF的简单MVVM模式开发类库</Description>
         <Copyright>InspireFunction</Copyright>
@@ -20,6 +21,7 @@
         <PackageTags>IFoxCAD;C#;NET;WPF;MVVM</PackageTags>
         <RepositoryType>git</RepositoryType>
         <PackageReleaseNotes>开启可空类型.</PackageReleaseNotes>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|NET45|AnyCPU'">
@@ -28,6 +30,7 @@
 
     <ItemGroup>
         <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31"/>
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" />
     </ItemGroup>
 
     <ItemGroup>

@@ -1,0 +1,12 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+	<PropertyGroup>
+		<TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
+	</PropertyGroup>
+
+	<Import Project="..\IFox.Basal.Shared\IFox.Basal.Shared.projitems" Label="Shared" />
+	
+
+</Project>

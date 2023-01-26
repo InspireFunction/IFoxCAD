@@ -1,0 +1,53 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+
+	<PropertyGroup>
+		<TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
+	</PropertyGroup>
+
+	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+		<DefineConstants>DEBUG</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
+		<DefineConstants>$(Configuration);acad;ac2009</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
+		<DefineConstants>$(Configuration);acad;ac2013</DefineConstants>
+	</PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
+		<DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
+	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
+		<PackageReference Include="Autocad.NetApi" Version="17.2.0" ExcludeAssets="runtime" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
+		<PackageReference Include="Autocad.NetApi" Version="19.0.0" ExcludeAssets="runtime" />
+	</ItemGroup>
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
+		<PackageReference Include="AutoCAD.NET" Version="20.0.1" ExcludeAssets="runtime" />
+		<PackageReference Include="System.Collections" Version="4.3.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="..\..\..\LICENSE">
+			<Pack>True</Pack>
+			<PackagePath></PackagePath>
+		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\..\Basal\IFox.Basal\IFox.Basal.csproj" />
+	</ItemGroup>
+
+	<Import Project="..\IFox.CAD.Shared\IFox.CAD.Shared.projitems" Label="Shared" />
+
+
+	<ItemGroup>
+		<Reference Include="System.Web" />
+		<Reference Include="System.Web.Extensions" />
+	</ItemGroup>
+
+
+</Project>

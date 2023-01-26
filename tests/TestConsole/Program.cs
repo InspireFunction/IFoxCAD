@@ -1,7 +1,92 @@
 ﻿// See https://aka.ms/new-console-template for more information
 using System;
+using System.Runtime.InteropServices;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
 using TestConsole;
+using System;
+using System.Collections.Generic;
+using System.Text;
+using System.Diagnostics;
+
+#if true
+namespace CalculatorDemo
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+#if false
+            int nResult = AddTwoNumbers(10, 20);
+            Console.WriteLine(nResult);
+
+            AddTwoNumbers22((a, b) => {
+                Console.WriteLine(a + b);
+            });
+
+            var a = new int[] { 1, 2, 3, 4, 5, 6, 78, 9, 92, };
+            a.ForEach(a => {
+                Console.WriteLine(a);
+            });
+#endif
+
+            var aa = new int[] { 1, 2, 3, 4, 5, 6, 78, 9, 92, };
+            Console.WriteLine(aa[1..^2]);
+
+
+            var time = Timer.RunTime(() => {
+                for (int i = 0; i < 10000000; i++)
+                    i++;
+            }, Timer.TimeEnum.Second);
+            Console.WriteLine($"代码执行的时间：{time}");
+        }
+
+        private static int addtuple((int ,int ) b)
+        {
+            return b.Item1 + b.Item2;
+        }
+
+
+        [DebuggerHidden]
+        private static int AddTwoNumbers(int nNum1, int nNum2)
+        {
+            return Add(nNum1, nNum2);
+        }
+        private static int Add(int op1, int op2)
+        {
+            return op1 + op2;
+        }
+
+        [DebuggerHidden]
+        private static void AddTwoNumbers22(Action<int, int> action)
+        {
+            action(10, 20);
+        }
+    }
+
+    public static class Fors
+    {
+        /// <summary>
+        /// 遍历集合,执行委托
+        /// </summary>
+        /// <typeparam name="T">集合值的类型</typeparam>
+        /// <param name="source">集合</param>
+        /// <param name="action">委托</param>
+        [DebuggerHidden]
+        public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
+        {
+            foreach (var element in source)
+            {
+                action.Invoke(element);
+            }
+        }
+    }
+}
+#endif
+
+#if true2
+
+Console.WriteLine("***************************************************");
 
 
 List<int> list = new List<int>();
@@ -88,3 +173,4 @@ public enum Season : byte
     Winter
 }
 #endregion
+#endif
