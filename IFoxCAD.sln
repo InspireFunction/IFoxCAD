@@ -19,9 +19,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Test", "Test", "{C0BEFC15-6DF7-4636-BC76-4A0B88231470}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Basal", "Basal", "{1A5C27C1-FEF3-40A0-A1EE-3BC7BF2BD67A}"
-	ProjectSection(SolutionItems) = preProject
-		src\Basal\Directory.Build.props = src\Basal\Directory.Build.props
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFox.Basal", "src\Basal\IFox.Basal\IFox.Basal.csproj", "{FF4E1CDE-EEB3-4BE8-8C1D-6B5B17A299C7}"
 EndProject
@@ -32,9 +29,6 @@ EndProject
 Project("{D954291E-2A0B-460D-934E-DC6B0785DB48}") = "IFox.CAD.Shared", "src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.shproj", "{20F254F7-AEE5-42AE-A9B3-149BBDC7397F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "CAD", "CAD", "{B2AB7DC7-DBF4-4197-808B-0D2A6613AF5E}"
-	ProjectSection(SolutionItems) = preProject
-		src\CAD\Directory.Build.props = src\CAD\Directory.Build.props
-	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "IFox.CAD.Source", "src\CAD\IFox.CAD.Source\IFox.CAD.Source.csproj", "{88F3CF78-23F5-494B-9D8F-2C6B4467E0B4}"
 EndProject
