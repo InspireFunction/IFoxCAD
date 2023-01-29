@@ -54,15 +54,15 @@ using IFoxCAD.Cad;
 [CommandMethod(nameof(Hello))]
 public void Hello()
 {
-     using DBTrans tr = new();
-     var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-     tr.CurrentSpace.AddEntity(line1);
-     // 如果您没有添加<LangVersion>preview</LangVersion>到项目文件里的话：按如下旧语法：
-     // using(var tr = new DBTrans())
-     // {
-     //     var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-     //     tr.CurrentSpace.AddEntity(line1);
-     // }
+    using DBTrans tr = new();
+    var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+    tr.CurrentSpace.AddEntity(line1);
+    // 如果您没有添加<LangVersion>preview</LangVersion>到项目文件里的话：按如下旧语法：
+    // using(var tr = new DBTrans())
+    // {
+    //     var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+    //     tr.CurrentSpace.AddEntity(line1);
+    // }
 }
 ```
 
