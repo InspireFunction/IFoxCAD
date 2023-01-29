@@ -128,10 +128,8 @@ Global
 		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{20f254f7-aee5-42ae-a9b3-149bbdc7397f}*SharedItemsImports = 13
 		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{3d7d095d-ef0a-40b3-9776-5f08c61fd614}*SharedItemsImports = 5
 		tests\TestShared\TestShared.projitems*{5f478f68-19bc-4a3a-af39-8728f8d396dd}*SharedItemsImports = 5
-		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{88f3cf78-23f5-494b-9d8f-2c6b4467e0b4}*SharedItemsImports = 5
 		src\Basal\IFox.Basal.Shared\IFox.Basal.Shared.projitems*{c823514a-2bc2-45c2-aced-18924a7b80bf}*SharedItemsImports = 13
 		tests\TestShared\TestShared.projitems*{ced63d2d-0af6-4831-806d-5e8e9b0d0a07}*SharedItemsImports = 13
-		src\Basal\IFox.Basal.Shared\IFox.Basal.Shared.projitems*{d0c6824c-53a3-4c16-ae7b-3227f18c5039}*SharedItemsImports = 5
 		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{ef20e632-70a9-40eb-8c9a-539fd85fafad}*SharedItemsImports = 5
 		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{f388f4b9-f636-414a-9bc9-2b008517b441}*SharedItemsImports = 5
 		src\Basal\IFox.Basal.Shared\IFox.Basal.Shared.projitems*{ff4e1cde-eeb3-4be8-8c1d-6b5b17a299c7}*SharedItemsImports = 5
