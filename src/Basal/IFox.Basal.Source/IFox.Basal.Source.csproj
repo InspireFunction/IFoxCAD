@@ -21,32 +21,22 @@
 		<SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
 	</PropertyGroup>
 
-	<!--共享项目的连接要放在构建源码包的流程之前-->
-	<!--<Import Project="..\IFox.Basal.Shared\IFox.Basal.Shared.projitems" Label="Shared" />-->
-	
-	
 	<ItemGroup>
-		<Compile Include="..\IFox.Basal.Shared\**\*.cs" 
-				 Pack="true" 
-				 PackagePath="$(ContentTargetFolders)\cs\any\$(PackageId)\" />
+		<Compile Include="..\IFox.Basal.Shared\**\*.cs">
+			<Pack>true</Pack>
+			<PackagePath>$(ContentTargetFolders)\cs\any\$(PackageId)\</PackagePath>
+			<Visible>false</Visible>
+		</Compile>
 		<Compile Update="@(Compile)">
 			<Pack>true</Pack>
-			<!--<PackagePath>$(ContentTargetFolders)\cs\any\$(PackageId)\</PackagePath>-->
 		</Compile>
-		
+		<!--嵌入资源文件，目前ifox里还没有需要的资源，下面代码不起实际作用-->
 		<EmbeddedResource Update="@(EmbeddedResource)">
 			<Pack>true</Pack>
 			<PackagePath>$(ContentTargetFolders)\any\any\$(PackageId)\</PackagePath>
 		</EmbeddedResource>
 	</ItemGroup>
 
-	<!--放一个文件的目的是解决源码包项目里无实用代码导致出现： 不能编译既无依赖又无代码的错误。
-	然后这个文件可以是空文件 也可以是引用过来的文件，用于欺骗编译器。同时不打包进入nuget。-->
-	<!--<ItemGroup>
-		<Compile Include="..\IFox.Basal\GlobalUsings.cs" Link="\%(FileName)%(Extension)">
-			<Pack>false</Pack>
-		</Compile>
-	</ItemGroup>-->
 	<ItemGroup>
 		<PackageReference Remove="@(PackageReference)" />
 	</ItemGroup>
