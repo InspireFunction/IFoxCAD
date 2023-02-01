@@ -122,26 +122,29 @@ internal class AcadEMR
     /// <returns></returns>
     static bool CheckFunc(ref IntPtr adress, byte val, int len)
     {
-        if (Marshal.ReadByte(adress) == 233)
+        if (adress.ToInt64() > 0)
         {
-            if (IntPtr.Size == 4)
+            if (Marshal.ReadByte(adress) == 233)
             {
-                var pass = Marshal.ReadInt32(new IntPtr(adress.ToInt32() + 1));
-                adress = new IntPtr(adress.ToInt32() + pass + 5);
+                if (IntPtr.Size == 4)
+                {
+                    var pass = Marshal.ReadInt32(new IntPtr(adress.ToInt32() + 1));
+                    adress = new IntPtr(adress.ToInt32() + pass + 5);
+                }
+                else
+                {
+                    var pass = Marshal.ReadInt64(new IntPtr(adress.ToInt64() + 1));
+                    adress = new IntPtr(adress.ToInt64() + pass + 5);
+                }
             }
-            else
+            if (adress.ToInt64() > 0 && Marshal.ReadByte(adress) == val)
             {
-                var pass = Marshal.ReadInt64(new IntPtr(adress.ToInt64() + 1));
-                adress = new IntPtr(adress.ToInt64() + pass + 5);
-            }
-        }
-        if (Marshal.ReadByte(adress) == val)
-        {
-            if (IntPtr.Size == 4)
-                adress = new IntPtr(adress.ToInt32() + len);
-            else
-                adress = new IntPtr(adress.ToInt64() + len);
-            return true;
+                if (IntPtr.Size == 4)
+                    adress = new IntPtr(adress.ToInt32() + len);
+                else
+                    adress = new IntPtr(adress.ToInt64() + len);
+                return true;
+            } 
         }
         return false;
     }
