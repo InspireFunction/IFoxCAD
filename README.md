@@ -74,11 +74,15 @@ public void Hello()
 
 #### 三、屏蔽IFox的元组、索引、范围功能
 
-<mark>特别提醒：</mark> 考虑到早期的框架没有提供System.Range类型、System.Index类型、System.ValueTuple类型，本项目IFox.Basal包里包含了他们。 如果引用了包含System.Range等类型的第三方包（如IndexRange等），请在项目文件中定义NOINDEX、NORANGE、NOVALUETUPLE常量，以避免重复定义。上述代码能起作用的前提是用源码包，普通包暂时无解。
+<mark>特别提醒：</mark> 考虑到早期的框架没有提供System.Range类型(net core 开始提供)、System.Index类型(net core 开始提供)、System.ValueTuple类型(net 47开始提供)，本项目IFox.Basal包里包含了他们。 如果引用了包含System.Range等类型的第三方包（如IndexRange等），请在项目文件中定义NOINDEX、NORANGE、NOVALUETUPLE常量，以避免重复定义。上述代码能起作用的前提是用源码包，普通包暂时无解。
 
 ```xml
-<DefineConstants>NOINDEX;NORANGE;NOVALUETUPLE</DefineConstants>
+<PropertyGroup Condition="'$(TargetFramework)' == 'NET47'">
+	<DefineConstants>$(Configuration);NOINDEX;NORANGE;NOVALUETUPLE</DefineConstants>
+</PropertyGroup>
 ```
+
+**NOINDEX、NORANGE、NOVALUETUPLE 分别针对三种类型，哪种类型冲突就定义哪种。**
 
 #### 四、编译 IFox 源码工程
 
