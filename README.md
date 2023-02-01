@@ -77,7 +77,9 @@ public void Hello()
 <mark>特别提醒：</mark> 考虑到早期的框架没有提供System.Range类型、System.Index类型、System.ValueTuple类型，本项目IFox.Basal包里包含了他们。 如果引用了包含System.Range等类型的第三方包（如IndexRange等），请在项目文件中定义NOINDEX、NORANGE、NOVALUETUPLE常量，以避免重复定义。上述代码能起作用的前提是用源码包，普通包暂时无解。
 
 ```xml
-<DefineConstants>NOINDEX;NORANGE;NOVALUETUPLE</DefineConstants>
+<PropertyGroup Condition="'$(TargetFramework)' == 'NET47'">
+	<DefineConstants>$(Configuration);NOINDEX;NORANGE;NOVALUETUPLE</DefineConstants>
+</PropertyGroup>
 ```
 
 #### 四、编译 IFox 源码工程
