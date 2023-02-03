@@ -5,6 +5,9 @@
  * 使用状态机会变得缓慢,因此我们设计的时候着重于时间优化,
  * 本工具类在着重于数组遍历时候替代linq
  */
+/// <summary>
+/// 数组扩展类
+/// </summary>
 public static class ArrayEx
 {
     /// <summary>

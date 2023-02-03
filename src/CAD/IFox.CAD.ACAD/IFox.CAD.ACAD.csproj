@@ -4,6 +4,7 @@
 		<TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
+		<NoWarn>MSB3270</NoWarn>
 	</PropertyGroup>
 
 	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
