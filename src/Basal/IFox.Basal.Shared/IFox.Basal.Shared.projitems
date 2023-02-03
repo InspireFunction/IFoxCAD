@@ -14,6 +14,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)CLS\RuntimeHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CLS\TupleElementNamesAttribute.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CLS\ValueTuple.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\ParameterRebinder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\PredicateBuilder.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\SqlExpressionVisitor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\ArrayEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\DebugHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\DictEx.cs" />

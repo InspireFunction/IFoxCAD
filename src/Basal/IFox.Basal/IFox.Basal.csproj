@@ -4,7 +4,14 @@
 		<TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
+		<NoWarn>MSB3270</NoWarn>
 	</PropertyGroup>
+
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
+	  <PackageReference Include="Microsoft.CSharp">
+	    <Version>4.7.0</Version>
+	  </PackageReference>
+	</ItemGroup>
 
 	<Import Project="..\IFox.Basal.Shared\IFox.Basal.Shared.projitems" Label="Shared" />
 	
