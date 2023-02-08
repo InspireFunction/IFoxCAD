@@ -1,5 +1,8 @@
 namespace IFoxCAD.Cad;
 
+/// <summary>
+/// 文字对齐点帮助类
+/// </summary>
 public static class AttachmentPointHelper
 {
     static readonly Dictionary<string, AttachmentPoint> _alignment = new()
@@ -42,7 +45,7 @@ public static class AttachmentPointHelper
     }
 
     /// <summary>
-    /// 输入对齐方式获得文字
+    /// 输入对齐方式获得文字说明
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>

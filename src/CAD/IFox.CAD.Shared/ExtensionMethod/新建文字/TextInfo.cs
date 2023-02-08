@@ -5,10 +5,11 @@
 /// </summary>
 public class TextInfo
 {
-    readonly Database? Database;
     readonly string? Contents;
     readonly Point3d Position;
-
+    /// <summary>
+    /// 文字对齐方式的中文说明
+    /// </summary>
     public string TextJustifyCn => AttachmentPointHelper.Get(TextJustify);
     readonly AttachmentPoint TextJustify;
     readonly Point3d? AlignmentPoint;
@@ -25,14 +26,12 @@ public class TextInfo
     /// <param name="justifyPoint">对齐点(对齐方式是左,此参数无效,为null不为左就报错)</param>
     /// <param name="textStyleId">文字样式id</param>
     /// <param name="textHeight">文字高度</param>
-    /// <param name="database">数据库</param>
     public TextInfo(string? contents,
         Point3d position,
         AttachmentPoint justify,
         Point3d? justifyPoint = null,
         ObjectId? textStyleId = null,
-        double textHeight = 2.5,
-        Database? database = null)
+        double textHeight = 2.5)
     {
         Contents = contents;
         Position = position;
@@ -44,7 +43,6 @@ public class TextInfo
         AlignmentPoint = justifyPoint;
         TextHeight = textHeight;
         TextStyleId = textStyleId;
-        Database = database;
     }
 
     /// <summary>
@@ -56,11 +54,8 @@ public class TextInfo
             throw new ArgumentNullException(nameof(Contents) + "创建文字无内容");
 
         var acText = new DBText();
-        acText.SetDatabaseDefaults();
-
-        if (Database is not null)
-            acText.SetDatabaseDefaults(Database);// 我的默认值是填满的,所以可以不需要
-
+        acText.SetDatabaseDefaults(DBTrans.Top.Database);
+    
         if (TextStyleId is not null)
             acText.SetTextStyleId(TextStyleId.Value);
 
@@ -75,8 +70,8 @@ public class TextInfo
         else if (acText.Justify != AttachmentPoint.BaseLeft)
             acText.AlignmentPoint = Position;
 
-        if (Database is not null)
-            acText.AdjustAlignment(Database);
+
+        acText.AdjustAlignment(DBTrans.Top.Database);
         return acText;
     }
 
@@ -90,10 +85,8 @@ public class TextInfo
             throw new ArgumentNullException(nameof(Contents) + "创建文字无内容");
 
         var mText = new MText();
-        mText.SetDatabaseDefaults();
 
-        if (Database is not null)
-            mText.SetDatabaseDefaults(Database);
+        mText.SetDatabaseDefaults(DBTrans.Top.Database);
 
         if (TextStyleId is not null)
             mText.SetTextStyleId(TextStyleId.Value);
@@ -109,7 +102,10 @@ public class TextInfo
     }
 }
 
-// 反射设定对象的文字样式id
+
+/// <summary>
+/// 反射设定对象的文字样式id
+/// </summary>
 public static partial class TextInfoHelper
 {
     /// <summary>

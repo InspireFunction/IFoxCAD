@@ -39,7 +39,7 @@ public class TestBlock
         }
     }
 
-    // 块定义
+    // 前台块定义
     [CommandMethod(nameof(Test_BlockDef))]
     public void Test_BlockDef()
     {
@@ -74,6 +74,46 @@ public class TestBlock
             return new List<Entity> { line, acText };
         });
     }
+
+    // 后台块定义
+    [CommandMethod(nameof(Test_BlockDefbehind))]
+    public void Test_BlockDefbehind()
+    {
+        using DBTrans tr = new(@"C:\Users\vic\Desktop\test.dwg");
+        // var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+        tr.BlockTable.Add("test",
+            btr => {
+                btr.Origin = new Point3d(0, 0, 0);
+            },
+            () => // 图元
+            {
+                return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0)) };
+            },
+            () => // 属性定义
+            {
+                var id1 = new AttributeDefinition() { Position = new Point3d(0, 0, 0), Tag = "start", Height = 0.2 };
+                var id2 = new AttributeDefinition() { Position = new Point3d(1, 1, 0), Tag = "end", Height = 0.2 };
+                return new List<AttributeDefinition> { id1, id2 };
+            }
+        );
+        // ObjectId objectId = tr.BlockTable.Add("a");// 新建块
+        // objectId.GetObject<BlockTableRecord>().AddEntity();// 测试添加空实体
+        tr.BlockTable.Add("test1",
+        btr => {
+            btr.Origin = new Point3d(0, 0, 0);
+        },
+        () => {
+            var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+            var acText = new TextInfo("12345", Point3d.Origin, AttachmentPoint.BaseLeft)
+                        .AddDBTextToEntity();
+            
+            return new List<Entity> { line, acText };
+        });
+        tr.SaveDwgFile();
+    }
+
+
+
     // 修改块定义
     [CommandMethod(nameof(Test_BlockDefChange))]
     public void Test_BlockDefChange()

@@ -1,5 +1,5 @@
 ﻿namespace IFoxCAD.Cad;
-
+#if false
 public static partial class EntityAdd
 {
     /// <summary>
@@ -27,8 +27,7 @@ public static partial class EntityAdd
             justify,
             justifyPoint,
             textStyleId,
-            textHigh,
-            db);
+            textHigh);
         return TextInfo.AddDBTextToEntity();
     }
 
@@ -55,8 +54,9 @@ public static partial class EntityAdd
             justify,
             null,
             textStyleId,
-            textHigh,
-            db);
+            textHigh);
         return TextInfo.AddMTextToEntity();
     }
 }
+
+#endif
