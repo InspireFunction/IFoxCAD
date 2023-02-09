@@ -26,7 +26,7 @@ public static class SymbolTableEx
     /// <returns>图层id</returns>
     public static ObjectId Add(this SymbolTable<LayerTable, LayerTableRecord> table, string name, int colorIndex)
     {
-        colorIndex %= 256;// 防止输入的颜色超出256
+        colorIndex %= 257;// 防止输入的颜色超出256
         colorIndex = Math.Abs(colorIndex);// 防止负数
         return table.Add(name, lt => lt.Color = Color.FromColorIndex(ColorMethod.ByColor, (short)colorIndex));
     }
