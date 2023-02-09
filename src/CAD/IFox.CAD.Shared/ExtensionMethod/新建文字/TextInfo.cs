@@ -5,6 +5,7 @@
 /// </summary>
 public class TextInfo
 {
+    readonly Database? Database;
     readonly string? Contents;
     readonly Point3d Position;
     /// <summary>
@@ -26,12 +27,14 @@ public class TextInfo
     /// <param name="justifyPoint">对齐点(对齐方式是左,此参数无效,为null不为左就报错)</param>
     /// <param name="textStyleId">文字样式id</param>
     /// <param name="textHeight">文字高度</param>
+    /// <param name="database">数据库</param>
     public TextInfo(string? contents,
         Point3d position,
         AttachmentPoint justify,
         Point3d? justifyPoint = null,
         ObjectId? textStyleId = null,
-        double textHeight = 2.5)
+        double textHeight = 2.5,
+        Database? database = null)
     {
         Contents = contents;
         Position = position;
@@ -43,6 +46,7 @@ public class TextInfo
         AlignmentPoint = justifyPoint;
         TextHeight = textHeight;
         TextStyleId = textStyleId;
+        Database = database;
     }
 
     /// <summary>
@@ -54,8 +58,9 @@ public class TextInfo
             throw new ArgumentNullException(nameof(Contents) + "创建文字无内容");
 
         var acText = new DBText();
-        acText.SetDatabaseDefaults(DBTrans.Top.Database);
-    
+     
+        acText.SetDatabaseDefaults(Database ?? DBTrans.Top.Database);
+
         if (TextStyleId is not null)
             acText.SetTextStyleId(TextStyleId.Value);
 
@@ -71,7 +76,7 @@ public class TextInfo
             acText.AlignmentPoint = Position;
 
 
-        acText.AdjustAlignment(DBTrans.Top.Database);
+        acText.AdjustAlignment(Database ?? DBTrans.Top.Database);
         return acText;
     }
 
@@ -86,7 +91,7 @@ public class TextInfo
 
         var mText = new MText();
 
-        mText.SetDatabaseDefaults(DBTrans.Top.Database);
+        mText.SetDatabaseDefaults(Database ?? DBTrans.Top.Database);
 
         if (TextStyleId is not null)
             mText.SetTextStyleId(TextStyleId.Value);
