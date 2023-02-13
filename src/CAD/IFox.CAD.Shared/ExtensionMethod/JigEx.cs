@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using IFox.Basal;
+
+namespace IFoxCAD.Cad;
 
 /*  封装jig
  *  20220726 隐藏事件,利用函数进行数据库图元重绘
@@ -319,8 +321,9 @@ public class JigEx : DrawJig, IDisposable
     public void SetSpaceIsKeyword()
     {
         var opt = _options;
-        if (opt == null)
-            throw new ArgumentNullException(nameof(_options));
+        //if (opt == null)
+        //    throw new ArgumentNullException(nameof(_options));
+        opt.NotNull(nameof(_options));
 
         if ((opt.UserInputControls & UserInputControls.NullResponseAccepted) == UserInputControls.NullResponseAccepted)
             opt.UserInputControls ^= UserInputControls.NullResponseAccepted; // 输入了鼠标右键,结束jig

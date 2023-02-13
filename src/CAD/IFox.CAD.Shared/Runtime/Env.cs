@@ -1,3 +1,5 @@
+using IFox.Basal;
+
 namespace IFoxCAD.Cad;
 
 /// <summary>
@@ -695,10 +697,13 @@ public static class Env
     /// <exception cref="ArgumentNullException"></exception>
     public static object? SetVarEx(string? key, string? value)
     {
-        if (key == null)
-            throw new ArgumentNullException(nameof(key));
-        if (value == null)
-            throw new ArgumentNullException(nameof(value));
+        //if (key == null)
+        //    throw new ArgumentNullException(nameof(key));
+        //if (value == null)
+        //    throw new ArgumentNullException(nameof(value));
+        key.NotNull(nameof(key));
+        value.NotNull(nameof(value));
+
 
         var currentVar = Env.GetVar(key);
         if (currentVar == null)
@@ -727,9 +732,9 @@ public static class Env
     /// <returns>返回现有变量词典,然后下次就可以利用它进行设置回来了</returns>
     public static Dictionary<string, string> SaveCadVar(Dictionary<string, string> args)
     {
-        if (args is null)
-            throw new ArgumentNullException(nameof(args));
-
+        //if (args is null)
+        //    throw new ArgumentNullException(nameof(args));
+        args.NotNull(nameof(args));
         var dict = new Dictionary<string, string>();
         foreach (var item in args)
         {

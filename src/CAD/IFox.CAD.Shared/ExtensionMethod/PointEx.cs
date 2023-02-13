@@ -1,3 +1,5 @@
+using IFox.Basal;
+
 namespace IFoxCAD.Cad;
 
 public static class PointEx
@@ -97,8 +99,7 @@ public static class PointEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void End2End(this Point2dCollection ptcol)
     {
-        if (ptcol == null)
-            throw new ArgumentNullException(nameof(ptcol));
+        ptcol.NotNull(nameof(ptcol));
 
         if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))// 首尾相同直接返回
             return;
@@ -118,9 +119,7 @@ public static class PointEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void End2End(this Point3dCollection ptcol)
     {
-        if (ptcol == null)
-            throw new ArgumentNullException(nameof(ptcol));
-
+        ptcol.NotNull(nameof(ptcol));
         if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))// 首尾相同直接返回
             return;
 

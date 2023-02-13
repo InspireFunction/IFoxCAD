@@ -1,5 +1,6 @@
 ﻿namespace IFoxCAD.Cad;
 
+using IFox.Basal;
 using System.Data;
 using PointV = Point2d;
 
@@ -156,11 +157,15 @@ public class HatchConverter
     /// <param name="hcData">收集图元信息</param>
     static void HatchLoopIsPolyline(HatchLoop loop, HatchConverterData hcData)
     {
-        if (loop is null)
-            throw new ArgumentNullException(nameof(loop));
+        //if (loop is null)
+        //    throw new ArgumentNullException(nameof(loop));
 
-        if (hcData is null)
-            throw new ArgumentNullException(nameof(hcData));
+        //if (hcData is null)
+        //    throw new ArgumentNullException(nameof(hcData));
+
+        loop.NotNull(nameof(loop)); 
+        hcData.NotNull(nameof(hcData));
+
 
         // 判断为圆形:
         // 上下两个圆弧,然后填充,就会生成此种填充
@@ -186,8 +191,10 @@ public class HatchConverter
     /// <returns></returns>
     static CircleData? TwoArcFormOneCircle(HatchLoop loop)
     {
-        if (loop is null)
-            throw new ArgumentNullException(nameof(loop));
+        //if (loop is null)
+        //    throw new ArgumentNullException(nameof(loop));
+
+        loop.NotNull(nameof(loop));
 
         if (loop.Curves.Count != 2)
             throw new ArgumentException(

@@ -1,5 +1,6 @@
 ﻿namespace IFoxCAD.Cad;
 
+using IFox.Basal;
 using IFoxCAD.Com;
 using System;
 using System.Diagnostics;
@@ -315,9 +316,9 @@ public partial class ClipTool
     [System.Diagnostics.DebuggerStepThrough]
     public static bool OpenClipboardTask(bool isWrite, Action action)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
+        //if (action == null)
+        //    throw new ArgumentNullException(nameof(action));
+        action.NotNull(nameof(action));
         bool openFlag = false;
         try
         {

@@ -1,5 +1,6 @@
 namespace IFoxCAD.Cad;
 
+using IFox.Basal;
 using System.Diagnostics;
 using System.IO;
 using System.Threading;
@@ -570,9 +571,9 @@ public class DBTrans : IDisposable
     /// <param name="handlingDBTextDeviation">开启单行文字偏移处理</param>
     public void Task(Action action, bool handlingDBTextDeviation = true)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
+        //if (action == null)
+        //    throw new ArgumentNullException(nameof(action));
+        action.NotNull(nameof(action));
         // 前台开图 || 后台直接处理
         if (Document != null || !handlingDBTextDeviation)
         {

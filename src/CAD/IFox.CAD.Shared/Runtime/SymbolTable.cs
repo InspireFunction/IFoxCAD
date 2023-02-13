@@ -372,7 +372,6 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         if (task == null)
             throw new ArgumentNullException(nameof(task));
-
         LoopState state = new();/*这种方式比Action改Func更友好*/
         int i = 0;
         foreach (var id in this)

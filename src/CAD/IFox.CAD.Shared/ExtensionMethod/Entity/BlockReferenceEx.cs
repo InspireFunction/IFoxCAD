@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using IFox.Basal;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 块参照扩展类
@@ -93,9 +95,9 @@ public static class BlockReferenceEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId> action, DBTrans? tr = null)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
+        //if (action == null)
+        //    throw new ArgumentNullException(nameof(action));
+        action.NotNull(nameof(action));
         tr ??= DBTrans.Top;
         var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
         if (btr == null)
@@ -112,9 +114,9 @@ public static class BlockReferenceEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState> action, DBTrans? tr = null)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
+        //if (action == null)
+        //    throw new ArgumentNullException(nameof(action));
+        action.NotNull(nameof(action));
         tr ??= DBTrans.Top;
         var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
         if (btr == null)
@@ -131,9 +133,7 @@ public static class BlockReferenceEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState, int> action, DBTrans? tr = null)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
+        action.NotNull(nameof(action));
         tr ??= DBTrans.Top;
         var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
         if (btr == null)

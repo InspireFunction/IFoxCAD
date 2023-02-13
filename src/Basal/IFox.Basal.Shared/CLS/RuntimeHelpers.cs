@@ -3,6 +3,8 @@
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
 
+using IFox.Basal;
+
 namespace System.Runtime.CompilerServices;
 
 /*
@@ -24,8 +26,9 @@ internal static class RuntimeHelpers
     /// </summary>
     public static T[] GetSubArray<T>(T[] array, Range range)
     {
-        if (array == null)
-            throw new ArgumentNullException(nameof(array));
+        //if (array == null)
+        //    throw new ArgumentNullException(nameof(array));
+        array.NotNull(nameof(array));
 
         (int offset, int length) = range.GetOffsetAndLength(array.Length);
 

@@ -1,5 +1,7 @@
 ﻿#define Marshal
 
+using IFox.Basal;
+
 namespace IFoxCAD.Basal;
 public partial class WindowsAPI
 {
@@ -80,8 +82,9 @@ public partial class WindowsAPI
     /// <exception cref="ArgumentNullException"></exception>
     public static bool GlobalLockTask(IntPtr data, Action<IntPtr> task)
     {
-        if (task == null)
-            throw new ArgumentNullException(nameof(task));
+        //if (task == null)
+        //    throw new ArgumentNullException(nameof(task));
+        task.NotNull(nameof(task));
         if (data == IntPtr.Zero)
             return false;
 

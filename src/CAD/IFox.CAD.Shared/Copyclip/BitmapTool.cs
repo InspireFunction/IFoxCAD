@@ -1,5 +1,6 @@
 ﻿namespace IFoxCAD.Cad;
 
+using IFox.Basal;
 using System;
 /// <summary>
 /// bitmap工具类
@@ -137,9 +138,9 @@ public class BitmapTool
     /// <exception cref="ArgumentNullException"></exception>
     public static void CaptureWndImage(IntPtr hWnd, Action<IntPtr> action)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
+        //if (action == null)
+        //    throw new ArgumentNullException(nameof(action));
+        action.NotNull(nameof(action));
         var hDC = GetDC(hWnd);
         var hMemDC = CreateCompatibleDC(hDC);
         if (hMemDC == IntPtr.Zero)

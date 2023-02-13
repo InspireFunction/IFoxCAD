@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using IFox.Basal;
+
+namespace IFoxCAD.Cad;
 
 #if NewtonsoftJson
 /*
@@ -94,9 +96,9 @@ public class ObjectIdConverter : JavaScriptConverter
     /// </summary>
     public override object Deserialize(IDictionary<string, object> dictionary, Type type, JavaScriptSerializer serializer)
     {
-        if (dictionary == null)
-            throw new ArgumentNullException(nameof(dictionary));
-
+        //if (dictionary == null)
+        //    throw new ArgumentNullException(nameof(dictionary));
+        dictionary.NotNull(nameof(dictionary));
         if (type != typeof(ObjectId))
             return null!;
 

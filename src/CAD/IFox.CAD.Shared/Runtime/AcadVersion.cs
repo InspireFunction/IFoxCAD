@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using IFox.Basal;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// cad版本号类
@@ -48,8 +50,7 @@ public static class AcadVersion
     /// <returns>cad版本号对象</returns>
     public static CadVersion? FromApp(object app)
     {
-        if (app == null)
-            throw new ArgumentNullException(nameof(app));
+        app.NotNull(nameof(app));
 
         string acver = app.GetType()
                         .InvokeMember(

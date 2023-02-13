@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using IFox.Basal;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 选择集扩展类
@@ -79,9 +81,9 @@ public static class SelectionSetEx
                                                  bool openErased = false,
                                                  bool openLockedLayer = false) where T : Entity
     {
-        if (ss is null)
-            throw new ArgumentNullException(nameof(ss));
-
+        //if (ss is null)
+        //    throw new ArgumentNullException(nameof(ss));
+        ss.NotNull(nameof(ss));
         trans ??= DBTrans.Top;
         return ss.GetObjectIds()
                  .Select(id => trans.GetObject<T>(id, openMode, openErased, openLockedLayer))
@@ -133,9 +135,7 @@ public static class SelectionSetEx
                                  bool openErased = false,
                                  bool openLockedLayer = false) where T : Entity
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
-
+        action.NotNull(nameof(action));
         trans ??= DBTrans.Top;
 
         LoopState state = new();

@@ -26,6 +26,7 @@
 
 namespace System.Collections.Generic
 {
+    using IFox.Basal;
     using System;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;
@@ -127,11 +128,11 @@ namespace System.Collections.Generic
         public SortedSet(IEnumerable<T> collection, IComparer<T> comparer)
             : this(comparer)
         {
-            if (collection == null)
-            {
-                throw new ArgumentNullException("collection");
-            }
-
+            //if (collection == null)
+            //{
+            //    throw new ArgumentNullException("collection");
+            //}
+            collection.NotNull(nameof(collection));
             // these are explicit type checks in the mould of HashSet. It would have worked better
             // with something like an ISorted<T> (we could make this work for SortedList.Keys etc)
             SortedSet<T> baseTreeSubSet = collection as TreeSubSet;
@@ -1180,10 +1181,11 @@ namespace System.Collections.Generic
         /// <param name="other"></param>
         public void UnionWith(IEnumerable<T> other)
         {
-            if (other == null)
-            {
-                throw new ArgumentNullException("other");
-            }
+            //if (other == null)
+            //{
+            //    throw new ArgumentNullException("other");
+            //}
+            other.NotNull(nameof(other));
 
             SortedSet<T> s = other as SortedSet<T>;
             TreeSubSet t = this as TreeSubSet;
@@ -1346,10 +1348,11 @@ namespace System.Collections.Generic
         /// <param name="other"></param>
         public virtual void IntersectWith(IEnumerable<T> other)
         {
-            if (other == null)
-            {
-                throw new ArgumentNullException("other");
-            }
+            //if (other == null)
+            //{
+            //    throw new ArgumentNullException("other");
+            //}
+            other.NotNull(nameof(other));
 
             if (Count == 0)
                 return;
@@ -1433,10 +1436,11 @@ namespace System.Collections.Generic
         /// <param name="other"></param>
         public void ExceptWith(IEnumerable<T> other)
         {
-            if (other == null)
-            {
-                throw new ArgumentNullException("other");
-            }
+            //if (other == null)
+            //{
+            //    throw new ArgumentNullException("other");
+            //}
+            other.NotNull(nameof(other));
 
             if (count == 0)
                 return;
@@ -1480,11 +1484,11 @@ namespace System.Collections.Generic
         /// <param name="other"></param>
         public void SymmetricExceptWith(IEnumerable<T> other)
         {
-            if (other == null)
-            {
-                throw new ArgumentNullException("other");
-            }
-
+            //if (other == null)
+            //{
+            //    throw new ArgumentNullException("other");
+            //}
+            other.NotNull(nameof(other));
             if (this.Count == 0)
             {
                 this.UnionWith(other);
@@ -1574,11 +1578,11 @@ namespace System.Collections.Generic
         [System.Security.SecuritySafeCritical]
         public bool IsSubsetOf(IEnumerable<T> other)
         {
-            if (other == null)
-            {
-                throw new ArgumentNullException("other");
-            }
-
+            //if (other == null)
+            //{
+            //    throw new ArgumentNullException("other");
+            //}
+            other.NotNull(nameof(other));
             if (Count == 0)
                 return true;
 
@@ -1619,11 +1623,11 @@ namespace System.Collections.Generic
         [System.Security.SecuritySafeCritical]
         public bool IsProperSubsetOf(IEnumerable<T> other)
         {
-            if (other == null)
-            {
-                throw new ArgumentNullException("other");
-            }
-
+            //if (other == null)
+            //{
+            //    throw new ArgumentNullException("other");
+            //}
+            other.NotNull(nameof(other));
             if ((other as ICollection) != null)
             {
                 if (Count == 0)
@@ -1661,11 +1665,11 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public bool IsSupersetOf(IEnumerable<T> other)
         {
-            if (other == null)
-            {
-                throw new ArgumentNullException("other");
-            }
-
+            //if (other == null)
+            //{
+            //    throw new ArgumentNullException("other");
+            //}
+            other.NotNull(nameof(other));
             if ((other as ICollection) != null && (other as ICollection).Count == 0)
                 return true;
 
@@ -1701,11 +1705,11 @@ namespace System.Collections.Generic
         [System.Security.SecuritySafeCritical]
         public bool IsProperSupersetOf(IEnumerable<T> other)
         {
-            if (other == null)
-            {
-                throw new ArgumentNullException("other");
-            }
-
+            //if (other == null)
+            //{
+            //    throw new ArgumentNullException("other");
+            //}
+            other.NotNull(nameof(other));
             if (Count == 0)
                 return false;
 
@@ -1753,11 +1757,11 @@ namespace System.Collections.Generic
         [System.Security.SecuritySafeCritical]
         public bool SetEquals(IEnumerable<T> other)
         {
-            if (other == null)
-            {
-                throw new ArgumentNullException("other");
-            }
-
+            //if (other == null)
+            //{
+            //    throw new ArgumentNullException("other");
+            //}
+            other.NotNull(nameof(other));
 #if USING_HASH_SET
             HashSet<T> asHash = other as HashSet<T>;
             if (asHash != null && comparer.Equals(Comparer<T>.Default) && asHash.Comparer.Equals(EqualityComparer<T>.Default)) {
@@ -1797,11 +1801,11 @@ namespace System.Collections.Generic
         /// <returns></returns>
         public bool Overlaps(IEnumerable<T> other)
         {
-            if (other == null)
-            {
-                throw new ArgumentNullException("other");
-            }
-
+            //if (other == null)
+            //{
+            //    throw new ArgumentNullException("other");
+            //}
+            other.NotNull(nameof(other));
             if (this.Count == 0)
                 return false;
 
@@ -1930,10 +1934,11 @@ namespace System.Collections.Generic
         }
         public int RemoveWhere(Predicate<T> match)
         {
-            if (match == null)
-            {
-                throw new ArgumentNullException("match");
-            }
+            //if (match == null)
+            //{
+            //    throw new ArgumentNullException("match");
+            //}
+            match.NotNull(nameof(match));
             List<T> matches = new(this.Count);
 
             BreadthFirstTreeWalk(delegate (Node n)

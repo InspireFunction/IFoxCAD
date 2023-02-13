@@ -1,4 +1,5 @@
-﻿using System.Diagnostics;
+﻿using IFox.Basal;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace IFoxCAD.Cad;
@@ -314,9 +315,10 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <returns></returns>
     public static bool IsRectAngle(List<Point2d>? ptList, double tolerance = 1e-8)
     {
-        if (ptList == null)
-            throw new ArgumentNullException(nameof(ptList));
+        //if (ptList == null)
+        //    throw new ArgumentNullException(nameof(ptList));
 
+        ptList.NotNull(nameof(ptList));
         var pts = ptList.ToList();
         /*
          *  消重,不这里设置,否则这不是一个正确的单元测试
@@ -369,9 +371,9 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// </summary>
     public static bool IsRect(List<Point2d>? ptList, double tolerance = 1e-10)
     {
-        if (ptList == null)
-            throw new ArgumentNullException(nameof(ptList));
-
+        //if (ptList == null)
+        //    throw new ArgumentNullException(nameof(ptList));
+        ptList.NotNull(nameof(ptList));
         var pts = ptList.ToList();
         if (ptList.Count == 5)
         {
@@ -419,9 +421,9 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <returns></returns>
     public static bool RectAnglePointOrder(List<Point2d>? pts)
     {
-        if (pts == null)
-            throw new ArgumentNullException(nameof(pts));
-
+        //if (pts == null)
+        //    throw new ArgumentNullException(nameof(pts));
+        pts.NotNull(nameof(pts));
         if (!Rect.IsRectAngle(pts))
             return false;
 

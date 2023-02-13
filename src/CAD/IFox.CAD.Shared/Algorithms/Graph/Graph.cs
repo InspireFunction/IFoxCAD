@@ -1,4 +1,6 @@
 ﻿namespace IFoxCAD.Cad;
+
+using IFox.Basal;
 using Exception = System.Exception;
 
 /// <summary>
@@ -89,8 +91,10 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// <param name="curve"></param>
     public void AddEdge(Curve3d curve)
     {
-        if (curve == null)
-            throw new ArgumentNullException(nameof(curve));
+        //if (curve == null)
+        //    throw new ArgumentNullException(nameof(curve));
+
+        curve.NotNull(nameof(curve));
 
         var start = AddVertex(curve.StartPoint);
         var end = AddVertex(curve.EndPoint);
@@ -151,8 +155,9 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// <param name="curve">曲线</param>
     public void RemoveEdge(Curve3d curve)
     {
-        if (curve == null)
-            throw new ArgumentNullException(nameof(curve));
+        //if (curve == null)
+        //    throw new ArgumentNullException(nameof(curve));
+        curve.NotNull(nameof(curve));
 
         RemoveVertex(curve.StartPoint);
         RemoveVertex(curve.EndPoint);

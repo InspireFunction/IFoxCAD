@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using IFox.Basal;
+
+namespace IFoxCAD.Cad;
 
 /*
  *  添加的第一个边界必须是外边界,即用于定义图案填充最外面的边界。
@@ -292,9 +294,9 @@ public class HatchInfo
                                 BlockTableRecord btrOfAddEntitySpace,
                                 HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
-        if (pts == null)
-            throw new ArgumentNullException(nameof(pts));
-
+        //if (pts == null)
+        //    throw new ArgumentNullException(nameof(pts));
+        pts.NotNull(nameof(pts));
         pts.End2End();
 #if NET35
         _boundaryIds.Add(CreateAddBoundary(pts, bluges, btrOfAddEntitySpace));

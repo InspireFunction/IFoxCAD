@@ -1,5 +1,7 @@
 ﻿// #define error_demo
 
+using IFox.Basal;
+
 namespace IFoxCAD.Cad;
 
 #region 参照工厂
@@ -457,9 +459,9 @@ public class XrefPath
     /// <returns>是否外部参照</returns>
     public XrefPath(BlockReference brf, DBTrans tr)
     {
-        if (brf == null)
-            throw new ArgumentNullException(nameof(brf));
-
+        //if (brf == null)
+        //    throw new ArgumentNullException(nameof(brf));
+        brf.NotNull(nameof(brf));
         CurrentDatabasePath = Path.GetDirectoryName(tr.Database.Filename);
 
         var btRec = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);// 块表记录
@@ -499,10 +501,13 @@ public class XrefPath
     /// <returns></returns>
     public static string? PathConverter(string? directory, string? fileRelations, PathConverterModes converterModes)
     {
-        if (directory == null)
-            throw new ArgumentNullException(nameof(directory));
-        if (fileRelations == null)
-            throw new ArgumentNullException(nameof(fileRelations));
+        //if (directory == null)
+        //    throw new ArgumentNullException(nameof(directory));
+        //if (fileRelations == null)
+        //    throw new ArgumentNullException(nameof(fileRelations));
+
+        directory.NotNull(nameof(directory));
+        fileRelations.NotNull(nameof(fileRelations));
 
         string? result = null;
         switch (converterModes)
