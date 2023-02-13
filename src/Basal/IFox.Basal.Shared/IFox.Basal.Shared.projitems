@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\ParameterRebinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\PredicateBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\SqlExpressionVisitor.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)General\ArgumentNullEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\ArrayEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\DebugHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\DictEx.cs" />
