@@ -1,7 +1,5 @@
 ﻿#define Marshal
 
-using IFox.Basal;
-
 namespace IFoxCAD.Basal;
 public partial class WindowsAPI
 {

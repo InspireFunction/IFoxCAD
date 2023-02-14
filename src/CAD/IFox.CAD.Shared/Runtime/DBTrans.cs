@@ -1,6 +1,6 @@
 namespace IFoxCAD.Cad;
 
-using IFox.Basal;
+
 using System.Diagnostics;
 using System.IO;
 using System.Threading;

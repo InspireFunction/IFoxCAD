@@ -1,6 +1,6 @@
 ﻿
 
-namespace IFox.Basal
+namespace IFoxCAD.Basal
 {
     /// <summary>
     /// 参数null检查类
@@ -14,7 +14,7 @@ namespace IFox.Basal
         /// <param name="argument">参数</param>
         /// <param name="argumentExpression">参数为null时的提示信息</param>
         /// <exception cref="ArgumentNullException"></exception>
-        public static void NotNull<T>(this T? argument, string? argumentExpression = null) where T : class
+        public static void NotNull<T>(this T? argument, string? argumentExpression = null)
         {
             if (argument == null) throw new ArgumentNullException(paramName: argumentExpression);
         }

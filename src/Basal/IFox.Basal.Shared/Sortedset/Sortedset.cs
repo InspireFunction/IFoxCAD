@@ -26,7 +26,7 @@
 
 namespace System.Collections.Generic
 {
-    using IFox.Basal;
+    using IFoxCAD.Basal;
     using System;
     using System.Diagnostics;
     using System.Diagnostics.CodeAnalysis;

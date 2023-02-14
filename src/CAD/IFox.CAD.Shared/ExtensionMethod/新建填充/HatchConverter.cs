@@ -1,6 +1,6 @@
 ﻿namespace IFoxCAD.Cad;
 
-using IFox.Basal;
+
 using System.Data;
 using PointV = Point2d;
 

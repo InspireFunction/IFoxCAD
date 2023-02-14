@@ -1,5 +1,4 @@
-﻿using IFox.Basal;
-using System.Diagnostics;
+﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace IFoxCAD.Cad;

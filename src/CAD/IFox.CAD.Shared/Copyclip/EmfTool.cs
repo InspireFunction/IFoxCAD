@@ -1,6 +1,5 @@
 ﻿namespace IFoxCAD.Cad;
 
-using IFox.Basal;
 using System;
 using System.Diagnostics;
 using System.Drawing;
@@ -546,9 +545,9 @@ public static class EmfTool
     /// <exception cref="ArgumentNullException"></exception>
     public static void SetEnhMetaFileDescriptionEx(ref IntPtr hMetaFile, string desc)
     {
-        if (hMetaFile == IntPtr.Zero)
-            throw new ArgumentNullException(nameof(hMetaFile));
-        
+        //if (hMetaFile == IntPtr.Zero)
+        //    throw new ArgumentNullException(nameof(hMetaFile));
+        hMetaFile.NotNull(nameof(hMetaFile));
         var emh = EnhMetaHeader.Create(hMetaFile);//emf结构 GetEnhMetaFileHeader
         // 创建画布句柄
         IntRect intRect = emh.rclFrame; //new(0, 0, 0, 0);

@@ -1,6 +1,5 @@
 ﻿namespace IFoxCAD.Cad;
 
-using IFox.Basal;
 using System;
 /// <summary>
 /// bitmap工具类

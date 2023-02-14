@@ -1,6 +1,5 @@
 ﻿namespace IFoxCAD.Cad;
 
-using IFox.Basal;
 using Exception = System.Exception;
 
 /// <summary>

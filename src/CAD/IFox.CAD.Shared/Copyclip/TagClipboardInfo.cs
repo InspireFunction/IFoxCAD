@@ -1,7 +1,5 @@
 ﻿namespace IFoxCAD.Cad;
 
-using IFox.Basal;
-using IFoxCAD.Com;
 using System;
 using System.Diagnostics;
 using System.Text;

@@ -202,9 +202,9 @@ public static class SymbolTableRecordEx
     {
         var circle = CircleEx.CreateCircle(p0, p1, p2);
         // return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
-        if (circle is null)
-            throw new ArgumentNullException(nameof(circle), "对象为 null");
-
+        //if (circle is null)
+        //    throw new ArgumentNullException(nameof(circle), "对象为 null");
+        circle.NotNull(nameof(circle));
         return btr.AddEnt(circle, action, trans);
     }
     /// <summary>
@@ -503,8 +503,9 @@ public static class SymbolTableRecordEx
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, LoopState, int> task)
         where TRecord : SymbolTableRecord, IEnumerable
     {
-        if (task == null)
-            throw new ArgumentNullException(nameof(task));
+        //if (task == null)
+        //    throw new ArgumentNullException(nameof(task));
+        task.NotNull(nameof(task));
         int i = 0;
         LoopState state = new();/*这种方式比Action改Func更友好*/
         foreach (ObjectId id in record)

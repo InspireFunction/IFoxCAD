@@ -1,6 +1,6 @@
 ﻿// #define error_demo
 
-using IFox.Basal;
+
 
 namespace IFoxCAD.Cad;
 

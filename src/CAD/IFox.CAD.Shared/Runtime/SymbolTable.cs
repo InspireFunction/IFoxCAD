@@ -1,4 +1,4 @@
-using static System.Windows.Forms.AxHost;
+//using static System.Windows.Forms.AxHost;
 
 namespace IFoxCAD.Cad;
 
@@ -276,8 +276,9 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <returns>对象id</returns>
     public ObjectId GetRecordFrom(SymbolTable<TTable, TRecord> table, string name, bool over)
     {
-        if (table is null)
-            throw new ArgumentNullException(nameof(table), "对象为null");
+        //if (table is null)
+        //    throw new ArgumentNullException(nameof(table), "对象为null");
+        table.NotNull(nameof(table));
 
         ObjectId rid = this[name];
         bool has = rid != ObjectId.Null;
@@ -370,8 +371,9 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
                         bool openErased = false,
                         bool openLockedLayer = false)
     {
-        if (task == null)
-            throw new ArgumentNullException(nameof(task));
+        //if (task == null)
+        //    throw new ArgumentNullException(nameof(task));
+        task.NotNull(nameof(task));
         LoopState state = new();/*这种方式比Action改Func更友好*/
         int i = 0;
         foreach (var id in this)
