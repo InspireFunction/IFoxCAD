@@ -77,16 +77,14 @@ public static class SelectionSetEx
     [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<T> GetEntities<T>(this SelectionSet ss,
                                                  OpenMode openMode = OpenMode.ForRead,
-                                                 DBTrans? trans = null,
                                                  bool openErased = false,
                                                  bool openLockedLayer = false) where T : Entity
     {
         //if (ss is null)
         //    throw new ArgumentNullException(nameof(ss));
         ss.NotNull(nameof(ss));
-        trans ??= DBTrans.Top;
         return ss.GetObjectIds()
-                 .Select(id => trans.GetObject<T>(id, openMode, openErased, openLockedLayer))
+                 .Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer))
                  .Where(ent => ent != null)
                  .OfType<T>();
     }
@@ -113,7 +111,7 @@ public static class SelectionSetEx
     {
         ForEach<T>(ss, (ent, state) => {
             action.Invoke(ent);
-        }, openMode, tr, openErased, openLockedLayer);
+        }, openMode, openErased, openLockedLayer);
     }
 
     /// <summary>
@@ -131,15 +129,13 @@ public static class SelectionSetEx
     public static void ForEach<T>(this SelectionSet ss,
                                  Action<T?, LoopState> action,
                                  OpenMode openMode = OpenMode.ForRead,
-                                 DBTrans? trans = null,
                                  bool openErased = false,
                                  bool openLockedLayer = false) where T : Entity
     {
         action.NotNull(nameof(action));
-        trans ??= DBTrans.Top;
 
         LoopState state = new();
-        var ents = ss.GetEntities<T>(openMode, trans, openErased, openLockedLayer);
+        var ents = ss.GetEntities<T>(openMode, openErased, openLockedLayer);
         foreach (var ent in ents)
         {
             action.Invoke(ent, state);

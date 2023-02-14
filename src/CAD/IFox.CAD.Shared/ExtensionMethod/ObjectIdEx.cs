@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using System.Data.Common;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 对象id扩展类
@@ -18,12 +20,11 @@ public static class ObjectIdEx
     /// <returns>指定类型对象</returns>
     public static T? GetObject<T>(this ObjectId id,
                                  OpenMode openMode = OpenMode.ForRead,
-                                 Transaction? trans = null,
                                  bool openErased = false,
                                  bool openLockedLayer = false) where T : DBObject
     {
-        trans ??= DBTrans.Top.Transaction;
-        return trans.GetObject(id, openMode, openErased, openLockedLayer) as T;
+        var tr = DBTrans.GetTopTransaction(id.Database);
+        return tr.GetObject(id, openMode, openErased, openLockedLayer) as T;
     }
 
     /// <summary>
@@ -39,12 +40,10 @@ public static class ObjectIdEx
     [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<T?> GetObject<T>(this IEnumerable<ObjectId> ids,
                                                OpenMode openMode = OpenMode.ForRead,
-                                               Transaction? trans = null,
                                                bool openErased = false,
                                                bool openLockedLayer = false) where T : DBObject
     {
-        trans ??= DBTrans.Top.Transaction;
-        return ids.Select(id => id.GetObject<T>(openMode, trans, openErased, openLockedLayer));
+        return ids.Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer));
     }
 
     /// <summary>

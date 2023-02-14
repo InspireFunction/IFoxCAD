@@ -54,7 +54,7 @@ public static class SymbolTableEx
     /// <returns>成功返回 <see langword="true"/>，失败返回 <see langword="false"/></returns>
     public static bool Delete(this SymbolTable<LayerTable, LayerTableRecord> table, string name)
     {
-        if (name == "0" || name == "Defpoints" || !table.Has(name) || table[name] == DBTrans.Top.Database.Clayer)
+        if (name == "0" || name == "Defpoints" || !table.Has(name) || table[name] == table.Database.Clayer)
             return false;
 
         table.CurrentSymbolTable.GenerateUsageData();

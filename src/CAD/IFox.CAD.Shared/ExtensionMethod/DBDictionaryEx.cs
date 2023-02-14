@@ -13,12 +13,12 @@ public static class DBDictionaryEx
     /// <param name="trans">事务</param>
     /// <returns>对象迭代器</returns>
     [System.Diagnostics.DebuggerStepThrough]
-    public static IEnumerable<T> GetAllObjects<T>(this DBDictionary dict, DBTrans? trans = null) where T : DBObject
+    public static IEnumerable<T> GetAllObjects<T>(this DBDictionary dict) where T : DBObject
     {
-        trans ??= DBTrans.Top;
+        var tr = DBTrans.GetTopTransaction(dict.Database);
         foreach (DBDictionaryEntry e in dict)
         {
-            var ent = trans.GetObject<T>(e.Value);
+            var ent = tr.GetObject(e.Value, OpenMode.ForRead) as T;
             if (ent is not null)
                 yield return ent;
         }
@@ -32,14 +32,14 @@ public static class DBDictionaryEx
     /// <param name="trans">事务</param>
     /// <param name="key">指定的键值</param>
     /// <returns>T 类型的对象</returns>
-    public static T? GetAt<T>(this DBDictionary dict, string key, DBTrans? trans = null) where T : DBObject
+    public static T? GetAt<T>(this DBDictionary dict, string key) where T : DBObject
     {
-        trans ??= DBTrans.Top;
+        var tr = DBTrans.GetTopTransaction(dict.Database);
         if (dict.Contains(key))
         {
             ObjectId id = dict.GetAt(key);
             if (!id.IsNull)
-                return trans.GetObject<T>(id);
+                return tr.GetObject(id, OpenMode.ForRead) as T;
         }
         return null;
     }
@@ -52,13 +52,14 @@ public static class DBDictionaryEx
     /// <param name="trans">事务</param>
     /// <param name="key">键</param>
     /// <param name="newValue">值</param>
-    public static void SetAt<T>(this DBDictionary dict, string key, T newValue, Transaction? trans = null) where T : DBObject
+    public static void SetAt<T>(this DBDictionary dict, string key, T newValue) where T : DBObject
     {
-        trans ??= DBTrans.Top.Transaction;
+        var tr = DBTrans.GetTopTransaction(dict.Database);
+
         using (dict.ForWrite())
         {
             dict.SetAt(key, newValue);
-            trans.AddNewlyCreatedDBObject(newValue, true);
+            tr.AddNewlyCreatedDBObject(newValue, true);
         }
     }
 
@@ -101,7 +102,8 @@ public static class DBDictionaryEx
     /// <returns>扩展字典对象</returns>
     public static DBDictionary? GetXDictionary(this DBObject obj, DBTrans? trans = null)
     {
-        trans ??= DBTrans.Top;
+        var tr = DBTrans.GetTopTransaction(obj.Database);
+
         ObjectId id = obj.ExtensionDictionary;
         if (id.IsNull)
         {
@@ -110,7 +112,7 @@ public static class DBDictionaryEx
 
             id = obj.ExtensionDictionary;
         }
-        return id.GetObject<DBDictionary>(trans: trans);
+        return id.GetObject<DBDictionary>();
     }
 
     #region 数据表
@@ -214,11 +216,10 @@ public static class DBDictionaryEx
     /// <returns>字典</returns>
     public static DBDictionary? GetSubDictionary(this DBDictionary dict,
         bool createSubDictionary,
-        IEnumerable<string> dictNames,
-        DBTrans? trans = null)
+        IEnumerable<string> dictNames)
     {
         DBDictionary? newdict = null;
-        trans ??= DBTrans.Top;
+
         if (createSubDictionary)
         {
             using (dict.ForWrite())
@@ -228,12 +229,12 @@ public static class DBDictionaryEx
             {
                 if (dict.Contains(name))
                 {
-                    newdict = dict.GetAt<DBDictionary>(name, trans);
+                    newdict = dict.GetAt<DBDictionary>(name);
                 }
                 else
                 {
                     DBDictionary subDict = new();
-                    dict.SetAt(name, subDict, trans);
+                    dict.SetAt(name, subDict);
                     newdict = subDict;
                     newdict.TreatElementsAsHard = true;
                 }
@@ -244,7 +245,7 @@ public static class DBDictionaryEx
             foreach (string name in dictNames)
             {
                 if (dict.Contains(name))
-                    newdict = dict.GetAt<DBDictionary>(name, trans);
+                    newdict = dict.GetAt<DBDictionary>(name);
                 else
                     return null;
             }
@@ -285,7 +286,8 @@ public static class DBDictionaryEx
             Group g = new();
             g.Append(ids);
             dict.SetAt(name, g);
-            DBTrans.Top.Transaction.AddNewlyCreatedDBObject(g, true);
+            var tr = DBTrans.GetTopTransaction(dict.Database);
+            tr.AddNewlyCreatedDBObject(g, true);
             return g.ObjectId;
         }
     }

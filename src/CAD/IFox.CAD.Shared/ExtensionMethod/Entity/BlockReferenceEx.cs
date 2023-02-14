@@ -93,13 +93,13 @@ public static class BlockReferenceEx
     /// <param name="tr"></param>
     /// <exception cref="ArgumentNullException"></exception>
     [System.Diagnostics.DebuggerStepThrough]
-    public static void ForEach(this BlockReference brf, Action<ObjectId> action, DBTrans? tr = null)
+    public static void ForEach(this BlockReference brf, Action<ObjectId> action)
     {
         //if (action == null)
         //    throw new ArgumentNullException(nameof(action));
         action.NotNull(nameof(action));
-        tr ??= DBTrans.Top;
-        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
+        var tr = DBTrans.GetTopTransaction(brf.Database);
+        var btr = tr.GetObject(brf.BlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
         if (btr == null)
             return;
         btr.ForEach(action);
@@ -112,13 +112,13 @@ public static class BlockReferenceEx
     /// <param name="tr"></param>
     /// <exception cref="ArgumentNullException"></exception>
     [System.Diagnostics.DebuggerStepThrough]
-    public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState> action, DBTrans? tr = null)
+    public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState> action)
     {
         //if (action == null)
         //    throw new ArgumentNullException(nameof(action));
         action.NotNull(nameof(action));
-        tr ??= DBTrans.Top;
-        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
+        var tr = DBTrans.GetTopTransaction(brf.Database);
+        var btr = tr.GetObject(brf.BlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
         if (btr == null)
             return;
         btr.ForEach(action);
@@ -131,11 +131,11 @@ public static class BlockReferenceEx
     /// <param name="tr"></param>
     /// <exception cref="ArgumentNullException"></exception>
     [System.Diagnostics.DebuggerStepThrough]
-    public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState, int> action, DBTrans? tr = null)
+    public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState, int> action)
     {
         action.NotNull(nameof(action));
-        tr ??= DBTrans.Top;
-        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
+        var tr = DBTrans.GetTopTransaction(brf.Database);
+        var btr = tr.GetObject(brf.BlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
         if (btr == null)
             return;
         btr.ForEach(action);
