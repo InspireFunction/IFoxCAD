@@ -498,10 +498,10 @@ public class HatchPickEvent : IDisposable
     /// <param name="hatch"></param>
     /// <param name="outSsgetIds"></param>
     /// <param name="tr"></param>
-    void CreatHatchConverter(Hatch hatch, HashSet<ObjectId> outSsgetIds, DBTrans? tr = null)
+    void CreatHatchConverter(Hatch hatch, HashSet<ObjectId> outSsgetIds)
     {
-        tr ??= DBTrans.Top;
-
+        //tr ??= DBTrans.Top;
+        var tr = DBTrans.GetTopTransaction(hatch.Database);
         var hc = new HatchConverter(hatch);
         ObjectId newid;
 
@@ -523,7 +523,8 @@ public class HatchPickEvent : IDisposable
 
             // 创建新填充和边界
             hc.GetBoundarysData();
-            newid = hc.CreateBoundarysAndHatchToMsPs(tr.CurrentSpace, trans: tr);
+
+            newid = hc.CreateBoundarysAndHatchToMsPs((BlockTableRecord)tr.GetObject(hatch.Database.CurrentSpaceId,OpenMode.ForWrite));
             HatchPickEnv.SetMeXData(newid, hc.BoundaryIds);
 
             // 清理上次,删除边界和填充

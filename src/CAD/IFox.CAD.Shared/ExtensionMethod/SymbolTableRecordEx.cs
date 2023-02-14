@@ -71,18 +71,17 @@ public static class SymbolTableRecordEx
     /// <param name="entity">实体</param>
     /// <param name="trans">事务管理器</param>
     /// <returns>对象 id</returns>
-    public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity,
-                                     Transaction? trans = null)
+    public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity)
     {
         // if (entity is null)
         //    throw new ArgumentNullException(nameof(entity), "对象为 null");
 
         ObjectId id;
-        trans ??= DBTrans.Top.Transaction;
+        var tr = DBTrans.GetTopTransaction(btr.Database);
         using (btr.ForWrite())
         {
             id = btr.AppendEntity(entity);
-            trans.AddNewlyCreatedDBObject(entity, true);
+            tr.AddNewlyCreatedDBObject(entity, true);
         }
         return id;
     }
@@ -95,18 +94,17 @@ public static class SymbolTableRecordEx
     /// <param name="ents">实体集合</param>
     /// <param name="trans">事务</param>
     /// <returns>对象 id 列表</returns>
-    public static IEnumerable<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents,
-                                                    Transaction? trans = null) where T : Entity
+    public static IEnumerable<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents) where T : Entity
     {
         // if (ents.Any(ent => ent is null))
         //    throw new ArgumentNullException(nameof(ents), "实体集合内存在 null 对象");
 
-        trans ??= DBTrans.Top.Transaction;
+        var tr = DBTrans.GetTopTransaction(btr.Database);
         using (btr.ForWrite())
         {
             return ents.Select(ent => {
                 ObjectId id = btr.AppendEntity(ent);
-                trans.AddNewlyCreatedDBObject(ent, true);
+                tr.AddNewlyCreatedDBObject(ent, true);
                 return id;
             }).ToList();
         }
@@ -120,7 +118,7 @@ public static class SymbolTableRecordEx
     /// <returns>对象 id 列表</returns>
     public static IEnumerable<ObjectId> AddEntity(this BlockTableRecord btr, params Entity[] ents)
     {
-        return btr.AddEntity(ents, null);
+        return btr.AddEntity(ents);
     }
     #endregion
 
@@ -135,10 +133,10 @@ public static class SymbolTableRecordEx
     /// <param name="trans">事务管理器</param>
     /// <returns>图元id</returns>
     private static ObjectId AddEnt<T>(this BlockTableRecord btr, T ent,
-                                      Action<T>? action, Transaction? trans = null) where T : Entity
+                                      Action<T>? action) where T : Entity
     {
         action?.Invoke(ent);
-        return btr.AddEntity(ent, trans);
+        return btr.AddEntity(ent);
     }
     /// <summary>
     /// 委托式的添加图元
@@ -153,7 +151,7 @@ public static class SymbolTableRecordEx
         if (ent is null)
             return ObjectId.Null;
 
-        return btr.AddEntity(ent, trans);
+        return btr.AddEntity(ent);
     }
 
     /// <summary>
@@ -166,10 +164,10 @@ public static class SymbolTableRecordEx
     /// <param name="action">直线属性设置委托</param>
     /// <returns>直线的id</returns>
     public static ObjectId AddLine(this BlockTableRecord btr, Point3d start, Point3d end,
-                                   Action<Line>? action = null, Transaction? trans = null)
+                                   Action<Line>? action = null)
     {
         var line = new Line(start, end);
-        return btr.AddEnt(line, action, trans);
+        return btr.AddEnt(line, action);
     }
     /// <summary>
     /// 在指定绘图空间X-Y平面添加圆
@@ -184,7 +182,7 @@ public static class SymbolTableRecordEx
                                      Action<Circle>? action = null, Transaction? trans = null)
     {
         var circle = new Circle(center, Vector3d.ZAxis, radius);
-        return btr.AddEnt(circle, action, trans);
+        return btr.AddEnt(circle, action);
     }
 
     /// <summary>
@@ -198,14 +196,14 @@ public static class SymbolTableRecordEx
     /// <param name="trans">事务管理器</param>
     /// <returns>三点有外接圆则返回圆的id，否则返回ObjectId.Null</returns>
     public static ObjectId AddCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2,
-                                     Action<Circle>? action = null, Transaction? trans = null)
+                                     Action<Circle>? action = null)
     {
         var circle = CircleEx.CreateCircle(p0, p1, p2);
         // return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
         //if (circle is null)
         //    throw new ArgumentNullException(nameof(circle), "对象为 null");
         circle.NotNull(nameof(circle));
-        return btr.AddEnt(circle, action, trans);
+        return btr.AddEnt(circle, action);
     }
     /// <summary>
     /// 在指定的绘图空间添加轻多段线
@@ -236,7 +234,7 @@ public static class SymbolTableRecordEx
                 pl.AddVertexAt(i, bvws[i].Vertex, bvws[i].Bulge, bvws[i].StartWidth, bvws[i].EndWidth);
         }
         pl.Closed = isClosed;// 闭合
-        return btr.AddEnt(pl, action, trans);
+        return btr.AddEnt(pl, action);
     }
     /// <summary>
     /// 在指定的绘图空间添加轻多段线
@@ -266,7 +264,7 @@ public static class SymbolTableRecordEx
 
         for (int i = 0; i < pts.Count; i++)
             pl.AddVertexAt(i, pts[i].Point2d(), bulges[i], startWidths[i], endWidths[i]);
-        return btr.AddEnt(pl, action, trans);
+        return btr.AddEnt(pl, action);
     }
 
     /// <summary>
@@ -289,7 +287,7 @@ public static class SymbolTableRecordEx
             pl.AddVertexAt(index, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
         });
 
-        return btr.AddEnt(pl, action, trans);
+        return btr.AddEnt(pl, action);
     }
 
     /// <summary>
@@ -307,7 +305,7 @@ public static class SymbolTableRecordEx
                                   Action<Arc>? action = null, Transaction? trans = null)
     {
         var arc = ArcEx.CreateArc(startPoint, pointOnArc, endPoint);
-        return btr.AddEnt(arc, action, trans);
+        return btr.AddEnt(arc, action);
     }
     #endregion
 
@@ -325,15 +323,13 @@ public static class SymbolTableRecordEx
     /// <returns>实体集合</returns>
     public static IEnumerable<T> GetEntities<T>(this BlockTableRecord btr,
                                                 OpenMode openMode = OpenMode.ForRead,
-                                                Transaction? trans = null,
                                                 bool openErased = false,
                                                 bool openLockedLayer = false) where T : Entity
     {
-        trans ??= DBTrans.Top.Transaction;
         return
             btr
             .Cast<ObjectId>()
-            .Select(id => trans.GetObject(id, openMode, openErased, openLockedLayer))
+            .Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer))
             .OfType<T>();
     }
 
@@ -375,9 +371,8 @@ public static class SymbolTableRecordEx
                                                     bool openErased = false,
                                                     bool openLockedLayer = false)
     {
-        trans ??= DBTrans.Top.Transaction;
-        return trans.GetObject(btr.DrawOrderTableId, OpenMode.ForRead,
-               openErased, openLockedLayer) as DrawOrderTable;
+        var tr = DBTrans.GetTopTransaction(btr.Database);
+        return tr.GetObject(btr.DrawOrderTableId, OpenMode.ForRead, openErased, openLockedLayer) as DrawOrderTable;
     }
     #endregion
 

@@ -11,12 +11,12 @@ public static class PolylineEx
     /// <param name="pl2d">二维多段线</param>
     /// <param name="trans">事务</param>
     /// <returns>端点坐标集合</returns>
-    public static IEnumerable<Point3d> GetPoints(this Polyline2d pl2d, DBTrans? trans = null)
+    public static IEnumerable<Point3d> GetPoints(this Polyline2d pl2d)
     {
-        trans ??= DBTrans.Top;
+        var tr = DBTrans.GetTopTransaction(pl2d.Database);
         foreach (ObjectId id in pl2d)
         {
-            var vertex = trans.GetObject<Vertex2d>(id);
+            var vertex = tr.GetObject(id, OpenMode.ForRead) as Vertex2d;
             if (vertex != null)
                 yield return vertex.Position;
         }
@@ -29,12 +29,12 @@ public static class PolylineEx
     /// <param name="pl3d">三维多段线</param>
     /// <param name="trans">事务</param>
     /// <returns>端点坐标集合</returns>
-    public static IEnumerable<Point3d> GetPoints(this Polyline3d pl3d, DBTrans? trans = null)
+    public static IEnumerable<Point3d> GetPoints(this Polyline3d pl3d)
     {
-        trans ??= DBTrans.Top;
+        var tr = DBTrans.GetTopTransaction(pl3d.Database);
         foreach (ObjectId id in pl3d)
         {
-            var vertex = trans.GetObject<PolylineVertex3d>(id);
+            var vertex = tr.GetObject(id, OpenMode.ForRead) as PolylineVertex3d;
             if (vertex != null)
                 yield return vertex.Position;
         }  

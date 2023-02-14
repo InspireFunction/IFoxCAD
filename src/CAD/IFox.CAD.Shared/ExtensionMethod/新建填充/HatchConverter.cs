@@ -321,8 +321,7 @@ public class HatchConverter
     /// <returns>新填充id,边界在<see cref="BoundaryIds"/>获取</returns>
     public ObjectId CreateBoundarysAndHatchToMsPs(BlockTableRecord btrOfAddEntitySpace,
         bool boundaryAssociative = true,
-        bool createHatchFlag = true,
-        Transaction? trans = null)
+        bool createHatchFlag = true)
     {
         List<Entity> boEnts = new();
         CreateBoundary(boEnts);
@@ -345,11 +344,11 @@ public class HatchConverter
         using IdMapping map = new();
         btrOfAddEntitySpace.DeepCloneEx(idc, map);
         var newHatchId = map.GetValues()[0];
-        trans ??= DBTrans.Top.Transaction;
+        var tr = DBTrans.GetTopTransaction(btrOfAddEntitySpace.Database);
 
         bool openErased = false;
         bool openLockedLayer = false;
-        var hatchEnt = trans.GetObject(newHatchId, OpenMode.ForWrite,
+        var hatchEnt = tr.GetObject(newHatchId, OpenMode.ForWrite,
                                        openErased, openLockedLayer) as Hatch;
         if (hatchEnt != null)
         {

@@ -172,12 +172,12 @@ public static class RedrawEx
     /// </summary>
     /// <param name="entity">实体对象</param>
     [Obsolete("此处已经被RedrawEx代替")]
-    public static void Flush(this Entity entity, DBTrans? trans = null)
+    public static void Flush(this Entity entity)
     {
-        trans ??= DBTrans.Top;
+        var tr = DBTrans.GetTopTransaction(entity.Database);
         entity.RecordGraphicsModified(true);
-        trans.Transaction.TransactionManager.QueueForGraphicsFlush();
-        trans.Document?.TransactionManager.FlushGraphics();
+        tr.TransactionManager.QueueForGraphicsFlush();
+        
     }
 
     /// <summary>
@@ -185,7 +185,6 @@ public static class RedrawEx
     /// </summary>
     /// <param name="id">实体id</param>
     [Obsolete("此处已经被RedrawEx代替")]
-    public static void Flush(this ObjectId id)
-        => Flush(DBTrans.Top.GetObject<Entity>(id)!);
+    public static void Flush(this ObjectId id) => Flush(id.GetObject<Entity>()!);
     #endregion
 }

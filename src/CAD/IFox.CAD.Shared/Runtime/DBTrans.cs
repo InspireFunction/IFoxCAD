@@ -17,6 +17,21 @@ public class DBTrans : IDisposable
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     string DebuggerDisplay => ToString(" | ");
 
+    #region 静态函数
+    /// <summary>
+    /// 获取顶层事务
+    /// </summary>
+    /// <param name="database">数据库</param>
+    /// <returns>事务对象</returns>
+    public static Transaction GetTopTransaction(Database database)
+    {
+        database.NotNull(nameof(database));
+        var trans = database.TransactionManager.TopTransaction;
+        trans.NotNull(nameof(trans));
+        return trans;
+    }
+    #endregion
+
     #region 私有字段
     /// <summary>
     /// 事务栈
@@ -70,6 +85,9 @@ public class DBTrans : IDisposable
             return trans;
         }
     }
+    
+
+
     /// <summary>
     /// 文档
     /// </summary>
