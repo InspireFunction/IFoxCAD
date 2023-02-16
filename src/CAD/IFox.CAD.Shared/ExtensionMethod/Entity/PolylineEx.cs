@@ -16,7 +16,7 @@ public static class PolylineEx
         var tr = DBTrans.GetTopTransaction(pl2d.Database);
         foreach (ObjectId id in pl2d)
         {
-            var vertex = tr.GetObject(id, OpenMode.ForRead) as Vertex2d;
+            var vertex = tr.GetObject<Vertex2d>(id, OpenMode.ForRead);
             if (vertex != null)
                 yield return vertex.Position;
         }
@@ -34,7 +34,7 @@ public static class PolylineEx
         var tr = DBTrans.GetTopTransaction(pl3d.Database);
         foreach (ObjectId id in pl3d)
         {
-            var vertex = tr.GetObject(id, OpenMode.ForRead) as PolylineVertex3d;
+            var vertex = tr.GetObject<PolylineVertex3d>(id);
             if (vertex != null)
                 yield return vertex.Position;
         }  

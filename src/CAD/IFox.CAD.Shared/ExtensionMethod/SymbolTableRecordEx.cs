@@ -81,8 +81,9 @@ public static class SymbolTableRecordEx
         using (btr.ForWrite())
         {
             id = btr.AppendEntity(entity);
-            tr.AddNewlyCreatedDBObject(entity, true);
+            tr.Transaction.AddNewlyCreatedDBObject(entity, true);
         }
+
         return id;
     }
 
@@ -104,7 +105,7 @@ public static class SymbolTableRecordEx
         {
             return ents.Select(ent => {
                 ObjectId id = btr.AppendEntity(ent);
-                tr.AddNewlyCreatedDBObject(ent, true);
+                tr.Transaction.AddNewlyCreatedDBObject(ent, true);
                 return id;
             }).ToList();
         }
@@ -372,7 +373,7 @@ public static class SymbolTableRecordEx
                                                     bool openLockedLayer = false)
     {
         var tr = DBTrans.GetTopTransaction(btr.Database);
-        return tr.GetObject(btr.DrawOrderTableId, OpenMode.ForRead, openErased, openLockedLayer) as DrawOrderTable;
+        return tr.GetObject<DrawOrderTable>(btr.DrawOrderTableId, OpenMode.ForRead, openErased, openLockedLayer);
     }
     #endregion
 
@@ -392,16 +393,15 @@ public static class SymbolTableRecordEx
                                        string blockName,
                                        Scale3d scale = default,
                                        double rotation = default,
-                                       Dictionary<string, string>? atts = null,
-                                       Transaction? trans = null)
+                                       Dictionary<string, string>? atts = null)
     {
-        trans ??= DBTrans.Top.Transaction;
-        if (!DBTrans.Top.BlockTable.Has(blockName))
+        var tr = DBTrans.GetTopTransaction(blockTableRecord.Database);
+        if (!tr.BlockTable.Has(blockName))
         {
-            DBTrans.Top.Editor?.WriteMessage($"\n不存在名字为{blockName}的块定义。");
+            tr.Editor?.WriteMessage($"\n不存在名字为{blockName}的块定义。");
             return ObjectId.Null;
         }
-        return blockTableRecord.InsertBlock(position, DBTrans.Top.BlockTable[blockName], scale, rotation, atts, trans);
+        return blockTableRecord.InsertBlock(position, tr.BlockTable[blockName], scale, rotation, atts);
     }
     /// <summary>
     /// 插入块参照
@@ -417,15 +417,18 @@ public static class SymbolTableRecordEx
                                        ObjectId blockId,
                                        Scale3d scale = default,
                                        double rotation = default,
-                                       Dictionary<string, string>? atts = null,
-                                       Transaction? trans = null)
+                                       Dictionary<string, string>? atts = null)
     {
-        trans ??= DBTrans.Top.Transaction;
-        if (!DBTrans.Top.BlockTable.Has(blockId))
+        //trans ??= DBTrans.Top.Transaction;
+        var tr = DBTrans.GetTopTransaction(blockTableRecord.Database);
+        
+        if (!tr.BlockTable.Has(blockId))
         {
-            DBTrans.Top.Editor?.WriteMessage($"\n不存在块定义。");
+            tr.Editor?.WriteMessage($"\n不存在块定义。");
             return ObjectId.Null;
         }
+            
+
         using var blockref = new BlockReference(position, blockId)
         {
             ScaleFactors = scale,
@@ -435,7 +438,7 @@ public static class SymbolTableRecordEx
 
         if (atts != null)
         {
-            var btr = DBTrans.Top.GetObject<BlockTableRecord>(blockref.BlockTableRecord)!;
+            var btr = tr.GetObject<BlockTableRecord>(blockref.BlockTableRecord)!;
             if (btr.HasAttributeDefinitions)
             {
                 var attdefs = btr.GetEntities<AttributeDefinition>();
@@ -451,7 +454,7 @@ public static class SymbolTableRecordEx
                         attref.TextString = atts[attdef.Tag];
 
                     blockref.AttributeCollection.AppendAttribute(attref);
-                    trans.AddNewlyCreatedDBObject(attref, true);
+                    tr.Transaction.AddNewlyCreatedDBObject(attref, true);
                 }
             }
         }

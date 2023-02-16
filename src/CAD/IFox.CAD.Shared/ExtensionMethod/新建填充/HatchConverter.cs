@@ -348,8 +348,7 @@ public class HatchConverter
 
         bool openErased = false;
         bool openLockedLayer = false;
-        var hatchEnt = tr.GetObject(newHatchId, OpenMode.ForWrite,
-                                       openErased, openLockedLayer) as Hatch;
+        var hatchEnt = tr.GetObject<Hatch>(newHatchId, OpenMode.ForWrite, openErased, openLockedLayer);
         if (hatchEnt != null)
         {
             ResetBoundary(hatchEnt, boundaryAssociative);
