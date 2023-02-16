@@ -18,7 +18,7 @@ public static class DBDictionaryEx
         var tr = DBTrans.GetTopTransaction(dict.Database);
         foreach (DBDictionaryEntry e in dict)
         {
-            var ent = tr.GetObject(e.Value, OpenMode.ForRead) as T;
+            var ent = tr.GetObject<T>(e.Value, OpenMode.ForRead);
             if (ent is not null)
                 yield return ent;
         }
@@ -39,7 +39,7 @@ public static class DBDictionaryEx
         {
             ObjectId id = dict.GetAt(key);
             if (!id.IsNull)
-                return tr.GetObject(id, OpenMode.ForRead) as T;
+                return tr.GetObject<T>(id);
         }
         return null;
     }
@@ -59,7 +59,7 @@ public static class DBDictionaryEx
         using (dict.ForWrite())
         {
             dict.SetAt(key, newValue);
-            tr.AddNewlyCreatedDBObject(newValue, true);
+            tr.Transaction.AddNewlyCreatedDBObject(newValue, true);
         }
     }
 
@@ -287,7 +287,7 @@ public static class DBDictionaryEx
             g.Append(ids);
             dict.SetAt(name, g);
             var tr = DBTrans.GetTopTransaction(dict.Database);
-            tr.AddNewlyCreatedDBObject(g, true);
+            tr.Transaction.AddNewlyCreatedDBObject(g, true);
             return g.ObjectId;
         }
     }

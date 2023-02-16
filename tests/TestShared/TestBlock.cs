@@ -1,4 +1,7 @@
-﻿namespace Test;
+﻿using IFoxCAD.Cad;
+using System.Data.Common;
+
+namespace Test;
 
 public class TestBlock
 {
@@ -194,6 +197,27 @@ public class TestBlock
         tr.CurrentSpace.InsertBlock(new Point3d(10, 10, 0), "test2", atts: def2);
         tr.CurrentSpace.InsertBlock(new Point3d(-10, 0, 0), "test44");
     }
+    [CommandMethod(nameof(Test_InsertBlockWithDoubleDatabase))]
+    public void Test_InsertBlockWithDoubleDatabase()
+    {
+        using var tr = new DBTrans(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "test.dwg"));
+        using var trans = new DBTrans();
+
+        tr.BlockTable.Add("test456",
+            btr => {
+                btr.Origin = new(0, 0, 0);
+            },
+            () => {
+                var line = new Line(new(0, 0, 0), new(1, 1, 0));
+                var actext = new TextInfo("123", Point3d.Origin, AttachmentPoint.BaseLeft, database: tr.Database).AddDBTextToEntity();
+                return new List<Entity> { line,actext };
+
+            });
+        tr.CurrentSpace.InsertBlock(Point3d.Origin, "test456");
+        tr.SaveDwgFile();
+    }
+
+
 
     [CommandMethod(nameof(Test_AddAttsDef))]
     public void Test_AddAttsDef()

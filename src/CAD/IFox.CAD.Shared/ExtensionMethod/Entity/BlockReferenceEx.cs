@@ -99,7 +99,7 @@ public static class BlockReferenceEx
         //    throw new ArgumentNullException(nameof(action));
         action.NotNull(nameof(action));
         var tr = DBTrans.GetTopTransaction(brf.Database);
-        var btr = tr.GetObject(brf.BlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
         if (btr == null)
             return;
         btr.ForEach(action);
@@ -118,7 +118,7 @@ public static class BlockReferenceEx
         //    throw new ArgumentNullException(nameof(action));
         action.NotNull(nameof(action));
         var tr = DBTrans.GetTopTransaction(brf.Database);
-        var btr = tr.GetObject(brf.BlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
         if (btr == null)
             return;
         btr.ForEach(action);
@@ -135,7 +135,7 @@ public static class BlockReferenceEx
     {
         action.NotNull(nameof(action));
         var tr = DBTrans.GetTopTransaction(brf.Database);
-        var btr = tr.GetObject(brf.BlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
         if (btr == null)
             return;
         btr.ForEach(action);

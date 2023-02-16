@@ -24,7 +24,7 @@ public static class ObjectIdEx
                                  bool openLockedLayer = false) where T : DBObject
     {
         var tr = DBTrans.GetTopTransaction(id.Database);
-        return tr.GetObject(id, openMode, openErased, openLockedLayer) as T;
+        return tr.GetObject<T>(id, openMode, openErased, openLockedLayer);
     }
 
     /// <summary>

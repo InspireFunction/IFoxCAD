@@ -23,12 +23,21 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="database">数据库</param>
     /// <returns>事务对象</returns>
-    public static Transaction GetTopTransaction(Database database)
+    public static DBTrans GetTopTransaction(Database database)
     {
         database.NotNull(nameof(database));
         var trans = database.TransactionManager.TopTransaction;
         trans.NotNull(nameof(trans));
-        return trans;
+
+        foreach (var item in _dBTrans)
+        {
+            if (item.Transaction.UnmanagedObject == trans.UnmanagedObject)
+            {
+                return item;
+            }
+        }  // 匹配事务栈内dbtrans的transaction的指针与数据库的顶层事务的指针
+
+        return Top;
     }
     #endregion
 
