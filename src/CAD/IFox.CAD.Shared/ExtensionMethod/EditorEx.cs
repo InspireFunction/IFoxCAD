@@ -1,4 +1,4 @@
-﻿using IFoxCAD.Com;
+using IFoxCAD.Com;
 
 namespace IFoxCAD.Cad;
 
@@ -1067,7 +1067,7 @@ public static class EditorEx
         if ((flag & RunLispFlag.AdsQueueexpr) == RunLispFlag.AdsQueueexpr)
         {
             // 这个在08/12发送lisp不会出错,但是发送bo命令出错了.
-            // 0x01 设置 CommandFlags.Session 可以同步,
+            // 0x01 设置RunLispFlag特性为RunLispFlag.AcedEvaluateLisp即可同步执行
             // 0x02 自执行发送lisp都是异步,用来发送 含有(command)的lisp的
             _ = Ads_queueexpr(lispCode + "\n");
         }
