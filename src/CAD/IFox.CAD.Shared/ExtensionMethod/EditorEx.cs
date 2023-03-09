@@ -1,5 +1,3 @@
-using IFoxCAD.Com;
-
 namespace IFoxCAD.Cad;
 
 /// <summary>
