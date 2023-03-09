@@ -448,7 +448,7 @@ public static class SymbolTableRecordEx
                     attref.SetDatabaseDefaults();
                     attref.SetAttributeFromBlock(attdef, blockref.BlockTransform);
                     attref.Position = attdef.Position.TransformBy(blockref.BlockTransform);
-                    attref.AdjustAlignment(DBTrans.Top.Database);
+                    attref.AdjustAlignment(tr.Database);
 
                     if (atts.ContainsKey(attdef.Tag))
                         attref.TextString = atts[attdef.Tag];

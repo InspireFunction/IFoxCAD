@@ -41,11 +41,11 @@ public partial class Test
     public void Test_Addent()
     {
         using DBTrans tr = new();
-        Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
+        Line line = new(new(0, 0, 0), new(1, 1, 0));
         tr.CurrentSpace.AddEntity(line);
-        Line line1 = new(new Point3d(10, 10, 0), new Point3d(41, 1, 0));
+        Line line1 = new(new(10, 10, 0), new(41, 1, 0));
         tr.ModelSpace.AddEntity(line1);
-        Line line2 = new(new Point3d(-10, 10, 0), new Point3d(41, 1, 0));
+        Line line2 = new(new(-10, 10, 0), new(41, 1, 0));
         tr.PaperSpace.AddEntity(line2);
     }
 
@@ -58,6 +58,7 @@ public partial class Test
         Arc arc3 = ArcEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));   // 起点，圆上一点，终点
         tr.CurrentSpace.AddEntity(arc1, arc2, arc3);
         tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));// 起点，圆上一点，终点
+        
     }
 
     [CommandMethod(nameof(Test_DrawCircle))]
