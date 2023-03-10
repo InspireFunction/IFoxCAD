@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 public class MouseHook
 {
@@ -170,6 +170,16 @@ public class MouseHook
             case WM.WM_MBUTTONDOWN:
             _button = MouseButtons.Middle;
             _clickCount = 1;
+            _ck = true;
+            break;
+            case WM.WM_MBUTTONUP:
+            _button = MouseButtons.Middle;
+            _clickCount = 1;
+            _up = true;
+            break;
+            case WM.WM_MBUTTONDBLCLK:
+            _button = MouseButtons.Middle;
+            _clickCount = 2;
             _ck = true;
             break;
             case WM.WM_MOUSEWHEEL:
