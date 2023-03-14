@@ -45,7 +45,6 @@ global using Cad_ErrorStatus = GrxCAD.Runtime.ErrorStatus;
 
 /// ifoxcad.basal 引用
 global using IFoxCAD.Basal;
-global using IFoxCAD.Com;
 
 #if !NewtonsoftJson
 global using System.Web.Script.Serialization;

@@ -1,7 +1,7 @@
 ﻿<Project>
 
     <PropertyGroup> <!--需要设置的内容-->
-        <Version>0.5.2.3</Version>
+        <Version>0.6.0.0</Version>
         <PackageReleaseNotes>修复TextInfo.AddDBTextToEntity()报错的问题</PackageReleaseNotes>
     </PropertyGroup>
 

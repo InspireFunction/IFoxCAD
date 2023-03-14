@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Com;
+﻿namespace IFoxCAD.Basal;
 
 /// <summary>
 /// 后绑代码工具
