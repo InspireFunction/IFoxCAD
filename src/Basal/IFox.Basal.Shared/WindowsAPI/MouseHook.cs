@@ -1,4 +1,7 @@
-﻿namespace IFoxCAD.Basal;
+﻿using System.Drawing;
+using System.Windows.Forms;
+
+namespace IFoxCAD.Basal;
 
 public class MouseHook
 {

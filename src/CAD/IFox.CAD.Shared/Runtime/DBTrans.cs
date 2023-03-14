@@ -231,11 +231,7 @@ public class DBTrans : IDisposable
                     }
                     else
                     {
-#if ac2008
-                        Database.ReadDwgFile(_fileName, FileOpenModeHelper.GetFileShare(fileOpenMode), true, password);
-#else
                         Database.ReadDwgFile(_fileName, fileOpenMode, true, password);
-#endif
                     }
                     Database.CloseInput(true);
                 }
