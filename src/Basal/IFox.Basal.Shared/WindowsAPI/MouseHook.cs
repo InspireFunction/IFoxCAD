@@ -1,4 +1,4 @@
-﻿using System.Drawing;
+using System.Drawing;
 using System.Windows.Forms;
 
 namespace IFoxCAD.Basal;
@@ -112,6 +112,8 @@ public class MouseHook
     bool _down = false;
     bool _up = false;
     bool _ck = false;
+    bool _wheel = false;
+    bool _move = false;
 
     /// <summary>
     /// 钩子的消息处理
@@ -135,6 +137,8 @@ public class MouseHook
         _down = false;
         _up = false;
         _ck = false;
+        _wheel = false;
+        _move = false;
 
         switch ((WM)wParam)
         {
@@ -175,10 +179,22 @@ public class MouseHook
             _clickCount = 1;
             _ck = true;
             break;
+            case WM.WM_MBUTTONUP:
+            _button = MouseButtons.Middle;
+            _clickCount = 1;
+            _up = true;
+            break;
+            case WM.WM_MBUTTONDBLCLK:
+            _button = MouseButtons.Middle;
+            _clickCount = 2;
+            _ck = true;
+            break;
             case WM.WM_MOUSEWHEEL:
+            _wheel = true;
             // 滚轮
             break;
             case WM.WM_MOUSEMOVE:
+            _move = true;
             // 移动
             // 假设想要限制鼠标在屏幕中的移动区域能够在此处设置
             // 后期须要考虑实际的x y的容差
@@ -213,8 +229,14 @@ public class MouseHook
                 _watch.Start();
             }
         }
-        MouseMove?.Invoke(this, e);
-        MouseWheel?.Invoke(this, e);
+        if (_move)
+        {
+            MouseMove?.Invoke(this, e);
+        }
+        if (_wheel)
+        {
+            MouseWheel?.Invoke(this, e);
+        }
 
         // 屏蔽此输入
         if (_isHookBreak)
