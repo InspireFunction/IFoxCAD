@@ -53,6 +53,9 @@ public class CadVersion
     //    // }
 }
 #else
+/// <summary>
+/// CAD版本
+/// </summary>
 public record CadVersion
 {
     /// <summary>

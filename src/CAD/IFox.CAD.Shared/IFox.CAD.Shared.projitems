@@ -45,6 +45,12 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\JigEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\JigExTransient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\JsonConverter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\DBLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\EventLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\FileLogger.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogTarget.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogTxt.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\ObjectIdEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\ObjEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\PointEx.cs" />
@@ -64,32 +70,34 @@
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\TypedValueList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\XdataList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\XRecordDataList.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\AcadEMR.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\AcadVersion.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\AOP.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\AssemInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\AutoLoad.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\AutoRegAssem.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\CadVersion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoReg\AcadEMR.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CadVersion\AcadVersion.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoReg\AssemInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoReg\AutoLoad.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoReg\AutoRegAssem.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)CadVersion\CadVersion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\DBTrans.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\Env.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\FileOpenMode.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\IAutoGo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\IdleAction.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\LateBinding.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\Log.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\MethodInfoHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\PE\AcadPeInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\PE\DBmod.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\PE\PostCmd.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\PE\ProgramPE.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\RedrawEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\CadInternalUtils.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoReg\IAutoGo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\IdleAction.cs" />
+    <Compile Include="..\IFox.CAD.Shared\ExtensionMethod\LogEx\LogHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoReg\MethodInfoHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PE\AcadPeInfo.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PE\DBmod.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PE\PostCmd.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)PE\ProgramPE.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\RedrawEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\SymbolTable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\Utils.cs" />
+    <Compile Include="..\IFox.CAD.Shared\Runtime\DBTransHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpComp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpEqual.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpFilter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpLogi.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="$(MSBuildThisFileDirectory)AutoReg\" />
+    <Folder Include="$(MSBuildThisFileDirectory)CadVersion\" />
   </ItemGroup>
 </Project>

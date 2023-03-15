@@ -524,7 +524,7 @@ public class HatchPickEvent : IDisposable
             // 创建新填充和边界
             hc.GetBoundarysData();
 
-            newid = hc.CreateBoundarysAndHatchToMsPs((BlockTableRecord)tr.GetObject(hatch.Database.CurrentSpaceId,OpenMode.ForWrite));
+            newid = hc.CreateBoundarysAndHatchToMsPs(tr.CurrentSpace);
             HatchPickEnv.SetMeXData(newid, hc.BoundaryIds);
 
             // 清理上次,删除边界和填充

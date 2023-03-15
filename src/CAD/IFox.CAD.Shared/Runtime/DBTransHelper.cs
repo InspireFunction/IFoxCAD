@@ -1,9 +1,11 @@
 ﻿namespace IFoxCAD.Cad;
 
-using System;
-
+/// <summary>
+/// dbtrans辅助类
+/// </summary>
 public class DBTransHelper
 {
+#if NET35
     /*
      * id = db.GetObjectId(false, handle, 0);
      * 参数意义: db.GetObjectId(如果没有找到就创建,句柄号,标记..将来备用)
@@ -64,7 +66,7 @@ public class DBTransHelper
         }
         return -1;
     }
-
+#endif
     /// <summary>
     /// 句柄转id
     /// </summary>
@@ -84,15 +86,4 @@ public class DBTransHelper
         return id;
     }
 
-    // public static int GetCadFileVersion(string filename)
-    // {
-    //    var bytes = File.ReadAllBytes(filename);
-    //    var headstr = Encoding.Default.GetString(bytes)[0..6];
-    //    if (!headstr.StartsWith("AC")) return 0;
-    //    var vernum = int.Parse(headstr.Replace("AC", ""));
-    //    var a = Enum.Parse(typeof(DwgVersion), "AC1800");
-    //    Enum.TryParse()
-    //    return vernum + 986;
-
-    // }
 }

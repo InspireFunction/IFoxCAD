@@ -61,8 +61,11 @@ public abstract class AutoLoad : IExtensionApplication
         RegistryKey ackey = Registry.CurrentUser.OpenSubKey(key, true);
         return ackey.CreateSubKey("Applications");
     }
-
-    protected void AppendSupportPath(string path)
+    /// <summary>
+    /// 添加 path 到 acad环境变量
+    /// </summary>
+    /// <param name="path">目录</param>
+    protected static void AppendSupportPath(string path)
     {
 #if NET35
         string key = HostApplicationServices.Current.RegistryProductRootKey;

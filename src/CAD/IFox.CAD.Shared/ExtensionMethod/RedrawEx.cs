@@ -176,8 +176,8 @@ public static class RedrawEx
     {
         var tr = DBTrans.GetTopTransaction(entity.Database);
         entity.RecordGraphicsModified(true);
-        tr.TransactionManager.QueueForGraphicsFlush();
-        
+        tr.Transaction.TransactionManager.QueueForGraphicsFlush();
+        tr.Document?.TransactionManager.FlushGraphics();
     }
 
     /// <summary>
