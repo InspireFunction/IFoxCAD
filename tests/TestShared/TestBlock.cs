@@ -27,7 +27,7 @@ public class TestBlock
     public void Test_GetBoundingBoxEx()
     {
         using DBTrans tr = new();
-        var ents = Env.Editor.SSGet()?.Value?.GetEntities<Entity>();
+        var ents = Env.Editor.SSGet().Value?.GetEntities<Entity>();
         if (ents == null)
             return;
         foreach (var item in ents)
@@ -50,9 +50,7 @@ public class TestBlock
                 btr.Origin = new Point3d(0, 0, 0);
             },
             () => // 图元
-            {
-                return new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0)) };
-            },
+                new List<Entity> { new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0)) },
             () => // 属性定义
             {
                 var id1 = new AttributeDefinition() { Position = new Point3d(0, 0, 0), Tag = "start", Height = 0.2 };
@@ -137,13 +135,16 @@ public class TestBlock
                 var ent = tr.GetObject<Entity>(id);
                 using (ent!.ForWrite())
                 {
-                    if (ent is Dimension dBText)
+                    switch (ent)
                     {
-                        dBText.DimensionText = "234";
-                        dBText.RecomputeDimensionBlock(true);
+                        case Dimension dBText:
+                            dBText.DimensionText = "234";
+                            dBText.RecomputeDimensionBlock(true);
+                            break;
+                        case Hatch hatch:
+                            hatch.ColorIndex = 0;
+                            break;
                     }
-                    if (ent is Hatch hatch)
-                        hatch.ColorIndex = 0;
                 }
             }
         });
