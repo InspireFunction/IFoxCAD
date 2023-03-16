@@ -50,7 +50,17 @@ public static class DBObjectEx
                 obj.XData = rb;
         }
     }
-
+    /// <summary>
+    /// 克隆对象
+    /// </summary>
+    /// <typeparam name="T">对象类型</typeparam>
+    /// <param name="ent">对象</param>
+    /// <returns>克隆后的对象</returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static T CloneEx<T>(this T ent) where T : RXObject
+    {
+        return ent.Clone() is T tEnt ? tEnt : throw new ArgumentException(nameof(CloneEx) + "克隆出错");
+    }
     /// <summary>
     /// 修改扩展数据
     /// </summary>
