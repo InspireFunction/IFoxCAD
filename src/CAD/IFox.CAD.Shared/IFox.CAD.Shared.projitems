@@ -51,6 +51,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogBase.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogTarget.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogTxt.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\ObjectIdEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\ObjEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\PointEx.cs" />
@@ -81,7 +82,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\CadInternalUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AutoReg\IAutoGo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\IdleAction.cs" />
-    <Compile Include="..\IFox.CAD.Shared\ExtensionMethod\LogEx\LogHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AutoReg\MethodInfoHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PE\AcadPeInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PE\DBmod.cs" />
@@ -89,7 +89,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)PE\ProgramPE.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\RedrawEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\SymbolTable.cs" />
-    <Compile Include="..\IFox.CAD.Shared\Runtime\DBTransHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Runtime\DBTransHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpComp.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpEqual.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpFilter.cs" />
