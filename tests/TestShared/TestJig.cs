@@ -75,8 +75,7 @@ public class Commands_Jig
 
             // 生成文字
             var dictString = (pl.GetDistAtPoint(closestPt) * 0.001).ToString("0.00");
-            var acText = new TextInfo(dictString, closestPt, AttachmentPoint.BaseLeft, textHeight: 200)
-                        .AddDBTextToEntity();
+            var acText = DBTextEx.CreateDBText(closestPt, dictString, 200);
 
             // 加入刷新队列
             drawEntitys.Enqueue(acText);
@@ -186,10 +185,7 @@ public class Commands_Jig
         var btr = (BlockTableRecord)tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite);
         // Create the text object, set its normal and contents
 
-        var acText = new TextInfo(pr.StringResult,
-                         Point3d.Origin,
-                         AttachmentPoint.BaseLeft, textHeight: 200)
-                         .AddDBTextToEntity();
+        var acText = DBTextEx.CreateDBText(Point3d.Origin, pr.StringResult, 200);
 
         acText.Normal = ed.CurrentUserCoordinateSystem.CoordinateSystem3d.Zaxis;
         btr.AppendEntity(acText);

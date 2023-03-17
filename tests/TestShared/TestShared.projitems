@@ -34,6 +34,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestPoint.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestQuadTree.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestSelectfilter.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestText.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestXRecord.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestXrefEx.cs" />
   </ItemGroup>

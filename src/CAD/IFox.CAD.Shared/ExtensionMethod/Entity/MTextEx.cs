@@ -7,6 +7,53 @@ public static class MTextEx
 {
 
     /// <summary>
+    /// 创建多行文字
+    /// </summary>
+    /// <param name="position">插入点</param>
+    /// <param name="text">文本内容</param>
+    /// <param name="height">文字高度</param>
+    /// <param name="database">文字所在的数据库</param>
+    /// <param name="action">文字属性设置委托</param>
+    /// <returns>文字对象id</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static MText CreateMText(Point3d position, string text, double height, Database? database = null, Action<MText>? action = null)
+    {
+        if (string.IsNullOrEmpty(text))
+            throw new ArgumentNullException(nameof(text), "创建文字无内容");
+
+        var mText = new MText();
+
+        mText.SetDatabaseDefaults(database ?? DBTrans.Top.Database);
+
+        mText.TextHeight = height; // 高度
+        mText.Contents = text;     // 内容
+        mText.Location = position;     // 插入点
+
+        action?.Invoke(mText);
+
+        return mText;
+    }
+
+
+    /// <summary>
+    /// 添加多行文字到块表记录
+    /// </summary>
+    /// <param name="btr">块表记录</param>
+    /// <param name="position">插入点</param>
+    /// <param name="text">文本内容</param>
+    /// <param name="height">文字高度</param>
+    /// <param name="action">文字属性设置委托</param>
+    /// <returns>文字对象id</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static ObjectId AddMText(this BlockTableRecord btr, Point3d position, string text, double height, Action<MText>? action = null)
+    {
+        var mText = CreateMText(position, text, height, btr.Database, action);
+
+        return btr.AddEntity(mText);
+    }
+
+
+    /// <summary>
     /// 炸散多行文字
     /// </summary>
     /// <typeparam name="T">存储多行文字炸散之后的对象的类型</typeparam>
