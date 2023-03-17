@@ -8,9 +8,10 @@ public class JigExTransient : IDisposable
 {
     #region 私有字段
     // 整数集,暂时不知道有什么意义
-    IntegerCollection _integerCollection;
+    readonly IntegerCollection _integerCollection;
     // 维护集合
-    HashSet<Entity> _entities;
+    readonly  HashSet<Entity> _entities;
+    readonly TransientManager _manager;
     #endregion
 
     #region 公开属性
@@ -31,7 +32,8 @@ public class JigExTransient : IDisposable
     public JigExTransient()
     {
         _integerCollection = new();
-        _entities = new();
+        _entities = new(); 
+        _manager=TransientManager.CurrentTransientManager;
     }
     #endregion
 
@@ -55,9 +57,7 @@ public class JigExTransient : IDisposable
     {
         if (_entities.Add(ent))
         {
-            TransientManager
-            .CurrentTransientManager
-            .AddTransient(ent, tdm, 128, _integerCollection);
+            _manager.AddTransient(ent, tdm, 128, _integerCollection);
         }
     }
 
@@ -70,9 +70,7 @@ public class JigExTransient : IDisposable
     {
         if (!Contains(ent))
             return;
-        TransientManager
-        .CurrentTransientManager
-        .EraseTransient(ent, _integerCollection);
+        _manager.EraseTransient(ent, _integerCollection);
         _entities.Remove(ent);
     }
 
@@ -83,9 +81,7 @@ public class JigExTransient : IDisposable
     {
         foreach (var ent in _entities)
         {
-            TransientManager
-            .CurrentTransientManager
-            .EraseTransient(ent, _integerCollection);
+            _manager.EraseTransient(ent, _integerCollection);
         }
         _entities.Clear();
     }
@@ -99,9 +95,7 @@ public class JigExTransient : IDisposable
     {
         if (!Contains(ent))
             return;
-        TransientManager
-        .CurrentTransientManager
-        .UpdateTransient(ent, _integerCollection);
+        _manager.UpdateTransient(ent, _integerCollection);
     }
 
     /// <summary>
