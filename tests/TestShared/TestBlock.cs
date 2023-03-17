@@ -69,9 +69,7 @@ public class TestBlock
         },
         () => {
             var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-            var acText = new TextInfo("123", Point3d.Origin, AttachmentPoint.BaseLeft)
-                        .AddDBTextToEntity();
-
+            var acText = DBTextEx.CreateDBText(Point3d.Origin, "123", 2.5);
             return new List<Entity> { line, acText };
         });
     }
@@ -105,8 +103,7 @@ public class TestBlock
         },
         () => {
             var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-            var acText = new TextInfo("12345", Point3d.Origin, AttachmentPoint.BaseLeft)
-                        .AddDBTextToEntity();
+            var acText = DBTextEx.CreateDBText(Point3d.Origin, "12345", 2.5);
             
             return new List<Entity> { line, acText };
         });
@@ -210,7 +207,8 @@ public class TestBlock
             },
             () => {
                 var line = new Line(new(0, 0, 0), new(1, 1, 0));
-                var actext = new TextInfo("123", Point3d.Origin, AttachmentPoint.BaseLeft, database: tr.Database).AddDBTextToEntity();
+                var actext = DBTextEx.CreateDBText(Point3d.Origin, "123", 2.5, tr.Database);
+
                 return new List<Entity> { line,actext };
 
             });
