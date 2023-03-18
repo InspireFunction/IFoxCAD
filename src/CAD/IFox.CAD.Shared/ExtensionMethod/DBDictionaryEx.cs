@@ -18,9 +18,8 @@ public static class DBDictionaryEx
         var tr = DBTrans.GetTopTransaction(dict.Database);
         foreach (DBDictionaryEntry e in dict)
         {
-            var ent = tr.GetObject<T>(e.Value, OpenMode.ForRead);
-            if (ent is not null)
-                yield return ent;
+            if(tr.GetObject(e.Value) is T tobj)
+                yield return tobj;
         }
     }
 
