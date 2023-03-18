@@ -208,17 +208,17 @@ public static class CurveEx
     }
 
     /// <summary>
-    /// 打断曲线
+    /// 在z法向量平面打断曲线
     /// </summary>
     /// <param name="curves">曲线列表</param>
     /// <returns>打断后的曲线列表</returns>
     /// <exception cref="ArgumentNullException">传入的曲线列表错误</exception>
-    public static List<Curve> BreakCurve2d(this List<Curve> curves)
+    public static List<Curve> BreakCurveOnZPlane(this List<Curve> curves)
     {
         if (curves is null)
             throw new ArgumentNullException(nameof(curves));
-
-        var curvesTemp = curves.Select(c => c.GetProjectedCurve(DYHEnv.PlaneZ, Vector3d.ZAxis)).ToList();
+        var zPlane = new Plane(Point3d.Origin, Vector3d.ZAxis);
+        var curvesTemp = curves.Select(c => c.GetProjectedCurve(zPlane, Vector3d.ZAxis)).ToList();
         var geCurves = new List<CompositeCurve3d>(); // 存储曲线转换后的复合曲线
         var paramss = new List<HashSet<double>>();      // 存储每个曲线的交点参数值
 
@@ -253,11 +253,11 @@ public static class CurveEx
                 }
             }
             var curNow = curvesTemp[i];
-            curNow.GetType().Name.Prompt();
-            pars1.ForEach(p => p.Prompt());
             var length = curNow.GetLength();
-            List<double> np = pars1.Where(p => p >= 0 && p <= length).Select(curNow.GetParameterAtDistance).Where(p => !(Math.Abs(p - curNow.StartParam) < 1e-6 || Math.Abs(p - curNow.EndParam) < 1e-6)).ToList();
-            np.ForEach(p => p.Prompt());
+            List<double> np = pars1.Where(p => p >= 0 && p <= length)
+                .Select(curNow.GetParameterAtDistance)
+                .Where(p => !(Math.Abs(p - curNow.StartParam) < 1e-6 || Math.Abs(p - curNow.EndParam) < 1e-6))
+                .ToList();
             if (np.Count > 0)
             {
                 var splitCurs = curNow.GetSplitCurves(np, true);
