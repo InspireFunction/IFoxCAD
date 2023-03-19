@@ -119,7 +119,7 @@ public static class SymbolTableRecordEx
     /// <returns>对象 id 列表</returns>
     public static IEnumerable<ObjectId> AddEntity(this BlockTableRecord btr, params Entity[] ents)
     {
-        return btr.AddEntity(ents);
+        return btr.AddEntity(ents.ToList());
     }
     #endregion
 
