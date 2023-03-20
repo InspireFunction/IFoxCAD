@@ -42,8 +42,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Filer\DwgFilerEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Filer\DxfFiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\GeometryEx.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\JigEx.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\JigExTransient.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Jig\JigEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Jig\JigExTransient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\JsonConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\DBLogger.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\EventLogger.cs" />
@@ -97,5 +97,6 @@
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)AutoReg\" />
     <Folder Include="$(MSBuildThisFileDirectory)CadVersion\" />
+    <Folder Include="$(MSBuildThisFileDirectory)ExtensionMethod\Jig\" />
   </ItemGroup>
 </Project>
