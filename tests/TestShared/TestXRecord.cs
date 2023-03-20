@@ -192,36 +192,7 @@ public static class XRecordHelper
     }
     #endregion
 
-#if NET35
-    /// <summary>
-    /// 设置描述(容量无限)
-    /// </summary>
-    /// <param name="db"></param>
-    /// <param name="key"></param>
-    /// <param name="value"></param>
-    public static void SetSummaryInfoAtt(this Database db, string key, string value)
-    {
-        var info = new DatabaseSummaryInfoBuilder(db.SummaryInfo);
-        if (!info.CustomProperties.ContainsKey(key))
-            info.CustomProperties.Add(key, value);
-        else
-            info.CustomProperties[key] = value;
-        db.SummaryInfo = info.ToDatabaseSummaryInfo();
-    }
-    /// <summary>
-    /// 获取描述
-    /// </summary>
-    /// <param name="db"></param>
-    /// <param name="key"></param>
-    /// <param name="value"></param>
-    public static object? GetSummaryInfoAtt(this Database db, string key)
-    {
-        var info = new DatabaseSummaryInfoBuilder(db.SummaryInfo);
-        if (info.CustomProperties.ContainsKey(key))
-            return info.CustomProperties[key];
-        return null;
-    }
-#else
+
     /// <summary>
     /// 设置描述(容量无限)
     /// </summary>
@@ -250,7 +221,7 @@ public static class XRecordHelper
             return info.CustomPropertyTable[key];
         return null;
     }
-#endif
+
 }
 
 public class TestABCList : List<TestABC>

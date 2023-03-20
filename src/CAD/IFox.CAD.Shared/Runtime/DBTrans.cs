@@ -375,7 +375,7 @@ public class DBTrans : IDisposable
     /// </summary>
     public DBDictionary DataLinkDict => GetObject<DBDictionary>(Database.DataLinkDictionaryId)!;
 
-#if !ac2009
+
     /// <summary>
     /// 详细视图样式字典
     /// </summary>
@@ -384,7 +384,7 @@ public class DBTrans : IDisposable
     /// 剖面视图样式字典
     /// </summary>
     public DBDictionary SectionViewStyleDict => GetObject<DBDictionary>(Database.SectionViewStyleDictionaryId)!;
-#endif
+
 #endif
     #endregion
 
@@ -431,7 +431,14 @@ public class DBTrans : IDisposable
     {
         var hanle = new Handle(Convert.ToInt64(handleString, 16));
         // return Database.GetObjectId(false, hanle, 0);
-        return DBTransHelper.TryGetObjectId(Database, hanle);
+        if(Database.TryGetObjectId(hanle, out ObjectId id))
+        {
+            return id;
+        }
+        else
+        {
+            return ObjectId.Null;
+        }
     }
     #endregion
 

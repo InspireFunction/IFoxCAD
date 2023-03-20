@@ -55,18 +55,10 @@ public static class ObjectIdEx
     public static IEnumerable<ObjectId> OfType<T>(this IEnumerable<ObjectId> ids) where T : DBObject
     {
         string dxfName = RXClass.GetClass(typeof(T)).DxfName;
-        return ids.Where(id => id.ObjectClass().DxfName == dxfName);
+        return ids.Where(id => id.ObjectClass.DxfName == dxfName);
     }
     #endregion GetObject
 
-    public static RXClass ObjectClass(this ObjectId id)
-    {
-#if NET35
-        return RXClass.GetClass(id.GetType());
-#else
-        return id.ObjectClass;
-#endif
-    }
 
     /// <summary>
     /// id是否有效,未被删除

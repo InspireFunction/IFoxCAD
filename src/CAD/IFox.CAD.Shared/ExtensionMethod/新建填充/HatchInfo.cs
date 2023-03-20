@@ -298,43 +298,13 @@ public class HatchInfo
         //    throw new ArgumentNullException(nameof(pts));
         pts.NotNull(nameof(pts));
         pts.End2End();
-#if NET35
-        _boundaryIds.Add(CreateAddBoundary(pts, bluges, btrOfAddEntitySpace));
-#else
         // 2011新增API,可以不生成图元的情况下加入边界,
         // 通过这里进入的话,边界 _boundaryIds 是空的,那么 Build() 时候就需要过滤空的
         _hatch.AppendLoop(hatchLoopTypes, pts, bluges);
-#endif
         return this;
     }
 
-#if NET35
-    /// <summary>
-    /// 通过点集和凸度生成边界的多段线
-    /// </summary>
-    /// <param name="pts">点集</param>
-    /// <param name="bluges">凸度集</param>
-    /// <param name="btrOfAddEntitySpace">加入此空间</param>
-    /// <returns>多段线id</returns>
-    static ObjectId CreateAddBoundary(Point2dCollection? pts,
-        DoubleCollection? bluges,
-        BlockTableRecord btrOfAddEntitySpace)
-    {
-        if (pts is null)
-            throw new ArgumentException(null, nameof(pts));
-        if (bluges is null)
-            throw new ArgumentException(null, nameof(bluges));
 
-        var bvws = new List<BulgeVertexWidth>();
-
-        var itor1 = pts.GetEnumerator();
-        var itor2 = bluges.GetEnumerator();
-        while (itor1.MoveNext() && itor2.MoveNext())
-            bvws.Add(new BulgeVertexWidth(itor1.Current, itor2.Current));
-
-        return btrOfAddEntitySpace.AddPline(bvws);
-    }
-#endif
     #endregion
 
     #region 枚举

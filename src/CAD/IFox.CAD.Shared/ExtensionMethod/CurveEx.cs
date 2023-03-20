@@ -116,11 +116,7 @@ public static class CurveEx
         foreach (var curve in curves)
         {
 #if !gcad
-#if NET35
-            graph.AddEdge(curve.ToCurve3d()!);
-#else
             graph.AddEdge(curve.GetGeCurve());
-#endif
 #else
             graph.AddEdge(curve.ToCurve3d()!);
 #endif

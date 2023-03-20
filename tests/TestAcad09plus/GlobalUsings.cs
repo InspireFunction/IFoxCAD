@@ -45,9 +45,9 @@ global using Cad_ErrorStatus = Autodesk.AutoCAD.Runtime.ErrorStatus;
 /// ifoxcad
 global using IFoxCAD.Cad;
 global using IFoxCAD.Basal;
-#if !ac2008
+
 global using IFoxCAD.WPF;
-#endif
+
 
 #if !NewtonsoftJson
 global using System.Web.Script.Serialization;

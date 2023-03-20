@@ -53,11 +53,8 @@ public abstract class AutoLoad : IExtensionApplication
 
     private static RegistryKey GetAcAppKey()
     {
-#if NET35
-        string key = HostApplicationServices.Current.RegistryProductRootKey;
-#else
+
         string key = HostApplicationServices.Current.UserRegistryProductRootKey;
-#endif
         RegistryKey ackey = Registry.CurrentUser.OpenSubKey(key, true);
         return ackey.CreateSubKey("Applications");
     }
@@ -67,11 +64,8 @@ public abstract class AutoLoad : IExtensionApplication
     /// <param name="path">目录</param>
     protected static void AppendSupportPath(string path)
     {
-#if NET35
-        string key = HostApplicationServices.Current.RegistryProductRootKey;
-#else
+
         string key = HostApplicationServices.Current.UserRegistryProductRootKey;
-#endif
         // 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R24.0\ACAD-4101:804
         RegistryKey ackey = Registry.CurrentUser.OpenSubKey($@"{key}\Profiles");
 

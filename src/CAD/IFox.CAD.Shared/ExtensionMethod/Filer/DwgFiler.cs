@@ -14,11 +14,8 @@
 [Serializable]
 public class DwgFiler : Cad_DwgFiler
 {
-#if NET35
-    public int m_Position;
-#else
+
     public long m_Position;
-#endif
     public FilerType m_FilerType;
     public Cad_ErrorStatus m_FilerStatus;
     public List<IntPtr> AddressList;
@@ -47,10 +44,10 @@ public class DwgFiler : Cad_DwgFiler
     public int Int16ListPt = 0;
     public List<int> Int32List;
     public int Int32ListPt = 0;
-#if !NET35
+
     public List<long> Int64List;
     public int Int64ListPt = 0;
-#endif
+
     public List<Point2d> Point2dList;
     public int Point2dListPt = 0;
     public List<Point3d> Point3dList;
@@ -71,10 +68,10 @@ public class DwgFiler : Cad_DwgFiler
     public int uint16ListPt = 0;
     public List<uint> Uint32List;
     public int uint32ListPt = 0;
-#if !NET35
+
     public List<ulong> Uint64List;
     public int uint64ListPt = 0;
-#endif
+
     public List<Vector2d> Vector2dList;
     public int Vector2dListPt = 0;
     public List<Vector3d> Vector3dList;
@@ -96,9 +93,9 @@ public class DwgFiler : Cad_DwgFiler
         HardPointerIdList = new();
         Int16List = new();
         Int32List = new();
-#if !NET35
+
         Int64List = new();
-#endif
+
         Point2dList = new();
         Point3dList = new();
         Scale3dList = new();
@@ -107,18 +104,15 @@ public class DwgFiler : Cad_DwgFiler
         StringList = new();
         Uint16List = new();
         Uint32List = new();
-#if !NET35
+
         Uint64List = new();
-#endif
+
         Vector2dList = new();
         Vector3dList = new();
     }
 
-#if NET35
-    public override int Position => m_Position;
-#else
+
     public override long Position => m_Position;
-#endif
     public override FilerType FilerType => m_FilerType;
 
     public override Cad_ErrorStatus FilerStatus
@@ -205,14 +199,14 @@ public class DwgFiler : Cad_DwgFiler
         return Int32List[Int32ListPt++];
     }
 
-#if !NET35
+
     public override long ReadInt64()
     {
         if (Int64List.Count == 0)
             return 0;
         return Int64List[Int64ListPt++];
     }
-#endif
+
 
     public override Point2d ReadPoint2d()
     {
@@ -270,14 +264,14 @@ public class DwgFiler : Cad_DwgFiler
         return Uint32List[uint32ListPt++];
     }
 
-#if !NET35
+
     public override ulong ReadUInt64()
     {
         if (Uint64List.Count == 0)
             return 0;
         return Uint64List[uint64ListPt++];
     }
-#endif
+
 
     public override Vector2d ReadVector2d()
     {
@@ -317,10 +311,10 @@ public class DwgFiler : Cad_DwgFiler
         Int16ListPt = 0;
         Int32List.Clear();
         Int32ListPt = 0;
-#if !NET35
+
         Int64List.Clear();
         Int64ListPt = 0;
-#endif
+
         Point2dList.Clear();
         Point2dListPt = 0;
         Point3dList.Clear();
@@ -337,10 +331,10 @@ public class DwgFiler : Cad_DwgFiler
         uint16ListPt = 0;
         Uint32List.Clear();
         uint32ListPt = 0;
-#if !NET35
+
         Uint64List.Clear();
         uint64ListPt = 0;
-#endif
+
         Vector2dList.Clear();
         Vector2dListPt = 0;
         Vector3dList.Clear();
@@ -362,13 +356,7 @@ public class DwgFiler : Cad_DwgFiler
 #endif
 
 #if acad || gcad
-    public override void Seek(
-#if NET35
-    int
-#else
-    long
-#endif
-    offset, int method)
+    public override void Seek(long offset, int method)
     {
         var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
         ed.WriteMessage(MethodInfo.GetCurrentMethod().Name + " = " + " \n ");
@@ -430,12 +418,11 @@ public class DwgFiler : Cad_DwgFiler
         Int32List.Add(value);
     }
 
-#if !NET35
     public override void WriteInt64(long value)
     {
         Int64List.Add(value);
     }
-#endif
+
     public override void WritePoint2d(Point2d value)
     {
         Point2dList.Add(value);
@@ -476,12 +463,12 @@ public class DwgFiler : Cad_DwgFiler
         Uint32List.Add(value);
     }
 
-#if !NET35
+
     public override void WriteUInt64(ulong value)
     {
         Uint64List.Add(value);
     }
-#endif
+
 
     public override void WriteVector2d(Vector2d value)
     {

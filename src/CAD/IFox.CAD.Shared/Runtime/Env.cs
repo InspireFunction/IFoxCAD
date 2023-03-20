@@ -468,15 +468,6 @@ public static class Env
 
     #region 环境变量
 #if acad
-#if NET35
-    [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedGetEnv")]
-    static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
-
-    [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("acad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedSetEnv")]
-    static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
-#else
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedGetEnv")]
     static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
@@ -484,7 +475,6 @@ public static class Env
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("accore.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedSetEnv")]
     static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
-#endif
 #endif
 
 #if gcad

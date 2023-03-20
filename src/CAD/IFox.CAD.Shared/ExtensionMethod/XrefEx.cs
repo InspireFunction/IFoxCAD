@@ -332,26 +332,6 @@ public class XrefFactory : IXrefBindModes
         // 内部删除嵌套参照的块操作
         if (EraseNested)
         {
-#if ac2008
-            // 因为Acad08索引器存在会暴露isErase的(桌子底层的原因),
-            // 也就是可能获取两个名称一样的,只能用遍历的方式进行
-            HashSet<string> nestedHash = new();
-            foreach (var item in nested)
-                nestedHash.Add(item.Value);
-
-            // 遍历全图,找到参照名称一样的删除
-            _tr.BlockTable.ForEach(btr => {
-                if (btr.IsLayout)
-                    return;
-                if (nestedHash.Contains(btr.Name))
-                {
-                    btr.UpgradeOpen();
-                    btr.Erase();
-                    btr.DowngradeOpen();
-                    btr.Dispose();
-                }
-            }, checkIdOk: true);
-#else
             foreach (var item in nested)
             {
                 var name = item.Value;
@@ -359,7 +339,6 @@ public class XrefFactory : IXrefBindModes
                     _tr.GetObject<BlockTableRecord>(_tr.BlockTable[name], OpenMode.ForWrite)?
                       .Erase();
             }
-#endif
         }
     }
     #endregion

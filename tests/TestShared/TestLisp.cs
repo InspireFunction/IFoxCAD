@@ -50,18 +50,18 @@ public class TestLisp
     [CommandMethod("CmdTest_RunLisp19", CommandFlags.NoUndoMarker)]
     // 不能在参照块中使用命令
     [CommandMethod("CmdTest_RunLisp20", CommandFlags.NoBlockEditor)]
-#if !ac2008
+
     // acad09增,不会被动作录制器 捕捉到
     [CommandMethod("CmdTest_RunLisp21", CommandFlags.NoActionRecording)]
     // acad09增,会被动作录制器捕捉
     [CommandMethod("CmdTest_RunLisp22", CommandFlags.ActionMacro)]
-#endif
-#if !NET35
+
+
     // 推断约束时不能使用命令
     [CommandMethod("CmdTest_RunLisp23", CommandFlags.NoInferConstraint)]
     // 命令允许在选择图元时临时显示动态尺寸
     [CommandMethod("CmdTest_RunLisp24", CommandFlags.TempShowDynDimension)]
-#endif
+
     public static void CmdTest_RunLisp()
     {
         // 测试方法1: (command "CmdTest_RunLisp1")

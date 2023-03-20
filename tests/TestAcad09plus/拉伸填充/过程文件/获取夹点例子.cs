@@ -1,4 +1,4 @@
-﻿#if !ac2008
+﻿
 namespace GripOverruleTest;
 
 // https://through-the-interface.typepad.com/through_the_interface/2009/08/knowing-when-an-autocad-object-is-grip-edited-using-overrules-in-net.html
@@ -97,4 +97,3 @@ public class GripVectorOverrule : GripOverrule
         ed.WriteMessage("\nGrip overruling turned {0}.", overruling ? "on" : "off");
     }
 }
-#endif

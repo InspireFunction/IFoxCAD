@@ -71,12 +71,7 @@ public partial class Screen
         return ptScrWin;
     }
 
-    //#if NET35
-    //    [DllImport("acad.exe", EntryPoint = "?acedGetAcadDwgView@@YAPAVCView@@XZ")] //acad08
-    //#else
-    //    [DllImport("acad.exe", EntryPoint = "?acedGetAcadDwgView@@YAPEAVCView@@XZ")]//acad21
-    //#endif
-    //    static extern IntPtr AcedGetAcadDwgview();
+    
 
     delegate IntPtr DelegateAcedGetAcadDwgview();
     static DelegateAcedGetAcadDwgview? acedGetAcadDwgView;
@@ -119,15 +114,7 @@ public partial class Screen
     /// <param name="pt"></param>
     /// <param name="ptOut"></param>
     /// <returns></returns>
-#if NET35
-    // 此处都是acad08这个有重载,不知道PeInfo能不能正常运行
-    [DllImport("acad.exe", EntryPoint = "?acedCoordFromPixelToWorld@@YAHHVCPoint@@QAN@Z")]
-    static extern int AcedCoordFromPixelToWorld(int windnum, Point pt, out Point3D ptOut);
 
-    [DllImport("acad.exe", EntryPoint = "?acedCoordFromPixelToWorld@@YAXABVCPoint@@QAN@Z")]//这个重载参数不知道
-    static extern int AcedCoordFromPixelToWorld(Point pt, out Point3D ptOut);
-#else
     [DllImport("accore.dll", EntryPoint = "?acedCoordFromPixelToWorld@@YAHHVCPoint@@QEAN@Z")]
     static extern int AcedCoordFromPixelToWorld(int windnum, Point pt, out Point3D ptOut);
-#endif
 }

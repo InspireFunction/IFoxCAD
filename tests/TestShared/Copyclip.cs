@@ -688,7 +688,7 @@ public class Copyclip
     }
 }
 
-#if !ac2008
+
 public class TestImageFormat
 {
     public ImageFormat GetFormat(string filename)
@@ -738,7 +738,7 @@ public class TestImageFormat
         });
     }
 }
-#endif
+
 
 public class OleTestClass
 {
