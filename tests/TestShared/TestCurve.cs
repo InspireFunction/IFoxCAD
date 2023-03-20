@@ -48,11 +48,7 @@ public class TestGraph
         var graph = new IFoxCAD.Cad.Graph(); // 为了调试先把图的访问改为internal
         foreach (var curve in ents)
         {
-#if NET35
-            graph.AddEdge(curve!.ToCurve3d()!);
-#else
             graph.AddEdge(curve!.GetGeCurve());
-#endif
         }
 
         // 新建 dfs

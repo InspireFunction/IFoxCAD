@@ -1,4 +1,4 @@
-﻿#if !ac2008
+﻿
 namespace Test;
 
 public partial class Test
@@ -86,4 +86,3 @@ public partial class Test
         tr.CurrentSpace.AddEntity(dimension);
     }
 }
-#endif

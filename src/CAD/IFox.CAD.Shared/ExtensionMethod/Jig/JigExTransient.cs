@@ -1,4 +1,4 @@
-﻿#if acad && !ac2008
+﻿#if acad
 namespace IFoxCAD.Cad;
 
 /// <summary>

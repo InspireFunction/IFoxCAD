@@ -138,11 +138,8 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
     /// <summary>
     /// 获取视口指针
     /// </summary>
-#if NET35
-    [DllImport("acad.exe", EntryPoint = "?acedGetAcadDwgView@@YAPAVCView@@XZ")] //acad08
-#else
+
     [DllImport("acad.exe", EntryPoint = "?acedGetAcadDwgView@@YAPEAVCView@@XZ")]//acad21
-#endif
     static extern IntPtr AcedGetAcadDwgview();
     #endregion
 

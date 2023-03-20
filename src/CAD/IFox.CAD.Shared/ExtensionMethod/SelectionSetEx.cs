@@ -44,7 +44,7 @@ public static class SelectionSetEx
         return
             ss
             .GetObjectIds()
-            .Where(id => id.ObjectClass().DxfName == dxfName);
+            .Where(id => id.ObjectClass.DxfName == dxfName);
     }
 
     /// <summary>
@@ -58,7 +58,7 @@ public static class SelectionSetEx
         return
             ss
             .GetObjectIds()
-            .GroupBy(id => id.ObjectClass().DxfName);
+            .GroupBy(id => id.ObjectClass.DxfName);
     }
     #endregion
 

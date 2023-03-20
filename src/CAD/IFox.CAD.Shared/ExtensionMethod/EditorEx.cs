@@ -712,62 +712,6 @@ public static class EditorEx
     /// <returns>变换矩阵</returns>
     public static Matrix3d GetMatrix(this Editor editor, CoordinateSystemCode from, CoordinateSystemCode to)
     {
-#if ac2009
-        switch (from)
-        {
-            case CoordinateSystemCode.Wcs:
-            switch (to)
-            {
-                case CoordinateSystemCode.Ucs:
-                return editor.GetMatrixFromWcsToUcs();
-
-                case CoordinateSystemCode.MDcs:
-                return editor.GetMatrixFromMDcsToWcs();
-
-                case CoordinateSystemCode.PDcs:
-                throw new Exception("To be used only with DCS...ErrorStatus.InvalidInput");
-            }
-            break;
-            case CoordinateSystemCode.Ucs:
-            switch (to)
-            {
-                case CoordinateSystemCode.Wcs:
-                return editor.GetMatrixFromUcsToWcs();
-
-                case CoordinateSystemCode.MDcs:
-                return editor.GetMatrixFromUcsToWcs() * editor.GetMatrixFromWcsToMDcs();
-
-                case CoordinateSystemCode.PDcs:
-                throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
-            }
-            break;
-            case CoordinateSystemCode.MDcs:
-            switch (to)
-            {
-                case CoordinateSystemCode.Wcs:
-                return editor.GetMatrixFromMDcsToWcs();
-
-                case CoordinateSystemCode.Ucs:
-                return editor.GetMatrixFromMDcsToWcs() * editor.GetMatrixFromWcsToUcs();
-
-                case CoordinateSystemCode.PDcs:
-                return editor.GetMatrixFromMDcsToPDcs();
-            }
-            break;
-            case CoordinateSystemCode.PDcs:
-            switch (to)
-            {
-                case CoordinateSystemCode.Wcs:
-                throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
-                case CoordinateSystemCode.Ucs:
-                throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
-                case CoordinateSystemCode.MDcs:
-                return editor.GetMatrixFromPDcsToMDcs();
-            }
-            break;
-        }
-        return Matrix3d.Identity;
-#else
         return (from, to) switch
         {
             (CoordinateSystemCode.Wcs, CoordinateSystemCode.Ucs) => editor.GetMatrixFromWcsToUcs(),
@@ -782,7 +726,6 @@ public static class EditorEx
             or (CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs, CoordinateSystemCode.PDcs) => throw new Exception("To be used only with DCS...ErrorStatus.InvalidInput"),
             (_, _) => Matrix3d.Identity
         };
-#endif
     }
 
     #endregion
@@ -1001,31 +944,18 @@ public static class EditorEx
     #endregion
 
     #region 执行lisp
-#if NET35
-    [DllImport("acad.exe",
-#else
-    [DllImport("accore.dll",
-#endif
-        CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
+    [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
     static extern int AcedInvoke(IntPtr args, out IntPtr result);
 
-#if NET35
-    [DllImport("acad.exe", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
-        EntryPoint = "?acedEvaluateLisp@@YAHPB_WAAPAUresbuf@@@Z")]
-#else
+
     // 高版本此接口不能使用lisp(command "xx"),但是可以直接在自动运行接口上
     [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "?acedEvaluateLisp@@YAHPEB_WAEAPEAUresbuf@@@Z")]
-#endif
     [System.Security.SuppressUnmanagedCodeSecurity]// 初始化默认值
     static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
 
-#if NET35
-    [DllImport("acad.exe",
-#else
-    [DllImport("accore.dll",
-#endif
-    CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ads_queueexpr")]
+
+    [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ads_queueexpr")]
     static extern int Ads_queueexpr(string strExpr);
 
     public enum RunLispFlag : byte
@@ -1148,21 +1078,4 @@ public static class EditorEx
     }
     #endregion
 
-    /// <summary>
-    /// 可以发送透明命令的状态<br/>
-    /// 福萝卜:这个应该是修正ribbon里输入丢焦点的问题,低版本可以不要
-    /// </summary>
-    /// <param name="ed"></param>
-    /// <returns></returns>
-    public static bool IsQuiescentForTransparentCommand(this Editor ed)
-    {
-#if NET35
-        //if (ed.IsQuiescent)
-        //{
-        //}
-        return true;
-#else
-        return ed.IsQuiescentForTransparentCommand;
-#endif
-    }
 }

@@ -566,7 +566,7 @@ public class BlockImportClass
         tr.Database.Insert(blkdefname, tr1.Database, false); // 插入了块定义，未插入块参照
     }
 
-#if !NET35
+
     [CommandMethod(nameof(Test_CombineBlocksIntoLibrary))]
     public void Test_CombineBlocksIntoLibrary()
     {
@@ -668,5 +668,5 @@ public class BlockImportClass
           pathName
         );
     }
-#endif
+
 }

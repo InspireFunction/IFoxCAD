@@ -31,11 +31,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)General\LoopState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\RandomEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\Timer.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Sortedset\bithelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Sortedset\ISet.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Sortedset\Sortedset.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Sortedset\SR.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Sortedset\ThrowHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\MouseHook.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\WindowsAPI.cs" />

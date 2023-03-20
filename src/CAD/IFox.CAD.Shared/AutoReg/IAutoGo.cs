@@ -175,12 +175,12 @@ public class AutoReflection
         try
         {
             var assemblies = AppDomain.CurrentDomain.GetAssemblies();
-#if !NET35
+
             // cad2021出现如下报错
             // System.NotSupportedException:动态程序集中不支持已调用的成员
             // assemblies = assemblies.Where(p => !p.IsDynamic).ToArray();// 这个要容器类型转换
             assemblies = Array.FindAll(assemblies, p => !p.IsDynamic);
-#endif
+
             // 主程序域
             for (int ii = 0; ii < assemblies.Length; ii++)
             {

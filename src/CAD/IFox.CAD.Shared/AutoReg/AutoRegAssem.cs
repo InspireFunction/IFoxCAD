@@ -89,11 +89,7 @@ public abstract class AutoRegAssem : IExtensionApplication
         RegistryKey? ackey = null;
         var hc = HostApplicationServices.Current;
 #if acad || zcad // 中望此处缺乏测试
-#if NET35
-        string key = hc.RegistryProductRootKey;
-#else
         string key = hc.UserRegistryProductRootKey;
-#endif
         ackey = Registry.CurrentUser.OpenSubKey(key, writable);
 #endif
 

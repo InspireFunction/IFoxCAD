@@ -47,6 +47,7 @@ public partial class Test
         tr.ModelSpace.AddEntity(line1);
         Line line2 = new(new(-10, 10, 0), new(41, 1, 0));
         tr.PaperSpace.AddEntity(line2);
+        
     }
 
     [CommandMethod(nameof(Test_Drawarc))]
