@@ -63,7 +63,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建填充\HatchConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建填充\HatchEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建填充\HatchInfo.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建文字\AttachmentPointHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\AttachmentPointHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\LispDottedPair.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\LispList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultData\TypedValueList.cs" />
