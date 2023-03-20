@@ -207,6 +207,77 @@ public static class CurveEx
         return newCurves;
     }
 
+    /// <summary>
+    /// 在z法向量平面打断曲线
+    /// </summary>
+    /// <param name="curves">曲线列表</param>
+    /// <returns>打断后的曲线列表</returns>
+    /// <exception cref="ArgumentNullException">传入的曲线列表错误</exception>
+    public static List<Curve> BreakCurveOnZPlane(this List<Curve> curves)
+    {
+        if (curves is null)
+            throw new ArgumentNullException(nameof(curves));
+        var zPlane = new Plane(Point3d.Origin, Vector3d.ZAxis);
+        var curvesTemp = curves.Select(c => c.GetProjectedCurve(zPlane, Vector3d.ZAxis)).ToList();
+        var geCurves = new List<CompositeCurve3d>(); // 存储曲线转换后的复合曲线
+        var paramss = new List<HashSet<double>>();      // 存储每个曲线的交点参数值
+
+        for (int i = 0; i < curvesTemp.Count; i++)
+        {
+            paramss.Add(new HashSet<double>());
+            var cc3d = curvesTemp[i].ToCompositeCurve3d();
+            if (cc3d is not null)
+            {
+                geCurves.Add(cc3d);
+            }
+        }
+        var newCurves = new List<Curve>();
+        var cci3d = new CurveCurveIntersector3d();
+
+        for (int i = 0; i < curvesTemp.Count; i++)
+        {
+            var gc1 = geCurves[i];
+            var pars1 = paramss[i]; // 引用
+            for (int j = i; j < curvesTemp.Count; j++)
+            {
+                var gc2 = geCurves[j];
+                var pars2 = paramss[j]; // 引用
+
+                cci3d.Set(gc1, gc2, Vector3d.ZAxis);
+
+                for (int k = 0; k < cci3d.NumberOfIntersectionPoints; k++)
+                {
+                    var pars = cci3d.GetIntersectionParameters(k);
+                    pars1.Add(pars[0]); // 引用修改会同步到源对象
+                    pars2.Add(pars[1]); // 引用修改会同步到源对象
+                }
+            }
+            var curNow = curvesTemp[i];
+            var length = curNow.GetLength();
+            List<double> np = pars1.Where(p => p >= 0 && p <= length)
+                .Select(curNow.GetParameterAtDistance)
+                .Where(p => !(Math.Abs(p - curNow.StartParam) < 1e-6 || Math.Abs(p - curNow.EndParam) < 1e-6))
+                .ToList();
+            if (np.Count > 0)
+            {
+                var splitCurs = curNow.GetSplitCurves(np, true);
+                if (splitCurs.Count() > 1)
+                {
+                    newCurves.AddRange(splitCurs);
+                }
+                else
+                {
+                    newCurves.Add(curNow.CloneEx());
+                }
+            }
+            else
+            {
+                newCurves.Add(curNow.CloneEx());
+            }
+        }
+
+        return newCurves;
+    }
     // 转换DBCurve为GeCurved
 
     #region Curve
