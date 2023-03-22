@@ -91,6 +91,7 @@ public static class Env
         set => Acap.SetSystemVariable("cmdecho", Convert.ToInt16(value));
     }
 
+    public static bool CmdActive => Convert.ToBoolean(Acap.GetSystemVariable("CMDACTIVE"));
     /// <summary>
     /// 控制在光标是否为正交模式， <see langword="true"/> 为打开正交， <see langword="false"/> 为关闭正交
     /// </summary>
