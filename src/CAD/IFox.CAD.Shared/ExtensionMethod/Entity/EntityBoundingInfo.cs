@@ -201,13 +201,14 @@ public class EntityBoundingInfo
         {
             // 这个获取是原点附近,需要平移到块基点
             var fit = brf.GeometryExtentsBestFit();
-            var minX = fit.MinPoint.X + brf.Position.X;
-            var minY = fit.MinPoint.Y + brf.Position.Y;
-            var minZ = fit.MinPoint.Z + brf.Position.Z;
-            var maxX = fit.MaxPoint.X + brf.Position.X;
-            var maxY = fit.MaxPoint.Y + brf.Position.Y;
-            var maxZ = fit.MaxPoint.Z + brf.Position.Z;
-            return new(minX, minY, minZ, maxX, maxY, maxZ, true);
+            //var minX = fit.MinPoint.X + brf.Position.X;
+            //var minY = fit.MinPoint.Y + brf.Position.Y;
+            //var minZ = fit.MinPoint.Z + brf.Position.Z;
+            //var maxX = fit.MaxPoint.X + brf.Position.X;
+            //var maxY = fit.MaxPoint.Y + brf.Position.Y;
+            //var maxZ = fit.MaxPoint.Z + brf.Position.Z;
+            //return new(minX, minY, minZ, maxX, maxY, maxZ, true);
+            return new(fit.MinPoint, fit.MaxPoint, true);
         }
         catch
         {
