@@ -660,6 +660,7 @@ public static class Env
             "23.1" => 2020,
             "24.0" => 2021,
             "24.1" => 2022,
+            "24.2" => 2023,
             _ => throw new NotImplementedException(),
         };
         return acarVarNum;
