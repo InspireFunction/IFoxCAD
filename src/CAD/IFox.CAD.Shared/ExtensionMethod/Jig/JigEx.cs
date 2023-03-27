@@ -216,25 +216,16 @@ public class JigEx : DrawJig, IDisposable
 
         _options = JigPointOptions();
         _options.Message = Environment.NewLine + msg;
-
-        // 加入关键字,加入时候将空格内容放到最后
-        string spaceValue = string.Empty;
-        const string spaceKey = " ";
+        
 
         if (keywords != null)
             foreach (var item in keywords)
-                if (item.Key == spaceKey)
-                    spaceValue = item.Value;
-                else
                     _options.Keywords.Add(item.Key, item.Key, item.Value);
 
-        /// 因为默认配置函数<see cref="JigPointOptions">导致此处空格触发是无效的,
-        /// 但是用户如果想触发,就需要在外部减去默认UserInputControls配置
-        /// 要放最后,才能优先触发其他关键字
-        if (spaceValue != string.Empty)
-            _options.Keywords.Add(spaceKey, spaceKey, spaceValue);
-        else
-            _options.Keywords.Add(spaceKey, spaceKey, "<空格退出>");
+        // 因为默认配置函数<see cref="JigPointOptions">导致此处空格触发是无效的,
+        // 但是用户如果想触发,就需要在外部减去默认UserInputControls配置
+        // 要放最后,才能优先触发其他关键字
+        
 
         // 外部设置减去配置
         // _options.UserInputControls =
