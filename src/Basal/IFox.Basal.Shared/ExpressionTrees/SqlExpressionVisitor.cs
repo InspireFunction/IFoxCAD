@@ -1,4 +1,6 @@
 #if NET45
+using Microsoft.CSharp.RuntimeBinder;
+
 namespace IFoxCAD.Basal;
 
 /// <summary>
