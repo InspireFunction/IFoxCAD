@@ -42,8 +42,7 @@ public static class SymbolTableRecordEx
             }
             catch (System.Exception e)
             {
-                LogHelper.FlagOutVsOutput = true;
-                e.WriteLog("深度克隆出错了");
+               
             }
         }
     }

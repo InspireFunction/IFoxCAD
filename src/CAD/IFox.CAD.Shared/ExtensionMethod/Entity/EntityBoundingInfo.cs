@@ -76,19 +76,7 @@ public struct BoundingInfo
 public class EntityBoundingInfo
 {
     #region 保存异常类型的日志
-    /// <summary>
-    /// 包围盒错误文件路径
-    /// </summary>
-    public static string BoxLogAddress
-    {
-        get
-        {
-            _BoxLogAddress ??= LogHelper.GetDefaultOption(nameof(GetBoundingInfo) + ".config");
-            return _BoxLogAddress;
-        }
-        set { _BoxLogAddress = value; }
-    }
-    static string? _BoxLogAddress;
+    
     static readonly HashSet<string> _typeNames;
     /// <summary>
     /// 为了保证更好的性能,
@@ -98,65 +86,13 @@ public class EntityBoundingInfo
     static EntityBoundingInfo()
     {
         _typeNames = new();
-        if (!File.Exists(BoxLogAddress))
-            return;
-        ExceptionToHashSet();
+        
+       
     }
 
-    /// <summary>
-    /// 读取日志的异常到容器
-    /// </summary>
-    static void ExceptionToHashSet()
-    {
-        var old_LogAddress = LogHelper.LogAddress;
-        try
-        {
-            LogHelper.OptionFile(BoxLogAddress);
-            var logTxts = new FileLogger().ReadLog();
-            for (int i = 0; i < logTxts.Length; i++)
-            {
-                var line = logTxts[i];
-                if (line.Contains(nameof(LogTxt.备注信息)))
-                {
-                    int index = line.IndexOf(":");
-                    index = line.IndexOf("\"", index) + 1;// 1是"\""
-                    int index2 = line.IndexOf("\"", index);
-                    var msg = line.Substring(index, index2 - index);
-                    _typeNames.Add(msg);
-                }
-            }
-        }
-        finally
-        {
-            LogHelper.LogAddress = old_LogAddress;
-        }
-    }
+    
 
-    /// <summary>
-    /// 写入容器类型到异常日志
-    /// </summary>
-    /// <param name="e"></param>
-    /// <param name="ent"></param>
-    static void ExceptionToLog(Exception e, Entity ent)
-    {
-        // 无法处理的错误类型将被记录
-        // 如果错误无法try,而是cad直接致命错误,那么此处也不会被写入,
-        // 这种情况无法避免程序安全性,总不能写了日志再去删除日志词条,这样会造成频繁IO的
-        // 遇到一个不认识的类型再去写入?然后记录它是否可以写入?
-        var old_LogAddress = LogHelper.LogAddress;
-        var old_FlagOutFile = LogHelper.FlagOutFile;
-        try
-        {
-            LogHelper.FlagOutFile = true;
-            LogHelper.OptionFile(BoxLogAddress);
-            e.WriteLog(ent.GetType().Name, LogTarget.FileNotException);
-        }
-        finally
-        {
-            LogHelper.LogAddress = old_LogAddress;
-            LogHelper.FlagOutFile = old_FlagOutFile;
-        }
-    }
+    
     #endregion
 
     /// <summary>
@@ -188,7 +124,7 @@ public class EntityBoundingInfo
             {
                 return new(ent.GeometricExtents.MinPoint, ent.GeometricExtents.MaxPoint, true);
             }
-            catch (Exception e) { ExceptionToLog(e, ent); }
+            catch (Exception e) {  }
         return new(Point3d.Origin, Point3d.Origin, false);
     }
 

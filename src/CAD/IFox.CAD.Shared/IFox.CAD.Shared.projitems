@@ -45,13 +45,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Jig\JigEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Jig\JigExTransient.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\JsonConverter.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\DBLogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\EventLogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\FileLogger.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogBase.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogTarget.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogTxt.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\LogEx\LogHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\ObjectIdEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\ObjEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\PointEx.cs" />
