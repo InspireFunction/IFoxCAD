@@ -1,7 +1,7 @@
 ﻿<Project>
 
     <PropertyGroup> <!--需要设置的内容-->
-        <Version>0.6.0-alpha1</Version>
+        <Version>0.6.0-alpha2</Version>
         <PackageReleaseNotes>发布个alpha版</PackageReleaseNotes>
     </PropertyGroup>
 

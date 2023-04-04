@@ -390,6 +390,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
             i++;
         }
     }
+/// <inheritdoc/>
 #line default
 
     #endregion
