@@ -52,6 +52,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SymbolTableEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SymbolTableRecordEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Tools.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\TransactionEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\XrefEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建填充\HatchConverter.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\新建填充\HatchEx.cs" />

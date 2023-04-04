@@ -174,7 +174,7 @@ public static class RedrawEx
     [Obsolete("此处已经被RedrawEx代替")]
     public static void Flush(this Entity entity)
     {
-        var tr = DBTrans.GetTopTransaction(entity.Database);
+        var tr = DBTrans.GetTop(entity.Database);
         entity.RecordGraphicsModified(true);
         tr.Transaction.TransactionManager.QueueForGraphicsFlush();
         tr.Document?.TransactionManager.FlushGraphics();

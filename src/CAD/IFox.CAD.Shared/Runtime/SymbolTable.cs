@@ -1,7 +1,9 @@
-//using static System.Windows.Forms.AxHost;
-
 namespace IFoxCAD.Cad;
-
+/// <summary>
+/// 符号表管理类
+/// </summary>
+/// <typeparam name="TTable">符号表</typeparam>
+/// <typeparam name="TRecord">符号表记录</typeparam>
 public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     where TTable : SymbolTable
     where TRecord : SymbolTableRecord, new()

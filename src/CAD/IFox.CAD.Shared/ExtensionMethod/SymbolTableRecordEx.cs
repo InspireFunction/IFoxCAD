@@ -68,7 +68,6 @@ public static class SymbolTableRecordEx
     /// </summary>
     /// <param name="btr">块表记录</param>
     /// <param name="entity">实体</param>
-    /// <param name="trans">事务管理器</param>
     /// <returns>对象 id</returns>
     public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity)
     {
@@ -80,7 +79,7 @@ public static class SymbolTableRecordEx
         using (btr.ForWrite())
         {
             id = btr.AppendEntity(entity);
-            tr.Transaction.AddNewlyCreatedDBObject(entity, true);
+            tr.AddNewlyCreatedDBObject(entity, true);
         }
 
         return id;
@@ -104,7 +103,7 @@ public static class SymbolTableRecordEx
         {
             return ents.Select(ent => {
                 ObjectId id = btr.AppendEntity(ent);
-                tr.Transaction.AddNewlyCreatedDBObject(ent, true);
+                tr.AddNewlyCreatedDBObject(ent, true);
                 return id;
             }).ToList();
         }
@@ -366,7 +365,7 @@ public static class SymbolTableRecordEx
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>绘制顺序表</returns>
-    public static DrawOrderTable? GetDrawOrderTable(this BlockTableRecord btr,
+    public static DrawOrderTable GetDrawOrderTable(this BlockTableRecord btr,
                                                     Transaction? trans = null,
                                                     bool openErased = false,
                                                     bool openLockedLayer = false)
@@ -394,7 +393,7 @@ public static class SymbolTableRecordEx
                                        double rotation = default,
                                        Dictionary<string, string>? atts = null)
     {
-        var tr = DBTrans.GetTopTransaction(blockTableRecord.Database);
+        var tr = DBTrans.GetTop(blockTableRecord.Database);
         if (!tr.BlockTable.Has(blockName))
         {
             tr.Editor?.WriteMessage($"\n不存在名字为{blockName}的块定义。");
@@ -419,7 +418,7 @@ public static class SymbolTableRecordEx
                                        Dictionary<string, string>? atts = null)
     {
         //trans ??= DBTrans.Top.Transaction;
-        var tr = DBTrans.GetTopTransaction(blockTableRecord.Database);
+        var tr = DBTrans.GetTop(blockTableRecord.Database);
         
         if (!tr.BlockTable.Has(blockId))
         {

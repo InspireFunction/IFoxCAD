@@ -1,5 +1,7 @@
 ﻿
 
+using System.Diagnostics.CodeAnalysis;
+
 namespace IFoxCAD.Basal
 {
     /// <summary>
@@ -10,14 +12,12 @@ namespace IFoxCAD.Basal
         /// <summary>
         /// 检查参数是否为 null
         /// </summary>
-        /// <typeparam name="T">参数类型</typeparam>
-        /// <param name="argument">参数</param>
-        /// <param name="argumentExpression">参数为null时的提示信息</param>
+        /// <param name="value">参数</param>
+        /// <param name="valueExpression">参数为null时的提示信息</param>
         /// <exception cref="ArgumentNullException"></exception>
-        public static void NotNull<T>(this T? argument, string? argumentExpression = null)
+        public static void NotNull([NotNull] this object? value, string valueExpression = "")
         {
-            if (argument == null) throw new ArgumentNullException(paramName: argumentExpression);
+            _ = value ?? throw new ArgumentNullException(nameof(value), valueExpression);
         }
-
     }
 }

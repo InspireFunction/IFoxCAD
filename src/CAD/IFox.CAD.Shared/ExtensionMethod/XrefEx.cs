@@ -573,7 +573,7 @@ public class XrefPath
         if (result.Length == 0)
             result.Append(".\\");
         // result.Append(strXrefPaths[^1]);// 下级目录加入
-        result.Append(files[files.Length - 1]);// 下级目录加入
+        result.Append(files[^1]);// 下级目录加入
         return result.ToString();
     }
 #endif

@@ -2,6 +2,7 @@ namespace IFoxCAD.Cad;
 
 
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -23,7 +24,31 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="database">数据库</param>
     /// <returns>事务对象</returns>
-    public static DBTrans GetTopTransaction(Database database)
+    public static Transaction GetTopTransaction([DisallowNull] Database database)
+    {
+
+        var tr = database.TransactionManager.TopTransaction;
+        if (tr is not null)
+        {
+            return tr;
+
+        }
+#if acad
+        throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.NoActiveTransactions);
+#elif zcad
+        throw new ZwSoft.ZwCAD.Runtime.Exception(ErrorStatus.NoActiveTransactions);
+#elif gcad
+        throw new GrxCAD.Runtime.Exception(ErrorStatus.NoActiveTransactions);
+#endif
+    }
+
+    /// <summary>
+    /// 获取给点数据库的顶层 DBTrans 事务
+    /// </summary>
+    /// <param name="database">数据库</param>
+    /// <returns>DBTrans 事务</returns>
+    /// <exception cref="ArgumentNullException"></exception>
+    public static DBTrans GetTop(Database database)
     {
         database.NotNull(nameof(database));
         var trans = database.TransactionManager.TopTransaction;
@@ -37,9 +62,11 @@ public class DBTrans : IDisposable
             }
         }  // 匹配事务栈内dbtrans的transaction的指针与数据库的顶层事务的指针
 
+        
         return Top;
+
     }
-    #endregion
+#endregion
 
     #region 私有字段
     /// <summary>
@@ -94,7 +121,7 @@ public class DBTrans : IDisposable
             return trans;
         }
     }
-    
+
 
 
     /// <summary>
@@ -386,7 +413,7 @@ public class DBTrans : IDisposable
     public DBDictionary SectionViewStyleDict => GetObject<DBDictionary>(Database.SectionViewStyleDictionaryId)!;
 
 #endif
-    #endregion
+#endregion
 
     #region 获取对象
     /// <summary>
@@ -412,7 +439,7 @@ public class DBTrans : IDisposable
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
-    /// <returns>图元对象,类型不匹配时返回 <see langword="null"/> </returns>
+    /// <returns>图元对象,类型不匹配时抛异常 </returns>
     public T GetObject<T>(ObjectId id,
                            OpenMode openMode = OpenMode.ForRead,
                            bool openErased = false,
@@ -737,16 +764,18 @@ public class DBTrans : IDisposable
     }
     public string ToString(string? format = null, IFormatProvider? formatProvider = null)
     {
-        List<string> lines = new();
-        lines.Add($"StackCount = {_dBTrans.Count}");
-        lines.Add($"_fileName = \"{_fileName}\"");
-        lines.Add($"_commit = {_commit}");
-        lines.Add($"_documentLock = {_documentLock != null}");
+        List<string> lines = new()
+        {
+            $"StackCount = {_dBTrans.Count}",
+            $"_fileName = \"{_fileName}\"",
+            $"_commit = {_commit}",
+            $"_documentLock = {_documentLock != null}",
 
-        lines.Add($"Document = {Document != null}");
-        lines.Add($"Editor = {Editor != null}");
-        lines.Add($"Transaction = {Transaction != null}");
-        lines.Add($"Database = {Database != null}");
+            $"Document = {Document != null}",
+            $"Editor = {Editor != null}",
+            $"Transaction = {Transaction != null}",
+            $"Database = {Database != null}"
+        };
 
         if (!string.IsNullOrEmpty(format))
             return string.Join(format, lines.ToArray());
