@@ -26,20 +26,11 @@ public class DBTrans : IDisposable
     /// <returns>事务对象</returns>
     public static Transaction GetTopTransaction([DisallowNull] Database database)
     {
-
-        var tr = database.TransactionManager.TopTransaction;
-        if (tr is not null)
+        return database.TransactionManager.TopTransaction switch
         {
-            return tr;
-
-        }
-#if acad
-        throw new Autodesk.AutoCAD.Runtime.Exception(ErrorStatus.NoActiveTransactions);
-#elif zcad
-        throw new ZwSoft.ZwCAD.Runtime.Exception(ErrorStatus.NoActiveTransactions);
-#elif gcad
-        throw new GrxCAD.Runtime.Exception(ErrorStatus.NoActiveTransactions);
-#endif
+            Transaction tr => tr,
+            _ => throw new Exception("没有顶层事务！")
+        };
     }
 
     /// <summary>
