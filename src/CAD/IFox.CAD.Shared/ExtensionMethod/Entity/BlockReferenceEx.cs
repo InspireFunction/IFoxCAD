@@ -99,10 +99,14 @@ public static class BlockReferenceEx
         //    throw new ArgumentNullException(nameof(action));
         action.NotNull(nameof(action));
         var tr = DBTrans.GetTopTransaction(brf.Database);
-        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
-        if (btr == null)
-            return;
-        btr.ForEach(action);
+        //var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
+        //if (btr == null)
+        //    return;
+        //btr.ForEach(action);
+        if (tr.GetObject(brf.BlockTableRecord) is BlockTableRecord btr)
+        {
+            btr.ForEach(action);
+        }
     }
     /// <summary>
     /// 遍历块内
@@ -118,26 +122,30 @@ public static class BlockReferenceEx
         //    throw new ArgumentNullException(nameof(action));
         action.NotNull(nameof(action));
         var tr = DBTrans.GetTopTransaction(brf.Database);
-        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
-        if (btr == null)
-            return;
-        btr.ForEach(action);
+        //var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
+        //if (btr == null)
+        //    return;
+        //btr.ForEach(action);
+        if (tr.GetObject(brf.BlockTableRecord) is BlockTableRecord btr)
+        {
+            btr.ForEach(action);
+        }
     }
     /// <summary>
     /// 遍历块内
     /// </summary>
     /// <param name="brf"></param>
     /// <param name="action"></param>
-    /// <param name="tr"></param>
     /// <exception cref="ArgumentNullException"></exception>
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState, int> action)
     {
         action.NotNull(nameof(action));
         var tr = DBTrans.GetTopTransaction(brf.Database);
-        var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
-        if (btr == null)
-            return;
-        btr.ForEach(action);
+        if (tr.GetObject(brf.BlockTableRecord) is BlockTableRecord btr)
+        {
+            btr.ForEach(action);
+        }
+
     }
 }

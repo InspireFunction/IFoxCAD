@@ -12,7 +12,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CmdINI.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Copyclip.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestAddEntity.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)TestAOP.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestBlock.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestCadFilePath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestConvexHull.cs" />

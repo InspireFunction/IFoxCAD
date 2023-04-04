@@ -10,7 +10,6 @@ public static class DBDictionaryEx
     /// </summary>
     /// <typeparam name="T">对象类型的泛型</typeparam>
     /// <param name="dict">字典</param>
-    /// <param name="trans">事务</param>
     /// <returns>对象迭代器</returns>
     [System.Diagnostics.DebuggerStepThrough]
     public static IEnumerable<T> GetAllObjects<T>(this DBDictionary dict) where T : DBObject
@@ -28,7 +27,6 @@ public static class DBDictionaryEx
     /// </summary>
     /// <typeparam name="T">对象类型的泛型</typeparam>
     /// <param name="dict">字典</param>
-    /// <param name="trans">事务</param>
     /// <param name="key">指定的键值</param>
     /// <returns>T 类型的对象</returns>
     public static T? GetAt<T>(this DBDictionary dict, string key) where T : DBObject
@@ -48,7 +46,6 @@ public static class DBDictionaryEx
     /// </summary>
     /// <typeparam name="T">对象类型</typeparam>
     /// <param name="dict">字典</param>
-    /// <param name="trans">事务</param>
     /// <param name="key">键</param>
     /// <param name="newValue">值</param>
     public static void SetAt<T>(this DBDictionary dict, string key, T newValue) where T : DBObject
@@ -58,7 +55,7 @@ public static class DBDictionaryEx
         using (dict.ForWrite())
         {
             dict.SetAt(key, newValue);
-            tr.Transaction.AddNewlyCreatedDBObject(newValue, true);
+            tr.AddNewlyCreatedDBObject(newValue, true);
         }
     }
 
@@ -97,12 +94,9 @@ public static class DBDictionaryEx
     /// 获取扩展字典
     /// </summary>
     /// <param name="obj">对象</param>
-    /// <param name="trans">事务</param>
     /// <returns>扩展字典对象</returns>
-    public static DBDictionary? GetXDictionary(this DBObject obj, DBTrans? trans = null)
+    public static DBDictionary? GetXDictionary(this DBObject obj)
     {
-        var tr = DBTrans.GetTopTransaction(obj.Database);
-
         ObjectId id = obj.ExtensionDictionary;
         if (id.IsNull)
         {
@@ -209,7 +203,6 @@ public static class DBDictionaryEx
     /// 获取子字典
     /// </summary>
     /// <param name="dict">根字典</param>
-    /// <param name="trans">事务</param>
     /// <param name="createSubDictionary">是否创建子字典</param>
     /// <param name="dictNames">键值列表</param>
     /// <returns>字典</returns>
@@ -272,6 +265,7 @@ public static class DBDictionaryEx
     /// <summary>
     /// 添加编组
     /// </summary>
+    /// <param name="dict">字典</param>
     /// <param name="name">组名</param>
     /// <param name="ids">实体Id集合</param>
     /// <returns>编组Id</returns>
@@ -286,7 +280,7 @@ public static class DBDictionaryEx
             g.Append(ids);
             dict.SetAt(name, g);
             var tr = DBTrans.GetTopTransaction(dict.Database);
-            tr.Transaction.AddNewlyCreatedDBObject(g, true);
+            tr.AddNewlyCreatedDBObject(g, true);
             return g.ObjectId;
         }
     }
@@ -294,6 +288,7 @@ public static class DBDictionaryEx
     /// <summary>
     /// 添加编组
     /// </summary>
+    /// <param name="dict">字典</param>
     /// <param name="name">组名</param>
     /// <param name="ids">实体Id集合</param>
     /// <returns>编组Id</returns>
@@ -310,6 +305,7 @@ public static class DBDictionaryEx
     /// <summary>
     /// 按选择条件获取编组集合
     /// </summary>
+    /// <param name="dict">字典</param>
     /// <param name="func">选择条件，过滤函数</param>
     /// <example><![CDATA[var groups = dict.GetGroups(g => g.NumEntities < 2);]]></example>
     /// <returns>编组集合</returns>
@@ -352,8 +348,11 @@ public static class DBDictionaryEx
     /// <summary>
     /// 移除所有空组
     /// </summary>
+    /// <param name="dict"></param>
     /// <param name="func">过滤条件，过滤要删除的组名的规则函数</param>
-    /// <example>RemoveNullGroup(g => g.StartsWith("hah"))</example>
+    /// <example>
+    /// <![CDATA[RemoveNullGroup(g => g.StartsWith("hah"));]]>
+    /// </example>
     /// <returns>被移除编组的名称集合</returns>
     public static List<string> RemoveNullGroup(this DBDictionary dict, Func<string, bool> func)
     {

@@ -501,7 +501,7 @@ public class HatchPickEvent : IDisposable
     void CreatHatchConverter(Hatch hatch, HashSet<ObjectId> outSsgetIds)
     {
         //tr ??= DBTrans.Top;
-        var tr = DBTrans.GetTopTransaction(hatch.Database);
+        var tr = DBTrans.GetTop(hatch.Database);
         var hc = new HatchConverter(hatch);
         ObjectId newid;
 

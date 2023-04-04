@@ -66,7 +66,7 @@ public static class EditorEx
     public static PromptSelectionResult SSGet(this Editor editor,
                                               string? mode = null,
                                               SelectionFilter? filter = null,
-                                              string[]? messages = null,
+                                              (string add, string remove)? messages = null,
                                               Dictionary<string, Action>? keywords = null)
     {
         PromptSelectionOptions pso = new();
@@ -87,8 +87,8 @@ public static class EditorEx
         }
         if (messages is not null)
         {
-            pso.MessageForAdding = messages[0];
-            pso.MessageForRemoval = messages[1];
+            pso.MessageForAdding = messages.Value.add;
+            pso.MessageForRemoval = messages.Value.remove;
         }
 
         if (keywords is not null)
@@ -99,8 +99,8 @@ public static class EditorEx
                 pso.MessageForAdding = "选择对象";
             pso.MessageForAdding += $"[{string.Join(" / ", keywords.Keys.ToArray())}]";
             pso.KeywordInput += (s, e) => {
-                if (keywords.ContainsKey(e.Input))
-                    keywords[e.Input].Invoke();
+                if (keywords.TryGetValue(e.Input, out Action value))
+                    value.Invoke();
             };
         }
         try
@@ -665,7 +665,8 @@ public static class EditorEx
             throw new ArgumentException("TILEMODE == 1..Espace papier uniquement");
 
         Matrix3d mat = Matrix3d.Identity;
-        using DBTrans tr = new();
+        //using DBTrans tr = new();
+        var tr = DBTrans.GetTopTransaction(editor.Document.Database);
         var vp = tr.GetObject<Viewport>(editor.CurrentViewportObjectId);
         if (vp == null)
             return mat;

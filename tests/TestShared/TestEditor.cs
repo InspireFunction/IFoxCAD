@@ -56,7 +56,7 @@ public class Testeditor
             { "B", action_b }
         };
 
-        var ss = Env.Editor.SSGet(":S", messages: new string[2] { "get", "del" },
+        var ss = Env.Editor.SSGet(":S", messages: ("get", "del" ),
                                          keywords: keyword);
         Env.Print(ss!);
     }
