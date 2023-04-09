@@ -26,7 +26,7 @@ namespace TestShared
 
                 };
 
-                tr.CurrentSpace.AddPline(pts, action: e => e.ColorIndex = 1);
+                tr.CurrentSpace.AddEntity(pts.CreatePolyline(action: e => e.ColorIndex = 1));
                 if (block is BlockReference block1)
                 {
                     var extents = block1.GeometryExtentsBestFit();
@@ -35,10 +35,10 @@ namespace TestShared
                     new Point3d(extents.MinPoint.X,extents.MaxPoint.Y,0),
                     extents.MaxPoint,
                     new Point3d(extents.MaxPoint.X,extents.MinPoint.Y,0),};
-                    tr.CurrentSpace.AddPline(pts1, action: e => e.ColorIndex = 2);
+                    tr.CurrentSpace.AddEntity(pts.CreatePolyline(action: e => e.ColorIndex = 2));
 
                     var extents2 = block1.GetBoundingBoxEx();
-                    tr.CurrentSpace.AddLine(extents2.Min,extents2.Max,e=>e.ColorIndex = 3);
+                    tr.CurrentSpace.AddEntity(pts.CreatePolyline(action: e => e.ColorIndex = 3));
                 }
 
                 

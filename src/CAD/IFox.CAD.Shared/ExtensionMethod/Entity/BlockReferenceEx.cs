@@ -90,19 +90,12 @@ public static class BlockReferenceEx
     /// </summary>
     /// <param name="brf"></param>
     /// <param name="action"></param>
-    /// <param name="tr"></param>
     /// <exception cref="ArgumentNullException"></exception>
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId> action)
     {
-        //if (action == null)
-        //    throw new ArgumentNullException(nameof(action));
         action.NotNull(nameof(action));
         var tr = DBTrans.GetTopTransaction(brf.Database);
-        //var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
-        //if (btr == null)
-        //    return;
-        //btr.ForEach(action);
         if (tr.GetObject(brf.BlockTableRecord) is BlockTableRecord btr)
         {
             btr.ForEach(action);
@@ -113,19 +106,12 @@ public static class BlockReferenceEx
     /// </summary>
     /// <param name="brf"></param>
     /// <param name="action"></param>
-    /// <param name="tr"></param>
     /// <exception cref="ArgumentNullException"></exception>
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState> action)
     {
-        //if (action == null)
-        //    throw new ArgumentNullException(nameof(action));
         action.NotNull(nameof(action));
         var tr = DBTrans.GetTopTransaction(brf.Database);
-        //var btr = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);
-        //if (btr == null)
-        //    return;
-        //btr.ForEach(action);
         if (tr.GetObject(brf.BlockTableRecord) is BlockTableRecord btr)
         {
             btr.ForEach(action);

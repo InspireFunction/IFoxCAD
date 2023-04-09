@@ -47,19 +47,6 @@ public static class SymbolTableRecordEx
         }
     }
 
-    /// <summary>
-    /// 克隆图元实体(这个函数有问题,会出现偶尔成功,偶尔失败,拖动过变成匿名块)
-    /// <para>若为块则进行设置属性,因此控制动态块属性丢失;</para>
-    /// </summary>
-    /// <param name="ent">图元</param>
-    /// <param name="matrix">矩阵</param>
-    // public static void EntityTransformedCopy(this Entity ent, Matrix3d matrix)
-    // {
-    //    var entNew = ent.GetTransformedCopy(matrix);
-    //    if (ent is BlockReference blockReference)
-    //        entNew.SetPropertiesFrom(blockReference);
-    // }
-
     #endregion
 
     #region 添加实体
@@ -71,8 +58,6 @@ public static class SymbolTableRecordEx
     /// <returns>对象 id</returns>
     public static ObjectId AddEntity(this BlockTableRecord btr, Entity entity)
     {
-        // if (entity is null)
-        //    throw new ArgumentNullException(nameof(entity), "对象为 null");
 
         ObjectId id;
         var tr = DBTrans.GetTopTransaction(btr.Database);
@@ -91,12 +76,9 @@ public static class SymbolTableRecordEx
     /// <typeparam name="T">实体类型</typeparam>
     /// <param name="btr">块表记录</param>
     /// <param name="ents">实体集合</param>
-    /// <param name="trans">事务</param>
     /// <returns>对象 id 列表</returns>
     public static IEnumerable<ObjectId> AddEntity<T>(this BlockTableRecord btr, IEnumerable<T> ents) where T : Entity
     {
-        // if (ents.Any(ent => ent is null))
-        //    throw new ArgumentNullException(nameof(ents), "实体集合内存在 null 对象");
 
         var tr = DBTrans.GetTopTransaction(btr.Database);
         using (btr.ForWrite())
@@ -121,193 +103,6 @@ public static class SymbolTableRecordEx
     }
     #endregion
 
-    #region 添加图元
-    /// <summary>
-    /// 在指定绘图空间添加图元
-    /// </summary>
-    /// <typeparam name="T">图元类型</typeparam>
-    /// <param name="btr">绘图空间</param>
-    /// <param name="ent">图元对象</param>
-    /// <param name="action">图元属性设置委托</param>
-    /// <param name="trans">事务管理器</param>
-    /// <returns>图元id</returns>
-    private static ObjectId AddEnt<T>(this BlockTableRecord btr, T ent,
-                                      Action<T>? action) where T : Entity
-    {
-        action?.Invoke(ent);
-        return btr.AddEntity(ent);
-    }
-    /// <summary>
-    /// 委托式的添加图元
-    /// </summary>
-    /// <param name="btr">块表</param>
-    /// <param name="action">返回图元的委托</param>
-    /// <param name="trans">事务</param>
-    /// <returns>图元id，如果委托返回 null，则为 ObjectId.Null</returns>
-    public static ObjectId AddEnt(this BlockTableRecord btr, Func<Entity> action, Transaction? trans = null)
-    {
-        var ent = action.Invoke();
-        if (ent is null)
-            return ObjectId.Null;
-
-        return btr.AddEntity(ent);
-    }
-
-    /// <summary>
-    /// 在指定绘图空间添加直线
-    /// </summary>
-    /// <param name="trans">事务管理器</param>
-    /// <param name="start">起点</param>
-    /// <param name="end">终点</param>
-    /// <param name="btr">绘图空间</param>
-    /// <param name="action">直线属性设置委托</param>
-    /// <returns>直线的id</returns>
-    public static ObjectId AddLine(this BlockTableRecord btr, Point3d start, Point3d end,
-                                   Action<Line>? action = null)
-    {
-        var line = new Line(start, end);
-        return btr.AddEnt(line, action);
-    }
-    /// <summary>
-    /// 在指定绘图空间X-Y平面添加圆
-    /// </summary>
-    /// <param name="btr">绘图空间</param>
-    /// <param name="center">圆心</param>
-    /// <param name="radius">半径</param>
-    /// <param name="action">圆属性设置委托</param>
-    /// <param name="trans">事务管理器</param>
-    /// <returns>圆的id</returns>
-    public static ObjectId AddCircle(this BlockTableRecord btr, Point3d center, double radius,
-                                     Action<Circle>? action = null, Transaction? trans = null)
-    {
-        var circle = new Circle(center, Vector3d.ZAxis, radius);
-        return btr.AddEnt(circle, action);
-    }
-
-    /// <summary>
-    /// 在指定绘图空间X-Y平面3点画外接圆
-    /// </summary>
-    /// <param name="btr">绘图空间</param>
-    /// <param name="p0">第一点</param>
-    /// <param name="p1">第二点</param>
-    /// <param name="p2">第三点</param>
-    /// <param name="action">圆属性设置委托</param>
-    /// <param name="trans">事务管理器</param>
-    /// <returns>三点有外接圆则返回圆的id，否则返回ObjectId.Null</returns>
-    public static ObjectId AddCircle(this BlockTableRecord btr, Point3d p0, Point3d p1, Point3d p2,
-                                     Action<Circle>? action = null)
-    {
-        var circle = CircleEx.CreateCircle(p0, p1, p2);
-        // return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
-        //if (circle is null)
-        //    throw new ArgumentNullException(nameof(circle), "对象为 null");
-        circle.NotNull(nameof(circle));
-        return btr.AddEnt(circle, action);
-    }
-    /// <summary>
-    /// 在指定的绘图空间添加轻多段线
-    /// </summary>
-    /// <param name="btr">绘图空间</param>
-    /// <param name="bvws">多段线信息</param>
-    /// <param name="constantWidth">线宽</param>
-    /// <param name="isClosed">是否闭合</param>
-    /// <param name="action">轻多段线属性设置委托</param>
-    /// <param name="trans">事务管理器</param>
-    /// <returns>轻多段线id</returns>
-    public static ObjectId AddPline(this BlockTableRecord btr,
-                                    List<BulgeVertexWidth> bvws,
-                                    double? constantWidth = null,
-                                    bool isClosed = true,
-                                    Action<Polyline>? action = null, Transaction? trans = null)
-    {
-        Polyline pl = new();
-        pl.SetDatabaseDefaults();
-        if (constantWidth is not null)
-        {
-            for (int i = 0; i < bvws.Count; i++)
-                pl.AddVertexAt(i, bvws[i].Vertex, bvws[i].Bulge, constantWidth.Value, constantWidth.Value);
-        }
-        else
-        {
-            for (int i = 0; i < bvws.Count; i++)
-                pl.AddVertexAt(i, bvws[i].Vertex, bvws[i].Bulge, bvws[i].StartWidth, bvws[i].EndWidth);
-        }
-        pl.Closed = isClosed;// 闭合
-        return btr.AddEnt(pl, action);
-    }
-    /// <summary>
-    /// 在指定的绘图空间添加轻多段线
-    /// </summary>
-    /// <param name="btr">绘图空间</param>
-    /// <param name="pts">端点表</param>
-    /// <param name="bulges">凸度表</param>
-    /// <param name="startWidths">端点的起始宽度</param>
-    /// <param name="endWidths">端点的终止宽度</param>
-    /// <param name="action">轻多段线属性设置委托</param>
-    /// <param name="trans">事务管理器</param>
-    /// <returns>轻多段线id</returns>
-    public static ObjectId AddPline(this BlockTableRecord btr,
-                                    List<Point3d> pts,
-                                    List<double>? bulges = null,
-                                    List<double>? startWidths = null,
-                                    List<double>? endWidths = null,
-                                    Action<Polyline>? action = null,
-                                    Transaction? trans = null)
-    {
-        bulges ??= new(new double[pts.Count]);
-        startWidths ??= new(new double[pts.Count]);
-        endWidths ??= new(new double[pts.Count]);
-
-        Polyline pl = new();
-        pl.SetDatabaseDefaults();
-
-        for (int i = 0; i < pts.Count; i++)
-            pl.AddVertexAt(i, pts[i].Point2d(), bulges[i], startWidths[i], endWidths[i]);
-        return btr.AddEnt(pl, action);
-    }
-
-    /// <summary>
-    /// 在指定的绘图空间添加轻多段线
-    /// </summary>
-    /// <param name="btr">绘图空间</param>
-    /// <param name="pts">端点表,利用元组(Point3d pt, double bulge, double startWidth, double endWidth)</param>
-    /// <param name="action">轻多段线属性设置委托</param>
-    /// <param name="trans">事务管理器</param>
-    /// <returns>轻多段线id</returns>
-    public static ObjectId AddPline(this BlockTableRecord btr,
-                                    List<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,
-                                    Action<Polyline>? action = null,
-                                    Transaction? trans = null)
-    {
-        Polyline pl = new();
-        pl.SetDatabaseDefaults();
-
-        pts.ForEach((vertex, state, index) => {
-            pl.AddVertexAt(index, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
-        });
-
-        return btr.AddEnt(pl, action);
-    }
-
-    /// <summary>
-    /// 在指定绘图空间X-Y平面3点画圆弧
-    /// </summary>
-    /// <param name="btr">绘图空间</param>
-    /// <param name="startPoint">圆弧起点</param>
-    /// <param name="pointOnArc">圆弧上的点</param>
-    /// <param name="endPoint">圆弧终点</param>
-    /// <param name="action">圆弧属性设置委托</param>
-    /// <param name="trans">事务管理器</param>
-    /// <returns>圆弧id</returns>
-    public static ObjectId AddArc(this BlockTableRecord btr,
-                                  Point3d startPoint, Point3d pointOnArc, Point3d endPoint,
-                                  Action<Arc>? action = null, Transaction? trans = null)
-    {
-        var arc = ArcEx.CreateArc(startPoint, pointOnArc, endPoint);
-        return btr.AddEnt(arc, action);
-    }
-    #endregion
-
     #region 获取实体/实体id
     /// <summary>
     /// 获取块表记录内的指定类型的实体
@@ -316,7 +111,6 @@ public static class SymbolTableRecordEx
     /// <typeparam name="T">实体类型</typeparam>
     /// <param name="btr">块表记录</param>
     /// <param name="openMode">打开模式</param>
-    /// <param name="trans">事务</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>实体集合</returns>
@@ -467,6 +261,7 @@ public static class SymbolTableRecordEx
     /// <summary>
     /// 遍历符号表记录,执行委托
     /// </summary>
+    /// <param name="record">符号表记录</param>
     /// <param name="task">要运行的委托</param>
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId> task)
           where TRecord : SymbolTableRecord, IEnumerable
@@ -478,6 +273,7 @@ public static class SymbolTableRecordEx
     /// <summary>
     /// 遍历符号表记录,执行委托(允许循环中断)
     /// </summary>
+    /// <param name="record">符号表记录</param>
     /// <param name="task">要执行的委托</param>
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, LoopState> task)
           where TRecord : SymbolTableRecord, IEnumerable
@@ -494,6 +290,7 @@ public static class SymbolTableRecordEx
     /// <summary>
     /// 遍历符号表记录,执行委托(允许循环中断,输出索引值)
     /// </summary>
+    /// <param name="record">符号表记录</param>
     /// <param name="task">要执行的委托</param>
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, LoopState, int> task)
