@@ -99,7 +99,8 @@ public static class EntityEx
         var ext = new Extents3d();
         foreach (var item in ents)
         {
-            ext.AddExtents(item.GeometricExtents);
+            if (item.Bounds.HasValue)
+                ext.AddExtents(item.GeometricExtents);
         }
         return ext;
     }

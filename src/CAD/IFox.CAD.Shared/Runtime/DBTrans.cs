@@ -34,7 +34,7 @@ public class DBTrans : IDisposable
     }
 
     /// <summary>
-    /// 获取给点数据库的顶层 DBTrans 事务
+    /// 获取给定数据库的顶层 DBTrans 事务
     /// </summary>
     /// <param name="database">数据库</param>
     /// <returns>DBTrans 事务</returns>
