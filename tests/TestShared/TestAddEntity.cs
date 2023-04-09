@@ -58,7 +58,6 @@ public partial class Test
         Arc arc2 = ArcEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);            // 起点，圆心，弧度
         Arc arc3 = ArcEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));   // 起点，圆上一点，终点
         tr.CurrentSpace.AddEntity(arc1, arc2, arc3);
-        tr.CurrentSpace.AddArc(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));// 起点，圆上一点，终点
         
     }
 
@@ -75,8 +74,6 @@ public partial class Test
         else
             tr.Editor?.WriteMessage("三点画圆失败");
         tr.CurrentSpace.AddEntity(circle3!);
-        tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 0, 0));// 三点画圆，成功
-        tr.CurrentSpace.AddCircle(new Point3d(0, 0, 0), new Point3d(1, 1, 0), new Point3d(2, 2, 0));// 起点，圆上一点，终点(共线)
     }
 
     [CommandMethod(nameof(Test_LayerAdd0))]
@@ -183,7 +180,8 @@ public partial class Test
                 (new Point3d(5,5,0),0,0,0)
             };
         using DBTrans tr = new();
-        tr.CurrentSpace.AddPline(pts);
+        var pl = pts.CreatePolyline();
+        tr.CurrentSpace.AddEntity(pl);
     }
 
 

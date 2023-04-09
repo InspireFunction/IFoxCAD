@@ -34,25 +34,6 @@ public static class MTextEx
         return mText;
     }
 
-
-    /// <summary>
-    /// 添加多行文字到块表记录
-    /// </summary>
-    /// <param name="btr">块表记录</param>
-    /// <param name="position">插入点</param>
-    /// <param name="text">文本内容</param>
-    /// <param name="height">文字高度</param>
-    /// <param name="action">文字属性设置委托</param>
-    /// <returns>文字对象id</returns>
-    /// <exception cref="ArgumentNullException"></exception>
-    public static ObjectId AddMText(this BlockTableRecord btr, Point3d position, string text, double height, Action<MText>? action = null)
-    {
-        var mText = CreateMText(position, text, height, btr.Database, action);
-
-        return btr.AddEntity(mText);
-    }
-
-
     /// <summary>
     /// 炸散多行文字
     /// </summary>

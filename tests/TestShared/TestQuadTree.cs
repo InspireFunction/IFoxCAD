@@ -77,7 +77,7 @@ public partial class TestQuadTree
                 (new Point3d(pl[2].X,pl[2].Y,0),0,0,0),
                 (new Point3d(pl[3].X,pl[3].Y,0),0,0,0),
             };
-        tr.CurrentSpace.AddPline(databaseBoundary);
+        tr.CurrentSpace.AddEntity(databaseBoundary.CreatePolyline(action: e => e.Closed = true));
 
         // 生成多少个图元,导致cad会令undo出错(八叉树深度过大 treemax)
         // int maximumItems = 30_0000;

@@ -94,7 +94,8 @@ public class TestTrans
     {
         string filename = @"C:\Users\vic\Desktop\test.dwg";
         using DBTrans tr = new(filename);
-        tr.ModelSpace.AddCircle(new Point3d(10, 10, 0), 20);
+        var circle = CircleEx.CreateCircle(new Point3d(10, 10, 0), 20)!;
+        tr.ModelSpace.AddEntity(circle);
         // tr.Database.SaveAs(filename,DwgVersion.Current);
         tr.SaveDwgFile();
     }
@@ -102,7 +103,8 @@ public class TestTrans
     public void Test_DBTransAbort()
     {
         using DBTrans tr = new();
-        tr.ModelSpace.AddCircle(new Point3d(0, 0, 0), 20);
+        var circle = CircleEx.CreateCircle(new Point3d(10, 10, 0), 20)!;
+        tr.ModelSpace.AddEntity(circle);
         tr.Abort();
         // tr.Commit();
     }
