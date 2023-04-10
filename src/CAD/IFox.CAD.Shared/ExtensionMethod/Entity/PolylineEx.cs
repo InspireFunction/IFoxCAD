@@ -64,7 +64,7 @@ public static class PolylineEx
     /// 此多段线无默认全局宽度0，无圆弧段
     /// </summary>
     /// <param name="points">点集</param>
-    /// <param name="isClose">是否闭合</param>
+    /// <param name="action">多段线属性设置委托</param>
     /// <returns>多段线对象</returns>
     public static Polyline CreatePolyline(this IEnumerable<Point3d> points, Action<Polyline>? action = null)
     {

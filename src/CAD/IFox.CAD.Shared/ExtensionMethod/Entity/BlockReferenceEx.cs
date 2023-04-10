@@ -68,19 +68,101 @@ public static class BlockReferenceEx
     /// <summary>
     /// 更新动态块属性值
     /// </summary>
-    /// <param name="blockReference">动态块</param>
-    /// <param name="propertyNameValues">属性值字典</param>
-    public static void ChangeBlockProperty(this BlockReference blockReference,
-                                           Dictionary<string, object> propertyNameValues)
+    private static void ChangeDynamicBlockProperty<T>(BlockReference blockReference,
+                                           Dictionary<string, T> propertyNameValues)
     {
-        if (!blockReference.IsDynamicBlock)
-            return;
-
         using (blockReference.ForWrite())
         {
             foreach (DynamicBlockReferenceProperty item in blockReference.DynamicBlockReferencePropertyCollection)
                 if (propertyNameValues.ContainsKey(item.PropertyName))
                     item.Value = propertyNameValues[item.PropertyName];
+        }
+    }
+    /// <summary>
+    /// 更新普通块的属性值
+    /// </summary>
+    private static void ChangePureBlockProperty<T>(BlockReference blockReference, Dictionary<string, T> propertyNameValues)
+    {
+        var tr = DBTrans.GetTopTransaction(blockReference.Database);
+        AttributeReference att;
+        foreach (var item in blockReference.AttributeCollection)
+        {
+            if (item is ObjectId id)
+            {
+                // 通常情况下返回的都是 ObjectId
+                att = tr.GetObject<AttributeReference>(id);
+            }
+            else
+            {
+                // 某些情况下，比如你exploded炸开块后的子块块参照是没有在数据库里的，这时候返回的结果就是 AttributeReference
+                att = (AttributeReference)item;
+            }
+            att.ForWrite(obj => {
+                if (propertyNameValues.ContainsKey(obj.Tag))
+                {
+                    obj.TextString = propertyNameValues[obj.Tag]?.ToString();
+                }
+            });
+        }
+    }
+    /// <summary>
+    /// 更新块属性值
+    /// </summary>
+    /// <param name="blockReference">块</param>
+    /// <param name="propertyNameValues">属性值字典</param>
+    public static void ChangeBlockProperty<T>(this BlockReference blockReference, Dictionary<string, T> propertyNameValues)
+    {
+        if (blockReference.IsDynamicBlock)
+        {
+            ChangeDynamicBlockProperty(blockReference, propertyNameValues);
+        }
+        else
+        {
+            ChangePureBlockProperty(blockReference, propertyNameValues);
+        }
+    }
+    /// <summary>
+    /// 获取嵌套块的位置(wcs)
+    /// </summary>
+    /// <param name="parentBlockRef">父块</param>
+    /// <param name="nestedBlockName">子块名</param>
+    /// <returns>子块的位置</returns>
+    /// <exception cref="ArgumentException"></exception>
+    public static Point3d GetNestedBlockPosition(this BlockReference parentBlockRef, string nestedBlockName)
+    {
+        var tr = DBTrans.GetTopTransaction(parentBlockRef.Database);
+
+        var btr = tr.GetObject<BlockTableRecord>(parentBlockRef.BlockTableRecord);
+        foreach (ObjectId id in btr)
+        {
+            if (id.ObjectClass.Name == "AcDbBlockReference")
+            {
+                var nestedBlockRef = tr.GetObject<BlockReference>(id);
+                if (nestedBlockRef.Name == nestedBlockName)
+                {
+                    return nestedBlockRef.Position.TransformBy(parentBlockRef.BlockTransform);
+                }
+            }
+        }
+        throw new ArgumentException($"Block {nestedBlockName} not found.");
+    }
+    /// <summary>
+    /// 获取普通块参照的属性集合
+    /// </summary>
+    /// <param name="owner">普通块参照</param>
+    /// <returns>属性集合</returns>
+    public static IEnumerable<AttributeReference> GetAttributes(this BlockReference owner)
+    {
+        var trans = DBTrans.GetTopTransaction(owner.Database);
+        if (owner.Database != null)
+        {
+            foreach (ObjectId id in owner.AttributeCollection)
+                yield return (AttributeReference)trans.GetObject(id);
+        }
+        else
+        {
+            foreach (AttributeReference att in owner.AttributeCollection)
+                yield return att;
         }
     }
     #endregion
