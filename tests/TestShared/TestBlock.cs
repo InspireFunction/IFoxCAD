@@ -515,12 +515,25 @@ public class TestBlock
         var db = curdb.Wblock(ids, Point3d.Origin);
         db.SaveAs(@"c:\test.dwg", DwgVersion.Current);
     }
-
-    void ChangeDynameicBlock()
+    [CommandMethod(nameof(ChangeDynameicBlock))]
+    public void ChangeDynameicBlock()
     {
         var pro = new Dictionary<string, object>
         {
             { "haha", 1 }
+        };
+        var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
+        using DBTrans tr = new();
+        var brf = tr.GetObject<BlockReference>(blockid)!;
+        brf.ChangeBlockProperty(pro);
+        // 这是第一个函数的用法
+    }
+    [CommandMethod(nameof(ChangeBlockProperty))]
+    public void ChangeBlockProperty()
+    {
+        Dictionary<string, string>? pro = new Dictionary<string, string>
+        {
+            { "haha", "1" }
         };
         var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
         using DBTrans tr = new();
