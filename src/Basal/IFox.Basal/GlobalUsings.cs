@@ -16,6 +16,6 @@ global using System.Linq.Expressions;
 global using System.Collections.ObjectModel;
 
 
-#if NET45
+#if NET45_OR_GREATER
 global using Microsoft.CSharp.RuntimeBinder;
 #endif

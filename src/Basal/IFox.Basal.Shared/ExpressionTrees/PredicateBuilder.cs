@@ -1,5 +1,5 @@
 
-#if NET45
+#if NET45_OR_GREATER
 namespace IFoxCAD.Basal;
 /// <summary>
 /// PredicateÎ¯ÍÐ¹¹ÔìÆ÷

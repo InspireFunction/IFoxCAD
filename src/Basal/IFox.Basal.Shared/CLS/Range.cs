@@ -6,9 +6,7 @@ namespace System;
 
 
 
-#if NET45
-using System.Runtime.CompilerServices;
-#endif
+
 
 /// <summary>Represent a range has start and end indexes.</summary>
 /// <remarks>
@@ -75,7 +73,7 @@ public readonly struct Range : IEquatable<Range>
     /// It is expected Range will be used with collections which always have non negative length/count.
     /// We validate the range is inside the length scope though.
     /// </remarks>
-#if NET45
+#if NET45_OR_GREATER
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
 #endif
     // [CLSCompliant(false)]
