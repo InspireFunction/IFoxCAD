@@ -1,5 +1,4 @@
-#if NET45
-using Microsoft.CSharp.RuntimeBinder;
+#if NET45_OR_GREATER
 
 namespace IFoxCAD.Basal;
 
