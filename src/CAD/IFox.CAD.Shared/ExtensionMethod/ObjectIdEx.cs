@@ -58,6 +58,30 @@ public static class ObjectIdEx
     }
     #endregion GetObject
 
+    /// <summary>
+    /// 根据对象句柄字符串获取对象Id
+    /// </summary>
+    /// <param name="db">数据库</param>
+    /// <param name="handleString">句柄字符串</param>
+    /// <returns>对象的ObjectId</returns>
+    public static ObjectId GetObjectId(this Database db, string handleString)
+    {
+        long l;
+        try
+        {
+            l = Convert.ToInt64(handleString, 16);
+        }
+        catch
+        {
+            return ObjectId.Null;
+        }
+        var hanle = new Handle(l);
+        if (db.TryGetObjectId(hanle, out ObjectId id))
+        {
+            return id;
+        }
+        return ObjectId.Null;
+    }
 
     /// <summary>
     /// id是否有效,未被删除
