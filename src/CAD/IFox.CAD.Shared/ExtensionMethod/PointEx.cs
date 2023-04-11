@@ -62,6 +62,15 @@ public static class PointEx
         return new Point2d(a.X * 0.5 + b.X * 0.5,
                            a.Y * 0.5 + b.Y * 0.5);
     }
+    /// <summary>
+    /// Z值归零
+    /// </summary>
+    /// <param name="point">点</param>
+    /// <returns>新点</returns>
+    internal static Point3d Z20(this Point3d point)
+    {
+        return new Point3d(point.X, point.Y, 0);
+    }
 
     /// http://www.lee-mac.com/bulgeconversion.html
     /// <summary>
