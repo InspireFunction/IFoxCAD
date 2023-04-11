@@ -1,4 +1,5 @@
 ﻿using System.Data.Common;
+using System.Text.RegularExpressions;
 
 namespace IFoxCAD.Cad;
 
@@ -50,14 +51,41 @@ public static class ObjectIdEx
     /// </summary>
     /// <typeparam name="T">对象类型</typeparam>
     /// <param name="ids">对象id集合</param>
+    /// <param name="exactMatch">精确匹配</param>
     /// <returns>对象id集合</returns>
-    public static IEnumerable<ObjectId> OfType<T>(this IEnumerable<ObjectId> ids) where T : DBObject
+    public static IEnumerable<ObjectId> OfType<T>(this IEnumerable<ObjectId> ids,bool exactMatch =false) where T : DBObject
     {
-        string dxfName = RXClass.GetClass(typeof(T)).DxfName;
-        return ids.Where(id => id.ObjectClass.DxfName == dxfName);
+        var  rxc = RXClass.GetClass(typeof(T));
+        if (exactMatch)
+        {
+            var dxfName = rxc.DxfName;
+            return ids.Where(id => id.ObjectClass.DxfName == dxfName);
+        }
+        else
+        {
+            return ids.Where(id => id.ObjectClass.IsDerivedFrom(rxc));
+        }
     }
     #endregion GetObject
 
+    /// <summary>
+    /// 根据对象句柄字符串获取对象Id
+    /// </summary>
+    /// <param name="db">数据库</param>
+    /// <param name="handleString">句柄字符串</param>
+    /// <returns>对象的ObjectId</returns>
+    public static ObjectId GetObjectId(this Database db, string handleString)
+    {
+        if (long.TryParse(handleString, System.Globalization.NumberStyles.HexNumber, null, out long l))
+        {
+            var hanle = new Handle(l);
+            if (db.TryGetObjectId(hanle, out ObjectId id))
+            {
+                return id;
+            }
+        }
+        return ObjectId.Null;
+    }
 
     /// <summary>
     /// id是否有效,未被删除

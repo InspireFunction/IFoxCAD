@@ -56,11 +56,20 @@ public static class PointEx
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    public static Point2d GetCenter(this Point2d a, Point2d b)
+    public static Point2d GetMidPointTo(this Point2d a, Point2d b)
     {
         // (p1 + p2) / 2; // 溢出风险
         return new Point2d(a.X * 0.5 + b.X * 0.5,
                            a.Y * 0.5 + b.Y * 0.5);
+    }
+    /// <summary>
+    /// Z值归零
+    /// </summary>
+    /// <param name="point">点</param>
+    /// <returns>新点</returns>
+    internal static Point3d Z20(this Point3d point)
+    {
+        return new Point3d(point.X, point.Y, 0);
     }
 
     /// http://www.lee-mac.com/bulgeconversion.html
