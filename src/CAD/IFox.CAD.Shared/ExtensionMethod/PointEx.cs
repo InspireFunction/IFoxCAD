@@ -56,7 +56,7 @@ public static class PointEx
     /// <param name="a"></param>
     /// <param name="b"></param>
     /// <returns></returns>
-    public static Point2d GetCenter(this Point2d a, Point2d b)
+    public static Point2d GetMidPointTo(this Point2d a, Point2d b)
     {
         // (p1 + p2) / 2; // 溢出风险
         return new Point2d(a.X * 0.5 + b.X * 0.5,

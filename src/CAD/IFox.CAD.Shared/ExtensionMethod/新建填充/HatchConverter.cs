@@ -25,7 +25,7 @@ public class HatchConverter
         /// <param name="symmetryAxisPoint2">对称点2</param>
         public CircleData(PointV symmetryAxisPoint1, PointV symmetryAxisPoint2)
         {
-            Center = symmetryAxisPoint1.GetCenter(symmetryAxisPoint2);
+            Center = PointEx.GetMidPointTo(symmetryAxisPoint1, symmetryAxisPoint2);
             Radius = symmetryAxisPoint1.GetDistanceTo(symmetryAxisPoint2) * 0.5;
         }
     }
