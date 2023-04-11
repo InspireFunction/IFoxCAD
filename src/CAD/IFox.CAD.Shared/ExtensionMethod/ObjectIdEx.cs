@@ -66,19 +66,13 @@ public static class ObjectIdEx
     /// <returns>对象的ObjectId</returns>
     public static ObjectId GetObjectId(this Database db, string handleString)
     {
-        long l;
-        try
+        if (long.TryParse(handleString, System.Globalization.NumberStyles.HexNumber, null, out long l))
         {
-            l = Convert.ToInt64(handleString, 16);
-        }
-        catch
-        {
-            return ObjectId.Null;
-        }
-        var hanle = new Handle(l);
-        if (db.TryGetObjectId(hanle, out ObjectId id))
-        {
-            return id;
+            var hanle = new Handle(l);
+            if (db.TryGetObjectId(hanle, out ObjectId id))
+            {
+                return id;
+            }
         }
         return ObjectId.Null;
     }
