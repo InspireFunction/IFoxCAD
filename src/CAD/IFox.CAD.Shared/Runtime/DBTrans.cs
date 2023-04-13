@@ -183,7 +183,7 @@ public class DBTrans : IDisposable
                    string? password = null,
                    bool activeOpen = false)
     {
-        if (fileName == null || string.IsNullOrWhiteSpace(fileName.Trim()))
+        if (string.IsNullOrWhiteSpace(fileName))
             throw new ArgumentNullException(nameof(fileName));
 
         _fileName = fileName.Replace("/", "\\");// doc.Name总是"D:\\JX.dwg"
@@ -498,7 +498,7 @@ public class DBTrans : IDisposable
             if (saveAsFile == null)
                 doc.SendStringToExecute("_qsave\n", false, true, true);
             else
-                /// 无法把 <paramref name="saveAsFile"/>给这个面板
+                // 无法把 <paramref name="saveAsFile"/>给这个面板
                 doc.SendStringToExecute($"_Saveas\n", false, true, true);
             return;
         }
@@ -506,7 +506,6 @@ public class DBTrans : IDisposable
         // 后台开图,用数据库保存
         string? fileMsg;
         bool creatFlag = false;
-        saveAsFile = saveAsFile?.Trim();
         if (string.IsNullOrWhiteSpace(saveAsFile))
         {
             fileMsg = _fileName;
@@ -531,12 +530,12 @@ public class DBTrans : IDisposable
 
             // 文件名缺失时
             if (!creatFlag &&
-                string.IsNullOrWhiteSpace(Path.GetFileName(saveAsFile).Trim()))
+                string.IsNullOrWhiteSpace(Path.GetFileName(saveAsFile)))
                 creatFlag = true;
         }
         if (saveAsFile != null)
         {
-            var fileNameWith = Path.GetFileNameWithoutExtension(saveAsFile).Trim();
+            var fileNameWith = Path.GetFileNameWithoutExtension(saveAsFile);
             if (string.IsNullOrWhiteSpace(fileNameWith))
                 creatFlag = true;
         }
@@ -591,7 +590,7 @@ public class DBTrans : IDisposable
         // 所以此处将进行保存到桌面,
         // 而不是弹出警告就结束
         // 防止前台关闭了所有文档导致没有Editor,所以使用 MessageBox 发送警告
-        var fileName = Path.GetFileNameWithoutExtension(_fileName).Trim();
+        var fileName = Path.GetFileNameWithoutExtension(_fileName);
         var fileExt = Path.GetExtension(_fileName);
 
         if (string.IsNullOrWhiteSpace(fileName))
@@ -682,7 +681,9 @@ public class DBTrans : IDisposable
         _commit = true;
         Dispose();
     }
-
+    /// <summary>
+    /// 是否释放事务
+    /// </summary>
     public bool IsDisposed { get; private set; } = false;
 
     /// <summary>
@@ -701,7 +702,10 @@ public class DBTrans : IDisposable
     {
         Dispose(false);
     }
-
+    /// <summary>
+    /// 释放函数
+    /// </summary>
+    /// <param name="disposing"></param>
     protected virtual void Dispose(bool disposing)
     {
         /* 事务dispose流程：
@@ -742,18 +746,24 @@ public class DBTrans : IDisposable
         // 将当前事务栈弹栈
         _dBTrans.Pop();
     }
+    
     #endregion
 
     #region ToString
+    /// <inheritdoc/>
     public override string ToString()
     {
         return ToString(null, null);
     }
+    /// <inheritdoc/>
     public string ToString(IFormatProvider? provider)
     {
         return ToString(null, provider);
     }
+    /// <inheritdoc/>
+#pragma warning disable IDE0060 // 删除未使用的参数
     public string ToString(string? format = null, IFormatProvider? formatProvider = null)
+#pragma warning restore IDE0060 // 删除未使用的参数
     {
         List<string> lines = new()
         {
