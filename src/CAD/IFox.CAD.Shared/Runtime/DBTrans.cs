@@ -183,7 +183,7 @@ public class DBTrans : IDisposable
                    string? password = null,
                    bool activeOpen = false)
     {
-        if (fileName == null || string.IsNullOrEmpty(fileName.Trim()))
+        if (fileName == null || string.IsNullOrWhiteSpace(fileName.Trim()))
             throw new ArgumentNullException(nameof(fileName));
 
         _fileName = fileName.Replace("/", "\\");// doc.Name总是"D:\\JX.dwg"
@@ -507,7 +507,7 @@ public class DBTrans : IDisposable
         string? fileMsg;
         bool creatFlag = false;
         saveAsFile = saveAsFile?.Trim();
-        if (string.IsNullOrEmpty(saveAsFile))
+        if (string.IsNullOrWhiteSpace(saveAsFile))
         {
             fileMsg = _fileName;
             saveAsFile = fileMsg;
@@ -519,7 +519,7 @@ public class DBTrans : IDisposable
 
             // 路径失败也保存到桌面
             var path = Path.GetDirectoryName(saveAsFile);
-            if (string.IsNullOrEmpty(path))
+            if (string.IsNullOrWhiteSpace(path))
             {
                 creatFlag = true;
             }
@@ -531,13 +531,13 @@ public class DBTrans : IDisposable
 
             // 文件名缺失时
             if (!creatFlag &&
-                string.IsNullOrEmpty(Path.GetFileName(saveAsFile).Trim()))
+                string.IsNullOrWhiteSpace(Path.GetFileName(saveAsFile).Trim()))
                 creatFlag = true;
         }
         if (saveAsFile != null)
         {
             var fileNameWith = Path.GetFileNameWithoutExtension(saveAsFile).Trim();
-            if (string.IsNullOrEmpty(fileNameWith))
+            if (string.IsNullOrWhiteSpace(fileNameWith))
                 creatFlag = true;
         }
         else
@@ -584,7 +584,7 @@ public class DBTrans : IDisposable
     (bool error, string path) GetOrCreateSaveAsFile()
     {
         var file = Database.Filename;
-        if (!string.IsNullOrEmpty(file))
+        if (!string.IsNullOrWhiteSpace(file))
             return (false, file);
 
         // 为了防止用户输入了错误的路径造成无法保存,
@@ -594,9 +594,9 @@ public class DBTrans : IDisposable
         var fileName = Path.GetFileNameWithoutExtension(_fileName).Trim();
         var fileExt = Path.GetExtension(_fileName);
 
-        if (string.IsNullOrEmpty(fileName))
+        if (string.IsNullOrWhiteSpace(fileName))
             fileName = DateTime.Now.ToString("--yyMMdd--hhmmssffff");
-        if (string.IsNullOrEmpty(fileExt))
+        if (string.IsNullOrWhiteSpace(fileExt))
             fileExt = ".dwg";
 
         // 构造函数(fileName)用了不存在的路径进行后台打开,就会出现此问题
@@ -768,7 +768,7 @@ public class DBTrans : IDisposable
             $"Database = {Database != null}"
         };
 
-        if (!string.IsNullOrEmpty(format))
+        if (!string.IsNullOrWhiteSpace(format))
             return string.Join(format, lines.ToArray());
 
         return string.Join("\n", lines.ToArray());
