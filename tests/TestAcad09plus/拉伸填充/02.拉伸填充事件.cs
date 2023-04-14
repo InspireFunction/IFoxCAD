@@ -14,7 +14,7 @@ public class HatchPickEvent : IDisposable
     // 临时标记(重设选择集会触发一次选择集反应器)
     static bool _selectChangedStop = false;
     // 临时选择集用
-    static List<ObjectId> _hatchIds = new();
+    static readonly List<ObjectId> _hatchIds = new();
     // 获取夹点在哪个图元边界上面,是为true
     static bool _pickInBo = false;
     static bool _vetoProperties = false;

@@ -625,8 +625,7 @@ public static class CurveEx
         using Point3dCollection pnts = new();
         foreach (ObjectId id in pl)
         {
-            var ver = id.GetObject<PolylineVertex3d>(OpenMode.ForRead);
-            if (ver != null)
+            if (id.GetObject(OpenMode.ForRead) is PolylineVertex3d ver)
                 pnts.Add(ver.Position);
         }
         return new PolylineCurve3d(pnts);
@@ -777,8 +776,7 @@ public static class CurveEx
                 );
 
         // 将结果Ge曲线转为Db曲线,并将相关的数值反映到原曲线
-        var plTemp = c3ds[0].ToCurve() as Polyline;
-        if (plTemp is null)
+        if (c3ds[0].ToCurve() is not Polyline plTemp)
             return;
         polyline.RemoveVertexAt(index);
         polyline.AddVertexAt(index, plTemp.GetPoint2dAt(1), plTemp.GetBulgeAt(1), 0, 0);

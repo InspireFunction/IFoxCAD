@@ -10,7 +10,7 @@ public class TestHatchinfo
         var ids = Env.Editor.SSGet(null, sf).Value?.GetObjectIds();
         if (ids.Count() > 0)
         {
-            HatchInfo hf = new HatchInfo(ids, false, null, 1, 0).Mode2UserDefined();
+            HatchInfo hf = new HatchInfo(ids!, false, null, 1, 0).Mode2UserDefined();
             hf.Build(tr.CurrentSpace);
         }
     }

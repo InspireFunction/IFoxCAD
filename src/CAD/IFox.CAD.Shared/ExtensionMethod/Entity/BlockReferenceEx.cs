@@ -74,8 +74,8 @@ public static class BlockReferenceEx
         using (blockReference.ForWrite())
         {
             foreach (DynamicBlockReferenceProperty item in blockReference.DynamicBlockReferencePropertyCollection)
-                if (propertyNameValues.ContainsKey(item.PropertyName))
-                    item.Value = propertyNameValues[item.PropertyName];
+                if (propertyNameValues.TryGetValue(item.PropertyName, out T? value))
+                    item.Value = value;
         }
     }
     /// <summary>
@@ -90,7 +90,7 @@ public static class BlockReferenceEx
             if (item is ObjectId id)
             {
                 // 通常情况下返回的都是 ObjectId
-                att = tr.GetObject<AttributeReference>(id);
+                att = (AttributeReference)tr.GetObject(id);
             }
             else
             {
@@ -98,9 +98,9 @@ public static class BlockReferenceEx
                 att = (AttributeReference)item;
             }
             att.ForWrite(obj => {
-                if (propertyNameValues.ContainsKey(obj.Tag))
+                if (propertyNameValues.TryGetValue(obj.Tag, out T? value))
                 {
-                    obj.TextString = propertyNameValues[obj.Tag]?.ToString();
+                    obj.TextString = value?.ToString();
                 }
             });
         }
@@ -128,23 +128,24 @@ public static class BlockReferenceEx
     /// <param name="nestedBlockName">子块名</param>
     /// <returns>子块的位置</returns>
     /// <exception cref="ArgumentException"></exception>
-    public static Point3d GetNestedBlockPosition(this BlockReference parentBlockRef, string nestedBlockName)
+    public static Point3d? GetNestedBlockPosition(this BlockReference parentBlockRef, string nestedBlockName)
     {
         var tr = DBTrans.GetTopTransaction(parentBlockRef.Database);
 
         var btr = tr.GetObject<BlockTableRecord>(parentBlockRef.BlockTableRecord);
+        if (btr == null) return null;
         foreach (ObjectId id in btr)
         {
             if (id.ObjectClass.Name == "AcDbBlockReference")
             {
                 var nestedBlockRef = tr.GetObject<BlockReference>(id);
-                if (nestedBlockRef.Name == nestedBlockName)
+                if (nestedBlockRef?.Name == nestedBlockName)
                 {
                     return nestedBlockRef.Position.TransformBy(parentBlockRef.BlockTransform);
                 }
             }
         }
-        throw new ArgumentException($"Block {nestedBlockName} not found.");
+        return null;
     }
     /// <summary>
     /// 获取普通块参照的属性集合

@@ -75,7 +75,6 @@ public interface IGraph
 /// <summary>
 /// 无向图顶点
 /// </summary>
-/// <typeparam name="T">顶点数据类型</typeparam>
 public interface IGraphVertex : IComparable
 {
     /// <summary>
