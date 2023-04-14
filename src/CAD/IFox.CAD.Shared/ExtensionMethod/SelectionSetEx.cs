@@ -84,7 +84,6 @@ public static class SelectionSetEx
         ss.NotNull(nameof(ss));
         return ss.GetObjectIds()
                  .Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer))
-                 .Where(ent => ent != null)
                  .OfType<T>();
     }
     #endregion

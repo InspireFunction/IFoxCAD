@@ -598,6 +598,7 @@ public sealed class DepthFirst
     /// </summary>
     /// <param name="graph">图</param>
     /// <param name="visited">已经遍历的路径</param>
+    /// <param name="totalVisited"></param>
 #if true
     void Dfs(IGraph graph, LinkedHashSet<IGraphVertex> visited, HashSet<IGraphVertex> totalVisited)
     {

@@ -159,7 +159,7 @@ public static class SymbolTableRecordEx
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>绘制顺序表</returns>
-    public static DrawOrderTable GetDrawOrderTable(this BlockTableRecord btr,
+    public static DrawOrderTable? GetDrawOrderTable(this BlockTableRecord btr,
                                                     Transaction? trans = null,
                                                     bool openErased = false,
                                                     bool openLockedLayer = false)

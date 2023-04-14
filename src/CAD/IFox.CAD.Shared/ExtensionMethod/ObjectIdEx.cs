@@ -15,7 +15,7 @@ public static class ObjectIdEx
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>指定类型对象</returns>
-    public static T GetObject<T>(this ObjectId id,
+    public static T? GetObject<T>(this ObjectId id,
                                  OpenMode openMode = OpenMode.ForRead,
                                  bool openErased = false,
                                  bool openLockedLayer = false) where T : DBObject
@@ -34,12 +34,14 @@ public static class ObjectIdEx
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>指定类型对象集合</returns>
     [System.Diagnostics.DebuggerStepThrough]
-    public static IEnumerable<T?> GetObject<T>(this IEnumerable<ObjectId> ids,
+    public static IEnumerable<T> GetObject<T>(this IEnumerable<ObjectId> ids,
                                                OpenMode openMode = OpenMode.ForRead,
                                                bool openErased = false,
                                                bool openLockedLayer = false) where T : DBObject
     {
-        return ids.Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer));
+        return ids.Select(id => 
+                        id.GetObject<T>(openMode, openErased, openLockedLayer))
+                  .OfType<T>();
     }
 
     /// <summary>

@@ -185,7 +185,7 @@ public class Copyclip
     /// 其他线程写入需要等待本次写入结束之后才能继续写入
     /// <a href=" https://www.cnblogs.com/Tench/p/CSharpSimpleFileWriteLock.html ">参考链接</a>
     /// </summary>
-    static ReaderWriterLockSlim _rwLock = new();
+    static readonly ReaderWriterLockSlim _rwLock = new();
 
     /// <summary>
     /// 储存准备删除的文件

@@ -175,13 +175,13 @@ public static class EditorEx
                 var item = keySp[j];
                 // 防止多个后缀通过|符越过词典约束同名
                 // 后缀(key)含有,而且Action(value)不同,就把Action(value)累加到后面.
-                if (dicActions.ContainsKey(item))
+                if (dicActions.TryGetValue(item, out Action value))
                 {
                     if (dicActions[item] != dicActions[key])
                         dicActions[item] += dicActions[key];
                 }
                 else
-                    tmp.Add(item, dicActions[key]);
+                    tmp.Add(item, value);
             }
             dicActions.Remove(key);
         }
@@ -1045,7 +1045,7 @@ public static class EditorEx
             // 因为文件名可以有.所以后缀点必须是最后\的后面
             int s = saveFile.LastIndexOf('\\');
             if (s < dot)
-                saveFile = saveFile.Substring(0, dot);
+                saveFile = saveFile[..dot];
         }
 
         // ActiveSelectionSet:
