@@ -22,7 +22,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)General\DebugHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\DictEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\EnumEx.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)General\LateBinding.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\LinkedHashMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\LinkedHashSet.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\LinqEx.cs" />
