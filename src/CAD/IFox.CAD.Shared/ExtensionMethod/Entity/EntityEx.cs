@@ -6,7 +6,7 @@
 /// </summary>
 public static class EntityEx
 {
-    
+
 
     #region 实体线性变换
 
@@ -18,7 +18,10 @@ public static class EntityEx
     /// <param name="to">目标点</param>
     public static void Move(this Entity ent, Point3d from, Point3d to)
     {
-        ent.TransformBy(Matrix3d.Displacement(to - from));
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Displacement(to - from));
+        }
     }
 
     /// <summary>
@@ -29,7 +32,10 @@ public static class EntityEx
     /// <param name="scaleValue">缩放比例</param>
     public static void Scale(this Entity ent, Point3d center, double scaleValue)
     {
-        ent.TransformBy(Matrix3d.Scaling(scaleValue, center));
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Scaling(scaleValue, center));
+        }
     }
 
     /// <summary>
@@ -41,7 +47,10 @@ public static class EntityEx
     /// <param name="normal">旋转平面的法向矢量</param>
     public static void Rotation(this Entity ent, Point3d center, double angle, Vector3d normal)
     {
-        ent.TransformBy(Matrix3d.Rotation(angle, normal, center));
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Rotation(angle, normal, center));
+        }
     }
 
     /// <summary>
@@ -52,7 +61,10 @@ public static class EntityEx
     /// <param name="angle">转角，弧度制，正数为顺时针</param>
     public static void Rotation(this Entity ent, Point3d center, double angle)
     {
-        ent.TransformBy(Matrix3d.Rotation(angle, Vector3d.ZAxis.TransformBy(ent.Ecs), center));
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Rotation(angle, Vector3d.ZAxis.TransformBy(ent.Ecs), center));
+        }
     }
 
     /// <summary>
@@ -63,7 +75,10 @@ public static class EntityEx
     /// <param name="endPoint">对称轴终点</param>
     public static void Mirror(this Entity ent, Point3d startPoint, Point3d endPoint)
     {
-        ent.TransformBy(Matrix3d.Mirroring(new Line3d(startPoint, endPoint)));
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Mirroring(new Line3d(startPoint, endPoint)));
+        }
     }
 
     /// <summary>
@@ -73,7 +88,10 @@ public static class EntityEx
     /// <param name="plane">对称平面</param>
     public static void Mirror(this Entity ent, Plane plane)
     {
-        ent.TransformBy(Matrix3d.Mirroring(plane));
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Mirroring(plane));
+        }
     }
 
     /// <summary>
@@ -83,7 +101,10 @@ public static class EntityEx
     /// <param name="basePoint">对称点</param>
     public static void Mirror(this Entity ent, Point3d basePoint)
     {
-        ent.TransformBy(Matrix3d.Mirroring(basePoint));
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Mirroring(basePoint));
+        }
     }
 
     #endregion
@@ -106,7 +127,7 @@ public static class EntityEx
     }
     #endregion
 
-    
+
 
     /// <summary>
     /// 获取图元包围盒
