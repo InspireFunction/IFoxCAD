@@ -73,6 +73,6 @@ public class Testeditor
         var ids = psr.Value.GetObjectIds();
         // acad21(acad08没有)先选择再执行..会让你再选择一次
         // 而且只发生在启动cad之后第一次执行.
-        Env.Editor.ComExportWMF("D:\\桌面\\aaa.dwg", ids);
+        Env.Editor.ComExportWMF(@"C:\Users\vic\Desktop\aaa.dwg", ids);
     }
 }

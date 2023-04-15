@@ -1029,7 +1029,7 @@ public static class EditorEx
     public static void ComExportWMF(this Editor editor, string saveFile,
                                     ObjectId[]? ids = null, bool wmfSetDel = false)
     {
-        if (string.IsNullOrEmpty(saveFile))
+        if (string.IsNullOrWhiteSpace(saveFile))
             throw new ArgumentNullException(nameof(saveFile));
         if (File.Exists(saveFile))
             throw new FileFormatException("文件重复:" + saveFile);
@@ -1039,15 +1039,7 @@ public static class EditorEx
             return;
 
         // 剔除后缀
-        int dot = saveFile.LastIndexOf('.');
-        if (dot != -1)
-        {
-            // 因为文件名可以有.所以后缀点必须是最后\的后面
-            int s = saveFile.LastIndexOf('\\');
-            if (s < dot)
-                saveFile = saveFile[..dot];
-        }
-
+        saveFile = Path.Combine(Path.GetDirectoryName(saveFile), Path.GetFileNameWithoutExtension(saveFile));
         // ActiveSelectionSet:
         // 第一次执行会触发选择,再次重复命令执行的时候,它会无法再选择(即使清空选择集).
         // 因此此处netAPI进行选择,它就能读取当前选择集缓冲区的对象
@@ -1063,19 +1055,18 @@ public static class EditorEx
         editor.SetImpliedSelection(ids);
 
 #if zcad
-        var com = Acap.ZcadApplication;
+        dynamic com = Acap.ZcadApplication;
 #else
-        var com = Acap.AcadApplication;
+        dynamic com = Acap.AcadApplication;
 #endif
-        var doc = com.GetProperty("ActiveDocument");
-        var wmfSet = doc.GetProperty("ActiveSelectionSet");
-
+        dynamic doc = com.ActiveDocument;
+        dynamic wmfSet = doc.ActiveSelectionSet;
         // TODO 20221007 导出wmf的bug
         // cad21 先net选择,再进行,此处再选择一次?
         // cad21 调试期间无法选择性粘贴?
-        var exp = doc.Invoke("Export", saveFile, "wmf", wmfSet); // JPGOUT,PNGOUT
+        doc.Export(saveFile, "wmf", wmfSet);
         if (wmfSetDel)
-            wmfSet.Invoke("Delete");
+            wmfSet.Delete();
     }
     #endregion
 
