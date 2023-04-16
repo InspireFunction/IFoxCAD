@@ -68,16 +68,20 @@ public static class RedrawEx
     /// 刷新屏幕
     /// </summary>
     /// <param name="ed">编辑器</param>
-    /// <param name="ent">图元,调用时候图元必须提权</param>
+    /// <param name="ent">图元</param>
     public static void Redraw(this Editor ed, Entity? ent = null)
     {
-        // 刷新图元
-        ent?.Redraw(BrightEntity.Draw |
-                    BrightEntity.RecordGraphicsModified |
-                    BrightEntity.RecomputeDimensionBlock |
-                    BrightEntity.MoveZero);
-        // 刷新
-        ed.Redraw(BrightEditor.UpdateScreen);
+        using (ent?.ForWrite())
+        {
+            // 刷新图元
+            ent?.Redraw(BrightEntity.Draw |
+                        BrightEntity.RecordGraphicsModified |
+                        BrightEntity.RecomputeDimensionBlock |
+                        BrightEntity.MoveZero);
+            // 刷新
+            ed.Redraw(BrightEditor.UpdateScreen);
+        }
+        
 
         /*
          * 我发现命令加 CommandFlags.Redraw 就不需要以下处理了:
