@@ -68,7 +68,7 @@ public static class BlockReferenceEx
     /// <summary>
     /// 更新动态块属性值
     /// </summary>
-    private static void ChangeDynamicBlockProperty<T>(BlockReference blockReference,
+    public static void ChangeDynamicBlockProperty<T>(this BlockReference blockReference,
                                            Dictionary<string, T> propertyNameValues)
     {
         using (blockReference.ForWrite())
@@ -81,7 +81,7 @@ public static class BlockReferenceEx
     /// <summary>
     /// 更新普通块的属性值
     /// </summary>
-    private static void ChangePureBlockProperty<T>(BlockReference blockReference, Dictionary<string, T> propertyNameValues)
+    public static void ChangeBlockProperty(this BlockReference blockReference, Dictionary<string, string> propertyNameValues)
     {
         var tr = DBTrans.GetTopTransaction(blockReference.Database);
         AttributeReference att;
@@ -98,29 +98,14 @@ public static class BlockReferenceEx
                 att = (AttributeReference)item;
             }
             att.ForWrite(obj => {
-                if (propertyNameValues.TryGetValue(obj.Tag, out T? value))
+                if (propertyNameValues.TryGetValue(obj.Tag, out string value))
                 {
-                    obj.TextString = value?.ToString();
+                    obj.TextString = value;
                 }
             });
         }
     }
-    /// <summary>
-    /// 更新块属性值
-    /// </summary>
-    /// <param name="blockReference">块</param>
-    /// <param name="propertyNameValues">属性值字典</param>
-    public static void ChangeBlockProperty<T>(this BlockReference blockReference, Dictionary<string, T> propertyNameValues)
-    {
-        if (blockReference.IsDynamicBlock)
-        {
-            ChangeDynamicBlockProperty(blockReference, propertyNameValues);
-        }
-        else
-        {
-            ChangePureBlockProperty(blockReference, propertyNameValues);
-        }
-    }
+    
     /// <summary>
     /// 获取嵌套块的位置(wcs)
     /// </summary>
