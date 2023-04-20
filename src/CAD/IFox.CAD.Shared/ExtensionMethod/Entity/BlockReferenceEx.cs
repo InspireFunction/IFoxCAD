@@ -97,12 +97,13 @@ public static class BlockReferenceEx
                 // 某些情况下，比如你exploded炸开块后的子块块参照是没有在数据库里的，这时候返回的结果就是 AttributeReference
                 att = (AttributeReference)item;
             }
-            att.ForWrite(obj => {
-                if (propertyNameValues.TryGetValue(obj.Tag, out string value))
+            using (att.ForWrite())
+            {
+                if (propertyNameValues.TryGetValue(att.Tag, out string value))
                 {
-                    obj.TextString = value;
+                    att.TextString = value;
                 }
-            });
+            }
         }
     }
     
