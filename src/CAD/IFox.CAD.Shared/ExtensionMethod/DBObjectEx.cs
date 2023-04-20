@@ -90,7 +90,7 @@ public static class DBObjectEx
 
 #line hidden // 调试的时候跳过它
     /// <summary>
-    /// 实体自动管理读写函数
+    /// 实体自动管理读写函数，此函数性能比using模式低一倍
     /// </summary>
     /// <typeparam name="T">实体类型</typeparam>
     /// <param name="obj">实体对象</param>
