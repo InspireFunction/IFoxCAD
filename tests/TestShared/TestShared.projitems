@@ -16,6 +16,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestCadFilePath.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestConvexHull.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestCurve.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestDBobject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestDBTrans.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestDwgFilerEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestEditor.cs" />
