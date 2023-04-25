@@ -19,6 +19,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)TestDBobject.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestDBTrans.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestDwgFilerEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)TestDwgMark.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestEditor.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestEnv.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestExtents.cs" />
