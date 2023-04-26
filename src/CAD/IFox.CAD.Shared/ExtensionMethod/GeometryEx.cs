@@ -617,18 +617,6 @@ public static class GeometryEx
                    pt1.Z * 0.5 + pt2.Z * 0.5);
     }
 
-    /// <summary>
-    /// 获取两个点之间的中点
-    /// </summary>
-    /// <param name="pt1">第一点</param>
-    /// <param name="pt2">第二点</param>
-    /// <returns>返回两个点之间的中点</returns>
-    public static Point2d GetMidPointTo(this Point2d pt1, Point2d pt2)
-    {
-        // (pt1 + pt2) / 2; // 溢出风险
-        return new(pt1.X * 0.5 + pt2.X * 0.5,
-                   pt1.Y * 0.5 + pt2.Y * 0.5);
-    }
 
     /// <summary>
     /// 根据世界坐标计算用户坐标
