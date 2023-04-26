@@ -92,7 +92,7 @@ public static class ObjectIdEx
     /// <returns>id有效返回 <see langword="true"/>，反之返回 <see langword="false"/></returns>
     public static bool IsOk(this ObjectId id)
     {
-        return !id.IsNull && id.IsValid && !id.IsErased && !id.IsEffectivelyErased && id.IsResident;
+        return id is { IsNull: false, IsValid: true, IsErased: false, IsEffectivelyErased: false, IsResident: true };
     }
 
     /// <summary>
