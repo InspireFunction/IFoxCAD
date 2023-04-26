@@ -76,8 +76,8 @@ public static class ObjectIdEx
     {
         if (long.TryParse(handleString, System.Globalization.NumberStyles.HexNumber, null, out long l))
         {
-            var hanle = new Handle(l);
-            if (db.TryGetObjectId(hanle, out ObjectId id))
+            var handle = new Handle(l);
+            if (db.TryGetObjectId(handle, out ObjectId id))
             {
                 return id;
             }
