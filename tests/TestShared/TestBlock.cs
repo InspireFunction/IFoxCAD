@@ -525,13 +525,13 @@ public class TestBlock
         var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
         using DBTrans tr = new();
         var brf = tr.GetObject<BlockReference>(blockid)!;
-        brf.ChangeBlockProperty(pro);
+        brf.ChangeDynamicBlockProperty(pro);
         // 这是第一个函数的用法
     }
     [CommandMethod(nameof(ChangeBlockProperty))]
     public void ChangeBlockProperty()
     {
-        Dictionary<string, string>? pro = new Dictionary<string, string>
+        Dictionary<string, string>? pro = new()
         {
             { "haha", "1" }
         };
