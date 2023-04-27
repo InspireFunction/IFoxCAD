@@ -76,8 +76,8 @@ public static class ObjectIdEx
     {
         if (long.TryParse(handleString, System.Globalization.NumberStyles.HexNumber, null, out long l))
         {
-            var hanle = new Handle(l);
-            if (db.TryGetObjectId(hanle, out ObjectId id))
+            var handle = new Handle(l);
+            if (db.TryGetObjectId(handle, out ObjectId id))
             {
                 return id;
             }
@@ -92,7 +92,7 @@ public static class ObjectIdEx
     /// <returns>id有效返回 <see langword="true"/>，反之返回 <see langword="false"/></returns>
     public static bool IsOk(this ObjectId id)
     {
-        return !id.IsNull && id.IsValid && !id.IsErased && !id.IsEffectivelyErased && id.IsResident;
+        return id is { IsNull: false, IsValid: true, IsErased: false, IsEffectivelyErased: false, IsResident: true };
     }
 
     /// <summary>
