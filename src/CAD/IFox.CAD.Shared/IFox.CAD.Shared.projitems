@@ -28,6 +28,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\DBDictionaryEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\DBObjectEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\DBTransEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\DwgMark.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\EditorEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Entity\EntityBoundingInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Entity\ArcEx.cs" />
