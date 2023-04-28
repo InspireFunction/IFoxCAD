@@ -1,4 +1,5 @@
-﻿namespace IFoxCAD.Cad;
+﻿#if !gcad
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 瞬态容器
@@ -108,7 +109,10 @@ public class JigExTransient : IDisposable
     #endregion
 
     #region IDisposable接口相关函数
-    public bool IsDisposed { get; private set; } = false;
+    /// <summary>
+    /// 是否注销
+    /// </summary>
+    public bool IsDisposed { get; private set; }
 
     /// <summary>
     /// 手动释放
@@ -139,3 +143,4 @@ public class JigExTransient : IDisposable
     }
     #endregion
 }
+#endif

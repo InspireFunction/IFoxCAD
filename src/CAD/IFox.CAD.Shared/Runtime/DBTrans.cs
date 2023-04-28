@@ -2,7 +2,6 @@ namespace IFoxCAD.Cad;
 
 
 using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Threading;
 using System.Windows.Forms;
@@ -16,7 +15,7 @@ using System.Windows.Forms;
 public class DBTrans : IDisposable
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    string DebuggerDisplay => ToString(" | ");
+    private string DebuggerDisplay => ToString(" | ");
 
     #region 静态函数
     /// <summary>
@@ -24,11 +23,11 @@ public class DBTrans : IDisposable
     /// </summary>
     /// <param name="database">数据库</param>
     /// <returns>事务对象</returns>
-    public static Transaction GetTopTransaction([DisallowNull] Database database)
+    public static Transaction GetTopTransaction(Database database)
     {
         return database.TransactionManager.TopTransaction switch
         {
-            Transaction tr => tr,
+            { } tr => tr,
             _ => throw new Exception("没有顶层事务！")
         };
     }
@@ -63,19 +62,19 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 事务栈
     /// </summary>
-    static readonly Stack<DBTrans> _dBTrans = new();
+    private static readonly Stack<DBTrans> _dBTrans = new();
     /// <summary>
     /// 文档锁
     /// </summary>
-    readonly DocumentLock? _documentLock;
+    private readonly DocumentLock? _documentLock;
     /// <summary>
     /// 是否提交事务
     /// </summary>
-    bool _commit;
+    private bool _commit;
     /// <summary>
     /// 文件名
     /// </summary>
-    readonly string? _fileName;
+    private readonly string? _fileName;
     #endregion
 
     #region 公开属性
@@ -285,8 +284,9 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 块表
     /// </summary>
-    public SymbolTable<BlockTable, BlockTableRecord> BlockTable => _BlockTable ??= new(this, Database.BlockTableId);
-    SymbolTable<BlockTable, BlockTableRecord>? _BlockTable;
+    public SymbolTable<BlockTable, BlockTableRecord> BlockTable => _blockTable ??= new(this, Database.BlockTableId);
+
+    private SymbolTable<BlockTable, BlockTableRecord>? _blockTable;
     /// <summary>
     /// 当前绘图空间
     /// </summary>
@@ -302,43 +302,51 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 层表
     /// </summary>
-    public SymbolTable<LayerTable, LayerTableRecord> LayerTable => _LayerTable ??= new(this, Database.LayerTableId);
-    SymbolTable<LayerTable, LayerTableRecord>? _LayerTable;
+    public SymbolTable<LayerTable, LayerTableRecord> LayerTable => _layerTable ??= new(this, Database.LayerTableId);
+
+    private SymbolTable<LayerTable, LayerTableRecord>? _layerTable;
     /// <summary>
     /// 文字样式表
     /// </summary>
-    public SymbolTable<TextStyleTable, TextStyleTableRecord> TextStyleTable => _TextStyleTable ??= new(this, Database.TextStyleTableId);
-    SymbolTable<TextStyleTable, TextStyleTableRecord>? _TextStyleTable;
+    public SymbolTable<TextStyleTable, TextStyleTableRecord> TextStyleTable => _textStyleTable ??= new(this, Database.TextStyleTableId);
+
+    private SymbolTable<TextStyleTable, TextStyleTableRecord>? _textStyleTable;
     /// <summary>
     /// 注册应用程序表
     /// </summary>
-    public SymbolTable<RegAppTable, RegAppTableRecord> RegAppTable => _RegAppTable ??= new(this, Database.RegAppTableId);
-    SymbolTable<RegAppTable, RegAppTableRecord>? _RegAppTable;
+    public SymbolTable<RegAppTable, RegAppTableRecord> RegAppTable => _regAppTable ??= new(this, Database.RegAppTableId);
+
+    private SymbolTable<RegAppTable, RegAppTableRecord>? _regAppTable;
     /// <summary>
     /// 标注样式表
     /// </summary>
-    public SymbolTable<DimStyleTable, DimStyleTableRecord> DimStyleTable => _DimStyleTable ??= new(this, Database.DimStyleTableId);
-    SymbolTable<DimStyleTable, DimStyleTableRecord>? _DimStyleTable;
+    public SymbolTable<DimStyleTable, DimStyleTableRecord> DimStyleTable => _dimStyleTable ??= new(this, Database.DimStyleTableId);
+
+    private SymbolTable<DimStyleTable, DimStyleTableRecord>? _dimStyleTable;
     /// <summary>
     /// 线型表
     /// </summary>
-    public SymbolTable<LinetypeTable, LinetypeTableRecord> LinetypeTable => _LinetypeTable ??= new(this, Database.LinetypeTableId);
-    SymbolTable<LinetypeTable, LinetypeTableRecord>? _LinetypeTable;
+    public SymbolTable<LinetypeTable, LinetypeTableRecord> LinetypeTable => _linetypeTable ??= new(this, Database.LinetypeTableId);
+
+    private SymbolTable<LinetypeTable, LinetypeTableRecord>? _linetypeTable;
     /// <summary>
     /// 用户坐标系表
     /// </summary>
-    public SymbolTable<UcsTable, UcsTableRecord> UcsTable => _UcsTable ??= new(this, Database.UcsTableId);
-    SymbolTable<UcsTable, UcsTableRecord>? _UcsTable;
+    public SymbolTable<UcsTable, UcsTableRecord> UcsTable => _ucsTable ??= new(this, Database.UcsTableId);
+
+    private SymbolTable<UcsTable, UcsTableRecord>? _ucsTable;
     /// <summary>
     /// 视图表
     /// </summary>
-    public SymbolTable<ViewTable, ViewTableRecord> ViewTable => _ViewTable ??= new(this, Database.ViewTableId);
-    SymbolTable<ViewTable, ViewTableRecord>? _ViewTable;
+    public SymbolTable<ViewTable, ViewTableRecord> ViewTable => _viewTable ??= new(this, Database.ViewTableId);
+
+    private SymbolTable<ViewTable, ViewTableRecord>? _viewTable;
     /// <summary>
     /// 视口表
     /// </summary>
-    public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => _ViewportTable ??= new(this, Database.ViewportTableId);
-    SymbolTable<ViewportTable, ViewportTableRecord>? _ViewportTable;
+    public SymbolTable<ViewportTable, ViewportTableRecord> ViewportTable => _viewportTable ??= new(this, Database.ViewportTableId);
+
+    private SymbolTable<ViewportTable, ViewportTableRecord>? _viewportTable;
     #endregion
 
     #region 字典
@@ -357,6 +365,7 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 多线样式字典
     /// </summary>
+    // ReSharper disable once InconsistentNaming
     public DBDictionary MLStyleDict => GetObject<DBDictionary>(Database.MLStyleDictionaryId)!;
     /// <summary>
     /// 材质字典
@@ -494,11 +503,8 @@ public class DBTrans : IDisposable
         // 前台开图,使用命令保存;不需要切换文档
         if (doc != null)
         {
-            if (saveAsFile == null)
-                doc.SendStringToExecute("_qsave\n", false, true, true);
-            else
-                // 无法把 <paramref name="saveAsFile"/>给这个面板
-                doc.SendStringToExecute($"_Saveas\n", false, true, true);
+            // 无法把 <paramref name="saveAsFile"/>给这个面板
+            doc.SendStringToExecute(saveAsFile == null ? "_qsave\n" : $"_Saveas\n", false, true, true);
             return;
         }
 
@@ -579,7 +585,7 @@ public class DBTrans : IDisposable
     /// 获取文件名,无效的话就制造
     /// </summary>
     /// <returns></returns>
-    (bool error, string path) GetOrCreateSaveAsFile()
+    private (bool error, string path) GetOrCreateSaveAsFile()
     {
         var file = Database.Filename;
         if (!string.IsNullOrWhiteSpace(file))
@@ -630,6 +636,7 @@ public class DBTrans : IDisposable
     /// </remarks>
     /// <param name="action">委托</param>
     /// <param name="handlingDBTextDeviation">开启单行文字偏移处理</param>
+    // ReSharper disable once InconsistentNaming
     public void Task(Action action, bool handlingDBTextDeviation = true)
     {
         //if (action == null)
@@ -683,7 +690,7 @@ public class DBTrans : IDisposable
     /// <summary>
     /// 是否释放事务
     /// </summary>
-    public bool IsDisposed { get; private set; } = false;
+    public bool IsDisposed { get; private set; }
 
     /// <summary>
     /// 手动调用释放
@@ -777,10 +784,7 @@ public class DBTrans : IDisposable
             $"Database = {Database != null}"
         };
 
-        if (!string.IsNullOrWhiteSpace(format))
-            return string.Join(format, lines.ToArray());
-
-        return string.Join("\n", lines.ToArray());
+        return string.Join(!string.IsNullOrWhiteSpace(format) ? format : "\n", lines.ToArray());
     }
     #endregion
 }
