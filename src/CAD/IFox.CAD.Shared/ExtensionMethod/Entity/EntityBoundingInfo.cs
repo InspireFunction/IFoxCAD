@@ -124,7 +124,7 @@ public class EntityBoundingInfo
             {
                 return new(ent.GeometricExtents.MinPoint, ent.GeometricExtents.MaxPoint, true);
             }
-            catch (Exception e) {  }
+            catch  {  }
         return new(Point3d.Origin, Point3d.Origin, false);
     }
 
