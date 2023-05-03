@@ -14,8 +14,4 @@ global using System.Runtime.CompilerServices;
 global using System.Threading;
 global using System.Linq.Expressions;
 global using System.Collections.ObjectModel;
-
-
-#if NET45_OR_GREATER
 global using Microsoft.CSharp.RuntimeBinder;
-#endif

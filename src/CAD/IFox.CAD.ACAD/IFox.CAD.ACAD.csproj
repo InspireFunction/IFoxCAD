@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
 	<PropertyGroup>
-		<TargetFrameworks>NET40;NET45</TargetFrameworks>
+		<TargetFrameworks>NET48</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
 		<NoWarn>MSB3270</NoWarn>
@@ -10,19 +10,13 @@
 	<PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
 		<DefineConstants>DEBUG</DefineConstants>
 	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
-		<DefineConstants>$(Configuration);acad;ac2013</DefineConstants>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
-		<DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
+		<DefineConstants>$(Configuration);acad</DefineConstants>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'NET40'">
-		<PackageReference Include="Autocad.NetApi" Version="19.0.0" ExcludeAssets="runtime" />
-	</ItemGroup>
-	<ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
-		<PackageReference Include="AutoCAD.NET" Version="20.0.1" ExcludeAssets="runtime" />
-		<PackageReference Include="System.Collections" Version="4.3.0" />
+	<ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
+		<PackageReference Include="AutoCAD.NET" Version="24.0.0" ExcludeAssets="runtime" />
+		<!--<PackageReference Include="System.Collections" Version="4.3.0" />-->
 	</ItemGroup>
 
 	<ItemGroup>

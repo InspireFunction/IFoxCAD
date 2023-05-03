@@ -13,7 +13,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)CLS\Range.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CLS\RuntimeHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)CLS\TupleElementNamesAttribute.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)CLS\ValueTuple.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\ParameterRebinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\PredicateBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\SqlExpressionVisitor.cs" />
