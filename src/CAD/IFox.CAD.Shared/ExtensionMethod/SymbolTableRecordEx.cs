@@ -40,7 +40,7 @@ public static class SymbolTableRecordEx
                 // foreach (ObjectId item in blockIds)
                 //     result.Add(mapping[item].Value);
             }
-            catch (System.Exception e)
+            catch 
             {
                
             }
