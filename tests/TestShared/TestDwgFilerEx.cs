@@ -1,4 +1,5 @@
-﻿namespace Test;
+﻿#if false
+namespace Test;
 
 using DxfFiler = IFoxCAD.Cad.DxfFiler;
 
@@ -156,3 +157,5 @@ public class CmdTestDwgFilerEx
         }
     }
 }
+
+#endif

@@ -10,7 +10,6 @@ global using System.Text.RegularExpressions;
 global using Microsoft.Win32;
 global using System.ComponentModel;
 global using System.Runtime.InteropServices;
-global using System.Collections.Specialized;
 
 global using Exception = System.Exception;
 
@@ -25,10 +24,8 @@ global using Autodesk.AutoCAD.DatabaseServices;
 global using Autodesk.AutoCAD.Geometry;
 global using Autodesk.AutoCAD.Runtime;
 global using Acap = Autodesk.AutoCAD.ApplicationServices.Application;
-global using Acgi = Autodesk.AutoCAD.GraphicsInterface;
 
 global using Autodesk.AutoCAD.DatabaseServices.Filters;
-global using Autodesk.AutoCAD;
 
 // jig命名空间会引起Viewport/Polyline等等重义,最好逐个引入 using Autodesk.AutoCAD.GraphicsInterface
 global using Autodesk.AutoCAD.GraphicsInterface;
@@ -37,13 +34,6 @@ global using Manager = Autodesk.AutoCAD.GraphicsSystem.Manager;
 global using Group = Autodesk.AutoCAD.DatabaseServices.Group;
 global using Viewport = Autodesk.AutoCAD.DatabaseServices.Viewport;
 global using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
-global using Cad_DwgFiler = Autodesk.AutoCAD.DatabaseServices.DwgFiler;
-global using Cad_DxfFiler = Autodesk.AutoCAD.DatabaseServices.DxfFiler;
-global using Cad_ErrorStatus = Autodesk.AutoCAD.Runtime.ErrorStatus;
 
 // ifoxcad.basal 引用
 global using IFoxCAD.Basal;
-
-#if !NewtonsoftJson
-global using System.Web.Script.Serialization;
-#endif

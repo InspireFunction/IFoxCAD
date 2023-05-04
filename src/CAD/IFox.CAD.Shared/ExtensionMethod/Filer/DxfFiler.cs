@@ -1,4 +1,6 @@
-﻿#if acad
+﻿#if false
+
+#if acad
 namespace IFoxCAD.Cad;
 
 /* 此处暂未完成,无任何测试,尚且不知道怎么用 */
@@ -218,4 +220,6 @@ public class DxfFiler : Cad_DxfFiler
         base.Dispose(disposing);
     }
 }
+#endif
+
 #endif

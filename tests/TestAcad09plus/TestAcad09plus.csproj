@@ -1,40 +1,40 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
-    <PropertyGroup>
-        <LangVersion>preview</LangVersion>
-        <Nullable>enable</Nullable>
+	<PropertyGroup>
+		<LangVersion>preview</LangVersion>
+		<Nullable>enable</Nullable>
 
-        <TargetFramework>NET48</TargetFramework>
-        <UseWPF>true</UseWPF>
-        <UseWindowsForms>true</UseWindowsForms>
-        <PlatformTarget>x64</PlatformTarget>
-        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    </PropertyGroup>
+		<TargetFramework>NET48</TargetFramework>
+		<UseWPF>true</UseWPF>
+		<UseWindowsForms>true</UseWindowsForms>
+		<PlatformTarget>x64</PlatformTarget>
+		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+	</PropertyGroup>
 
-    <PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
-        <DefineConstants>$(Configuration);acad</DefineConstants>
-    </PropertyGroup>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
+		<DefineConstants>$(Configuration);acad</DefineConstants>
+	</PropertyGroup>
 
-    <ItemGroup>
-      <ProjectReference Include="..\..\src\CAD\IFox.CAD.ACAD\IFox.CAD.ACAD.csproj" />
-      <ProjectReference Include="..\..\src\WPF\IFox.WPF.csproj" />
-    </ItemGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\..\src\CAD\IFox.CAD.ACAD\IFox.CAD.ACAD.csproj" />
+		<ProjectReference Include="..\..\src\WPF\IFox.WPF.csproj" />
+	</ItemGroup>
 
-    <ItemGroup>
-        <Compile Update="wpf\TestView.xaml.cs">
-            <DependentUpon>TestView.xaml</DependentUpon>
-        </Compile>
-    </ItemGroup>
+	<ItemGroup>
+		<Compile Update="wpf\TestView.xaml.cs">
+			<DependentUpon>TestView.xaml</DependentUpon>
+		</Compile>
+	</ItemGroup>
 
-    <ItemGroup>
-        <Page Update="wpf\TestView.xaml">
-            <SubType>Designer</SubType>
-        </Page>
-    </ItemGroup>
+	<ItemGroup>
+		<Page Update="wpf\TestView.xaml">
+			<SubType>Designer</SubType>
+		</Page>
+	</ItemGroup>
 
-    <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
+	<Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
 
-    <ItemGroup>
-        <Reference Include="System.Web" />
-        <Reference Include="System.Web.Extensions" />
-    </ItemGroup>
+	<ItemGroup>
+		<Reference Include="System.Web" />
+		<Reference Include="System.Web.Extensions" />
+	</ItemGroup>
 </Project>

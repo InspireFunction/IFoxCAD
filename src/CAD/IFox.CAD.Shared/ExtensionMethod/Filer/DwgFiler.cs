@@ -1,4 +1,5 @@
-﻿namespace IFoxCAD.Cad;
+﻿#if false
+namespace IFoxCAD.Cad;
 
 /*
   Arx自定义实体类,加 读函数（assertReadEnabled）和写函数（assertWriteEnabled）
@@ -491,3 +492,5 @@ public class DwgFiler : Cad_DwgFiler
 #endif
     }
 }
+
+#endif

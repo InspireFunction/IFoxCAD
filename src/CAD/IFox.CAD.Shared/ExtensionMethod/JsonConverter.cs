@@ -1,4 +1,4 @@
-﻿
+﻿#if false
 
 namespace IFoxCAD.Cad;
 
@@ -115,4 +115,6 @@ public class ObjectIdConverter : JavaScriptConverter
         return id;
     }
 }
+#endif
+
 #endif

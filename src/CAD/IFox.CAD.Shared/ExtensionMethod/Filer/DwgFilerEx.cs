@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿#if false
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// Dwg序列化
@@ -85,3 +87,5 @@ public class DwgFilerEx
     }
     #endregion
 }
+
+#endif

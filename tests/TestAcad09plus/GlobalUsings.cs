@@ -47,8 +47,3 @@ global using IFoxCAD.Cad;
 global using IFoxCAD.Basal;
 
 global using IFoxCAD.WPF;
-
-
-#if !NewtonsoftJson
-global using System.Web.Script.Serialization;
-#endif
