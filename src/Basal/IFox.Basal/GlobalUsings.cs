@@ -13,3 +13,4 @@ global using System.Threading;
 global using System.Linq.Expressions;
 global using System.Collections.ObjectModel;
 global using Microsoft.CSharp.RuntimeBinder;
+global using System.Diagnostics.CodeAnalysis;

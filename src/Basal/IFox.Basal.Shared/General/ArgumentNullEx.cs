@@ -1,6 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace IFoxCAD.Basal
+﻿namespace IFoxCAD.Basal
 {
     /// <summary>
     /// 参数null检查类
