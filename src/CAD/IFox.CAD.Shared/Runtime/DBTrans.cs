@@ -12,7 +12,7 @@ using System.Windows.Forms;
 /// </summary>
 [DebuggerDisplay("{DebuggerDisplay,nq}")]
 [DebuggerTypeProxy(typeof(DBTrans))]
-public class DBTrans : IDisposable
+public sealed class DBTrans : IDisposable
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
     private string DebuggerDisplay => ToString(" | ");
@@ -142,7 +142,7 @@ public class DBTrans : IDisposable
     /// <param name="doclock">是否锁文档</param>
     public DBTrans(Document? doc = null, bool commit = true, bool doclock = false)
     {
-        Document = doc ?? Acap.DocumentManager.MdiActiveDocument;
+        Document = doc ?? Acaop.DocumentManager.MdiActiveDocument;
         Database = Document.Database;
         Editor = Document.Editor;
         Transaction = Database.TransactionManager.StartTransaction();
@@ -205,7 +205,7 @@ public class DBTrans : IDisposable
         }
         else
         {
-            var doc = Acap.DocumentManager
+            var doc = Acaop.DocumentManager
                      .Cast<Document>()
                      .FirstOrDefault(doc => !doc.IsDisposed && doc.Name == _fileName);
 
@@ -217,7 +217,7 @@ public class DBTrans : IDisposable
                     {
                         // 设置命令标记: CommandFlags.Session
                         // 若没有设置: Open()之后的会进入中断状态(不会执行,直到切换文档ctrl+tab或者关闭文档)
-                        doc = Acap.DocumentManager.Open(fileName, fileOpenMode == FileOpenMode.OpenForReadAndReadShare, password);
+                        doc = Acaop.DocumentManager.Open(fileName, fileOpenMode == FileOpenMode.OpenForReadAndReadShare, password);
                     }
                     catch (Exception e)
                     {
@@ -227,7 +227,7 @@ public class DBTrans : IDisposable
                 // 设置命令标记: CommandFlags.Session
                 // 若没有设置: doc.IsActive 会异常
                 if (!doc.IsActive)
-                    Acap.DocumentManager.MdiActiveDocument = doc;
+                    Acaop.DocumentManager.MdiActiveDocument = doc;
 
                 // Open()是跨文档,所以必须要锁文档
                 // 否则 Editor?.Redraw() 的 tm.QueueForGraphicsFlush() 将报错提示文档锁
@@ -457,14 +457,7 @@ public class DBTrans : IDisposable
     {
         var hanle = new Handle(Convert.ToInt64(handleString, 16));
         // return Database.GetObjectId(false, hanle, 0);
-        if(Database.TryGetObjectId(hanle, out ObjectId id))
-        {
-            return id;
-        }
-        else
-        {
-            return ObjectId.Null;
-        }
+        return Database.TryGetObjectId(hanle, out ObjectId id) ? id : ObjectId.Null;
     }
     #endregion
 
@@ -492,7 +485,7 @@ public class DBTrans : IDisposable
     {
         // 遍历当前所有文档,文档必然是前台的
         Document? doc = null;
-        foreach (Document docItem in Acap.DocumentManager)
+        foreach (Document docItem in Acaop.DocumentManager)
         {
             if (docItem.Database.Filename == this.Database.Filename)
             {
@@ -652,7 +645,7 @@ public class DBTrans : IDisposable
         // 后台
         // 这种情况发生在关闭了所有文档之后,进行跨进程通讯
         // 此处要先获取激活的文档,不能直接获取当前数据库否则异常
-        var dm = Acap.DocumentManager;
+        var dm = Acaop.DocumentManager;
         var doc = dm.MdiActiveDocument;
         if (doc == null)
         {
@@ -712,7 +705,7 @@ public class DBTrans : IDisposable
     /// 释放函数
     /// </summary>
     /// <param name="disposing"></param>
-    protected virtual void Dispose(bool disposing)
+    private void Dispose(bool disposing)
     {
         /* 事务dispose流程：
          * 1. 根据传入的参数确定是否提交,true为提交,false为不提交
