@@ -29,7 +29,7 @@ public class TestText
             t.AlignmentPoint = new(1, 1, 0); 
             t.ColorIndex = 2; 
         }));
-        tr.SaveDwgFile();
+        tr.Database.SaveDwgFile();
     }
 
 

@@ -1,6 +1,4 @@
-﻿using System.Linq;
-
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 实体对象扩展类

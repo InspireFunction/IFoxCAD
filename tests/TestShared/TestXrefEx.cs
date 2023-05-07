@@ -10,7 +10,7 @@ public class TestCmd_BindXrefs
         using var tr = new DBTrans(fileName,
             fileOpenMode: FileOpenMode.OpenForReadAndAllShare/*后台绑定特别注意*/);
         tr.XrefFactory(XrefModes.Bind);
-        tr.SaveDwgFile();
+        tr.Database.SaveDwgFile();
     }
 
     //前台绑定
@@ -19,6 +19,6 @@ public class TestCmd_BindXrefs
     {
         using var tr = new DBTrans();
         tr.XrefFactory(XrefModes.Bind);
-        tr.SaveDwgFile();
+        tr.Database.SaveDwgFile();
     }
 }

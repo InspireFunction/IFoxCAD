@@ -107,7 +107,7 @@ public class TestBlock
             
             return new List<Entity> { line, acText };
         });
-        tr.SaveDwgFile();
+        tr.Database.SaveDwgFile();
     }
 
 
@@ -213,7 +213,7 @@ public class TestBlock
 
             });
         tr.CurrentSpace.InsertBlock(Point3d.Origin, "test456");
-        tr.SaveDwgFile();
+        tr.Database.SaveDwgFile();
     }
 
 

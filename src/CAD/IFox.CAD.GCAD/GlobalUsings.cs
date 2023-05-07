@@ -1,4 +1,4 @@
-﻿/// 系统引用
+﻿// 系统引用
 global using System;
 global using System.Collections;
 global using System.Collections.Generic;
@@ -17,7 +17,7 @@ global using Exception = System.Exception;
 global using Registry = Microsoft.Win32.Registry;
 global using RegistryKey = Microsoft.Win32.RegistryKey;
 
-/// cad 引用
+// cad 引用
 global using GrxCAD.ApplicationServices;
 global using GrxCAD.EditorInput;
 global using GrxCAD.Colors;
@@ -26,6 +26,7 @@ global using GrxCAD.Geometry;
 global using GrxCAD.Runtime;
 global using Acap = GrxCAD.ApplicationServices.Application;
 global using Acgi = GrxCAD.GraphicsInterface;
+global using Acaop = GrxCAD.ApplicationServices.Application;
 
 global using GrxCAD.DatabaseServices.Filters;
 global using GrxCAD;
@@ -43,9 +44,7 @@ global using Cad_DwgFiler = GrxCAD.DatabaseServices.DwgFiler;
 global using Cad_DxfFiler = GrxCAD.DatabaseServices.DxfFiler;
 global using Cad_ErrorStatus = GrxCAD.Runtime.ErrorStatus;
 
-/// ifoxcad.basal 引用
+// ifoxcad.basal 引用
 global using IFoxCAD.Basal;
 
-#if !NewtonsoftJson
 global using System.Web.Script.Serialization;
-#endif

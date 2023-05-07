@@ -315,7 +315,7 @@ public class Copyclip
                 // 大于dwg07格式的,保存为07,以实现高低版本通用剪贴板
                 // 小于dwg07格式的,本工程没有支持cad06dll
                 if ((int)DwgVersion.Current >= 27)
-                    fileTr.SaveFile((DwgVersion)27, false);
+                    fileTr.Database.SaveFile((DwgVersion)27, false);
                 else
                     throw new ArgumentException($"版本过低,无法保存,版本号:{DwgVersion.Current}");
             }

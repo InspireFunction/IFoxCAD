@@ -66,7 +66,7 @@ public class TestTrans
     public void FileNotExist()
     {
         using DBTrans tr = new("test.dwg");
-        tr.SaveFile((DwgVersion)24, false);
+        tr.Database.SaveFile((DwgVersion)24, false);
     }
 
     // 前台:由于是弹出面板,此时路径不会起任何作用
@@ -74,7 +74,7 @@ public class TestTrans
     public void FileNotExist2()
     {
         using DBTrans tr = new();
-        tr.SaveFile(saveAsFile: "D:\\");
+        tr.Database.SaveFile(saveAsFile: "D:\\");
     }
 
     // 后台:只有路径,没有文件名
@@ -82,10 +82,10 @@ public class TestTrans
     public void FileNotExist3()
     {
         using DBTrans tr = new("D:\\");
-        tr.SaveDwgFile();
+        tr.Database.SaveDwgFile();
 
         using DBTrans tr2 = new("D:\\");
-        tr2.SaveFile(saveAsFile: "D:\\");
+        tr2.Database.SaveFile(saveAsFile: "D:\\");
     }
 
 
@@ -97,7 +97,7 @@ public class TestTrans
         var circle = CircleEx.CreateCircle(new Point3d(10, 10, 0), 20)!;
         tr.ModelSpace.AddEntity(circle);
         // tr.Database.SaveAs(filename,DwgVersion.Current);
-        tr.SaveDwgFile();
+        tr.Database.SaveDwgFile();
     }
     [CommandMethod(nameof(Test_DBTransAbort))]
     public void Test_DBTransAbort()
