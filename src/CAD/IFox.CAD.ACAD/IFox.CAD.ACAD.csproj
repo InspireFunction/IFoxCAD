@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
 
 	<PropertyGroup>
-		<TargetFrameworks>NET48</TargetFrameworks>
+		<TargetFramework>NET48</TargetFramework>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
 		<NoWarn>MSB3270</NoWarn>
@@ -22,7 +22,6 @@
 	<ItemGroup>
 		<None Include="..\..\..\LICENSE">
 			<Pack>True</Pack>
-			<PackagePath></PackagePath>
 		</None>
 	</ItemGroup>
 
