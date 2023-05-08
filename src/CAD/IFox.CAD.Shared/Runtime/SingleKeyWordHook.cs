@@ -1,4 +1,5 @@
-﻿namespace IFoxCAD.Cad;
+﻿using Keys = System.Windows.Forms.Keys;
+namespace IFoxCAD.Cad;
 /// <summary>
 /// 关键字不需要空格钩子
 /// By DYH 20230508
