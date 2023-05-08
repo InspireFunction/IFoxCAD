@@ -103,9 +103,19 @@ public static class Env
         set => Acap.SetSystemVariable("ORTHOMODE", Convert.ToInt16(value));
     }
     /// <summary>
-    /// 获取系统变量LastPoint的坐标(UCS)
+    /// 读写系统变量LastPoint的坐标(UCS)
     /// </summary>
-    public static Point3d LastPoint => (Point3d)Acap.GetSystemVariable("LASTPOINT");
+    public static Point3d LastPoint
+    {
+        get
+        {
+            return  (Point3d)Acap.GetSystemVariable("LASTPOINT");
+        }
+        set
+        {
+            Acap.SetSystemVariable("LASTPOINT", value);
+        }
+    }
 
     #region Dimblk
 
