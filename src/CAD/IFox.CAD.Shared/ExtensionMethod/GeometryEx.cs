@@ -656,4 +656,13 @@ public static class GeometryEx
     {
         return pt + Vector2d.XAxis.RotateBy(ang) * len;
     }
+    /// <summary>
+    /// 重绘
+    /// </summary>
+    /// <param name="geometry">图形界面几何</param>
+    /// <param name="drawables">可绘制的对象列表</param>
+    public static void Draw(this Geometry geometry, IEnumerable<Drawable> drawables)
+    {
+        drawables.ForEach(d => geometry.Draw(d));
+    }
 }
