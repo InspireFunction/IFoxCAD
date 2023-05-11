@@ -37,7 +37,7 @@ public class SingleKeyWordHook : IDisposable
     /// </summary>
     public SingleKeyWordHook()
     {
-        isDisposed = false;
+        _isDisposed = false;
         _isResponsed = false;
         _keyWords = new HashSet<Keys>();
         _key = Keys.None;
@@ -123,21 +123,21 @@ public class SingleKeyWordHook : IDisposable
     #endregion
 
     #region Dispose
-    private bool isDisposed;
+    private bool _isDisposed;
     /// <summary>
     /// 已经销毁
     /// </summary>
-    public bool IsDisposed => isDisposed;
+    public bool IsDisposed => _isDisposed;
     protected virtual void Dispose(bool disposing)
     {
-        if (!isDisposed)
+        if (!_isDisposed)
         {
             if (disposing)
             {
                 Acap.PreTranslateMessage -= Acap_PreTranslateMessage;
                 _keyWords.Clear();
             }
-            isDisposed = true;
+            _isDisposed = true;
         }
     }
     public void Dispose()
