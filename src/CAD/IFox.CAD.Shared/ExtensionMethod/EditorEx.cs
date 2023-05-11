@@ -1070,4 +1070,37 @@ public static class EditorEx
     }
     #endregion
 
+    #region JigEx
+    /// <summary>
+    /// jig前的准备工作，使图元暗显
+    /// </summary>
+    /// <param name="ed">命令栏</param>
+    /// <param name="ents">实体（已存在数据库中）</param>
+    public static void PrepareForJig(this Editor ed, params Entity[] ents)
+    {
+        ed.PrepareForJig(ents.ToList());
+    }
+    /// <summary>
+    /// jig前的准备工作，使图元暗显
+    /// </summary>
+    /// <param name="ed">命令栏</param>
+    /// <param name="ents">实体（已存在数据库中）</param>
+    public static void PrepareForJig(this Editor ed, IEnumerable<Entity> ents)
+    {
+        var dic = new Dictionary<Entity, int>();
+        foreach (var ent in ents)
+        {
+            if (ent.IsNewObject)
+                continue;
+            dic.Add(ent, ent.ColorIndex);
+            ent.ColorIndex = 250;
+            ent.Draw();
+        }
+        ed.Redraw();
+        foreach (var kvp in dic)
+        {
+            kvp.Key.ColorIndex = kvp.Value;
+        }
+    }
+    #endregion
 }
