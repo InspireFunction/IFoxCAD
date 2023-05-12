@@ -574,7 +574,7 @@ public static class GeometryEx
         int height = (int)Math.Ceiling(ext.MaxPoint.Y - ext.MinPoint.Y);
         return new(width, height);
     }
-    
+
     /// <summary>
     /// 将三维点转换为二维点
     /// </summary>
@@ -687,6 +687,15 @@ public static class VectorEx
         return new Vector2d(vector3d.X, vector3d.Y);
     }
     /// <summary>
+    /// 转换为3d向量
+    /// </summary>
+    /// <param name="vector3d">2d向量</param>
+    /// <returns>3d向量</returns>
+    public static Vector3d Convert3d(this Vector2d vector2d, double z = 0)
+    {
+        return new Vector3d(vector2d.X, vector2d.Y, z);
+    }
+    /// <summary>
     /// 2d叉乘
     /// </summary>
     /// <param name="a">向量a</param>
@@ -713,6 +722,6 @@ public static class VectorEx
     /// <returns></returns>
     public static Vector3d Z20(this Vector3d vector3d)
     {
-        return new Vector3d(vector3d.X,vector3d.Y,0);
+        return new Vector3d(vector3d.X, vector3d.Y, 0);
     }
 }
