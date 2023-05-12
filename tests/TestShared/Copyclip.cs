@@ -3,7 +3,6 @@
 #define PASTECLIP
 
 namespace Test;
-using Autodesk.AutoCAD.DatabaseServices;
 using System;
 using System.Diagnostics;
 using System.Drawing.Imaging;
