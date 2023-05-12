@@ -140,6 +140,15 @@ public static class EntityEx
     {
         return EntityBoundingInfo.GetBoundingInfo(ent);
     }
-
-
+    /// <summary>
+    /// 获取拉伸点
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <returns>点集</returns>
+    public static IEnumerable<Point3d> GetStretchPoints(this Entity ent)
+    {
+        var p3dc = new Point3dCollection(); 
+        ent.GetStretchPoints(p3dc);
+        return p3dc.Cast<Point3d>();
+    }
 }
