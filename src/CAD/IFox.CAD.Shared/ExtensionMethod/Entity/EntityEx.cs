@@ -23,6 +23,18 @@ public static class EntityEx
             ent.TransformBy(Matrix3d.Displacement(to - from));
         }
     }
+    /// <summary>
+    /// 移动实体
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <param name="vector">向量</param>
+    public static void Move(this Entity ent, Vector3d vector)
+    {
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Displacement(vector));
+        }
+    }
 
     /// <summary>
     /// 缩放实体
