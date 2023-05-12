@@ -687,12 +687,22 @@ public static class VectorEx
         return new Vector2d(vector3d.X, vector3d.Y);
     }
     /// <summary>
-    /// 叉乘
+    /// 2d叉乘
     /// </summary>
     /// <param name="a">向量a</param>
     /// <param name="b">向量b</param>
     /// <returns>叉乘值</returns>
     public static double Cross2d(this Vector3d a, Vector3d b)
+    {
+        return a.X * b.Y - b.X * a.Y;
+    }
+    /// <summary>
+    /// 2d叉乘
+    /// </summary>
+    /// <param name="a">向量a</param>
+    /// <param name="b">向量b</param>
+    /// <returns>叉乘值</returns>
+    public static double Cross2d(this Vector2d a, Vector2d b)
     {
         return a.X * b.Y - b.X * a.Y;
     }
