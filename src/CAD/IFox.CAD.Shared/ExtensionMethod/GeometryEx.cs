@@ -706,4 +706,13 @@ public static class VectorEx
     {
         return a.X * b.Y - b.X * a.Y;
     }
+    /// <summary>
+    /// 向量Z值归零
+    /// </summary>
+    /// <param name="vector3d">向量</param>
+    /// <returns></returns>
+    public static Vector3d Z20(this Vector3d vector3d)
+    {
+        return new Vector3d(vector3d.X,vector3d.Y,0);
+    }
 }
