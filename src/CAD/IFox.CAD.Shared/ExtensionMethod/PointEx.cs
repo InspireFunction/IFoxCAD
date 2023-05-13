@@ -79,6 +79,7 @@ public static class PointEx
     /// <param name="arc1">圆弧起点</param>
     /// <param name="arc2">圆弧腰点</param>
     /// <param name="arc3">圆弧尾点</param>
+    /// <param name="tol">容差</param>
     /// <returns>逆时针为正,顺时针为负</returns>
     public static double GetArcBulge(this Point2d arc1, Point2d arc2, Point2d arc3, double tol = 1e-10)
     {
