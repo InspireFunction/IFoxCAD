@@ -39,7 +39,7 @@ public static class ObjectIdEx
                                                bool openErased = false,
                                                bool openLockedLayer = false) where T : DBObject
     {
-        return ids.Select(id => 
+        return ids.Select(id =>
                         id.GetObject<T>(openMode, openErased, openLockedLayer))
                   .OfType<T>();
     }
@@ -51,9 +51,9 @@ public static class ObjectIdEx
     /// <param name="ids">对象id集合</param>
     /// <param name="exactMatch">精确匹配</param>
     /// <returns>对象id集合</returns>
-    public static IEnumerable<ObjectId> OfType<T>(this IEnumerable<ObjectId> ids,bool exactMatch =false) where T : DBObject
+    public static IEnumerable<ObjectId> OfType<T>(this IEnumerable<ObjectId> ids, bool exactMatch = false) where T : DBObject
     {
-        var  rxc = RXClass.GetClass(typeof(T));
+        var rxc = RXClass.GetClass(typeof(T));
         if (exactMatch)
         {
             var dxfName = rxc.DxfName;
@@ -84,7 +84,16 @@ public static class ObjectIdEx
         }
         return ObjectId.Null;
     }
-
+    /// <summary>
+    /// 根据对象句柄获取对象Id
+    /// </summary>
+    /// <param name="db">数据库</param>
+    /// <param name="handle">句柄</param>
+    /// <returns>对象的ObjectId</returns>
+    public static ObjectId GetObjectId(this Database db, Handle handle)
+    {
+        return db.TryGetObjectId(handle, out ObjectId id) ? id : ObjectId.Null;
+    }
     /// <summary>
     /// id是否有效,未被删除
     /// </summary>
