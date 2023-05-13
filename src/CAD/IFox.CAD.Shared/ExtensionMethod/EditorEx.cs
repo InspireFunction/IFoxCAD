@@ -105,12 +105,9 @@ public static class EditorEx
         }
         try
         {
-            if (filter is not null)
-                ss = editor.GetSelection(pso, filter);
-            else
-                ss = editor.GetSelection(pso);
+            ss = filter is not null ? editor.GetSelection(pso, filter) : editor.GetSelection(pso);
         }
-        catch (Exception)
+        catch
         {
             //editor.WriteMessage($"\nKey is {e.Message}");
             throw;
