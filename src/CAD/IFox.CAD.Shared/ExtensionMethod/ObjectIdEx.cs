@@ -74,10 +74,10 @@ public static class ObjectIdEx
     /// <returns>对象的ObjectId</returns>
     public static ObjectId GetObjectId(this Database db, string handleString)
     {
-        return handleString.ToHandle() is { } handle ? db.GetObjectId(handle) : ObjectId.Null;
+        return handleString.ConvertToHandle() is { } handle ? db.GetObjectId(handle) : ObjectId.Null;
     }
     /// <summary>
-    /// 根据对象句柄获取对象Id
+    /// 根据对象句柄获取对象ObjectId
     /// </summary>
     /// <param name="db">数据库</param>
     /// <param name="handle">句柄</param>
@@ -87,11 +87,11 @@ public static class ObjectIdEx
         return db.TryGetObjectId(handle, out ObjectId id) ? id : ObjectId.Null;
     }
     /// <summary>
-    /// 字符串转句柄
+    /// 句柄字符串转句柄
     /// </summary>
-    /// <param name="handleString"></param>
-    /// <returns></returns>
-    public static Handle? ToHandle(this string handleString)
+    /// <param name="handleString">句柄字符串</param>
+    /// <returns>句柄</returns>
+    public static Handle? ConvertToHandle(this string handleString)
     {
         return long.TryParse(handleString, System.Globalization.NumberStyles.HexNumber, null, out long l) ? new Handle(l) : null;
     }
