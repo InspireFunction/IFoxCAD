@@ -31,7 +31,6 @@ public static class PolylineEx
     /// 获取三维多段线的端点坐标
     /// </summary>
     /// <param name="pl3d">三维多段线</param>
-    /// <param name="trans">事务</param>
     /// <returns>端点坐标集合</returns>
     public static IEnumerable<Point3d> GetPoints(this Polyline3d pl3d)
     {
