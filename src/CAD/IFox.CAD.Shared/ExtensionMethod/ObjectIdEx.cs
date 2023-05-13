@@ -74,7 +74,7 @@ public static class ObjectIdEx
     /// <returns>对象的ObjectId</returns>
     public static ObjectId GetObjectId(this Database db, string handleString)
     {
-        return handleString.ConvertToHandle() is { } handle ? db.GetObjectId(handle) : ObjectId.Null;
+        return db.GetObjectId(handleString.ConvertToHandle());
     }
     /// <summary>
     /// 根据对象句柄获取对象ObjectId
@@ -82,9 +82,9 @@ public static class ObjectIdEx
     /// <param name="db">数据库</param>
     /// <param name="handle">句柄</param>
     /// <returns>对象的ObjectId</returns>
-    public static ObjectId GetObjectId(this Database db, Handle handle)
+    public static ObjectId GetObjectId(this Database db, Handle? handle)
     {
-        return db.TryGetObjectId(handle, out ObjectId id) ? id : ObjectId.Null;
+        return handle is not null && db.TryGetObjectId(handle.Value, out ObjectId id) ? id : ObjectId.Null;
     }
     /// <summary>
     /// 句柄字符串转句柄
