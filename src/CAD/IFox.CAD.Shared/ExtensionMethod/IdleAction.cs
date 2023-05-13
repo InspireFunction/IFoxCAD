@@ -14,18 +14,19 @@ public static class IdleAction
     /// <summary>
     /// 委托列表
     /// </summary>
-    private static readonly List<Action> actions = new();
+    private static readonly List<Action> _actions = new();
     /// <summary>
     /// 未处理的委托数量
     /// </summary>
-    public static int Count { get { return actions.Count; } }
+    public static int Count => _actions.Count;
+
     /// <summary>
     /// 添加空闲执行委托
     /// </summary>
     /// <param name="action">委托</param>
     public static void Add(Action action)
     {
-        actions.Add(action);
+        _actions.Add(action);
         if (!alreadyLoad)
         {
             Acap.Idle -= Acap_Idle;
@@ -48,11 +49,11 @@ public static class IdleAction
         }
         try
         {
-            actions[0]?.Invoke();
+            _actions[0]?.Invoke();
         }
         finally
         {
-            actions.RemoveAt(0);
+            _actions.RemoveAt(0);
         }
     }
 }
