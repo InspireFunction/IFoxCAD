@@ -74,15 +74,7 @@ public static class ObjectIdEx
     /// <returns>对象的ObjectId</returns>
     public static ObjectId GetObjectId(this Database db, string handleString)
     {
-        if (long.TryParse(handleString, System.Globalization.NumberStyles.HexNumber, null, out long l))
-        {
-            var handle = new Handle(l);
-            if (db.TryGetObjectId(handle, out ObjectId id))
-            {
-                return id;
-            }
-        }
-        return ObjectId.Null;
+        return handleString.ToHandle() is { } handle ? db.GetObjectId(handle) : ObjectId.Null;
     }
     /// <summary>
     /// 根据对象句柄获取对象Id
@@ -93,6 +85,15 @@ public static class ObjectIdEx
     public static ObjectId GetObjectId(this Database db, Handle handle)
     {
         return db.TryGetObjectId(handle, out ObjectId id) ? id : ObjectId.Null;
+    }
+    /// <summary>
+    /// 字符串转句柄
+    /// </summary>
+    /// <param name="handleString"></param>
+    /// <returns></returns>
+    public static Handle? ToHandle(this string handleString)
+    {
+        return long.TryParse(handleString, System.Globalization.NumberStyles.HexNumber, null, out long l) ? new Handle(l) : null;
     }
     /// <summary>
     /// id是否有效,未被删除
