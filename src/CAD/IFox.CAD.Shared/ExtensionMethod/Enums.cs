@@ -38,6 +38,7 @@ public enum XrefModes : byte
     Bind,
 }
 
+[Flags]
 public enum SymModes : ushort
 {
     /// <summary>
