@@ -686,10 +686,12 @@ public static class VectorEx
     {
         return new Vector2d(vector3d.X, vector3d.Y);
     }
+
     /// <summary>
     /// 转换为3d向量
     /// </summary>
-    /// <param name="vector3d">2d向量</param>
+    /// <param name="vector2d">2d向量</param>
+    /// <param name="z">z值</param>
     /// <returns>3d向量</returns>
     public static Vector3d Convert3d(this Vector2d vector2d, double z = 0)
     {
