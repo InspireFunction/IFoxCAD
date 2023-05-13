@@ -727,3 +727,12 @@ public static class VectorEx
         return new Vector3d(vector3d.X, vector3d.Y, 0);
     }
 }
+/// <summary>
+/// 平面
+/// </summary>
+public static class PlaneEx
+{
+    public static readonly Plane X = new Plane(Point3d.Origin, Vector3d.XAxis);
+    public static readonly Plane Y = new Plane(Point3d.Origin, Vector3d.YAxis);
+    public static readonly Plane Z = new Plane(Point3d.Origin, Vector3d.ZAxis);
+}
