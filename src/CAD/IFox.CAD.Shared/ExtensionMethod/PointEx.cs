@@ -92,9 +92,9 @@ public static class PointEx
         double bulge = Math.Sin(talAngle) / Math.Cos(talAngle);
 
         // 处理精度
-        if (bulge > 0.9999 && bulge < 1.0001)
+        if (bulge is > 0.9999 and < 1.0001)
             bulge = 1;
-        else if (bulge < -0.9999 && bulge > -1.0001)
+        else if (bulge is < -0.9999 and > -1.0001)
             bulge = -1;
         else if (Math.Abs(bulge) < tol)
             bulge = 0;
