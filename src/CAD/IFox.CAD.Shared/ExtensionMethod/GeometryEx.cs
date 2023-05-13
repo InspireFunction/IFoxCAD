@@ -726,13 +726,23 @@ public static class VectorEx
     {
         return new Vector3d(vector3d.X, vector3d.Y, 0);
     }
+    /// <summary>
+    /// 向量在平面上的弧度
+    /// </summary>
+    /// <param name="vector">向量</param>
+    /// <param name="plane">平面</param>
+    /// <returns>弧度</returns>
+    public static double AngleOnPlane(this Vector3d vector, Plane? plane = null)
+    {
+        return vector.AngleOnPlane(plane ?? PlaneEx.Z);
+    }
 }
 /// <summary>
 /// 平面
 /// </summary>
 public static class PlaneEx
 {
-    public static readonly Plane X = new Plane(Point3d.Origin, Vector3d.XAxis);
-    public static readonly Plane Y = new Plane(Point3d.Origin, Vector3d.YAxis);
-    public static readonly Plane Z = new Plane(Point3d.Origin, Vector3d.ZAxis);
+    public static readonly Plane X = new (Point3d.Origin, Vector3d.XAxis);
+    public static readonly Plane Y = new (Point3d.Origin, Vector3d.YAxis);
+    public static readonly Plane Z = new (Point3d.Origin, Vector3d.ZAxis);
 }
