@@ -39,8 +39,9 @@ public static class ObjectIdEx
                                                bool openErased = false,
                                                bool openLockedLayer = false) where T : DBObject
     {
-        return ids.Select(id =>
-                        id.GetObject<T>(openMode, openErased, openLockedLayer))
+        var rxc = RXObject.GetClass(typeof(T));
+        return ids.Where(id => id.ObjectClass.IsDerivedFrom(rxc))
+                  .Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer))
                   .OfType<T>();
     }
 
