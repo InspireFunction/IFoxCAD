@@ -77,7 +77,10 @@ public class JigEx : DrawJig, IDisposable
         _tolerance = new(tolerance, tolerance);
     }
     #endregion
-
+    /// <summary>
+    /// 因为是worldDraw触发sampler不是Sample触发worldDraw，所以要记一次上次的状态
+    /// </summary>
+    static bool lastIsKw = false;
     #region 重写
     /// <summary>
     /// 鼠标采样器
@@ -88,15 +91,14 @@ public class JigEx : DrawJig, IDisposable
     {
         if (_worldDrawFlag)
             return SamplerStatus.NoChange;// OK的时候拖动鼠标与否都不出现图元
-
         if (_options is null)
             throw new NullReferenceException(nameof(_options));
-
         var pro = prompts.AcquirePoint(_options);
-        if (pro.Status == PromptStatus.Keyword)
-            return SamplerStatus.OK;
-        else if (pro.Status != PromptStatus.OK)
+        if (pro.Status != PromptStatus.OK && pro.Status != PromptStatus.Keyword)
             return SamplerStatus.Cancel;
+        // 记上次的状态，因为马上要还原
+        bool isOk = !lastIsKw;
+        lastIsKw = pro.Status == PromptStatus.Keyword;
 
         // 上次鼠标点不同(一定要这句,不然图元刷新太快会看到奇怪的边线)
         var mousePointWcs = pro.Value;
@@ -105,9 +107,10 @@ public class JigEx : DrawJig, IDisposable
         // IsEqualTo 是方形判断(仅加法),但是cad是距离.
         // Distance  是圆形判断(会求平方根,使用了牛顿迭代),
         // 大量数据(十万以上/频繁刷新)面前会显得非常慢.
-        if (mousePointWcs.IsEqualTo(MousePointWcsLast, _tolerance))
+        if (isOk && mousePointWcs.IsEqualTo(MousePointWcsLast, _tolerance))
+        {
             return SamplerStatus.NoChange;
-
+        }
         // 上次循环的缓冲区图元清理,否则将会在vs输出遗忘 Dispose
         while (_drawEntitys.Count > 0)
             _drawEntitys.Dequeue().Dispose();
@@ -169,7 +172,7 @@ public class JigEx : DrawJig, IDisposable
         _worldDrawFlag = true;
         WorldDrawEvent?.Invoke(draw);
         _drawEntitys.ForEach(ent => {
-            draw.RawGeometry.Draw(ent);
+            draw.Geometry.Draw(ent);
         });
         _worldDrawFlag = false;
         return true;
@@ -216,16 +219,16 @@ public class JigEx : DrawJig, IDisposable
 
         _options = JigPointOptions();
         _options.Message = Environment.NewLine + msg;
-        
+
 
         if (keywords != null)
             foreach (var item in keywords)
-                    _options.Keywords.Add(item.Key, item.Key, item.Value);
+                _options.Keywords.Add(item.Key, item.Key, item.Value);
 
         // 因为默认配置函数<see cref="JigPointOptions">导致此处空格触发是无效的,
         // 但是用户如果想触发,就需要在外部减去默认UserInputControls配置
         // 要放最后,才能优先触发其他关键字
-        
+
 
         // 外部设置减去配置
         // _options.UserInputControls =
