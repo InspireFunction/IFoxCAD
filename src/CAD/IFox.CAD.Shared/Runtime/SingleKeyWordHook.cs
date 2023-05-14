@@ -14,6 +14,7 @@ public class SingleKeyWordHook : IDisposable
     private bool _isResponsed;
     private bool _working;
     private Keys _key;
+    private bool _escapeMode;
     #endregion
 
     #region 公共属性
@@ -35,13 +36,15 @@ public class SingleKeyWordHook : IDisposable
     /// <summary>
     /// 单字母关键字免输回车钩子
     /// </summary>
-    public SingleKeyWordHook()
+    /// <param name="escapeMode">使用esc(填false则使用回车)</param>
+    public SingleKeyWordHook(bool escapeMode = true)
     {
         _isDisposed = false;
         _isResponsed = false;
         _keyWords = new HashSet<Keys>();
         _key = Keys.None;
         _working = true;
+        _escapeMode = escapeMode;
         Acap.PreTranslateMessage += Acap_PreTranslateMessage;
     }
     #endregion
@@ -108,7 +111,10 @@ public class SingleKeyWordHook : IDisposable
         if (contains || tempKey == Keys.ProcessKey)
         {
             // 标记为true，表示此按键已经被处理，Windows不会再进行处理
-            e.Handled = true;
+            if (_escapeMode)
+            {
+                e.Handled = true;
+            }
             if (contains)
                 _key = tempKey;
             if (!_isResponsed)
@@ -116,7 +122,7 @@ public class SingleKeyWordHook : IDisposable
                 // 此bool是防止按键被长按时出错
                 _isResponsed = true;
                 // 这里选择发送回车或者ESC//ESC稳妥一些，但是要promptResult的判断顺序
-                SingleKeyWordHook.KeyBoardSendKey(Keys.Escape);
+                SingleKeyWordHook.KeyBoardSendKey(_escapeMode? Keys.Escape:Keys.Enter);
             }
         }
     }
