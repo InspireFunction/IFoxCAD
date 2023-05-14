@@ -14,7 +14,7 @@ public class SingleKeyWordHook : IDisposable
     private bool _isResponsed;
     private bool _working;
     private Keys _key;
-    private bool _escapeMode;
+    private readonly bool _escapeMode;
     #endregion
 
     #region 公共属性
