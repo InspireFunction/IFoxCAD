@@ -203,4 +203,34 @@ public static class BlockReferenceEx
         }
 
     }
+    /// <summary>
+    /// 递归块中块图元
+    /// </summary>
+    /// <param name="blockReference">块参照</param>
+    /// <param name="action">委托</param>
+    /// <param name="tr">事务</param>
+    public static void Recursion(this BlockReference blockReference, Action<Entity, Matrix3d> action, DBTrans? tr = null)
+    {
+        tr ??= DBTrans.GetTop(blockReference.IsNewObject ? Env.Database : blockReference.Database);
+        var queue = new Queue<(Entity, Matrix3d)>();
+        queue.Enqueue((blockReference, Matrix3d.Identity));
+        while (queue.Any())
+        {
+            var (ent, mt) = queue.Dequeue();
+            action?.Invoke(ent, mt);
+            if (ent is BlockReference brfTemp)
+            {
+                var mtNext = mt * brfTemp.BlockTransform;
+                tr.BlockTable.Change(brfTemp.BlockTableRecord, btr => {
+                    foreach (var id in btr)
+                    {
+                        if (tr.GetObject(id) is Entity entNext)
+                        {
+                            queue.Enqueue((entNext, mtNext));
+                        }
+                    }
+                });
+            }
+        }
+    }
 }
