@@ -184,10 +184,11 @@ public static class SymbolTableEx
     /// <returns>块定义Id</returns>
     public static ObjectId GetBlockFrom(this SymbolTable<BlockTable, BlockTableRecord> table, string fileName, bool over)
     {
-        
-        string blkdefname = SymbolUtilityServices.RepairSymbolName(
-            SymbolUtilityServices.GetSymbolNameFromPathName(fileName, "dwg"), false);
 
+        string blkdefname = SymbolUtilityServices.GetSymbolNameFromPathName(fileName, "dwg");
+#if !zcad
+        blkdefname = SymbolUtilityServices.RepairSymbolName(blkdefname, false);
+#endif
         ObjectId id = table[blkdefname];
         bool has = id != ObjectId.Null;
         if ((has && over) || !has)
@@ -284,8 +285,8 @@ public static class SymbolTableEx
     /// <param name="xscale">宽度比例</param>
     /// <returns>文字样式Id</returns>
     public static ObjectId Add(this SymbolTable<TextStyleTable, TextStyleTableRecord> table,
-                               string textStyleName, 
-                               FontTTF fontTTF, 
+                               string textStyleName,
+                               FontTTF fontTTF,
                                double xscale = 1.0)
     {
         return table.Add(textStyleName, fontTTF.GetDesc(), xscale);
