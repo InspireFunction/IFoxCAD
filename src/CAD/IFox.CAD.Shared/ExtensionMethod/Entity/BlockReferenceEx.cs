@@ -204,12 +204,12 @@ public static class BlockReferenceEx
 
     }
     /// <summary>
-    /// 递归块中块图元
+    /// 遍历嵌套块中块图元
     /// </summary>
     /// <param name="blockReference">块参照</param>
     /// <param name="action">委托</param>
     /// <param name="tr">事务</param>
-    public static void Recursion(this BlockReference blockReference, Action<Entity, Matrix3d> action, DBTrans? tr = null)
+    public static void NestedForEach(this BlockReference blockReference, Action<Entity, Matrix3d> action, DBTrans? tr = null)
     {
         tr ??= DBTrans.GetTop(blockReference.IsNewObject ? Env.Database : blockReference.Database);
         var queue = new Queue<(Entity, Matrix3d)>();
