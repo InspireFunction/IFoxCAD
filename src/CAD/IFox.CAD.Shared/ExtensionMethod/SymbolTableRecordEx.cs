@@ -119,9 +119,11 @@ public static class SymbolTableRecordEx
                                                 bool openErased = false,
                                                 bool openLockedLayer = false) where T : Entity
     {
+        var rxc = RXObject.GetClass(typeof(T));
         return
             btr
             .Cast<ObjectId>()
+            .Where(id=>id.ObjectClass.IsDerivedFrom(rxc))
             .Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer))
             .OfType<T>();
     }
