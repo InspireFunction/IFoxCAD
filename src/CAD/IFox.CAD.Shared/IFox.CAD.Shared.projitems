@@ -74,11 +74,11 @@
     <Compile Include="$(MSBuildThisFileDirectory)AutoReg\AutoRegAssem.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AutoReg\IAutoGo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)AutoReg\MethodInfoHelper.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\CheckFactory.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\CheckFactory.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\DBTrans.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\Env.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Runtime\SymbolTable.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)Runtime\SingleKeyWordHook.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SingleKeyWordHook.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PE\AcadPeInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PE\DBmod.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)PE\PostCmd.cs" />

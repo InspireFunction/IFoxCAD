@@ -2,10 +2,17 @@
 namespace IFoxCAD.Cad;
 public static class CheckFactory
 {
+    /* 
+     * 平时command命令的globalName如果重复，加载时会报错
+     * 但是并不会告诉你是哪里错了，通常需要花大量时间来查找
+     * 将此函数添加在IExtensionApplication.Initialize()函数开头
+     * 虽然还会报错，但是至少能知道哪个类下哪个方法导致的报错
+     * 聊胜于无吧
+     * 2023-05-16 by DYH
+     */
+
     /// <summary>
     /// 检查Command命令重复
-    /// 将此函数添加在IExtensionApplication.Initialize()开头
-    /// 2023-05-16 by DYH
     /// </summary>
     public static void CheckDuplicateCommand(Assembly? assembly = null)
     {
