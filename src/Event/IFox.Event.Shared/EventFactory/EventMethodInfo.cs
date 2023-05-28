@@ -1,6 +1,6 @@
 namespace IFoxCAD.Event;
 
-public class EventMethodInfo
+internal class EventMethodInfo
 {
     public EventMethodInfo(MethodInfo method, EventParameterType parameterType, int level)
     {
@@ -13,7 +13,7 @@ public class EventMethodInfo
     public EventParameterType ParameterType { get; }
     public int Level { get; }
 }
-public enum EventParameterType
+internal enum EventParameterType
 {
     None = 0,
     Object = 1,
