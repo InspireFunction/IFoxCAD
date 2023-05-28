@@ -1100,4 +1100,19 @@ public static class EditorEx
         }
     }
     #endregion
+
+    #region Extension
+
+    /// <summary>
+    /// 获取CAD鼠标当前位置坐标
+    /// </summary>
+    /// <param name="ed">命令栏</param>
+    /// <returns>坐标(可能为null)</returns>
+    public static Point3d? GetCurrentMouthPoint(this Editor ed)
+    {
+        return ed.RunLisp("(grread T)", RunLispFlag.AcedEvaluateLisp)?.AsArray()
+            .FirstOrDefault(tv => tv.TypeCode == 5009).Value as Point3d?;
+    }
+
+    #endregion
 }
