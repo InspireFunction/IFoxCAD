@@ -9,6 +9,7 @@
     <Import_RootNamespace>IFox.Event.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="$(MSBuildThisFileDirectory)EventEx\DocumentActivatedEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EventEx\BeginDoubleClickEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EventEx\DocumentLockModeChangedEvent.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)EventEx\SystemVariableChangedEvent.cs" />

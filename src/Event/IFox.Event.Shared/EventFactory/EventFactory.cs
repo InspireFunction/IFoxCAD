@@ -23,6 +23,10 @@ public static class EventFactory
             {
                 BeginDoubleClickEvent.Initlize(assembly);
             }
+            if ((cadEvent & CadEvent.DocumentActivated) != 0)
+            {
+                DocumentActivatedEvent.Initlize(assembly);
+            }
         });
     }
     /// <summary>
@@ -52,6 +56,10 @@ public static class EventFactory
         {
             BeginDoubleClickEvent.AddEvent();
         }
+        if ((cadEvent & CadEvent.DocumentActivated) != 0)
+        {
+            DocumentActivatedEvent.AddEvent();
+        }
     }
     /// <summary>
     /// ÒÆ³ýÊÂ¼þ
@@ -70,6 +78,10 @@ public static class EventFactory
         if ((cadEvent & CadEvent.BeginDoubleClick) != 0)
         {
             BeginDoubleClickEvent.RemoveEvent();
+        }
+        if ((cadEvent & CadEvent.DocumentActivated) != 0)
+        {
+            DocumentActivatedEvent.RemoveEvent();
         }
     }
 

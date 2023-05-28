@@ -22,5 +22,9 @@ public enum CadEvent
     /// <summary>
     /// 开始双击
     /// </summary>
-    BeginDoubleClick=0b100,
+    BeginDoubleClick = 0b100,
+    /// <summary>
+    /// 文档激活
+    /// </summary>
+    DocumentActivated = 0b1000,
 }
