@@ -11,11 +11,12 @@ public static class DBTextEx
     /// <param name="position">插入点</param>
     /// <param name="text">文本内容</param>
     /// <param name="height">文字高度</param>
+    /// <param name="justify">对齐方式</param>
     /// <param name="database">文字所在的数据库</param>
     /// <param name="action">文字属性设置委托</param>
     /// <returns>文字对象</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static DBText CreateDBText(Point3d position, string text, double height, Database? database = null,Action<DBText>? action = null)
+    public static DBText CreateDBText(Point3d position, string text, double height,AttachmentPoint justify = AttachmentPoint.BottomLeft, Database? database = null,Action<DBText>? action = null)
     {
         if (string.IsNullOrEmpty(text))
             throw new ArgumentNullException(nameof(text), "创建文字无内容");
@@ -28,7 +29,7 @@ public static class DBTextEx
         acText.TextString = text;
         acText.Position = position; // 插入点(一定要先设置)
 
-        acText.Justify = AttachmentPoint.BaseLeft; // 使他们对齐
+        acText.Justify = justify; // 使他们对齐
 
         action?.Invoke(acText);
 
