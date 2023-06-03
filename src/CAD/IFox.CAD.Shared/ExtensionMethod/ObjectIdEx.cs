@@ -44,7 +44,23 @@ public static class ObjectIdEx
                   .Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer))
                   .OfType<T>();
     }
-
+    /// <summary>
+    /// 获取指定类型对象集合
+    /// </summary>
+    /// <typeparam name="T">指定的泛型</typeparam>
+    /// <param name="ids">对象id集合</param>
+    /// <param name="openMode">打开模式</param>
+    /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
+    /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
+    /// <returns>指定类型对象集合</returns>
+    [System.Diagnostics.DebuggerStepThrough]
+    public static IEnumerable<T> GetObject<T>(this ObjectIdCollection ids,
+        OpenMode openMode = OpenMode.ForRead,
+        bool openErased = false,
+        bool openLockedLayer = false) where T : DBObject
+    {
+        return ids.Cast<ObjectId>().GetObject<T>(openMode, openErased, openLockedLayer);
+    }
     /// <summary>
     /// 返回符合类型的对象id
     /// </summary>
