@@ -1,4 +1,6 @@
 ﻿#if Debug
+using System.Windows.Forms;
+
 namespace IFoxCAD.Cad;
 public static class CheckFactory
 {

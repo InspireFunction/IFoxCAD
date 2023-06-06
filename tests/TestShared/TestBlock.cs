@@ -207,7 +207,7 @@ public class TestBlock
             },
             () => {
                 var line = new Line(new(0, 0, 0), new(1, 1, 0));
-                var actext = DBTextEx.CreateDBText(Point3d.Origin, "123", 2.5, tr.Database);
+                var actext = DBTextEx.CreateDBText(Point3d.Origin, "123", 2.5, database: tr.Database);
 
                 return new List<Entity> { line,actext };
 
