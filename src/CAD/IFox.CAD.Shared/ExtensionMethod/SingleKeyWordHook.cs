@@ -45,6 +45,7 @@ public class SingleKeyWordHook : IDisposable
         _key = Keys.None;
         _working = true;
         _escapeMode = escapeMode;
+        Acap.PreTranslateMessage -= Acap_PreTranslateMessage;
         Acap.PreTranslateMessage += Acap_PreTranslateMessage;
     }
     #endregion
@@ -122,7 +123,7 @@ public class SingleKeyWordHook : IDisposable
                 // 此bool是防止按键被长按时出错
                 _isResponsed = true;
                 // 这里选择发送回车或者ESC//ESC稳妥一些，但是要promptResult的判断顺序
-                SingleKeyWordHook.KeyBoardSendKey(_escapeMode? Keys.Escape:Keys.Enter);
+                KeyBoardSendKey(_escapeMode ? Keys.Escape : Keys.Enter);
             }
         }
     }
