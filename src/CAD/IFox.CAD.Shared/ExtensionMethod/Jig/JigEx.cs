@@ -172,12 +172,16 @@ public class JigEx : DrawJig, IDisposable
         _worldDrawFlag = true;
         WorldDrawEvent?.Invoke(draw);
         _drawEntitys.ForEach(ent => {
+#if zcad
             draw.Geometry.Draw(ent);
+#else
+            draw.RawGeometry.Draw(ent);
+#endif
         });
         _worldDrawFlag = false;
         return true;
     }
-    #endregion
+#endregion
 
     #region 方法
     /// <summary>
