@@ -1,5 +1,3 @@
-
-
 namespace IFoxCAD.Cad;
 
 public static class PointEx
@@ -34,9 +32,9 @@ public static class PointEx
     public static double GetAngle(this Point3d startPoint, Point3d endPoint, Vector3d? direction = null)
     {
         if (direction != null)
-            _PlaneCache = new Plane(Point3d.Origin, direction.Value);
+            _PlaneCache = new Plane(new Point3d(), direction.Value);
         if (_PlaneCache == null)
-            _PlaneCache = new Plane(Point3d.Origin, Vector3d.ZAxis);
+            _PlaneCache = new Plane(new Point3d(), Vector3d.ZAxis);
         return startPoint.GetVectorTo(endPoint).AngleOnPlane(_PlaneCache);
     }
     /// <summary>
@@ -62,6 +60,19 @@ public static class PointEx
         return new Point2d(a.X * 0.5 + b.X * 0.5,
                            a.Y * 0.5 + b.Y * 0.5);
     }
+
+    /// <summary>
+    /// 获取两个点之间的中点
+    /// </summary>
+    /// <param name="pt1">第一点</param>
+    /// <param name="pt2">第二点</param>
+    /// <returns>返回两个点之间的中点</returns>
+    public static Point3d GetMidPointTo(this Point3d pt1, Point3d pt2)
+    {
+        return new(pt1.X * 0.5 + pt2.X * 0.5,
+            pt1.Y * 0.5 + pt2.Y * 0.5,
+            pt1.Z * 0.5 + pt2.Z * 0.5);
+    }
     /// <summary>
     /// Z值归零
     /// </summary>
@@ -72,6 +83,75 @@ public static class PointEx
         return new Point3d(point.X, point.Y, 0);
     }
 
+    /// <summary>
+    /// 将三维点转换为二维点
+    /// </summary>
+    /// <param name="pt">三维点</param>
+    /// <returns>二维点</returns>
+    public static Point2d Point2d(this Point3d pt)
+    {
+        return new(pt.X, pt.Y);
+    }
+    /// <summary>
+    /// 将三维点集转换为二维点集
+    /// </summary>
+    /// <param name="pts">三维点集</param>
+    /// <returns>二维点集</returns>
+    public static IEnumerable<Point2d> Point2d(this IEnumerable<Point3d> pts)
+    {
+        return pts.Select(pt => pt.Point2d());
+    }
+    /// <summary>
+    /// 将二维点转换为三维点
+    /// </summary>
+    /// <param name="pt">二维点</param>
+    /// <param name="z">Z值</param>
+    /// <returns>三维点</returns>
+    public static Point3d Point3d(this Point2d pt, double z = 0)
+    {
+        return new(pt.X, pt.Y, z);
+    }
+
+
+
+    /// <summary>
+    /// 根据世界坐标计算用户坐标
+    /// </summary>
+    /// <param name="basePt">基点世界坐标</param>
+    /// <param name="userPt">基点用户坐标</param>
+    /// <param name="transPt">目标世界坐标</param>
+    /// <param name="ang">坐标网旋转角，按x轴正向逆时针弧度</param>
+    /// <returns>目标用户坐标</returns>
+    public static Point3d TransPoint(this Point3d basePt, Point3d userPt, Point3d transPt, double ang)
+    {
+        Matrix3d transMat = Matrix3d.Displacement(userPt - basePt);
+        Matrix3d roMat = Matrix3d.Rotation(-ang, Vector3d.ZAxis, userPt);
+        return transPt.TransformBy(roMat * transMat);
+    }
+    /// <summary>
+    /// 计算指定距离和角度的点
+    /// </summary>
+    /// <remarks>本函数仅适用于x-y平面</remarks>
+    /// <param name="pt">基点</param>
+    /// <param name="ang">角度，x轴正向逆时针弧度</param>
+    /// <param name="len">距离</param>
+    /// <returns>目标点</returns>
+    public static Point3d Polar(this Point3d pt, double ang, double len)
+    {
+        return pt + Vector3d.XAxis.RotateBy(ang, Vector3d.ZAxis) * len;
+    }
+    /// <summary>
+    /// 计算指定距离和角度的点
+    /// </summary>
+    /// <remarks>本函数仅适用于x-y平面</remarks>
+    /// <param name="pt">基点</param>
+    /// <param name="ang">角度，x轴正向逆时针弧度</param>
+    /// <param name="len">距离</param>
+    /// <returns>目标点</returns>
+    public static Point2d Polar(this Point2d pt, double ang, double len)
+    {
+        return pt + Vector2d.XAxis.RotateBy(ang) * len;
+    }
     /// http://www.lee-mac.com/bulgeconversion.html
     /// <summary>
     /// 求凸度,判断三点是否一条直线上
