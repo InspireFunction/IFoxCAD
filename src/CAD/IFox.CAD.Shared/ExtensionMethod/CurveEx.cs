@@ -274,6 +274,46 @@ public static class CurveEx
 
         return newCurves;
     }
+
+    /// <summary>
+    /// 获取非等比转换的曲线（旋转投影法）
+    /// </summary>
+    /// <param name="cur">转换前的曲线</param>
+    /// <param name="pt">基点</param>
+    /// <param name="x">x方向比例</param>
+    /// <param name="y">y方向比例</param>
+    /// <returns>转换后的曲线</returns>
+    public static Curve GetScaleCurve(this Curve cur, Point3d pt, double x, double y)
+    {
+        // 先做个z平面
+        using var zplane = new Plane(pt, Vector3d.ZAxis);
+        // 克隆一个，防止修改到原来的
+        using var cur2 = cur.CloneEx();
+
+        // 因为旋转投影后只能比原来小，所以遇到先放大
+        while (Math.Abs(x) > 1 || Math.Abs(y) > 1)
+        {
+            cur2.TransformBy(Matrix3d.Scaling(2, pt));
+            x /= 2;
+            y /= 2;
+        }
+        // 旋转投影
+        var xA = Math.Acos(x);
+        cur2.TransformBy(Matrix3d.Rotation(xA, Vector3d.YAxis, pt));
+
+        using var cur3 = cur2.GetOrthoProjectedCurve(zplane);
+
+        // 再次旋转投影
+        var yA = Math.Acos(y);
+        cur3.TransformBy(Matrix3d.Rotation(yA, Vector3d.XAxis, pt));
+        var cur4 = cur3.GetOrthoProjectedCurve(zplane);
+
+        //设置属性
+        cur4.SetPropertiesFrom(cur);
+        return cur4;
+    }
+
+
     // 转换DBCurve为GeCurved
 
     #region Curve
