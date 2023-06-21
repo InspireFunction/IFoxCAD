@@ -16,7 +16,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\ParameterRebinder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\PredicateBuilder.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExpressionTrees\SqlExpressionVisitor.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)General\ArgumentNullEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\ArrayEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\DebugHelper.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\DictEx.cs" />
@@ -29,6 +28,9 @@
     <Compile Include="$(MSBuildThisFileDirectory)General\LoopState.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\RandomEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\Timer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Nullable\ArgumentNullEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Nullable\CallerArgumentExpressionAttribute.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Nullable\NullableAttributes.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\MouseHook.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)WindowsAPI\WindowsAPI.cs" />
