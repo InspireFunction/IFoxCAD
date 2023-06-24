@@ -547,7 +547,7 @@ public static class EmfTool
     {
         //if (hMetaFile == IntPtr.Zero)
         //    throw new ArgumentNullException(nameof(hMetaFile));
-        hMetaFile.NotNull(nameof(hMetaFile));
+        ArgumentNullEx.ThrowIfNull(hMetaFile);
         var emh = EnhMetaHeader.Create(hMetaFile);//emf结构 GetEnhMetaFileHeader
         // 创建画布句柄
         IntRect intRect = emh.rclFrame; //new(0, 0, 0, 0);
@@ -820,7 +820,7 @@ public static class EmfTool
     {
         //if (task == null)
         //    throw new ArgumentNullException(nameof(task));
-        task.NotNull(nameof(task));
+        ArgumentNullEx.ThrowIfNull(task);
         IntPtr hemf = SetEnhMetaFileBits((uint)data.Length, data);
         using var mf = new Metafile(hemf, true);
         if (task.Invoke(mf)) // 对图像进行操作,就不能进行删除句柄

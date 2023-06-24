@@ -313,7 +313,7 @@ public partial class ClipTool
     {
         //if (action == null)
         //    throw new ArgumentNullException(nameof(action));
-        action.NotNull(nameof(action));
+        ArgumentNullEx.ThrowIfNull(action);
         bool openFlag = false;
         try
         {

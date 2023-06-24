@@ -319,10 +319,7 @@ public class JigEx : DrawJig, IDisposable
     public void SetSpaceIsKeyword()
     {
         var opt = _options;
-        //if (opt == null)
-        //    throw new ArgumentNullException(nameof(_options));
-        opt.NotNull(nameof(_options));
-
+        ArgumentNullEx.ThrowIfNull(opt);
         if ((opt.UserInputControls & UserInputControls.NullResponseAccepted) == UserInputControls.NullResponseAccepted)
             opt.UserInputControls ^= UserInputControls.NullResponseAccepted; // 输入了鼠标右键,结束jig
         if ((opt.UserInputControls & UserInputControls.AnyBlankTerminatesInput) == UserInputControls.AnyBlankTerminatesInput)

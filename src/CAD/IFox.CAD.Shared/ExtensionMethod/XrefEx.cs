@@ -440,7 +440,7 @@ public class XrefPath
     {
         //if (brf == null)
         //    throw new ArgumentNullException(nameof(brf));
-        brf.NotNull(nameof(brf));
+        ArgumentNullEx.ThrowIfNull(brf);
         CurrentDatabasePath = Path.GetDirectoryName(tr.Database.Filename);
 
         var btRec = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);// 块表记录
@@ -485,8 +485,8 @@ public class XrefPath
         //if (fileRelations == null)
         //    throw new ArgumentNullException(nameof(fileRelations));
 
-        directory.NotNull(nameof(directory));
-        fileRelations.NotNull(nameof(fileRelations));
+        ArgumentNullEx.ThrowIfNull(directory);
+        ArgumentNullEx.ThrowIfNull(fileRelations);
 
         string? result = null;
         switch (converterModes)

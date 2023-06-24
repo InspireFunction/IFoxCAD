@@ -27,7 +27,7 @@ public static class CurveEx
     {
         //if (pars is null)
         //    throw new ArgumentNullException(nameof(pars));
-        pars.NotNull(nameof(pars));
+        ArgumentNullEx.ThrowIfNull(pars);
         return
             curve
             .GetSplitCurves(new DoubleCollection(pars.ToArray()))
@@ -50,7 +50,7 @@ public static class CurveEx
     {
         //if (pars is null)
         //    throw new ArgumentNullException(nameof(pars));
-        pars.NotNull(nameof(pars));
+        ArgumentNullEx.ThrowIfNull(pars);
         if (isOrder)
             pars = pars.OrderBy(x => x);
 
@@ -70,7 +70,7 @@ public static class CurveEx
     {
         //if (points is null)
         //    throw new ArgumentNullException(nameof(points));
-        points.NotNull(nameof(points));
+        ArgumentNullEx.ThrowIfNull(points);
         using var pts = new Point3dCollection(points.ToArray());
         return curve.GetSplitCurves(pts).Cast<Curve>();
     }
@@ -91,7 +91,7 @@ public static class CurveEx
     {
         //if (points is null)
         //    throw new ArgumentNullException(nameof(points));
-        points.NotNull(nameof(points));
+        ArgumentNullEx.ThrowIfNull(points);
         if (isOrder)
             points = points.OrderBy(point => {
                 var pt = curve.GetClosestPointTo(point, false);
@@ -109,7 +109,7 @@ public static class CurveEx
     /// <returns>所有的闭合环的曲线集合</returns>
     public static IEnumerable<Curve> GetAllCycle(this IEnumerable<Curve> curves)
     {
-        curves.NotNull(nameof(curves));
+        ArgumentNullEx.ThrowIfNull(curves);
 
         // 新建图
         var graph = new Graph();
@@ -143,7 +143,7 @@ public static class CurveEx
     /// <returns>打断后的曲线列表</returns>
     public static List<Curve> BreakCurve(this List<Curve> curves)
     {
-        curves.NotNull(nameof(curves));
+        ArgumentNullEx.ThrowIfNull(curves);
 
         var geCurves = new List<CompositeCurve3d>(); // 存储曲线转换后的复合曲线
         var paramss = new List<List<double>>();      // 存储每个曲线的交点参数值

@@ -81,7 +81,7 @@ public static class SelectionSetEx
     {
         //if (ss is null)
         //    throw new ArgumentNullException(nameof(ss));
-        ss.NotNull(nameof(ss));
+        ArgumentNullEx.ThrowIfNull(ss);
         return ss.GetObjectIds()
                  .Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer))
                  .OfType<T>();
@@ -127,7 +127,7 @@ public static class SelectionSetEx
                                  bool openErased = false,
                                  bool openLockedLayer = false) where T : Entity
     {
-        action.NotNull(nameof(action));
+        ArgumentNullEx.ThrowIfNull(action);
 
         LoopState state = new();
         var ents = ss.GetEntities<T>(openMode, openErased, openLockedLayer);

@@ -163,7 +163,7 @@ public static class BlockReferenceEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId> action)
     {
-        action.NotNull(nameof(action));
+        ArgumentNullEx.ThrowIfNull(action);
         var tr = DBTrans.GetTopTransaction(brf.Database);
         if (tr.GetObject(brf.BlockTableRecord) is BlockTableRecord btr)
         {
@@ -179,7 +179,7 @@ public static class BlockReferenceEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState> action)
     {
-        action.NotNull(nameof(action));
+        ArgumentNullEx.ThrowIfNull(action);
         var tr = DBTrans.GetTopTransaction(brf.Database);
         if (tr.GetObject(brf.BlockTableRecord) is BlockTableRecord btr)
         {
@@ -195,7 +195,7 @@ public static class BlockReferenceEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState, int> action)
     {
-        action.NotNull(nameof(action));
+        ArgumentNullEx.ThrowIfNull(action);
         var tr = DBTrans.GetTopTransaction(brf.Database);
         if (tr.GetObject(brf.BlockTableRecord) is BlockTableRecord btr)
         {

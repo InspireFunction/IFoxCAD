@@ -50,7 +50,7 @@ public static class AcadVersion
     /// <returns>cad版本号对象</returns>
     public static CadVersion? FromApp(object app)
     {
-        app.NotNull(nameof(app));
+        ArgumentNullEx.ThrowIfNull(app);
 
         string acver = app.GetType()
                         .InvokeMember(

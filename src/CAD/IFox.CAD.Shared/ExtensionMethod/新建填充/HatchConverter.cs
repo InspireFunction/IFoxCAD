@@ -163,8 +163,8 @@ public class HatchConverter
         //if (hcData is null)
         //    throw new ArgumentNullException(nameof(hcData));
 
-        loop.NotNull(nameof(loop)); 
-        hcData.NotNull(nameof(hcData));
+        ArgumentNullEx.ThrowIfNull(loop); 
+        ArgumentNullEx.ThrowIfNull(hcData);
 
 
         // 判断为圆形:
@@ -194,7 +194,7 @@ public class HatchConverter
         //if (loop is null)
         //    throw new ArgumentNullException(nameof(loop));
 
-        loop.NotNull(nameof(loop));
+        ArgumentNullEx.ThrowIfNull(loop);
 
         if (loop.Curves.Count != 2)
             throw new ArgumentException(

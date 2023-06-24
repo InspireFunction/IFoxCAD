@@ -38,9 +38,9 @@ public sealed class DBTrans : IDisposable
     /// <exception cref="ArgumentNullException"></exception>
     public static DBTrans GetTop(Database database)
     {
-        database.NotNull(nameof(database));
+        ArgumentNullEx.ThrowIfNull(database);
         var trans = database.TransactionManager.TopTransaction;
-        trans.NotNull(nameof(trans));
+        ArgumentNullEx.ThrowIfNull(trans);
 
         foreach (var item in _dBTrans)
         {
@@ -477,7 +477,7 @@ public sealed class DBTrans : IDisposable
     {
         //if (action == null)
         //    throw new ArgumentNullException(nameof(action));
-        action.NotNull(nameof(action));
+        ArgumentNullEx.ThrowIfNull(action);
         // 前台开图 || 后台直接处理
         if (Document != null || !handlingDBTextDeviation)
         {

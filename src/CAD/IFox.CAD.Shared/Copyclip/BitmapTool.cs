@@ -139,7 +139,7 @@ public class BitmapTool
     {
         //if (action == null)
         //    throw new ArgumentNullException(nameof(action));
-        action.NotNull(nameof(action));
+        ArgumentNullEx.ThrowIfNull(action);
         var hDC = GetDC(hWnd);
         var hMemDC = CreateCompatibleDC(hDC);
         if (hMemDC == IntPtr.Zero)

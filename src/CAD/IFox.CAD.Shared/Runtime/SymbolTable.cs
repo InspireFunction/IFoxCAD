@@ -280,7 +280,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         //if (table is null)
         //    throw new ArgumentNullException(nameof(table), "对象为null");
-        table.NotNull(nameof(table));
+        ArgumentNullEx.ThrowIfNull(table);
 
         ObjectId rid = this[name];
         bool has = rid != ObjectId.Null;
@@ -375,7 +375,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         //if (task == null)
         //    throw new ArgumentNullException(nameof(task));
-        task.NotNull(nameof(task));
+        ArgumentNullEx.ThrowIfNull(task);
         LoopState state = new();/*这种方式比Action改Func更友好*/
         int i = 0;
         foreach (var id in this)

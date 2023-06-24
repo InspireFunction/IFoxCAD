@@ -709,8 +709,8 @@ public static class Env
         //    throw new ArgumentNullException(nameof(key));
         //if (value == null)
         //    throw new ArgumentNullException(nameof(value));
-        key.NotNull(nameof(key));
-        value.NotNull(nameof(value));
+        ArgumentNullEx.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(value);
 
 
         var currentVar = Env.GetVar(key);
@@ -742,7 +742,7 @@ public static class Env
     {
         //if (args is null)
         //    throw new ArgumentNullException(nameof(args));
-        args.NotNull(nameof(args));
+        ArgumentNullEx.ThrowIfNull(args);
         var dict = new Dictionary<string, string>();
         foreach (var item in args)
         {

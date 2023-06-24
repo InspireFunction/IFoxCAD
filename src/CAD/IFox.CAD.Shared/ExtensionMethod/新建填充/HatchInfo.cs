@@ -296,7 +296,7 @@ public class HatchInfo
     {
         //if (pts == null)
         //    throw new ArgumentNullException(nameof(pts));
-        pts.NotNull(nameof(pts));
+        ArgumentNullEx.ThrowIfNull(pts);
         pts.End2End();
         // 2011新增API,可以不生成图元的情况下加入边界,
         // 通过这里进入的话,边界 _boundaryIds 是空的,那么 Build() 时候就需要过滤空的

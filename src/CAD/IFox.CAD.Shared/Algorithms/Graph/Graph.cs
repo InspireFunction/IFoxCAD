@@ -92,9 +92,8 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     {
         //if (curve == null)
         //    throw new ArgumentNullException(nameof(curve));
-
-        curve.NotNull(nameof(curve));
-
+        
+        ArgumentNullEx.ThrowIfNull(curve);
         var start = AddVertex(curve.StartPoint);
         var end = AddVertex(curve.EndPoint);
 
@@ -156,7 +155,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     {
         //if (curve == null)
         //    throw new ArgumentNullException(nameof(curve));
-        curve.NotNull(nameof(curve));
+        ArgumentNullEx.ThrowIfNull(curve);
 
         RemoveVertex(curve.StartPoint);
         RemoveVertex(curve.EndPoint);

@@ -300,7 +300,7 @@ public static class SymbolTableRecordEx
     {
         //if (task == null)
         //    throw new ArgumentNullException(nameof(task));
-        task.NotNull(nameof(task));
+        ArgumentNullEx.ThrowIfNull(task);
         int i = 0;
         LoopState state = new();/*这种方式比Action改Func更友好*/
         foreach (ObjectId id in record)

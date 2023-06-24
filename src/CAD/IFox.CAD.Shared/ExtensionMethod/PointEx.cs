@@ -189,7 +189,7 @@ public static class PointEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void End2End(this Point2dCollection ptcol)
     {
-        ptcol.NotNull(nameof(ptcol));
+        ArgumentNullEx.ThrowIfNull(ptcol);
 
         if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))// 首尾相同直接返回
             return;
@@ -209,7 +209,7 @@ public static class PointEx
     [System.Diagnostics.DebuggerStepThrough]
     public static void End2End(this Point3dCollection ptcol)
     {
-        ptcol.NotNull(nameof(ptcol));
+        ArgumentNullEx.ThrowIfNull(ptcol);
         if (ptcol.Count == 0 || ptcol[0].Equals(ptcol[^1]))// 首尾相同直接返回
             return;
 
