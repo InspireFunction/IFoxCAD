@@ -5,7 +5,6 @@ VisualStudioVersion = 17.1.32113.165
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Config", "Config", "{786E7347-B116-4F26-9AEF-33EB0AB88D58}"
 	ProjectSection(SolutionItems) = preProject
-		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 	EndProjectSection
