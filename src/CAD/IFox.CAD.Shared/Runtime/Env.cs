@@ -764,5 +764,16 @@ public static class Env
         }
         return dict;
     }
+    /// <summary>
+    /// 延迟更新图层锁定淡显状态
+    /// 在有锁定或解锁图层的命令的末尾使用
+    /// </summary>
+    public static void DelayUpdateLayLockFade()
+    {
+        const string lfName = "LAYLOCKFADECTL";
+        int lf = Convert.ToInt32(Acap.GetSystemVariable(lfName).ToString());
+        Acap.SetSystemVariable(lfName, -lf);
+        IdleAction.Add(() => Acap.SetSystemVariable(lfName, lf));
+    }
     #endregion
 }
