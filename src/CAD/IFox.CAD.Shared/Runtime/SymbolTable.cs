@@ -12,7 +12,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <summary>
     /// 事务管理器
     /// </summary>
-    internal DBTrans DTrans { get; private set; }
+    private DBTrans DTrans { get; set; }
     /// <summary>
     /// 数据库
     /// </summary>
@@ -276,7 +276,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="name">符号表记录名</param>
     /// <param name="over">是否覆盖，<see langword="true"/> 为覆盖，<see langword="false"/> 为不覆盖</param>
     /// <returns>对象id</returns>
-    public ObjectId GetRecordFrom(SymbolTable<TTable, TRecord> table, string name, bool over)
+    private ObjectId GetRecordFrom(SymbolTable<TTable, TRecord> table, string name, bool over)
     {
         //if (table is null)
         //    throw new ArgumentNullException(nameof(table), "对象为null");
@@ -284,19 +284,17 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
 
         ObjectId rid = this[name];
         bool has = rid != ObjectId.Null;
-        if ((has && over) || !has)
-        {
-            ObjectId id = table[name];
-            using IdMapping map = new();
-            using ObjectIdCollection ids = new() { id };
-            table.Database.WblockCloneObjects(
-                           ids,
-                           CurrentSymbolTable.Id,
-                           map,
-                           DuplicateRecordCloning.Replace,
-                           false);
-            rid = map[id].Value;
-        }
+        if ((!has || !over) && has) return rid;
+        ObjectId id = table[name];
+        using IdMapping map = new();
+        using ObjectIdCollection ids = new() { id };
+        table.Database.WblockCloneObjects(
+            ids,
+            CurrentSymbolTable.Id,
+            map,
+            DuplicateRecordCloning.Replace,
+            false);
+        rid = map[id].Value;
         return rid;
     }
 

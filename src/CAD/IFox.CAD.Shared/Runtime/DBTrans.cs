@@ -13,7 +13,7 @@ using System.IO;
 public sealed class DBTrans : IDisposable
 {
     [DebuggerBrowsable(DebuggerBrowsableState.Never)]
-    private string DebuggerDisplay => ToString(" | ");
+    private string DebuggerDisplay => ToString();
 
     #region 静态函数
     /// <summary>
@@ -560,52 +560,45 @@ public sealed class DBTrans : IDisposable
 
         // 不重复释放,并设置已经释放
         if (IsDisposed) return;
-        IsDisposed = true;
-
-        // 致命错误时候此处是空,直接跳过
-        if (Transaction != null)
+        
+        if (disposing)
         {
-            if (_commit)
+            // 致命错误时候此处是空,直接跳过
+            if (Transaction != null)
             {
-                // 刷新队列(后台不刷新)
-                Editor?.Redraw();
-                // 调用cad的事务进行提交,释放托管状态(托管对象)
-                Transaction.Commit();
-            }
-            else
-            {
-                // 否则取消所有的修改
-                Transaction.Abort();
-            }
+                if (_commit)
+                {
+                    // 刷新队列(后台不刷新)
+                    Editor?.Redraw();
+                    // 调用cad的事务进行提交,释放托管状态(托管对象)
+                    Transaction.Commit();
+                }
+                else
+                {
+                    // 否则取消所有的修改
+                    Transaction.Abort();
+                }
 
-            // 将cad事务进行销毁
-            if (!Transaction.IsDisposed)
-                Transaction.Dispose();
+                // 将cad事务进行销毁
+                if (!Transaction.IsDisposed)
+                    Transaction.Dispose();
+            }
+            // 将文档锁销毁
+            _documentLock?.Dispose();
         }
-        // 将文档锁销毁
-        _documentLock?.Dispose();
 
         // 将当前事务栈弹栈
         _dBTrans.Pop();
+        IsDisposed = true;
     }
     
     #endregion
 
     #region ToString
+
     /// <inheritdoc/>
     public override string ToString()
-    {
-        return ToString(null, null);
-    }
-    /// <inheritdoc/>
-    public string ToString(IFormatProvider? provider)
-    {
-        return ToString(null, provider);
-    }
-    /// <inheritdoc/>
-#pragma warning disable IDE0060 // 删除未使用的参数
-    public string ToString(string? format = null, IFormatProvider? formatProvider = null)
-#pragma warning restore IDE0060 // 删除未使用的参数
+
     {
         List<string> lines = new()
         {
@@ -616,11 +609,11 @@ public sealed class DBTrans : IDisposable
 
             $"Document = {Document != null}",
             $"Editor = {Editor != null}",
-            $"Transaction = {Transaction != null}",
-            $"Database = {Database != null}"
+            $"Transaction = {Transaction.UnmanagedObject}",
+            $"Database = {Database.Filename}"
         };
 
-        return string.Join(!string.IsNullOrWhiteSpace(format) ? format : "\n", lines.ToArray());
+        return string.Join("\n", lines.ToArray());
     }
     #endregion
 }

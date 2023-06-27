@@ -22,7 +22,7 @@ public static class Env
     /// <summary>
     /// 当前文档
     /// </summary>
-    public static Document Document => Acap.DocumentManager.MdiActiveDocument;
+    public static Document Document => Acaop.DocumentManager.MdiActiveDocument;
 
     /// <summary>
     /// 编辑器对象
@@ -47,7 +47,7 @@ public static class Env
     /// <returns>对象</returns>
     public static object GetCurrentProfileProperty(string subSectionName, string propertyName)
     {
-        UserConfigurationManager ucm = Acap.UserConfigurationManager;
+        UserConfigurationManager ucm = Acaop.UserConfigurationManager;
         IConfigurationSection cpf = ucm.OpenCurrentProfile();
         IConfigurationSection ss = cpf.OpenSubsection(subSectionName);
         return ss.ReadProperty(propertyName, "");
@@ -61,7 +61,7 @@ public static class Env
     /// <returns>配置项</returns>
     public static IConfigurationSection GetDialogSection(object dialog)
     {
-        UserConfigurationManager ucm = Acap.UserConfigurationManager;
+        UserConfigurationManager ucm = Acaop.UserConfigurationManager;
         IConfigurationSection ds = ucm.OpenDialogSection(dialog);
         return ds;
     }
@@ -73,7 +73,7 @@ public static class Env
     /// <returns>配置项</returns>
     public static IConfigurationSection GetGlobalSection(string propertyName)
     {
-        UserConfigurationManager ucm = Acap.UserConfigurationManager;
+        UserConfigurationManager ucm = Acaop.UserConfigurationManager;
         IConfigurationSection gs = ucm.OpenGlobalSection();
         IConfigurationSection ss = gs.OpenSubsection(propertyName);
         return ss;
@@ -87,34 +87,28 @@ public static class Env
     /// </summary>
     public static bool CmdEcho
     {
-        get => Convert.ToInt16(Acap.GetSystemVariable("cmdecho")) == 1;
-        set => Acap.SetSystemVariable("cmdecho", Convert.ToInt16(value));
+        get => Convert.ToInt16(Acaop.GetSystemVariable("cmdecho")) == 1;
+        set => Acaop.SetSystemVariable("cmdecho", Convert.ToInt16(value));
     }
     /// <summary>
     /// 获取Cad当前是否有活动命令
     /// </summary>
-    public static bool CmdActive => Convert.ToBoolean(Acap.GetSystemVariable("CMDACTIVE"));
+    public static bool CmdActive => Convert.ToBoolean(Acaop.GetSystemVariable("CMDACTIVE"));
     /// <summary>
     /// 控制在光标是否为正交模式， <see langword="true"/> 为打开正交， <see langword="false"/> 为关闭正交
     /// </summary>
     public static bool OrthoMode
     {
-        get => Convert.ToInt16(Acap.GetSystemVariable("ORTHOMODE")) == 1;
-        set => Acap.SetSystemVariable("ORTHOMODE", Convert.ToInt16(value));
+        get => Convert.ToInt16(Acaop.GetSystemVariable("ORTHOMODE")) == 1;
+        set => Acaop.SetSystemVariable("ORTHOMODE", Convert.ToInt16(value));
     }
     /// <summary>
     /// 读写系统变量LastPoint的坐标(UCS)
     /// </summary>
     public static Point3d LastPoint
     {
-        get
-        {
-            return  (Point3d)Acap.GetSystemVariable("LASTPOINT");
-        }
-        set
-        {
-            Acap.SetSystemVariable("LASTPOINT", value);
-        }
+        get => (Point3d)Acaop.GetSystemVariable("LASTPOINT");
+        set => Acaop.SetSystemVariable("LASTPOINT", value);
     }
 
     #region Dimblk
@@ -225,7 +219,7 @@ public static class Env
         ArchTick
     }
 
-    private static readonly Dictionary<string, DimblkType> dimdescdict = new()
+    private static readonly Dictionary<string, DimblkType> Dimdescdict = new()
     {
         { "实心闭合", DimblkType.Defult },
         { "点", DimblkType.Dot },
@@ -279,7 +273,7 @@ public static class Env
     {
         get
         {
-            string s = ((string)Acap.GetSystemVariable("dimblk")).ToUpper();
+            string s = ((string)Acaop.GetSystemVariable("dimblk")).ToUpper();
             // if (string.IsNullOrEmpty(s))
             // {
             //    return DimblkType.Defult;
@@ -293,12 +287,12 @@ public static class Env
             //    return s.ToEnum<DimblkType>();
             //    // return s.FromDescName<DimblkType>();
             // }
-            return dimdescdict[s];
+            return Dimdescdict[s];
         }
         set
         {
             string s = GetDimblkName(value);
-            Acap.SetSystemVariable("dimblk", s);
+            Acaop.SetSystemVariable("dimblk", s);
         }
     }
 
@@ -338,6 +332,7 @@ public static class Env
     /// <summary>
     /// 捕捉模式系统变量类型
     /// </summary>
+    [Flags]
     public enum OSModeType
     {
         /// <summary>
@@ -421,14 +416,8 @@ public static class Env
     /// </summary>
     public static OSModeType OSMode
     {
-        get
-        {
-            return (OSModeType)Convert.ToInt16(Acap.GetSystemVariable("osmode"));
-        }
-        set
-        {
-            Acap.SetSystemVariable("osmode", (int)value);
-        }
+        get => (OSModeType)Convert.ToInt16(Acaop.GetSystemVariable("osmode"));
+        set => Acaop.SetSystemVariable("osmode", (int)value);
     }
     /// <summary>
     /// 捕捉模式osm1是否包含osm2
@@ -443,9 +432,9 @@ public static class Env
     #endregion OsMode
 
 
-    private static string GetName<T>(this T value)
+    private static string? GetName<T>(this T value)
     {
-        return Enum.GetName(typeof(T), value);
+        return Enum.GetName(typeof(T), value!);
     }
 
     #endregion Enum
@@ -456,9 +445,9 @@ public static class Env
     /// </summary>
     /// <param name="varName">变量名</param>
     /// <returns>变量值</returns>
-    public static object GetVar(string? varName)
+    public static object? GetVar(string? varName)
     {
-        return Acap.GetSystemVariable(varName);
+        return Acaop.GetSystemVariable(varName);
     }
     /// <summary>
     /// 设置cad系统变量<br/>
@@ -469,16 +458,16 @@ public static class Env
     /// <param name="varName">变量名</param>
     /// <param name="value">变量值</param>
     /// <param name="echo">输出异常,默认true;此设置仅为打印到命令栏,无法控制vs输出</param>
-    public static void SetVar(string? varName, object? value, bool echo = true)
+    public static void SetVar(string varName, object value, bool echo = true)
     {
         try
         {
-            Acap.SetSystemVariable(varName, value);
+            Acaop.SetSystemVariable(varName, value);
         }
-        catch (System.Exception)
+        catch (Exception)
         {
             if (echo)
-                Env.Print($"{varName} 是不存在的变量！");
+                Print($"{varName} 是不存在的变量！");
         }
     }
     #endregion
@@ -592,7 +581,7 @@ public static class Env
     /// 判断当前是否在UCS坐标下
     /// </summary>
     /// <returns>Bool</returns>
-    public static bool IsUcs() => (short)GetVar("WORLDUCS") == 0;
+    public static bool IsUcs() => (short)GetVar("WORLDUCS")! == 0;
 
 
     #region dwg版本号/cad版本号/年份
@@ -602,27 +591,26 @@ public static class Env
     /// <returns></returns>
     public static DwgVersion GetDefaultDwgVersion()
     {
-        DwgVersion version;
         var ffs = Env.GetEnv("DefaultFormatForSave");
-        version = ffs switch
+        var version = ffs switch
         {
-            "1" => DwgVersion.AC1009,// R12/LT12 dxf
-            "8" => DwgVersion.AC1014,// R14/LT98/LT97 dwg
-            "12" => DwgVersion.AC1015,// 2000 dwg
-            "13" => DwgVersion.AC1800a,// 2000 dxf
-            "24" => DwgVersion.AC1800,// 2004 dwg
-            "25" => (DwgVersion)26,// 2004 dxf
-            "36" => (DwgVersion)27,// 2007 dwg  DwgVersion.AC1021
-            "37" => (DwgVersion)28,// 2007 dxf
+            "1" => DwgVersion.AC1009, // R12/LT12 dxf
+            "8" => DwgVersion.AC1014, // R14/LT98/LT97 dwg
+            "12" => DwgVersion.AC1015, // 2000 dwg
+            "13" => DwgVersion.AC1800a, // 2000 dxf
+            "24" => DwgVersion.AC1800, // 2004 dwg
+            "25" => (DwgVersion)26, // 2004 dxf
+            "36" => (DwgVersion)27, // 2007 dwg  DwgVersion.AC1021
+            "37" => (DwgVersion)28, // 2007 dxf
 
             // "38" => (DwgVersion),// dwt 样板文件...啊惊没找到这个是什么
-            "48" => (DwgVersion)29,// 2010 dwg  DwgVersion.AC1024
-            "49" => (DwgVersion)30,// 2010 dxf
-            "60" => (DwgVersion)31,// 2013 dwg  DwgVersion.AC1027
-            "61" => (DwgVersion)32,// 2013 dxf
-            "64" => (DwgVersion)33,// 2018 dwg  DwgVersion.AC1032
-            "65" => (DwgVersion)34,// 2018 dxf
-            _ => throw new NotImplementedException(),// 提醒维护
+            "48" => (DwgVersion)29, // 2010 dwg  DwgVersion.AC1024
+            "49" => (DwgVersion)30, // 2010 dxf
+            "60" => (DwgVersion)31, // 2013 dwg  DwgVersion.AC1027
+            "61" => (DwgVersion)32, // 2013 dxf
+            "64" => (DwgVersion)33, // 2018 dwg  DwgVersion.AC1032
+            "65" => (DwgVersion)34, // 2018 dxf
+            _ => throw new NotImplementedException(), // 提醒维护
         };
         return version;
     }
@@ -654,7 +642,7 @@ public static class Env
     /// <exception cref="NotImplementedException">超出年份就报错</exception>
     public static int GetAcadVersion()
     {
-        var ver = Acap.Version.Major + "." + Acap.Version.Minor;
+        var ver = Acaop.Version.Major + "." + Acaop.Version.Minor;
         int acarVarNum = ver switch
         {
             "16.2" => 2006,
@@ -686,7 +674,7 @@ public static class Env
     /// <returns>dll的前面</returns>
     public static string GetAcapVersionDll(string str = "acdb")
     {
-        return str + Acap.Version.Major + ".dll";
+        return str + Acaop.Version.Major + ".dll";
     }
     #endregion
 
@@ -696,28 +684,20 @@ public static class Env
     /// 设置cad系统变量<br/>
     /// 提供一个反序列化后,无cad异常输出的功能<br/>
     /// 注意,您需要再此执行时候设置文档锁<br/>
-    /// <see cref="Acap.DocumentManager.MdiActiveDocument.LockDocument()"/><br/>
     /// 否则也将导致修改数据库异常<br/>
     /// </summary>
     /// <param name="key"></param>
     /// <param name="value"></param>
     /// <returns>成功返回当前值,失败null</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static object? SetVarEx(string? key, string? value)
+    public static object? SetVarEx(string key, string value)
     {
-        //if (key == null)
-        //    throw new ArgumentNullException(nameof(key));
-        //if (value == null)
-        //    throw new ArgumentNullException(nameof(value));
-        ArgumentNullEx.ThrowIfNull(key);
-        ArgumentNullEx.ThrowIfNull(value);
-
-
-        var currentVar = Env.GetVar(key);
-        if (currentVar == null)
+        
+        var currentVar = GetVar(key);
+        if (currentVar is null)
             return null;
 
-        object? valueType = currentVar.GetType().Name switch
+        object valueType = currentVar.GetType().Name switch
         {
             "String" => value.Replace("\"", string.Empty),
             "Double" => double.Parse(value),
@@ -727,7 +707,7 @@ public static class Env
         };
 
         // 相同的参数进行设置会发生一次异常
-        if (currentVar.ToString().ToUpper() != valueType!.ToString().ToUpper())
+        if (!string.Equals(currentVar.ToString(), valueType.ToString(), StringComparison.CurrentCultureIgnoreCase))
             Env.SetVar(key, valueType);
 
         return currentVar;
@@ -771,9 +751,9 @@ public static class Env
     public static void DelayUpdateLayLockFade()
     {
         const string lfName = "LAYLOCKFADECTL";
-        int lf = Convert.ToInt32(Acap.GetSystemVariable(lfName).ToString());
-        Acap.SetSystemVariable(lfName, -lf);
-        IdleAction.Add(() => Acap.SetSystemVariable(lfName, lf));
+        int lf = Convert.ToInt32(Acaop.GetSystemVariable(lfName).ToString());
+        Acaop.SetSystemVariable(lfName, -lf);
+        IdleAction.Add(() => Acaop.SetSystemVariable(lfName, lf));
     }
     #endregion
 }
