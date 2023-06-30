@@ -408,3 +408,4 @@ healthchecksdb
 
 #ifoxcad
 #tests/TestConsole/
+tests/TestAcad09plus/Properties/
