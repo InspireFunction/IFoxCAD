@@ -40,9 +40,9 @@ public static class SymbolTableRecordEx
                 // foreach (ObjectId item in blockIds)
                 //     result.Add(mapping[item].Value);
             }
-            catch 
+            catch
             {
-               
+
             }
         }
     }
@@ -83,7 +83,8 @@ public static class SymbolTableRecordEx
         var tr = DBTrans.GetTopTransaction(btr.Database);
         using (btr.ForWrite())
         {
-            return ents.Select(ent => {
+            return ents.Select(ent =>
+            {
                 ObjectId id = btr.AppendEntity(ent);
                 tr.AddNewlyCreatedDBObject(ent, true);
                 return id;
@@ -123,7 +124,7 @@ public static class SymbolTableRecordEx
         return
             btr
             .Cast<ObjectId>()
-            .Where(id=>id.ObjectClass.IsDerivedFrom(rxc))
+            .Where(id => id.ObjectClass.IsDerivedFrom(rxc))
             .Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer))
             .OfType<T>();
     }
@@ -157,17 +158,17 @@ public static class SymbolTableRecordEx
     /// 获取绘制顺序表
     /// </summary>
     /// <param name="btr">块表</param>
-    /// <param name="trans">事务</param>
+    /// <param name="openMode">开启方式</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>绘制顺序表</returns>
-    public static DrawOrderTable? GetDrawOrderTable(this BlockTableRecord btr,
-                                                    Transaction? trans = null,
+    public static DrawOrderTable GetDrawOrderTable(this BlockTableRecord btr,
+                                                    OpenMode openMode = OpenMode.ForRead,
                                                     bool openErased = false,
                                                     bool openLockedLayer = false)
     {
         var tr = DBTrans.GetTopTransaction(btr.Database);
-        return tr.GetObject<DrawOrderTable>(btr.DrawOrderTableId, OpenMode.ForRead, openErased, openLockedLayer);
+        return (DrawOrderTable)tr.GetObject(btr.DrawOrderTableId, openMode, openErased, openLockedLayer);
     }
     #endregion
 
@@ -215,13 +216,13 @@ public static class SymbolTableRecordEx
     {
         //trans ??= DBTrans.Top.Transaction;
         var tr = DBTrans.GetTop(blockTableRecord.Database);
-        
+
         if (!tr.BlockTable.Has(blockId))
         {
             tr.Editor?.WriteMessage($"\n不存在块定义。");
             return ObjectId.Null;
         }
-            
+
 
         using var blockref = new BlockReference(position, blockId)
         {
