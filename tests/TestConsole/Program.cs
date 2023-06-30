@@ -8,10 +8,38 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
+using CalculatorDemo;
+
+Console.WriteLine("release");
+
+var a = new PointA();
+var b = new PointB();
+
+CalculatorDemo.Program.TestTimes2(1000000, "PointA:", (i) =>
+{
+    a.X = i * 0.1;
+    a.Y = i * 0.1;
+});
+CalculatorDemo.Program.TestTimes2(1000000, "PointB:", (i) =>
+{
+    b.X = i * 0.1;
+    b.Y = i * 0.1;
+});
 
 #if true
 namespace CalculatorDemo
 {
+    public class PointA
+    {
+        public double X;
+        public double Y;
+    }
+    public class PointB
+    {
+        public double X { set; get; }
+        public double Y { set; get; }
+    }
+
     class Program
     {
         static void Main(string[] args)
@@ -34,11 +62,7 @@ namespace CalculatorDemo
             Console.WriteLine(aa[1..^2]);
 
 
-            var time = Timer.RunTime(() => {
-                for (int i = 0; i < 10000000; i++)
-                    i++;
-            }, Timer.TimeEnum.Second);
-            Console.WriteLine($"代码执行的时间：{time}");
+           
         }
 
         private static int addtuple((int ,int ) b)
@@ -61,6 +85,24 @@ namespace CalculatorDemo
         private static void AddTwoNumbers22(Action<int, int> action)
         {
             action(10, 20);
+        }
+
+        public static void TestTimes2(int count, string message, Action<int> action)
+        {
+            System.Diagnostics.Stopwatch watch = new();
+            watch.Start();  // 开始监视代码运行时间
+            for (int i = 0; i < count; i++)
+                action.Invoke(i);// 需要测试的代码
+            watch.Stop();  // 停止监视
+            TimeSpan timespan = watch.Elapsed; // 获取当前实例测量得出的总时间
+            double time = timespan.TotalMilliseconds;
+            string name = "毫秒";
+            if (timespan.TotalMilliseconds > 1000)
+            {
+                time = timespan.TotalSeconds;
+                name = "秒";
+            }
+            Console.WriteLine($"{message} 代码执行 {count} 次的时间：{time} ({name})");  // 总毫秒数
         }
     }
 

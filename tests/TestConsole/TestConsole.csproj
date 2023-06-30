@@ -5,24 +5,15 @@
         <Nullable>enable</Nullable>
 
         <OutputType>Exe</OutputType>
-        <TargetFramework>NET45</TargetFramework>
+        <TargetFramework>NET48</TargetFramework>
         <Nullable>enable</Nullable>
         <LangVersion>preview</LangVersion>
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
+      <PackageReference Include="IndexRange" Version="1.0.2" />
     </ItemGroup>
  
-        <TargetFramework>NET40</TargetFramework>
-        <Nullable>enable</Nullable>
-        <LangVersion>preview</LangVersion>
-		<DefineConstants>NOINDEX;NORANGE;NOVALUETUPLE</DefineConstants>
-    </PropertyGroup>
-
-    <ItemGroup>
-      <PackageReference Include="IFox.Basal" Version="0.5.0-alpha6" />
-    </ItemGroup>
 
     <ItemGroup>
         <Reference Include="System.Web" />
