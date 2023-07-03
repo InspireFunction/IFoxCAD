@@ -2,6 +2,41 @@
 
 public class TestTrans
 {
+    [CommandMethod(nameof(Test_DBTrans))]
+    public void Test_DBTrans()
+    {
+        using DBTrans tr = new();
+        if (tr.Editor is null)
+            return;
+        tr.Editor.WriteMessage("\n测试 Editor 属性是否工作！");
+        tr.Editor.WriteMessage("\n----------开始测试--------------");
+        tr.Editor.WriteMessage("\n测试document属性是否工作");
+        if (tr.Document == Getdoc())
+        {
+            tr.Editor.WriteMessage("\ndocument 正常");
+        }
+        tr.Editor.WriteMessage("\n测试database属性是否工作");
+        if (tr.Database == Getdb())
+        {
+            tr.Editor.WriteMessage("\ndatabase 正常");
+        }
+    }
+
+    private static Database Getdb()
+    {
+        var db = Acaop.DocumentManager.MdiActiveDocument.Database;
+        return db;
+    }
+
+    private static Document Getdoc()
+    {
+        var doc = Acaop.DocumentManager.MdiActiveDocument;
+        return doc;
+    }
+    
+    
+    
+    
     [CommandMethod(nameof(CmdTest_DBTransActiveOpenDwg), CommandFlags.Session)]
     public static void CmdTest_DBTransActiveOpenDwg()
     {
@@ -140,23 +175,15 @@ public class TestTrans
         var tr1 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
         using DBTrans tr2 = new();
         var tr3 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
-        var tr6 = Acap.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
+        var tr6 = Acaop.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
         Env.Print(tr2.Transaction == tr3);
         Env.Print(tr3 == tr6);
         using DBTrans tr4 = new();
         var tr5 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
-        var tr7 = Acap.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
+        var tr7 = Acaop.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
         Env.Print(tr4.Transaction == tr5);
         Env.Print(tr5 == tr7);
         var trm = HostApplicationServices.WorkingDatabase.TransactionManager;
 
-        // var ptt = tr.GetObject<Polyline>(pl).GetClosestPointTo(pt,false);
-        // var pt1 = new Point3d(0, 0.00000000000001, 0);
-        // var pt2 = new Point3d(0, 0.00001, 0);
-        // Env.Print(Tolerance.Global.EqualPoint);
-        // Env.Print(pt1.IsEqualTo(pt2).ToString());
-        // Env.Print(pt1.IsEqualTo(pt2,new Tolerance(0.0,1e-6)).ToString());
-        // Env.Print((pt1 == pt2).ToString());
-        // Env.Print((pt1 != pt2).ToString());
     }
 }

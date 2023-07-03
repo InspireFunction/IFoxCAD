@@ -1,41 +1,7 @@
-﻿using System.Diagnostics;
-using System.Web.UI.WebControls;
-
-namespace Test;
+﻿namespace Test;
 
 public partial class Test
 {
-    [CommandMethod(nameof(Test_DBTrans))]
-    public void Test_DBTrans()
-    {
-        using DBTrans tr = new();
-        if (tr.Editor is null)
-            return;
-        tr.Editor.WriteMessage("\n测试 Editor 属性是否工作！");
-        tr.Editor.WriteMessage("\n----------开始测试--------------");
-        tr.Editor.WriteMessage("\n测试document属性是否工作");
-        if (tr.Document == Getdoc())
-        {
-            tr.Editor.WriteMessage("\ndocument 正常");
-        }
-        tr.Editor.WriteMessage("\n测试database属性是否工作");
-        if (tr.Database == Getdb())
-        {
-            tr.Editor.WriteMessage("\ndatabase 正常");
-        }
-
-        Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
-        Circle circle = new(new Point3d(0, 0, 0), Vector3d.ZAxis, 2);
-        // var lienid = tr.AddEntity(line);
-        // var cirid = tr.AddEntity(circle);
-        // var linent = tr.GetObject<Line>(lienid);
-        // var lineent = tr.GetObject<Circle>(cirid);
-        // var linee = tr.GetObject<Line>(cirid); // 经测试，类型不匹配，返回null
-        // var dd = tr.GetObject<Circle>(lienid);
-        // List<DBObject> ds = new() { linee, dd };
-        // tr.CurrentSpace.AddEntity(line,tr);
-    }
-
     // add entity test
     [CommandMethod(nameof(Test_Addent))]
     public void Test_Addent()
@@ -75,54 +41,7 @@ public partial class Test
             tr.Editor?.WriteMessage("三点画圆失败");
         tr.CurrentSpace.AddEntity(circle3!);
     }
-
-    [CommandMethod(nameof(Test_LayerAdd0))]
-    public void Test_LayerAdd0()
-    {
-        using DBTrans tr = new();
-        tr.LayerTable.Add("1");
-        tr.LayerTable.Add("2", lt => {
-            lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 1);
-            lt.LineWeight = LineWeight.LineWeight030;
-        });
-        tr.LayerTable.Remove("3");
-        tr.LayerTable.Delete("0");
-        tr.LayerTable.Change("4", lt => {
-            lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 2);
-        });
-    }
-
-
-    // 添加图层
-    [CommandMethod(nameof(Test_LayerAdd1))]
-    public void Test_LayerAdd1()
-    {
-        using DBTrans tr = new();
-        tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor, 1));
-    }
-
-    // 添加图层
-    [CommandMethod(nameof(Test_LayerAdd2))]
-    public void Test_LayerAdd2()
-    {
-        using DBTrans tr = new();
-        tr.LayerTable.Add("test2", 2);
-        // tr.LayerTable["3"] = new LayerTableRecord();
-    }
-    // 删除图层
-    [CommandMethod(nameof(Test_LayerDel))]
-    public void Test_LayerDel()
-    {
-        using DBTrans tr = new();
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("0").ToString());        // 删除图层 0
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("Defpoints").ToString());// 删除图层 Defpoints
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("1").ToString());        // 删除不存在的图层 1
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("2").ToString());        // 删除有图元的图层 2
-        Env.Editor.WriteMessage(tr.LayerTable.Delete("3").ToString());        // 删除图层 3
-
-        tr.LayerTable.Remove("2"); // 测试是否能强制删除
-    }
-
+    
     // 添加直线
     [CommandMethod(nameof(Test_AddLine1))]
     public void Test_AddLine1()
@@ -184,139 +103,34 @@ public partial class Test
         tr.CurrentSpace.AddEntity(pl);
     }
 
-
-
-
-    // 测试扩展数据
-    static readonly string _appname = "myapp2";
-    // 增
-    [CommandMethod(nameof(Test_AddXdata))]
-    public void Test_AddXdata()
+    [CommandMethod(nameof(Test_AddPolyline3))]
+    public void Test_AddPolyline3()
     {
-        using DBTrans tr = new();
-        var appname = "myapp2";
+        using var tr = new DBTrans();
 
-        tr.RegAppTable.Add("myapp1");
-        tr.RegAppTable.Add(appname); // add函数会默认的在存在这个名字的时候返回这个名字的regapp的id，不存在就新建
-        tr.RegAppTable.Add("myapp3");
-        tr.RegAppTable.Add("myapp4");
-
-        var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0))
+        var pts = new List<Point3d>
         {
-            XData = new XDataList()
-                {
-                    { DxfCode.ExtendedDataRegAppName, "myapp1" },  // 可以用dxfcode和int表示组码
-                    { DxfCode.ExtendedDataAsciiString, "xxxxxxx" },
-                    {1070, 12 },
-                    { DxfCode.ExtendedDataRegAppName, appname },  // 可以用dxfcode和int表示组码,移除中间的测试
-                    { DxfCode.ExtendedDataAsciiString, "要移除的我" },
-                    {1070, 12 },
-                    { DxfCode.ExtendedDataRegAppName, "myapp3" },  // 可以用dxfcode和int表示组码
-                    { DxfCode.ExtendedDataAsciiString, "aaaaaaaaa" },
-                    {1070, 12 },
-                    { DxfCode.ExtendedDataRegAppName, "myapp4" },  // 可以用dxfcode和int表示组码
-                    { DxfCode.ExtendedDataAsciiString, "bbbbbbbbb" },
-                    {1070, 12 }
-                }
+            new(0, 0, 0),
+            new(0, 1, 0),
+            new(1, 1, 0),
+            new(1, 0, 0)
         };
+        var pline = pts.CreatePolyline();
+        tr.CurrentSpace.AddEntity(pline);
 
-        tr.CurrentSpace.AddEntity(line);
-    }
-    // 删
-    [CommandMethod(nameof(Test_RemoveXdata))]
-    public void Test_RemoveXdata()
-    {
-        var res = Env.Editor.GetEntity("\n select the entity:");
-        if (res.Status == PromptStatus.OK)
+        var pline1 = pts.CreatePolyline(p =>
         {
-            using DBTrans tr = new();
-            var ent = tr.GetObject<Entity>(res.ObjectId);
-            if (ent == null || ent.XData == null)
-                return;
-
-            Env.Printl("\n移除前:" + ent.XData.ToString());
-
-            ent.RemoveXData(_appname, DxfCode.ExtendedDataAsciiString);
-            Env.Printl("\n移除成员后:" + ent.XData.ToString());
-
-            ent.RemoveXData(_appname);
-            Env.Printl("\n移除appName后:" + ent.XData.ToString());
-        }
-    }
-    // 查
-    [CommandMethod(nameof(Test_GetXdata))]
-    public void Test_GetXdata()
-    {
-        using DBTrans tr = new();
-        tr.RegAppTable.ForEach(id =>
-            id.GetObject<RegAppTableRecord>()?.Name.Print());
-        tr.RegAppTable.GetRecords().ForEach(rec => rec.Name.Print());
-        tr.RegAppTable.GetRecordNames().ForEach(name => name.Print());
-        tr.RegAppTable.ForEach(reg => reg.Name.Print(), checkIdOk: false);
-
-        // var res = ed.GetEntity("\n select the entity:");
-        // if (res.Status == PromptStatus.OK)
-        // {
-        //    using DBTrans tr = new();
-        //    tr.RegAppTable.ForEach(id => id.GetObject<RegAppTableRecord>().Print());
-        //    var data = tr.GetObject<Entity>(res.ObjectId).XData;
-        //    ed.WriteMessage(data.ToString());
-        // }
-
-        // 查询appName里面是否含有某个
-
-        var res = Env.Editor.GetEntity("\n select the entity:");
-        if (res.Status == PromptStatus.OK)
-        {
-            var ent = tr.GetObject<Entity>(res.ObjectId);
-            if (ent == null || ent.XData == null)
-                return;
-
-            XDataList data = ent.XData;
-            if (data.Contains(_appname))
-                Env.Printl("含有appName:" + _appname);
-            else
-                Env.Printl("不含有appName:" + _appname);
-
-            var str = "要移除的我";
-            if (data.Contains(_appname, str))
-                Env.Printl("含有内容:" + str);
-            else
-                Env.Printl("不含有内容:" + str);
-        }
-    }
-    // 改
-    [CommandMethod(nameof(Test_ChangeXdata))]
-    public void Test_ChangeXdata()
-    {
-        var res = Env.Editor.GetEntity("\n select the entity:");
-        if (res.Status != PromptStatus.OK)
-            return;
-        using DBTrans tr = new();
-        var data = tr.GetObject<Entity>(res.ObjectId)!;
-        data.ChangeXData(_appname, DxfCode.ExtendedDataAsciiString, "change");
-
-        if (data.XData == null)
-            return;
-        Env.Printl(data.XData.ToString());
+            p.Closed = true;
+            p.ConstantWidth = 0.2;
+            p.ColorIndex = 1;
+        });
+        tr.CurrentSpace.AddEntity(pline1);
     }
 
+    
 
 
-    [CommandMethod(nameof(Test_PrintLayerName))]
-    public void Test_PrintLayerName()
-    {
-        using DBTrans tr = new();
-        foreach (var layerRecord in tr.LayerTable.GetRecords())
-        {
-            tr.Editor?.WriteMessage(layerRecord.Name);
-        }
-        foreach (var layerRecord in tr.LayerTable.GetRecords())
-        {
-            tr.Editor?.WriteMessage(layerRecord.Name);
-            break;
-        }
-    }
+    
 
 
     [CommandMethod(nameof(Test_Rec))]
@@ -348,34 +162,20 @@ public partial class Test
 
 #pragma warning disable CS0219 // 变量已被赋值，但从未使用过它的值
         Tools.TestTimes(1000000, "三次点乘", () => {
-            var result = false;
-            if (Math.Abs(p12.DotProduct(p23)) < 1e8 &&
-                Math.Abs(p23.DotProduct(p34)) < 1e8 &&
-                Math.Abs(p34.DotProduct(p41)) < 1e8)
-                result = true;
+            bool result = Math.Abs(p12.DotProduct(p23)) < 1e8 &&
+                          Math.Abs(p23.DotProduct(p34)) < 1e8 &&
+                          Math.Abs(p34.DotProduct(p41)) < 1e8;
         });
 
         Tools.TestTimes(1000000, "三次垂直", () => {
-            var result = false;
-            if (p12.IsParallelTo(p23) &&
-                p23.IsParallelTo(p34) &&
-                p34.IsParallelTo(p41))
-                result = true;
+            bool result = p12.IsParallelTo(p23) &&
+                          p23.IsParallelTo(p34) &&
+                          p34.IsParallelTo(p41);
         });
 #pragma warning restore CS0219 // 变量已被赋值，但从未使用过它的值
     }
 
-    public Database Getdb()
-    {
-        var db = Acap.DocumentManager.MdiActiveDocument.Database;
-        return db;
-    }
-
-    public Document Getdoc()
-    {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        return doc;
-    }
+  
 
 
     [CommandMethod(nameof(Test_EntRoration))]

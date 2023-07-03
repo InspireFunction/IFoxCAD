@@ -25,8 +25,8 @@ public class XDataList : TypedValueList
     /// <param name="obj">组码值</param>
     public override void Add(int code, object obj)
     {
-        if (code < 1000 || code > 1071)
-            throw new System.Exception("传入的组码值不是 XData 有效范围!");
+        if (code is < 1000 or > 1071)
+            throw new Exception("传入的组码值不是 XData 有效范围!");
 
         Add(new TypedValue(code, obj));
     }
@@ -63,7 +63,7 @@ public class XDataList : TypedValueList
     public bool Contains(string appName, object value)
     {
         bool result = false;
-        RangeTask(appName, (tv, state, i) => {
+        RangeTask(appName, (tv, state, _) => {
             if (tv.Value.Equals(value))
             {
                 result = true;
@@ -93,7 +93,7 @@ public class XDataList : TypedValueList
     /// 区间任务
     /// </summary>
     /// <param name="action"></param>
-    void RangeTask(string appName, Action<TypedValue, LoopState, int> action)
+    private void RangeTask(string appName, Action<TypedValue, LoopState, int> action)
     {
         LoopState state = new();
         // 在名称和名称之间找
@@ -110,12 +110,11 @@ public class XDataList : TypedValueList
                 if (appNameIndex != -1)//找到了下一个名称
                     break;
             }
-            if (appNameIndex != -1) // 找下一个的时候,获取任务(移除)的对象
-            {
-                action(this[i], state, i);
-                if (!state.IsRun)
-                    break;
-            }
+
+            if (appNameIndex == -1) continue; // 找下一个的时候,获取任务(移除)的对象
+            action(this[i], state, i);
+            if (!state.IsRun)
+                break;
         }
     }
 
