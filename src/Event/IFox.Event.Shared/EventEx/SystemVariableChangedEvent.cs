@@ -49,7 +49,6 @@ internal static class SystemVariableChangedEvent
                     if (ept is null)
                         throw new ArgumentException($"标记{nameof(SystemVariableChangedAttribute)}特性的方法{type.Name}.{methodInfo.Name}，参数类型错误");
                     dic[key].Add(new(methodInfo, ept.Value, targetAtt.Level));
-                    break;
                 }
             }
         }

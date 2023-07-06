@@ -49,7 +49,6 @@ internal static class DocumentLockModeChangedEvent
                     if (ept is null)
                         throw new ArgumentException($"标记{nameof(DocumentLockModeChangedAttribute)}特性的方法{type.Name}.{methodInfo.Name}，参数类型错误");
                     dic[key].Add(new(methodInfo, ept.Value, targetAtt.Level));
-                    break;
                 }
             }
         }
@@ -99,10 +98,10 @@ internal static class DocumentLockModeChangedEvent
     }
 
 }
-[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Method, Inherited = false, AllowMultiple = true)]
 public class DocumentLockModeChangedAttribute : Attribute
 {
-    /// <summary>s
+    /// <summary>
     /// 系统变量修改时触发被标记的函数
     /// 返回值应为void
     /// 参数不大于2个且只能为object和DocumentLockModeChangedEventArgs
