@@ -6,25 +6,25 @@ public enum CadEvent
     /// <summary>
     /// 无
     /// </summary>
-    None = 0b0,
+    None = 0,
     /// <summary>
     /// 全选
     /// </summary>
-    All = 0b1111111111111111111111111111111,
+    All = -1,
     /// <summary>
     /// 系统变量修改
     /// </summary>
-    SystemVariableChanged = 0b1,
+    SystemVariableChanged = 1 << 1,
     /// <summary>
     /// 文档锁定事件
     /// </summary>
-    DocumentLockModeChanged = 0b10,
+    DocumentLockModeChanged = 1 << 2,
     /// <summary>
     /// 开始双击
     /// </summary>
-    BeginDoubleClick = 0b100,
+    BeginDoubleClick = 1 << 3,
     /// <summary>
     /// 文档激活
     /// </summary>
-    DocumentActivated = 0b1000,
+    DocumentActivated = 1 << 4,
 }
