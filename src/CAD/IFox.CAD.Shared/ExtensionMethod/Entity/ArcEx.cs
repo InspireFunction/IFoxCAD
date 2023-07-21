@@ -65,6 +65,22 @@ public static class ArcEx
         arc.EndAngle = startVector.Angle + angle;
         return arc;
     }
-
+    /// <summary>
+    /// 圆弧转为多段线
+    /// </summary>
+    /// <param name="arc">圆弧</param>
+    /// <returns>多段线</returns>
+    public static Polyline ToPolyline(this Arc arc)
+    {
+        var plane = new Plane(arc.Center, arc.Normal);
+        var pl = new Polyline();
+        pl.Normal = arc.Normal;
+        pl.AddVertexAt(0, arc.StartPoint.Convert2d(plane), 
+            Math.Tan(arc.TotalAngle * 0.25), 0, 0);
+        pl.AddVertexAt(1, arc.EndPoint.Convert2d(plane), 0, 0, 0);
+        pl.TransformBy(Matrix3d.Displacement(pl.StartPoint.GetVectorTo(arc.StartPoint)));
+        pl.SetPropertiesFrom(arc);
+        return pl;
+    }
     #endregion
 }
