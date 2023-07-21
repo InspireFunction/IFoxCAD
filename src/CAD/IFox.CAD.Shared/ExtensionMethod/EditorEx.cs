@@ -607,8 +607,8 @@ public static class EditorEx
     /// </summary>
     /// <param name="editor">用户交互对象</param>
     /// <param name="points">点表</param>
-    /// <param name="colorIndex">CAD颜色索引 默认<see langword="1"/>-红色</param>
-    /// <param name="drawHighlighted">是否高亮显示，默认为<see langword="false"/></param>
+    /// <param name="colorIndex">CAD颜色索引;默认：1为红色</param>
+    /// <param name="drawHighlighted">是否高亮显示;<see langword="true"/>为高亮显示,默认：<see langword="false"/>为不高亮显示</param>
     public static void DrawLineVectors(this Editor editor, IEnumerable<Point3d> points, int colorIndex = 1,
                                         bool drawHighlighted = false)
     {
