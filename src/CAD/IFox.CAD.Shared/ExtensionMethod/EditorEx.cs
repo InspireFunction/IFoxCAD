@@ -534,7 +534,7 @@ public static class EditorEx
         var rlst =
             new LispList { { LispDataType.Int16, colorIndex } };
         rlst.AddRange(GetLines(pnts, isClosed));
-        editor.DrawVectors(rlst, editor.CurrentUserCoordinateSystem);
+        editor.DrawVectors(new(rlst.ToArray()), Matrix3d.Identity);
     }
 
     /// <summary>
@@ -577,7 +577,7 @@ public static class EditorEx
 
             rlst.AddRange(GetLines(tpnts, true));
         }
-        editor.DrawVectors(rlst, editor.CurrentUserCoordinateSystem);
+        editor.DrawVectors(new(rlst.ToArray()), editor.CurrentUserCoordinateSystem);
     }
 
     /// <summary>
