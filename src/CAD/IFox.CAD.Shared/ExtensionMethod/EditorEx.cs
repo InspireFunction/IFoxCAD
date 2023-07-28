@@ -534,7 +534,7 @@ public static class EditorEx
         var rlst =
             new LispList { { LispDataType.Int16, colorIndex } };
         rlst.AddRange(GetLines(pnts, isClosed));
-        editor.DrawVectors(rlst, editor.CurrentUserCoordinateSystem);
+        editor.DrawVectors(new(rlst.ToArray()), Matrix3d.Identity);
     }
 
     /// <summary>
@@ -577,7 +577,7 @@ public static class EditorEx
 
             rlst.AddRange(GetLines(tpnts, true));
         }
-        editor.DrawVectors(rlst, editor.CurrentUserCoordinateSystem);
+        editor.DrawVectors(new(rlst.ToArray()), editor.CurrentUserCoordinateSystem);
     }
 
     /// <summary>
@@ -602,7 +602,49 @@ public static class EditorEx
 
         editor.DrawVectors(pnts, colorIndex, true);
     }
-
+    /// <summary>
+    /// 根据点表绘制矢量线段(每两点为一条线段的起始点和终止点)
+    /// </summary>
+    /// <param name="editor">用户交互对象</param>
+    /// <param name="points">点表</param>
+    /// <param name="colorIndex">CAD颜色索引;默认：1为红色</param>
+    /// <param name="drawHighlighted">是否高亮显示;<see langword="true"/>为高亮显示,默认：<see langword="false"/>为不高亮显示</param>
+    public static void DrawLineVectors(this Editor editor, IEnumerable<Point3d> points, int colorIndex = 1,
+                                        bool drawHighlighted = false)
+    {
+        Point3d endPoint1, endPoint2;
+        var itor = points.GetEnumerator();
+        while (itor.MoveNext())
+        {
+            endPoint1 = itor.Current;
+            if (!itor.MoveNext()) return;
+            endPoint2 = itor.Current;
+            editor.DrawVector(endPoint1, endPoint2, colorIndex, drawHighlighted);
+        }
+    }
+    /// <summary>
+    /// 根据点表绘制首尾相连的矢量
+    /// </summary>
+    /// <param name="editor">用户交互对象</param>
+    /// <param name="points">点表</param>
+    /// <param name="colorIndex">CAD颜色索引;默认：1为红色</param>
+    /// <param name="isclose">是否闭合;<see langword="true"/> 为闭合,默认：<see langword="false"/> 为不闭合</param>
+    /// <param name="drawHighlighted">是否高亮显示;<see langword="true"/>为高亮显示,默认：<see langword="false"/>为不高亮显示</param>
+    public static void DrawEndToEndVectors(this Editor editor, IEnumerable<Point3d> points, int colorIndex = 1,
+                                            bool isclose = false, bool drawHighlighted = false)
+    {
+        var itor = points.GetEnumerator();
+        if (points.Count() < 1 || !itor.MoveNext()) return;
+        Point3d endPoint1 = itor.Current, endPoint2 = new(), firstEndPoint = endPoint1;
+        while (itor.MoveNext())
+        {
+            endPoint2 = itor.Current;
+            editor.DrawVector(endPoint1, endPoint2, colorIndex, drawHighlighted);
+            endPoint1 = endPoint2;
+        }
+        if (isclose)
+            editor.DrawVector(endPoint2, firstEndPoint, colorIndex, drawHighlighted);
+    }
     #endregion
 
     #region 矩阵
