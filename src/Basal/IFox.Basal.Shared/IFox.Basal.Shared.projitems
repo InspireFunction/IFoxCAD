@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)General\ListEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\LoopList.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\LoopState.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)General\MathEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\RandomEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)General\Timer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Nullable\ArgumentNullEx.cs" />

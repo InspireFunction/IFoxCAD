@@ -1,11 +1,23 @@
 ﻿namespace Test;
-
-
-using System.Diagnostics;
-
-
 public class TestPoint
 {
+    [CommandMethod(nameof(Test_GetAngle))]
+    public void Test_GetAngle()
+    {
+        var pt1 = new Point2d(0, 0);
+        var pt2 = new Point2d(1, 1);
+        var angle_pt1_pt2 = pt1.GetAngle(pt2);
+        var angle_pt2_pt1 = pt2.GetAngle(pt1);
+        Env.Printl($"pt1-pt2 angle is : {angle_pt1_pt2}, 角度是： {MathEx.ConvertRadToDeg(angle_pt1_pt2)}");
+        Env.Printl($"pt2-pt1 angle is : {angle_pt2_pt1}, 角度是： {MathEx.ConvertRadToDeg(angle_pt2_pt1)}");
+
+        var polar = pt1.Polar(Math.PI / 2, 10);
+        Env.Printl($"pt1 90° 距离10的点是: {polar}");
+        
+    }
+    
+    
+    
     /// <summary>
     /// 红黑树排序点集
     /// </summary>
