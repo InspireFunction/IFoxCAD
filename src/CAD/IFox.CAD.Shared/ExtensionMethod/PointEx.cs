@@ -78,7 +78,7 @@ public static class PointEx
     /// </summary>
     /// <param name="point">点</param>
     /// <returns>新点</returns>
-    internal static Point3d Z20(this Point3d point)
+    public static Point3d Z20(this Point3d point)
     {
         return new Point3d(point.X, point.Y, 0);
     }
@@ -124,8 +124,8 @@ public static class PointEx
     /// <returns>目标用户坐标</returns>
     public static Point3d TransPoint(this Point3d basePt, Point3d userPt, Point3d transPt, double ang)
     {
-        Matrix3d transMat = Matrix3d.Displacement(userPt - basePt);
-        Matrix3d roMat = Matrix3d.Rotation(-ang, Vector3d.ZAxis, userPt);
+        var transMat = Matrix3d.Displacement(userPt - basePt);
+        var roMat = Matrix3d.Rotation(-ang, Vector3d.ZAxis, userPt);
         return transPt.TransformBy(roMat * transMat);
     }
     /// <summary>
@@ -163,21 +163,30 @@ public static class PointEx
     /// <returns>逆时针为正,顺时针为负</returns>
     public static double GetArcBulge(this Point2d arc1, Point2d arc2, Point2d arc3, double tol = 1e-10)
     {
-        double dStartAngle = arc2.GetAngle(arc1);
-        double dEndAngle = arc2.GetAngle(arc3);
+        var dStartAngle = arc2.GetAngle(arc1);
+        var dEndAngle = arc2.GetAngle(arc3);
         // 求的P1P2与P1P3夹角
         var talAngle = (Math.PI - dStartAngle + dEndAngle) / 2;
         // 凸度==拱高/半弦长==拱高比值/半弦长比值
         // 有了比值就不需要拿到拱高值和半弦长值了,因为接下来是相除得凸度
-        double bulge = Math.Sin(talAngle) / Math.Cos(talAngle);
+        var bulge = Math.Sin(talAngle) / Math.Cos(talAngle);
 
-        // 处理精度
-        if (bulge is > 0.9999 and < 1.0001)
-            bulge = 1;
-        else if (bulge is < -0.9999 and > -1.0001)
-            bulge = -1;
-        else if (Math.Abs(bulge) < tol)
-            bulge = 0;
+        switch (bulge)
+        {
+            // 处理精度
+            case > 0.9999 and < 1.0001:
+                bulge = 1;
+                break;
+            case < -0.9999 and > -1.0001:
+                bulge = -1;
+                break;
+            default:
+            {
+                if (Math.Abs(bulge) < tol)
+                    bulge = 0;
+                break;
+            }
+        }
         return bulge;
     }
 
@@ -196,7 +205,7 @@ public static class PointEx
 
         // 首尾不同,去加一个到最后
         var lst = new Point2d[ptcol.Count + 1];
-        for (int i = 0; i < lst.Length; i++)
+        for (int i = 0; i < ptcol.Count; i++)
             lst[i] = ptcol[i];
         lst[^1] = lst[0];
 
@@ -215,7 +224,7 @@ public static class PointEx
 
         // 首尾不同,去加一个到最后
         var lst = new Point3d[ptcol.Count + 1];
-        for (int i = 0; i < lst.Length; i++)
+        for (int i = 0; i < ptcol.Count; i++)
             lst[i] = ptcol[i];
         lst[^1] = lst[0];
 

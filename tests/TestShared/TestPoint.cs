@@ -15,8 +15,47 @@ public class TestPoint
         Env.Printl($"pt1 90° 距离10的点是: {polar}");
         
     }
-    
-    
+    [CommandMethod(nameof(Test_Endtoend))]
+    public void Test_Endtoend()
+    {
+        var pts = new Point2dCollection
+        {
+            new(0, 0),
+            new(0, 1),
+            new(1, 1),
+            new(1, 0)
+        };
+        foreach (var pt in pts)
+        {
+            Env.Printl($"X={pt.X},Y={pt.Y}");
+        }
+        pts.End2End();
+        Env.Printl("-------");
+        foreach (var pt in pts)
+        {
+            Env.Printl($"X={pt.X},Y={pt.Y}");
+        }
+        Env.Printl("--------");
+        var ptss = new Point3dCollection
+        {
+            new(0, 0,0),
+            new(0, 1,0),
+            new(1, 1,0),
+            new(1, 0,0)
+        };
+        
+        foreach (Point3d pt in ptss)
+        {
+            Env.Printl($"X={pt.X},Y={pt.Y},Z={pt.Z}");
+        }
+        ptss.End2End();
+        Env.Printl("-------");
+        foreach (Point3d pt in ptss)
+        {
+            Env.Printl($"X={pt.X},Y={pt.Y},Z={pt.Z}");
+        }
+        
+    }
     
     /// <summary>
     /// 红黑树排序点集
