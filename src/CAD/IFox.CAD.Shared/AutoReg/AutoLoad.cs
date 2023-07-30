@@ -58,32 +58,6 @@ public abstract class AutoLoad : IExtensionApplication
         RegistryKey ackey = Registry.CurrentUser.OpenSubKey(key, true);
         return ackey.CreateSubKey("Applications");
     }
-    /// <summary>
-    /// 添加 path 到 acad环境变量
-    /// </summary>
-    /// <param name="path">目录</param>
-    protected static void AppendSupportPath(string path)
-    {
-
-        string key = HostApplicationServices.Current.UserRegistryProductRootKey;
-        // 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R24.0\ACAD-4101:804
-        RegistryKey ackey = Registry.CurrentUser.OpenSubKey($@"{key}\Profiles");
-
-        var listkey = ackey.GetSubKeyNames();
-        foreach (var item in listkey)
-        {
-            var acadkey = ackey.OpenSubKey($@"{item}\General", true);
-            var name = "ACAD";
-            var str = acadkey.GetValue(name)?.ToString();
-            if (str is not null && !str.Contains(path))
-            {
-                acadkey.SetValue(name, $@"{str}{path};");
-            }
-            
-        }
-        
-        ackey.Close();
-    }
 
     private bool SearchForReg()
     {

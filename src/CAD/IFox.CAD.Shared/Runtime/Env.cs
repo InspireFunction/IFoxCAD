@@ -445,7 +445,7 @@ public static class Env
     /// </summary>
     /// <param name="varName">变量名</param>
     /// <returns>变量值</returns>
-    public static object? GetVar(string? varName)
+    public static object GetVar(string varName)
     {
         return Acaop.GetSystemVariable(varName);
     }
@@ -510,7 +510,7 @@ public static class Env
     /// </summary>
     /// <param name="name">变量名</param>
     /// <returns>返回值从不为null,需判断<see cref="string.Empty"/></returns>
-    public static string GetEnv(string? name)
+    public static string GetEnv(string name)
     {
         // 它将混合查询以下路径:
         // acad2008注册表路径: 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R17.1\ACAD-6001:804\FixedProfile\General
@@ -534,7 +534,7 @@ public static class Env
     /// <param name="name">变量名</param>
     /// <param name="var">变量值</param>
     /// <returns></returns>
-    public static int SetEnv(string? name, string? var)
+    public static int SetEnv(string name, string var)
     {
         return AcedSetEnv(name, new StringBuilder(var));
     }
@@ -565,6 +565,70 @@ public static class Env
     // }
     #endregion
 
+    #region 支持文件目录
+
+    /// <summary>
+    /// 添加目录至CAD支持搜索的路径
+    /// </summary>
+    /// <param name="folders">目录</param>
+    public static void AppendSupportPath(params string[] folders)
+    {
+        if (!folders.Any()) return;
+        var acadPath = GetEnv("ACAD");
+        var acadPathLower = acadPath.ToLower();
+        acadPath = folders
+            // 路径不存在或者格式非法会导致添加失败
+            .Where(item => Directory.Exists(item) && !acadPathLower.Contains(item.ToLower()))
+            .Aggregate(acadPath, (current, item) => current + ";" + item);
+        if (acadPath != null) SetEnv("ACAD", acadPath);
+    }
+    
+    /// <summary>
+    /// 删除支持搜索文件目录
+    /// </summary>
+    /// <param name="folders">目录</param>
+    public static void RemoveSupportPath(params string[] folders)
+    {
+        var acadPath = GetEnv("ACAD");
+        var acadPathArr = acadPath.Split(';').ToList();
+        foreach (var folder in folders)
+        {
+            acadPathArr.RemoveAll(item => item.ToLower().Contains(folder.ToLower()));
+        }
+        SetEnv("ACAD", string.Join(";", acadPathArr));
+    }
+
+    /// <summary>
+    /// 添加目录至CAD受信任的位置
+    /// </summary>
+    /// <param name="folders">目录</param>
+    public static void AppendTrustedPath(params string[] folders)
+    {
+        if (!folders.Any()) return;
+        var trustedPath = Env.GetVar("TRUSTEDPATHS").ToString();
+        var trustedPathLower = trustedPath.ToLower();
+        trustedPath = folders
+            .Where(item => 
+                Directory.Exists(item) && !trustedPathLower.Contains(item.ToLower()))
+            .Aggregate(trustedPath, (current, item) => current + ";" + item);
+        if (trustedPath != null) SetVar("TRUSTEDPATHS", trustedPath);
+    }
+    /// <summary>
+    /// 移除信任目录
+    /// </summary>
+    /// <param name="folders">目录</param>
+    public static void RemoveTrustedPath(params string[] folders)
+    {
+        var trustedPath = GetVar("TRUSTEDPATHS").ToString();
+        var trustedPathArr = trustedPath.Split(';').ToList();
+        foreach (var folder in folders)
+        {
+            trustedPathArr.RemoveAll(item => item.ToLower().Contains(folder.ToLower()));
+        }
+        SetVar("TRUSTEDPATHS", string.Join(";", trustedPathArr));
+    }
+
+    #endregion
 
     /// <summary>
     /// 命令行打印，会自动调用对象的toString函数
@@ -581,7 +645,7 @@ public static class Env
     /// 判断当前是否在UCS坐标下
     /// </summary>
     /// <returns>Bool</returns>
-    public static bool IsUcs() => (short)GetVar("WORLDUCS")! == 0;
+    public static bool IsUcs() => (short)GetVar("WORLDUCS") == 0;
 
 
     #region dwg版本号/cad版本号/年份
@@ -690,12 +754,10 @@ public static class Env
     /// <param name="value"></param>
     /// <returns>成功返回当前值,失败null</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static object? SetVarEx(string key, string value)
+    public static object SetVarEx(string key, string value)
     {
         
         var currentVar = GetVar(key);
-        if (currentVar is null)
-            return null;
 
         object valueType = currentVar.GetType().Name switch
         {

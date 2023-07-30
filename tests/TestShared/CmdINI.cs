@@ -176,7 +176,7 @@ public class Init : AutoLoad
         
         Env.Print("loading...");
         // 将程序的目录加入信任路径
-        AppendSupportPath(CurrentDirectory.FullName);
+        // Env.AppendSupportPath(CurrentDirectory.FullName);
     }
 
     public override void Terminate()

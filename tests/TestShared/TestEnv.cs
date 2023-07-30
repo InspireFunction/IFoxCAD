@@ -123,5 +123,62 @@ public class Testenv
 
         Env.Printl("GetEnv:" + Env.GetEnv("abc"));
         Env.Printl("GetEnv PATH:" + Env.GetEnv("PATH"));
+        
+        Env.Printl($"getenv-acad: {Env.GetEnv("ACAD")}");
+        Env.Printl($"getvar-acad: {Env.GetVar("TRUSTEDPATHS")}");
+        Env.Printl($"getenv-TRUSTEDPATHS: {Env.GetEnv("TRUSTEDPATHS")}");
+        Env.Printl($"getenv-osmode: {Env.GetEnv("osmode")}");
+        Env.Printl($"getvar-osmode: {Env.GetVar("osmode")}");
     }
+    [CommandMethod(nameof(Test_AppendPath))]
+    public static void Test_AppendPath()
+    {
+        Directory.Exists(@"C:\Folder4").Print();
+        Env.AppendSupportPath(@"C:\Folder4", @"C:\Folder5", @"C:\Folder6");
+        // Env.AppendTrustedPath(@"c:\a\x",@"c:\a\c");
+        // AppendSupportPath(@"c:\a\c");
+        Env.GetEnv("ACAD").Print();
+        // Env.SetEnv("ACAD",  @"C:\Folder1;"+Env.GetEnv("ACAD"));
+        Env.GetEnv("ACAD").Contains(@"C:\Folder1").Print();
+
+    }
+    
+    [CommandMethod(nameof(Test_RemovePath))]
+    public static void Test_RemovePath()
+    {
+        // var acad = Acaop.TryGetSystemVariable("ACAD").ToString();
+        // acad.Print();
+        // Acaop.SetSystemVariable("ACAD", acad + @";c:\a\x");
+        Env.GetEnv("ACAD").Print();
+        Env.RemoveSupportPath();
+        // Env.RemoveTrustedPath(@"c:\a\x");
+        Env.GetEnv("ACAD").Print();
+    }
+    
+    public static void AppendSupportPath(string path)
+    {
+
+        string key = HostApplicationServices.Current.UserRegistryProductRootKey;
+        // 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R24.0\ACAD-4101:804
+        var ackey = Registry.CurrentUser.OpenSubKey($@"{key}\Profiles") ?? null;
+
+        if (ackey != null)
+        {
+            var listkey = ackey.GetSubKeyNames();
+            foreach (var item in listkey)
+            {
+                var acadkey = ackey.OpenSubKey($@"{item}\General", true);
+                const string name = "ACAD";
+                var str = acadkey?.GetValue(name)?.ToString();
+                if (str != null && !str.ToLower().Contains(path.ToLower()))
+                {
+                    acadkey?.SetValue(name, $@"{str}{path};");
+                }
+            }
+        }
+
+        ackey?.Close();
+    }
+
+    
 }
