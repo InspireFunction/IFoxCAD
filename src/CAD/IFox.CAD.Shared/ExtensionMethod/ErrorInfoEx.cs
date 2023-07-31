@@ -416,6 +416,6 @@ public static class ErrorInfoEx
             "eAlreadyInactive" => "已经是不活动的了",
             _ => acex.Message,
         };
-        Env.Print($"{acex.Message}：{infostr}");
+        Acap.ShowAlertDialog($"{acex.Message}：{infostr}");
     }
 }
