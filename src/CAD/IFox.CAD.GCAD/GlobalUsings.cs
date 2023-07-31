@@ -24,6 +24,7 @@ global using GrxCAD.Geometry;
 global using GrxCAD.Runtime;
 global using Acap = GrxCAD.ApplicationServices.Application;
 global using Acaop = GrxCAD.ApplicationServices.Application;
+global using AcException = GrxCAD.Runtime.Exception;
 global using GrxCAD.DatabaseServices.Filters;
 
 // jig命名空间会引起Viewport/Polyline等等重义,最好逐个引入 using Autodesk.AutoCAD.GraphicsInterface

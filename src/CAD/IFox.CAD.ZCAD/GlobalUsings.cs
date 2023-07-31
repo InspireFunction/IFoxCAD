@@ -25,6 +25,7 @@ global using ZwSoft.ZwCAD.Geometry;
 global using ZwSoft.ZwCAD.Runtime;
 global using Acap = ZwSoft.ZwCAD.ApplicationServices.Application;
 global using Acaop = ZwSoft.ZwCAD.ApplicationServices.Application;
+global using AcException = ZwSoft.ZwCAD.Runtime.Exception;
 global using ZwSoft.ZwCAD.DatabaseServices.Filters;
 
 // jig命名空间会引起Viewport/Polyline等等重义,最好逐个引入 using ZwSoft.ZwCAD.GraphicsInterface

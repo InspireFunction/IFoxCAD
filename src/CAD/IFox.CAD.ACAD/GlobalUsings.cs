@@ -25,6 +25,7 @@ global using Autodesk.AutoCAD.Geometry;
 global using Autodesk.AutoCAD.Runtime;
 global using Acap = Autodesk.AutoCAD.ApplicationServices.Application;
 global using Acaop = Autodesk.AutoCAD.ApplicationServices.Core.Application;
+global using AcException = Autodesk.AutoCAD.Runtime.Exception;
 
 global using Autodesk.AutoCAD.DatabaseServices.Filters;
 
