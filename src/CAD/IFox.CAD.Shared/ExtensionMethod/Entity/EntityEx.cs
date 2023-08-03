@@ -148,7 +148,7 @@ public static class EntityEx
     /// <returns>包围盒信息</returns>
     /// 异常:
     ///   会将包围盒类型记录到所属路径中,以此查询
-    public static BoundingInfo GetBoundingBoxEx(this Entity ent)
+    public static BoundingInfo? GetBoundingBoxEx(this Entity ent)
     {
         return EntityBoundingInfo.GetBoundingInfo(ent);
     }
