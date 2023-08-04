@@ -1,4 +1,5 @@
-﻿namespace IFoxCAD.Cad;
+﻿using AcException= Autodesk.AutoCAD.Runtime.Exception;
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// CAD错误大全
