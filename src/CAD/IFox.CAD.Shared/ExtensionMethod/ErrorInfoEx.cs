@@ -1,4 +1,6 @@
-﻿using AcException= Autodesk.AutoCAD.Runtime.Exception;
+﻿#if acad
+using AcException= Autodesk.AutoCAD.Runtime.Exception;
+#endif
 namespace IFoxCAD.Cad;
 
 /// <summary>
