@@ -1,6 +1,11 @@
 ﻿#if acad
 global using AcException = Autodesk.AutoCAD.Runtime.Exception;
+#elif gcad
+global using AcException =Gstarsoft.GstarCAD.Runtime.Exception;
+#elif zcad
+global using AcException=ZwSoft.ZwCAD.Runtime.Exception;
 #endif
+
 namespace IFoxCAD.Cad;
 
 /// <summary>
