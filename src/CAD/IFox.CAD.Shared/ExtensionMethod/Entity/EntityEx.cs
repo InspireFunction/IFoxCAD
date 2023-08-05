@@ -132,8 +132,9 @@ public static class EntityEx
         var ext = new Extents3d();
         foreach (var item in ents)
         {
-            if (item.Bounds.HasValue)
-                ext.AddExtents(item.GeometricExtents);
+          var e = item.GetBoundingBoxEx();
+            if (e.HasValue)
+                ext.AddExtents(e.Value.Extents3d);
         }
         return ext;
     }
@@ -146,12 +147,11 @@ public static class EntityEx
     /// </summary>
     /// <param name="ent"></param>
     /// <returns>包围盒信息</returns>
-    /// 异常:
-    ///   会将包围盒类型记录到所属路径中,以此查询
     public static BoundingInfo? GetBoundingBoxEx(this Entity ent)
     {
-        return EntityBoundingInfo.GetBoundingInfo(ent);
+        return EntityBoundingInfo.GetEntityBoxEx(ent)?.GetBoundingInfo();
     }
+
     /// <summary>
     /// 获取拉伸点
     /// </summary>

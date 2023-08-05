@@ -14,17 +14,62 @@ public struct BoundingInfo
   public double MaxX;
   public double MaxY;
   public double MaxZ;
-  public Point3d P1 => new(MinX, MinY, MinZ);
-  public Point3d P2 => P1.GetMidPointTo(P3);
-  public Point3d P3 => new(MaxX, MinY, MinZ);
-  public Point3d P4 => P1.GetMidPointTo(P7);
-  public Point3d P5 => P1.GetMidPointTo(P9);
-  public Point3d P6 => P3.GetMidPointTo(P9);
-  public Point3d P7 => new(MinX, MaxY, MinZ);
-  public Point3d P8 => P7.GetMidPointTo(P9);
-  public Point3d P9 => new(MaxX, MaxY, MaxZ);
-  public Point3d Min => new(MinX, MinY, MinZ);
-  public Point3d Max => new(MaxX, MaxY, MaxZ);
+
+  #region 包围盒9位码坐标
+  /*
+       * 包围盒9位码坐标
+       * P7---------------P8----------------P9
+       * |                |                 |
+       * |                |                 |
+       * |                |                 |
+       * P4---------------P5----------------P6
+       * |                |                 |
+       * |                |                 |
+       * |                |                 |
+       * P1---------------P2----------------P3
+       */
+  /// <summary>
+  /// 左下点 P1
+  /// </summary>
+  public Point3d BottomLeft => new(MinX, MinY, MinZ);
+  /// <summary>
+  /// P2
+  /// </summary>
+  public Point3d BottomCenter => BottomLeft.GetMidPointTo(BottomRight);
+  /// <summary>
+  /// P3
+  /// </summary>
+  public Point3d BottomRight => new(MaxX, MinY, MinZ);
+  /// <summary>
+  /// P4
+  /// </summary>
+  public Point3d MidLeft => BottomLeft.GetMidPointTo(TopLeft);
+  /// <summary> 
+  /// P5
+  /// </summary>
+  public Point3d MidCenter => BottomLeft.GetMidPointTo(TopRight);
+  /// <summary>  
+  /// P6 
+  /// </summary> 
+  public Point3d MidRight => BottomRight.GetMidPointTo(TopRight);
+  /// <summary>
+  /// P7
+  /// </summary>
+  public Point3d TopLeft => new(MinX, MaxY, MinZ);
+  /// <summary>
+  /// P8
+  /// </summary>
+  public Point3d TopCenter => TopLeft.GetMidPointTo(TopRight);
+  /// <summary>
+  /// 右上点 P9
+  /// </summary>
+  public Point3d TopRight => new(MaxX, MaxY, MaxZ);
+
+  // public Point3d Min => new(MinX, MinY, MinZ);
+
+  // public Point3d Max => new(MaxX, MaxY, MaxZ);
+  #endregion
+
   public double Height => Math.Abs(MaxX - MinX);
   public double Width => Math.Abs(MaxY - MinY);
   public Extents3d Extents3d { get; }
@@ -73,29 +118,25 @@ public static class EntityBoundingInfo
 {
 
   /// <summary>
-  /// 获取实体包围盒信息
-  /// </summary>
-  /// <param name="ent"></param>
-  /// <param name="dist"></param>
-  /// <returns></returns>
-  public static BoundingInfo? GetBoundingInfo(this Entity ent, double dist = 0)
-  {
-    return ent.GetEntityBoxEx()?.GetBoundingInfo(dist);
-  }
-
-  /// <summary>
   /// 获取包围盒信息
   /// </summary>
   /// <param name="ext"></param>
   /// <param name="dist"></param>
   /// <returns></returns>
-  public static BoundingInfo? GetBoundingInfo(this Extents3d ext, double dist = 0)
+  public static BoundingInfo? GetBoundingInfo(this Extents3d ext)
   {
-    var p1 = ext.MinPoint.Offset(-dist, -dist);
-    var p2 = ext.MaxPoint.Offset(dist, dist);
-    var e = new Extents3d(p1, p2);
-    return new(e);
+    return new(ext);
   }
+
+  // 包围盒外扩
+  //public static BoundingInfo? GetBoundingInfo(this Extents3d ext, double dist = 0)
+  //{
+  //  var p1 = ext.MinPoint.Offset(-dist, -dist);
+  //  var p2 = ext.MaxPoint.Offset(dist, dist);
+  //  var e = new Extents3d(p1, p2);
+  //  return new(e);
+  //}
+
   /// <summary>
   /// 获取实体包围盒
   /// </summary>
@@ -137,7 +178,6 @@ public static class EntityBoundingInfo
   /// <returns></returns>
   static Extents3d GetMTextBox(MText mText)
   {
-
     return mText.GetMTextBoxCorners().ToExtents3D();
   }
 
@@ -233,7 +273,7 @@ public static class EntityBoundingInfo
     return;
   }
   /// <summary>
-  /// 获取多行文字包围盒4点
+  /// 获取多行文字最小包围盒4点坐标
   /// </summary>
   /// <param name="mtext"></param>
   /// <returns></returns>
@@ -301,7 +341,7 @@ public static class EntityBoundingInfo
   /// </summary>
   /// <param name="ent"></param>
   /// <returns></returns>
-  public static Extents3d? GetEntityBoxEx(this Entity ent)
+  public static Extents3d? GetEntityBoxEx( Entity ent)
   {
     if (ent is BlockReference block)
     {
@@ -335,8 +375,8 @@ public static class EntityBoundingInfo
   /// <param name="y"></param>
   /// <param name="z"></param>
   /// <returns></returns>
-  static Point3d Offset(this Point3d pt, double x, double y, double z = 0)
-  {
-    return new Point3d(pt.X + x, pt.Y + y, pt.Z + z);
-  }
+  //static Point3d Offset(this Point3d pt, double x, double y, double z = 0)
+  //{
+  //  return new Point3d(pt.X + x, pt.Y + y, pt.Z + z);
+  //}
 }
