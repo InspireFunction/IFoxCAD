@@ -100,6 +100,23 @@ public static class CollectionEx
         foreach (var element in source)
             action.Invoke(element);
     }
+    
+    /// <summary>
+    /// 遍历集合,执行委托
+    /// </summary>
+    /// <typeparam name="T">集合值的类型</typeparam>
+    /// <param name="source">集合</param>
+    /// <param name="action">委托</param>
+    [System.Diagnostics.DebuggerStepThrough] //[DebuggerHidden] 两个特性差不多
+    public static void ForEach<T>(this IEnumerable<T> source, Action<int, T> action)
+    {
+        var i = 0;
+        foreach (var element in source)
+        {
+            action.Invoke(i, element);
+            i++;
+        }
+    }
 
     /// <summary>
     /// 遍历集合,执行委托(允许循环中断)

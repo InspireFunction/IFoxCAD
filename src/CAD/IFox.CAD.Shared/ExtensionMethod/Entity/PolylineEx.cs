@@ -69,7 +69,7 @@ public static class PolylineEx
     {
         Polyline pl = new();
         pl.SetDatabaseDefaults();
-        points.ForEach((pt, state, index) => {
+        points.ForEach((index, pt) => {
             pl.AddVertexAt(index, pt.Point2d(), 0, 0, 0);
         });
         action?.Invoke(pl);
@@ -88,12 +88,37 @@ public static class PolylineEx
         Polyline pl = new();
         pl.SetDatabaseDefaults();
 
-        pts.ForEach((vertex, state, index) => {
+        pts.ForEach((index, vertex) => {
             pl.AddVertexAt(index, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
         });
         action?.Invoke(pl);
         return pl;
     }
+    
+    /// <summary>
+    /// 根据Extents3d创建多段线<br/>
+    /// 此多段线无默认全局宽度0，无圆弧段，标高为0
+    /// </summary>
+    /// <param name="points">Extents3d</param>
+    /// <param name="action">多段线属性设置委托</param>
+    /// <returns>多段线对象</returns>
+    public static Polyline CreatePolyline(this Extents3d points, Action<Polyline>? action = null)
+    {
+        var pts = new List<Point2d>()
+        {
+            points.MinPoint.Point2d(),
+            new(points.MinPoint.X, points.MaxPoint.Y),
+            points.MaxPoint.Point2d(),
+            new(points.MaxPoint.X, points.MinPoint.Y)
+        };
+        Polyline pl = new();
+        pl.SetDatabaseDefaults();
+        pts.ForEach((index, pt) => {
+            pl.AddVertexAt(index, pt, 0, 0, 0);
+        });
+        action?.Invoke(pl);
+        return pl;
+    } 
 
     #endregion
 

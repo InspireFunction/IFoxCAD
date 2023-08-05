@@ -39,6 +39,7 @@ public class TestBlock
                 continue;
             var box = item.GetBoundingBoxEx();
             Env.Print("min:" + box.Min + ";max" + box.Max);
+            tr.CurrentSpace.AddEntity(new Line(box.Min, box.Max));
         }
     }
 

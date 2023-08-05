@@ -61,7 +61,7 @@ public class TestTrans
         //    id.Print();
         //}
 
-        tr.BlockTable.ForEach(action: (id, state) => {
+        tr.BlockTable.ForEach(action: (id) => {
             id.Print();
         });
         tr.BlockTable.ForEach(action: (id, state, index) => {
