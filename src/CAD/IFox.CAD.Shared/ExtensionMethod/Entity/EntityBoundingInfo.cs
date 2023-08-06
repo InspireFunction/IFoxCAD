@@ -72,6 +72,7 @@ public struct BoundingInfo
 
   public double Height => Math.Abs(MaxX - MinX);
   public double Width => Math.Abs(MaxY - MinY);
+  public double Area => Height * Width;
   public Extents3d Extents3d { get; }
   public Extents2d Extents2d => new(MinX, MinY, MaxX, MaxY);
 
