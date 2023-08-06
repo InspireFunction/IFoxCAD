@@ -574,13 +574,23 @@ public static class Env
     public static void AppendSupportPath(params string[] folders)
     {
         if (!folders.Any()) return;
-        var acadPath = GetEnv("ACAD");
-        var acadPathLower = acadPath.ToLower();
-        acadPath = folders
-            // 路径不存在或者格式非法会导致添加失败
-            .Where(item => Directory.Exists(item) && !acadPathLower.Contains(item.ToLower()))
-            .Aggregate(acadPath, (current, item) => current + ";" + item);
-        if (acadPath != null) SetEnv("ACAD", acadPath);
+        var acadPath = Env.GetEnv("ACAD");
+        var acadPathLowerArr =
+            acadPath
+                .ToLower()
+                .Split(';')
+                .Where(item => item != "")
+                .Select(item =>
+                    item[^1] == '\\' ? item.Remove(item.Length - 1) : item)
+                .ToHashSet();
+        foreach (var folder in folders) {
+            if (!Directory.Exists(folder)) continue;
+            var folderLower = 
+                folder[^1] == '\\' ? folder.Remove(folder.Length - 1).ToLower() : folder.ToLower();
+            if (!acadPathLowerArr.Contains(folderLower))
+                acadPath = folder + ";" + acadPath;   //加到前面方便检查
+        }
+        SetEnv("ACAD", acadPath);
     }
     
     /// <summary>
@@ -589,11 +599,13 @@ public static class Env
     /// <param name="folders">目录</param>
     public static void RemoveSupportPath(params string[] folders)
     {
-        var acadPath = GetEnv("ACAD");
-        var acadPathArr = acadPath.Split(';').ToList();
-        foreach (var folder in folders)
-        {
-            acadPathArr.RemoveAll(item => item.ToLower().Contains(folder.ToLower()));
+        if (!folders.Any()) return;
+        var acadPathArr = GetEnv("ACAD").Split(';').ToList();
+        foreach (var folder in folders) {
+            var folderLower = 
+                folder[^1] == '\\' ? folder.Remove(folder.Length - 1).ToLower() : folder.ToLower();
+            acadPathArr.RemoveAll(item => 
+                (item[^1] == '\\' ? item.Remove(item.Length - 1).ToLower() : item.ToLower()) == folderLower);
         }
         SetEnv("ACAD", string.Join(";", acadPathArr));
     }
@@ -606,12 +618,22 @@ public static class Env
     {
         if (!folders.Any()) return;
         var trustedPath = Env.GetVar("TRUSTEDPATHS").ToString();
-        var trustedPathLower = trustedPath.ToLower();
-        trustedPath = folders
-            .Where(item => 
-                Directory.Exists(item) && !trustedPathLower.Contains(item.ToLower()))
-            .Aggregate(trustedPath, (current, item) => current + ";" + item);
-        if (trustedPath != null) SetVar("TRUSTEDPATHS", trustedPath);
+        var trustedPathLowerArr =
+            trustedPath
+                .ToLower()
+                .Split(';')
+                .Where(item => item != "")
+                .Select(item => 
+                    item[^1] == '\\' ? item.Remove(item.Length - 1) : item)
+                .ToHashSet();
+        foreach (var folder in folders) {
+            if (!Directory.Exists(folder)) continue;
+            var folderLower = 
+                folder[^1] == '\\' ? folder.Remove(folder.Length - 1).ToLower() : folder.ToLower();
+            if (!trustedPathLowerArr.Contains(folderLower))
+                trustedPath = folder + ";" + trustedPath; //加到前面方便检查
+        }
+        SetVar("TRUSTEDPATHS", trustedPath);
     }
     /// <summary>
     /// 移除信任目录
@@ -619,11 +641,13 @@ public static class Env
     /// <param name="folders">目录</param>
     public static void RemoveTrustedPath(params string[] folders)
     {
-        var trustedPath = GetVar("TRUSTEDPATHS").ToString();
-        var trustedPathArr = trustedPath.Split(';').ToList();
-        foreach (var folder in folders)
-        {
-            trustedPathArr.RemoveAll(item => item.ToLower().Contains(folder.ToLower()));
+        if (!folders.Any()) return;
+        var trustedPathArr = GetVar("TRUSTEDPATHS").ToString().Split(';').ToList();
+        foreach (var folder in folders) {
+            var folderLower = 
+                folder[^1] == '\\' ? folder.Remove(folder.Length - 1).ToLower() : folder.ToLower();
+            trustedPathArr.RemoveAll(item => 
+                (item[^1] == '\\' ? item.Remove(item.Length - 1).ToLower() : item.ToLower()) == folderLower);
         }
         SetVar("TRUSTEDPATHS", string.Join(";", trustedPathArr));
     }
