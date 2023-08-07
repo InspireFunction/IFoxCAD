@@ -7,12 +7,32 @@ namespace IFoxCAD.Cad;
 /// </summary>
 public struct BoundingInfo
 {
-  public double MinX;
-  public double MinY;
-  public double MinZ;
+  #region 成员
 
+  
+  /// <summary>
+  /// MinPoint.X
+  /// </summary>
+  public double MinX;
+  /// <summary>
+  /// MinPoint.Y
+  /// </summary>
+  public double MinY;
+  /// <summary>
+  /// MinPoint.Z
+  /// </summary>
+  public double MinZ;
+  /// <summary>
+  /// MaxPoint.X
+  /// </summary>
   public double MaxX;
+  /// <summary>
+  /// MaxPoint.Y
+  /// </summary>
   public double MaxY;
+  /// <summary>
+  /// MaxPoint.Z
+  /// </summary>
   public double MaxZ;
 
   #region 包围盒9位码坐标
@@ -29,7 +49,7 @@ public struct BoundingInfo
        * P1---------------P2----------------P3
        */
   /// <summary>
-  /// 左下点 P1
+  /// MinPoint 左下点 P1
   /// </summary>
   public Point3d BottomLeft => new(MinX, MinY, MinZ);
   /// <summary>
@@ -61,7 +81,7 @@ public struct BoundingInfo
   /// </summary>
   public Point3d TopCenter => TopLeft.GetMidPointTo(TopRight);
   /// <summary>
-  /// 右上点 P9
+  /// MaxPoint 右上点 P9
   /// </summary>
   public Point3d TopRight => new(MaxX, MaxY, MaxZ);
 
@@ -70,12 +90,39 @@ public struct BoundingInfo
   // public Point3d Max => new(MaxX, MaxY, MaxZ);
   #endregion
 
+  /// <summary>
+  /// 高
+  /// </summary>
   public double Height => Math.Abs(MaxX - MinX);
+
+  /// <summary>
+  /// 宽
+  /// </summary>
   public double Width => Math.Abs(MaxY - MinY);
+
+  /// <summary>
+  /// 面积
+  /// </summary>
   public double Area => Height * Width;
+
+  /// <summary>
+  /// 3D包围盒
+  /// </summary>
   public Extents3d Extents3d { get; }
+
+  /// <summary>
+  /// 2D包围盒
+  /// </summary>
   public Extents2d Extents2d => new(MinX, MinY, MaxX, MaxY);
 
+  #endregion
+
+  #region 构造
+
+  /// <summary>
+  /// 包围盒信息3D构造
+  /// </summary>
+  /// <param name="ext">包围盒</param>
   public BoundingInfo(Extents3d ext)
   {
     MinX = ext.MinPoint.X;
@@ -86,6 +133,11 @@ public struct BoundingInfo
     MaxZ = ext.MaxPoint.Z;
     Extents3d = ext;
   }
+
+  /// <summary>
+  /// 包围盒信息2D构造
+  /// </summary>
+  /// <param name="ext">包围盒</param>
   public BoundingInfo(Extents2d ext)
   {
     MinX = ext.MinPoint.X;
@@ -98,11 +150,22 @@ public struct BoundingInfo
     var pt9 = new Point3d(MaxX, MaxY, 0);
     Extents3d = new Extents3d(pt1, pt9);
   }
+
+  #endregion
+
+  /// <summary>
+  /// 重写ToString
+  /// </summary>
+  /// <returns>返回MinPoint,MaxPoint坐标</returns>
   public override string ToString()
   {
     return Extents3d.ToString();
   }
-
+  /// <summary>
+  /// 移动包围盒
+  /// </summary>
+  /// <param name="pt1">基点</param>
+  /// <param name="pt2">目标点</param>
   public void Move(Point3d pt1, Point3d pt2)
   {
     var ve = pt1 - pt2;
@@ -115,15 +178,18 @@ public struct BoundingInfo
   }
 
 }
+
+/// <summary>
+/// 获取实体包围盒信息方法
+/// </summary>
 public static class EntityBoundingInfo
 {
 
   /// <summary>
   /// 获取包围盒信息
   /// </summary>
-  /// <param name="ext"></param>
-  /// <param name="dist"></param>
-  /// <returns></returns>
+  /// <param name="ext">包围盒</param>
+  /// <returns>包围盒信息</returns>
   public static BoundingInfo? GetBoundingInfo(this Extents3d ext)
   {
     return new(ext);
@@ -141,8 +207,8 @@ public static class EntityBoundingInfo
   /// <summary>
   /// 获取实体包围盒
   /// </summary>
-  /// <param name="ent"></param>
-  /// <returns></returns>
+  /// <param name="ent">实体</param>
+  /// <returns>包围盒</returns>
   static Extents3d? GetEntityBox(this Entity ent)
   {
     if (!ent.Bounds.HasValue)
@@ -175,8 +241,8 @@ public static class EntityBoundingInfo
   /// <summary>
   /// 获取多行文本的正交包围盒
   /// </summary>
-  /// <param name="mText"></param>
-  /// <returns></returns>
+  /// <param name="mText">多行文本</param>
+  /// <returns>包围盒</returns>
   static Extents3d GetMTextBox(MText mText)
   {
     return mText.GetMTextBoxCorners().ToExtents3D();
@@ -185,8 +251,8 @@ public static class EntityBoundingInfo
   /// <summary>
   /// 获取点集包围盒
   /// </summary>
-  /// <param name="pts"></param>
-  /// <returns></returns>
+  /// <param name="pts">Point3d点集</param>
+  /// <returns>包围盒</returns>
   static Extents3d ToExtents3D(this IEnumerable<Point3d> pts)
   {
     var ext = new Extents3d();
@@ -200,7 +266,7 @@ public static class EntityBoundingInfo
   /// <summary>
   /// 获取块的包围盒
   /// </summary>
-  /// <param name="en"></param>
+  /// <param name="en">实体</param>
   /// <param name="ext"></param>
   /// <param name="mat"></param>
   static void GetBlockBox(this Entity en, ref Extents3d ext, ref Matrix3d mat)
@@ -276,8 +342,8 @@ public static class EntityBoundingInfo
   /// <summary>
   /// 获取多行文字最小包围盒4点坐标
   /// </summary>
-  /// <param name="mtext"></param>
-  /// <returns></returns>
+  /// <param name="mtext">多行文本</param>
+  /// <returns>最小包围盒4点坐标</returns>
   public static Point3d[] GetMTextBoxCorners(this MText mtext)
   {
     double width = mtext.ActualWidth;
@@ -340,8 +406,8 @@ public static class EntityBoundingInfo
   /// <summary>
   /// 获取实体包围盒
   /// </summary>
-  /// <param name="ent"></param>
-  /// <returns></returns>
+  /// <param name="ent">实体</param>
+  /// <returns>包围盒</returns>
   public static Extents3d? GetEntityBoxEx( Entity ent)
   {
     if (ent is BlockReference block)
@@ -359,7 +425,7 @@ public static class EntityBoundingInfo
   /// <summary>
   /// 判断包围盒是否有效
   /// </summary>
-  /// <param name="ext"></param>
+  /// <param name="ext">包围盒</param>
   /// <returns></returns>
   static bool IsEmptyExt(this Extents3d ext)
   {
