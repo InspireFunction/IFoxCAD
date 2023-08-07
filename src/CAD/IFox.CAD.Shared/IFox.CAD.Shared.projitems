@@ -23,6 +23,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\BulgeVertexWidth.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\CollectionEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Curve2dEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Entity\BoundingInfo.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\ErrorInfoEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Curve3dEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\CurveEx.cs" />

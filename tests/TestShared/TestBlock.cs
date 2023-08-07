@@ -35,11 +35,10 @@ public class TestBlock
             return;
         foreach (var item in ents)
         {
-            if (item is null)
-                continue;
-            var box = item.GetBoundingBoxEx();
-            Env.Print("min:" + box.Min + ";max" + box.Max);
-            tr.CurrentSpace.AddEntity(new Line(box.Min, box.Max));
+            var box = item?.GetBoundingBoxEx();
+            Env.Print("min:" + box?.BottomLeft + ";max" + box?.TopRight);
+            if (box != null) 
+                tr.CurrentSpace.AddEntity(new Line(box.Value.BottomLeft, box.Value.TopRight));
         }
     }
 

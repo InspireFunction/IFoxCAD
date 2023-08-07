@@ -69,8 +69,8 @@ public class TestExtents
                     e.ColorIndex = 4;
                     e.Closed = true;
                 }));
-                var ext = EntityBoundingInfo.GetBoundingInfo(e);
-                tr.CurrentSpace.AddEntity(ext.Extents3d.CreatePolyline(action: e =>
+                var ext = e.GetBoundingBoxEx();
+                tr.CurrentSpace.AddEntity(ext?.Extents3d.CreatePolyline(action: e =>
                 {
                     e.ColorIndex = 5;
                     e.Closed = true;

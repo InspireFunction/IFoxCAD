@@ -287,11 +287,14 @@ public class Copyclip
                     if (ent == null)
                         continue;
                     var info = ent.GetBoundingBoxEx();
-                    if (ent is BlockReference brf)
-                        info.Move(brf.Position, Point3d.Origin);
-                    minx = minx > info.MinX ? info.MinX : minx;
-                    miny = miny > info.MinY ? info.MinY : miny;
-                    minz = minz > info.MinZ ? info.MinZ : minz;
+                    if (info != null)
+                    {
+                        if (ent is BlockReference brf)
+                            info.Value.Move(brf.Position, Point3d.Origin);
+                        minx = minx > info.Value.MinX ? info.Value.MinX : minx;
+                        miny = miny > info.Value.MinY ? info.Value.MinY : miny;
+                        minz = minz > info.Value.MinZ ? info.Value.MinZ : minz;
+                    }
                 }
                 pt = new(minx, miny, minz);
             }

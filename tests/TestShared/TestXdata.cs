@@ -25,6 +25,9 @@ public class TestXdata
                     {1070, 12 },
                     { DxfCode.ExtendedDataRegAppName, Appname },  // 可以用dxfcode和int表示组码,移除中间的测试
                     { DxfCode.ExtendedDataAsciiString, "要移除的我" },
+                    { DxfCode.ExtendedDataAsciiString, "要移除的我" },
+                    { DxfCode.ExtendedDataAsciiString, "要移除的我" },
+                    { DxfCode.ExtendedDataAsciiString, "要移除的我" },
                     {1070, 12 },
                     { DxfCode.ExtendedDataRegAppName, "myapp3" },  // 可以用dxfcode和int表示组码
                     { DxfCode.ExtendedDataAsciiString, "aaaaaaaaa" },
@@ -35,7 +38,28 @@ public class TestXdata
                 }
         };
 
-        tr.CurrentSpace.AddEntity(line);
+        var line1 = new Line(new(0, 0, 0), new(2, 0, 0));
+        line1.XData = new XDataList()
+        {
+            { DxfCode.ExtendedDataRegAppName, "myapp1" }, // 可以用dxfcode和int表示组码
+            { DxfCode.ExtendedDataAsciiString, "xxxxxxx" },
+            { 1070, 12 },
+            { DxfCode.ExtendedDataRegAppName, Appname }, // 可以用dxfcode和int表示组码,移除中间的测试
+            { DxfCode.ExtendedDataAsciiString, "要移除的我" },
+            { DxfCode.ExtendedDataAsciiString, "要移除的我" },
+            { DxfCode.ExtendedDataAsciiString, "要移除的我" },
+            { DxfCode.ExtendedDataAsciiString, "要移除的我" },
+            { 1070, 12 },
+            { DxfCode.ExtendedDataRegAppName, "myapp3" }, // 可以用dxfcode和int表示组码
+            { DxfCode.ExtendedDataAsciiString, "aaaaaaaaa" },
+            { DxfCode.ExtendedDataAsciiString, "ccccccccc" },
+            { 1070, 12 },
+            { DxfCode.ExtendedDataRegAppName, "myapp4" }, // 可以用dxfcode和int表示组码
+            { DxfCode.ExtendedDataAsciiString, "bbbbbbbbb" },
+            { 1070, 12 }
+        };
+
+        tr.CurrentSpace.AddEntity(line,line1);
     }
     // 删
     [CommandMethod(nameof(Test_RemoveXdata))]
