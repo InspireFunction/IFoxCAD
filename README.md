@@ -14,6 +14,10 @@
 
 ![IFoxCad用户交流群群二维码](./docs/png/ifoxcad用户交流群群二维码.png)
 
+ **QQ群为丐群，所以也可以加入qq频道交流：** 
+
+[点击链接加入QQ频道【CAD二次开发】](https://pd.qq.com/s/2wmmkv4c2)
+
 #### 二、 使用帮助
 
 IFoxCAD的项目文档请看 **[IFoxCAD类库从入门到精通](https://www.kdocs.cn/l/cc6ZXSa0vMgD)**。
