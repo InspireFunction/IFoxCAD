@@ -92,12 +92,12 @@ public struct BoundingInfo
     /// <summary>
     /// 高
     /// </summary>
-    public readonly double Height => Math.Abs(MaxX - MinX);
+    public readonly double Height => Math.Abs(MaxY - MinY);
 
     /// <summary>
     /// 宽
     /// </summary>
-    public readonly double Width => Math.Abs(MaxY - MinY);
+    public readonly double Width => Math.Abs(MaxX - MinX);
 
     /// <summary>
     /// 面积
