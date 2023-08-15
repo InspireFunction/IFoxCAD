@@ -12,27 +12,27 @@ public struct BoundingInfo
     /// <summary>
     /// MinPoint.X
     /// </summary>
-    public double MinX;
+    public double MinX { get; private set; }
     /// <summary>
     /// MinPoint.Y
     /// </summary>
-    public double MinY;
+    public double MinY { get; private set; }
     /// <summary>
     /// MinPoint.Z
     /// </summary>
-    public double MinZ;
+    public double MinZ { get; private set; }
     /// <summary>
     /// MaxPoint.X
     /// </summary>
-    public double MaxX;
+    public double MaxX { get; private set; }
     /// <summary>
     /// MaxPoint.Y
     /// </summary>
-    public double MaxY;
+    public double MaxY { get; private set; }
     /// <summary>
     /// MaxPoint.Z
     /// </summary>
-    public double MaxZ;
+    public double MaxZ { get; private set; }
 
     #region 包围盒9位码坐标
     /*
