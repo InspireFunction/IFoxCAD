@@ -98,7 +98,6 @@ public static class EntityBoundingInfo
             if (block.BlockTableRecord.GetObject<BlockTableRecord>() is BlockTableRecord btr)
                 foreach (ObjectId id in btr)
                 {
-                    id.GetObject<Entity>();
                     if (id.GetObject<Entity>() is Entity ent1)
                     {
                         if (ent1.Visible != true)
