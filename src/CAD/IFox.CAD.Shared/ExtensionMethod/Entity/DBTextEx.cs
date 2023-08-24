@@ -21,9 +21,11 @@ public static class DBTextEx
         if (string.IsNullOrEmpty(text))
             throw new ArgumentNullException(nameof(text), "创建文字无内容");
 
-        var acText = new DBText();
+        var workdb = database ?? DBTrans.Top.Database;
+        using var _ = new SwitchDatabase(workdb);
 
-        acText.SetDatabaseDefaults(database ?? DBTrans.Top.Database);
+        var acText = new DBText();
+        acText.SetDatabaseDefaults(workdb);
 
         acText.Height = height;
         acText.TextString = text;
@@ -36,7 +38,8 @@ public static class DBTextEx
         if (acText.Justify != AttachmentPoint.BaseLeft)
             acText.AlignmentPoint = position;
 
-        acText.AdjustAlignment(database ?? DBTrans.Top.Database);
+        acText.AdjustAlignment(workdb);
+
         return acText;
     }
 

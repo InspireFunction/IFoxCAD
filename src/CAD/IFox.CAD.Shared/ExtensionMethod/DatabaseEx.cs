@@ -5,6 +5,16 @@
 /// </summary>
 public static class DatabaseEx
 {
+
+    /// <summary>
+    /// 打开切换活动数据库
+    /// </summary>
+    /// <param name="db">当前数据库</param>
+    /// <returns>切换数据库对象</returns>
+    public static SwitchDatabase SwitchDatabase(this Database db) => new(db);
+
+
+
     /// <summary>
     /// 保存文件
     /// </summary>
@@ -159,4 +169,29 @@ public static class DatabaseEx
         return (true, file);
     }
 
+}
+
+/// <summary>
+/// 自动切换活动数据库
+/// </summary>
+public class SwitchDatabase : IDisposable
+{
+    private readonly Database db;
+    /// <summary>
+    /// 切换活动数据库
+    /// </summary>
+    /// <param name="database">当前数据库</param>
+    public SwitchDatabase(Database database)
+    {
+        db = HostApplicationServices.WorkingDatabase;
+        HostApplicationServices.WorkingDatabase = database;
+    }
+    /// <summary>
+    /// 恢复活动数据库为默认
+    /// </summary>
+    public void Dispose()
+    {
+        HostApplicationServices.WorkingDatabase = db;
+        GC.SuppressFinalize(this);
+    }
 }

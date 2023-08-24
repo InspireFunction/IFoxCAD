@@ -21,9 +21,12 @@ public static class MTextEx
         if (string.IsNullOrEmpty(text))
             throw new ArgumentNullException(nameof(text), "创建文字无内容");
 
+        var db = database ?? DBTrans.Top.Database;
+        using var _ = new SwitchDatabase(db);
+
         var mText = new MText();
 
-        mText.SetDatabaseDefaults(database ?? DBTrans.Top.Database);
+        mText.SetDatabaseDefaults(db);
 
         mText.TextHeight = height; // 高度
         mText.Contents = text;     // 内容
