@@ -145,6 +145,8 @@ public static class CurveEx
     {
         ArgumentNullEx.ThrowIfNull(curves);
 
+        var tol = new Tolerance(0.01, 0.01);
+
         var geCurves = new List<CompositeCurve3d>(); // 存储曲线转换后的复合曲线
         var paramss = new List<List<double>>();      // 存储每个曲线的交点参数值
 
@@ -171,7 +173,7 @@ public static class CurveEx
                 var gc2 = geCurves[j];
                 var pars2 = paramss[j]; // 引用
 
-                cci3d.Set(gc1, gc2, Vector3d.ZAxis);
+                cci3d.Set(gc1, gc2, Vector3d.ZAxis, tol);
 
                 for (int k = 0; k < cci3d.NumberOfIntersectionPoints; k++)
                 {
