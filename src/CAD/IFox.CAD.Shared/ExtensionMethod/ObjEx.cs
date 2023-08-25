@@ -17,8 +17,8 @@ public static class ObjEx
     /// 系统的打印
     /// </summary>
     /// <param name="obj"></param>
-    public static void PrintLine(this object obj)
-    {
-        Console.WriteLine(obj.ToString());
-    }
+    //public static void PrintLine(this object obj)
+    //{
+    //    Console.WriteLine(obj.ToString());
+    //}
 }
