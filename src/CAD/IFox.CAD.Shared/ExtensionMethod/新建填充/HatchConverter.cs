@@ -116,7 +116,8 @@ public class HatchConverter
     /// </summary>
     public void GetBoundarysData()
     {
-        _oldHatch?.ForEach(loop => {
+        _oldHatch?.ForEach(loop =>
+        {
             HatchConverterData hcData = new();
 
             bool isCurve2d = true;
@@ -163,7 +164,7 @@ public class HatchConverter
         //if (hcData is null)
         //    throw new ArgumentNullException(nameof(hcData));
 
-        ArgumentNullEx.ThrowIfNull(loop); 
+        ArgumentNullEx.ThrowIfNull(loop);
         ArgumentNullEx.ThrowIfNull(hcData);
 
 
@@ -269,6 +270,7 @@ public class HatchConverter
     /// 创建边界图元
     /// </summary>
     /// <param name="outEnts">返回图元</param>
+    [Obsolete("使用带返回值的CreateBoundary替代")]
     public void CreateBoundary(List<Entity> outEnts)
     {
         for (int i = 0; i < _hcDatas.Count; i++)
@@ -292,25 +294,73 @@ public class HatchConverter
             }
 
             // 生成边界:圆
-            data.CircleData.ForEach(item => {
+            data.CircleData.ForEach(item =>
+            {
                 outEnts.Add(new Circle(item.Center.Point3d(), Vector3d.ZAxis, item.Radius));
             });
 
             // 生成边界:样条曲线
-            data.SplineData.ForEach(item => {
+            data.SplineData.ForEach(item =>
+            {
                 outEnts.Add(item.ToCurve());
             });
         }
 
         if (_oldHatch is not null)
         {
-            outEnts.ForEach(ent => {
+            outEnts.ForEach(ent =>
+            {
                 ent.Color = _oldHatch.Color;
                 ent.Layer = _oldHatch.Layer;
             });
         }
     }
+    public List<Entity> CreateBoundary()
+    {
+        List<Entity> outEnts = new List<Entity>();
+        for (int i = 0; i < _hcDatas.Count; i++)
+        {
+            var data = _hcDatas[i];
 
+            // 生成边界:多段线
+            if (data.PolyLineData.Count > 0)
+            {
+                Polyline pl = new();
+                pl.SetDatabaseDefaults();
+                for (int j = 0; j < data.PolyLineData.Count; j++)
+                {
+                    pl.AddVertexAt(j,
+                        data.PolyLineData[j].Vertex,
+                        data.PolyLineData[j].Bulge,
+                        data.PolyLineData[j].StartWidth,
+                        data.PolyLineData[j].EndWidth);
+                }
+                outEnts.Add(pl);
+            }
+
+            // 生成边界:圆
+            data.CircleData.ForEach(item =>
+            {
+                outEnts.Add(new Circle(item.Center.Point3d(), Vector3d.ZAxis, item.Radius));
+            });
+
+            // 生成边界:样条曲线
+            data.SplineData.ForEach(item =>
+            {
+                outEnts.Add(item.ToCurve());
+            });
+        }
+
+        if (_oldHatch is not null)
+        {
+            outEnts.ForEach(ent =>
+            {
+                ent.Color = _oldHatch.Color;
+                ent.Layer = _oldHatch.Layer;
+            });
+        }
+        return outEnts;
+    }
 
     /// <summary>
     /// 创建边界图元和新填充到当前空间
@@ -323,9 +373,9 @@ public class HatchConverter
         bool boundaryAssociative = true,
         bool createHatchFlag = true)
     {
-        List<Entity> boEnts = new();
-        CreateBoundary(boEnts);
-        boEnts.ForEach(ent => {
+        List<Entity> boEnts = CreateBoundary();
+        boEnts.ForEach(ent =>
+        {
             BoundaryIds.Add(btrOfAddEntitySpace.AddEntity(ent));
         });
 
