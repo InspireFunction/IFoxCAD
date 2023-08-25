@@ -93,7 +93,8 @@ public static class CurveEx
         //    throw new ArgumentNullException(nameof(points));
         ArgumentNullEx.ThrowIfNull(points);
         if (isOrder)
-            points = points.OrderBy(point => {
+            points = points.OrderBy(point =>
+            {
                 var pt = curve.GetClosestPointTo(point, false);
                 return curve.GetParameterAtPoint(pt);
             });
@@ -277,6 +278,165 @@ public static class CurveEx
         return newCurves;
     }
 
+    /// <summary>
+    /// 打段曲线2维By四叉树
+    /// <code>
+    /// 目前对xline,ray的支持存在错误
+    /// 需要更多的测试
+    /// </code>
+    /// </summary>
+    /// <param name="sourceCurveList">曲线列表</param>
+    /// <param name="tol">容差</param>
+    /// <returns>打断后的曲线列表</returns>
+    public static List<Curve> BreakCurve2dByQuadTree(this List<Curve> sourceCurveList, double tol = 1e-6)
+    {
+        //var tolerance = new Tolerance(tol, tol);
+        var zPlane = new Plane(Point3d.Origin, Vector3d.ZAxis);
+        List<Curve> curves = sourceCurveList.Select(c => c.GetOrthoProjectedCurve(zPlane)).ToList();
+        var geCurves = new List<BreakCurveInfo>();
+        var xlines = new List<Curve>();
+        double minX = double.MaxValue;
+        double minY = double.MaxValue;
+        double maxX = double.MinValue;
+        double maxY = double.MinValue;
+        // 遍历每个曲线，计算出四叉树对象，加到四叉树曲线对象列表和四叉树容器中
+        for (int i = 0; i < curves.Count; i++)
+        {
+            var curTemp = curves[i];
+            if (curTemp is Ray || curTemp is Xline)
+            {
+                xlines.Add(curTemp);
+            }
+            else
+            {
+                var cc3d = curTemp.ToCompositeCurve3d();
+                if (cc3d is not null)
+                {
+                    var e3d = curTemp.GeometricExtents;
+                    var rect = new Rect(e3d.MinPoint.Point2d(), e3d.MaxPoint.Point2d());
+                    var cit = new BreakCurveInfo(rect, curTemp, cc3d);
+                    if (rect.Left < minX) minX = rect.Left;
+                    if (rect.Right > maxX) maxX = rect.Right;
+                    if (rect.Bottom < minY) minY = rect.Bottom;
+                    if (rect.Top > maxY) maxY = rect.Top;
+                    geCurves.Add(cit);
+                }
+            }
+        }
+        // 建四叉树容器
+        var maxBox = new Rect(minX - 10, minY - 10, maxX + 10, maxY + 10);
+        xlines.ForEach(xl =>
+        {
+            var cc3d = new CompositeCurve3d(new[] { xl.GetGeCurve() });
+            var bci = new BreakCurveInfo(maxBox, xl, cc3d);
+            geCurves.Add(bci);
+        });
+        var newCurves = new List<Curve>();
+        var quadTree = new QuadTree<BreakCurveInfo>(maxBox);
+        foreach (var bci in geCurves)
+        {
+            quadTree.Insert(bci);
+        }
+
+        var cci3d = new CurveCurveIntersector3d();
+
+        foreach (var gc1 in geCurves)
+        {
+            var parsList = new HashSet<double>();
+            var cts = quadTree.Query(new Rect(gc1.Left - tol, gc1.Bottom - tol, gc1.Right + tol, gc1.Top + tol));
+            cts.Remove(gc1);
+            foreach (var gc2 in cts)
+            {
+                cci3d.Set(gc1.Cc3d, gc2.Cc3d, Vector3d.ZAxis, Tolerance.Global);
+                for (int k = 0; k < cci3d.NumberOfIntersectionPoints; k++)
+                {
+                    var pars = cci3d.GetIntersectionParameters(k);
+                    parsList.Add(pars[0]);
+                }
+                if (!gc2.Curve.Closed)
+                {
+                    var cpt1 = gc1.Cc3d.GetClosestPointTo(gc2.Cc3d.StartPoint);
+                    var cpt2 = gc1.Cc3d.GetClosestPointTo(gc2.Cc3d.EndPoint);
+                    if (cpt1.Point.Distance2dTo(gc2.Cc3d.StartPoint) < tol && cpt1.Point.Distance2dTo(gc1.Cc3d.StartPoint) >= tol)
+                    {
+                        parsList.Add(cpt1.Parameter);
+                    }
+                    if (cpt2.Point.Distance2dTo(gc2.Cc3d.EndPoint) < tol && cpt2.Point.Distance2dTo(gc1.Cc3d.EndPoint) >= tol)
+                    {
+                        parsList.Add(cpt2.Parameter);
+                    }
+                }
+
+            }
+            if (gc1.Curve is Polyline || gc1.Curve is Spline)
+            {
+                cci3d.Set(gc1.Cc3d, gc1.Cc3d, Vector3d.ZAxis);
+                for (int k = 0; k < cci3d.NumberOfIntersectionPoints; k++)
+                {
+                    var pars = cci3d.GetIntersectionParameters(k);
+                    if (pars[0] == pars[1])
+                        continue;
+                    parsList.Add(pars[0]);
+                    parsList.Add(pars[1]);
+                }
+            }
+            var parsNew = parsList.OrderBy(d => d).ToList();
+
+            var cur = gc1.Curve;
+            if (parsNew.Count > 0)
+            {
+                var c3ds = Curve3dEx.GetSplitCurves(gc1.Cc3d, parsNew);
+                if (c3ds is not null && c3ds.Count > 1)
+                {
+                    if (cur is Arc || (cur is Ellipse { Closed: false }))
+                    {
+                        foreach (var c3d in c3ds)
+                        {
+                            var c3dCur = Curve.CreateFromGeCurve(c3d);
+
+                            if (c3dCur is null || c3dCur.Closed || c3dCur is Circle || c3dCur.GetLength() < tol)
+                                continue;
+                            c3dCur.SetPropertiesFrom(cur);
+                            newCurves.Add(c3dCur);
+                        }
+                        continue;
+                    }
+                    foreach (var c3d in c3ds)
+                    {
+                        var c3dCur = Curve.CreateFromGeCurve(c3d);
+                        if (c3dCur is not null)
+                        {
+                            c3dCur.SetPropertiesFrom(cur);
+                            newCurves.Add(c3dCur);
+                        }
+                    }
+                }
+                else
+                {
+                    newCurves.Add(cur.CloneEx());
+                }
+            }
+            else
+            {
+                newCurves.Add(cur.CloneEx());
+            }
+        }
+
+        return newCurves;
+    }
+    class BreakCurveInfo : QuadEntity
+    {
+        public Rect Rect { get; }
+        public Curve Curve { get; }
+        public CompositeCurve3d Cc3d { get; }
+
+        public BreakCurveInfo(Rect rect, Curve curve, CompositeCurve3d cc3d) : base(rect)
+        {
+            Curve = curve;
+            Cc3d = cc3d;
+            Rect = rect;
+        }
+    }
     /// <summary>
     /// 获取非等比转换的曲线（旋转投影法）
     /// </summary>
@@ -582,12 +742,12 @@ public static class CurveEx
         {
             case Poly2dType.SimplePoly:
             case Poly2dType.FitCurvePoly:
-            Polyline pl = new();
-            pl.SetDatabaseDefaults();
-            pl.ConvertFrom(pl2d, false);
-            return ToCurve3d(pl);
+                Polyline pl = new();
+                pl.SetDatabaseDefaults();
+                pl.ConvertFrom(pl2d, false);
+                return ToCurve3d(pl);
             default:
-            return ToNurbCurve3d(pl2d);
+                return ToNurbCurve3d(pl2d);
         }
 
         // Polyline pl = new Polyline();
@@ -606,13 +766,13 @@ public static class CurveEx
         {
             case Poly2dType.SimplePoly:
             case Poly2dType.FitCurvePoly:
-            Polyline pl = new();
-            pl.SetDatabaseDefaults();
-            pl.ConvertFrom(pl2d, false);
-            return ToNurbCurve3d(pl);
+                Polyline pl = new();
+                pl.SetDatabaseDefaults();
+                pl.ConvertFrom(pl2d, false);
+                return ToNurbCurve3d(pl);
 
             default:
-            return ToCurve3d(pl2d.Spline);
+                return ToCurve3d(pl2d.Spline);
         }
     }
 
@@ -691,15 +851,15 @@ public static class CurveEx
             switch (pl.GetSegmentType(i))
             {
                 case SegmentType.Line:
-                c3ds.Add(pl.GetLineSegmentAt(i));
-                break;
+                    c3ds.Add(pl.GetLineSegmentAt(i));
+                    break;
 
                 case SegmentType.Arc:
-                c3ds.Add(pl.GetArcSegmentAt(i));
-                break;
+                    c3ds.Add(pl.GetArcSegmentAt(i));
+                    break;
 
                 default:
-                break;
+                    break;
             }
         }
         return new CompositeCurve3d(c3ds.ToArray());
@@ -719,15 +879,15 @@ public static class CurveEx
             switch (pl.GetSegmentType(i))
             {
                 case SegmentType.Line:
-                nc3dtemp = new NurbCurve3d(pl.GetLineSegmentAt(i));
-                break;
+                    nc3dtemp = new NurbCurve3d(pl.GetLineSegmentAt(i));
+                    break;
 
                 case SegmentType.Arc:
-                nc3dtemp = pl.GetArcSegmentAt(i).ToNurbCurve3d();
-                break;
+                    nc3dtemp = pl.GetArcSegmentAt(i).ToNurbCurve3d();
+                    break;
 
                 default:
-                break;
+                    break;
             }
             if (nc3d is null)
                 nc3d = nc3dtemp;
