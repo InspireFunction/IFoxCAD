@@ -61,13 +61,16 @@ public static class EditorEx
     /// <param name="mode">模式</param>
     /// <param name="filter">过滤器</param>
     /// <param name="messages">消息</param>
-    /// <param name="keywords">关键字和回调函数</param>
+    /// <param name="keywords">
+    /// 关键字和回调函数
+    /// <para>不用使用下列关键字 "Window/Last/Crossing/BOX/ALL/Fence/WPolygon/CPolygon/Group/Add/Remove/Multiple/Previous/Undo/AUto/Single" </para>
+    /// </param>
     /// <returns></returns>
     public static PromptSelectionResult SSGet(this Editor editor,
                                               string? mode = null,
                                               SelectionFilter? filter = null,
                                               (string add, string remove)? messages = null,
-                                              Dictionary<string, Action>? keywords = null)
+                                              Dictionary<string, (string, Action)>? keywords = null)
     {
         PromptSelectionOptions pso = new();
         PromptSelectionResult ss;
@@ -97,10 +100,17 @@ public static class EditorEx
                 pso.Keywords.Add(keyword);
             if (pso.MessageForRemoval is null)
                 pso.MessageForAdding = "选择对象";
-            pso.MessageForAdding += $"[{string.Join(" / ", keywords.Keys.ToArray())}]";
+
+            var str = keywords.Keys.Select(key => {
+                keywords.TryGetValue(key, out (string, Action) value);
+                return $"{value.Item1}({key})";
+            });
+
+
+            pso.MessageForAdding += $" [{string.Join("/", str)}]";
             pso.KeywordInput += (s, e) => {
-                if (keywords.TryGetValue(e.Input, out Action value))
-                    value.Invoke();
+                if (keywords.TryGetValue(e.Input, out (string, Action) value))
+                    value.Item2.Invoke();
             };
         }
         try
@@ -634,7 +644,7 @@ public static class EditorEx
                                             bool isclose = false, bool drawHighlighted = false)
     {
         var itor = points.GetEnumerator();
-        if (points.Count() < 1 || !itor.MoveNext()) return;
+        if (!points.Any() || !itor.MoveNext()) return;
         Point3d endPoint1 = itor.Current, endPoint2 = new(), firstEndPoint = endPoint1;
         while (itor.MoveNext())
         {
