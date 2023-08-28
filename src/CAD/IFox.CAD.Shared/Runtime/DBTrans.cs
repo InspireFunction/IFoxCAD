@@ -569,7 +569,7 @@ public sealed class DBTrans : IDisposable
                 if (_commit)
                 {
                     // 刷新队列(后台不刷新)
-                    Editor?.Redraw();
+                    //Editor?.Redraw();
                     // 调用cad的事务进行提交,释放托管状态(托管对象)
                     Transaction.Commit();
                 }
