@@ -98,7 +98,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// </summary>
     /// <param name="record">符号表记录</param>
     /// <returns>对象id</returns>
-    private ObjectId Add(TRecord record)
+    public ObjectId Add(TRecord record)
     {
         ObjectId id;
         using (CurrentSymbolTable.ForWrite())
