@@ -189,7 +189,16 @@ public static class PointEx
         }
         return bulge;
     }
-
+    /// <summary>
+    /// 求两点在Z平面的距离
+    /// </summary>
+    /// <param name="pt1">点1</param>
+    /// <param name="pt2">点2</param>
+    /// <returns>距离</returns>
+    public static double Distance2dTo(this Point3d pt1, Point3d pt2)
+    {
+        return new Vector2d(pt2.X - pt1.X, pt2.Y - pt1.Y).Length;
+    }
 
     #region 首尾相连
     /// <summary>
