@@ -277,7 +277,7 @@ public static class CurveEx
 
         return newCurves;
     }
-
+#if !gcad
     /// <summary>
     /// 打段曲线2维By四叉树
     /// <code>
@@ -437,6 +437,7 @@ public static class CurveEx
             Rect = rect;
         }
     }
+#endif
     /// <summary>
     /// 获取非等比转换的曲线（旋转投影法）
     /// </summary>
