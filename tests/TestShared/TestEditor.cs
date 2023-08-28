@@ -58,16 +58,14 @@ public class Testeditor
     [CommandMethod(nameof(Test_Ssget))]
     public void Test_Ssget()
     {
-        var action_a = () => { Env.Print("this is a"); };
-        var action_b = () => { Env.Print("this is b"); };
 
-        var keyword = new Dictionary<string, Action>
+        var keyword = new Dictionary<string, (string, Action)>
         {
-            { "A", action_a },
-            { "B", action_b }
+            { "D", ("你好",  () => { Env.Print("this is c"); }) },
+            { "B", ("hello", () => { Env.Print("this is b"); }) }
         };
 
-        var ss = Env.Editor.SSGet(":S", messages: ("get", "del" ),
+        var ss = Env.Editor.SSGet(/*":S", */ messages: ("get", "del" ),
                                          keywords: keyword);
         Env.Print(ss!);
     }
