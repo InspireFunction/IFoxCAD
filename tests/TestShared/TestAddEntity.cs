@@ -207,4 +207,18 @@ public partial class Test
             var tt = line1.GetRXClass().DxfName == nameof(Line);
         });
     }
+
+    [CommandMethod(nameof(Test_sleeptrans))]
+    public static void Test_sleeptrans()
+    {
+        using var tr = new DBTrans();
+        for (int i = 0; i < 100; i++)
+        {
+            var cir = CircleEx.CreateCircle(new Point3d(i, i, 0), 0.5);
+            cir.ColorIndex = i;
+            tr.CurrentSpace.AddEntity(cir);
+            tr.Editor?.Redraw(cir);
+            System.Threading.Thread.Sleep(10);
+        }
+    }
 }
