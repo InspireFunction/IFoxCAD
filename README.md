@@ -22,6 +22,9 @@
 
 IFoxCAD的项目文档请看 **[IFoxCAD类库从入门到精通](https://www.kdocs.cn/l/cc6ZXSa0vMgD)**。
 
+IFoxCAD的API文档请看 **[IFoxCAD API 文档](https://inspirefunction.github.io/ifoxdoc/)**。**请注意这个网站需要科学浏览**
+
+
 #### 三、IFoxCad 项目模版
 
 目前由于IFoxCad的版本分为0.5、0.6、0.7三个大的版本同时在发布，所以项目模版分为两个主要的版本：
