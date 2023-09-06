@@ -80,8 +80,21 @@ public class TestGraph
 
 
 
+public partial class TestCurve
+{
+    [CommandMethod(nameof(Test_CurveExtend))]
+    public void Test_CurveExtend()
+    {
+        using var tr =  new DBTrans();
+        var ent = Env.Editor.GetEntity("pick curve").ObjectId.GetObject<Entity>();
+        if (ent is Curve curve)
+            curve.ForWrite(e => e.Extend(e.EndParam + 1));
 
-public class TestCurve
+    }
+}
+
+
+public partial class TestCurve
 {
     [CommandMethod(nameof(Test_BreakCurve))]
     public void Test_BreakCurve()
