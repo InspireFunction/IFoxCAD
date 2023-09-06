@@ -140,9 +140,9 @@ public static class BlockReferenceEx
     /// <returns>属性集合</returns>
     public static IEnumerable<AttributeReference> GetAttributes(this BlockReference owner)
     {
-        var trans = DBTrans.GetTopTransaction(owner.Database);
         if (owner.Database != null)
         {
+            var trans = DBTrans.GetTopTransaction(owner.Database);
             foreach (ObjectId id in owner.AttributeCollection)
                 yield return (AttributeReference)trans.GetObject(id);
         }
