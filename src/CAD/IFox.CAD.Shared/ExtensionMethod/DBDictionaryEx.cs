@@ -95,8 +95,9 @@ public static class DBDictionaryEx
     /// </summary>
     /// <param name="obj">对象</param>
     /// <returns>扩展字典对象</returns>
-    public static DBDictionary? GetXDictionary(this DBObject obj)
+    public static DBDictionary GetXDictionary(this DBObject obj,OpenMode openMode =OpenMode.ForRead)
     {
+        var tr = DBTrans.GetTopTransaction(obj.Database);
         ObjectId id = obj.ExtensionDictionary;
         if (id.IsNull)
         {
@@ -105,7 +106,7 @@ public static class DBDictionaryEx
 
             id = obj.ExtensionDictionary;
         }
-        return id.GetObject<DBDictionary>();
+        return (DBDictionary)tr.GetObject(id,openMode);
     }
 
     #region 数据表
