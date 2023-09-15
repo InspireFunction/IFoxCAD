@@ -215,6 +215,10 @@ public partial class Test
         for (int i = 0; i < 100; i++)
         {
             var cir = CircleEx.CreateCircle(new Point3d(i, i, 0), 0.5);
+            if (cir is null)
+            {
+                return;
+            }
             cir.ColorIndex = i;
             tr.CurrentSpace.AddEntity(cir);
             tr.Editor?.Redraw(cir);

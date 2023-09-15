@@ -193,8 +193,10 @@ public class TestBlock
             { "tagTest4", "" }
         };
         tr.CurrentSpace.InsertBlock(new Point3d(10, 10, 0), "test2", atts: def2);
+        tr.CurrentSpace.InsertBlock(new Point3d(20,20,0),"test2");
         tr.CurrentSpace.InsertBlock(new Point3d(-10, 0, 0), "test44");
     }
+
     [CommandMethod(nameof(Test_InsertBlockWithDoubleDatabase))]
     public void Test_InsertBlockWithDoubleDatabase()
     {
