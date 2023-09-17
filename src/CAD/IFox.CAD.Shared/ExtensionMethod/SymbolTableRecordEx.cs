@@ -230,26 +230,34 @@ public static class SymbolTableRecordEx
             Rotation = rotation
         };
         var objid = blockTableRecord.AddEntity(blockref);
-
+        // 检查块的注释性
+        using var ocm = blockTableRecord.Database.ObjectContextManager;
+        using var occ = ocm.GetContextCollection("ACDB_ANNOTATIONSCALES");
+        if (blockref.Annotative == AnnotativeStates.True) 
+            blockref.AddContext(occ.CurrentContext);
+        
         var btr = tr.GetObject<BlockTableRecord>(blockref.BlockTableRecord)!;
-        if (btr.HasAttributeDefinitions)
+        
+        if (!btr.HasAttributeDefinitions) return objid;
+        
+        var attdefs = btr.GetEntities<AttributeDefinition>();
+        foreach (var attdef in attdefs)
         {
-            var attdefs = btr.GetEntities<AttributeDefinition>();
-            foreach (var attdef in attdefs)
+            using AttributeReference attref = new();
+            attref.SetDatabaseDefaults();
+            attref.SetAttributeFromBlock(attdef, blockref.BlockTransform);
+            attref.Position = attdef.Position.TransformBy(blockref.BlockTransform);
+            attref.AdjustAlignment(tr.Database);
+            if (atts is not null && atts.TryGetValue(attdef.Tag, out string str))
             {
-                using AttributeReference attref = new();
-                attref.SetDatabaseDefaults();
-                attref.SetAttributeFromBlock(attdef, blockref.BlockTransform);
-                attref.Position = attdef.Position.TransformBy(blockref.BlockTransform);
-                attref.AdjustAlignment(tr.Database);
-                if (atts is not null && atts.TryGetValue(attdef.Tag, out string str))
-                {
-                    attref.TextString = str;
-                }
-                
-                blockref.AttributeCollection.AppendAttribute(attref);
-                tr.Transaction.AddNewlyCreatedDBObject(attref, true);
+                attref.TextString = str;
             }
+            
+            if (blockref.Annotative == AnnotativeStates.True)
+                attref.AddContext(occ.CurrentContext);
+                
+            blockref.AttributeCollection.AppendAttribute(attref);
+            tr.Transaction.AddNewlyCreatedDBObject(attref, true);
         }
 
         return objid;
