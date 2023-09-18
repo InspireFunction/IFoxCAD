@@ -23,6 +23,7 @@ public sealed class DBTrans : IDisposable
     /// <returns>事务对象</returns>
     public static Transaction GetTopTransaction(Database database)
     {
+        ArgumentNullEx.ThrowIfNull(database);
         return database.TransactionManager.TopTransaction switch
         {
             { } tr => tr,
