@@ -112,13 +112,10 @@ public static class EntityBoundingInfo
                 }
             if (block.AttributeCollection.Count > 0)
             {
-                foreach (ObjectId attid in block.AttributeCollection)
+                foreach (var att in block.GetAttributes())
                 {
-                    if (attid.GetObject<AttributeReference>() is AttributeReference att)
-                    {
-                        if (!att.Invisible && att.Visible)
-                            GetBlockBox(att, ref ext, ref mat);
-                    }
+                    if (!att.Invisible && att.Visible)
+                        GetBlockBox(att, ref ext, ref mat);
                 }
             }
         }
