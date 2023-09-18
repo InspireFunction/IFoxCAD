@@ -182,7 +182,6 @@ public static class SymbolTableRecordEx
     /// <param name="scale">块插入比例，默认为1</param>
     /// <param name="rotation">块插入旋转角(弧度)，默认为0</param>
     /// <param name="atts">属性字典{Tag,Value}，默认为null</param>
-    /// <param name="trans">事务</param>
     /// <returns>块参照对象id</returns>
     public static ObjectId InsertBlock(this BlockTableRecord blockTableRecord, Point3d position,
                                        string blockName,
@@ -201,6 +200,7 @@ public static class SymbolTableRecordEx
     /// <summary>
     /// 插入块参照
     /// </summary>
+    /// <param name="blockTableRecord">块表记录</param>
     /// <param name="position">插入点</param>
     /// <param name="blockId">块定义id</param>
     /// <param name="scale">块插入比例，默认为1</param>
@@ -230,29 +230,36 @@ public static class SymbolTableRecordEx
             Rotation = rotation
         };
         var objid = blockTableRecord.AddEntity(blockref);
-
-        if (atts != null)
+        // 检查块的注释性
+        using var ocm = blockTableRecord.Database.ObjectContextManager;
+        using var occ = ocm.GetContextCollection("ACDB_ANNOTATIONSCALES");
+        if (blockref.Annotative == AnnotativeStates.True) 
+            blockref.AddContext(occ.CurrentContext);
+        
+        var btr = tr.GetObject<BlockTableRecord>(blockref.BlockTableRecord)!;
+        
+        if (!btr.HasAttributeDefinitions) return objid;
+        
+        var attdefs = btr.GetEntities<AttributeDefinition>();
+        foreach (var attdef in attdefs)
         {
-            var btr = tr.GetObject<BlockTableRecord>(blockref.BlockTableRecord)!;
-            if (btr.HasAttributeDefinitions)
+            using AttributeReference attref = new();
+            attref.SetDatabaseDefaults();
+            attref.SetAttributeFromBlock(attdef, blockref.BlockTransform);
+            attref.Position = attdef.Position.TransformBy(blockref.BlockTransform);
+            attref.AdjustAlignment(tr.Database);
+            if (atts is not null && atts.TryGetValue(attdef.Tag, out string str))
             {
-                var attdefs = btr.GetEntities<AttributeDefinition>();
-                foreach (var attdef in attdefs)
-                {
-                    using AttributeReference attref = new();
-                    attref.SetDatabaseDefaults();
-                    attref.SetAttributeFromBlock(attdef, blockref.BlockTransform);
-                    attref.Position = attdef.Position.TransformBy(blockref.BlockTransform);
-                    attref.AdjustAlignment(tr.Database);
-
-                    if (atts.ContainsKey(attdef.Tag))
-                        attref.TextString = atts[attdef.Tag];
-
-                    blockref.AttributeCollection.AppendAttribute(attref);
-                    tr.Transaction.AddNewlyCreatedDBObject(attref, true);
-                }
+                attref.TextString = str;
             }
+            
+            if (blockref.Annotative == AnnotativeStates.True)
+                attref.AddContext(occ.CurrentContext);
+                
+            blockref.AttributeCollection.AppendAttribute(attref);
+            tr.Transaction.AddNewlyCreatedDBObject(attref, true);
         }
+
         return objid;
     }
     #endregion
