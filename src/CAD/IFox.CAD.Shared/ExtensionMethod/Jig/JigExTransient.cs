@@ -1,5 +1,4 @@
-﻿#if !gcad
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 瞬态容器
@@ -143,4 +142,3 @@ public class JigExTransient : IDisposable
     }
     #endregion
 }
-#endif

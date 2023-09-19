@@ -1,6 +1,4 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
-
-namespace Test;
+﻿namespace Test;
 
 public class MirrorFile
 {

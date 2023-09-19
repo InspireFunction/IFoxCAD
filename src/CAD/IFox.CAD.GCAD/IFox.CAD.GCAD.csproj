@@ -16,16 +16,17 @@
 		<DefineConstants>$(Configuration);gcad</DefineConstants>
 	</PropertyGroup>
 
-	<ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
-		<PackageReference Include="GrxCAD.Net.2022" Version="1.0.0">
-			<ExcludeAssets>runtime</ExcludeAssets>
-		</PackageReference>
-	</ItemGroup>
-
 	<ItemGroup>
 		<None Include="..\..\..\LICENSE">
 			<Pack>True</Pack>
 		</None>
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="GStarCad.Net" Version="24.0.0" >
+			<ExcludeAssets>runtime</ExcludeAssets>
+		</PackageReference>
+		
 	</ItemGroup>
 
 	<ItemGroup>

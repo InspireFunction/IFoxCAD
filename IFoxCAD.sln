@@ -60,6 +60,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Docs", "Docs", "{DA8EA8E7-A
 		docs\关于扩展函数的说明.md = docs\关于扩展函数的说明.md
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestGcad2024", "tests\TestGcad2024\TestGcad2024.csproj", "{FEC39964-9ECB-4567-8F68-94F80A39FA02}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -102,6 +104,10 @@ Global
 		{6ED0A677-6621-4493-AF58-71C2BF31DFCE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{6ED0A677-6621-4493-AF58-71C2BF31DFCE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{6ED0A677-6621-4493-AF58-71C2BF31DFCE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FEC39964-9ECB-4567-8F68-94F80A39FA02}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FEC39964-9ECB-4567-8F68-94F80A39FA02}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FEC39964-9ECB-4567-8F68-94F80A39FA02}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FEC39964-9ECB-4567-8F68-94F80A39FA02}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -119,6 +125,7 @@ Global
 		{F388F4B9-F636-414A-9BC9-2B008517B441} = {B2AB7DC7-DBF4-4197-808B-0D2A6613AF5E}
 		{3D7D095D-EF0A-40B3-9776-5F08C61FD614} = {B2AB7DC7-DBF4-4197-808B-0D2A6613AF5E}
 		{6ED0A677-6621-4493-AF58-71C2BF31DFCE} = {1EE1F817-39D3-43E5-B087-E7AD4D0BEC93}
+		{FEC39964-9ECB-4567-8F68-94F80A39FA02} = {C0BEFC15-6DF7-4636-BC76-4A0B88231470}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {31D6C754-CF6B-4AB0-9861-6923DD312350}
@@ -131,6 +138,7 @@ Global
 		tests\TestShared\TestShared.projitems*{ced63d2d-0af6-4831-806d-5e8e9b0d0a07}*SharedItemsImports = 13
 		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{ef20e632-70a9-40eb-8c9a-539fd85fafad}*SharedItemsImports = 5
 		src\CAD\IFox.CAD.Shared\IFox.CAD.Shared.projitems*{f388f4b9-f636-414a-9bc9-2b008517b441}*SharedItemsImports = 5
+		tests\TestShared\TestShared.projitems*{fec39964-9ecb-4567-8f68-94f80a39fa02}*SharedItemsImports = 5
 		src\Basal\IFox.Basal.Shared\IFox.Basal.Shared.projitems*{ff4e1cde-eeb3-4be8-8c1d-6b5b17a299c7}*SharedItemsImports = 5
 	EndGlobalSection
 EndGlobal

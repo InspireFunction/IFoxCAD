@@ -42,46 +42,12 @@ public abstract class AutoLoad : IExtensionApplication
         _info.Name = assem.GetName().Name;
         _info.LoadType = AssemLoadType.Startting;
 
-        if (!SearchForReg())
+        if (!AutoReg.SearchForReg(_info))
         {
-            RegApp();
+            AutoReg.RegApp(_info);
         }
 
     }
-
-    #region RegApp
-
-    private static RegistryKey GetAcAppKey()
-    {
-
-        string key = HostApplicationServices.Current.UserRegistryProductRootKey;
-        RegistryKey ackey = Registry.CurrentUser.OpenSubKey(key, true);
-        return ackey.CreateSubKey("Applications");
-    }
-
-    private bool SearchForReg()
-    {
-        RegistryKey appkey = GetAcAppKey();
-        var regApps = appkey.GetSubKeyNames();
-        return regApps.Contains(_info.Name);
-    }
-
-    /// <summary>
-    /// 在注册表写入自动加载的程序集信息
-    /// </summary>
-    public void RegApp()
-    {
-        RegistryKey appkey = GetAcAppKey();
-        RegistryKey rk = appkey.CreateSubKey(_info.Name);
-        rk.SetValue("DESCRIPTION", _info.Fullname, RegistryValueKind.String);
-        rk.SetValue("LOADCTRLS", _info.LoadType, RegistryValueKind.DWord);
-        rk.SetValue("LOADER", _info.Loader, RegistryValueKind.String);
-        rk.SetValue("MANAGED", 1, RegistryValueKind.DWord);
-        appkey.Close();
-        
-    }
-
-#endregion RegApp
 
 #region IExtensionApplication 成员
 

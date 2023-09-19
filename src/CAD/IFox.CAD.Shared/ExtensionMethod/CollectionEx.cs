@@ -1,7 +1,4 @@
-﻿using System.ComponentModel;
-using System.Xml.Linq;
-using static System.Windows.Forms.AxHost;
-
+﻿
 namespace IFoxCAD.Cad;
 
 /// <summary>
@@ -190,11 +187,9 @@ public static class CollectionEx
             case KeywordName.GlobalName:
             for (int i = 0; i < collection.Count; i++)
             {
-#if gcad
-                var item = collection.get_Item(i);
-#else
+
                 var item = collection[i];
-#endif
+
                 if (item.GlobalName == name)
                 {
                     contains = true;
@@ -205,11 +200,9 @@ public static class CollectionEx
             case KeywordName.LocalName:
             for (int i = 0; i < collection.Count; i++)
             {
-#if gcad
-                var item = collection.get_Item(i);
-#else
+
                 var item = collection[i];
-#endif
+
                 if (item.LocalName == name)
                 {
                     contains = true;
@@ -220,11 +213,9 @@ public static class CollectionEx
             case KeywordName.DisplayName:
             for (int i = 0; i < collection.Count; i++)
             {
-#if gcad
-                var item = collection.get_Item(i);
-#else
+
                 var item = collection[i];
-#endif
+
                 if (item.DisplayName == name)
                 {
                     contains = true;
@@ -248,11 +239,9 @@ public static class CollectionEx
         Dictionary<string, string> map = new();
         for (int i = 0; i < collection.Count; i++)
         {
-#if gcad
-            var item = collection.get_Item(i);
-#else
+
             var item = collection[i];
-#endif
+
             map.Add(item.GlobalName, item.DisplayName);
         }
         return map;

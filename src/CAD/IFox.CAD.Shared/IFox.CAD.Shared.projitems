@@ -17,6 +17,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Algorithms\QuadTree\QuadTreeNode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Algorithms\QuadTree\QuadTreeSelectMode.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Algorithms\QuadTree\Rect.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)AutoReg\AutoReg.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Copyclip\BitmapTool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Copyclip\EmfTool.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Copyclip\TagClipboardInfo.cs" />
@@ -93,7 +94,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)SelectionFilter\OpLogi.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="$(MSBuildThisFileDirectory)AutoReg\" />
     <Folder Include="$(MSBuildThisFileDirectory)CadVersion\" />
     <Folder Include="$(MSBuildThisFileDirectory)ExtensionMethod\Jig\" />
   </ItemGroup>
