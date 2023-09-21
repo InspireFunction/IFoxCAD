@@ -38,7 +38,8 @@ public static class CheckFactory
                 }
             }
         }
-        var strings = dic.Where(o => o.Value.Count() > 1).Select(o => o.Key + "命令重复，在类" + string.Join("和", o.Value) + "中");
+        var strings = dic.Where(o => o.Value.Count() > 1)
+            .Select(o => o.Key + "命令重复，在类" + string.Join("和", o.Value) + "中");
         string str = string.Join(Environment.NewLine, strings);
         if (!string.IsNullOrEmpty(str))
             MessageBox.Show(str, "错误：重复命令！");
