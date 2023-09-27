@@ -186,4 +186,18 @@ public class TestTrans
         var trm = HostApplicationServices.WorkingDatabase.TransactionManager;
 
     }
+
+    [CommandMethod(nameof(Test_DBTrans_BlockCount))]
+    public void Test_DBTrans_BlockCount()
+    {
+        using var tr = new DBTrans();
+        var i = tr.CurrentSpace
+            .GetEntities<BlockReference>()
+            .Where(ent => ent.GetBlockName() == "自定义块");
+            
+        var block = i.ToList()[0];
+        Env.Print(i.Count());
+    }
+
+    
 }
