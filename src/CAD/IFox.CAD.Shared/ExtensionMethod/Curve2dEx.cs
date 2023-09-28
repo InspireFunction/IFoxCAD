@@ -97,8 +97,8 @@ public static class Curve2dEx
 
         if (a2d.IsClockWise)
         {
-            startangle = -a2d.EndAngle - refangle;
-            endangle = -a2d.StartAngle - refangle;
+            startangle = -a2d.EndAngle + refangle;
+            endangle = -a2d.StartAngle + refangle;
         }
         else
         {
