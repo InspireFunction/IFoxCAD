@@ -21,7 +21,7 @@ public static class DBTextEx
         if (string.IsNullOrEmpty(text))
             throw new ArgumentNullException(nameof(text), "创建文字无内容");
 
-        var workdb = database ?? DBTrans.Top.Database;
+        var workdb = database ?? HostApplicationServices.WorkingDatabase;
         using var _ = new SwitchDatabase(workdb);
 
         var acText = new DBText();
