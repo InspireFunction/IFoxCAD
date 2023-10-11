@@ -1,6 +1,4 @@
 ﻿#if Debug
-using System.Windows.Forms;
-
 namespace IFoxCAD.Cad;
 public static class CheckFactory
 {
@@ -27,14 +25,13 @@ public static class CheckFactory
             {
                 foreach (Attribute add in method.GetCustomAttributes(typeof(CommandMethodAttribute), false))
                 {
-                    if (add is CommandMethodAttribute cma)
+                    if (add is not CommandMethodAttribute cma) 
+                        continue;
+                    if (!dic.ContainsKey(cma.GlobalName))
                     {
-                        if (!dic.ContainsKey(cma.GlobalName))
-                        {
-                            dic.Add(cma.GlobalName, new());
-                        }
-                        dic[cma.GlobalName].Add(type.Name + "." + method.Name);
+                        dic.Add(cma.GlobalName, new());
                     }
+                    dic[cma.GlobalName].Add(type.Name + "." + method.Name);
                 }
             }
         }
@@ -42,7 +39,7 @@ public static class CheckFactory
             .Select(o => o.Key + "命令重复，在类" + string.Join("和", o.Value) + "中");
         string str = string.Join(Environment.NewLine, strings);
         if (!string.IsNullOrEmpty(str))
-            MessageBox.Show(str, "错误：重复命令！");
+            MessageBox.Show(str, @"错误：重复命令！");
     }
 }
 #endif
