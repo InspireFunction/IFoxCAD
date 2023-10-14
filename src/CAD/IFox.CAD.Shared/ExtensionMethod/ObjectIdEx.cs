@@ -130,7 +130,7 @@ public static class ObjectIdEx
     {
         if (id.IsOk())
         {
-            var ent = id.GetObject();
+            var ent = id.GetObject<DBObject>()!;
             using (ent.ForWrite())
             {
                 ent.Erase();
