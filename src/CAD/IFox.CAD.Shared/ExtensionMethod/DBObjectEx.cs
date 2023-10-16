@@ -24,6 +24,25 @@ public static class DBObjectEx
         return blk.Name;
     }
 
+    #region Linq
+    /// <summary>
+    /// 删除数据库对象
+    /// </summary>
+    /// <param name="dBObjects">数据库对象列表</param>
+    public static void Erase(this IEnumerable<DBObject> dBObjects)
+    {
+        foreach (var dbo in dBObjects)
+        {
+            if (dbo.IsNewObject || dbo.IsErased)
+                continue;
+            using (dbo.ForWrite())
+            {
+                dbo.Erase();
+            }
+        }
+    }
+    #endregion
+
     #region Xdata扩展
     /// <summary>
     /// 删除扩展数据
