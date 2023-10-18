@@ -16,7 +16,7 @@ public static class DBTextEx
     /// <param name="action">文字属性设置委托</param>
     /// <returns>文字对象</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    public static DBText CreateDBText(Point3d position, string text, double height,AttachmentPoint justify = AttachmentPoint.BottomLeft, Database? database = null,Action<DBText>? action = null)
+    public static DBText CreateDBText(Point3d position, string text, double height,AttachmentPoint justify = AttachmentPoint.BaseLeft, Database? database = null,Action<DBText>? action = null)
     {
         if (string.IsNullOrEmpty(text))
             throw new ArgumentNullException(nameof(text), "创建文字无内容");
