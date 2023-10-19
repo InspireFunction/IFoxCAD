@@ -14,4 +14,54 @@ public class IFoxUtils
         var regenPending = (int)(pi?.GetValue(null) ?? 0);
         mi?.Invoke(null, new object[] { objectIds.ToArray(), regenPending });
     }
+    /// <summary>
+    /// 发送气泡通知
+    /// </summary>
+    /// <param name="second">显示的秒数，范围1-10为相应秒数，0为常显</param>
+    /// <param name="title">标题</param>
+    /// <param name="text">内容1</param>
+    /// <param name="iconType">图标样式</param>
+    /// <param name="hyperText">链接</param>
+    /// <param name="hyperLink">链接地址</param>
+    /// <param name="text2">内容2</param>
+    public static void ShowBubbleWindow(int second, string title, string text, IconType iconType = IconType.None, string? hyperText = null, string? hyperLink = null, string? text2 = null)
+    {
+        TrayItem? trayItem = null;
+        const string name = "IFox";
+        var num = Acap.StatusBar.TrayItems.Count;
+        for (int i = 0; i < num; i++)
+        {
+            var ti = Acap.StatusBar.TrayItems[i];
+            if (ti.ToolTipText == name)
+            {
+                trayItem = ti;
+                break;
+            }
+        }
+        if (trayItem == null)
+        {
+            trayItem = new()
+            {
+                ToolTipText = name,
+                Visible = true,
+            };
+            Acap.StatusBar.TrayItems.Add(trayItem);
+            Acap.StatusBar.Update();
+        }
+        if (second <= 0) second = 0;
+        else if (second % 10 == 0) second = 10;
+        else second %= 10;
+        Acap.SetSystemVariable("TrayTimeOut", second);
+        var tibw = new TrayItemBubbleWindow();
+        tibw.IconType = iconType;
+        tibw.Title = title;
+        tibw.Text = text;
+        tibw.HyperText = hyperText;
+        tibw.HyperLink = hyperLink;
+        tibw.Text2 = text2;
+        Acap.SetSystemVariable("TRAYICONS", 1);
+        Acap.SetSystemVariable("TRAYNOTIFY", 1);
+        trayItem.Visible = true;
+        trayItem.ShowBubbleWindow(tibw);
+    }
 }
