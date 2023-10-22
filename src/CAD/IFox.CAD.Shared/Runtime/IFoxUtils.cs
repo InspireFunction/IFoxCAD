@@ -24,9 +24,9 @@ public class IFoxUtils
     /// <param name="hyperText">链接</param>
     /// <param name="hyperLink">链接地址</param>
     /// <param name="text2">内容2</param>
-    public static void ShowBubbleWindow(int second, string title, string text, IconType iconType = IconType.None, string? hyperText = null, string? hyperLink = null, string? text2 = null)
+    public static void ShowBubbleWindow(int second, string title, string text, Autodesk.AutoCAD.Windows.IconType iconType = Autodesk.AutoCAD.Windows.IconType.None, string? hyperText = null, string? hyperLink = null, string? text2 = null)
     {
-        TrayItem? trayItem = null;
+        Autodesk.AutoCAD.Windows.TrayItem? trayItem = null;
         const string name = "IFox";
         var num = Acap.StatusBar.TrayItems.Count;
         for (int i = 0; i < num; i++)
@@ -52,7 +52,7 @@ public class IFoxUtils
         else if (second % 10 == 0) second = 10;
         else second %= 10;
         Acap.SetSystemVariable("TrayTimeOut", second);
-        var tibw = new TrayItemBubbleWindow();
+        var tibw = new Autodesk.AutoCAD.Windows.TrayItemBubbleWindow();
         tibw.IconType = iconType;
         tibw.Title = title;
         tibw.Text = text;
