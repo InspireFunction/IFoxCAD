@@ -1,6 +1,6 @@
 ﻿namespace IFoxCAD.Cad;
 
-public class IFoxUtils
+public sealed class IFoxUtils
 {
     /// <summary>
     /// 刷新图层状态，在修改图层的锁定或冻结状态后使用
@@ -63,5 +63,16 @@ public class IFoxUtils
         Acap.SetSystemVariable("TRAYNOTIFY", 1);
         trayItem.Visible = true;
         trayItem.ShowBubbleWindow(tibw);
+    }
+
+    /// <summary>
+    /// 否决双击事件本身的后续操作，在双击事件中使用
+    /// </summary>
+    public static void VetoMouseDoubleClickEvent()
+    {
+        const string key = "DBLCLKEDIT";
+        var value = Acap.GetSystemVariable(key);
+        Acap.SetSystemVariable(key, 0);
+        IdleAction.Add(() => Acap.SetSystemVariable(key, value));
     }
 }
