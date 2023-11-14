@@ -227,7 +227,7 @@ public static class DBDictionaryEx
                 else
                 {
                     DBDictionary subDict = new();
-                    dict.SetAt(name, subDict);
+                    dict.SetAt<DBDictionary>(name, subDict);
                     newdict = subDict;
                     newdict.TreatElementsAsHard = true;
                 }
