@@ -27,7 +27,7 @@ public static class BlockReferenceEx
 
         SpatialFilterDefinition sfd = new(pts, Vector3d.ZAxis, 0.0, 0.0, 0.0, true);
         using SpatialFilter sf = new() { Definition = sfd };
-        var dict = bref.GetXDictionary()!.GetSubDictionary(true, new string[] { filterDictName })!;
+        var dict = bref.GetXDictionary().GetSubDictionary(true, new string[] { filterDictName })!;
         dict.SetAt<SpatialFilter>(spatialName, sf);
         // SetToDictionary(dict, spatialName, sf);
     }
