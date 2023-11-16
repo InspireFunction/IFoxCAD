@@ -186,7 +186,7 @@ public static class SymbolTableEx
     {
 
         string blkdefname = SymbolUtilityServices.GetSymbolNameFromPathName(fileName, "dwg");
-#if !acad
+#if acad
         blkdefname = SymbolUtilityServices.RepairSymbolName(blkdefname, false);
 #endif
         ObjectId id = table[blkdefname];
