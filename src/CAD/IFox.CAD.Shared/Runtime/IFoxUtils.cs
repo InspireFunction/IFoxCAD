@@ -75,4 +75,13 @@ public sealed class IFoxUtils
         Acap.SetSystemVariable(key, 0);
         IdleAction.Add(() => Acap.SetSystemVariable(key, value));
     }
+    /// <summary>
+    /// 获取透明度
+    /// </summary>
+    /// <param name="value">cad特性栏透明度值，范围0-100</param>
+    /// <returns>cad透明度值</returns>
+    public Transparency CreateTransparency(int value)
+    {
+        return new Transparency(Convert.ToByte(Math.Floor((100 - value) * 2.55)));
+    }
 }
