@@ -79,9 +79,8 @@ public static class SelectionSetEx
                                                  bool openErased = false,
                                                  bool openLockedLayer = false) where T : Entity
     {
-        //if (ss is null)
-        //    throw new ArgumentNullException(nameof(ss));
-        ArgumentNullEx.ThrowIfNull(ss);
+        if (ss is null)
+            return new List<T>();
         return ss.GetObjectIds()
                  .Select(id => id.GetObject<T>(openMode, openErased, openLockedLayer))
                  .OfType<T>();
