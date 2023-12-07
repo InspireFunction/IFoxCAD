@@ -46,6 +46,31 @@ public static class SymbolTableRecordEx
             }
         }
     }
+    public static IdMapping DeepCloneEx(this BlockTableRecord btr, ObjectIdCollection objIds)
+    {
+        if (objIds is null || objIds.Count == 0)
+            throw new ArgumentNullException(nameof(objIds));
+
+        var db = objIds[0].Database;
+        IdMapping mapOut = new();
+        using (btr.ForWrite())
+        {
+            try
+            {
+                db.DeepCloneObjects(objIds, btr.ObjectId, mapOut, false);
+
+                // 不在此提取,为了此函数被高频调用
+                // 获取克隆键值对(旧块名,新块名)
+                // foreach (ObjectId item in blockIds)
+                //     result.Add(mapping[item].Value);
+            }
+            catch
+            {
+
+            }
+        }
+        return mapOut;
+    }
 
     #endregion
 
