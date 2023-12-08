@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+﻿using Autodesk.AutoCAD.GraphicsInterface;
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 瞬态容器
@@ -9,19 +11,23 @@ public class JigExTransient : IDisposable
     // 整数集,暂时不知道有什么意义
     readonly IntegerCollection _integerCollection;
     // 维护集合
-    readonly  HashSet<Entity> _entities;
+    readonly  HashSet<Drawable> _drawableSet;
     readonly TransientManager _manager;
     #endregion
 
     #region 公开属性
     /// <summary>
+    /// 图元集合
+    /// </summary>
+    public Entity[] Entities => _drawableSet.OfType<Entity>().ToArray();
+    /// <summary>
     /// 对象集合
     /// </summary>
-    public Entity[] Entities => _entities.ToArray();
+    public Drawable[] Drawables => _drawableSet.ToArray();
     /// <summary>
     /// 数量
     /// </summary>
-    public int Count => _entities.Count;
+    public int Count => _drawableSet.Count;
     #endregion
 
     #region 构造函数
@@ -31,7 +37,7 @@ public class JigExTransient : IDisposable
     public JigExTransient()
     {
         _integerCollection = new();
-        _entities = new(); 
+        _drawableSet = new(); 
         _manager=TransientManager.CurrentTransientManager;
     }
     #endregion
@@ -40,11 +46,11 @@ public class JigExTransient : IDisposable
     /// <summary>
     /// 判断瞬态容器里是否含有对象
     /// </summary>
-    /// <param name="ent">对象</param>
+    /// <param name="drawable">对象</param>
     /// <returns>含有返回true</returns>
-    public bool Contains(Entity ent)
+    public bool Contains(Drawable drawable)
     {
-        return _entities.Contains(ent);
+        return _drawableSet.Contains(drawable);
     }
 
     /// <summary>
@@ -52,11 +58,11 @@ public class JigExTransient : IDisposable
     /// </summary>
     /// <param name="ent">图元</param>
     /// <param name="tdm">绘图模式</param>
-    public void Add(Entity ent, TransientDrawingMode tdm = TransientDrawingMode.Main)
+    public void Add(Drawable drawable, TransientDrawingMode tdm = TransientDrawingMode.Main)
     {
-        if (_entities.Add(ent))
+        if (_drawableSet.Add(drawable))
         {
-            _manager.AddTransient(ent, tdm, 128, _integerCollection);
+            _manager.AddTransient(drawable, tdm, 128, _integerCollection);
         }
     }
 
@@ -64,13 +70,13 @@ public class JigExTransient : IDisposable
     /// <summary>
     /// 从瞬态容器中移除图元
     /// </summary>
-    /// <param name="ent">已经加入瞬态容器的图元</param>
-    public void Remove(Entity ent)
+    /// <param name="drawable">已经加入瞬态容器的图元</param>
+    public void Remove(Drawable drawable)
     {
-        if (!Contains(ent))
+        if (!Contains(drawable))
             return;
-        _manager.EraseTransient(ent, _integerCollection);
-        _entities.Remove(ent);
+        _manager.EraseTransient(drawable, _integerCollection);
+        _drawableSet.Remove(drawable);
     }
 
     /// <summary>
@@ -78,23 +84,23 @@ public class JigExTransient : IDisposable
     /// </summary>
     public void Clear()
     {
-        foreach (var ent in _entities)
+        foreach (var drawable in _drawableSet)
         {
-            _manager.EraseTransient(ent, _integerCollection);
+            _manager.EraseTransient(drawable, _integerCollection);
         }
-        _entities.Clear();
+        _drawableSet.Clear();
     }
 
 
     /// <summary>
     /// 更新单个显示
     /// </summary>
-    /// <param name="ent">已经加入瞬态容器的图元</param>
-    public void Update(Entity ent)
+    /// <param name="drawable">已经加入瞬态容器的图元</param>
+    public void Update(Drawable drawable)
     {
-        if (!Contains(ent))
+        if (!Contains(drawable))
             return;
-        _manager.UpdateTransient(ent, _integerCollection);
+        _manager.UpdateTransient(drawable, _integerCollection);
     }
 
     /// <summary>
@@ -102,8 +108,8 @@ public class JigExTransient : IDisposable
     /// </summary>
     public void UpdateAll()
     {
-        foreach (var ent in _entities)
-            Update(ent);
+        foreach (var drawable in _drawableSet)
+            Update(drawable);
     }
     #endregion
 
