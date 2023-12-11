@@ -597,9 +597,9 @@ public partial class WindowsAPI
         private string DebuggerDisplay => $"(X:{X},Y:{Y},Z:{Z})";
 
         /* 由于此类是用来优化,从而实现字段修改,因此直接暴露字段减少栈帧 */
-        public double X;
-        public double Y;
-        public double Z;
+        public readonly double X;
+        public readonly double Y;
+        public readonly double Z;
 
         public Point3D(double x, double y, double z)
         {
