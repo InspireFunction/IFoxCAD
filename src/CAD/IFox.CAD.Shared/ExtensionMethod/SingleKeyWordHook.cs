@@ -66,7 +66,7 @@ public class SingleKeyWordHook : IDisposable
         {
             if (item.LocalName.Length == 1)
             {
-                Keys k = (Keys)item.LocalName.ToCharArray()[0];
+                Keys k = (Keys)item.LocalName[0];
                 _keyWords.Add(k);
             }
         }
