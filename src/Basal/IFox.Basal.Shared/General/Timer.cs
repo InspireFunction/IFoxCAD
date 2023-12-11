@@ -20,7 +20,6 @@ public class Timer
     /// <summary>
     /// 时间单位枚举
     /// </summary>
-    [Flags]
     public enum TimeEnum
     {
         /// <summary>
