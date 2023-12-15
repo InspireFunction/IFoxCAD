@@ -77,14 +77,10 @@ public static class DBObjectEx
     {
         if (obj.XData == null)
             return;
-        foreach (var data in obj.XData)
-        {
-            // 直接赋值进去等于清空名称
-            using var rb = new ResultBuffer();
-            rb.Add(new((int)DxfCode.ExtendedDataRegAppName, appName));
-            using (obj.ForWrite())
-                obj.XData = rb;
-        }
+
+        // 直接赋值进去等于清空名称
+        using (obj.ForWrite())
+            obj.XData = new XDataList() { { 1001, appName } };
     }
     /// <summary>
     /// 克隆对象
