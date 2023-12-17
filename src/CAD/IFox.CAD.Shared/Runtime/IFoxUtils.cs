@@ -1,5 +1,6 @@
 ﻿namespace IFoxCAD.Cad;
 
+#if acad
 public sealed class IFoxUtils
 {
     /// <summary>
@@ -85,3 +86,4 @@ public sealed class IFoxUtils
         return new Transparency(Convert.ToByte(Math.Floor((100 - value) * 2.55)));
     }
 }
+#endif
