@@ -1,6 +1,4 @@
-﻿using Autodesk.AutoCAD.GraphicsInterface;
-
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 瞬态容器
