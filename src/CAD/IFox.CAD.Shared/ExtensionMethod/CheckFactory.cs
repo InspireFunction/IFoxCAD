@@ -39,7 +39,7 @@ public static class CheckFactory
             .Select(o => o.Key + "命令重复，在类" + string.Join("和", o.Value) + "中");
         string str = string.Join(Environment.NewLine, strings);
         if (!string.IsNullOrEmpty(str))
-            MessageBox.Show(str, @"错误：重复命令！");
+            System.Windows.Forms. MessageBox.Show(str, @"错误：重复命令！");
     }
 }
 #endif
