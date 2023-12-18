@@ -57,7 +57,7 @@ public class Testenv
         var dim = Env.OSMode;
         Env.Editor.WriteMessage(dim.ToString());
     }
-
+#if !zcad
     [CommandMethod(nameof(Test_Cadver))]
     public void Test_Cadver()
     {
@@ -67,7 +67,7 @@ public class Testenv
         1.Print();
         "1".Print();
     }
-
+#endif 
     [CommandMethod(nameof(Test_GetVar))]
     public void Test_GetVar()
     {
@@ -89,7 +89,7 @@ public class Testenv
     //}
 
 
-#if !NET40
+#if !zcad
     // 通过此功能获取全部变量,尚不清楚此处如何设置,没有通过测试
     [CommandMethod(nameof(Test_GetvarAll))]
     public static void Test_GetvarAll()

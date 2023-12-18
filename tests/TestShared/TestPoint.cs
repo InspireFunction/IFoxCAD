@@ -25,13 +25,15 @@ public class TestPoint
             new(1, 1),
             new(1, 0)
         };
-        foreach (var pt in pts)
+
+
+        foreach (Point2d pt in pts)
         {
             Env.Printl($"X={pt.X},Y={pt.Y}");
         }
         pts.End2End();
         Env.Printl("-------");
-        foreach (var pt in pts)
+        foreach (Point2d pt in pts)
         {
             Env.Printl($"X={pt.X},Y={pt.Y}");
         }
