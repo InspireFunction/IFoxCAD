@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+    <PropertyGroup>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>
+
+        <TargetFramework>NET48</TargetFramework>
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+        <PlatformTarget>x64</PlatformTarget>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
+        <DefineConstants>$(Configuration);zcad</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <ProjectReference Include="..\..\src\CAD\IFox.CAD.ZCAD\IFox.CAD.ZCAD.csproj" />
+    </ItemGroup>
+
+
+    <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
+
+    <ItemGroup>
+        <Reference Include="System.Web" />
+        <Reference Include="System.Web.Extensions" />
+    </ItemGroup>
+
+</Project>

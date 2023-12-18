@@ -46,6 +46,7 @@ public class TestLisp
     [CommandMethod("CmdTest_RunLisp17", CommandFlags.Interruptible)]
     // 命令不会被记录在命令历史记录
     [CommandMethod("CmdTest_RunLisp18", CommandFlags.NoHistory)]
+#if (!zcad)
     // 命令不会被 UNDO取消
     [CommandMethod("CmdTest_RunLisp19", CommandFlags.NoUndoMarker)]
     // 不能在参照块中使用命令
@@ -61,7 +62,7 @@ public class TestLisp
     [CommandMethod("CmdTest_RunLisp23", CommandFlags.NoInferConstraint)]
     // 命令允许在选择图元时临时显示动态尺寸
     [CommandMethod("CmdTest_RunLisp24", CommandFlags.TempShowDynDimension)]
-
+#endif
     public static void CmdTest_RunLisp()
     {
         // 测试方法1: (command "CmdTest_RunLisp1")

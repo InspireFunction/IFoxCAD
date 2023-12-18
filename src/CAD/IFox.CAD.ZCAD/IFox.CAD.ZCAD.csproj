@@ -16,7 +16,7 @@
 		<DefineConstants>$(Configuration);zcad</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
-		<PackageReference Include="ZWCad.Net.2021" Version="1.0.1">
+		<PackageReference Include="ZWCad.Net.2024" Version="1.0.0">
 			<ExcludeAssets>runtime</ExcludeAssets>
 		</PackageReference>
 	</ItemGroup>
