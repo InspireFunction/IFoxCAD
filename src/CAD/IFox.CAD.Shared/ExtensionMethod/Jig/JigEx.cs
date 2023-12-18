@@ -372,12 +372,14 @@ public class JigEx : DrawJig, IDisposable
         // 不重复释放,并设置已经释放
         if (IsDisposed) return;
         IsDisposed = true;
-
-        // 最后一次的图元如果没有加入数据库,就在此销毁,所以JigEx调用的时候加using
-        _drawEntitys?.ForEach(ent => {
-            if (ent.Database == null && !ent.IsDisposed)
-                ent.Dispose();
-        });
+        if(disposing)
+        {
+            // 最后一次的图元如果没有加入数据库,就在此销毁,所以JigEx调用的时候加using
+            _drawEntitys?.ForEach(ent => {
+                if (ent.Database == null && !ent.IsDisposed)
+                    ent.Dispose();
+            });
+        }
         _drawEntitys?.Clear();
     }
     #endregion
