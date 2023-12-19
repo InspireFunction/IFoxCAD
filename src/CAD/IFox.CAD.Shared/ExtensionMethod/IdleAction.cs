@@ -55,5 +55,6 @@ public static class IdleAction
         {
             _actions.RemoveAt(0);
         }
+        System.Windows.Forms.Cursor.Position = System.Windows.Forms.Cursor.Position;
     }
 }
