@@ -1,8 +1,8 @@
 ﻿<Project>
 	<PropertyGroup>
 		<!--需要设置的内容-->
-		<Version>0.7.1</Version>
-		<PackageReleaseNotes>发布0.7.1</PackageReleaseNotes>
+		<Version>0.7.2</Version>
+		<PackageReleaseNotes>发布0.7.2</PackageReleaseNotes>
 	</PropertyGroup>
 
 	<PropertyGroup>

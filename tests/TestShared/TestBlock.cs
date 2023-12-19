@@ -1,6 +1,4 @@
-﻿using IFoxCAD.Cad;
-using System.Data.Common;
-
+﻿
 namespace Test;
 
 public class TestBlock
@@ -37,7 +35,7 @@ public class TestBlock
         {
             var box = item?.GetBoundingBoxEx();
             Env.Print("min:" + box?.BottomLeft + ";max" + box?.TopRight);
-            if (box != null) 
+            if (box != null)
                 tr.CurrentSpace.AddEntity(new Line(box.Value.BottomLeft, box.Value.TopRight));
         }
     }
@@ -49,7 +47,8 @@ public class TestBlock
         using DBTrans tr = new();
         // var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.BlockTable.Add("test",
-            btr => {
+            btr =>
+            {
                 btr.Origin = new Point3d(0, 0, 0);
             },
             () => // 图元
@@ -64,10 +63,12 @@ public class TestBlock
         // ObjectId objectId = tr.BlockTable.Add("a");// 新建块
         // objectId.GetObject<BlockTableRecord>().AddEntity();// 测试添加空实体
         tr.BlockTable.Add("test1",
-        btr => {
+        btr =>
+        {
             btr.Origin = new Point3d(0, 0, 0);
         },
-        () => {
+        () =>
+        {
             var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
             var acText = DBTextEx.CreateDBText(Point3d.Origin, "123", 2.5);
             return new List<Entity> { line, acText };
@@ -81,7 +82,8 @@ public class TestBlock
         using DBTrans tr = new(@"C:\Users\vic\Desktop\test.dwg");
         // var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.BlockTable.Add("test",
-            btr => {
+            btr =>
+            {
                 btr.Origin = new Point3d(0, 0, 0);
             },
             () => // 图元
@@ -98,13 +100,15 @@ public class TestBlock
         // ObjectId objectId = tr.BlockTable.Add("a");// 新建块
         // objectId.GetObject<BlockTableRecord>().AddEntity();// 测试添加空实体
         tr.BlockTable.Add("test1",
-        btr => {
+        btr =>
+        {
             btr.Origin = new Point3d(0, 0, 0);
         },
-        () => {
+        () =>
+        {
             var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
             var acText = DBTextEx.CreateDBText(Point3d.Origin, "12345", 2.5);
-            
+
             return new List<Entity> { line, acText };
         });
         tr.Database.SaveDwgFile();
@@ -129,7 +133,8 @@ public class TestBlock
         // });
 
 
-        tr.BlockTable.Change("test", btr => {
+        tr.BlockTable.Change("test", btr =>
+        {
             foreach (var id in btr)
             {
                 var ent = tr.GetObject<Entity>(id);
@@ -193,7 +198,7 @@ public class TestBlock
             { "tagTest4", "" }
         };
         tr.CurrentSpace.InsertBlock(new Point3d(10, 10, 0), "test2", atts: def2);
-        tr.CurrentSpace.InsertBlock(new Point3d(20,20,0),"test2");
+        tr.CurrentSpace.InsertBlock(new Point3d(20, 20, 0), "test2");
         tr.CurrentSpace.InsertBlock(new Point3d(-10, 0, 0), "test44");
     }
 
@@ -204,14 +209,16 @@ public class TestBlock
         using var trans = new DBTrans();
 
         tr.BlockTable.Add("test456",
-            btr => {
+            btr =>
+            {
                 btr.Origin = new(0, 0, 0);
             },
-            () => {
+            () =>
+            {
                 var line = new Line(new(0, 0, 0), new(1, 1, 0));
                 var actext = DBTextEx.CreateDBText(Point3d.Origin, "123", 2.5, database: tr.Database);
 
-                return new List<Entity> { line,actext };
+                return new List<Entity> { line, actext };
 
             });
         tr.CurrentSpace.InsertBlock(Point3d.Origin, "test456");
@@ -260,7 +267,8 @@ public class TestBlock
     public void Test_ClipBlock()
     {
         using DBTrans tr = new();
-        tr.BlockTable.Add("test1", btr => {
+        tr.BlockTable.Add("test1", btr =>
+        {
             btr.Origin = new Point3d(0, 0, 0);
             btr.AddEntity(new Line(new Point3d(0, 0, 0), new Point3d(10, 10, 0)),
                           new Line(new Point3d(10, 10, 0), new Point3d(10, 0, 0)));
@@ -275,6 +283,22 @@ public class TestBlock
         var brf2 = tr.GetObject<BlockReference>(id);
         brf2?.ClipBlockRef(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
     }
+
+
+    [CommandMethod(nameof(Test_ClipBlock1))]
+    public void Test_ClipBlock1()
+    {
+        using DBTrans tr = new();
+        var ent = Env.Editor.GetEntity("pick block");
+        if (ent.Status != PromptStatus.OK) return;
+
+        var brf1 = tr.GetObject<BlockReference>(ent.ObjectId)!;
+        var pts = new List<Point3d> { new Point3d(3, 3, 0), new Point3d(7, 3, 0), new Point3d(7, 7, 0), new Point3d(3, 7, 0) };
+        brf1.ClipBlockRef(pts);
+
+    }
+
+
 
     // 给用户的测试程序，不知道对错
     [CommandMethod(nameof(Test_Block_ej))]
@@ -300,7 +324,8 @@ public class TestBlock
             var blockdef = tr.BlockTable.GetBlockFrom(fullFileName, false);
 
             tr.Database.Clayer = tr.LayerTable["0"];// 当前图层切换为0图层
-            tr.LayerTable.Change(tr.Database.Clayer, ltr => {
+            tr.LayerTable.Change(tr.Database.Clayer, ltr =>
+            {
                 ltr.Color = Color.FromColorIndex(ColorMethod.ByAci, 2); // ColorMethod.ByAci可以让我们使用AutoCAD ACI颜色索引……这里为2（表示黄色）
             });
 
@@ -325,7 +350,8 @@ public class TestBlock
 
         var btr = tr2.BlockTable[brf2.Name];
 
-        tr2.BlockTable.Change(btr, ltr => {
+        tr2.BlockTable.Change(btr, ltr =>
+        {
             foreach (ObjectId oid in ltr)
             {
                 var ent = tr2.GetObject<Entity>(oid);
@@ -335,12 +361,12 @@ public class TestBlock
                         switch (mText.Text)
                         {
                             case "$$A":
-                            mText.Contents = "hahaha";
-                            break;
+                                mText.Contents = "hahaha";
+                                break;
                             case "$$B":
-                            break;
+                                break;
                             default:
-                            break;
+                                break;
                         }
                 }
                 else if (ent is DBText dBText)
@@ -354,11 +380,11 @@ public class TestBlock
                         switch (dimension.DimensionText)
                         {
                             case "$$pipeLen":
-                            dimension.DimensionText = "350";
-                            dimension.RecomputeDimensionBlock(true);
-                            break;
+                                dimension.DimensionText = "350";
+                                dimension.RecomputeDimensionBlock(true);
+                                break;
                             default:
-                            break;
+                                break;
                         }
                 }
             }
@@ -556,17 +582,143 @@ public class TestBlock
         }
 
         using DBTrans tr = new(dwg);
-        tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
+        tr.ModelSpace.GetEntities<Circle>().ForEach(ent =>
+        {
             ent.ForWrite(e => e.ColorIndex = 3);
         });
         tr.Database.SaveAs(dwg, DwgVersion.Current);
 
-        tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
+        tr.ModelSpace.GetEntities<Circle>().ForEach(ent =>
+        {
             ent.ForWrite(e => e.ColorIndex = 4);
         });
         tr.Database.SaveAs(dwg, DwgVersion.Current);
     }
+
+    [CommandMethod(nameof(Test_ExplodeBlock))]
+    public void Test_ExplodeBlock()
+    {
+        var r1 = Env.Editor.GetEntity("pick block");
+        if (r1.Status != PromptStatus.OK)
+            return;
+        using var tr = new DBTrans();
+        if (tr.GetObject(r1.ObjectId, OpenMode.ForWrite) is not BlockReference brf)
+            return;
+        var dboc = new DBObjectCollection();
+        // brf.Explode(dboc);
+        brf.ExplodeToOwnerSpace();
+        // foreach (Entity item in dboc)
+        // {
+        //     tr.CurrentSpace.AddEntity(item);
+        // }
+        using (brf.ForWrite())
+        {
+            brf.Erase();
+        }
+    }
 }
+
+
+
+public static class Blocks
+{
+
+    [CommandMethod("TestExplodeToOwnerSpace3")]
+    public static void TestExplodeToOwnerSpace3_Method()
+    {
+        Editor ed = Application.DocumentManager.MdiActiveDocument.Editor;
+        try
+        {
+            PromptEntityOptions prEntOpt = new PromptEntityOptions("\nSelect an INSERT:");
+            prEntOpt.SetRejectMessage("\nIt is not an INSERT!");
+            prEntOpt.AddAllowedClass(typeof(BlockReference), true);
+            PromptEntityResult selRes = ed.GetEntity(prEntOpt);
+            if (selRes.Status == PromptStatus.OK)
+            {
+                ObjectIdCollection ids = ExplodeToOwnerSpace3(selRes.ObjectId);
+                ed.WriteMessage("{0} entities were added into database.", ids.Count);
+            }
+            else
+            {
+                ed.WriteMessage("\nEntity Selection failed!");
+            }
+        }
+        catch (System.Exception ex)
+        {
+            ed.WriteMessage(ex.Message);
+        }
+    }
+
+    public static void ExplodeToOwnerSpace2(ObjectId id, bool erase = true)
+    {
+        ExplodeToOwnerSpace3(id, erase);
+    }
+
+    public static void ExplodeToOwnerSpace2(this BlockReference br)
+    {
+        ExplodeToOwnerSpace3(br);
+    }
+
+    public static ObjectIdCollection ExplodeToOwnerSpace3(ObjectId id, bool erase = true)
+    {
+        ObjectIdCollection ids;
+
+        using (Transaction tr = id.Database.TransactionManager.StartTransaction())
+        {
+            BlockReference br = (BlockReference)tr.GetObject(id, OpenMode.ForRead);
+            ids = br.ExplodeToOwnerSpace3();
+
+            if (erase)
+            {
+                br.UpgradeOpen();
+                br.Erase();
+            }
+
+            tr.Commit();
+        }
+
+        return ids;
+    }
+
+    private static ObjectIdCollection idsAdded;
+    public static ObjectIdCollection ExplodeToOwnerSpace3(this BlockReference br)
+    {
+        idsAdded = new ObjectIdCollection();
+
+        Transaction tr = br.Database.TransactionManager.TopTransaction;
+        BlockTableRecord spaceBtr = (BlockTableRecord)tr.GetObject(br.BlockId, OpenMode.ForWrite);
+        LoopThroughInsertAndAddEntity2n3(br.BlockTransform, br, spaceBtr);
+
+        return idsAdded;
+    }
+    // 不能用于非等比
+    public static void LoopThroughInsertAndAddEntity2n3(Matrix3d mat, BlockReference br, BlockTableRecord space)
+    {
+        Transaction tr = space.Database.TransactionManager.TopTransaction;
+        BlockTableRecord btr = tr.GetObject(br.BlockTableRecord, OpenMode.ForRead) as BlockTableRecord;
+
+        foreach (ObjectId id in btr)
+        {
+            DBObject obj = tr.GetObject(id, OpenMode.ForRead);
+            Entity ent = obj.Clone() as Entity;
+            if (ent is BlockReference)
+            {
+                BlockReference br1 = (BlockReference)ent;
+                LoopThroughInsertAndAddEntity2n3(br1.BlockTransform.PreMultiplyBy(mat), br1, space);
+            }
+            else
+            {
+                ent.TransformBy(mat);
+                space.AppendEntity(ent);
+                tr.AddNewlyCreatedDBObject(ent, true);
+
+                idsAdded.Add(ent.ObjectId);
+            }
+        }
+    }
+
+}
+
 
 public class BlockImportClass
 {
