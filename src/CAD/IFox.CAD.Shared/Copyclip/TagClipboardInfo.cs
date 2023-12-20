@@ -353,7 +353,7 @@ public partial class ClipTool
             var clipTypeData = GetClipboardData(clipKeyFormat);
 
             // 剪贴板的数据拷贝进去结构体中,会依照数据长度进行拷贝
-            locked = WindowsAPI.GlobalLockTask(clipTypeData, ptr => {
+            locked =IFoxCAD.Basal.WindowsAPI.GlobalLockTask(clipTypeData, ptr => {
                 // 非托管内存块->托管对象
                 result = (T)Marshal.PtrToStructure(ptr, typeof(T));
             });

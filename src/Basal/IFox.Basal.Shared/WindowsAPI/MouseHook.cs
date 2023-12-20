@@ -1,5 +1,7 @@
 using System.Drawing;
 using System.Windows.Forms;
+using MouseEventArgs = System.Windows.Forms.MouseEventArgs;
+using MouseEventHandler = System.Windows.Forms.MouseEventHandler;
 
 namespace IFoxCAD.Basal;
 
