@@ -9,6 +9,7 @@ namespace IFoxCAD.Cad;
 public static class PolylineEx
 {
     #region 获取多段线端点
+
     /// <summary>
     /// 获取二维多段线的端点坐标
     /// </summary>
@@ -24,7 +25,6 @@ public static class PolylineEx
                 yield return vertex.Position;
             }
         }
-            
     }
 
     /// <summary>
@@ -39,7 +39,7 @@ public static class PolylineEx
         {
             if (tr.GetObject(id) is PolylineVertex3d vertex)
                 yield return vertex.Position;
-        }  
+        }
     }
 
     /// <summary>
@@ -51,13 +51,15 @@ public static class PolylineEx
     {
         return
             Enumerable
-            .Range(0, pl.NumberOfVertices)
-            .Select(pl.GetPoint3dAt)
-            .ToList();
+                .Range(0, pl.NumberOfVertices)
+                .Select(pl.GetPoint3dAt)
+                .ToList();
     }
+
     #endregion
 
     #region 创建多段线
+
     /// <summary>
     /// 根据点集创建多段线<br/>
     /// 此多段线无默认全局宽度0，无圆弧段
@@ -69,9 +71,7 @@ public static class PolylineEx
     {
         Polyline pl = new();
         pl.SetDatabaseDefaults();
-        points.ForEach((index, pt) => {
-            pl.AddVertexAt(index, pt.Point2d(), 0, 0, 0);
-        });
+        points.ForEach((index, pt) => { pl.AddVertexAt(index, pt.Point2d(), 0, 0, 0); });
         action?.Invoke(pl);
         return pl;
     }
@@ -82,19 +82,21 @@ public static class PolylineEx
     /// <param name="pts">端点表,利用元组(Point3d pt, double bulge, double startWidth, double endWidth)</param>
     /// <param name="action">轻多段线属性设置委托</param>
     /// <returns>轻多段线对象</returns>
-    public static Polyline CreatePolyline(this IEnumerable<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,
-                                    Action<Polyline>? action = null)
+    public static Polyline CreatePolyline(
+        this IEnumerable<(Point3d pt, double bulge, double startWidth, double endWidth)> pts,
+        Action<Polyline>? action = null)
     {
         Polyline pl = new();
         pl.SetDatabaseDefaults();
 
-        pts.ForEach((index, vertex) => {
+        pts.ForEach((index, vertex) =>
+        {
             pl.AddVertexAt(index, vertex.pt.Point2d(), vertex.bulge, vertex.startWidth, vertex.endWidth);
         });
         action?.Invoke(pl);
         return pl;
     }
-    
+
     /// <summary>
     /// 根据Extents3d创建多段线<br/>
     /// 此多段线无默认全局宽度0，无圆弧段，标高为0
@@ -111,15 +113,12 @@ public static class PolylineEx
             points.MaxPoint.Point2d(),
             new(points.MaxPoint.X, points.MinPoint.Y)
         };
-        Polyline pl = new();
+        Polyline pl = new() { Closed = true };
         pl.SetDatabaseDefaults();
-        pts.ForEach((index, pt) => {
-            pl.AddVertexAt(index, pt, 0, 0, 0);
-        });
+        pts.ForEach((index, pt) => { pl.AddVertexAt(index, pt, 0, 0, 0); });
         action?.Invoke(pl);
         return pl;
-    } 
+    }
 
     #endregion
-
 }
