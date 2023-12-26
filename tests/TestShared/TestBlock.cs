@@ -262,6 +262,31 @@ public class TestBlock
         tr.CurrentSpace.InsertBlock(Point3d.Origin, id);
     }
 
+    [CommandMethod(nameof(Test_BlockFiledxf))]
+    public void Test_BlockFiledxf()
+    {
+        string [] files;
+        var folder= new System.Windows.Forms.FolderBrowserDialog();
+        if (folder.ShowDialog() == System.Windows.Forms.DialogResult.OK)
+        {
+            files = Directory.GetFiles(folder.SelectedPath,"*.dxf",SearchOption.AllDirectories);
+            using DBTrans tr = new();
+            foreach (var item in files)
+            {
+                var id = tr.BlockTable.GetBlockFrom(item, false);
+                var pt = Env.Editor.GetPoint("pick pt");
+                if (pt.Status == PromptStatus.OK)
+                {
+                    tr.CurrentSpace.InsertBlock(pt.Value, id);
+                    Env.Editor.Redraw();
+                }
+                
+            }
+            
+        }
+
+        
+    }
 
     [CommandMethod(nameof(Test_ClipBlock))]
     public void Test_ClipBlock()
