@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 
 namespace IFoxCAD.Cad;
 
@@ -522,7 +522,7 @@ public static class Curve3dEx
                     knots,
                     ncdata.Weights,
                     Tolerance.Global.EqualPoint,
-                    ncdata.Knots.Tolerance);
+                    ncdata.Knots.Tolerance) { Type = SplineType.FitPoints };
         }
         return spl;
     }
