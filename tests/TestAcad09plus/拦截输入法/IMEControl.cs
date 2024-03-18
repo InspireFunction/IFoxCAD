@@ -1,4 +1,4 @@
-﻿namespace Gstar_IMEFilter;
+namespace Gstar_IMEFilter;
 
 using System.Diagnostics;
 using System.Linq;
@@ -16,7 +16,7 @@ public class IMEControl
 
     // 豁免命令组: 默认和配置的
     internal static HashSet<string> DefaultCmds_AutoCn2En;
-    // 括免命令组: 自动切换为英文输入法
+    // 豁免命令组: 自动切换为英文输入法
     internal static HashSet<string> ExceptCmds_AutoCn2En;
     static string _ftFile_AutoCn2En;
 
