@@ -24,8 +24,8 @@ public static class HatchEx
     /// <exception cref="ArgumentException"></exception>
     public static List<ObjectIdCollection>? GetAssociatedBoundaryIds(this Hatch hatch)
     {
-        if (!hatch.Id.IsOk())
-            throw new ArgumentException("填充未加入或不存在于数据库");
+        // if (!hatch.Id.IsOk())
+        //     throw new ArgumentException("填充未加入或不存在于数据库");
 
         if (!hatch.Associative)
             return null;
@@ -65,8 +65,8 @@ public static class HatchEx
     /// <returns>边界环列表(一个边界环里所有的对象组成一个 DBObjectCollection)</returns>
     public static List<DBObjectCollection> CreateBoundarys(this Hatch hatch)
     {
-        if (!hatch.Id.IsOk())
-            throw new ArgumentException("填充未加入或不存在于数据库");
+        // if (!hatch.Id.IsOk())
+        //     throw new ArgumentException("填充未加入或不存在于数据库");
 
         var listDbObjColl = new List<DBObjectCollection>();
 
@@ -108,7 +108,7 @@ public static class HatchEx
     }
 
     /// <summary>
-    /// 对已存在于数据库的填充重新设置边界并计算
+    /// 重新设置边界并计算
     /// </summary>
     /// <param name="hatch"></param>
     /// <param name="boundaryIds">边界对象(一个边界环里所有的对象 id 组成一个 ObjectIdCollection)
@@ -118,8 +118,8 @@ public static class HatchEx
     /// <param name="associative">关联边界(默认保持原样)</param>
     public static void ResetBoundarys(this Hatch hatch, List<ObjectIdCollection> boundaryIds, bool? associative = null)
     {
-        if (!hatch.Id.IsOk())
-            throw new ArgumentException("填充未加入或不存在于数据库");
+        // if (!hatch.Id.IsOk())
+        //     throw new ArgumentException("填充未加入或不存在于数据库");
 
         boundaryIds.ForEach(ids =>
         {
