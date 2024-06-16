@@ -169,6 +169,14 @@ public sealed class DBTrans : IDisposable
     /// <summary>
     /// 事务栈
     /// <para>打开文件,默认提交事务</para>
+    /// <code>建议用法：
+    /// try
+    /// {
+    ///     using var tr = new DBTrans(...);
+    ///     ...
+    /// }
+    /// catch (...) { ... }
+    /// </code>
     /// </summary>
     /// <param name="fileName">要打开的文件名</param>
     /// <param name="commit">事务是否提交</param>
@@ -182,7 +190,10 @@ public sealed class DBTrans : IDisposable
                    bool activeOpen = false)
     {
         if (string.IsNullOrWhiteSpace(fileName))
+        {
+            IsDisposed = true; // 出错后未 Push 会造成 Pop 抛错, 固设为 true
             throw new ArgumentNullException(nameof(fileName));
+        }
 
         _fileName = fileName.Replace("/", "\\");// doc.Name总是"D:\\JX.dwg"
 
@@ -192,6 +203,7 @@ public sealed class DBTrans : IDisposable
         {
             if (activeOpen)
             {
+                IsDisposed = true; // 出错后未 Push 会造成 Pop 抛错, 固设为 true
                 throw new IOException("错误:事务栈明确为前台开图时,文件不存在");
             }
             else
@@ -220,6 +232,7 @@ public sealed class DBTrans : IDisposable
                     }
                     catch (Exception e)
                     {
+                        IsDisposed = true; // 出错后未 Push 会造成 Pop 抛错, 固设为 true
                         throw new IOException($"错误:此文件打开错误:{fileName}\n错误信息:{e.Message}");
                     }
                 }
@@ -241,15 +254,27 @@ public sealed class DBTrans : IDisposable
                 if (doc is null)
                 {
                     Database = new Database(false, true);
-                    if (Path.GetExtension(_fileName).ToLower().Contains("dxf"))
+                    try
                     {
-                        Database.DxfIn(_fileName, null);
+                        if (Path.GetExtension(_fileName).ToLower().Contains("dxf"))
+                        {
+                            Database.DxfIn(_fileName, null);
+                        }
+                        else
+                        {
+                            Database.ReadDwgFile(_fileName, fileOpenMode, true, password);
+                        }
                     }
-                    else
+                    catch (Exception e)
                     {
-                        Database.ReadDwgFile(_fileName, fileOpenMode, true, password);
+                        IsDisposed = true; // 出错后未 Push 会造成 Pop 抛错, 固设为 true
+                        Acap.ShowAlertDialog($"错误:此文件打开错误:{fileName}\n格式版本可能高于当前CAD版本\n错误信息:{e.Message}");
+                        throw; // 交给调用处处理更灵活，避免再次报错时CAD就直接退出
                     }
-                    Database.CloseInput(true);
+                    finally
+                    {
+                        Database.CloseInput(true);
+                    }
                 }
                 else
                 {
