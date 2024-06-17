@@ -30,11 +30,12 @@ public static class CheckFactory
                 {
                     if (add is not CommandMethodAttribute cma) 
                         continue;
-                    if (!dic.ContainsKey(cma.GlobalName))
+                    var cmd = cma.GlobalName.ToUpper();
+                    if (!dic.ContainsKey(cmd))
                     {
-                        dic.Add(cma.GlobalName, new());
+                        dic.Add(cmd, new());
                     }
-                    dic[cma.GlobalName].Add(type.Name + "." + method.Name);
+                    dic[cmd].Add(type.Name + "." + method.Name);
                 }
             }
         }
