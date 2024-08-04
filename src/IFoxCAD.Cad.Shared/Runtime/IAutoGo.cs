@@ -91,8 +91,8 @@ class RunClass
 /// </summary>
 public class AutoReflection
 {
-    static List<RunClass> _InitializeList = new(); // 储存方法用于初始化
-    static List<RunClass> _TerminateList = new();  // 储存方法用于结束释放
+    List<RunClass> _InitializeList = new(); // 储存方法用于初始化
+    List<RunClass> _TerminateList = new();  // 储存方法用于结束释放
 
     readonly string _dllName;
     readonly AutoRegConfig _autoRegConfig;
