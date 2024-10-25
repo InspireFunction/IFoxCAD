@@ -23,7 +23,7 @@ public static class EntityBoundingInfo
     static Extents3d GetMTextBox(MText mText)
     {
         var ext = new Extents3d();
-        GetMTextBoxCorners(mText).ForEach(p=>ext.AddPoint(p));
+        GetMTextBoxCorners(mText).ForEach(p => ext.AddPoint(p));
         return ext;
     }
     /// <summary>
@@ -175,6 +175,17 @@ public static class EntityBoundingInfo
         Extents3d? ext = null;
         switch (ent)
         {
+            case Hatch hatch:
+                var hc = new HatchConverter(hatch);
+                hc.GetBoundarysData();
+                var extTmp = new Extents3d();
+                foreach (var curve in hc.CreateBoundary())
+                {
+                    extTmp.AddExtents(GetEntityBoxEx(curve)!.Value);
+                    curve.Dispose();
+                }
+                ext = extTmp;
+                break;
             case Spline spl:
                 ext = spl.ToPolyline().GeometricExtents;
                 break;
@@ -198,7 +209,7 @@ public static class EntityBoundingInfo
                 var mat = Matrix3d.Identity;
                 block!.GetBlockBox(ref blockExt, ref mat);
                 if (!blockExt.IsEmptyExt())
-                  ext = blockExt;
+                    ext = blockExt;
                 break;
             default:
                 if (ent.Bounds.HasValue)
