@@ -676,6 +676,10 @@ public class DBTrans : IDisposable
         // 将文档锁销毁
         _documentLock?.Dispose();
 
+        //直接以文件 new 事务，最好及时释放 Database
+        if (!string.IsNullOrWhiteSpace(_fileName))
+            Database.Dispose();
+
         // 将当前事务栈弹栈
         _dBTrans.Pop();
     }
