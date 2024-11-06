@@ -86,9 +86,7 @@ public static class VersionTool
     // 字段:public static readonly int[] Years;
     // 构造:Years = _years;
     // 异或判断数值是否一致
-    // if ((_years.Length ^ DwgVers.Length ^ AcadVers.Length) != AcadVers.Length)
-    //    throw new Exception(nameof(VersionTool)
-    //                  + "怎么长度不一样了捏?");
+    // Debug.Assert((_years.Length ^ DwgVers.Length ^ AcadVers.Length) == AcadVers.Length, "怎么长度不一样了捏?");
     // [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int IndexToYear(int index)
     {
@@ -146,45 +144,40 @@ public static class VersionTool
     {
         var major = Acap.Version.Major;
         var minor = Acap.Version.Minor;
-        AcadVerOR = (major << 16) | minor;
+
+        // Q16.16定点数:0.5*2^16来得到小数部分
+        var fp = minor * 0.1f * (1 << 16);
+        AcadVerOR = (int)(((uint)major << 16) | (ushort)fp);
 
         // 消除字符串从而不需要构造hashmap.
         // 位移+位或,使得它们从小数映射到整数,
         // 并且保持大小关系,仍然有序可以能够二分.
         // 编译时:C#没有循环消除,反编译源码还能看见,
         // 运行时:避免求一次循环,可以把结果再重新粘贴回代码.
-        // --就像快速平方根倒数,浮点数转16进制,然后粘贴到代码上,成为魔法数
+        // --就像快速平方根倒数,夹逼求浮点数,再转16进制,然后粘贴到代码上,成为魔法数
         var v = new int[_acadVers.Length];
-        for (var i = 0; i < _acadVers.Length; i++)
-        {
+        for (var i = 0; i < _acadVers.Length; i++) {
             var s = _acadVers[i];
             var m = (s[1] - '0') * 10 + (s[2] - '0');
             var n = (s[4] - '0'); //0是R,3是小数点,所以跳到4
-            v[i] = (m << 16) | n;
+            var f = n * 0.1f * (1 << 16);
+            v[i] = (int)(((uint)m << 16) | (ushort)f);
         }
 
         AcadVers = v;
-        _acadVers = null!; // 积极释放
+        _acadVers = null!; //积极释放
         DwgVers = _dwgVers;
 
 #if DEBUG
 
-        // 防止开发者忘记更新数组,提供一个报错来进行维护
+        // 防止开发者忘记更新数组,提供一个断言来进行维护
         var index = Array.BinarySearch(AcadVers, AcadVerOR);
-        if (index < 0)
-        {
-            throw new Exception(nameof(VersionTool)
-                                + "运行中的CAD版本未记录,请维护DWG版本号/CAD版本号");
-        }
-
-        if (DwgVers.Length != AcadVers.Length)
-            throw new Exception(nameof(VersionTool)
-                                + "怎么长度不一样了捏?");
+        Debug.Assert(index > 0, "运行中的CAD版本未记录,请维护DWG版本号/CAD版本号");
+        Debug.Assert(DwgVers.Length == AcadVers.Length, "怎么长度不一样了捏");
 
         // 解码版本号
         var major2 = AcadVerOR >> 16;
         var minor2 = AcadVerOR & 0xFFFF; //位与掩码,获取低16bit
-
 #endif
     }
 }
