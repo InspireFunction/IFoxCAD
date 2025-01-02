@@ -1,4 +1,5 @@
 using ArgumentNullException = System.ArgumentNullException;
+// ReSharper disable MemberCanBePrivate.Global
 
 namespace IFoxCAD.Cad;
 
@@ -17,9 +18,9 @@ public static class EditorEx
     /// <param name="filter">过滤器</param>
     /// <returns>选择集结果类</returns>
     public static PromptSelectionResult SelectAtPoint(this Editor editor, Point3d point,
-        SelectionFilter? filter = default)
+        SelectionFilter? filter = null)
     {
-        return editor.SelectCrossingWindow(point, point, filter);
+        return editor.SelectCrossingWindow(point, point, filter?? new SelectionFilter([]));
     }
 
     /// <summary>
@@ -149,7 +150,6 @@ public static class EditorEx
     /// </summary>
     /// <param name="pso">选择集配置</param>
     /// <param name="dicActions">关键字,回调委托</param>
-    /// <returns></returns>
     public static void SsgetAddKeys(this PromptSelectionOptions pso,
         Dictionary<string, Action> dicActions)
     {
@@ -163,9 +163,8 @@ public static class EditorEx
             if (keySp.Length < 2)
                 continue;
 
-            for (var j = 0; j < keySp.Length; j++)
+            foreach (var item in keySp)
             {
-                var item = keySp[j];
                 // 防止多个后缀通过|符越过词典约束同名
                 // 后缀(key)含有,而且Action(value)不同,就把Action(value)累加到后面.
                 if (dicActions.TryGetValue(item, out var value))
@@ -236,7 +235,6 @@ public static class EditorEx
     //     Env.Editor.SelectionAdded += SelectTest_SelectionAdded;
     //     // 初始化坐标系
     //     Env.Editor.CurrentUserCoordinateSystem = Matrix3d.Identity;
-
     //     // 创建过滤器
     //     var sf = new OpEqual(0, "arc");
     //     var pso = new PromptSelectionOptions
@@ -254,7 +252,6 @@ public static class EditorEx
     //         // 用户选择
     //         var psr = Env.Editor.GetSelection(pso, sf);
     //         // 处理代码
-
     //     }
     //     catch (Exception ex)// 捕获关键字
     //     {
@@ -478,28 +475,26 @@ public static class EditorEx
     /// <returns></returns>
     public static List<TypedValue> GetLines(IEnumerable<Point2d> pnts, bool isClosed)
     {
-        using var itor = pnts.GetEnumerator();
-        if (!itor.MoveNext())
+        using var enumerator = pnts.GetEnumerator();
+        if (!enumerator.MoveNext())
             return [];
 
         List<TypedValue> values = [];
 
-        TypedValue tvFirst = new((int)LispDataType.Point2d, itor.Current);
-        TypedValue tv1;
-        var tv2 = tvFirst;
+        TypedValue first = new((int)LispDataType.Point2d, enumerator.Current);
+        var last = first;
 
-        while (itor.MoveNext())
+        while (enumerator.MoveNext())
         {
-            tv1 = tv2;
-            tv2 = new TypedValue((int)LispDataType.Point2d, itor.Current);
-            values.Add(tv1);
-            values.Add(tv2);
+            values.Add(last);
+            last = new TypedValue((int)LispDataType.Point2d, enumerator.Current);
+            values.Add(last);
         }
 
         if (isClosed)
         {
-            values.Add(tv2);
-            values.Add(tvFirst);
+            values.Add(last);
+            values.Add(first);
         }
 
         return values;
@@ -592,14 +587,13 @@ public static class EditorEx
     public static void DrawLineVectors(this Editor editor, IEnumerable<Point3d> points,
         int colorIndex = 1, bool drawHighlighted = false)
     {
-        Point3d endPoint1, endPoint2;
         using var itor = points.GetEnumerator();
         while (itor.MoveNext())
         {
-            endPoint1 = itor.Current;
+            var endPoint1 = itor.Current;
             if (!itor.MoveNext())
                 return;
-            endPoint2 = itor.Current;
+            var endPoint2 = itor.Current;
             editor.DrawVector(endPoint1, endPoint2, colorIndex, drawHighlighted);
         }
     }
@@ -610,13 +604,13 @@ public static class EditorEx
     /// <param name="editor">用户交互对象</param>
     /// <param name="points">点表</param>
     /// <param name="colorIndex">CAD颜色索引;默认：1为红色</param>
-    /// <param name="isclose">是否闭合;<see langword="true"/> 为闭合,默认：<see langword="false"/> 为不闭合</param>
+    /// <param name="isClose">是否闭合;<see langword="true"/> 为闭合,默认：<see langword="false"/> 为不闭合</param>
     /// <param name="drawHighlighted">是否高亮显示;<see langword="true"/>为高亮显示,默认：<see langword="false"/>为不高亮显示</param>
     public static void DrawEndToEndVectors(this Editor editor, IEnumerable<Point3d> points,
-        int colorIndex = 1, bool isclose = false, bool drawHighlighted = false)
+        int colorIndex = 1, bool isClose = false, bool drawHighlighted = false)
     {
         using var itor = points.GetEnumerator();
-        if (!points.Any() || !itor.MoveNext())
+        if (!itor.MoveNext())
             return;
         Point3d endPoint1 = itor.Current, endPoint2 = new(), firstEndPoint = endPoint1;
         while (itor.MoveNext())
@@ -626,7 +620,7 @@ public static class EditorEx
             endPoint1 = endPoint2;
         }
 
-        if (isclose)
+        if (isClose)
             editor.DrawVector(endPoint2, firstEndPoint, colorIndex, drawHighlighted);
     }
 
@@ -655,7 +649,7 @@ public static class EditorEx
     }
 
     /// <summary>
-    /// 获取MDCS(模型空间)到WCS的矩阵
+    /// 获取MDcs(模型空间)到WCS的矩阵
     /// </summary>
     /// <param name="editor">命令行对象</param>
     /// <returns>变换矩阵</returns>
@@ -934,12 +928,12 @@ public static class EditorEx
     /// 获取Point
     /// </summary>
     /// <param name="ed">命令行对象</param>
-    /// <param name="Message">提示信息</param>
-    /// <param name="BasePoint">提示使用的基点</param>
-    /// <returns></returns>
-    public static PromptPointResult GetPoint(this Editor ed, string Message, Point3d BasePoint)
+    /// <param name="message">提示信息</param>
+    /// <param name="basePoint">提示使用的基点</param>
+    /// <returns>交互结果</returns>
+    public static PromptPointResult GetPoint(this Editor ed, string message, Point3d basePoint)
     {
-        PromptPointOptions ptOp = new(Message) { BasePoint = BasePoint, UseBasePoint = true };
+        PromptPointOptions ptOp = new(message) { BasePoint = basePoint, UseBasePoint = true, AllowNone = true };
         return ed.GetPoint(ptOp);
     }
 
@@ -947,13 +941,13 @@ public static class EditorEx
     /// 获取double值
     /// </summary>
     /// <param name="ed">命令行对象</param>
-    /// <param name="Message">提示信息</param>
-    /// <param name="DefaultValue">double默认值</param>
-    /// <returns></returns>
-    public static PromptDoubleResult GetDouble(this Editor ed, string Message,
-        double DefaultValue = 1.0)
+    /// <param name="message">提示信息</param>
+    /// <param name="defaultValue">double默认值</param>
+    /// <returns>交互结果</returns>
+    public static PromptDoubleResult GetDouble(this Editor ed, string message,
+        double defaultValue = 1.0)
     {
-        PromptDoubleOptions douOp = new(Message) { DefaultValue = DefaultValue };
+        PromptDoubleOptions douOp = new(message) { DefaultValue = defaultValue, AllowNone = true };
         return ed.GetDouble(douOp);
     }
 
@@ -961,13 +955,13 @@ public static class EditorEx
     /// 获取int值
     /// </summary>
     /// <param name="ed">命令行对象</param>
-    /// <param name="Message">提示信息</param>
-    /// <param name="DefaultValue">double默认值</param>
-    /// <returns></returns>
-    public static PromptIntegerResult GetInteger(this Editor ed, string Message,
-        int DefaultValue = 1)
+    /// <param name="message">提示信息</param>
+    /// <param name="defaultValue">默认值</param>
+    /// <returns>交互结果</returns>
+    public static PromptIntegerResult GetInteger(this Editor ed, string message,
+        int defaultValue = 1)
     {
-        PromptIntegerOptions douOp = new(Message) { DefaultValue = DefaultValue };
+        PromptIntegerOptions douOp = new(message) { DefaultValue = defaultValue, AllowNone = true };
         return ed.GetInteger(douOp);
     }
 
@@ -975,12 +969,13 @@ public static class EditorEx
     /// 获取string值
     /// </summary>
     /// <param name="ed">命令行对象</param>
-    /// <param name="Message">提示信息</param>
-    /// <param name="DefaultValue">string默认值</param>
+    /// <param name="message">提示信息</param>
+    /// <param name="defaultValue">string默认值</param>
     /// <returns></returns>
-    public static PromptResult GetString(this Editor ed, string Message, string DefaultValue = "")
+    public static PromptResult GetString(this Editor ed, string message, string defaultValue = "")
     {
-        PromptStringOptions strOp = new(Message) { DefaultValue = DefaultValue };
+        PromptStringOptions strOp = new(message)
+            { DefaultValue = defaultValue, UseDefaultValue = !string.IsNullOrWhiteSpace(defaultValue) };
         return ed.GetString(strOp);
     }
 
@@ -990,17 +985,17 @@ public static class EditorEx
 
     [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "acedInvoke")]
-    static extern int AcedInvoke(IntPtr args, out IntPtr result);
+    private static extern int AcedInvoke(IntPtr args, out IntPtr result);
 
     // 高版本此接口不能使用lisp(command "xx"),但是可以直接在自动运行接口上
     [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "?acedEvaluateLisp@@YAHPEB_WAEAPEAUresbuf@@@Z")]
     [System.Security.SuppressUnmanagedCodeSecurity] // 初始化默认值
-    static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
+    private static extern int AcedEvaluateLisp(string lispLine, out IntPtr result);
 
     [DllImport("accore.dll", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "ads_queueexpr")]
-    static extern int Ads_queueexpr(string strExpr);
+    private static extern int Ads_queueexpr(string strExpr);
 
     /// <summary>
     /// 执行lisp的方式枚举

@@ -1,5 +1,9 @@
 ﻿#if a2024 || zcad
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
+
+// ReSharper disable ClassWithVirtualMembersNeverInherited.Global
+
+// ReSharper disable MemberCanBePrivate.Global
 #endif
 
 namespace IFoxCAD.Cad;
@@ -17,13 +21,12 @@ namespace IFoxCAD.Cad;
 /// <summary>
 /// 重绘事件
 /// </summary>
-/// <param name="draw"></param>
+/// <param name="draw">worldDraw</param>
 public delegate void WorldDrawEvent(WorldDraw draw);
 
 /// <summary>
 /// jig扩展类
 /// </summary>
-// ReSharper disable once ClassWithVirtualMembersNeverInherited.Global
 public class JigEx : DrawJig, IDisposable
 {
     #region 成员
@@ -31,7 +34,7 @@ public class JigEx : DrawJig, IDisposable
     /// <summary>
     /// 事件:亮显/暗显会被刷新冲刷掉,所以这个事件用于补充非刷新的工作
     /// </summary>
-    event WorldDrawEvent? WorldDrawEvent;
+    private event WorldDrawEvent? WorldDrawEvent;
 
     /// <summary>
     /// 最后的鼠标点,用来确认长度
@@ -46,11 +49,12 @@ public class JigEx : DrawJig, IDisposable
     /// <summary>
     /// 鼠标移动时的委托
     /// </summary>
-    readonly Action<Point3d, Queue<Entity>>? _mouseAction;
-    readonly Tolerance _tolerance; // 容差
+    private readonly Action<Point3d, Queue<Entity>>? _mouseAction;
 
-    readonly Queue<Entity> _drawEntities; // 委托内重复生成的图元,放在这里刷新
-    JigPromptPointOptions? _options; // jig鼠标配置
+    private readonly Tolerance _tolerance; // 容差
+
+    private readonly Queue<Entity> _drawEntities; // 委托内重复生成的图元,放在这里刷新
+    private JigPromptPointOptions? _options; // jig鼠标配置
     private bool _worldDrawFlag; // 20220503
 
     #endregion
@@ -60,7 +64,7 @@ public class JigEx : DrawJig, IDisposable
     /// <summary>
     /// 在界面绘制图元
     /// </summary>
-    JigEx()
+    private JigEx()
     {
         _drawEntities = new();
         DimensionEntities = new();
@@ -248,7 +252,7 @@ public class JigEx : DrawJig, IDisposable
     /// <summary>
     /// 鼠标配置:自定义
     /// </summary>
-    /// <param name="action"></param>
+    /// <param name="action">拖拽设置委托</param>
     public void SetOptions(Action<JigPromptPointOptions> action)
     {
         _options = new JigPromptPointOptions();
@@ -270,7 +274,6 @@ public class JigEx : DrawJig, IDisposable
         return dr;
     }
 
-
     #region 配置
 
     /// <summary>
@@ -278,7 +281,7 @@ public class JigEx : DrawJig, IDisposable
     /// <para>令jig.Drag().Status == <see cref="PromptStatus.None"/></para>
     /// </summary>
     /// <returns>Jig配置</returns>
-    static JigPromptPointOptions JigPointOptions()
+    private static JigPromptPointOptions JigPointOptions()
     {
         return new JigPromptPointOptions()
         {
@@ -300,7 +303,8 @@ public class JigEx : DrawJig, IDisposable
         ArgumentNullException.ThrowIfNull(opt);
         if ((opt.UserInputControls & UserInputControls.NullResponseAccepted) == UserInputControls.NullResponseAccepted)
             opt.UserInputControls ^= UserInputControls.NullResponseAccepted; // 输入了鼠标右键,结束jig
-        if ((opt.UserInputControls & UserInputControls.AnyBlankTerminatesInput) == UserInputControls.AnyBlankTerminatesInput)
+        if ((opt.UserInputControls & UserInputControls.AnyBlankTerminatesInput) ==
+            UserInputControls.AnyBlankTerminatesInput)
             opt.UserInputControls ^= UserInputControls.AnyBlankTerminatesInput; // 空格或回车,结束jig
     }
 
@@ -331,7 +335,7 @@ public class JigEx : DrawJig, IDisposable
     #region IDisposable接口相关函数
 
     /// <summary>
-    /// 
+    /// 已经销毁
     /// </summary>
     public bool IsDisposed { get; private set; }
 
@@ -353,9 +357,9 @@ public class JigEx : DrawJig, IDisposable
     }
 
     /// <summary>
-    /// 
+    /// 销毁
     /// </summary>
-    /// <param name="disposing"></param>
+    /// <param name="disposing">正常销毁</param>
     protected virtual void Dispose(bool disposing)
     {
         // 不重复释放,并设置已经释放

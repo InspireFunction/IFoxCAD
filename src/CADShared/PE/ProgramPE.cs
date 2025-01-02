@@ -85,8 +85,8 @@ public class PeInfo
     /// <exception cref="ArgumentException"></exception>
     public PeInfo(string fullName)
     {
-        if (fullName is null)
-            throw new ArgumentException(nameof(fullName));
+        if (string.IsNullOrWhiteSpace(fullName))
+            throw new ArgumentNullException(nameof(fullName));
 
         FullName = fullName;
         FileStream? file = null;
@@ -94,9 +94,7 @@ public class PeInfo
         try
         {
             // 文件流
-            file = new FileStream(fullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);// FileShare才能进c盘
-            _PEFileByte = new byte[file.Length];
-            file.Read(_PEFileByte, 0, _PEFileByte.Length);
+            _PEFileByte = File.ReadAllBytes(fullName);
             LoadFile();
             OpenFile = true;
         }
