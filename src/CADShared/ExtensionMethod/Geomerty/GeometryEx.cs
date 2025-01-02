@@ -24,7 +24,7 @@ public static class GeometryEx
         var ptList = pts.ToList();
         if (ptList.Count < 3)
             return PointOnRegionType.Error;
-        if (ptList[0] == ptList[1])
+        if (ptList[0] == ptList[^1])
         {
             ptList.RemoveAt(ptList.Count - 1);
         }
@@ -32,6 +32,7 @@ public static class GeometryEx
         if (ptList.Count < 3)
             return PointOnRegionType.Error;
 
+#if !zcad
         List<Curve2d> ls2ds = [];
         for (var i = 0; i < ptList.Count - 1; i++)
         {
@@ -52,11 +53,11 @@ public static class GeometryEx
         // 在多边形上?
         if (cc2d.IsOn(pt))
             return PointOnRegionType.On;
-
         // 在最小包围矩形外?
         var bb2d = cc2d.BoundBlock;
         if (!bb2d.Contains(pt))
             return PointOnRegionType.Outside;
+#endif
 
         #region 旧版疑似有问题的代码
 
@@ -111,7 +112,7 @@ public static class GeometryEx
         var ptList = pts.ToList();
         if (ptList.Count < 3)
             return PointOnRegionType.Error;
-        if (ptList[0] == ptList[1])
+        if (ptList[0] == ptList[^1])
         {
             ptList.RemoveAt(ptList.Count - 1);
         }
@@ -402,14 +403,11 @@ public static class GeometryEx
                 ptlst = [pnts[0]];
                 return new CircularArc2d(pnts[0], 0);
 
-            case 2:
-                return GetMinCircle(pnts[0], pnts[1], out ptlst);
+            case 2: return GetMinCircle(pnts[0], pnts[1], out ptlst);
 
-            case 3:
-                return GetMinCircle(pnts[0], pnts[1], pnts[2], out ptlst);
+            case 3: return GetMinCircle(pnts[0], pnts[1], pnts[2], out ptlst);
 
-            case 4:
-                return GetMinCircle(pnts[0], pnts[1], pnts[2], pnts[3], out ptlst);
+            case 4: return GetMinCircle(pnts[0], pnts[1], pnts[2], pnts[3], out ptlst);
         }
 
         // 按前三点计算最小包围圆
