@@ -61,6 +61,7 @@ public static class IFoxUtils
         }
     }
 
+#endif
     /// <summary>
     /// 发送气泡通知
     /// </summary>
@@ -136,5 +137,4 @@ public static class IFoxUtils
     {
         return new Transparency(Convert.ToByte(Math.Floor((100 - value) * 2.55)));
     }
-#endif
 }

@@ -1,7 +1,7 @@
 <Project>
     <!--版本号和提示-->
     <PropertyGroup>
-        <Version>0.9.2-preview7</Version>
+        <Version>0.9.2-preview8</Version>
         <PackageReleaseNotes>修复注册表程序集获取错误的问题</PackageReleaseNotes>
     </PropertyGroup>
 
