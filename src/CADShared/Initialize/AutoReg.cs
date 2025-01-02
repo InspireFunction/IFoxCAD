@@ -55,7 +55,7 @@ public static class AutoReg
     /// <param name="assembly">程序集</param>
     public static void RegApp(Assembly? assembly = null)
     {
-        assembly ??= Assembly.GetExecutingAssembly();
+        assembly ??= Assembly.GetCallingAssembly();
         var info = new AssemInfo(assembly);
         RegApp(info);
     }
@@ -81,7 +81,7 @@ public static class AutoReg
     /// <param name="assembly">程序集</param>
     public static void UnRegApp(Assembly? assembly = null)
     {
-        assembly ??= Assembly.GetExecutingAssembly();
+        assembly ??= Assembly.GetCallingAssembly();
         var info = new AssemInfo(assembly);
         UnRegApp(info);
     }
