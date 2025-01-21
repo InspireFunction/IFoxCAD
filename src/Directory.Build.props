@@ -1,8 +1,8 @@
 <Project>
     <!--版本号和提示-->
     <PropertyGroup>
-        <Version>0.9.2</Version>
-        <PackageReleaseNotes>修复注册表程序集获取错误的问题</PackageReleaseNotes>
+        <Version>0.9.3-preview1</Version>
+        <PackageReleaseNotes>补充IFoxDwgFilter类</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup>

@@ -52,6 +52,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Entity\RegionEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Enums.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\ErrorInfoEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Filter\DwgFiler.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Geomerty\Curve2dEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Geomerty\Curve3dEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Geomerty\GeometryEx.cs" />
