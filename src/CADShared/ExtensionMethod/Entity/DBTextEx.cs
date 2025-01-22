@@ -39,7 +39,7 @@ public static class DBTextEx
 
         action?.Invoke(acText);
 
-        if (acText.Justify != AttachmentPoint.BaseLeft)
+        if (!acText.IsDefaultAlignment)
             acText.AlignmentPoint = position;
 
         acText.AdjustAlignment(workingDatabase);
