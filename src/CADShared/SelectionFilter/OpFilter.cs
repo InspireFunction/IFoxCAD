@@ -117,7 +117,7 @@ public abstract class OpFilter
         /// <param name="args">操作符类型的可变参数</param>
         /// <returns>Op对象</returns>
 #pragma warning disable CA1822 // 将成员标记为 static
-        public Op And(params Op[] args)
+        public Op And(params IEnumerable<Op> args)
 #pragma warning restore CA1822 // 将成员标记为 static
         {
             var filter = new OpAnd();
@@ -132,7 +132,7 @@ public abstract class OpFilter
         /// <param name="args">操作符类型的可变参数</param>
         /// <returns>Op对象</returns>
 #pragma warning disable CA1822 // 将成员标记为 static
-        public Op Or(params Op[] args)
+        public Op Or(params IEnumerable<Op> args)
 #pragma warning restore CA1822 // 将成员标记为 static
         {
             var filter = new OpOr();

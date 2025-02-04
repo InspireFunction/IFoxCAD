@@ -74,7 +74,7 @@ public sealed class SingleKeyWordHook : IDisposable
     /// 添加Keys
     /// </summary>
     /// <param name="values">Keys集合</param>
-    public void AddKeys(params Keys[] values) => values.ForEach(value => _keyWords.Add(value));
+    public void AddKeys(params IEnumerable<Keys> values) => values.ForEach(value => _keyWords.Add(value));
 
     /// <summary>
     /// 添加Keys
@@ -94,7 +94,7 @@ public sealed class SingleKeyWordHook : IDisposable
     /// 移除Keys
     /// </summary>
     /// <param name="values">Keys集合</param>
-    public void Remove(params Keys[] values) => values.ForEach(value => _keyWords.Remove(value));
+    public void Remove(params IEnumerable<Keys> values) => values.ForEach(value => _keyWords.Remove(value));
 
     /// <summary>
     /// 清空Keys
