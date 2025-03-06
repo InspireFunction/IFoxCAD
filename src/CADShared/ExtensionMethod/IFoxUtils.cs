@@ -16,10 +16,27 @@ public static class IFoxUtils
         var type = Acaop.Version.Major >= 21
             ? Assembly.Load("accoremgd")?.GetType("Autodesk.AutoCAD.Internal.CoreLayerUtilities")
             : Assembly.Load("acmgd")?.GetType("Autodesk.AutoCAD.Internal.LayerUtilities");
-        var mi = type?.GetMethods().FirstOrDefault(e => e.Name == "RegenLayers");
-        var pi = type?.GetProperties().FirstOrDefault(e => e.Name == "RegenPending");
+        if (type == null)
+            return;
+        var mi = type.GetMethods()
+            .FirstOrDefault(e =>
+            {
+                if (e.Name != "RegenLayers")
+                    return false;
+                var parameterInfos = e.GetParameters();
+                if (parameterInfos.Length != 2)
+                    return false;
+                if (parameterInfos[0].ParameterType != typeof(ObjectId[]))
+                    return false;
+                if (parameterInfos[1].ParameterType != typeof(int))
+                    return false;
+                return true;
+            });
+        if (mi == null)
+            return;
+        var pi = type.GetProperties().FirstOrDefault(e => e.Name == "RegenPending");
         var regenPending = (int)(pi?.GetValue(null) ?? 0);
-        mi?.Invoke(null, [layerIds.ToArray(), regenPending]);
+        mi.Invoke(null, [layerIds.ToArray(), regenPending]);
     }
 
     /// <summary>
@@ -57,6 +74,14 @@ public static class IFoxUtils
                 if (!layerIdSet.Contains(ent.LayerId))
                     continue;
                 ent.RecordGraphicsModified(true);
+                try
+                {
+                    ent.TransformBy(Matrix3d.Identity);
+                }
+                catch (Exception)
+                {
+                    // 某些类型如blockbegin blockend等不能进行矩阵转换
+                }
             }
         }
     }
