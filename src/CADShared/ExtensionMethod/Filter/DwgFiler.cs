@@ -108,14 +108,14 @@ public class IFoxDwgFiler : DwgFiler
 
     public override IntPtr ReadAddress()
     {
-        if (AddressList.Count == 0)
-            return new();
+        if (AddressListPt >= AddressList.Count)
+            return IntPtr.Zero;
         return AddressList[AddressListPt++];
     }
 
     public override byte[]? ReadBinaryChunk()
     {
-        if (BinaryChunkList.Count == 0)
+        if (BinaryChunkListPt >= BinaryChunkList.Count)
             return null;
         return BinaryChunkList[BinaryChunkListPt++];
     }
@@ -228,7 +228,7 @@ public class IFoxDwgFiler : DwgFiler
 
     public override string? ReadString()
     {
-        if (StringList.Count == 0)
+        if (StringListPt >= StringList.Count)
             return null;
         return StringList[StringListPt++];
     }
@@ -458,7 +458,7 @@ public class IFoxDwgFiler : DwgFiler
     {
         Vector3dList.Add(value);
     }
-    
+
     // public override string ToString()
     // {
 // #if NewtonsoftJson
