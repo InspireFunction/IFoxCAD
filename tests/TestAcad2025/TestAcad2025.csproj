@@ -2,7 +2,6 @@
 	<PropertyGroup>
 		<LangVersion>preview</LangVersion>
 		<Nullable>enable</Nullable>
-
 		<TargetFrameworks>net48;net8.0-windows</TargetFrameworks>
 		<UseWPF>true</UseWPF>
 		<UseWindowsForms>true</UseWindowsForms>
@@ -47,12 +46,7 @@
 	<ItemGroup Condition="'$(TargetFramework)' == 'net8.0-windows'">
 		<PackageReference Include="AutoCAD.NET" Version="25.0.1" ExcludeAssets="runtime"/>
 	</ItemGroup>
-<!--	<ItemGroup>-->
-<!--		<Reference Include="System.Web" />-->
-<!--		<Reference Include="System.Web.Extensions" />-->
-<!--	</ItemGroup>-->
-
-
+	
 	<ItemGroup>
 	  	<ProjectReference Include="..\..\src\IFoxCAD.AutoCad\IFoxCAD.AutoCad.csproj" />
 	</ItemGroup>
