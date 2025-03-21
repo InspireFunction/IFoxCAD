@@ -502,10 +502,15 @@ public static class GeometryEx
     /// <param name="p1">第一点</param>
     /// <param name="p2">第二点</param>
     /// <param name="p3">第三点</param>
-    /// <returns>左转返回 true，否则返回 false</returns>
-    public static double IsClockWise(Point3d p1, Point3d p2, Point3d p3)
+    /// <returns>OrientationType 类型值</returns>
+    public static OrientationType IsClockWise(Point3d p1, Point3d p2, Point3d p3)
     {
-        return (p2.X - p1.X) * (p3.Y - p2.Y) - (p2.Y - p1.Y) * (p3.X - p2.X);
+        return ((p2.X - p1.X) * (p3.Y - p2.Y) - (p2.Y - p1.Y) * (p3.X - p2.X)) switch
+        {
+            > 0 => OrientationType.CounterClockWise,
+            < 0 => OrientationType.ClockWise,
+            _ => OrientationType.Parallel
+        };
         
     }
     /// <summary>
@@ -521,14 +526,14 @@ public static class GeometryEx
         }
 
         var deque = new LinkedList<Point3d>();
-        if (IsClockWise(points[0], points[1], points[2]) > 0)
+        if (IsClockWise(points[0], points[1], points[2]) is OrientationType.CounterClockWise)
         {
             deque.AddFirst(points[2]);
             deque.AddLast(points[0]);
             deque.AddLast(points[1]);
             deque.AddLast(points[2]);
         }
-        else if (IsClockWise(points[0], points[1], points[2]) < 0)
+        else if (IsClockWise(points[0], points[1], points[2]) is OrientationType.ClockWise)
         {
             deque.AddFirst(points[2]);
             deque.AddLast(points[1]);
@@ -544,18 +549,18 @@ public static class GeometryEx
 
         foreach (var p in points.Skip(3))
         {
-            if (IsClockWise(deque.Last!.Previous!.Value, deque.Last.Value, p) > 0 
-                && IsClockWise(p, deque.First!.Value, deque.First.Next!.Value) > 0)
+            if (IsClockWise(deque.Last!.Previous!.Value, deque.Last.Value, p) is OrientationType.CounterClockWise 
+                && IsClockWise(p, deque.First!.Value, deque.First.Next!.Value) is OrientationType.CounterClockWise)
             {
                 continue;
             }
-            while (deque.Count > 1 && IsClockWise(deque.Last!.Previous!.Value, deque.Last.Value, p) <= 0)
+            while (deque.Count > 1 && IsClockWise(deque.Last!.Previous!.Value, deque.Last.Value, p) is not OrientationType.CounterClockWise)
             {
                 deque.RemoveLast();
             }
             deque.AddLast(p);
 
-            while (deque.Count > 1 && IsClockWise(p, deque.First!.Value, deque.First.Next!.Value) <= 0)
+            while (deque.Count > 1 && IsClockWise(p, deque.First!.Value, deque.First.Next!.Value) is not OrientationType.CounterClockWise)
             {
                 deque.RemoveFirst();
             }
