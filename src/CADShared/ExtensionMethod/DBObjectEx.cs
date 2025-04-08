@@ -59,12 +59,12 @@ public static class DBObjectEx
     /// <param name="appName">应用程序名称</param>
     public static void RemoveXData(this DBObject obj, string appName)
     {
-        if (obj.XData is null)
+        if (obj.GetXDataForApplication(appName) is null)
             return;
 
         // 直接赋值进去等于清空名称
         using (obj.ForWrite())
-            obj.XData = new XDataList() { { 1001, appName } };
+            obj.XData = new XDataList { { 1001, appName } };
     }
 
     /// <summary>
