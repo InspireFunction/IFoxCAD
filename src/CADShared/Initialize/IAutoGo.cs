@@ -108,8 +108,8 @@ public class AutoReflection(string dllName, AutoRegConfig configInfo)
     private static List<RunClass> _initializeList = []; // 储存方法用于初始化
     private static List<RunClass> _terminateList = []; // 储存方法用于结束释放
 
-    readonly string _dllName = dllName;
-    readonly AutoRegConfig _autoRegConfig = configInfo;
+    private readonly string _dllName = dllName;
+    private readonly AutoRegConfig _autoRegConfig = configInfo;
 
     /// <summary>
     /// 启动cad的时候会自动执行
@@ -232,7 +232,7 @@ public class AutoReflection(string dllName, AutoRegConfig configInfo)
     /// <param name="initializeName"></param>
     /// <param name="terminates"></param>
     /// <param name="terminateName"></param>
-    void GetInterfaceFunctions(List<RunClass> initializes, string initializeName,
+    private void GetInterfaceFunctions(List<RunClass> initializes, string initializeName,
         List<RunClass> terminates, string terminateName)
     {
         AppDomainGetTypes(type =>
@@ -301,7 +301,7 @@ public class AutoReflection(string dllName, AutoRegConfig configInfo)
     /// <summary>
     /// 收集特性下的函数
     /// </summary>
-    void GetAttributeFunctions(List<RunClass> initializes,
+    private void GetAttributeFunctions(List<RunClass> initializes,
         List<RunClass> terminates)
     {
         AppDomainGetTypes(type =>
@@ -340,7 +340,7 @@ public class AutoReflection(string dllName, AutoRegConfig configInfo)
     /// <summary>
     /// 执行收集到的函数
     /// </summary>
-    static void RunFunctions(List<RunClass> runClassList)
+    private static void RunFunctions(List<RunClass> runClassList)
     {
         foreach (var t in runClassList)
             t.Run();
