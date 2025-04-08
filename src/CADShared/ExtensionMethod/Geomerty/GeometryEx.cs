@@ -450,39 +450,50 @@ public static class GeometryEx
     }
 
     /// <summary>
+    /// 叉积,二维叉乘计算
+    /// </summary>
+    /// <param name="o">原点</param>
+    /// <param name="a">oa向量</param>
+    /// <param name="b">ob向量,此为判断点</param>
+    /// <returns>返回值有正负,表示绕原点四象限的位置变换,也就是有向面积</returns>
+    private static double Cross(Point2d o, Point2d a, Point2d b)
+    {
+        return (a.X - o.X) * (b.Y - o.Y) - (a.Y - o.Y) * (b.X - o.X);
+    }
+
+    /// <summary>
     /// 获取点集的凸包
     /// </summary>
     /// <param name="points">点集</param>
     /// <returns>凸包</returns>
-    public static List<Point2d> ConvexHull(this List<Point2d> points)
+    public static List<Point2d>? ConvexHull(this List<Point2d> points)
     {
-        if (points.Count <= 1)
-            return points;
+        if (points.Count < 3) return null;
 
-        int n = points.Count, k = 0;
-        List<Point2d> H = [..new Point2d[2 * n]];
+        //坐标排序
+        points = points.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
 
-        points.Sort((a, b) => a.X == b.X ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X));
+        var hullPts = new List<Point2d>();
 
-        // Build lower hull
-        for (var i = 0; i < n; ++i)
-        {
-            while (k >= 2 && IsClockWise(H[k - 2], H[k - 1], points[i]) ==
-                   OrientationType.CounterClockWise)
-                k--;
-            H[k++] = points[i];
+        //构建下凸包
+        foreach (var pt in points) {
+            while (hullPts.Count >= 2 && Cross(hullPts[^2], hullPts[^1], pt) <= 0)
+                hullPts.RemoveAt(hullPts.Count - 1);
+            hullPts.Add(pt);
         }
 
-        // Build upper hull
-        for (int i = n - 2, t = k + 1; i >= 0; i--)
-        {
-            while (k >= t && IsClockWise(H[k - 2], H[k - 1], points[i]) ==
-                   OrientationType.CounterClockWise)
-                k--;
-            H[k++] = points[i];
+        //构建上凸包
+        var lowerHullCount = hullPts.Count + 1;
+        for (var i = points.Count - 2; i >= 0; i--) {
+            while (hullPts.Count >= lowerHullCount && Cross(hullPts[^2], hullPts[^1], points[i]) <= 0)
+                hullPts.RemoveAt(hullPts.Count - 1);
+            hullPts.Add(points[i]);
         }
 
-        return H.Take(k - 1).ToList();
+        //移除与起点重复的尾点
+        hullPts.RemoveAt(hullPts.Count - 1);
+
+        return hullPts.Count >= 3 ? hullPts : null;
     }
 
     #endregion PointList
