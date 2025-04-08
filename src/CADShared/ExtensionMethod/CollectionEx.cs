@@ -185,17 +185,17 @@ public static class CollectionEx
         /// <summary>
         /// 全局名字
         /// </summary>
-        GlobalName,
+        GLOBAL,
 
         /// <summary>
         /// 本地名字
         /// </summary>
-        LocalName,
+        LOCAL,
 
         /// <summary>
         /// 显示名字
         /// </summary>
-        DisplayName,
+        DISPLAY,
     }
 
     /// <summary>
@@ -207,12 +207,12 @@ public static class CollectionEx
     /// <returns>true含有</returns>
     [DebuggerStepThrough]
     public static bool Contains(this KeywordCollection collection, string name,
-        KeywordName keywordName = KeywordName.GlobalName)
+        KeywordName keywordName = KeywordName.GLOBAL)
     {
         var contains = false;
         switch (keywordName)
         {
-            case KeywordName.GlobalName:
+            case KeywordName.GLOBAL:
                 for (var i = 0; i < collection.Count; i++)
                 {
                     var item = collection[i];
@@ -225,7 +225,7 @@ public static class CollectionEx
                 }
 
                 break;
-            case KeywordName.LocalName:
+            case KeywordName.LOCAL:
                 for (var i = 0; i < collection.Count; i++)
                 {
                     var item = collection[i];
@@ -238,7 +238,7 @@ public static class CollectionEx
                 }
 
                 break;
-            case KeywordName.DisplayName:
+            case KeywordName.DISPLAY:
                 for (var i = 0; i < collection.Count; i++)
                 {
                     var item = collection[i];
