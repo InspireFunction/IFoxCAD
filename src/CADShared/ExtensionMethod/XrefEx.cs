@@ -578,8 +578,8 @@ public class XrefPath
     /// ]]>
     private static string GetRelativePath(string directory, string file)
     {
-        string[] directories = directory.Split('\\');
-        string[] files = file.Split('\\');
+        var directories = directory.Split('\\');
+        var files = file.Split('\\');
         // 获取两条路径中的最短路径
         var getMinLength = directories.Length < files.Length ? directories.Length : files.Length;
 
