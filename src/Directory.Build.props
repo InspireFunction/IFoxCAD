@@ -1,7 +1,7 @@
 <Project>
     <!--版本号和提示-->
     <PropertyGroup>
-        <Version>0.9.3-preview4</Version>
+        <Version>0.9.3</Version>
         <PackageReleaseNotes>更新dwgfilter的null返回方式</PackageReleaseNotes>
     </PropertyGroup>
 
