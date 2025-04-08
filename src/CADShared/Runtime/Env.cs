@@ -58,7 +58,6 @@ public static class Env
         return ss.ReadProperty(propertyName, "");
     }
 
-
     /// <summary>
     /// 获取对话框配置的数据
     /// </summary>
@@ -88,7 +87,6 @@ public static class Env
     #endregion Preferences
 
     #region Enum
-
     /// <summary>
     /// 控制在AutoLISP的command函数运行时AutoCAD是否回显提示和输入， <see langword="true" /> 为显示， <see langword="false" /> 为不显示
     /// </summary>
@@ -102,7 +100,6 @@ public static class Env
     /// 获取Cad当前是否有活动命令
     /// </summary>
     public static bool CmdActive => Convert.ToBoolean(Acaop.GetSystemVariable("CMDACTIVE"));
-
     /// <summary>
     /// 控制在光标是否为正交模式， <see langword="true" /> 为打开正交， <see langword="false" /> 为关闭正交
     /// </summary>
@@ -251,7 +248,6 @@ public static class Env
         { "基准三角形", DimblkType.DatumBlank },
         { "完整标记", DimblkType.Integral },
         { "建筑标记", DimblkType.ArchTick },
-
         { "", DimblkType.Default },
         { "_DOT", DimblkType.Dot },
         { "_DOTSMALL", DimblkType.DotSmall },
@@ -273,7 +269,6 @@ public static class Env
         { "_INTEGRAL", DimblkType.Integral },
         { "_ARCHTICK", DimblkType.ArchTick }
     };
-
 
     /// <summary>
     /// 标注箭头属性
@@ -299,10 +294,7 @@ public static class Env
     /// <returns>箭头名</returns>
     public static string GetDimblkName(DimblkType dimblk)
     {
-        return
-            dimblk == DimblkType.Default
-                ? "."
-                : "_" + dimblk.GetName();
+        return dimblk == DimblkType.Default ? "." : "_" + dimblk.GetName();
     }
 
     /// <summary>
@@ -402,7 +394,12 @@ public static class Env
         /// <summary>
         /// 平行
         /// </summary>
-        Parallel = 8192
+        Parallel = 8192,
+
+        /// <summary>
+        /// 禁用
+        /// </summary>
+        Disabled = 16384,
     }
 
     /// <summary>
@@ -427,7 +424,6 @@ public static class Env
     }
 
     #endregion OsMode
-
 
     private static string? GetName<T>(this T value)
     {
@@ -488,12 +484,14 @@ public static class Env
 
 #if gcad
     [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint =
+    [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention =
+ CallingConvention.Cdecl, EntryPoint =
  "gcedGetEnv")]
     static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
 
     [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint =
+    [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention =
+ CallingConvention.Cdecl, EntryPoint =
  "gcedSetEnv")]
     static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #endif
@@ -501,12 +499,14 @@ public static class Env
     // TODO: 中望没有测试,此处仅为不报错;本工程所有含有"中望"均存在问题
 #if zcad
     [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint =
+    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention =
+ CallingConvention.Cdecl, EntryPoint =
  "zcedGetEnv")]
     static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
 
     [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint =
+    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention =
+ CallingConvention.Cdecl, EntryPoint =
  "zcedSetEnv")]
     static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #endif
@@ -583,21 +583,21 @@ public static class Env
     /// <param name="folders">目录</param>
     public static void AppendSupportPath(params string[] folders)
     {
-        if (!folders.Any()) return;
+        if (!folders.Any())
+            return;
         var acadPath = GetEnv("ACAD");
-        var acadPathLowerArr =
-            acadPath
-                .ToLower()
-                .Split(';')
-                .Where(item => item != "")
-                .Select(item =>
-                    item[^1] == '\\' ? item.Remove(item.Length - 1) : item)
-                .ToHashSet();
+        var acadPathLowerArr = acadPath.ToLower()
+            .Split(';')
+            .Where(item => item != "")
+            .Select(item => item[^1] == '\\' ? item.Remove(item.Length - 1) : item)
+            .ToHashSet();
         foreach (var folder in folders)
         {
-            if (!Directory.Exists(folder)) continue;
-            var folderLower =
-                folder[^1] == '\\' ? folder.Remove(folder.Length - 1).ToLower() : folder.ToLower();
+            if (!Directory.Exists(folder))
+                continue;
+            var folderLower = folder[^1] == '\\'
+                ? folder.Remove(folder.Length - 1).ToLower()
+                : folder.ToLower();
             if (!acadPathLowerArr.Contains(folderLower))
                 acadPath = folder + ";" + acadPath; //加到前面方便检查
         }
@@ -611,14 +611,17 @@ public static class Env
     /// <param name="folders">目录</param>
     public static void RemoveSupportPath(params string[] folders)
     {
-        if (!folders.Any()) return;
+        if (!folders.Any())
+            return;
         var acadPathArr = GetEnv("ACAD").Split(';').ToList();
         foreach (var folder in folders)
         {
-            var folderLower =
-                folder[^1] == '\\' ? folder.Remove(folder.Length - 1).ToLower() : folder.ToLower();
+            var folderLower = folder[^1] == '\\'
+                ? folder.Remove(folder.Length - 1).ToLower()
+                : folder.ToLower();
             acadPathArr.RemoveAll(item =>
-                (item[^1] == '\\' ? item.Remove(item.Length - 1).ToLower() : item.ToLower()) == folderLower);
+                (item[^1] == '\\' ? item.Remove(item.Length - 1).ToLower() : item.ToLower()) ==
+                folderLower);
         }
 
         SetEnv("ACAD", string.Join(";", acadPathArr));
@@ -630,21 +633,21 @@ public static class Env
     /// <param name="folders">目录</param>
     public static void AppendTrustedPath(params string[] folders)
     {
-        if (folders.Length == 0) return;
+        if (folders.Length == 0)
+            return;
         var trustedPath = GetVar("TRUSTEDPATHS").ToString();
-        var trustedPathLowerArr =
-            trustedPath!
-                .ToLower()
-                .Split(';')
-                .Where(item => item != "")
-                .Select(item =>
-                    item[^1] == '\\' ? item.Remove(item.Length - 1) : item)
-                .ToHashSet();
+        var trustedPathLowerArr = trustedPath!.ToLower()
+            .Split(';')
+            .Where(item => item != "")
+            .Select(item => item[^1] == '\\' ? item.Remove(item.Length - 1) : item)
+            .ToHashSet();
         foreach (var folder in folders)
         {
-            if (!Directory.Exists(folder)) continue;
-            var folderLower =
-                folder[^1] == '\\' ? folder.Remove(folder.Length - 1).ToLower() : folder.ToLower();
+            if (!Directory.Exists(folder))
+                continue;
+            var folderLower = folder[^1] == '\\'
+                ? folder.Remove(folder.Length - 1).ToLower()
+                : folder.ToLower();
             if (!trustedPathLowerArr.Contains(folderLower))
                 trustedPath = folder + ";" + trustedPath; //加到前面方便检查
         }
@@ -658,14 +661,17 @@ public static class Env
     /// <param name="folders">目录</param>
     public static void RemoveTrustedPath(params string[] folders)
     {
-        if (!folders.Any()) return;
+        if (!folders.Any())
+            return;
         var trustedPathArr = GetVar("TRUSTEDPATHS").ToString()!.Split(';').ToList();
         foreach (var folder in folders)
         {
-            var folderLower =
-                folder[^1] == '\\' ? folder.Remove(folder.Length - 1).ToLower() : folder.ToLower();
+            var folderLower = folder[^1] == '\\'
+                ? folder.Remove(folder.Length - 1).ToLower()
+                : folder.ToLower();
             trustedPathArr.RemoveAll(item =>
-                (item[^1] == '\\' ? item.Remove(item.Length - 1).ToLower() : item.ToLower()) == folderLower);
+                (item[^1] == '\\' ? item.Remove(item.Length - 1).ToLower() : item.ToLower()) ==
+                folderLower);
         }
 
         SetVar("TRUSTEDPATHS", string.Join(";", trustedPathArr));
@@ -702,7 +708,6 @@ public static class Env
     {
         return (short)GetVar("WORLDUCS") == 0;
     }
-
 
     #region dwg版本号/cad版本号/年份
 
@@ -803,7 +808,6 @@ public static class Env
 
     #endregion
 
-
     #region cad变量功能延伸
 
     /// <summary>
@@ -834,7 +838,8 @@ public static class Env
             return null;
 
         // 相同的参数进行设置会发生一次异常
-        if (!string.Equals(currentVar.ToString(), valueType.ToString(), StringComparison.CurrentCultureIgnoreCase))
+        if (!string.Equals(currentVar.ToString(), valueType.ToString(),
+                StringComparison.CurrentCultureIgnoreCase))
             SetVar(key, valueType);
 
         return currentVar;
@@ -869,18 +874,6 @@ public static class Env
         }
 
         return dict;
-    }
-
-    /// <summary>
-    /// 延迟更新图层锁定淡显状态
-    /// 在有锁定或解锁图层的命令的末尾使用
-    /// </summary>
-    public static void DelayUpdateLayLockFade()
-    {
-        const string lfName = "LAYLOCKFADECTL";
-        var lf = Convert.ToInt32(Acaop.GetSystemVariable(lfName).ToString());
-        Acaop.SetSystemVariable(lfName, -lf);
-        IdleAction.Add(() => Acaop.SetSystemVariable(lfName, lf));
     }
 
     #endregion
