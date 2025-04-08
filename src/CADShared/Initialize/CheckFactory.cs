@@ -1,5 +1,4 @@
-﻿#if DEBUG
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 命令检查类
@@ -43,12 +42,10 @@ public static class CheckFactory
             }
         }
 
-        var strings = dic
-            .Where(o => o.Value.Count() > 1)
+        var strings = dic.Where(o => o.Value.Count() > 1)
             .Select(o => o.Key + "命令重复，在类" + string.Join("和", o.Value) + "中");
         var str = string.Join(Environment.NewLine, strings);
         if (!string.IsNullOrEmpty(str))
             System.Windows.Forms.MessageBox.Show(str, @"错误：重复命令！");
     }
 }
-#endif
