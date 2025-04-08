@@ -5,14 +5,14 @@ namespace IFoxCAD.Cad;
 /// <summary>
 /// 系统变量管理器
 /// </summary>
-public class SystemVariableManager
+public static class SystemVariableManager
 {
     #region A
 
     /// <summary>
     /// 打开或关闭自动捕捉靶框的显示
     /// </summary>
-    public bool ApBox
+    public static bool ApBox
     {
         get => Convert.ToBoolean(Acaop.GetSystemVariable(nameof(ApBox)));
         set => Acaop.SetSystemVariable(nameof(ApBox), Convert.ToInt32(value));
@@ -21,7 +21,7 @@ public class SystemVariableManager
     /// <summary>
     /// 对象捕捉靶框的大小，范围[1,50]
     /// </summary>
-    public int Aperture
+    public static int Aperture
     {
         get => Convert.ToInt32(Acaop.GetSystemVariable(nameof(Aperture)));
         set => Acaop.SetSystemVariable(nameof(Aperture), value);
@@ -30,7 +30,7 @@ public class SystemVariableManager
     /// <summary>
     /// 图形单位-角度-类型，范围[0-十进制度数,1-度/分/秒,2-百分度,3-弧度,4-勘测单位]
     /// </summary>
-    public int Aunits
+    public static int Aunits
     {
         get => Convert.ToInt32(Acaop.GetSystemVariable(nameof(Aunits)));
         set => Acaop.SetSystemVariable(nameof(Aunits), value);
@@ -39,7 +39,7 @@ public class SystemVariableManager
     /// <summary>
     /// 图形单位-角度-精度，范围<c>[0,8]</c>
     /// </summary>
-    public int Auprec
+    public static int Auprec
     {
         get => Convert.ToInt32(Acaop.GetSystemVariable(nameof(Auprec)));
         set => Acaop.SetSystemVariable(nameof(Auprec), value);
@@ -52,7 +52,7 @@ public class SystemVariableManager
     /// <summary>
     /// 是否在块编辑器中
     /// </summary>
-    public bool BlockEditor => Acaop.GetSystemVariable(nameof(BlockEditor)) is 1;
+    public static bool BlockEditor => Acaop.GetSystemVariable(nameof(BlockEditor)) is 1;
 
     #endregion
 
@@ -238,7 +238,7 @@ public class SystemVariableManager
     /// <summary>
     /// 显示图形栅格
     /// </summary>
-    public bool GridMode
+    public static bool GridMode
     {
         get => Acaop.GetSystemVariable(nameof(GridMode)) is 1;
         set => Acaop.SetSystemVariable(nameof(GridMode), Convert.ToInt32(value));
@@ -278,7 +278,7 @@ public class SystemVariableManager
     /// <summary>
     /// 图形单位-插入时的缩放单位
     /// </summary>
-    public UnitsValue Insunits
+    public static UnitsValue Insunits
     {
         get => (UnitsValue)Acaop.GetSystemVariable(nameof(Insunits));
         set => Acaop.SetSystemVariable(nameof(Insunits), (int)value);
@@ -291,7 +291,7 @@ public class SystemVariableManager
     /// <summary>
     /// 储存所输入相对于当前用户坐标系统(UCS)的最后点的值
     /// </summary>
-    public Point3d LastPoint
+    public static Point3d LastPoint
     {
         get => (Point3d)Acaop.GetSystemVariable(nameof(LastPoint));
         set => Acaop.SetSystemVariable(nameof(LastPoint), value);
@@ -300,7 +300,7 @@ public class SystemVariableManager
     /// <summary>
     /// 图形单位-长度-类型，范围[1-科学,2-小数,3-工程,4-建筑,5-分数]
     /// </summary>
-    public int Lunits
+    public static int Lunits
     {
         get => Convert.ToInt32(Acaop.GetSystemVariable(nameof(Lunits)));
         set => Acaop.SetSystemVariable(nameof(Lunits), value);
@@ -309,7 +309,7 @@ public class SystemVariableManager
     /// <summary>
     /// 图形单位-长度-精度，范围<c>[0,8]</c>
     /// </summary>
-    public int Luprec
+    public static int Luprec
     {
         get => Convert.ToInt32(Acaop.GetSystemVariable(nameof(Luprec)));
         set => Acaop.SetSystemVariable(nameof(Luprec), value);
@@ -322,7 +322,7 @@ public class SystemVariableManager
     /// <summary>
     /// 图形单位
     /// </summary>
-    public MeasurementValue Measurement
+    public static MeasurementValue Measurement
     {
         get => (MeasurementValue)Acaop.GetSystemVariable(nameof(Measurement));
         set => Acaop.SetSystemVariable(nameof(Measurement), Convert.ToInt32(value));
