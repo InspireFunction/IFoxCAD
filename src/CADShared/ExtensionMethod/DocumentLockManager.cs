@@ -3,7 +3,7 @@
 /// <summary>
 /// 文档锁管理器，用于管理文档的锁定和解锁。
 /// </summary>
-public class DocumentLockManager : IDisposable
+public sealed class DocumentLockManager : IDisposable
 {
     /// <summary>
     /// 用于存储文档锁的实例，如果文档未锁定则为null。
