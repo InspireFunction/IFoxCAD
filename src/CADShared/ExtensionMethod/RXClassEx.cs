@@ -1,4 +1,4 @@
-namespace IFoxCAD.CAD.ExtensionMethod;
+namespace IFoxCAD.CAD;
 
 /// <summary>
 /// RXClass扩展
