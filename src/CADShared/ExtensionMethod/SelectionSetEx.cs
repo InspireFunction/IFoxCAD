@@ -1,4 +1,4 @@
-﻿using IFoxCAD.CAD.ExtensionMethod;
+﻿using IFoxCAD.CAD;
 #if a2024 || zcad
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
 #endif
