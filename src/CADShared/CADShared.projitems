@@ -65,6 +65,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\PromptOptionsEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\RandomEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\RedrawEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\RXClassEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SelectionSetEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SingleKeyWordHook.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SymbolTableEx.cs" />

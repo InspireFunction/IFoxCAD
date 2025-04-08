@@ -1,4 +1,5 @@
-﻿#if a2024 || zcad
+﻿using IFoxCAD.CAD.ExtensionMethod;
+#if a2024 || zcad
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
 #endif
 
@@ -20,7 +21,7 @@ public static class SelectionSetEx
     [DebuggerStepThrough]
     public static IEnumerable<ObjectId> GetObjectIds<T>(this SelectionSet ss) where T : Entity
     {
-        var rxc = RXObject.GetClass(typeof(T));
+        var rxc = RXClassEx.Get<T>();
 
         return ss.GetObjectIds()
             .Where(id => id.ObjectClass.IsDerivedFrom(rxc));

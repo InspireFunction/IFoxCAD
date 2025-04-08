@@ -72,7 +72,7 @@ public static class DBTransEx
             id.Erase();
     }
 
-    static void GetAllIds<TTable, TRecord>(DBTrans tr, SymbolTable<TTable, TRecord> symbolTable,
+    private static void GetAllIds<TTable, TRecord>(DBTrans tr, SymbolTable<TTable, TRecord> symbolTable,
         ObjectIdCollection ids, bool excludeXref = true) where TTable : SymbolTable
         where TRecord : SymbolTableRecord, new()
     {
