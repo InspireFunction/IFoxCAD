@@ -1,4 +1,4 @@
-﻿#if a2024 || zcad
+#if a2024 || zcad
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
 
 // ReSharper disable ClassWithVirtualMembersNeverInherited.Global
@@ -371,7 +371,7 @@ public class JigEx : DrawJig, IDisposable
             // 最后一次的图元如果没有加入数据库,就在此销毁,所以JigEx调用的时候加using
             _drawEntities.ForEach(ent =>
             {
-                if (ent.Database == null && !ent.IsDisposed)
+                if (!ent.IsDisposed && ent.Database == null)
                     ent.Dispose();
             });
         }
