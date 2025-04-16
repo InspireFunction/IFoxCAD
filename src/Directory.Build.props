@@ -1,8 +1,8 @@
 <Project>
     <!--版本号和提示-->
     <PropertyGroup>
-        <Version>0.9.3</Version>
-        <PackageReleaseNotes>更新dwgfilter的null返回方式</PackageReleaseNotes>
+        <Version>0.9.4</Version>
+        <PackageReleaseNotes>整理支持文件搜索路径和信任路径的扩展方法并添加Get方法</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup>

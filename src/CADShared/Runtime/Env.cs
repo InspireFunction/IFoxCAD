@@ -87,6 +87,7 @@ public static class Env
     #endregion Preferences
 
     #region Enum
+
     /// <summary>
     /// 控制在AutoLISP的command函数运行时AutoCAD是否回显提示和输入， <see langword="true" /> 为显示， <see langword="false" /> 为不显示
     /// </summary>
@@ -100,6 +101,7 @@ public static class Env
     /// 获取Cad当前是否有活动命令
     /// </summary>
     public static bool CmdActive => Convert.ToBoolean(Acaop.GetSystemVariable("CMDACTIVE"));
+
     /// <summary>
     /// 控制在光标是否为正交模式， <see langword="true" /> 为打开正交， <see langword="false" /> 为关闭正交
     /// </summary>
@@ -499,15 +501,13 @@ public static class Env
     // TODO: 中望没有测试,此处仅为不报错;本工程所有含有"中望"均存在问题
 #if zcad
     [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention =
- CallingConvention.Cdecl, EntryPoint =
- "zcedGetEnv")]
+    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "zcedGetEnv")]
     static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
 
     [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention =
- CallingConvention.Cdecl, EntryPoint =
- "zcedSetEnv")]
+    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "zcedSetEnv")]
     static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #endif
 
@@ -527,7 +527,6 @@ public static class Env
         // GetEnv("Path")长度很长:
         // 可用内存 (最新格式) 1 MB (标准格式)
         // https://docs.microsoft.com/zh-cn/windows/win32/sysinfo/registry-element-size-limits
-
         var sbRes = new StringBuilder(1 << 23);
         _ = AcedGetEnv(name, sbRes);
         return sbRes.ToString();
@@ -548,83 +547,33 @@ public static class Env
 
     #endregion
 
-    #region win环境变量/由于 Aced的 能够同时获取此变量与cad内的,所以废弃
-
-    // /// <summary>
-    // /// 获取系统环境变量
-    // /// </summary>
-    // /// <param name="var">变量名</param>
-    // /// <returns>指定的环境变量的值；或者如果找不到环境变量，则返回 null</returns>
-    // public static string? GetEnv(string? var)
-    // {
-    //     // 从当前进程或者从当前用户或本地计算机的 Windows 操作系统注册表项检索环境变量的值
-    //     // 用户: 计算机\HKEY_CURRENT_USER\Environment
-    //     // 系统: 计算机\HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Session Manager\Environment
-    //     return Environment.GetEnvironmentVariable(var);
-    // }
-    // /// <summary>
-    // /// 设置系统环境变量
-    // /// </summary>
-    // /// <param name="var">变量名</param>
-    // /// <param name="value">变量值</param>
-    // public static void SetEnv(string? var, string? value)
-    // {
-    //     // 创建、修改或删除当前进程中或者为当前用户或本地计算机保留的 Windows 操作系统注册表项中存储的环境变量
-    //     Environment.SetEnvironmentVariable(var, value);
-    // }
-
-    #endregion
-
     #region 支持文件目录
 
     /// <summary>
     /// 添加目录至CAD支持搜索的路径
     /// </summary>
     /// <param name="folders">目录</param>
-    public static void AppendSupportPath(params string[] folders)
+    public static void AppendSupportPath(params IEnumerable<string> folders)
     {
-        if (!folders.Any())
-            return;
-        var acadPath = GetEnv("ACAD");
-        var acadPathLowerArr = acadPath.ToLower()
-            .Split(';')
-            .Where(item => item != "")
-            .Select(item => item[^1] == '\\' ? item.Remove(item.Length - 1) : item)
-            .ToHashSet();
-        foreach (var folder in folders)
-        {
-            if (!Directory.Exists(folder))
-                continue;
-            var folderLower = folder[^1] == '\\'
-                ? folder.Remove(folder.Length - 1).ToLower()
-                : folder.ToLower();
-            if (!acadPathLowerArr.Contains(folderLower))
-                acadPath = folder + ";" + acadPath; //加到前面方便检查
-        }
-
-        SetEnv("ACAD", acadPath);
+        SupportPathEx.Add(folders);
     }
 
     /// <summary>
     /// 删除支持搜索文件目录
     /// </summary>
     /// <param name="folders">目录</param>
-    public static void RemoveSupportPath(params string[] folders)
+    public static void RemoveSupportPath(params IEnumerable<string> folders)
     {
-        if (!folders.Any())
-            return;
-        var acadPathArr = GetEnv("ACAD").Split(';').ToList();
-        foreach (var folder in folders)
-        {
-            var folderLower = folder[^1] == '\\'
-                ? folder.Remove(folder.Length - 1).ToLower()
-                : folder.ToLower();
-            acadPathArr.RemoveAll(item =>
-                (item[^1] == '\\' ? item.Remove(item.Length - 1).ToLower() : item.ToLower()) ==
-                folderLower);
-        }
+        SupportPathEx.Remove(folders);
+    }
 
-        SetEnv("ACAD", string.Join(";", acadPathArr));
+    /// <summary>
+    /// 获取支持搜索文件目录
+    /// </summary>
+    /// <returns>支持搜索文件目录列表</returns>
+    public static List<string> GetSupportPath()
+    {
+        return SupportPathEx.Get();
     }
 
     /// <summary>
@@ -633,26 +582,7 @@ public static class Env
     /// <param name="folders">目录</param>
     public static void AppendTrustedPath(params string[] folders)
     {
-        if (folders.Length == 0)
-            return;
-        var trustedPath = GetVar("TRUSTEDPATHS").ToString();
-        var trustedPathLowerArr = trustedPath!.ToLower()
-            .Split(';')
-            .Where(item => item != "")
-            .Select(item => item[^1] == '\\' ? item.Remove(item.Length - 1) : item)
-            .ToHashSet();
-        foreach (var folder in folders)
-        {
-            if (!Directory.Exists(folder))
-                continue;
-            var folderLower = folder[^1] == '\\'
-                ? folder.Remove(folder.Length - 1).ToLower()
-                : folder.ToLower();
-            if (!trustedPathLowerArr.Contains(folderLower))
-                trustedPath = folder + ";" + trustedPath; //加到前面方便检查
-        }
-
-        SetVar("TRUSTEDPATHS", trustedPath);
+        TrustedPathEx.Add(folders);
     }
 
     /// <summary>
@@ -661,20 +591,16 @@ public static class Env
     /// <param name="folders">目录</param>
     public static void RemoveTrustedPath(params string[] folders)
     {
-        if (!folders.Any())
-            return;
-        var trustedPathArr = GetVar("TRUSTEDPATHS").ToString()!.Split(';').ToList();
-        foreach (var folder in folders)
-        {
-            var folderLower = folder[^1] == '\\'
-                ? folder.Remove(folder.Length - 1).ToLower()
-                : folder.ToLower();
-            trustedPathArr.RemoveAll(item =>
-                (item[^1] == '\\' ? item.Remove(item.Length - 1).ToLower() : item.ToLower()) ==
-                folderLower);
-        }
+        TrustedPathEx.Remove(folders);
+    }
 
-        SetVar("TRUSTEDPATHS", string.Join(";", trustedPathArr));
+    /// <summary>
+    /// 获取受信任的位置
+    /// </summary>
+    /// <returns>受信任的位置列表</returns>
+    public static List<string> GetTrustedPath()
+    {
+        return TrustedPathEx.Get();
     }
 
     #endregion
@@ -823,7 +749,6 @@ public static class Env
     public static object? SetVarEx(string key, string value)
     {
         var currentVar = GetVar(key);
-
         object? valueType = currentVar.GetType().Name switch
         {
             "String" => value.Replace("\"", string.Empty),
@@ -833,7 +758,6 @@ public static class Env
             _ => null,
             // _ => throw new NotImplementedException()
         };
-
         if (valueType is null)
             return null;
 
@@ -841,7 +765,6 @@ public static class Env
         if (!string.Equals(currentVar.ToString(), valueType.ToString(),
                 StringComparison.CurrentCultureIgnoreCase))
             SetVar(key, valueType);
-
         return currentVar;
     }
 

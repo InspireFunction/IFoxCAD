@@ -68,11 +68,13 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\RXClassEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SelectionSetEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SingleKeyWordHook.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SupportPathEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SymbolTableEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SymbolTableRecordEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\TangentEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\IFoxUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\TransactionEx.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\TrustedPathEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\WindowEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\XrefEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\Hatch\HatchConverter.cs" />
