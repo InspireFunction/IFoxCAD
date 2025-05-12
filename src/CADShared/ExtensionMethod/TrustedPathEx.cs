@@ -10,7 +10,7 @@ internal static class TrustedPathEx
     /// <returns>路径列表</returns>
     public static List<string> Get()
     {
-        var str = Env.GetVar(kName).ToString();
+        var str = Env.GetVar(kName).ToString()!;
         var set = str.ToLower()
             .Split([";"], StringSplitOptions.RemoveEmptyEntries)
             .Select(s => s.TrimEnd('\\'))

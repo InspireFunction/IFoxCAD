@@ -202,10 +202,10 @@ public static class SystemVariableManager
     /// <summary>
     /// 是否开启双击
     /// </summary>
-    public static bool DblClick
+    public static bool DblClkEdit
     {
-        get => Convert.ToBoolean(Acaop.GetSystemVariable(nameof(DblClick)));
-        set => Acaop.SetSystemVariable(nameof(DblClick), Convert.ToInt32(value));
+        get => Convert.ToBoolean(Acaop.GetSystemVariable(nameof(DblClkEdit)));
+        set => Acaop.SetSystemVariable(nameof(DblClkEdit), Convert.ToInt32(value));
     }
 
     /// <summary>

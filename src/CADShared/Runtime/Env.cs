@@ -1,10 +1,14 @@
+#if zcad
+using Marshaler = ZwSoft.ZwCAD.Runtime.Marshaler;
+#else
 using System.Security;
+using Marshaler = Autodesk.AutoCAD.Runtime.Marshaler;
+#endif
 #if a2024 || zcad
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
 #endif
 
 // ReSharper disable StringLiteralTypo
-
 namespace IFoxCAD.Cad;
 
 /// <summary>
@@ -89,15 +93,6 @@ public static class Env
     #region Enum
 
     /// <summary>
-    /// 控制在AutoLISP的command函数运行时AutoCAD是否回显提示和输入， <see langword="true" /> 为显示， <see langword="false" /> 为不显示
-    /// </summary>
-    public static bool CmdEcho
-    {
-        get => Convert.ToInt16(Acaop.GetSystemVariable("cmdecho")) == 1;
-        set => Acaop.SetSystemVariable("cmdecho", Convert.ToInt16(value));
-    }
-
-    /// <summary>
     /// 获取Cad当前是否有活动命令
     /// </summary>
     public static bool CmdActive => Convert.ToBoolean(Acaop.GetSystemVariable("CMDACTIVE"));
@@ -109,15 +104,6 @@ public static class Env
     {
         get => Convert.ToInt16(Acaop.GetSystemVariable("ORTHOMODE")) == 1;
         set => Acaop.SetSystemVariable("ORTHOMODE", Convert.ToInt16(value));
-    }
-
-    /// <summary>
-    /// 读写系统变量LastPoint的坐标(UCS)
-    /// </summary>
-    public static Point3d LastPoint
-    {
-        get => (Point3d)Acaop.GetSystemVariable("LASTPOINT");
-        set => Acaop.SetSystemVariable("LASTPOINT", value);
     }
 
     #region Dimblk
@@ -414,17 +400,6 @@ public static class Env
         set => Acaop.SetSystemVariable("osmode", (int)value);
     }
 
-    /// <summary>
-    /// 捕捉模式osm1是否包含osm2
-    /// </summary>
-    /// <param name="osm1">原模式</param>
-    /// <param name="osm2">要比较的模式</param>
-    /// <returns>包含时返回 <see langword="true" />，不包含时返回 <see langword="false" /></returns>
-    public static bool Include(this OSModeType osm1, OSModeType osm2)
-    {
-        return (osm1 & osm2) == osm2;
-    }
-
     #endregion OsMode
 
     private static string? GetName<T>(this T value)
@@ -483,7 +458,6 @@ public static class Env
         EntryPoint = "acedSetEnv")]
     private static extern int AcedSetEnv(string? envName, StringBuilder newValue);
 #endif
-
 #if gcad
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("gced.dll", CharSet = CharSet.Auto, CallingConvention =
@@ -797,6 +771,33 @@ public static class Env
         }
 
         return dict;
+    }
+
+    #endregion
+
+    #region EntGet功能
+
+    /// <summary>
+    /// EntGet
+    /// </summary>
+    public static TypedValue[] EntGet(ObjectId objectId)
+    {
+        var adsName = GetAdsName(objectId);
+        var intPtr = PInvokeCad.AcdbEntGet(ref adsName);
+        var typedValues = Marshaler.ResbufToTypedValues(intPtr);
+        return typedValues;
+    }
+
+    /// <summary>
+    /// GetAdsName
+    /// </summary>
+    /// <param name="objectId">ObjectId</param>
+    /// <returns>ads_name</returns>
+    public static ads_name GetAdsName(ObjectId objectId)
+    {
+        var adsName = new ads_name();
+        _ = PInvokeCad.GetAdsName(ref adsName, objectId);
+        return adsName;
     }
 
     #endregion

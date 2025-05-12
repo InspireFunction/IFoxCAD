@@ -1,8 +1,8 @@
 <Project>
     <!--版本号和提示-->
     <PropertyGroup>
-        <Version>0.9.4</Version>
-        <PackageReleaseNotes>整理支持文件搜索路径和信任路径的扩展方法并添加Get方法</PackageReleaseNotes>
+        <Version>0.9.5</Version>
+        <PackageReleaseNotes>添加EntGet，组织部分系统变量，添加可见性信息获取功能</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup>

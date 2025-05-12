@@ -23,7 +23,6 @@ public static class BlockReferenceEx
     {
         var mat = brf.BlockTransform.Inverse();
         var pts = pt3ds.Select(p => p.TransformBy(mat).Point2d()).ToCollection();
-
         SpatialFilterDefinition sfd = new(pts, Vector3d.ZAxis, 0.0, double.PositiveInfinity,
             double.NegativeInfinity, true);
         using SpatialFilter sf = new();
@@ -43,13 +42,11 @@ public static class BlockReferenceEx
         var mat = brf.BlockTransform.Inverse();
         pt1 = pt1.TransformBy(mat);
         pt2 = pt2.TransformBy(mat);
-
         Point2dCollection pts =
         [
             new Point2d(Math.Min(pt1.X, pt2.X), Math.Min(pt1.Y, pt2.Y)),
             new Point2d(Math.Max(pt1.X, pt2.X), Math.Max(pt1.Y, pt2.Y))
         ];
-
         using SpatialFilter sf = new();
         sf.Definition = new(pts, Vector3d.ZAxis, 0.0, double.PositiveInfinity,
             double.NegativeInfinity, true);
@@ -223,9 +220,9 @@ public static class BlockReferenceEx
         string nestedBlockName)
     {
         var tr = DBTrans.GetTopTransaction(parentBlockRef.Database);
-
         var btr = tr.GetObject<BlockTableRecord>(parentBlockRef.BlockTableRecord);
-        if (btr == null) return null;
+        if (btr == null)
+            return null;
         foreach (var id in btr)
         {
             if (id.ObjectClass.Name == "AcDbBlockReference")
@@ -323,4 +320,78 @@ public static class BlockReferenceEx
             }
         }
     }
+
+    /// <summary>
+    /// 获取块可见性信息
+    /// </summary>
+    /// <param name="blockReference">块参照</param>
+    /// <returns>可见性信息</returns>
+    public static BlockVisibilityInfo GetVisibilityInfo(this BlockReference blockReference)
+    {
+        var info = new BlockVisibilityInfo();
+        if (blockReference.IsDynamicBlock)
+        {
+            var btr = (BlockTableRecord)blockReference.DynamicBlockTableRecord.GetObject();
+            info = btr.GetVisibilityInfo();
+        }
+
+        return info;
+    }
+
+    /// <summary>
+    /// 获取块可见性信息
+    /// </summary>
+    /// <param name="btr">块表记录</param>
+    /// <returns>可见性信息</returns>
+    public static BlockVisibilityInfo GetVisibilityInfo(this BlockTableRecord btr)
+    {
+        var info = new BlockVisibilityInfo();
+        if (btr.IsDynamicBlock && btr.ExtensionDictionary.IsOk())
+        {
+            var dict = btr.GetXDictionary();
+            if (dict.Contains("ACAD_ENHANCEDBLOCK"))
+            {
+                var idEnhancedBlock = dict.GetAt("ACAD_ENHANCEDBLOCK");
+                var enhancedBlockTypedValues = Env.EntGet(idEnhancedBlock);
+                var parm = enhancedBlockTypedValues.FirstOrDefault(e =>
+                        e.TypeCode == 360 && e.Value is ObjectId id && id.IsOk() &&
+                        id.ObjectClass.DxfName == "BLOCKVISIBILITYPARAMETER")
+                    .Value;
+                if (parm is ObjectId parmId)
+                {
+                    info.Has = true;
+                    var parmTypedValues = Env.EntGet(parmId);
+                    info.PropertyName = parmTypedValues.FirstOrDefault(e => e.TypeCode == 301)
+                        .Value?.ToString() ?? "";
+                    info.AllowedValues = parmTypedValues.Where(e => e.TypeCode == 303)
+                        .Select(e => e.Value?.ToString() ?? "")
+                        .Where(e => !string.IsNullOrWhiteSpace(e))
+                        .ToList();
+                }
+            }
+        }
+
+        return info;
+    }
+}
+
+/// <summary>
+/// 块可见性信息
+/// </summary>
+public class BlockVisibilityInfo
+{
+    /// <summary>
+    /// 有无可见性
+    /// </summary>
+    public bool Has { get; set; }
+
+    /// <summary>
+    /// 属性名
+    /// </summary>
+    public string PropertyName { get; set; } = "";
+
+    /// <summary>
+    /// 允许值
+    /// </summary>
+    public List<string> AllowedValues { get; set; } = [];
 }

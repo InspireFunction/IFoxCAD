@@ -5,12 +5,12 @@ public class Testenv
     [CommandMethod(nameof(Test_Enum))]
     public void Test_Enum()
     {
-        Env.CmdEcho = true;
+        SystemVariableManager.CmdEcho = true;
     }
     [CommandMethod(nameof(Test_Enum1))]
     public void Test_Enum1()
     {
-        Env.CmdEcho = false;
+        SystemVariableManager.CmdEcho = false;
     }
 
     [CommandMethod(nameof(Test_Dimblk))]
@@ -46,7 +46,7 @@ public class Testenv
         // 追加模式
         Env.OSMode |= Env.OSModeType.Center;
         // 检查是否有某个模式
-        var os = Env.OSMode.Include(Env.OSModeType.Center);
+        var os = Env.OSMode.HasFlag(Env.OSModeType.Center);
         // 取消某个模式
         Env.OSMode ^= Env.OSModeType.Center;
         Env.Editor.WriteMessage(Env.OSMode.ToString());
