@@ -789,6 +789,17 @@ public static class Env
     }
 
     /// <summary>
+    /// EntMod
+    /// </summary>
+    public static bool EntMod(IEnumerable<TypedValue> typedValues)
+    {
+        var tva = typedValues.ToArray();
+        var intPtr = Marshaler.TypedValuesToResbuf(tva);
+        var result = PInvokeCad.AcdbEntMod(intPtr);
+        return result == 5100;
+    }
+
+    /// <summary>
     /// GetAdsName
     /// </summary>
     /// <param name="objectId">ObjectId</param>

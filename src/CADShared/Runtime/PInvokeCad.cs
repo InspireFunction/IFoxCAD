@@ -19,7 +19,7 @@ public static class PInvokeCad
     /// </summary>
     [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "acdbEntMod")]
-    public static extern void AcdbEndMod(IntPtr intPtr);
+    public static extern int AcdbEntMod(IntPtr intPtr);
 
     [DllImport("acdb25.dll", CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "?acdbGetAdsName@@YA?AW4ErrorStatus@Acad@@AEAY01_JVAcDbObjectId@@@Z")]
