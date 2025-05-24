@@ -15,6 +15,13 @@ public static class PInvokeCad
     public static extern IntPtr AcdbEntGet(ref ads_name adsName);
 
     /// <summary>
+    /// EntUpd
+    /// </summary>
+    [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "acdbEntUpd")]
+    public static extern int AcdbEntUpd(ref ads_name adsName);
+
+    /// <summary>
     /// EntMod
     /// </summary>
     [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl,

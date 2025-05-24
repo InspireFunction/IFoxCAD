@@ -789,6 +789,16 @@ public static class Env
     }
 
     /// <summary>
+    /// EntUpd
+    /// </summary>
+    public static bool EntUpd(ObjectId objectId)
+    {
+        var adsName = GetAdsName(objectId);
+        var res = PInvokeCad.AcdbEntUpd(ref adsName);
+        return res == 5100;
+    }
+
+    /// <summary>
     /// EntMod
     /// </summary>
     public static bool EntMod(IEnumerable<TypedValue> typedValues)
