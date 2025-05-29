@@ -475,14 +475,14 @@ public static class Env
     // TODO: 中望没有测试,此处仅为不报错;本工程所有含有"中望"均存在问题
 #if zcad
     [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
+    [DllImport("zwcad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "zcedGetEnv")]
-    static extern int AcedGetEnv(string? envName, StringBuilder ReturnValue);
+    private static extern int AcedGetEnv(string? envName, StringBuilder returnValue);
 
     [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("zced.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
+    [DllImport("zwcad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "zcedSetEnv")]
-    static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
+    private static extern int AcedSetEnv(string? envName, StringBuilder newValue);
 #endif
 
     /// <summary>
@@ -782,12 +782,19 @@ public static class Env
     /// </summary>
     public static TypedValue[] EntGet(ObjectId objectId)
     {
+#if zcad
+        var adsName = GetAdsName(objectId);
+        var intPtr = PInvokeCad.ZcdbEntGet(adsName);
+#else
         var adsName = GetAdsName(objectId);
         var intPtr = PInvokeCad.AcdbEntGet(ref adsName);
+        
+#endif
         var typedValues = Marshaler.ResbufToTypedValues(intPtr);
         return typedValues;
     }
 
+    #if acad
     /// <summary>
     /// EntUpd
     /// </summary>
@@ -797,6 +804,7 @@ public static class Env
         var res = PInvokeCad.AcdbEntUpd(ref adsName);
         return res == 5100;
     }
+    #endif
 
     /// <summary>
     /// EntMod
@@ -805,10 +813,25 @@ public static class Env
     {
         var tva = typedValues.ToArray();
         var intPtr = Marshaler.TypedValuesToResbuf(tva);
+#if zcad
+        var result = PInvokeCad.ZcdbEntMod(intPtr);
+        #else
         var result = PInvokeCad.AcdbEntMod(intPtr);
+#endif
         return result == 5100;
     }
 
+#if zcad
+    /// <summary>
+    /// GetAdsName
+    /// </summary>
+    /// <param name="objectId">ObjectId</param>
+    public static AdsName GetAdsName(ObjectId objectId)
+    {
+         _ = PInvokeCad.GetAdsName(out var adsName,objectId);
+         return adsName;
+    }
+    #else
     /// <summary>
     /// GetAdsName
     /// </summary>
@@ -820,6 +843,7 @@ public static class Env
         _ = PInvokeCad.GetAdsName(ref adsName, objectId);
         return adsName;
     }
+#endif
 
     #endregion
 }

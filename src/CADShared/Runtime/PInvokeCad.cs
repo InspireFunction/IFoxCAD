@@ -7,6 +7,31 @@ namespace IFoxCAD.Cad;
 /// </summary>
 public static class PInvokeCad
 {
+#if zcad
+    /// <summary>
+    /// EntGet
+    /// </summary>
+    [DllImport("zwcad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "zcdbEntGet")]
+    public static extern IntPtr ZcdbEntGet(AdsName adsName);
+    /// <summary>
+    /// EntGet
+    /// </summary>
+    [DllImport("zwcad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "zcdbEntMod")]
+    public static extern int ZcdbEntMod(IntPtr intPtr);
+    /// <summary>
+    /// GetZdsName
+    /// </summary>
+    [DllImport("ZwDatabase.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "?zcdbGetZdsName@@YA?AW4ErrorStatus@Zcad@@AEAY01_JVZcDbObjectId@@@Z")]
+    public static extern int ZcdbGetZdsName(out AdsName adsName, ObjectId id);
+
+    /// <summary>
+    /// GetAdsName
+    /// </summary>
+    public static int GetAdsName(out AdsName adsName, ObjectId id)
+    {
+        return ZcdbGetZdsName(out adsName, id);
+    } 
+#else
     /// <summary>
     /// Entget
     /// </summary>
@@ -55,7 +80,6 @@ public static class PInvokeCad
     [DllImport("acdb19.dll", CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "?acdbGetAdsName@@YA?AW4ErrorStatus@Acad@@AEAY01_JVAcDbObjectId@@@Z")]
     private static extern int AcdbGetAdsName19(ref ads_name adsName, ObjectId objectId);
-
     /// <summary>
     /// GetAdsName
     /// </summary>
@@ -75,6 +99,7 @@ public static class PInvokeCad
         };
         return res;
     }
+#endif
 }
 
 /// <summary>
