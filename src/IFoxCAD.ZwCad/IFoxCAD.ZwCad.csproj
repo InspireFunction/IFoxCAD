@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>net48</TargetFramework>
+        <TargetFrameworks>net48;net472</TargetFrameworks>
     </PropertyGroup>
     <!--nuget package-->
     <PropertyGroup>
@@ -20,7 +20,7 @@
         <DocumentationFile>bin\Release\IFoxCAD.ZwCad.xml</DocumentationFile>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
+    <PropertyGroup>
         <DefineConstants>$(Configuration);zcad;z2025</DefineConstants>
     </PropertyGroup>
 
@@ -35,13 +35,14 @@
         </None>
     </ItemGroup>
 
-    <ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
-        <PackageReference Include="ZWCad.Net.2025" Version="1.0.0" ExcludeAssets="runtime"/>
+    <ItemGroup>
+<!--        <PackageReference Include="ZWCad.Net.2025" Version="1.0.0" ExcludeAssets="runtime"/>-->
         <PackageReference Include="IndexRange" Version="1.0.3"/>
         <PackageReference Include="Nullable" Version="1.3.1">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
+        <PackageReference Include="ZWCAD.NetApi" Version="20.25.0" ExcludeAssets="runtime"/>
         <Reference Include="Microsoft.CSharp"/>
     </ItemGroup>
     

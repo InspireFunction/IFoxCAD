@@ -1,8 +1,8 @@
 <Project>
     <!--版本号和提示-->
     <PropertyGroup>
-        <Version>0.9.6</Version>
-        <PackageReleaseNotes>添加EntMod,EntUpd</PackageReleaseNotes>
+        <Version>0.9.7</Version>
+        <PackageReleaseNotes>ZCAD支持net472</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup>
