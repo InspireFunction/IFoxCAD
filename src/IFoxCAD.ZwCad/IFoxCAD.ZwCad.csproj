@@ -34,12 +34,7 @@
             <PackagePath>\</PackagePath>
         </None>
     </ItemGroup>
-
     <ItemGroup>
-        <PackageReference Include="ZWCad.Net.2025" Version="1.0.0" ExcludeAssets="runtime"/>
-        <PackageReference Include="IndexRange" Version="1.0.3"/>
-        <PackageReference Include="Nullable" Version="1.3.1">
-    <ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
         <PackageReference Include="ZWCAD.NetApi" Version="20.25.0" ExcludeAssets="runtime"/>
         <PackageReference Include="PolySharp" Version="1.15.0">
             <PrivateAssets>all</PrivateAssets>
