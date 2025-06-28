@@ -21,6 +21,7 @@ global using StatusBar = ZwSoft.ZwCAD.Windows.StatusBar;
 global using Utils = ZwSoft.ZwCAD.Internal.Utils;
 global using SystemVariableChangedEventArgs = ZwSoft.ZwCAD.ApplicationServices.SystemVariableChangedEventArgs;
 global using AcException = ZwSoft.ZwCAD.Runtime.Exception;
+global using Marshaler = ZwSoft.ZwCAD.Runtime.Marshaler;
 global using System;
 global using System.Reflection;
 global using System.Collections;

@@ -1,9 +1,4 @@
-#if zcad
-using Marshaler = ZwSoft.ZwCAD.Runtime.Marshaler;
-#else
-using System.Security;
-using Marshaler = Autodesk.AutoCAD.Runtime.Marshaler;
-#endif
+
 #if a2024 || zcad
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
 #endif
