@@ -1,7 +1,7 @@
 ﻿// ReSharper disable CompareOfFloatsByEqualityOperator
 // ReSharper disable ForCanBeConvertedToForeach
 
-#if a2024 || zcad
+#if !NET8_0_OR_GREATER
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
 #endif
 

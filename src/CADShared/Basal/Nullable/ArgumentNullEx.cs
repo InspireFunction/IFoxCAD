@@ -1,5 +1,5 @@
 ﻿
-#if a2024 || zcad
+#if !NET8_0_OR_GREATER
 namespace IFoxCAD.Basal;
 
 /// <summary>
