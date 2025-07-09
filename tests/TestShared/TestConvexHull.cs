@@ -73,20 +73,4 @@ public class TestConvexHull
         Env.Editor.WriteMessage($"点集的有向面积：{area5} \n");
         Env.Editor.WriteMessage($"点集的有向面积：{area6} \n");
     }
-    
-    [CommandMethod(nameof(Test_ConvexHull_Melkman))]
-    public static void Test_ConvexHull_Melkman()
-    {
-        using var tr = new DBTrans();
-        var ent = Env.Editor.GetEntity("选取多段线");
-        if (ent.Status != PromptStatus.OK) return;
-        var pts = ent.ObjectId.GetObject<Polyline>()!.GetPoints();
-        var ptss = pts.ConvexHull_Melkman();
-        var pl = ptss.CreatePolyline(p =>
-        {
-            p.Closed = true;
-            p.ColorIndex = 3;
-        });
-        tr.CurrentSpace.AddEntity(pl);
-    }
 }
