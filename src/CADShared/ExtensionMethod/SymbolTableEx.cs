@@ -136,7 +136,7 @@ public static class SymbolTableEx
     /// <param name="ents">图元(包括属性)</param>
     /// <returns></returns>
     public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table, string name,
-        params IEnumerable<Entity> ents)
+        params Entity[] ents)
     {
         return table.Add(name, null, () => ents);
     }

@@ -325,7 +325,7 @@ public static class EditorEx
     /// </summary>
     /// <param name="format">带格式项的字符串</param>
     /// <param name="args">指定格式化的对象数组</param>
-    public static void StreamMessage(string format, params IEnumerable<object> args)
+    public static void StreamMessage(string format, params object[] args)
     {
         StreamMessage(string.Format(format, args));
     }
@@ -392,7 +392,7 @@ public static class EditorEx
     /// <param name="caption">对话框的标题</param>
     /// <param name="format">带格式化项的对话框文本</param>
     /// <param name="args">指定格式化的对象数组</param>
-    public static void InfoMessageBox(string caption, string format, params IEnumerable<object> args)
+    public static void InfoMessageBox(string caption, string format, params object[] args)
     {
         InfoMessageBox(caption, string.Format(format, args));
     }
@@ -411,7 +411,7 @@ public static class EditorEx
     /// </summary>
     /// <param name="format">带格式化项的对话框文本</param>
     /// <param name="args">指定格式化的对象数组</param>
-    public static void InfoMessageBox(string format, params IEnumerable<object> args)
+    public static void InfoMessageBox(string format, params object[] args)
     {
         InfoMessageBox(string.Format(format, args));
     }
@@ -438,7 +438,7 @@ public static class EditorEx
     /// </summary>
     /// <param name="format">带格式化项的文本</param>
     /// <param name="args">指定格式化的对象数组</param>
-    public static void WriteMessage(string format, params IEnumerable<object> args)
+    public static void WriteMessage(string format, params object[] args)
     {
         WriteMessage(string.Format(format, args));
     }
@@ -1134,14 +1134,22 @@ public static class EditorEx
 
     #region JigEx
 
-    
+    /// <summary>
+    /// jig前的准备工作，使图元暗显
+    /// </summary>
+    /// <param name="ed">命令栏</param>
+    /// <param name="ents">实体（已存在数据库中）</param>
+    public static void PrepareForJig(this Editor ed, params Entity[] ents)
+    {
+        ed.PrepareForJig(ents.ToList());
+    }
 
     /// <summary>
     /// jig前的准备工作，使图元暗显
     /// </summary>
     /// <param name="ed">命令栏</param>
     /// <param name="ents">实体（已存在数据库中）</param>
-    public static void PrepareForJig(this Editor ed, params IEnumerable<Entity> ents)
+    public static void PrepareForJig(this Editor ed, IEnumerable<Entity> ents)
     {
         var dic = new Dictionary<Entity, Color>();
         foreach (var ent in ents)

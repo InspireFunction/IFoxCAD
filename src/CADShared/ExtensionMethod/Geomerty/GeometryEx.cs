@@ -710,7 +710,17 @@ public static class GeometryEx
     /// </summary>
     /// <param name="geometry">图形界面几何</param>
     /// <param name="drawables">可绘制的对象列表</param>
-    public static void Draw(this Geometry geometry, params IEnumerable<Drawable> drawables)
+    public static void Draw(this Geometry geometry, IEnumerable<Drawable> drawables)
+    {
+        drawables.ForEach(d => geometry.Draw(d));
+    }
+
+    /// <summary>
+    /// 重绘
+    /// </summary>
+    /// <param name="geometry">图形界面几何</param>
+    /// <param name="drawables">可绘制的对象列表</param>
+    public static void Draw(this Geometry geometry, params Drawable[] drawables)
     {
         drawables.ForEach(d => geometry.Draw(d));
     }

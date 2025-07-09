@@ -23,18 +23,17 @@ public static class PromptOptionsEx
     /// </summary>
     /// <param name="pso">选择集选项</param>
     /// <param name="keywords">关键字</param>
-    public static void AddKeywords(this PromptSelectionOptions pso, params IEnumerable<string> keywords)
+    public static void AddKeywords(this PromptSelectionOptions pso, params string[] keywords)
     {
-        var keyWords = keywords.ToList();
-        for (var i = 0; i < keyWords.Count / 2; i++)
+        for (var i = 0; i < keywords.Length / 2; i++)
         {
-            var key = keyWords[i * 2].ToUpper();
+            var key = keywords[i * 2].ToUpper();
             if (SsGetSaveKeywords.FirstOrDefault(e => e.StartsWith(key)) is { } saveKey)
             {
                 throw new ArgumentException($"关键字{key}与选择集保留关键字{saveKey}冲突");
             }
 
-            var message = keyWords[i * 2 + 1];
+            var message = keywords[i * 2 + 1];
             var end = $"({key})";
             if (!message.EndsWith(end))
             {
