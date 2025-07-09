@@ -89,17 +89,4 @@ public class TestConvexHull
         });
         tr.CurrentSpace.AddEntity(pl);
     }
-
-
-    [CommandMethod(nameof(Test_IsClockWise))]
-    public static void Test_IsClockWise()
-    {
-        using var tr = new DBTrans();
-        var p1 = Env.Editor.GetPoint("第一点:").Value;
-        var p2 = Env.Editor.GetPoint("第二点:").Value;
-        var p3 = Env.Editor.GetPoint("第三点:").Value;
-        var res1 = GeometryEx.IsClockWise(p1, p2, p3);
-        Env.Printl($"IsClockWise(p1, p2, p3) 的结果为:{res1}");
-   
-    }
 }
