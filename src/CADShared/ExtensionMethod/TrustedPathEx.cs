@@ -15,7 +15,7 @@ internal static class TrustedPathEx
             .Split([";"], StringSplitOptions.RemoveEmptyEntries)
             .Select(s => s.TrimEnd('\\'))
             .ToHashSet();
-        return [.. set];
+        return set.ToList();
     }
 
     /// <summary>
@@ -28,8 +28,12 @@ internal static class TrustedPathEx
         if (dirSet.Count == 0)
             return;
         var paths = Get();
-        foreach (var dir in dirSet.Where(Directory.Exists).Where(dir => !paths.Contains(dir)))
+        foreach (var dir in dirSet)
         {
+            if (!Directory.Exists(dir))
+                continue;
+            if (paths.Contains(dir))
+                continue;
             paths.Insert(0, dir);
         }
 

@@ -548,7 +548,7 @@ public static class Env
     /// 添加目录至CAD受信任的位置
     /// </summary>
     /// <param name="folders">目录</param>
-    public static void AppendTrustedPath(params IEnumerable<string> folders)
+    public static void AppendTrustedPath(params string[] folders)
     {
         TrustedPathEx.Add(folders);
     }
@@ -557,7 +557,7 @@ public static class Env
     /// 移除信任目录
     /// </summary>
     /// <param name="folders">目录</param>
-    public static void RemoveTrustedPath(params IEnumerable<string> folders)
+    public static void RemoveTrustedPath(params string[] folders)
     {
         TrustedPathEx.Remove(folders);
     }
