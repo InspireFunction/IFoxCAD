@@ -189,7 +189,7 @@ public static class SymbolTableEx
     public static ObjectId GetBlockFrom(this SymbolTable<BlockTable, BlockTableRecord> table, string fileName,
         bool over)
     {
-        var blkDefName = SymbolUtilityServices.GetSymbolNameFromPathName(fileName, "dwg;dxf");
+        var blkDefName = SymbolUtilityServices.GetSymbolNameFromPathName(fileName, "dwg");
 #if acad
         blkDefName = SymbolUtilityServices.RepairSymbolName(blkDefName, false);
 #endif
@@ -216,14 +216,7 @@ public static class SymbolTableEx
         }
 
         using Database db = new(false, true);
-        if (Path.GetExtension(fileName).ToLower().Contains("dxf"))
-        {
-            db.DxfIn(fileName, null);
-        }
-        else
-        {
-            db.ReadDwgFile(fileName, FileShare.Read, true, null);
-        }
+        db.ReadDwgFile(fileName, FileShare.Read, true, null);
         db.CloseInput(true);
         id = table.Database.Insert(BlockTableRecord.ModelSpace, blkDefName, db, false);
         return id;
