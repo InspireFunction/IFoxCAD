@@ -287,6 +287,44 @@ public class TestBlock
 
         
     }
+    
+    [CommandMethod("Test_CreateMTextAttributeBlock")]
+    public void Test_CreateMTextAttributeBlock()
+    {
+        
+        using var tr = new DBTrans();
+
+        tr.BlockTable.Add("MTextAttributeBlock",btr =>
+        {
+            btr.Origin = Point3d.Origin;
+            // 创建一个多行文字作为块的一部分
+            var mtext = new MText();
+            mtext.Contents = "默认多行文字内容\n第二行内容\n第三行内容";
+            mtext.Location = new Point3d(0, 0, 0);
+            mtext.Width = 200; // 多行文字宽度
+            mtext.Height = 2.5; // 文字高度
+            btr.AddEntity(mtext);
+            
+
+            // 创建属性定义
+            var attrDef = new AttributeDefinition();
+            attrDef.Position = new Point3d(0, -50, 0); // 位置在多行文字下方
+            attrDef.Prompt = "请输入属性值";
+            attrDef.Tag = "ATTR_TAG";
+            attrDef.TextString = "默认属性值";
+            attrDef.Height = 2.5;
+            attrDef.Justify = AttachmentPoint.MiddleCenter; // 居中对齐
+                
+            // 设置为多行属性
+            attrDef.SetMTextAttribute(att => att.Width = 100);
+            btr.AddEntity(attrDef);
+        });
+
+        tr.CurrentSpace.InsertBlock(Point3d.Origin, "MTextAttributeBlock");
+
+
+    }
+    
 
     [CommandMethod(nameof(Test_ClipBlock))]
     public void Test_ClipBlock()
