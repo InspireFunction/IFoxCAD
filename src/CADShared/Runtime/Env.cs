@@ -469,8 +469,8 @@ public static class Env
     // TODO: 中望没有测试,此处仅为不报错;本工程所有含有"中望"均存在问题
 #if zcad
     [System.Security.SuppressUnmanagedCodeSecurity]
-    [DllImport("zwcad.exe", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
-        EntryPoint = "zcedGetEnv")]
+    [DllImport("zwcad.exe", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, 
+        EntryPoint = "?zcedGetEnv@@YAHPEB_WPEA_W_K@Z")]//名称大小写不能换
     private static extern int AcedGetEnv(string? envName, StringBuilder returnValue);
 
     [System.Security.SuppressUnmanagedCodeSecurity]
