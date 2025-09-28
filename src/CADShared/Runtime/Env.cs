@@ -289,7 +289,7 @@ public static class Env
         var oldDimblk = Acaop.GetSystemVariable("dimblk");
         Dimblk = dimblk;
         var id = HostApplicationServices.WorkingDatabase.Dimblk;
-        Acaop.SetSystemVariable("dimblk", oldDimblk);
+        Acaop.SetSystemVariable("dimblk", string.IsNullOrWhiteSpace(oldDimblk.ToString())? "." : oldDimblk);
         return id;
     }
 
