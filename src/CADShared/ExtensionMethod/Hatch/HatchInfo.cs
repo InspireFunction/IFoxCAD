@@ -56,7 +56,7 @@ public class HatchInfo
     double Angle => _hatch.PatternAngle;
 
     // 延后处理角度
-    private double _angle;
+    private readonly double _angle;
     #endregion
 
     #region 构造
@@ -163,7 +163,7 @@ public class HatchInfo
         float shadeTintValue = 0,
         bool gradientOneColorMode = false)
     {
-        // entget渐变的名字必然是"SOLID",但是这里作为"渐变"名,而不是"填充"名
+        // entGet渐变的名字必然是"SOLID",但是这里作为"渐变"名,而不是"填充"名
         _hatchName = name.ToString();
         _hatch.HatchObjectType = HatchObjectType.GradientObject;      // 对象类型(填充/渐变)
         _patternTypeGradient = GradientPatternType.PreDefinedGradient;// 模式4:渐变
@@ -207,7 +207,7 @@ public class HatchInfo
 
         // 利用 AppendLoop 重载加入,这里就不处理
         if (_boundaryIds.Count > 0)
-            AppendLoop(_boundaryIds, HatchLoopTypes.Default);
+            AppendLoop(_boundaryIds);
 
         // 计算填充并显示(若边界出错,这句会异常)
         _hatch.EvaluateHatch(true);
@@ -249,10 +249,10 @@ public class HatchInfo
     /// </summary>
     /// <param name="boundaryIds">边界id</param>
     /// <param name="hatchLoopTypes">加入方式</param>
-    void AppendLoop(IEnumerable<ObjectId> boundaryIds,
-                    HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
+    private void AppendLoop(IEnumerable<ObjectId> boundaryIds,
+                            HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
-        ObjectIdCollection obIds = new();
+        ObjectIdCollection obIds = [];
         // 边界是闭合的,而且已经加入数据库
         // 填充闭合环类型.最外面
 
@@ -289,12 +289,12 @@ public class HatchInfo
     /// 加入边界(仿高版本的填充函数)
     /// </summary>
     /// <param name="pts">点集</param>
-    /// <param name="bluges">凸度集</param>
+    /// <param name="bulges">凸度集</param>
     /// <param name="btrOfAddEntitySpace">加入此空间</param>
     /// <param name="hatchLoopTypes">加入方式</param>
     /// <returns></returns>
     public HatchInfo AppendLoop(Point2dCollection pts,
-                                DoubleCollection bluges,
+                                DoubleCollection bulges,
                                 BlockTableRecord btrOfAddEntitySpace,
                                 HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
@@ -304,7 +304,7 @@ public class HatchInfo
         pts.End2End();
         // 2011新增API,可以不生成图元的情况下加入边界,
         // 通过这里进入的话,边界 _boundaryIds 是空的,那么 Build() 时候就需要过滤空的
-        _hatch.AppendLoop(hatchLoopTypes, pts, bluges);
+        _hatch.AppendLoop(hatchLoopTypes, pts, bulges);
         return this;
     }
 
