@@ -23,6 +23,9 @@ public static class PInvokeCad
     /// </summary>
     [DllImport("ZwDatabase.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "?zcdbGetZdsName@@YA?AW4ErrorStatus@Zcad@@AEAY01_JVZcDbObjectId@@@Z")]
     public static extern int ZcdbGetZdsName(out AdsName adsName, ObjectId id);
+    
+    [DllImport("zwcad.exe", EntryPoint ="zcdbEntNext", CallingConvention = CallingConvention.Cdecl)]
+    public static extern int ZcdbEntNext(AdsName adsName,out ObjectId id);
 
     /// <summary>
     /// GetAdsName

@@ -134,6 +134,24 @@ public static class ObjectIdEx
     }
 
     /// <summary>
+    /// 获取下一个实体的id
+    /// </summary>
+    /// <param name="id">id</param>
+    /// <returns>下一个实体的id</returns>
+    public static ObjectId EntNext(this ObjectId id)
+    {
+#if acad
+        return Utils.EntNext(id);
+#elif zcad
+        if (!id.ObjectClass.IsDerivedFrom(RXClassEx.Get<Entity>()))
+            throw new ArgumentException("id必须是Entity类型");
+        PInvokeCad.GetAdsName(out var adsName, id);
+        PInvokeCad.ZcdbEntNext(adsName, out var nextId);
+        return nextId;
+#endif
+    }
+
+    /// <summary>
     /// id是否有效,未被删除
     /// </summary>
     /// <param name="id">对象id</param>
