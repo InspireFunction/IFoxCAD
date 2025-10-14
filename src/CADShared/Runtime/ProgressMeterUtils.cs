@@ -42,18 +42,17 @@ public static class ProgressMeterUtils
     }
 
 #if zcad
-    private const string kDllName = "zwcad.exe";
 
-    [DllImport(kDllName, EntryPoint = "?zcedSetStatusBarProgressMeter@@YAHPEB_WHH@Z",
+    [DllImport(DllFileNames.ZwCadExe, EntryPoint = "?zcedSetStatusBarProgressMeter@@YAHPEB_WHH@Z",
         CallingConvention = CallingConvention.Cdecl)]
     private static extern void ZcedSetStatusBarProgressMeter(
         [MarshalAs(UnmanagedType.LPWStr)] string label, int minPos, int maxPos);
 
-    [DllImport(kDllName, EntryPoint = "?zcedSetStatusBarProgressMeterPos@@YAHH@Z",
+    [DllImport(DllFileNames.ZwCadExe, EntryPoint = "?zcedSetStatusBarProgressMeterPos@@YAHH@Z",
         CallingConvention = CallingConvention.Cdecl)]
     private static extern void ZcedSetStatusBarProgressMeterPos(int position);
 
-    [DllImport(kDllName, EntryPoint = "?zcedSetStatusBarProgressMeterStop@@YAHXZ",
+    [DllImport(DllFileNames.ZwCadExe, EntryPoint = "?zcedSetStatusBarProgressMeterStop@@YAHXZ",
         CallingConvention = CallingConvention.Cdecl)]
     private static extern void ZcedSetStatusBarProgressMeterStop();
 #endif

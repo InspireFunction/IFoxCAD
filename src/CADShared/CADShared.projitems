@@ -29,6 +29,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Basal\Win\SystemEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Basal\Win\PInvokeUser32.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Basal\Win\WindowsAPI.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Constant\DllFileNames.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\BaseEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\BulgeVertexWidth.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\CollectionEx.cs" />

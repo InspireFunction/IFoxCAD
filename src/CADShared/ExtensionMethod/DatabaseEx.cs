@@ -5,13 +5,33 @@
 /// </summary>
 public static class DatabaseEx
 {
+#if zcad
+
+    /// <summary>
+    /// 审查
+    /// </summary>
+    /// <param name="db">数据库</param>
+    /// <param name="fixError">修复错误</param>
+    /// <param name="cmdEcho">输出</param>
+    public static void Audit(this Database db, bool fixError, bool cmdEcho)
+    {
+        ZcedAudit(db.UnmanagedObject, fixError, cmdEcho);
+    }
+
+    [DllImport(DllFileNames.ZwCadExe,
+        EntryPoint = "?zcedAudit@@YA?AW4ErrorStatus@Zcad@@PEAVZcDbDatabase@@_N1@Z",
+        CallingConvention = CallingConvention.Cdecl)]
+    private static extern int ZcedAudit(IntPtr pDatabase,
+        [MarshalAs(UnmanagedType.I1)] bool fixErrors, [MarshalAs(UnmanagedType.I1)] bool cmdEcho);
+
+#endif
+
     /// <summary>
     /// 打开切换活动数据库
     /// </summary>
     /// <param name="db">当前数据库</param>
     /// <returns>切换数据库对象</returns>
     public static SwitchDatabase SwitchDatabase(this Database db) => new(db);
-
 
     /// <summary>
     /// 保存文件
@@ -49,7 +69,8 @@ public static class DatabaseEx
         if (doc != null)
         {
             // 无法把 <paramref name="saveAsFile"/>给这个面板
-            doc.SendStringToExecute(saveAsFile == null ? "_qSave\n" : $"_SaveAs\n", false, true, true);
+            doc.SendStringToExecute(saveAsFile == null ? "_qSave\n" : $"_SaveAs\n", false, true,
+                true);
             return;
         }
 
@@ -118,7 +139,6 @@ public static class DatabaseEx
 #if acad || gcad
             db.DxfOut(saveAsFile, 7, true);
 #endif
-
 #if zcad // 中望这里没有测试
             db.DxfOut(saveAsFile, 7, version);
 #endif
@@ -132,7 +152,6 @@ public static class DatabaseEx
         // 若扩展名和版本号冲突,按照扩展名为准
         if (version.IsDxfVersion())
             version = DwgVersion.Current;
-
         db.SaveAs(saveAsFile, version);
     }
 
@@ -152,7 +171,6 @@ public static class DatabaseEx
         // 防止前台关闭了所有文档导致没有Editor,所以使用 MessageBox 发送警告
         var fileName = Path.GetFileNameWithoutExtension(file);
         var fileExt = Path.GetExtension(file);
-
         if (string.IsNullOrWhiteSpace(fileName))
             // ReSharper disable once StringLiteralTypo
             fileName = DateTime.Now.ToString("--yyMMdd--hhmmssffff");
@@ -161,11 +179,10 @@ public static class DatabaseEx
 
         // 构造函数(fileName)用了不存在的路径进行后台打开,就会出现此问题
         // 测试命令 FileNotExist
-        var dir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) + "\\后台保存出错的文件\\";
-
+        var dir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory) +
+                  "\\后台保存出错的文件\\";
         if (!Directory.Exists(dir))
             Directory.CreateDirectory(dir);
-
         file = dir + fileName + fileExt;
         while (File.Exists(file))
         {

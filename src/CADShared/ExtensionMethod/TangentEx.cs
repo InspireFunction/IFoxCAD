@@ -10,13 +10,13 @@ public static class TangentEx
     /// <summary>
     /// 获取天正绘图比例
     /// </summary>
-    /// <returns></returns>
+    /// <returns>比例</returns>
     public static double TgetPscale()
     {
         return DocGetPScale();
     }
 
-    [DllImport("tch_kernal.arx", CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
+    [DllImport(DllFileNames.TchKernalArx, CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "?DocGetPScale@@YANXZ")]
     private static extern double DocGetPScale();
 
