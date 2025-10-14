@@ -13,19 +13,26 @@ public static class PInvokeCad
     /// </summary>
     [DllImport("zwcad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "zcdbEntGet")]
     public static extern IntPtr ZcdbEntGet(AdsName adsName);
+
     /// <summary>
     /// EntGet
     /// </summary>
     [DllImport("zwcad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "zcdbEntMod")]
     public static extern int ZcdbEntMod(IntPtr intPtr);
+
     /// <summary>
     /// GetZdsName
     /// </summary>
-    [DllImport("ZwDatabase.dll", CallingConvention = CallingConvention.Cdecl, EntryPoint = "?zcdbGetZdsName@@YA?AW4ErrorStatus@Zcad@@AEAY01_JVZcDbObjectId@@@Z")]
+    [DllImport("ZwDatabase.dll", CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "?zcdbGetZdsName@@YA?AW4ErrorStatus@Zcad@@AEAY01_JVZcDbObjectId@@@Z")]
     public static extern int ZcdbGetZdsName(out AdsName adsName, ObjectId id);
-    
-    [DllImport("zwcad.exe", EntryPoint ="zcdbEntNext", CallingConvention = CallingConvention.Cdecl)]
-    public static extern int ZcdbEntNext(AdsName adsName,out ObjectId id);
+
+    /// <summary>
+    /// EntNext
+    /// </summary>
+    [DllImport("zwcad.exe", EntryPoint = "zcdbEntNext",
+        CallingConvention = CallingConvention.Cdecl)]
+    public static extern int ZcdbEntNext(AdsName adsName, out ObjectId id);
 
     /// <summary>
     /// GetAdsName
@@ -33,7 +40,7 @@ public static class PInvokeCad
     public static int GetAdsName(out AdsName adsName, ObjectId id)
     {
         return ZcdbGetZdsName(out adsName, id);
-    } 
+    }
 #else
     /// <summary>
     /// Entget

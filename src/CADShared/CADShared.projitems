@@ -73,7 +73,6 @@
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SupportPathEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SymbolTableEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\SymbolTableRecordEx.cs" />
-    <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\TangentEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\IFoxUtils.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\TransactionEx.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExtensionMethod\TrustedPathEx.cs" />
