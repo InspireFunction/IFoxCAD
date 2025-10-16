@@ -137,16 +137,31 @@ public static class ObjectIdEx
     /// 获取下一个实体的id
     /// </summary>
     /// <param name="id">id</param>
+    /// <param name="skipSub">跳过子对象</param>
     /// <returns>下一个实体的id</returns>
-    public static ObjectId EntNext(this ObjectId id)
+    public static ObjectId EntNext(this ObjectId id, bool skipSub = false)
     {
 #if acad
-        return Utils.EntNext(id);
+        return Utils.EntNext(id, skipSub);
 #elif zcad
         if (!id.ObjectClass.IsDerivedFrom(RXClassEx.Get<Entity>()))
             throw new ArgumentException("id必须是Entity类型");
         PInvokeCad.GetAdsName(out var adsName, id);
         PInvokeCad.ZcdbEntNext(adsName, out var nextId);
+        if (skipSub && id.IsOk())
+        {
+            var owner1 = (ObjectId)Env.EntGet(id).FirstOrDefault(e => e.TypeCode == 330).Value;
+            while (nextId.IsOk())
+            {
+                var owner2 =
+                    (ObjectId)Env.EntGet(nextId).FirstOrDefault(e => e.TypeCode == 330).Value;
+                if (owner1 == owner2)
+                    break;
+                PInvokeCad.GetAdsName(out var nextAdsName, nextId);
+                PInvokeCad.ZcdbEntNext(nextAdsName, out nextId);
+            }
+        }
+
         return nextId;
 #endif
     }
