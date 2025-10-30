@@ -7,21 +7,14 @@ public class CmdTestDwgFilerEx
     public static void CmdTest_DwgFilerEx()
     {
         var ed = Env.Editor;
-        // ed.WriteMessage("\n****测试,序列化图元");
-
-        var ssPsr = ed.GetSelection();
-        if (ssPsr.Status != PromptStatus.OK)
+        var r1 = ed.GetSelection();
+        if (r1.Status != PromptStatus.OK)
             return;
 
-        using DBTrans tr = new();
-        var ids = ssPsr.Value.GetObjectIds();
-        foreach (var id in ids)
+        using var tr = new DBTrans();
+        var ents = r1.Value.GetEntities<Entity>();
+        foreach (var ent in ents)
         {
-            if (!id.IsOk())
-                continue;
-            var ent = tr.GetObject<Entity>(id);
-            if (ent is null)
-                continue;
             var dwgFiler = new IFoxDwgFiler();
             ent.DwgOut(dwgFiler);
             foreach (var objectId in dwgFiler.SoftPointerIdList)
@@ -29,7 +22,7 @@ public class CmdTestDwgFilerEx
                 objectId.ObjectClass.DxfName.Print();
             }
             
-            ed.WriteMessage(Environment.NewLine + dwgFiler.ToString());
+            // ed.WriteMessage(Environment.NewLine + dwgFiler.ToString());
         }
     }
 
