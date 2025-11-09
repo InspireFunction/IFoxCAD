@@ -131,7 +131,6 @@ public static class BlockReferenceEx
     public static void ChangeBlockAttribute(this BlockReference blockReference,
         Dictionary<string, string> propertyNameValues)
     {
-        var num = propertyNameValues.Count;
         var tr = DBTrans.GetTopTransaction(blockReference.Database);
         foreach (var item in blockReference.AttributeCollection)
         {
@@ -154,8 +153,6 @@ public static class BlockReferenceEx
                     att.TextString = value;
                     att.AdjustAlignment(blockReference.Database);
                 }
-                if (--num == 0)
-                    break;
             }
         }
     }
