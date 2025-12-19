@@ -146,9 +146,9 @@ public static class BlockReferenceEx
                 att = (AttributeReference)item;
             }
 
-            using (att.ForWrite())
+            if (propertyNameValues.TryGetValue(att.Tag, out var value))
             {
-                if (propertyNameValues.TryGetValue(att.Tag, out var value))
+                using (att.ForWrite())
                 {
                     att.TextString = value;
                     att.AdjustAlignment(blockReference.Database);
