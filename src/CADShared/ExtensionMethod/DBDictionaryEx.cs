@@ -303,15 +303,18 @@ public static class DBDictionaryEx
     /// <param name="dict">字典</param>
     /// <param name="name">组名</param>
     /// <param name="ids">实体Id集合</param>
+    /// <param name="selectable">可以选中</param>
+    /// <param name="description">描述</param>
     /// <returns>编组Id</returns>
-    public static ObjectId AddGroup(this DBDictionary dict, string name, ObjectIdCollection ids)
+    public static ObjectId AddGroup(this DBDictionary dict, string name, ObjectIdCollection ids,
+        bool selectable = true, string description = "")
     {
         if (dict.Contains(name))
             return ObjectId.Null;
 
         using (dict.ForWrite())
         {
-            Group g = new();
+            Group g = new() { Selectable = selectable, Description = description };
             g.Append(ids);
             dict.SetAt(name, g);
             var tr = DBTrans.GetTopTransaction(dict.Database);
@@ -326,14 +329,17 @@ public static class DBDictionaryEx
     /// <param name="dict">字典</param>
     /// <param name="name">组名</param>
     /// <param name="ids">实体Id集合</param>
+    /// <param name="selectable">可以选中</param>
+    /// <param name="description">描述</param>
     /// <returns>编组Id</returns>
-    public static ObjectId AddGroup(this DBDictionary dict, string name, IEnumerable<ObjectId> ids)
+    public static ObjectId AddGroup(this DBDictionary dict, string name, IEnumerable<ObjectId> ids,
+        bool selectable = true, string description = "")
     {
         if (dict.Contains(name))
             return ObjectId.Null;
 
-        using ObjectIdCollection idc = new(ids.ToArray()); //需要using吗? 暂无测试
-        return dict.AddGroup(name, idc);
+        using ObjectIdCollection idc = new([.. ids]);
+        return dict.AddGroup(name, idc,selectable, description);
     }
 
 
