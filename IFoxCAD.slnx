@@ -1,0 +1,16 @@
+<Solution>
+  <Folder Name="/docs/">
+    <File Path="docs/关于IFoxCAD的架构说明.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
+    <Project Path="src/CADShared/CADShared.shproj" />
+    <Project Path="src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj" />
+    <Project Path="src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/TestAcad2025/TestAcad2025.csproj" />
+    <Project Path="tests/TestShared/TestShared.shproj" />
+    <Project Path="tests/TestZcad2025/TestZcad2025.csproj" />
+  </Folder>
+</Solution>
