@@ -11,11 +11,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\..\src\IFoxCAD.Basal\IFoxCAD.Basal.csproj" />
+      <Compile Include="..\..\src\CADShared\Basal\CLS\Index.cs" Link="CLS\Index.cs" />
+      <Compile Include="..\..\src\CADShared\Basal\CLS\Range.cs" Link="CLS\Range.cs" />
+      <Compile Include="..\..\src\CADShared\Basal\CLS\RuntimeHelpers.cs" Link="CLS\RuntimeHelpers.cs" />
+      <Compile Include="..\..\src\CADShared\Basal\CLS\TupleElementNamesAttribute.cs" Link="CLS\TupleElementNamesAttribute.cs" />
+      <Compile Include="..\..\src\CADShared\Basal\CLS\ValueTuple.cs" Link="CLS\ValueTuple.cs" />
+      <Compile Include="..\..\src\CADShared\Basal\General\LoopState.cs" Link="LoopState.cs" />
     </ItemGroup>
 
     <ItemGroup>
-        <Reference Include="System.Web" />
-        <Reference Include="System.Web.Extensions" />
+      <Folder Include="CLS\" />
     </ItemGroup>
+
 </Project>

@@ -1,9 +1,7 @@
 ﻿//#define ExtendedDataBinaryChunk
 #define XTextString
 
-#if NewtonsoftJson
 using System.Diagnostics;
-using Newtonsoft.Json;
 using static IFoxCAD.Cad.WindowsAPI;
 
 namespace Test_XRecord;
@@ -77,7 +75,7 @@ public class TestCmd_XRecord
                     if (a.Value is byte[] bytes)
                         sb.Append(Encoding.UTF8.GetString(bytes));
             });
-            datas = JsonConvert.DeserializeObject<TestABCList>(sb.ToString(), XRecordHelper._sset);
+            datas = MyJson.DeserializeObject<TestABCList>(sb.ToString(), XRecordHelper._sset);
 #endif
         });
         if (datas == null)
@@ -96,7 +94,7 @@ public class TestCmd_XRecord
 public static class XRecordHelper
 {
     #region 序列化方式
-    internal static JsonSerializerSettings _sset = new()
+    internal static MyJsonSettings _sset = new()
     {
         Formatting = Formatting.Indented,
         TypeNameHandling = TypeNameHandling.Auto
@@ -119,7 +117,7 @@ public static class XRecordHelper
         const int KiBit16 = (2048 * 16) - 1;
 
         // 就算这个写法支持,计算机也不一定有那么多内存,所以遇到此情况最好换成内存拷贝
-        var json = JsonConvert.SerializeObject(data, _sset);// 此时内存占用了2G
+        var json = MyJson.SerializeObject(data, _sset);// 此时内存占用了2G
         var buffer = Encoding.UTF8.GetBytes(json);          // 此时内存又占用了2G..
 
         BytesTask(buffer, GigaByte2, bts => {
@@ -188,7 +186,7 @@ public static class XRecordHelper
         for (int i = 0; i < datas.Count; i++)
             sb.Append(datas[i].Value);
 
-        return JsonConvert.DeserializeObject<T>(sb.ToString(), _sset);
+        return MyJson.DeserializeObject<T>(sb.ToString(), _sset);
     }
     #endregion
 
@@ -275,7 +273,6 @@ public class TestABC
 
     public override string ToString()
     {
-        return JsonConvert.SerializeObject(this, XRecordHelper._sset);
+        return MyJson.SerializeObject(this, XRecordHelper._sset);
     }
 }
-#endif

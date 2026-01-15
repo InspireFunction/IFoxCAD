@@ -1,0 +1,73 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <!--net48以下的,缺少很多API-->
+        <!--<TargetFrameworks>NET45;NET472;NET48</TargetFrameworks>-->
+        <TargetFrameworks>NET48</TargetFrameworks>
+        <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
+        <Nullable>enable</Nullable>
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+        <Version>0.3.7</Version>
+        <Company>InspireFunction</Company>
+        <Authors>xsfhlzh;vicwjb;liuqihong</Authors>
+        <Description>基于.NET的Cad二次开发类库</Description>
+        <Copyright>InspireFunction</Copyright>
+        <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
+        <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
+        <PackageReleaseNotes>增加很多东西.</PackageReleaseNotes>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <LangVersion>preview</LangVersion>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+        <!--<PlatformTarget>x64</PlatformTarget>-->
+    </PropertyGroup>
+
+    <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
+        <DefineConstants>DEBUG</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
+        <DefineConstants>$(Configuration);zcad;z2014</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET472'">
+        <DefineConstants>$(Configuration);zcad;z2021</DefineConstants>
+    </PropertyGroup>
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
+        <DefineConstants>$(Configuration);zcad;z2025</DefineConstants>
+    </PropertyGroup>
+    
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET45'">
+        <PackageReference Include="ZWCad.Net.2014" Version="1.0.2" ExcludeAssets="runtime">
+        </PackageReference>
+    </ItemGroup>
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET472'">
+        <PackageReference Include="ZWCad.Net.2021" Version="1.0.1" ExcludeAssets="runtime"> 
+        </PackageReference>
+    </ItemGroup>
+
+    <ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
+        <PackageReference Include="ZWCAD.NetApi" Version="20.25.0" ExcludeAssets="runtime">
+        </PackageReference>
+        <PackageReference Include="PolySharp" Version="1.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+    </ItemGroup>
+    
+    <ItemGroup>
+        <None Include="..\..\LICENSE">
+            <Pack>True</Pack>
+            <PackagePath></PackagePath>
+        </None>
+    </ItemGroup>
+
+    <!--<ItemGroup>
+      <PackageReference Include="IndexRange" Version="1.0.2" />
+    </ItemGroup>-->
+    <Import Project="..\CADShared\CADShared.projitems" Label="Shared" />
+</Project>

@@ -1,0 +1,56 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFrameworks>NET48</TargetFrameworks>
+
+        <Nullable>enable</Nullable>
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+        <LangVersion>preview</LangVersion>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+
+    </PropertyGroup>
+    <!--nuget package-->
+    <PropertyGroup>
+        <PackageId>IFox.CAD.ZCAD</PackageId>
+        <Title>IFox.CAD.ZCAD</Title>
+        <Product>IFox.CAD.ZCAD</Product>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DebugType>none</DebugType>
+        <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DebugType>none</DebugType>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <DocumentationFile>bin\Release\IFoxCAD.ZwCad.xml</DocumentationFile>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <DefineConstants>$(Configuration);zcad;z2025</DefineConstants>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <None Include="..\..\LICENSE">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+        <None Include="..\..\readme.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+    </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="ZWCAD.NetApi" Version="20.25.0" ExcludeAssets="runtime" />
+        <PackageReference Include="PolySharp" Version="1.15.0">
+            <PrivateAssets>all</PrivateAssets>
+            <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+        </PackageReference>
+<!--        <PackageReference Include="ZWCAD.NetApi" Version="20.25.0" ExcludeAssets="runtime"/>-->
+        <Reference Include="Microsoft.CSharp" />
+    </ItemGroup>
+
+
+    <Import Project="..\CADShared\CADShared.projitems" Label="Shared" />  
+</Project>

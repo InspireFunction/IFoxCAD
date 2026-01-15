@@ -1,0 +1,22 @@
+<Solution>
+  <Folder Name="/docs/">
+    <File Path="docs/关于IFoxCAD的架构说明.md" />
+  </Folder>
+  <Folder Name="/src/">
+    <Project Path="src/CADShared/CADShared.shproj" />
+    <Project Path="src/IFoxCAD.Aacad08/IFoxCAD.Acad08.csproj" />
+    <Project Path="src/IFoxCAD.Aacad09plus/IFoxCAD.Acad09plus.csproj" />
+    <Project Path="src/IFoxCAD.Gcad/IFoxCAD.Gcad.csproj" />
+    <Project Path="src/IFoxCAD.Zcad/IFoxCAD.Zcad.csproj" />
+    <Project Path="src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj" />
+
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="src/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />
+    <Project Path="src/IFoxCAD.WPF/IFoxCAD.WPF.csproj" />
+    <Project Path="tests/TestAcad08/TestAcad08.csproj" />
+    <Project Path="tests/TestAcad09plus/TestAcad09plus.csproj" />
+    <Project Path="tests/TestConsole/TestConsole.csproj" />
+    <Project Path="tests/TestShared/TestShared.shproj" />
+  </Folder>
+</Solution>
