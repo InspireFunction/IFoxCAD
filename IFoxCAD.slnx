@@ -12,8 +12,8 @@
 
   </Folder>
   <Folder Name="/tests/">
-    <Project Path="src/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />
-    <Project Path="src/IFoxCAD.WPF/IFoxCAD.WPF.csproj" />
+    <Project Path="tests/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />
+    <Project Path="tests/IFoxCAD.WPF/IFoxCAD.WPF.csproj" />
     <Project Path="tests/TestAcad08/TestAcad08.csproj" />
     <Project Path="tests/TestAcad09plus/TestAcad09plus.csproj" />
     <Project Path="tests/TestConsole/TestConsole.csproj" />

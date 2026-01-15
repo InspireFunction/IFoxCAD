@@ -680,7 +680,7 @@ public static class Env
     /// 设置cad系统变量<br/>
     /// 提供一个反序列化后,无cad异常输出的功能<br/>
     /// 注意,您需要再此执行时候设置文档锁<br/>
-    /// <see cref="Acap.DocumentManager.MdiActiveDocument.LockDocument()"/><br/>
+    /// <see cref="Document.LockDocument()"/><br/>
     /// 否则也将导致修改数据库异常<br/>
     /// </summary>
     /// <param name="key"></param>

@@ -2025,7 +2025,6 @@ namespace System.Collections.Generic
         /// This class represents a subset view into the tree. Any changes to this view
         /// are reflected in the actual tree. Uses the Comparator of the underlying tree.
         /// </summary>
-        /// <typeparam name="T"></typeparam>
 #if !FEATURE_NETCORE
         [Serializable]
         internal sealed class TreeSubSet : SortedSet<T>, ISerializable, IDeserializationCallback

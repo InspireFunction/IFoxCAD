@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
 /*  封装jig
  *  20220726 隐藏事件,利用函数进行数据库图元重绘
@@ -226,7 +226,7 @@ public class JigEx : DrawJig, IDisposable
                 else
                     _options.Keywords.Add(item.Key, item.Key, item.Value);
 
-        /// 因为默认配置函数<see cref="JigPointOptions">导致此处空格触发是无效的,
+        /// 因为默认配置函数<see cref="JigPointOptions" />导致此处空格触发是无效的,
         /// 但是用户如果想触发,就需要在外部减去默认UserInputControls配置
         /// 要放最后,才能优先触发其他关键字
         if (spaceValue != string.Empty)

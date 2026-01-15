@@ -14,7 +14,6 @@ public class TestJson
             3
         };
 
-
         Env.Printl("–Ú¡–ªØ:");
         var serializedResult = MyJson.SerializeObject(RegisteredUsers);
         Env.Printl(serializedResult);

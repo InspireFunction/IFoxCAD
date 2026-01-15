@@ -1,13 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFrameworks>NET48</TargetFrameworks>
-
-        <Nullable>enable</Nullable>
-        <UseWPF>true</UseWPF>
-        <UseWindowsForms>true</UseWindowsForms>
-        <LangVersion>preview</LangVersion>
-        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-
+        <TargetFrameworks>net48</TargetFrameworks>
     </PropertyGroup>
     <!--nuget package-->
     <PropertyGroup>
@@ -42,15 +35,14 @@
         </None>
     </ItemGroup>
     <ItemGroup>
-        <PackageReference Include="ZWCAD.NetApi" Version="20.25.0" ExcludeAssets="runtime" />
+        <PackageReference Include="ZWCAD.NetApi" Version="20.25.0" ExcludeAssets="runtime"/>
         <PackageReference Include="PolySharp" Version="1.15.0">
             <PrivateAssets>all</PrivateAssets>
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
-<!--        <PackageReference Include="ZWCAD.NetApi" Version="20.25.0" ExcludeAssets="runtime"/>-->
-        <Reference Include="Microsoft.CSharp" />
+        <!--        <PackageReference Include="ZWCAD.NetApi" Version="20.25.0" ExcludeAssets="runtime"/>-->
+        <Reference Include="Microsoft.CSharp"/>
     </ItemGroup>
 
-
-    <Import Project="..\CADShared\CADShared.projitems" Label="Shared" />  
+    <Import Project="..\CADShared\CADShared.projitems" Label="Shared"/>
 </Project>

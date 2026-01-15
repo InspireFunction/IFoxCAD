@@ -1,0 +1,38 @@
+<Project>
+    <!--版本号和提示-->
+    <PropertyGroup>
+        <Version>0.9.8.1</Version>
+        <PackageReleaseNotes>支持中望cad的进度条</PackageReleaseNotes>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+        <NoWarn>1591,1573,1572,1587,1570,1584,1658,CA2022</NoWarn>
+        <PlatformTarget>x64</PlatformTarget>
+        <RootNamespace>IFoxCAD.CAD</RootNamespace>
+        <UseWindowsForms>true</UseWindowsForms>
+        <UseWpf>true</UseWpf>
+        <OutputPath>..\..\bin\$(Configuration)\</OutputPath>
+    </PropertyGroup>
+
+    <PropertyGroup><!--nuget包信息-->
+        <Company>InspireFunction</Company>
+        <Authors>xsfhlzh;vicwjb;liuqihong;DYH</Authors>
+        <Copyright>InspireFunction</Copyright>
+        <Description>基于.NET的二次开发基本类库.</Description>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
+        <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>IFox;cad;AutoCad;C#;NET;ZwCad</PackageTags>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    </PropertyGroup>
+
+</Project>

@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 
 namespace IFoxCAD.Cad;
@@ -472,7 +472,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <param name="o">直线点1</param>
     /// <param name="a">直线点2</param>
     /// <param name="b">判断点</param>
-    /// <returns>b点在oa的逆时针<see cref="true"/></returns>
+    /// <returns>b点在oa的逆时针方向为真</returns>
     static bool CrossAclockwise(Point2d o, Point2d a, Point2d b)
     {
         return Cross(o, a, b) > -1e-6;// 浮点数容差考虑

@@ -58,13 +58,19 @@
             <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
         </PackageReference>
     </ItemGroup>
-    
+
+
     <ItemGroup>
         <None Include="..\..\LICENSE">
             <Pack>True</Pack>
-            <PackagePath></PackagePath>
+            <PackagePath>\</PackagePath>
+        </None>
+        <None Include="..\..\readme.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
         </None>
     </ItemGroup>
+
 
     <!--<ItemGroup>
       <PackageReference Include="IndexRange" Version="1.0.2" />

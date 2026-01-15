@@ -561,9 +561,9 @@ public enum ClipboardFormat : uint
 
     /// <summary>
     /// Owner-display format. The clipboard owner must display and update the clipboard viewer window, and receive
-    /// the <see cref="ClipboardMessages.WM_ASKCBFORMATNAME"/>, <see cref="ClipboardMessages.WM_HSCROLLCLIPBOARD"/>,
-    /// <see cref="ClipboardMessages.WM_PAINTCLIPBOARD"/>, <see cref="ClipboardMessages.WM_SIZECLIPBOARD"/>, and
-    /// <see cref="ClipboardMessages.WM_VSCROLLCLIPBOARD"/> messages. The <c>hMem</c> parameter must be <c>null</c>.
+    /// the WM_ASKCBFORMATNAME, WM_HSCROLLCLIPBOARD,
+    /// WM_PAINTCLIPBOARD, WM_SIZECLIPBOARD, and
+    /// WM_VSCROLLCLIPBOARD messages. The <c>hMem</c> parameter must be <c>null</c>.
     /// </summary>
     CF_OWNERDISPLAY = 0x0080,
 
@@ -607,9 +607,9 @@ public enum ClipboardFormat : uint
 
     /// <summary>
     /// Start of a range of integer values for private clipboard formats. The range ends with
-    /// <see cref="CF_PRIVATELAST"/>. Handles associated with private clipboard formats are not freed
+    /// CF_PRIVATELAST. Handles associated with private clipboard formats are not freed
     /// automatically, the clipboard owner must free such handles, typically in response to the
-    /// <see cref="ClipboardMessages.WM_DESTROYCLIPBOARD"/> message.
+    /// WM_DESTROYCLIPBOARD message.
     /// </summary>
     CF_PRIVATEFIRST = 0x0200,
 

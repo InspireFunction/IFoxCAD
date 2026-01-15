@@ -1,4 +1,4 @@
-﻿#define Marshal
+#define Marshal
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
@@ -290,7 +290,7 @@ public partial class WindowsAPI
     /// <summary>
     /// 查找主线程<br/>
     /// 代替<see cref="AppDomain.GetCurrentThreadId()"/><br/>
-    /// 托管线程和他们不一样: <see cref="Thread.CurrentThread.ManagedThreadId"/>
+    /// 托管线程和他们不一样: <see cref="Thread.ManagedThreadId"/>
     /// </summary>
     /// <param name="hWnd">主窗口</param>
     /// <param name="lpdwProcessId">进程ID</param>

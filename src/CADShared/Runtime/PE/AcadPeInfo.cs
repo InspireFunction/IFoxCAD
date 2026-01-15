@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 
 namespace IFoxCAD.Cad;
 
@@ -136,7 +136,7 @@ public class AcadPeInfo
 
     #region 方法
     /// <summary>
-    /// 储存旧值<去除修饰函数名(查找的),带修饰函数名们>
+    /// 储存旧值&lt;去除修饰函数名(查找的),带修饰函数名们&gt;
     /// </summary>
     static Dictionary<string, List<PeFunction>> _Dict = new();
 

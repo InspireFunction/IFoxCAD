@@ -2,28 +2,24 @@
 
     <PropertyGroup>
         <TargetFrameworks>NET48</TargetFrameworks>
-        <GenerateAppxPackageOnBuild>true</GenerateAppxPackageOnBuild>
-        <Nullable>enable</Nullable>
-        <UseWPF>true</UseWPF>
-        <UseWindowsForms>true</UseWindowsForms>
-        <Version>0.3.7</Version>
-        <Company>InspireFunction</Company>
-        <Authors>xsfhlzh;vicwjb;liuqihong</Authors>
-        <Description>基于.NET的Cad二次开发类库</Description>
-        <Copyright>InspireFunction</Copyright>
-        <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
-        <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
-        <RepositoryType>git</RepositoryType>
-        <PackageTags>IFoxCAD;CAD;AutoCad;C#;NET</PackageTags>
-        <PackageReleaseNotes>增加很多东西.</PackageReleaseNotes>
-        <EnableNETAnalyzers>true</EnableNETAnalyzers>
-        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
-        <LangVersion>preview</LangVersion>
-        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <PackageLicenseFile>LICENSE</PackageLicenseFile>
-        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-        <!--<PlatformTarget>x64</PlatformTarget>-->
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>IFox.CAD.ACAD</PackageId>
+        <Title>IFox.CAD.ACAD</Title>
+        <Product>IFox.CAD.ACAD</Product>
+    </PropertyGroup>
+
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DebugType>none</DebugType>
+        <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DebugType>none</DebugType>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <DocumentationFile>bin\Release\IFoxCAD.AutoCad.xml</DocumentationFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -39,12 +35,18 @@
         </PackageReference>
     </ItemGroup>
 
+
     <ItemGroup>
         <None Include="..\..\LICENSE">
             <Pack>True</Pack>
-            <PackagePath></PackagePath>
+            <PackagePath>\</PackagePath>
+        </None>
+        <None Include="..\..\readme.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
         </None>
     </ItemGroup>
+
 
     <!--<ItemGroup>
       <PackageReference Include="IndexRange" Version="1.0.2" />
