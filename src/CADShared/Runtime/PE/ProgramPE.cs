@@ -1,4 +1,9 @@
-﻿namespace IFoxCAD.Cad;
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
+
+namespace IFoxCAD.Cad;
 
 using System;
 using System.Collections;
@@ -88,7 +93,16 @@ public class PeInfo
             // 文件流
             file = new FileStream(fullName, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);// FileShare才能进c盘
             _PEFileByte = new byte[file.Length];
-            file.Read(_PEFileByte, 0, _PEFileByte.Length);
+            int bytesRead = 0;
+            int totalBytes = _PEFileByte.Length;
+
+            while (bytesRead < totalBytes)
+            {
+                int read = file.Read(_PEFileByte, bytesRead, totalBytes - bytesRead);
+                if (read == 0)
+                    break; // 已到达文件末尾
+                bytesRead += read;
+            }
             LoadFile();
             OpenFile = true;
         }
@@ -1300,29 +1314,114 @@ public class PeInfo
 /// <summary>
 /// DOS文件都MS开始
 /// </summary>
+/// <summary>
+/// DOS头结构，包含PE文件的基本DOS头信息
+/// </summary>
 public class DosHeader // IMAGE_DOS_HEADER
 {
+    /// <summary>
+    /// 魔术数字
+    /// </summary>
     public byte[] e_magic = new byte[2];       // 魔术数字
+
+    /// <summary>
+    /// 文件最后页的字节数
+    /// </summary>
     public byte[] e_cblp = new byte[2];       // 文件最后页的字节数
+
+    /// <summary>
+    /// 文件页数
+    /// </summary>
     public byte[] e_cp = new byte[2];       // 文件页数
+
+    /// <summary>
+    /// 重定义元素个数
+    /// </summary>
     public byte[] e_crlc = new byte[2];       // 重定义元素个数
+
+    /// <summary>
+    /// 头部尺寸,以段落为单位
+    /// </summary>
     public byte[] e_cparhdr = new byte[2];       // 头部尺寸,以段落为单位
+
+    /// <summary>
+    /// 所需的最小附加段
+    /// </summary>
     public byte[] e_minalloc = new byte[2];       // 所需的最小附加段
+
+    /// <summary>
+    /// 所需的最大附加段
+    /// </summary>
     public byte[] e_maxalloc = new byte[2];       // 所需的最大附加段
+
+    /// <summary>
+    /// 初始的SS值(相对偏移量)
+    /// </summary>
     public byte[] e_ss = new byte[2];       // 初始的SS值(相对偏移量)
+
+    /// <summary>
+    /// 初始的SP值
+    /// </summary>
     public byte[] e_sp = new byte[2];       // 初始的SP值
+
+    /// <summary>
+    /// 校验和
+    /// </summary>
     public byte[] e_csum = new byte[2];       // 校验和
+
+    /// <summary>
+    /// 初始的IP值
+    /// </summary>
     public byte[] e_ip = new byte[2];       // 初始的IP值
+
+    /// <summary>
+    /// 初始的CS值(相对偏移量)
+    /// </summary>
     public byte[] e_cs = new byte[2];       // 初始的CS值(相对偏移量)
+
+    /// <summary>
+    /// RVA值
+    /// </summary>
     public byte[] e_rva = new byte[2];
+
+    /// <summary>
+    /// 标志
+    /// </summary>
     public byte[] e_fg = new byte[2];
+
+    /// <summary>
+    /// 保留字段1
+    /// </summary>
     public byte[] e_bl1 = new byte[8];
+
+    /// <summary>
+    /// OEM标识符
+    /// </summary>
     public byte[] e_oemid = new byte[2];
+
+    /// <summary>
+    /// OEM信息
+    /// </summary>
     public byte[] e_oeminfo = new byte[2];
+
+    /// <summary>
+    /// 保留字段2
+    /// </summary>
     public byte[] e_bl2 = new byte[20];
+
+    /// <summary>
+    /// PE开始 +自己的位置........重点
+    /// </summary>
     public byte[] e_PESTAR = new byte[2];   // PE开始 +自己的位置........重点
 
+    /// <summary>
+    /// 文件开始索引
+    /// </summary>
     public long FileStarIndex = 0;
+
+    /// <summary>
+    /// 文件结束索引
+    /// </summary>
     public long FileEndIndex = 0;
 }
 
@@ -1331,12 +1430,28 @@ public class DosHeader // IMAGE_DOS_HEADER
 /// </summary>
 public class DosStub
 {
+    /// <summary>
+    /// DOS存根数据
+    /// </summary>
     public byte[] DosStubData;
+
+    /// <summary>
+    /// 初始化DosStub结构
+    /// </summary>
+    /// <param name="Size">数据大小</param>
     public DosStub(long Size)
     {
         DosStubData = new byte[Size];
     }
+
+    /// <summary>
+    /// 文件开始索引
+    /// </summary>
     public long FileStarIndex = 0;
+
+    /// <summary>
+    /// 文件结束索引
+    /// </summary>
     public long FileEndIndex = 0;
 }
 
@@ -1345,16 +1460,54 @@ public class DosStub
 /// </summary>
 public class PEHeader // IMAGE_FILE_HEADER
 {
+    /// <summary>
+    /// PE文件标记
+    /// </summary>
     public byte[] Header = new byte[4];// PE文件标记
+
+    /// <summary>
+    /// 该文件运行所要求的CPU.对于Intel平台,该值是IMAGE_FILE_MACHINE_I386 (14Ch).我们尝试了LUEVELSMEYER的pe.txt声明的14Dh和14Eh,但Windows不能正确执行.看起来,除了禁止程序执行之外,本域对我们来说用处不大.
+    /// </summary>
     public byte[] Machine = new byte[2];// 该文件运行所要求的CPU.对于Intel平台,该值是IMAGE_FILE_MACHINE_I386 (14Ch).我们尝试了LUEVELSMEYER的pe.txt声明的14Dh和14Eh,但Windows不能正确执行.看起来,除了禁止程序执行之外,本域对我们来说用处不大.
+
+    /// <summary>
+    /// 文件的节数目.如果我们要在文件中增加或删除一个节,就需要修改这个值.
+    /// </summary>
     public byte[] NumberOfSections = new byte[2];// 文件的节数目.如果我们要在文件中增加或删除一个节,就需要修改这个值.
+
+    /// <summary>
+    /// 文件创建日期和时间.我们不感兴趣.
+    /// </summary>
     public byte[] TimeDateStamp = new byte[4];// 文件创建日期和时间.我们不感兴趣.
+
+    /// <summary>
+    /// 用于调试.
+    /// </summary>
     public byte[] PointerToSymbolTable = new byte[4];// 用于调试.
+
+    /// <summary>
+    /// 用于调试.
+    /// </summary>
     public byte[] NumberOfSymbols = new byte[4];// 用于调试.
+
+    /// <summary>
+    /// 指示紧随本结构之后的 OptionalHeader 结构大小,必须为有效值. IMAGE_OPTIONAL_HEADER32 结构大小
+    /// </summary>
     public byte[] SizeOfOptionalHeader = new byte[2];// 指示紧随本结构之后的 OptionalHeader 结构大小,必须为有效值. IMAGE_OPTIONAL_HEADER32 结构大小
+
+    /// <summary>
+    /// 关于文件信息的标记,比如文件是exe还是dll.
+    /// </summary>
     public byte[] Characteristics = new byte[2];// 关于文件信息的标记,比如文件是exe还是dll.
 
+    /// <summary>
+    /// 文件开始索引
+    /// </summary>
     public long FileStarIndex = 0;
+
+    /// <summary>
+    /// 文件结束索引
+    /// </summary>
     public long FileEndIndex = 0;
 }
 
@@ -1394,16 +1547,50 @@ public class OptionalHeader
     public byte[] Subsystem = new byte[2];                    // 子系统(映象文件)1本地 2WINDOWS-GUI 3WINDOWS-CUI 4 POSIX-CUI
     public byte[] DLLCharacteristics = new byte[2];           // DLL标记
 
+    /// <summary>
+    /// 保留栈的大小
+    /// </summary>
     public byte[] SizeOfStackReserve = new byte[4];           // 保留栈的大小
+
+    /// <summary>
+    /// 初始时指定栈大小
+    /// </summary>
     public byte[] SizeOfStackCommit = new byte[4];            // 初始时指定栈大小
+
+    /// <summary>
+    /// 保留堆的大小
+    /// </summary>
     public byte[] SizeOfHeapReserve = new byte[4];            // 保留堆的大小
+
+    /// <summary>
+    /// 初始时指定堆大小
+    /// </summary>
     public byte[] SizeOfHeapCommit = new byte[4];             // 初始时指定堆大小
+
+    /// <summary>
+    /// 加载器标志
+    /// </summary>
     public byte[] LoaderFlags = new byte[4];                  // 加载器标志
+
+    /// <summary>
+    /// 数据目录数
+    /// </summary>
     public byte[] NumberOfRvaAndSizes = new byte[4];          // 数据目录数
 
+    /// <summary>
+    /// 文件开始索引
+    /// </summary>
     public long FileStarIndex = 0;
+
+    /// <summary>
+    /// 文件结束索引
+    /// </summary>
     public long FileEndIndex = 0;
 
+    /// <summary>
+    /// 初始化OptionalHeader结构
+    /// </summary>
+    /// <param name="is32">是否是32位系统</param>
     public OptionalHeader(bool is32)
     {
         if (!is32)
@@ -1426,13 +1613,35 @@ public class OptionalHeader
 /// </summary>
 public class OptionalDirAttrib
 {
+    /// <summary>
+    /// 目录字节数据
+    /// </summary>
     public ArrayList DirByte = new();
+
+    /// <summary>
+    /// 目录属性
+    /// </summary>
     public class DirAttrib
     {
+        /// <summary>
+        /// 目录地址
+        /// </summary>
         public byte[] DirRva = new byte[4];   // 地址
+
+        /// <summary>
+        /// 目录大小
+        /// </summary>
         public byte[] DirSize = new byte[4];   // 大小
     }
+
+    /// <summary>
+    /// 文件开始索引
+    /// </summary>
     public long FileStarIndex = 0;
+
+    /// <summary>
+    /// 文件结束索引
+    /// </summary>
     public long FileEndIndex = 0;
 }
 
@@ -1441,22 +1650,75 @@ public class OptionalDirAttrib
 /// </summary>
 public class SectionTable
 {
+    /// <summary>
+    /// 节数据
+    /// </summary>
     public ArrayList Section = new();
+
+    /// <summary>
+    /// 节数据
+    /// </summary>
     public class SectionData
     {
+        /// <summary>
+        /// 节名称
+        /// </summary>
         public byte[] SectName = new byte[8];             // 名字
+
+        /// <summary>
+        /// 虚拟内存地址
+        /// </summary>
         public byte[] VirtualAddress = new byte[4];             // 虚拟内存地址
+
+        /// <summary>
+        /// RVA偏移
+        /// </summary>
         public byte[] SizeOfRawDataRVA = new byte[4];             // RVA偏移
+
+        /// <summary>
+        /// RVA大小
+        /// </summary>
         public byte[] SizeOfRawDataSize = new byte[4];             // RVA大小
+
+        /// <summary>
+        /// 指向RAW数据
+        /// </summary>
         public byte[] PointerToRawData = new byte[4];             // 指向RAW数据
+
+        /// <summary>
+        /// 指向定位号
+        /// </summary>
         public byte[] PointerToRelocations = new byte[4];             // 指向定位号
+
+        /// <summary>
+        /// 指向行数
+        /// </summary>
         public byte[] PointerToLinenumbers = new byte[4];             // 指向行数
+
+        /// <summary>
+        /// 定位号
+        /// </summary>
         public byte[] NumberOfRelocations = new byte[2];             // 定位号
+
+        /// <summary>
+        /// 行数号
+        /// </summary>
         public byte[] NumberOfLinenumbers = new byte[2];             // 行数号
+
+        /// <summary>
+        /// 区段标记
+        /// </summary>
         public byte[] Characteristics = new byte[4];             // 区段标记
     }
 
+    /// <summary>
+    /// 文件开始索引
+    /// </summary>
     public long FileStarIndex = 0;
+
+    /// <summary>
+    /// 文件结束索引
+    /// </summary>
     public long FileEndIndex = 0;
 }
 
@@ -1465,28 +1727,90 @@ public class SectionTable
 /// </summary>
 public class ExportDirectory
 {
+    /// <summary>
+    /// 特征码，一个保留字段,目前为止值为0
+    /// </summary>
     public byte[] Characteristics = new byte[4];       // 一个保留字段,目前为止值为0.
+
+    /// <summary>
+    /// 产生的时间
+    /// </summary>
     public byte[] TimeDateStamp = new byte[4];         // 产生的时间
+
+    /// <summary>
+    /// 主版本号
+    /// </summary>
     public byte[] MajorVersion = new byte[2];          // 主版本号
+
+    /// <summary>
+    /// 副版本号
+    /// </summary>
     public byte[] MinorVersion = new byte[2];          // 副版本号
+
+    /// <summary>
+    /// 一个RVA,指向一个dll的名称的ascii字符串
+    /// </summary>
     public byte[] Name = new byte[4];                  // 一个RVA,指向一个dll的名称的ascii字符串
+
+    /// <summary>
+    /// 输出函数的起始序号.一般为1
+    /// </summary>
     public byte[] Base = new byte[4];                  // 输出函数的起始序号.一般为1
+
+    /// <summary>
+    /// 输出函数入口地址的数组中的元素个数
+    /// </summary>
     public byte[] NumberOfFunctions = new byte[4];     // 输出函数入口地址的数组中的元素个数
+
+    /// <summary>
+    /// 输出函数名的指针的数组中的元素个数,也是输出函数名对应的序号的数组中的元素个数
+    /// </summary>
     public byte[] NumberOfNames = new byte[4];         // 输出函数名的指针的数组中的元素个数,也是输出函数名对应的序号的数组中的元素个数
+
+    /// <summary>
+    /// 一个RVA,指向输出函数入口地址的数组
+    /// </summary>
     public byte[] AddressOfFunctions = new byte[4];    // 一个RVA,指向输出函数入口地址的数组
+
+    /// <summary>
+    /// 一个RVA,指向输出函数名的指针的数组
+    /// </summary>
     public byte[] AddressOfNames = new byte[4];        // 一个RVA,指向输出函数名的指针的数组
+
+    /// <summary>
+    /// 一个RVA,指向输出函数名对应的序号的数组
+    /// </summary>
     public byte[] AddressOfNameOrdinals = new byte[4]; // 一个RVA,指向输出函数名对应的序号的数组
 
+    /// <summary>
+    /// 函数地址列表
+    /// </summary>
     public ArrayList AddressOfFunctionsList = new();
+
+    /// <summary>
+    /// 函数名称列表
+    /// </summary>
     public ArrayList AddressOfNamesList = new();
+
+    /// <summary>
+    /// 函数名称序号列表
+    /// </summary>
     public ArrayList AddressOfNameOrdinalsList = new();
+
     /// <summary>
     /// 函数指针名称集合
     /// </summary>
     public List<byte[]> FunctionNamesByte = new();
-    public long FileStarIndex = 0;
-    public long FileEndIndex = 0;
 
+    /// <summary>
+    /// 文件开始索引
+    /// </summary>
+    public long FileStarIndex = 0;
+
+    /// <summary>
+    /// 文件结束索引
+    /// </summary>
+    public long FileEndIndex = 0;
     /// <summary>
     /// 获取函数名
     /// </summary>
@@ -1505,26 +1829,81 @@ public class ExportDirectory
 /// </summary>
 public class ImportDirectory
 {
+    /// <summary>
+    /// 导入列表
+    /// </summary>
     public ArrayList ImportList = new();
 
+    /// <summary>
+    /// 导入数据
+    /// </summary>
     public class ImportDate
     {
+        /// <summary>
+        /// 这里实际上保存着一个RVA,这个RVA指向一个DWORD数组,这个数组可以叫做输入查询表.每个数组元素,或者叫一个表项,保存着一个指向函数名的RVA或者保存着一个函数的序号.
+        /// </summary>
         public byte[] OriginalFirstThunk = new byte[4]; // 这里实际上保存着一个RVA,这个RVA指向一个DWORD数组,这个数组可以叫做输入查询表.每个数组元素,或者叫一个表项,保存着一个指向函数名的RVA或者保存着一个函数的序号.
+
+        /// <summary>
+        /// 当这个值为0的时候,表明还没有bind.不为0的话,表示已经bind过了.有关bind的内容后面介绍.
+        /// </summary>
         public byte[] TimeDateStamp = new byte[4];      // 当这个值为0的时候,表明还没有bind.不为0的话,表示已经bind过了.有关bind的内容后面介绍.
+
+        /// <summary>
+        /// 转发链
+        /// </summary>
         public byte[] ForwarderChain = new byte[4];
+
+        /// <summary>
+        /// 一个RVA,这个RVA指向一个ascii以空字符结束的字符串,这个字符串就是本结构对应的dll文件的名字.
+        /// </summary>
         public byte[] Name = new byte[4];       // 一个RVA,这个RVA指向一个ascii以空字符结束的字符串,这个字符串就是本结构对应的dll文件的名字.
+
+        /// <summary>
+        /// 一个RVA,这个RVA指向一个DWORD数组,这个数组可以叫输入地址表.如果bind了的话,这个数组的每个元素,就是一个输入函数的入口地址.
+        /// </summary>
         public byte[] FirstThunk = new byte[4]; // 一个RVA,这个RVA指向一个DWORD数组,这个数组可以叫输入地址表.如果bind了的话,这个数组的每个元素,就是一个输入函数的入口地址.
 
+        /// <summary>
+        /// DLL名称
+        /// </summary>
         public byte[]? DLLName;  // DLL名称
+
+        /// <summary>
+        /// DLL函数列表
+        /// </summary>
         public ArrayList DLLFunctionList = new();
+
+        /// <summary>
+        /// 函数列表
+        /// </summary>
         public class FunctionList
         {
+            /// <summary>
+            /// 原始第一个
+            /// </summary>
             public byte[] OriginalFirst = new byte[4];
+
+            /// <summary>
+            /// 函数名称
+            /// </summary>
             public byte[]? FunctionName;
+
+            /// <summary>
+            /// 函数头部
+            /// </summary>
             public byte[] FunctionHead = new byte[2];
         }
     }
+
+    /// <summary>
+    /// 文件开始索引
+    /// </summary>
     public long FileStarIndex = 0;
+
+    /// <summary>
+    /// 文件结束索引
+    /// </summary>
     public long FileEndIndex = 0;
 }
 
@@ -1533,35 +1912,116 @@ public class ImportDirectory
 /// </summary>
 public class ResourceDirectory
 {
+    /// <summary>
+    /// 特征码
+    /// </summary>
     public byte[] Characteristics = new byte[4];
+
+    /// <summary>
+    /// 时间戳
+    /// </summary>
     public byte[] TimeDateStamp = new byte[4];
+
+    /// <summary>
+    /// 主版本号
+    /// </summary>
     public byte[] MajorVersion = new byte[2];
+
+    /// <summary>
+    /// 次版本号
+    /// </summary>
     public byte[] MinorVersion = new byte[2];
+
+    /// <summary>
+    /// 命名条目数
+    /// </summary>
     public byte[] NumberOfNamedEntries = new byte[2];
+
+    /// <summary>
+    /// ID条目数
+    /// </summary>
     public byte[] NumberOfIdEntries = new byte[2];
+
+    /// <summary>
+    /// 名称
+    /// </summary>
     public byte[]? Name;
+
+    /// <summary>
+    /// 条目列表
+    /// </summary>
     public ArrayList EntryList = new();
 
+    /// <summary>
+    /// 目录条目
+    /// </summary>
     public class DirectoryEntry
     {
+        /// <summary>
+        /// 名称
+        /// </summary>
         public byte[] Name = new byte[4];
+
+        /// <summary>
+        /// ID
+        /// </summary>
         public byte[] Id = new byte[4];
+
+        /// <summary>
+        /// 数据条目列表
+        /// </summary>
         public ArrayList DataEntryList = new();
+
+        /// <summary>
+        /// 节点目录列表
+        /// </summary>
         public ArrayList NodeDirectoryList = new();
 
+        /// <summary>
+        /// 数据条目
+        /// </summary>
         public class DataEntry
         {
+            /// <summary>
+            /// 资源RVA
+            /// </summary>
             public byte[] ResourRVA = new byte[4];
+
+            /// <summary>
+            /// 资源大小
+            /// </summary>
             public byte[] ResourSize = new byte[4];
+
+            /// <summary>
+            /// 资源测试
+            /// </summary>
             public byte[] ResourTest = new byte[4];
+
+            /// <summary>
+            /// 资源Wen
+            /// </summary>
             public byte[] ResourWen = new byte[4];
 
+            /// <summary>
+            /// 文件开始索引
+            /// </summary>
             public long FileStarIndex = 0;
+
+            /// <summary>
+            /// 文件结束索引
+            /// </summary>
             public long FileEndIndex = 0;
         }
     }
 
+    /// <summary>
+    /// 文件开始索引
+    /// </summary>
     public long FileStarIndex = 0;
+
+    /// <summary>
+    /// 文件结束索引
+    /// </summary>
     public long FileEndIndex = 0;
 }
 #endregion

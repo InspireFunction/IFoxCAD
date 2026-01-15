@@ -1,6 +1,9 @@
 #if ac2008
 namespace Autodesk.AutoCAD.DatabaseServices
 {
+    /// <summary>
+    /// 文件打开模式枚举，定义了DWG文件的打开方式。
+    /// </summary>
     [Wrapper("AcDbDatabase::OpenMode")]
     public enum FileOpenMode
     {
@@ -8,11 +11,23 @@ namespace Autodesk.AutoCAD.DatabaseServices
         /// 只读模式打开
         /// </summary>
         OpenForReadAndReadShare = 1,
+        /// <summary>
+        /// 读写模式打开，不共享
+        /// </summary>
         OpenForReadAndWriteNoShare = 2,
+        /// <summary>
+        /// 读写模式打开，完全共享
+        /// </summary>
         OpenForReadAndAllShare = 3,
+        /// <summary>
+        /// 尝试读写模式打开，共享读取
+        /// </summary>
         OpenTryForReadShare = 4,
     }
 
+    /// <summary>
+    /// 文件打开模式帮助类，提供文件打开模式相关的辅助方法。
+    /// </summary>
     public static class FileOpenModeHelper
     {
         /*
@@ -20,6 +35,11 @@ namespace Autodesk.AutoCAD.DatabaseServices
          *  using FileStream fileStream = new(_fileName, FileMode.Open, fileAccess, GetFileShare(fileOpenMode));
          *  Database.ReadDwgFile(fileStream.SafeFileHandle.DangerousGetHandle(), true, password);
          */
+        /// <summary>
+        /// 根据文件打开模式获取对应的文件共享设置
+        /// </summary>
+        /// <param name="fileOpenMode">文件打开模式</param>
+        /// <returns>文件共享设置</returns>
         public static FileShare GetFileShare(FileOpenMode fileOpenMode)
         {
             // FileAccess fileAccess = FileAccess.Read;
@@ -56,8 +76,14 @@ namespace Autodesk.AutoCAD.DatabaseServices
 #if NET35
 namespace Autodesk.AutoCAD.Internal
 {
+    /// <summary>
+    /// 工具类，提供各种实用方法。
+    /// </summary>
     public class Utils
     {
+        /// <summary>
+        /// 将焦点设置到DWG视图窗口
+        /// </summary>
         public static void SetFocusToDwgView()
         {
             IntPtr window;

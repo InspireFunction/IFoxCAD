@@ -164,14 +164,23 @@ public abstract class AutoRegAssem : IExtensionApplication
         appkey.Close();
     }
 
-    // 这里的是不会自动执行的
+
+    /// <summary>
+    /// 这里的是不会自动执行的
+    /// </summary>
     public void Initialize()
     {
     }
+    /// <summary>
+    /// 这里的是不会自动执行的
+    /// </summary>
     public void Terminate()
     {
     }
 
+    /// <summary>
+    /// 析构
+    /// </summary>
     ~AutoRegAssem()
     {
         _autoRef?.Terminate();

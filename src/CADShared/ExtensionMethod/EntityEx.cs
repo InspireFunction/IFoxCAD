@@ -11,7 +11,7 @@ public static class EntityEx
     /// 获取二维多段线的端点坐标
     /// </summary>
     /// <param name="pl2d">二维多段线</param>
-    /// <param name="tr">事务</param>
+    /// <param name="trans">事务</param>
     /// <returns>端点坐标集合</returns>
     public static IEnumerable<Point3d> GetPoints(this Polyline2d pl2d, DBTrans? trans = null)
     {
@@ -24,7 +24,7 @@ public static class EntityEx
     /// 获取三维多段线的端点坐标
     /// </summary>
     /// <param name="pl3d">三维多段线</param>
-    /// <param name="tr">事务</param>
+    /// <param name="trans">事务</param>
     /// <returns>端点坐标集合</returns>
     public static IEnumerable<Point3d> GetPoints(this Polyline3d pl3d, DBTrans? trans = null)
     {
@@ -222,7 +222,6 @@ public static class EntityEx
     /// <summary>
     /// 三点法创建圆弧(二维)
     /// </summary>
-    /// <param name="arc">圆弧对象</param>
     /// <param name="startPoint">起点</param>
     /// <param name="pointOnArc">圆弧上的点</param>
     /// <param name="endPoint">终点</param>
@@ -246,7 +245,6 @@ public static class EntityEx
     /// <summary>
     /// 根据起点、圆心和圆弧角度创建圆弧(二维)
     /// </summary>
-    /// <param name="arc">圆弧对象</param>
     /// <param name="startPoint">起点</param>
     /// <param name="centerPoint">圆心</param>
     /// <param name="angle">圆弧角度</param>
@@ -309,6 +307,9 @@ public static class EntityEx
     /// </summary>
     /// <param name="center">圆心</param>
     /// <param name="radius">半径</param>
+    /// <param name="vex"></param>
+    /// <param name="vey"></param>
+    /// <param name="vez"></param>
     /// <returns>图形的ObjectId</returns>
     public static Circle? CreateCircle(Point3d center, double radius, double vex = 0, double vey = 0, double vez = 1)
     {

@@ -2,7 +2,7 @@ namespace TestShared;
 
 public class TestJson
 {
-    // ÐòÁÐ»¯²âÊÔ
+    // ï¿½ï¿½ï¿½Ð»ï¿½ï¿½ï¿½ï¿½ï¿½
     [CommandMethod(nameof(JavaScriptSerializer))]
     public void JavaScriptSerializer()
     {
@@ -14,11 +14,11 @@ public class TestJson
             3
         };
 
-        Env.Printl("ÐòÁÐ»¯:");
+        Env.Printl("ï¿½ï¿½ï¿½Ð»ï¿½:");
         var serializedResult = MyJson.SerializeObject(RegisteredUsers);
         Env.Printl(serializedResult);
 
-        Env.Printl("·´ÐòÁÐ»¯:");
+        Env.Printl("ï¿½ï¿½ï¿½ï¿½ï¿½Ð»ï¿½:");
         var deserializedResult = MyJson.DeserializeObject<List<int>>(serializedResult);
     }
 }

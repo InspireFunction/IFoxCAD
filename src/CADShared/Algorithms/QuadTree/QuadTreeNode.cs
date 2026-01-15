@@ -388,7 +388,8 @@ public class QuadTreeNode<TEntity>
     /// <summary>
     /// 查询范围内的实体
     /// </summary>
-    /// <param name="queryArea">查询矩形</param>
+    /// <param name="queryArea"></param>
+    /// <param name="results"></param>
     /// <returns></returns>
     public void Query(Rect queryArea, List<TEntity> results)
     {
@@ -763,9 +764,9 @@ public class QuadTreeNode<TEntity>
     #endregion
 
     #region 改
-    /// <summary>
-    /// 所有的点归类到最小包围它的空间
-    /// </summary>
+    // <summary>
+    // 所有的点归类到最小包围它的空间
+    // </summary>
     // public void PointsToMinNode()
     // {
     //    ForEach(node =>

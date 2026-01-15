@@ -2,6 +2,11 @@ using static System.Windows.Forms.AxHost;
 
 namespace IFoxCAD.Cad;
 
+/// <summary>
+/// 符号表类，提供对符号表的封装和操作方法。
+/// </summary>
+/// <typeparam name="TTable">符号表类型</typeparam>
+/// <typeparam name="TRecord">符号表记录类型</typeparam>
 public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     where TTable : SymbolTable
     where TRecord : SymbolTableRecord, new()
@@ -392,6 +397,10 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     #endregion
 
     #region IEnumerable<ObjectId> 成员
+    /// <summary>
+    /// 获取枚举器
+    /// </summary>
+    /// <returns>对象ID枚举器</returns>
     [System.Diagnostics.DebuggerStepThrough]
     public IEnumerator<ObjectId> GetEnumerator()
     {

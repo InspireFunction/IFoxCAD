@@ -5,11 +5,20 @@ using System.Diagnostics;
 using System.Text;
 using static IFoxCAD.Cad.WindowsAPI;
 
+/// <summary>
+/// 剪贴板环境配置类
+/// </summary>
 public class ClipboardEnv
 {
     // 0x01 将r17写死,代表每个cad版本都去找它,实现不隔离cad版本
+    /// <summary>
+    /// CAD版本标识
+    /// </summary>
     public static string CadVer = "AutoCAD.r17";
     // 0x02 当前版本在r17找不到的时候找,避免按需加载插件的时候无法获取剪贴板
+    /// <summary>
+    /// 当前CAD版本标识
+    /// </summary>
     public static string CadCurrentVer = $"AutoCAD.r{Acap.Version.Major}";
 }
 
@@ -21,32 +30,77 @@ public class ClipboardEnv
 public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
 {
     #region 字段,对应arx结构的,不要改动,本结构也不允许再加字段
+    /// <summary>
+    /// 临时文件夹的dwg文件
+    /// </summary>
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
     public string szTempFile;                               // 临时文件夹的dwg文件
+    /// <summary>
+    /// 文件名从中做出选择..是不是指定块表记录?
+    /// </summary>
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 260)]
     public string szSourceFile;                             // 文件名从中做出选择..是不是指定块表记录?
+    /// <summary>
+    /// 签名
+    /// </summary>
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 4)]
     public string szSignature;
+    /// <summary>
+    /// 标志位 kbDragGeometry: 从AutoCAD拖动几何图形
+    /// </summary>
     public int nFlags;                                      // kbDragGeometry: 从AutoCAD拖动几何图形
+    /// <summary>
+    /// 插入点的原始世界坐标
+    /// </summary>
     public Point3D dptInsert;                               // 插入点的原始世界坐标'
+    /// <summary>
+    /// GDI坐标 选择集的边界矩形
+    /// </summary>
     public IntRect rectGDI;                                 // GDI coord 选择集的边界矩形
+    /// <summary>
+    /// 用于验证这个对象是在这个视图中创建的 (HWND*)
+    /// </summary>
     public IntPtr mpView;                                   // 用于验证这个对象是在这个视图中创建的 (HWND*)
+    /// <summary>
+    /// AutoCAD线程创建数据对象
+    /// </summary>
     public int dwThreadId;                                  // AutoCAD thread 创建数据对象
+    /// <summary>
+    /// 下一段的长度的数据,如果有的话,从chData
+    /// </summary>
     public int nLen;                                        // 下一段的长度的数据,如果有的话,从chData
+    /// <summary>
+    /// 类型的数据,如果有(eExpandedClipDataTypes)
+    /// </summary>
     public int nType;                                       // 类型的数据,如果有(eExpandedClipDataTypes)
+    /// <summary>
+    /// 数据的开始,如果有
+    /// </summary>
     [MarshalAs(UnmanagedType.ByValTStr, SizeConst = 1)]
     public string chData; // 数据的开始,如果有
     #endregion
 
     #region 属性,可以改动
+    /// <summary>
+    /// 临时文件路径
+    /// </summary>
     public string File => szTempFile;
+    /// <summary>
+    /// 插入点坐标
+    /// </summary>
     public Point3d Point => dptInsert;
 
 #pragma warning disable CA2211 // 非常量字段应当不可见
+    /// <summary>
+    /// AutoCAD绘图窗口句柄
+    /// </summary>
     public static IntPtr AcadDwgview
         = IntPtr.Zero;
     //= AcedGetAcadDwgview();  // c#需要收集这个函数,我先不写,免得中间版本挂了
 
+    /// <summary>
+    /// 主窗口线程ID
+    /// </summary>
     public static int MainWindowThreadId =
         (int)WindowsAPI.GetWindowThreadProcessId(Acap.MainWindow.Handle, out uint processId);
 #pragma warning restore CA2211 // 非常量字段应当不可见
@@ -77,6 +131,10 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
     #endregion
 
     #region 方法
+    /// <summary>
+    /// 返回当前对象的字符串表示
+    /// </summary>
+    /// <returns>对象的字符串表示</returns>
     public override string ToString()
     {
         var sb = new StringBuilder();
@@ -147,6 +205,11 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
     #endregion
 
     #region 重载运算符_比较
+    /// <summary>
+    /// 判断当前对象是否与另一个对象相等
+    /// </summary>
+    /// <param name="other">要比较的对象</param>
+    /// <returns>是否相等</returns>
     public bool Equals(TagClipboardInfo other)
     {
         return
@@ -162,18 +225,39 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
         nType == other.nType &&
         chData == other.chData;
     }
+    /// <summary>
+    /// 判断两个TagClipboardInfo对象是否不相等
+    /// </summary>
+    /// <param name="a">第一个对象</param>
+    /// <param name="b">第二个对象</param>
+    /// <returns>是否不相等</returns>
     public static bool operator !=(TagClipboardInfo a, TagClipboardInfo b)
     {
         return !(a == b);
     }
+    /// <summary>
+    /// 判断两个TagClipboardInfo对象是否相等
+    /// </summary>
+    /// <param name="a">第一个对象</param>
+    /// <param name="b">第二个对象</param>
+    /// <returns>是否相等</returns>
     public static bool operator ==(TagClipboardInfo a, TagClipboardInfo b)
     {
         return a.Equals(b);
     }
+    /// <summary>
+    /// 判断当前对象是否与另一个对象相等
+    /// </summary>
+    /// <param name="obj">要比较的对象</param>
+    /// <returns>是否相等</returns>
     public override bool Equals(object obj)
     {
         return obj is TagClipboardInfo info && Equals(info);
     }
+    /// <summary>
+    /// 获取当前对象的哈希代码
+    /// </summary>
+    /// <returns>哈希代码</returns>
     public override int GetHashCode()
     {
         return
@@ -190,6 +274,10 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
            chData.GetHashCode();
     }
 
+    /// <summary>
+    /// 将当前对象克隆为指针
+    /// </summary>
+    /// <returns>对象的指针</returns>
     public IntPtr CloneToPtr()
     {
         var lParam = Marshal.AllocHGlobal(Marshal.SizeOf(this));
@@ -213,6 +301,9 @@ public struct TagClipboardInfo : IEquatable<TagClipboardInfo>
  *
  */
 
+/// <summary>
+/// 剪贴板工具类
+/// </summary>
 public partial class ClipTool
 {
     /// <summary>
@@ -311,6 +402,7 @@ public partial class ClipTool
     /// <param name="isWrite">true写入,false读取</param>
     /// <returns></returns>
     /// <exception cref="ArgumentNullException"></exception>
+    /// <returns>是否成功</returns>
     [System.Diagnostics.DebuggerStepThrough]
     public static bool OpenClipboardTask(bool isWrite, Action action)
     {
@@ -341,10 +433,12 @@ public partial class ClipTool
     }
 
     /// <summary>
-    /// 获取剪贴板
+    /// 获取剪贴板数据
     /// </summary>
+    /// <typeparam name="T">数据类型</typeparam>
     /// <param name="clipKey">剪贴板的索引名</param>
     /// <param name="tag">返回的结构</param>
+    /// <returns>是否成功获取</returns>
     public static bool GetClipboard<T>(string clipKey, out T? tag)
     {
         bool locked = false;

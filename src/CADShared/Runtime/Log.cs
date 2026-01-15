@@ -7,10 +7,24 @@ using Exception = Exception;
 
 #region 写入日志到不同的环境中
 // https://zhuanlan.zhihu.com/p/338492989
+/// <summary>
+/// 日志基类，提供日志操作的基本抽象。
+/// </summary>
 public abstract class LogBase
 {
+    /// <summary>
+    /// 删除日志
+    /// </summary>
     public abstract void DeleteLog();
+    /// <summary>
+    /// 读取日志
+    /// </summary>
+    /// <returns>日志内容数组</returns>
     public abstract string[] ReadLog();
+    /// <summary>
+    /// 写入日志
+    /// </summary>
+    /// <param name="message">日志消息</param>
     public abstract void WriteLog(string message);
 }
 
@@ -42,10 +56,18 @@ public enum LogTarget
 /// </summary>
 public class FileLogger : LogBase
 {
+    /// <summary>
+    /// 删除日志
+    /// </summary>
     public override void DeleteLog()
     {
         File.Delete(LogHelper.LogAddress);
     }
+
+    /// <summary>
+    /// 读取日志
+    /// </summary>
+    /// <returns></returns>
     public override string[] ReadLog()
     {
         List<string> lines = new();
@@ -57,6 +79,11 @@ public class FileLogger : LogBase
         }
         return lines.ToArray();
     }
+
+    /// <summary>
+    /// 写入日志
+    /// </summary>
+    /// <param name="message"></param>
     public override void WriteLog(string? message)
     {
         // 把异常信息输出到文件
@@ -73,14 +100,25 @@ public class FileLogger : LogBase
 /// </summary>
 public class DBLogger : LogBase
 {
+    /// <summary>
+    /// 删除日志
+    /// </summary>
     public override void DeleteLog()
     {
         throw new NotImplementedException();
     }
+    /// <summary>
+    /// 读取日志
+    /// </summary>
+    /// <returns>日志内容数组</returns>
     public override string[] ReadLog()
     {
         throw new NotImplementedException();
     }
+    /// <summary>
+    /// 写入日志
+    /// </summary>
+    /// <param name="message">日志消息</param>
     public override void WriteLog(string? message)
     {
         throw new NotImplementedException();
@@ -97,7 +135,14 @@ public class EventLogger : LogBase
     // NET50要加 <FrameworkReference Include="Microsoft.WindowsDesktop.App" />
     // https://docs.microsoft.com/en-us/answers/questions/526018/windows-event-log-with-net-5.html
 
+    /// <summary>
+    /// 日志名称
+    /// </summary>
     public string LogName = "IFoxCadLog";
+
+    /// <summary>
+    /// 删除日志
+    /// </summary>
     public override void DeleteLog()
     {
 #if !NET5_0 && !NET6_0
@@ -105,6 +150,10 @@ public class EventLogger : LogBase
             EventLog.Delete(LogName);
 #endif
     }
+    /// <summary>
+    /// 读取日志
+    /// </summary>
+    /// <returns>日志内容数组</returns>
     public override string[] ReadLog()
     {
         List<string> lines = new();
@@ -125,6 +174,10 @@ public class EventLogger : LogBase
 #endif
         return lines.ToArray();
     }
+    /// <summary>
+    /// 写入日志
+    /// </summary>
+    /// <param name="message">日志消息</param>
     public override void WriteLog(string? message)
     {
 #if !NET5_0 && !NET6_0
@@ -147,6 +200,9 @@ public class EventLogger : LogBase
 #endregion
 
 #region 静态方法
+/// <summary>
+/// 日志帮助类，提供日志记录的静态方法。
+/// </summary>
 public static class LogHelper
 {
 #pragma warning disable CA2211 // 非常量字段应当不可见
@@ -220,6 +276,12 @@ public static class LogHelper
         return sb.ToString();
     }
 
+    /// <summary>
+    /// 写入日志消息
+    /// </summary>
+    /// <param name="message">日志消息</param>
+    /// <param name="target">日志目标</param>
+    /// <returns>格式化后的日志内容</returns>
     public static string WriteLog(this string? message,
                                  LogTarget target = LogTarget.File)
     {
@@ -228,6 +290,12 @@ public static class LogHelper
         return LogAction(null, message, target);
     }
 
+    /// <summary>
+    /// 写入异常日志
+    /// </summary>
+    /// <param name="exception">异常对象</param>
+    /// <param name="target">日志目标</param>
+    /// <returns>格式化后的日志内容</returns>
     public static string WriteLog(this Exception? exception,
                                   LogTarget target = LogTarget.File)
     {
@@ -236,6 +304,13 @@ public static class LogHelper
         return LogAction(exception, null, target);
     }
 
+    /// <summary>
+    /// 写入异常和消息日志
+    /// </summary>
+    /// <param name="exception">异常对象</param>
+    /// <param name="message">附加消息</param>
+    /// <param name="target">日志目标</param>
+    /// <returns>格式化后的日志内容</returns>
     public static string WriteLog(this Exception? exception, string? message,
                                   LogTarget target = LogTarget.File)
     {
@@ -245,9 +320,13 @@ public static class LogHelper
     }
 
 
+    /// <summary>
+    /// 执行日志操作
+    /// </summary>
     /// <param name="ex">错误</param>
     /// <param name="message">备注信息</param>
     /// <param name="target">记录方式</param>
+    /// <returns>格式化后的日志内容</returns>
     static string LogAction(Exception? ex,
                             string? message,
                             LogTarget target)
@@ -316,18 +395,47 @@ public static class LogHelper
 #endregion
 
 #region 序列化
+/// <summary>
+/// 日志文本类，用于存储日志信息。
+/// </summary>
 [Serializable]
 public class LogTxt
 {
+    /// <summary>
+    /// 当前时间
+    /// </summary>
     public string? 当前时间;
+    /// <summary>
+    /// 备注信息
+    /// </summary>
     public string? 备注信息;
+    /// <summary>
+    /// 异常信息
+    /// </summary>
     public string? 异常信息;
+    /// <summary>
+    /// 异常对象
+    /// </summary>
     public string? 异常对象;
+    /// <summary>
+    /// 触发方法
+    /// </summary>
     public string? 触发方法;
+    /// <summary>
+    /// 调用堆栈
+    /// </summary>
     public string? 调用堆栈;
 
+    /// <summary>
+    /// 默认构造函数
+    /// </summary>
     public LogTxt() { }
 
+    /// <summary>
+    /// 使用异常和消息初始化日志
+    /// </summary>
+    /// <param name="ex">异常对象</param>
+    /// <param name="message">消息</param>
     public LogTxt(Exception? ex, string? message) : this()
     {
         if (ex == null && message == null)
@@ -350,7 +458,10 @@ public class LogTxt
             备注信息 = message;
     }
 
-    /// 为了不引入json的dll,所以这里自己构造
+    /// <summary>
+    /// 将日志对象转换为字符串表示形式
+    /// </summary>
+    /// <returns>日志对象的字符串表示</returns>
     public override string? ToString()
     {
         var sb = new StringBuilder();

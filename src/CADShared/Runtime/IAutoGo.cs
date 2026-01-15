@@ -9,8 +9,14 @@ using System.Diagnostics;
 [Flags]
 public enum Sequence : byte
 {
-    First,// 最先
-    Last, // 最后
+    /// <summary>
+    /// 最先
+    /// </summary>
+    First,
+    /// <summary>
+    /// 最后
+    /// </summary>
+    Last,
 }
 
 /// <summary>
@@ -18,11 +24,20 @@ public enum Sequence : byte
 /// </summary>
 public interface IFoxAutoGo
 {
-    // 控制加载顺序
+    /// <summary>
+    /// 控制加载顺序
+    /// </summary>
+    /// <returns>加载顺序</returns>
     Sequence SequenceId();
-    // 关闭cad的时候会自动执行
+
+    /// <summary>
+    /// 关闭CAD的时候会自动执行
+    /// </summary>
     void Terminate();
-    // 打开cad的时候会自动执行
+
+    /// <summary>
+    /// 打开CAD的时候会自动执行
+    /// </summary>
     void Initialize();
 }
 
@@ -105,13 +120,16 @@ public class AutoReflection
     /// </para>
     /// </summary>
     /// <param name="dllName">约束在此dll进行加速</param>
+    /// <param name="configInfo">配置</param>
     public AutoReflection(string dllName, AutoRegConfig configInfo)
     {
         _dllName = dllName;
         _autoRegConfig = configInfo;
     }
 
-    // 启动cad的时候会自动执行
+    /// <summary>
+    /// 启动cad的时候会自动执行
+    /// </summary>
     public void Initialize()
     {
         try
@@ -138,7 +156,9 @@ public class AutoReflection
         }
     }
 
-    // 关闭cad的时候会自动执行
+    /// <summary>
+    /// 关闭cad的时候会自动执行
+    /// </summary>
     public void Terminate()
     {
         try
@@ -227,9 +247,10 @@ public class AutoReflection
     /// <summary>
     /// 收集接口下的函数
     /// </summary>
-    /// <param name="runClassList">储存要运行的方法</param>
-    /// <param name="methodName">查找方法名</param>
-    /// <returns></returns>
+    /// <param name="initializes"></param>
+    /// <param name="initializeName"></param>
+    /// <param name="terminates"></param>
+    /// <param name="terminateName"></param>
     void GetInterfaceFunctions(List<RunClass> initializes, string initializeName,
                                List<RunClass> terminates, string terminateName)
     {

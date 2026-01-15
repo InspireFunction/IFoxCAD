@@ -2,6 +2,9 @@
 
 using System;
 
+/// <summary>
+/// 数据库事务助手类，提供数据库操作相关方法
+/// </summary>
 public class DBTransHelper
 {
     /*

@@ -1,7 +1,11 @@
-﻿// Licensed to the .NET Foundation under one or more agreements.
+// Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 
 // #pragma warning disable SA1141 // explicitly not using tuple syntax in tuple implementation
+
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
 
 
 using System.Diagnostics;
@@ -20,13 +24,38 @@ using System.Numerics.Hashing;
 #if NET35
 namespace System.Collections
 {
+    /// <summary>
+    /// 定义对对象进行结构比较的方法。
+    /// </summary>
     public interface IStructuralComparable
     {
+        /// <summary>
+        /// 使用指定的比较器来比较当前对象与指定对象。
+        /// </summary>
+        /// <param name="other">要比较的对象。</param>
+        /// <param name="comparer">用于比较的比较器。</param>
+        /// <returns>一个整数，指示当前对象是否小于、等于或大于指定对象。</returns>
         int CompareTo(object? other, IComparer comparer);
     }
+    
+    /// <summary>
+    /// 定义用于结构相等比较的方法。
+    /// </summary>
     public interface IStructuralEquatable
     {
+        /// <summary>
+        /// 使用指定的比较器来确定当前对象是否等于指定对象。
+        /// </summary>
+        /// <param name="other">要比较的对象。</param>
+        /// <param name="comparer">用于比较的比较器。</param>
+        /// <returns>如果当前对象等于指定对象，则返回true；否则返回false。</returns>
         bool Equals(object? other, IEqualityComparer comparer);
+        
+        /// <summary>
+        /// 获取当前对象的哈希码，使用指定的比较器。
+        /// </summary>
+        /// <param name="comparer">用于计算哈希码的比较器。</param>
+        /// <returns>当前对象的哈希码。</returns>
         int GetHashCode(IEqualityComparer comparer);
     }
 }

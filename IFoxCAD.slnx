@@ -7,9 +7,7 @@
     <Project Path="src/IFoxCAD.Aacad08/IFoxCAD.Acad08.csproj" />
     <Project Path="src/IFoxCAD.Aacad09plus/IFoxCAD.Acad09plus.csproj" />
     <Project Path="src/IFoxCAD.Gcad/IFoxCAD.Gcad.csproj" />
-    <Project Path="src/IFoxCAD.Zcad/IFoxCAD.Zcad.csproj" />
     <Project Path="src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj" />
-
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />

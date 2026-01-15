@@ -1,4 +1,68 @@
-# 关于IFoxCAD的架构说明
+# IFoxCAD的架构说明
+
+AutoCAD 的 .net api 的架构是如下这样的：
+
+1. Application 对象
+
+```mermaid
+graph LR;
+a(Application)-->DocumentManager
+a-->DocumentWindowCollection
+a-->InfoCenter
+a-->MainWindow
+a-->MenuBar
+a-->MenuGroups
+a-->Preferences
+a-->Publisher
+a-->StatusBar
+a-->UserConfigurationManager
+```
+
+2. Document 对象
+
+```mermaid
+graph LR;
+Application-->DocumentManager-->b[Document]
+b-->Database
+b-->Editor
+b-->GraphicsManager
+b-->StatusBar
+b-->TransactionManager
+b-->UserData
+b-->Window
+```
+
+3. Database 对象
+
+```mermaid
+flowchart TB;
+subgraph NamedDictionaris
+  direction TB
+  Layout-Dictionary-->Object
+  Others-->OtherObject
+end
+subgraph Tables
+  direction TB
+  BlockTable-->BlockTableRecord-->Entity
+  OthersTable-->OthersTableRecord
+end
+Application-->DocumentManager-->Document-->d[Database]-->Tables
+d-->NamedDictionaris
+```
+
+4. Transation 对象
+
+```mermaid
+flowchart LR;
+subgraph Transation
+    direction LR
+    f(StartTransation)--modify objects-->e{isOK}
+    e--Yes-->h(commit)
+    e--No-->abort
+end
+h--write-->d[Database]
+g[Document or Database]--start-->f
+```
 
 IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核，即DBTrans、SymbolTable、ResultData、SelectFilter等基础类，其他的功能都通过扩展方法的方式来实现。
 
@@ -7,32 +71,29 @@ IFoxCAD是基于NFOX类库的重制版，主要是提供一个最小化的内核
 ## 一、组织结构图
 
 - IFoxCAD
-    - IFoxCAD.Basal - cad以外常用的类库
-        - LinqEx - linq扩展类
-        - LoopList - 环链表
-    - IFoxCAD.Cad - cad相关的类库
-        - Runtime - 包含系统级别的功能
-            - AcadVersion - cad版本号类
-            - AssemInfo - 程序集信息
-            - AutoRegAssem - 程序集加载类型
-            - DBTrans - 事务处理类
-            - Env - 系统管理类
-            - SymbolTable - 符号表类
-        - ExtensionMethod - 扩展函数，以Ex结尾
-            - SymbolTableEx - 符号表扩展类
-            - SymbolTableRecordEx - 符号表记录扩展类 
-            - EntityEx - 实体扩展类   
-            - 。。。。。。  
-        - ResultData
-            - 待补充。。。
-        - SelectionFilter
-            - 待补充。。。
-    - IFoxCAD.WPF - wpf的mvvm模式相关的类库
-            - 待补充。。。
+```
+├───bin                      -- 用于放置生成的nuget包和dll
+├───docs                     -- 架构及api定义说明文档
+├───src                      -- 源码目录
+│   ├───CADShared            -- 共享项目，所有的代码都在这里
+│   │   ├───Algorithms       -- 基础算法和数据结构
+│   │   ├───Assoc            -- 关联函数
+│   │   ├───Basal            -- 一些基础类的函数
+│   │   ├───ExtensionMethod  -- 扩展函数
+│   │   ├───Initialize       -- 初始化
+│   │   ├───PE               -- PE
+│   │   ├───ResultData       -- 扩展数据
+│   │   ├───Runtime          -- 核心类
+│   │   └───SelectionFilter  -- 选择集过滤器类
+│   ├───IFoxCAD.AutoCad      -- AutoCAD的类库，内部除了globalusing外无其他代码
+│   └───IFoxCAD.ZwCad        -- AutoCAD的类库，内部除了globalusing外无其他代码
+└───tests                    -- 测试类
+    ├───TestAcad2025         -- autocad测试
+    ├───TestShared           -- 共享项目，所有的测试代码都在这里
+    └───TestZcad2025         -- zwcad测试
+    
+  ```
 
-  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225449_2b18eb89_9063830.png "屏幕截图.png")
-  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225550_840a862a_9063830.png "屏幕截图.png")
-  ![输入图片说明](https://images.gitee.com/uploads/images/2021/0701/225525_b246bbd2_9063830.png "屏幕截图.png")
 ## 二、关于DBTrans类的说明
 
 ### 2.1 为什么要构建DBTrans类？
@@ -50,21 +111,26 @@ DBTrans类里基本的封装就是Transaction，然后是Document、Database、E
 DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的相关类库，通过这些属性就可以对数据进行相应的操作。特别是符号表中最常用的就是块表，通过对块表的操作来实现添加图元等。
 
 ### 2.3 DBTrans类应该具有的成员
+
 为了尽量少的封装方法，减少类的复杂度，目前计划的方法主要为：
 
 属性:
-- Top  ---返回当前事务
+
+- Top  ---返回当前DBTrans对象
 - Database  ---数据库
 - Document  ---文档
 - Editor  ---命令行
-- Trans  ---事务管理器
+- Transaction  ---事务
 
 构造函数:
-- DBTrans(Document doc = null, bool commit = true)
+
+- DBTrans(Document? doc = null, bool commit = true, bool docLock = false)
 - DBTrans(Database database, bool commit = true)
-- DBTrans(string fileName, bool commit = true)
+- DBTrans(string fileName, bool commit = true, FileOpenMode fileOpenMode = FileOpenMode.OpenForReadAndWriteNoShare,
+  string? password = null, bool activeOpen = false)
 
 符号表:
+
 - BlockTable 块表
 - LayerTable 层表
 - TextStyleTable 文字样式表
@@ -75,11 +141,30 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 - ViewTable 视图表
 - ViewportTable 视口表
 
+字典：
+
+- NamedObjectsDict 命名对象字典
+- GroupDict  组字典
+- MLeaderStyleDict 多重引线样式字典
+- MLStyleDict 多线样式字典
+- MaterialDict 材质字典
+- TableStyleDict 表格样式字典
+- VisualStyleDict  视觉样式字典
+- ColorDict 颜色字典
+- PlotSettingsDict 打印设置字典
+- PlotStyleNameDict  打印样式表名字典
+- LayoutDict 布局字典
+- DataLinkDict  数据链接字典
+- DetailViewStyleDict 详细视图样式字典
+- SectionViewStyleDict 剖面视图样式字典
+
 方法:
+
 - GetObject  ---根据对象id获取图元对象
-- 。。。
+- Task   前台后台任务分别处理
 
 接口:
+
 - Abort ---放弃事务
 - Commit ---提交事务
 - Dispose --- 执行与释放非托管资源
@@ -96,10 +181,13 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 - 有了这个类，DBTrans类就可以直接通过属性获取符号表的关联关系，然后进行符号表的处理。
 
 ### 3.2 SymbolTable类应该具有的成员
+
 属性:
+
 - CurrentSymbolTable  ---当前的符号表对象
 
 方法:
+
 - this  ---索引器符号表记录函数
 - Add  ---添加符号表记录函数
 - Remove --- 删除符号表记录函数(层表请使用扩展方法Delete)
@@ -112,12 +200,3 @@ DBTrans的每个实例都具有这些属性，而这些属性就对应于cad的�
 特殊说明：当符号表为块表时，上述函数实际操作的是块定义、属性定义等。所以为了添加图元，需要特殊写法，原因在于cad的实体都是存在符号表记录里的，通常为模型这个块表记录。
 
 # 慢慢完善，想到哪写到哪。。。
-
-
-
-
-
-
-
-
-

@@ -1,4 +1,9 @@
-﻿namespace IFoxCAD.Cad;
+﻿#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
+namespace IFoxCAD.Cad;
+
 using Exception = System.Exception;
 
 /// <summary>
@@ -515,6 +520,7 @@ public sealed class DepthFirst
     /// </summary>
     /// <param name="graph">图</param>
     /// <param name="visited">已经遍历的路径</param>
+    /// <param name="totalVisited">判断重复</param>
 #if true
     void Dfs(IGraph graph, LinkedHashSet<IGraphVertex> visited, HashSet<IGraphVertex> totalVisited)
     {
@@ -613,6 +619,7 @@ public sealed class DepthFirst
     /// 将列表反向,并旋转到起点为最小值
     /// </summary>
     /// <param name="lst"></param>
+    /// <param name="vertex"></param>
     /// <returns></returns>
     static List<IGraphVertex> Invert(List<IGraphVertex> lst, IGraphVertex vertex)
     {

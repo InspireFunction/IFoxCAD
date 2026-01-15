@@ -1,3 +1,7 @@
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
 namespace IFoxCAD.Cad;
 
 /*  封装jig
@@ -226,9 +230,9 @@ public class JigEx : DrawJig, IDisposable
                 else
                     _options.Keywords.Add(item.Key, item.Key, item.Value);
 
-        /// 因为默认配置函数<see cref="JigPointOptions" />导致此处空格触发是无效的,
-        /// 但是用户如果想触发,就需要在外部减去默认UserInputControls配置
-        /// 要放最后,才能优先触发其他关键字
+        // 因为默认配置函数<see cref="JigPointOptions" />导致此处空格触发是无效的,
+        // 但是用户如果想触发,就需要在外部减去默认UserInputControls配置
+        // 要放最后,才能优先触发其他关键字
         if (spaceValue != string.Empty)
             _options.Keywords.Add(spaceKey, spaceKey, spaceValue);
         else

@@ -1,8 +1,13 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 using System.Diagnostics;
 using System.Threading;
 
+/// <summary>
+/// 提供调试输出功能的静态类。
+/// 通过环境变量 "debugx" 控制是否启用调试输出，
+/// 当环境变量值为 "1" 时启用调试输出。
+/// </summary>
 public static class Debugx
 {
     /// <summary>

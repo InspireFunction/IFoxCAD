@@ -1,3 +1,7 @@
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -572,10 +576,10 @@ public class MyJson
                     case 'r': sb.Append('\r'); break;
                     case 't': sb.Append('\t'); break;
                     case 'u':
-                        var hex = new char[4];
-                        for (int i = 0; i < 4; i++) hex[i] = (char)reader.Read();
-                        sb.Append((char)Convert.ToInt32(new string(hex), 16));
-                        break;
+                    var hex = new char[4];
+                    for (int i = 0; i < 4; i++) hex[i] = (char)reader.Read();
+                    sb.Append((char)Convert.ToInt32(new string(hex), 16));
+                    break;
                     default: sb.Append((char)next); break;
                 }
             }

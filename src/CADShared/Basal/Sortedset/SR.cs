@@ -1,5 +1,9 @@
 ﻿#if NET35
-#pragma warning disable CS8603 // 可能返回 null 引用。
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
+
 namespace System;
 
 
@@ -44,11 +48,11 @@ internal sealed class SRCategoryAttribute : CategoryAttribute
         this.resourceSet = resourceSet;
     }
 
-    protected override string GetLocalizedString(string value)
+    protected override string? GetLocalizedString(string value)
     {
         if (this.resourceSet.Length > 0)
         {
-            ResourceManager rm = new ResourceManager(resourceSet, Assembly.GetExecutingAssembly());
+            ResourceManager rm = new(resourceSet, Assembly.GetExecutingAssembly());
             String localizedString = rm.GetString(value);
             System.Diagnostics.Debug.Assert(localizedString != null, string.Format(CultureInfo.CurrentCulture, "String resource {0} not found.", new object[] { value }));
             return localizedString;
@@ -100,19 +104,19 @@ internal sealed partial class SR
         return loader;
     }
 
-    private static CultureInfo Culture
+    private static CultureInfo? Culture
     {
         get { return null/*use ResourceManager default, CultureInfo.CurrentUICulture*/; }
     }
 
     [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-    internal static string GetString(string name, params object[] args)
+    internal static string? GetString(string name, params object[] args)
     {
         return GetString(SR.Culture, name, args);
     }
 
     [SuppressMessage("Microsoft.Performance", "CA1811:AvoidUncalledPrivateCode")]
-    internal static string GetString(CultureInfo culture, string name, params object[] args)
+    internal static string? GetString(CultureInfo? culture, string name, params object[] args)
     {
         SR sys = GetLoader();
         if (sys == null)
@@ -124,12 +128,12 @@ internal sealed partial class SR
         return res;
     }
 
-    internal static string GetString(string name)
+    internal static string? GetString(string name)
     {
         return GetString(SR.Culture, name);
     }
 
-    internal static string GetString(CultureInfo culture, string name)
+    internal static string? GetString(CultureInfo? culture, string name)
     {
         SR sys = GetLoader();
         if (sys == null)

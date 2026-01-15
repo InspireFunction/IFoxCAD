@@ -311,6 +311,7 @@ public class HatchConverter
     /// <param name="btrOfAddEntitySpace"></param>
     /// <param name="boundaryAssociative">边界关联</param>
     /// <param name="createHatchFlag">是否创建填充,false则只创建边界</param>
+    /// <param name="trans">事务</param>
     /// <returns>新填充id,边界在<see cref="BoundaryIds"/>获取</returns>
     public ObjectId CreateBoundarysAndHatchToMsPs(BlockTableRecord btrOfAddEntitySpace,
         bool boundaryAssociative = true,

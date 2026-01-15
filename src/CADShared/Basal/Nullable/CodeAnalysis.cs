@@ -8,7 +8,7 @@ namespace IFoxCAD.Basal;
 using System;
 
 /// <summary>
-/// Ö¸¶¨Êä³ö²ÎÊı¡¢×Ö¶Î¡¢ÊôĞÔ»ò·µ»ØÖµ²»Îª null
+/// Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö¶Î¡ï¿½ï¿½ï¿½ï¿½Ô»ò·µ»ï¿½Öµï¿½ï¿½Îª null
 /// </summary>
 [AttributeUsage(
     AttributeTargets.Parameter |
@@ -21,7 +21,7 @@ public sealed class NotNullAttribute : Attribute
 }
 
 /// <summary>
-/// Ö¸¶¨²ÎÊı¿ÉÎª null
+/// Ö¸ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Îª null
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter)]
 public sealed class MaybeNullAttribute : Attribute
@@ -29,13 +29,20 @@ public sealed class MaybeNullAttribute : Attribute
 }
 
 /// <summary>
-/// Ö¸¶¨ÊäÈë²ÎÊı²»Îª null£¬¼´Ê¹¶ÔÓ¦ÀàĞÍÔÊĞíÎª null
+/// Ö¸ï¿½ï¿½å‚æ•°å½“è¿”å›å€¼ä¸º null æ—¶ï¼Œå¯ä»¥ä½¿ç”¨è¯¥å±æ€§
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter)]
 public sealed class NotNullWhenAttribute : Attribute
 {
+    /// <summary>
+    /// è·å–è¿”å›å€¼ã€‚
+    /// </summary>
     public bool ReturnValue { get; }
 
+    /// <summary>
+    /// åˆå§‹åŒ– <see cref="NotNullWhenAttribute"/> ç±»çš„æ–°å®ä¾‹ã€‚
+    /// </summary>
+    /// <param name="returnValue">è¿”å›å€¼ã€‚</param>
     public NotNullWhenAttribute(bool returnValue)
     {
         ReturnValue = returnValue;
@@ -43,28 +50,42 @@ public sealed class NotNullWhenAttribute : Attribute
 }
 
 /// <summary>
-/// ±íÊ¾·½·¨ÓÀÔ¶²»»áÕı³£·µ»Ø£¨×ÜÊÇÅ×³öÒì³£»òÖÕÖ¹½ø³Ì£©
+/// ï¿½ï¿½Ê¾ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ô¶ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ø£ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×³ï¿½ï¿½ì³£ï¿½ï¿½ï¿½ï¿½Ö¹ï¿½ï¿½ï¿½Ì£ï¿½
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, Inherited = false)]
 public sealed class DoesNotReturnAttribute : Attribute { }
 
 /// <summary>
-/// ±íÊ¾µ±·½·¨·µ»ØÖ¸¶¨ÖµÊ±£¬²ÎÊı²»»áÎª null
+/// è¡¨ç¤ºå½“æŒ‡å®šå‚æ•°å€¼ä¸º null æ—¶ï¼Œæ–¹æ³•ä¸ä¼šè¿”å›
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter)]
 public sealed class DoesNotReturnIfAttribute : Attribute
 {
+    /// <summary>
+    /// è·å–å‚æ•°å€¼ã€‚
+    /// </summary>
     public bool ParameterValue { get; }
+    /// <summary>
+    /// åˆå§‹åŒ– <see cref="DoesNotReturnIfAttribute"/> ç±»çš„æ–°å®ä¾‹ã€‚
+    /// </summary>
+    /// <param name="parameterValue">å‚æ•°å€¼ã€‚</param>
     public DoesNotReturnIfAttribute(bool parameterValue) => ParameterValue = parameterValue;
 }
 
 /// <summary>
-/// ±íÊ¾·½·¨/ÊôĞÔµ÷ÓÃºó£¬²ÎÊı²»»áÎª null
+/// è¡¨ç¤ºå‚æ•°/å±æ€§è®¾ç½®åï¼Œç»“æœä¸ä¼šä¸º null
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter, AllowMultiple = true)]
 public sealed class NotNullIfNotNullAttribute : Attribute
 {
+    /// <summary>
+    /// è·å–å‚æ•°åç§°ã€‚
+    /// </summary>
     public string ParameterName { get; }
+    /// <summary>
+    /// åˆå§‹åŒ– <see cref="NotNullIfNotNullAttribute"/> ç±»çš„æ–°å®ä¾‹ã€‚
+    /// </summary>
+    /// <param name="parameterName">å‚æ•°åç§°ã€‚</param>
     public NotNullIfNotNullAttribute(string parameterName) => ParameterName = parameterName;
 }
 #endif

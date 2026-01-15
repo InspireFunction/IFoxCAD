@@ -60,6 +60,11 @@ public static class ObjectIdEx
     }
     #endregion GetObject
 
+    /// <summary>
+    /// 获取对象类别
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns></returns>
     public static RXClass ObjectClass(this ObjectId id)
     {
 #if NET35

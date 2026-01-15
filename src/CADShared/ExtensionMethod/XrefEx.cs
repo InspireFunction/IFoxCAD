@@ -3,6 +3,9 @@
 namespace IFoxCAD.Cad;
 
 #region 参照工厂
+/// <summary>
+/// 参照枚举
+/// </summary>
 public interface IXrefBindModes
 {
     /// <summary>
@@ -23,13 +26,14 @@ public interface IXrefBindModes
     public void Bind();
 }
 
+/// <summary>
+/// 外部参照工厂
+/// </summary>
 public class XrefFactory : IXrefBindModes
 {
     #region 私有字段
     readonly DBTrans _tr;
-    /// <summary>
-    /// <param name="xrefNames">要处理的参照名称,<see langword="null"/>就处理所有</param>
-    /// </summary>
+    // <param name="_xrefNames">要处理的参照名称,<see langword="null"/>就处理所有</param>
     readonly HashSet<string>? _xrefNames;
     #endregion
 
@@ -89,6 +93,9 @@ public class XrefFactory : IXrefBindModes
     #endregion
 
     #region 重写
+    /// <summary>
+    /// 绑定
+    /// </summary>
     public void Bind()
     {
         // 此功能有绑定出错的问题
@@ -98,7 +105,9 @@ public class XrefFactory : IXrefBindModes
         // 此功能修补了上面缺失
         DoubleBind();
     }
-
+    /// <summary>
+    /// 拆离
+    /// </summary>
     public void Detach()
     {
         using ObjectIdCollection xrefIds = new();
@@ -106,7 +115,9 @@ public class XrefFactory : IXrefBindModes
         foreach (ObjectId id in xrefIds)
             _tr.Database.DetachXref(id);
     }
-
+    /// <summary>
+    /// 重载
+    /// </summary>
     public void Reload()
     {
         using ObjectIdCollection xrefIds = new();
@@ -114,7 +125,9 @@ public class XrefFactory : IXrefBindModes
         if (xrefIds.Count > 0)
             _tr.Database.ReloadXrefs(xrefIds);
     }
-
+    /// <summary>
+    /// 卸载
+    /// </summary>
     public void Unload()
     {
         using ObjectIdCollection xrefIds = new();
@@ -364,7 +377,9 @@ public class XrefFactory : IXrefBindModes
 }
 
 
-
+/// <summary>
+/// 参照工厂扩展方法
+/// </summary>
 public static class XrefEx
 {
     /// <summary>

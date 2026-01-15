@@ -1,5 +1,10 @@
 using System.Diagnostics;
 
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
+
 namespace IFoxCAD.Cad;
 
 // 选择模式

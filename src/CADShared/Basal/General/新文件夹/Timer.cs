@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 /*
 // 测试例子,同时验证两个计时器
@@ -15,8 +15,14 @@ Console.WriteLine("运行毫秒:" + stopwatch.ElapsedMilliseconds);
 using System.ComponentModel;
 using System.Runtime.InteropServices;
 
+/// <summary>
+/// 提供高性能计时功能。
+/// </summary>
 public class Timer
 {
+    /// <summary>
+    /// 时间单位枚举
+    /// </summary>
     [Flags]
     public enum TimeEnum
     {
@@ -55,6 +61,9 @@ public class Timer
     long _startTime, _stopTime;
     readonly long _freq;
 
+    /// <summary>
+    /// 初始化 <see cref="Timer"/> 类的新实例。
+    /// </summary>
     public Timer()
     {
         _startTime = 0;
@@ -83,12 +92,29 @@ public class Timer
     }
     double _Second = 0;
 
-    // 返回计时器经过时间
+    /// <summary>
+    /// 获取经过的时间（以秒为单位）。
+    /// </summary>
     public double Second => _Second;
+    /// <summary>
+    /// 获取经过的时间（以毫秒为单位）。
+    /// </summary>
     public double Millisecond => _Second * 1000.0;
+    /// <summary>
+    /// 获取经过的时间（以微秒为单位）。
+    /// </summary>
     public double Microsecond => _Second * 1000000.0;
+    /// <summary>
+    /// 获取经过的时间（以纳秒为单位）。
+    /// </summary>
     public double Nanosecond => _Second * 1000000000.0;
 
+    /// <summary>
+    /// 运行指定操作并返回执行时间。
+    /// </summary>
+    /// <param name="action">要计时的操作。</param>
+    /// <param name="timeEnum">时间单位。</param>
+    /// <returns>操作执行所经过的时间。</returns>
     public static double RunTime(Action action,
         TimeEnum timeEnum = TimeEnum.Millisecond)
     {

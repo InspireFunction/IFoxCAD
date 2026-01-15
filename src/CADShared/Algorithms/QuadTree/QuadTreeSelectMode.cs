@@ -1,4 +1,9 @@
-﻿namespace IFoxCAD.Cad;
+﻿#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 四叉树选择模式
@@ -14,8 +19,8 @@ public enum QuadTreeSelectMode
 /// </summary>
 public enum QuadTreeFindMode
 {
-    Top    = 1,  // 上
+    Top = 1,  // 上
     Bottom = 2,  // 下
-    Left   = 4,  // 左
-    Right  = 8,  // 右
+    Left = 4,  // 左
+    Right = 8,  // 右
 }

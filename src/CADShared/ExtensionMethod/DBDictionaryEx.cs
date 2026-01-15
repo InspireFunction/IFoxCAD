@@ -272,6 +272,7 @@ public static class DBDictionaryEx
     /// <summary>
     /// 添加编组
     /// </summary>
+    /// <param name="dict">字典</param>
     /// <param name="name">组名</param>
     /// <param name="ids">实体Id集合</param>
     /// <returns>编组Id</returns>
@@ -293,6 +294,7 @@ public static class DBDictionaryEx
     /// <summary>
     /// 添加编组
     /// </summary>
+    /// <param name="dict">字典</param>
     /// <param name="name">组名</param>
     /// <param name="ids">实体Id集合</param>
     /// <returns>编组Id</returns>
@@ -309,6 +311,7 @@ public static class DBDictionaryEx
     /// <summary>
     /// 按选择条件获取编组集合
     /// </summary>
+    /// <param name="dict">字典</param>
     /// <param name="func">选择条件，过滤函数</param>
     /// <example><![CDATA[var groups = dict.GetGroups(g => g.NumEntities < 2);]]></example>
     /// <returns>编组集合</returns>
@@ -334,6 +337,7 @@ public static class DBDictionaryEx
     /// <summary>
     /// 移除所有的空组
     /// </summary>
+    /// <param name="dict">字典</param>
     /// <returns>被移除编组的名称集合</returns>
     public static List<string> RemoveNullGroup(this DBDictionary dict)
     {
@@ -351,6 +355,7 @@ public static class DBDictionaryEx
     /// <summary>
     /// 移除所有空组
     /// </summary>
+    /// <param name="dict">字典</param>
     /// <param name="func">过滤条件，过滤要删除的组名的规则函数</param>
     /// <example>RemoveNullGroup(g => g.StartsWith("hah"))</example>
     /// <returns>被移除编组的名称集合</returns>

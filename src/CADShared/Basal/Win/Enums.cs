@@ -1,7 +1,8 @@
-﻿#if true
-namespace IFoxCAD.Cad;
+﻿﻿namespace IFoxCAD.Cad;
 
-// https://blog.csdn.net/qq_43812868/article/details/108587936
+/// <summary>
+/// 进程快照标志枚举，用于指定 CreateToolhelp32Snapshot 函数要获取的信息类型。
+/// </summary>
 [Flags]
 public enum TH32CS : uint
 {
@@ -651,6 +652,9 @@ public enum WM : uint
     /// </summary>
     WM_MBUTTONDOWN = 0x207,
 
+    /// <summary>
+    /// 应用程序定义的消息值的起始点
+    /// </summary>
     WM_USER = 0x0400,
 
     /// <summary>
@@ -660,6 +664,9 @@ public enum WM : uint
 }
 
 // https://blog.csdn.net/biyusr/article/details/108376195
+/// <summary>
+/// 鼠标事件标志枚举，用于指定鼠标事件的类型。
+/// </summary>
 public enum MOUSEEVENTF : int
 {
     /// <summary>
@@ -703,175 +710,652 @@ public enum MOUSEEVENTF : int
 // C#使用SendMessage发送组合键
 // https://www.cnblogs.com/johnsonton/articles/2331430.html
 // Windows 使用的256个虚拟键码
-[Flags]// 打印的时候可以有名称输出,而不是值输出
+// 打印的时候可以有名称输出,而不是值输出
+/// <summary>
+/// 虚拟键码枚举，定义了 Windows 系统使用的所有虚拟键码。
+/// </summary>
+[Flags]
 public enum VK : int
 {
+    /// <summary>
+    /// 鼠标左键
+    /// </summary>
     VK_LBUTTON = 0x1,
+    /// <summary>
+    /// 鼠标右键
+    /// </summary>
     VK_RBUTTON = 0x2,
+    /// <summary>
+    /// Ctrl+Break 组合键
+    /// </summary>
     VK_CANCEL = 0x3,
+    /// <summary>
+    /// 鼠标中键
+    /// </summary>
     VK_MBUTTON = 0x4,
+    /// <summary>
+    /// Backspace 键
+    /// </summary>
     VK_BACK = 0x8,
+    /// <summary>
+    /// Tab 键
+    /// </summary>
     VK_TAB = 0x9,
+    /// <summary>
+    /// Clear 键
+    /// </summary>
     VK_CLEAR = 0xC,
+    /// <summary>
+    /// Enter 键
+    /// </summary>
     VK_RETURN = 0xD,
+    /// <summary>
+    /// Shift 键
+    /// </summary>
     VK_SHIFT = 0x10,
+    /// <summary>
+    /// Ctrl 键
+    /// </summary>
     VK_CONTROL = 0x11,
-    VK_MENU = 0x12,// VK_ALT
+    /// <summary>
+    /// Alt 键
+    /// </summary>
+    VK_MENU = 0x12,
+    /// <summary>
+    /// Alt 键（VK_MENU 的别名）
+    /// </summary>
     VK_ALT = 0x12,
+    /// <summary>
+    /// Pause 键
+    /// </summary>
     VK_PAUSE = 0x13,
+    /// <summary>
+    /// Caps Lock 键
+    /// </summary>
     VK_CAPITAL = 0x14,
+    /// <summary>
+    /// Esc 键
+    /// </summary>
     VK_ESCAPE = 0x1B,
+    /// <summary>
+    /// 空格键
+    /// </summary>
     VK_SPACE = 0x20,
+    /// <summary>
+    /// Page Up 键
+    /// </summary>
     VK_PRIOR = 0x21,
+    /// <summary>
+    /// Page Down 键
+    /// </summary>
     VK_NEXT = 0x22,
+    /// <summary>
+    /// End 键
+    /// </summary>
     VK_END = 0x23,
+    /// <summary>
+    /// Home 键
+    /// </summary>
     VK_HOME = 0x24,
+    /// <summary>
+    /// 左箭头键
+    /// </summary>
     VK_LEFT = 0x25,
+    /// <summary>
+    /// 上箭头键
+    /// </summary>
     VK_UP = 0x26,
+    /// <summary>
+    /// 右箭头键
+    /// </summary>
     VK_RIGHT = 0x27,
+    /// <summary>
+    /// 下箭头键
+    /// </summary>
     VK_DOWN = 0x28,
+    /// <summary>
+    /// Select 键
+    /// </summary>
     VK_Select = 0x29,
+    /// <summary>
+    /// Print 键
+    /// </summary>
     VK_PRINT = 0x2A,
+    /// <summary>
+    /// Execute 键
+    /// </summary>
     VK_EXECUTE = 0x2B,
+    /// <summary>
+    /// Print Screen 键
+    /// </summary>
     VK_SNAPSHOT = 0x2C,
+    /// <summary>
+    /// Insert 键
+    /// </summary>
     VK_Insert = 0x2D,
+    /// <summary>
+    /// Delete 键
+    /// </summary>
     VK_Delete = 0x2E,
+    /// <summary>
+    /// Help 键
+    /// </summary>
     VK_HELP = 0x2F,
+    /// <summary>
+    /// 数字键 0
+    /// </summary>
     VK_0 = 0x30,
+    /// <summary>
+    /// 数字键 1
+    /// </summary>
     VK_1 = 0x31,
+    /// <summary>
+    /// 数字键 2
+    /// </summary>
     VK_2 = 0x32,
+    /// <summary>
+    /// 数字键 3
+    /// </summary>
     VK_3 = 0x33,
+    /// <summary>
+    /// 数字键 4
+    /// </summary>
     VK_4 = 0x34,
+    /// <summary>
+    /// 数字键 5
+    /// </summary>
     VK_5 = 0x35,
+    /// <summary>
+    /// 数字键 6
+    /// </summary>
     VK_6 = 0x36,
+    /// <summary>
+    /// 数字键 7
+    /// </summary>
     VK_7 = 0x37,
+    /// <summary>
+    /// 数字键 8
+    /// </summary>
     VK_8 = 0x38,
+    /// <summary>
+    /// 数字键 9
+    /// </summary>
     VK_9 = 0x39,
+    /// <summary>
+    /// A 键
+    /// </summary>
     VK_A = 0x41,
+    /// <summary>
+    /// B 键
+    /// </summary>
     VK_B = 0x42,
+    /// <summary>
+    /// C 键
+    /// </summary>
     VK_C = 0x43,
+    /// <summary>
+    /// D 键
+    /// </summary>
     VK_D = 0x44,
+    /// <summary>
+    /// E 键
+    /// </summary>
     VK_E = 0x45,
+    /// <summary>
+    /// F 键
+    /// </summary>
     VK_F = 0x46,
+    /// <summary>
+    /// G 键
+    /// </summary>
     VK_G = 0x47,
+    /// <summary>
+    /// H 键
+    /// </summary>
     VK_H = 0x48,
+    /// <summary>
+    /// I 键
+    /// </summary>
     VK_I = 0x49,
+    /// <summary>
+    /// J 键
+    /// </summary>
     VK_J = 0x4A,
+    /// <summary>
+    /// K 键
+    /// </summary>
     VK_K = 0x4B,
+    /// <summary>
+    /// L 键
+    /// </summary>
     VK_L = 0x4C,
+    /// <summary>
+    /// M 键
+    /// </summary>
     VK_M = 0x4D,
+    /// <summary>
+    /// N 键
+    /// </summary>
     VK_N = 0x4E,
+    /// <summary>
+    /// O 键
+    /// </summary>
     VK_O = 0x4F,
+    /// <summary>
+    /// P 键
+    /// </summary>
     VK_P = 0x50,
+    /// <summary>
+    /// Q 键
+    /// </summary>
     VK_Q = 0x51,
+    /// <summary>
+    /// R 键
+    /// </summary>
     VK_R = 0x52,
+    /// <summary>
+    /// S 键
+    /// </summary>
     VK_S = 0x53,
+    /// <summary>
+    /// T 键
+    /// </summary>
     VK_T = 0x54,
+    /// <summary>
+    /// U 键
+    /// </summary>
     VK_U = 0x55,
+    /// <summary>
+    /// V 键
+    /// </summary>
     VK_V = 0x56,
+    /// <summary>
+    /// W 键
+    /// </summary>
     VK_W = 0x57,
+    /// <summary>
+    /// X 键
+    /// </summary>
     VK_X = 0x58,
+    /// <summary>
+    /// Y 键
+    /// </summary>
     VK_Y = 0x59,
+    /// <summary>
+    /// Z 键
+    /// </summary>
     VK_Z = 0x5A,
+    /// <summary>
+    /// 开始键
+    /// </summary>
     VK_STARTKEY = 0x5B,
+    /// <summary>
+    /// 上下文菜单键
+    /// </summary>
     VK_CONTEXTKEY = 0x5D,
+    /// <summary>
+    /// 小键盘 0
+    /// </summary>
     VK_NUMPAD0 = 0x60,
+    /// <summary>
+    /// 小键盘 1
+    /// </summary>
     VK_NUMPAD1 = 0x61,
+    /// <summary>
+    /// 小键盘 2
+    /// </summary>
     VK_NUMPAD2 = 0x62,
+    /// <summary>
+    /// 小键盘 3
+    /// </summary>
     VK_NUMPAD3 = 0x63,
+    /// <summary>
+    /// 小键盘 4
+    /// </summary>
     VK_NUMPAD4 = 0x64,
+    /// <summary>
+    /// 小键盘 5
+    /// </summary>
     VK_NUMPAD5 = 0x65,
+    /// <summary>
+    /// 小键盘 6
+    /// </summary>
     VK_NUMPAD6 = 0x66,
+    /// <summary>
+    /// 小键盘 7
+    /// </summary>
     VK_NUMPAD7 = 0x67,
+    /// <summary>
+    /// 小键盘 8
+    /// </summary>
     VK_NUMPAD8 = 0x68,
+    /// <summary>
+    /// 小键盘 9
+    /// </summary>
     VK_NUMPAD9 = 0x69,
+    /// <summary>
+    /// 小键盘乘号
+    /// </summary>
     VK_MULTIPLY = 0x6A,
+    /// <summary>
+    /// 小键盘加号
+    /// </summary>
     VK_ADD = 0x6B,
+    /// <summary>
+    /// 小键盘分隔符
+    /// </summary>
     VK_SEPARATOR = 0x6C,
+    /// <summary>
+    /// 小键盘减号
+    /// </summary>
     VK_SUBTRACT = 0x6D,
+    /// <summary>
+    /// 小键盘小数点
+    /// </summary>
     VK_DECIMAL = 0x6E,
+    /// <summary>
+    /// 小键盘除号
+    /// </summary>
     VK_DIVIDE = 0x6F,
+    /// <summary>
+    /// F1 键
+    /// </summary>
     VK_F1 = 0x70,
+    /// <summary>
+    /// F2 键
+    /// </summary>
     VK_F2 = 0x71,
+    /// <summary>
+    /// F3 键
+    /// </summary>
     VK_F3 = 0x72,
+    /// <summary>
+    /// F4 键
+    /// </summary>
     VK_F4 = 0x73,
+    /// <summary>
+    /// F5 键
+    /// </summary>
     VK_F5 = 0x74,
+    /// <summary>
+    /// F6 键
+    /// </summary>
     VK_F6 = 0x75,
+    /// <summary>
+    /// F7 键
+    /// </summary>
     VK_F7 = 0x76,
+    /// <summary>
+    /// F8 键
+    /// </summary>
     VK_F8 = 0x77,
+    /// <summary>
+    /// F9 键
+    /// </summary>
     VK_F9 = 0x78,
+    /// <summary>
+    /// F10 键
+    /// </summary>
     VK_F10 = 0x79,
+    /// <summary>
+    /// F11 键
+    /// </summary>
     VK_F11 = 0x7A,
+    /// <summary>
+    /// F12 键
+    /// </summary>
     VK_F12 = 0x7B,
+    /// <summary>
+    /// F13 键
+    /// </summary>
     VK_F13 = 0x7C,
+    /// <summary>
+    /// F14 键
+    /// </summary>
     VK_F14 = 0x7D,
+    /// <summary>
+    /// F15 键
+    /// </summary>
     VK_F15 = 0x7E,
+    /// <summary>
+    /// F16 键
+    /// </summary>
     VK_F16 = 0x7F,
+    /// <summary>
+    /// F17 键
+    /// </summary>
     VK_F17 = 0x80,
+    /// <summary>
+    /// F18 键
+    /// </summary>
     VK_F18 = 0x81,
+    /// <summary>
+    /// F19 键
+    /// </summary>
     VK_F19 = 0x82,
+    /// <summary>
+    /// F20 键
+    /// </summary>
     VK_F20 = 0x83,
+    /// <summary>
+    /// F21 键
+    /// </summary>
     VK_F21 = 0x84,
+    /// <summary>
+    /// F22 键
+    /// </summary>
     VK_F22 = 0x85,
+    /// <summary>
+    /// F23 键
+    /// </summary>
     VK_F23 = 0x86,
+    /// <summary>
+    /// F24 键
+    /// </summary>
     VK_F24 = 0x87,
+    /// <summary>
+    /// Num Lock 键
+    /// </summary>
     VK_NUMLOCK = 0x90,
+    /// <summary>
+    /// Scroll Lock 键
+    /// </summary>
     VK_OEM_SCROLL = 0x91,
+    /// <summary>
+    /// OEM 1 键（;）
+    /// </summary>
     VK_OEM_1 = 0xBA,
+    /// <summary>
+    /// OEM 加号（+）
+    /// </summary>
     VK_OEM_PLUS = 0xBB,
+    /// <summary>
+    /// OEM 逗号（,）
+    /// </summary>
     VK_OEM_COMMA = 0xBC,
+    /// <summary>
+    /// OEM 减号（-）
+    /// </summary>
     VK_OEM_MINUS = 0xBD,
+    /// <summary>
+    /// OEM 句号（.）
+    /// </summary>
     VK_OEM_PERIOD = 0xBE,
+    /// <summary>
+    /// OEM 2 键（/）
+    /// </summary>
     VK_OEM_2 = 0xBF,
+    /// <summary>
+    /// OEM 3 键（`）
+    /// </summary>
     VK_OEM_3 = 0xC0,
+    /// <summary>
+    /// OEM 4 键（[）
+    /// </summary>
     VK_OEM_4 = 0xDB,
+    /// <summary>
+    /// OEM 5 键（\）
+    /// </summary>
     VK_OEM_5 = 0xDC,
+    /// <summary>
+    /// OEM 6 键（]）
+    /// </summary>
     VK_OEM_6 = 0xDD,
+    /// <summary>
+    /// OEM 7 键（'）
+    /// </summary>
     VK_OEM_7 = 0xDE,
+    /// <summary>
+    /// OEM 8 键
+    /// </summary>
     VK_OEM_8 = 0xDF,
+    /// <summary>
+    /// ICO F17 键
+    /// </summary>
     VK_ICO_F17 = 0xE0,
+    /// <summary>
+    /// ICO F18 键
+    /// </summary>
     VK_ICO_F18 = 0xE1,
+    /// <summary>
+    /// OEM 102 键
+    /// </summary>
     VK_OEM102 = 0xE2,
+    /// <summary>
+    /// ICO HELP 键
+    /// </summary>
     VK_ICO_HELP = 0xE3,
+    /// <summary>
+    /// ICO 00 键
+    /// </summary>
     VK_ICO_00 = 0xE4,
+    /// <summary>
+    /// ICO CLEAR 键
+    /// </summary>
     VK_ICO_CLEAR = 0xE6,
+    /// <summary>
+    /// OEM RESET 键
+    /// </summary>
     VK_OEM_RESET = 0xE9,
+    /// <summary>
+    /// OEM JUMP 键
+    /// </summary>
     VK_OEM_JUMP = 0xEA,
+    /// <summary>
+    /// OEM PA1 键
+    /// </summary>
     VK_OEM_PA1 = 0xEB,
+    /// <summary>
+    /// OEM PA2 键
+    /// </summary>
     VK_OEM_PA2 = 0xEC,
+    /// <summary>
+    /// OEM PA3 键
+    /// </summary>
     VK_OEM_PA3 = 0xED,
+    /// <summary>
+    /// OEM WSCTRL 键
+    /// </summary>
     VK_OEM_WSCTRL = 0xEE,
+    /// <summary>
+    /// OEM CUSEL 键
+    /// </summary>
     VK_OEM_CUSEL = 0xEF,
+    /// <summary>
+    /// OEM ATTN 键
+    /// </summary>
     VK_OEM_ATTN = 0xF0,
+    /// <summary>
+    /// OEM FINNISH 键
+    /// </summary>
     VK_OEM_FINNISH = 0xF1,
+    /// <summary>
+    /// OEM COPY 键
+    /// </summary>
     VK_OEM_COPY = 0xF2,
+    /// <summary>
+    /// OEM AUTO 键
+    /// </summary>
     VK_OEM_AUTO = 0xF3,
+    /// <summary>
+    /// OEM ENLW 键
+    /// </summary>
     VK_OEM_ENLW = 0xF4,
+    /// <summary>
+    /// OEM BACKTAB 键
+    /// </summary>
     VK_OEM_BACKTAB = 0xF5,
+    /// <summary>
+    /// ATTN 键
+    /// </summary>
     VK_ATTN = 0xF6,
+    /// <summary>
+    /// CRSEL 键
+    /// </summary>
     VK_CRSEL = 0xF7,
+    /// <summary>
+    /// EXSEL 键
+    /// </summary>
     VK_EXSEL = 0xF8,
+    /// <summary>
+    /// EREOF 键
+    /// </summary>
     VK_EREOF = 0xF9,
+    /// <summary>
+    /// PLAY 键
+    /// </summary>
     VK_PLAY = 0xFA,
+    /// <summary>
+    /// ZOOM 键
+    /// </summary>
     VK_ZOOM = 0xFB,
+    /// <summary>
+    /// NONAME 键
+    /// </summary>
     VK_NONAME = 0xFC,
+    /// <summary>
+    /// PA1 键
+    /// </summary>
     VK_PA1 = 0xFD,
+    /// <summary>
+    /// OEM CLEAR 键
+    /// </summary>
     VK_OEM_CLEAR = 0xFE,
 }
 
+/// <summary>
+/// 系统命令消息枚举
+/// </summary>
+/// <summary>
+/// 系统命令枚举，定义了窗口的系统命令。
+/// </summary>
 [Flags]
 public enum SC : uint
 {
-    // 窗体关闭消息
+    /// <summary>
+    /// 窗体关闭消息
+    /// </summary>
     SC_CLOSE = 0xf060,
-    // 窗体最小化消息
+    /// <summary>
+    /// 窗体最小化消息
+    /// </summary>
     SC_MINIMIZE = 0xf020,
-    // 窗体最大化消息
+    /// <summary>
+    /// 窗体最大化消息
+    /// </summary>
     SC_MAXIMIZE = 0xf030,
-    // 窗体正常态消息 SC_RESTORE = 0xf120,
+    /// <summary>
+    /// 窗体正常态消息
+    /// </summary>
     SC_NOMAL = 0xf120,
 }
 
+/// <summary>
+/// 窗口显示状态枚举，用于指定 ShowWindow 函数的窗口显示方式。
+/// </summary>
+/// <summary>
+/// 窗口显示状态枚举，定义了窗口的显示状态。
+/// </summary>
 [Flags]
 public enum NCmdShow : uint
 {
@@ -930,65 +1414,215 @@ public enum NCmdShow : uint
     SW_FORCEMINIMIZE = 11,
 }
 
+/// <summary>
+/// 窗口样式枚举，定义了窗口的各种样式常量。
+/// </summary>
 public enum WS : uint
 {
-    // 窗口风格
-    WS_CAPTION = 0xC00000,         // 带标题栏的窗口
-    WS_MAXIMIZEBOX = 0x10000,      // 带最大化按钮的窗口
-    WS_MINIMIZEBOX = 0x20000,      // 带最小化按钮的窗口
-    WS_SYSMENU = 0x80000,          // 带系统菜单的窗口
-    WS_CLIPSIBLINGS = 0x4000000,   // 不重绘层叠子窗口
-    WS_CLIPCHILDREN = 0x2000000,   // 绘图时排子窗口区域
-    WS_OVERLAPPED = 0x0,           // 具有标题栏和边框的层叠窗口
-    WS_THICKFRAME = 0x40000,       // 具有可调边框
+    /// <summary>
+    /// 带标题栏的窗口
+    /// </summary>
+    WS_CAPTION = 0xC00000,
+    /// <summary>
+    /// 带最大化按钮的窗口
+    /// </summary>
+    WS_MAXIMIZEBOX = 0x10000,
+    /// <summary>
+    /// 带最小化按钮的窗口
+    /// </summary>
+    WS_MINIMIZEBOX = 0x20000,
+    /// <summary>
+    /// 带系统菜单的窗口
+    /// </summary>
+    WS_SYSMENU = 0x80000,
+    /// <summary>
+    /// 不重绘层叠子窗口
+    /// </summary>
+    WS_CLIPSIBLINGS = 0x4000000,
+    /// <summary>
+    /// 绘图时排子窗口区域
+    /// </summary>
+    WS_CLIPCHILDREN = 0x2000000,
+    /// <summary>
+    /// 具有标题栏和边框的层叠窗口
+    /// </summary>
+    WS_OVERLAPPED = 0x0,
+    /// <summary>
+    /// 具有可调边框
+    /// </summary>
+    WS_THICKFRAME = 0x40000,
 
-    // 具有标题栏、窗口菜单、可调边框和最大化、最小化按钮的窗口
+    /// <summary>
+    /// 具有标题栏、窗口菜单、可调边框和最大化、最小化按钮的窗口
+    /// </summary>
     WS_OVERLAPPEDWINDOW = WS_OVERLAPPED | WS_CAPTION | WS_SYSMENU | WS_THICKFRAME | WS_MINIMIZEBOX | WS_MAXIMIZEBOX,
 
-    WS_GROUP = 0x20000,            // 指定一组控制的第一个控制
-    WS_POPUP = 0x80000000,         // 弹出式窗口
-    WS_BORDER = 0x800000,          // 单边框窗口
-    WS_POPUPWINDOW = WS_POPUP | WS_BORDER | WS_SYSMENU, // 具有单边框、标题栏菜单的弹出式窗口
-    WS_MINIMIZE = 0x20000000,      // 窗口最小化
-    WS_VISIBLE = 0x10000000,       // 窗口可见
-    WS_DISABLED = 0x8000000,       // 窗口被禁用
-    WS_MAXIMIZE = 0x1000000,       // 窗口最大化
-    WS_DLGFRAME = 0x400000,        // 对话框边框风格
-    WS_VSCROLL = 0x200000,         // 具有垂直滚动条
-    WS_HSCROLL = 0x100000,         // 具有水平滚动条
-    WS_TABSTOP = 0x10000,          // 具有TAB键控制
-    WS_CHILD = 0x40000000,         // 设置窗口属性为child 多文档界面的子窗体
-    WS_CHILDWINDOW = WS_CHILD,     // 具有子窗口
+    /// <summary>
+    /// 指定一组控制的第一个控制
+    /// </summary>
+    WS_GROUP = 0x20000,
+    /// <summary>
+    /// 弹出式窗口
+    /// </summary>
+    WS_POPUP = 0x80000000,
+    /// <summary>
+    /// 单边框窗口
+    /// </summary>
+    WS_BORDER = 0x800000,
+    /// <summary>
+    /// 具有单边框、标题栏菜单的弹出式窗口
+    /// </summary>
+    WS_POPUPWINDOW = WS_POPUP | WS_BORDER | WS_SYSMENU,
+    /// <summary>
+    /// 窗口最小化
+    /// </summary>
+    WS_MINIMIZE = 0x20000000,
+    /// <summary>
+    /// 窗口可见
+    /// </summary>
+    WS_VISIBLE = 0x10000000,
+    /// <summary>
+    /// 窗口被禁用
+    /// </summary>
+    WS_DISABLED = 0x8000000,
+    /// <summary>
+    /// 窗口最大化
+    /// </summary>
+    WS_MAXIMIZE = 0x1000000,
+    /// <summary>
+    /// 对话框边框风格
+    /// </summary>
+    WS_DLGFRAME = 0x400000,
+    /// <summary>
+    /// 具有垂直滚动条
+    /// </summary>
+    WS_VSCROLL = 0x200000,
+    /// <summary>
+    /// 具有水平滚动条
+    /// </summary>
+    WS_HSCROLL = 0x100000,
+    /// <summary>
+    /// 具有TAB键控制
+    /// </summary>
+    WS_TABSTOP = 0x10000,
+    /// <summary>
+    /// 设置窗口属性为child 多文档界面的子窗体
+    /// </summary>
+    WS_CHILD = 0x40000000,
+    /// <summary>
+    /// 具有子窗口
+    /// </summary>
+    WS_CHILDWINDOW = WS_CHILD,
 
-    // 扩展风格
-    WS_EX_WINDOWEDGE = 0x100,         // 窗口具有凸起的3D边框
-    WS_EX_CLIENTEDGE = 0x200,         // 窗口具有阴影边界
-    WS_EX_TOOLWINDOW = 0x80,          // 小标题工具窗口
-    WS_EX_TOPMOST = 0x8,              // 窗口总在顶层  const int WS_EX_TOPMOST = 0x00000008;
-    WS_EX_OVERLAPPEDWINDOW = WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE, // WS_EX-CLIENTEDGE和WS_EX_WINDOWEDGE的组合
-    WS_EX_PALETTEWINDOW = WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST, // WS_EX_WINDOWEDGE和WS_EX_TOOLWINDOW和WS_EX_TOPMOST的组合
-    WS_EX_DLGMODALFRAME = 0x1,        // 带双边的窗口
-    WS_EX_NOPARENTNOTIFY = 0x4,       // 窗口在创建和销毁时不向父窗口发送WM_PARENTNOTIFY消息
-    WS_EX_TRANSPARENT = 0x20,         // 窗口透眀
-    WS_EX_MDICHILD = 0x40,            // MDI子窗口
-    WS_EX_CONTEXTHELP = 0x400,        // 标题栏包含问号联机帮助按钮
-    WS_EX_RIGHT = 0x1000,             // 窗口具有右对齐属性
-    WS_EX_RTLREADING = 0x2000,        // 窗口文本自右向左显示
-    WS_EX_LEFTSCROLLBAR = 0x4000,     // 标题栏在客户区的左边
-    WS_EX_CONTROLPARENT = 0x10000,     // 允许用户使用Tab键在窗口的子窗口间搜索
-    WS_EX_STATICEDGE = 0x20000,        // 为不接受用户输入的项创建一个三维边界风格
-    WS_EX_APPWINDOW = 0x40000,         // 在任务栏上显示顶层窗口的标题按钮
-    WS_EX_LAYERED = 0x80000,           // 窗口具有透眀属性(Win2000)以上
-    WS_EX_NOINHERITLAYOUT = 0x100000, // 窗口布局不传递给子窗口(Win2000)以上
-    WS_EX_LAYOUTRTL = 0x400000,        // 水平起点在右边的窗口
-    WS_EX_NOACTIVATE = 0x8000000,      // 窗口不会变成前台窗口(Win2000)以上
-    WS_EX_LEFT = 0x0,                 // 窗口具有左对齐属性
-    WS_EX_LTRREADING = 0x0,           // 窗口文本自左向右显示
-    WS_EX_RIGHTSCROLLBAR = 0x0,       // 垂直滚动条在窗口的右边界
-    WS_EX_ACCEPTFILES = 0x10,         // 接受文件拖曳
-    WS_EX_COMPOSITED = 0x2000000,      // 窗体所有子窗口使用双缓冲从低到高绘制(XP)
+    /// <summary>
+    /// 窗口具有凸起的3D边框
+    /// </summary>
+    WS_EX_WINDOWEDGE = 0x100,
+    /// <summary>
+    /// 窗口具有阴影边界
+    /// </summary>
+    WS_EX_CLIENTEDGE = 0x200,
+    /// <summary>
+    /// 小标题工具窗口
+    /// </summary>
+    WS_EX_TOOLWINDOW = 0x80,
+    /// <summary>
+    /// 窗口总在顶层
+    /// </summary>
+    WS_EX_TOPMOST = 0x8,
+    /// <summary>
+    /// WS_EX-CLIENTEDGE和WS_EX_WINDOWEDGE的组合
+    /// </summary>
+    WS_EX_OVERLAPPEDWINDOW = WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE,
+    /// <summary>
+    /// WS_EX_WINDOWEDGE和WS_EX_TOOLWINDOW和WS_EX_TOPMOST的组合
+    /// </summary>
+    WS_EX_PALETTEWINDOW = WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
+    /// <summary>
+    /// 带双边的窗口
+    /// </summary>
+    WS_EX_DLGMODALFRAME = 0x1,
+    /// <summary>
+    /// 窗口在创建和销毁时不向父窗口发送WM_PARENTNOTIFY消息
+    /// </summary>
+    WS_EX_NOPARENTNOTIFY = 0x4,
+    /// <summary>
+    /// 窗口透眀
+    /// </summary>
+    WS_EX_TRANSPARENT = 0x20,
+    /// <summary>
+    /// MDI子窗口
+    /// </summary>
+    WS_EX_MDICHILD = 0x40,
+    /// <summary>
+    /// 标题栏包含问号联机帮助按钮
+    /// </summary>
+    WS_EX_CONTEXTHELP = 0x400,
+    /// <summary>
+    /// 窗口具有右对齐属性
+    /// </summary>
+    WS_EX_RIGHT = 0x1000,
+    /// <summary>
+    /// 窗口文本自右向左显示
+    /// </summary>
+    WS_EX_RTLREADING = 0x2000,
+    /// <summary>
+    /// 标题栏在客户区的左边
+    /// </summary>
+    WS_EX_LEFTSCROLLBAR = 0x4000,
+    /// <summary>
+    /// 允许用户使用Tab键在窗口的子窗口间搜索
+    /// </summary>
+    WS_EX_CONTROLPARENT = 0x10000,
+    /// <summary>
+    /// 为不接受用户输入的项创建一个三维边界风格
+    /// </summary>
+    WS_EX_STATICEDGE = 0x20000,
+    /// <summary>
+    /// 在任务栏上显示顶层窗口的标题按钮
+    /// </summary>
+    WS_EX_APPWINDOW = 0x40000,
+    /// <summary>
+    /// 窗口具有透眀属性(Win2000)以上
+    /// </summary>
+    WS_EX_LAYERED = 0x80000,
+    /// <summary>
+    /// 窗口布局不传递给子窗口(Win2000)以上
+    /// </summary>
+    WS_EX_NOINHERITLAYOUT = 0x100000,
+    /// <summary>
+    /// 水平起点在右边的窗口
+    /// </summary>
+    WS_EX_LAYOUTRTL = 0x400000,
+    /// <summary>
+    /// 窗口不会变成前台窗口(Win2000)以上
+    /// </summary>
+    WS_EX_NOACTIVATE = 0x8000000,
+    /// <summary>
+    /// 窗口具有左对齐属性
+    /// </summary>
+    WS_EX_LEFT = 0x0,
+    /// <summary>
+    /// 窗口文本自左向右显示
+    /// </summary>
+    WS_EX_LTRREADING = 0x0,
+    /// <summary>
+    /// 垂直滚动条在窗口的右边界
+    /// </summary>
+    WS_EX_RIGHTSCROLLBAR = 0x0,
+    /// <summary>
+    /// 接受文件拖曳
+    /// </summary>
+    WS_EX_ACCEPTFILES = 0x10,
+    /// <summary>
+    /// 窗体所有子窗口使用双缓冲从低到高绘制(XP)
+    /// </summary>
+    WS_EX_COMPOSITED = 0x2000000,
 }
 
+/// <summary>
+/// 获取窗口信息索引枚举，用于 GetWindowLong 和 SetWindowLong 函数的索引参数。
+/// </summary>
 public enum GWL : int
 {
     /// <summary>
@@ -1021,6 +1655,9 @@ public enum GWL : int
     GWL_USERDATA = -21,
 }
 
+/// <summary>
+/// 获取窗口命令枚举，用于 GetWindow 函数的命令参数。
+/// </summary>
 public enum GetWindowCmd : uint
 {
     /// <summary>
@@ -1068,4 +1705,3 @@ public enum GetWindowCmd : uint
     /// </summary>
     GW_ENABLEDPOPUP = 6
 }
-#endif

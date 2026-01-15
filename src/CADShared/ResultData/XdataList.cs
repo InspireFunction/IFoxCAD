@@ -92,7 +92,6 @@ public class XDataList : TypedValueList
     /// <summary>
     /// 区间任务
     /// </summary>
-    /// <param name="action"></param>
     void RangeTask(string appName, Action<TypedValue, LoopState, int> action)
     {
         LoopState state = new();

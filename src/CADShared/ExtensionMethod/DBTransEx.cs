@@ -3,6 +3,9 @@
 namespace IFoxCAD.Cad;
 
 #if lack_test
+/// <summary>
+/// 事务栈扩展
+/// </summary>
 public static class DBTransEx
 {
     /*

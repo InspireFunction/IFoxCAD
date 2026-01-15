@@ -115,6 +115,9 @@ public class JigExTransient : IDisposable
     #endregion
 
     #region IDisposable接口相关函数
+    /// <summary>
+    /// 释放标记
+    /// </summary>
     public bool IsDisposed { get; private set; } = false;
 
     /// <summary>

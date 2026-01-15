@@ -1,4 +1,8 @@
 namespace IFoxCAD.Cad;
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
 
 using System;
 using System.Diagnostics;
@@ -95,7 +99,11 @@ public struct PlaceableMetaHeader
             throw new IOException("无法校验文件签名:" + file);
 
         var fileByte = new byte[file.Length];
-        file.Read(fileByte, 0, fileByte.Length);
+        int bytesRead = 0;
+        while (bytesRead < fileByte.Length)
+        {
+            bytesRead += file.Read(fileByte, bytesRead, fileByte.Length - bytesRead);
+        }
         file.Close();
 
         var sWMF = BytesToStruct<PlaceableMetaHeader>(fileByte);
@@ -790,7 +798,7 @@ public static class EmfTool
     /// <summary>
     /// 矢量图 转换 byte[]
     /// </summary>
-    /// <param name="image"></param>
+    /// <param name="mf"></param>
     /// <returns></returns>
     public static byte[]? ToByteArray(this Metafile mf)
     {

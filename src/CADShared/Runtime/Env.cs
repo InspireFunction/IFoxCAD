@@ -575,6 +575,10 @@ public static class Env
     /// </summary>
     /// <param name="message">要打印的对象</param>
     public static void Print(object message) => Editor.WriteMessage($"{message}\n");
+    /// <summary>
+    /// 命令行打印，会在新行中打印对象的toString函数结果
+    /// </summary>
+    /// <param name="message">要打印的对象</param>
     public static void Printl(object message) => Editor.WriteMessage($"{Environment.NewLine}{message}\n");
 
     /// <summary>
@@ -668,6 +672,11 @@ public static class Env
         return acarVarNum;
     }
 
+    /// <summary>
+    /// 获取ACAP版本DLL名称
+    /// </summary>
+    /// <param name="str">DLL名称前缀</param>
+    /// <returns>完整的DLL名称</returns>
     public static string GetAcapVersionDll(string str = "acdb")
     {
         return str + Acap.Version.Major + ".dll";

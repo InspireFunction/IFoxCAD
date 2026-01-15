@@ -1,5 +1,8 @@
 ﻿namespace IFoxCAD.Cad;
 
+/// <summary>
+/// cad版本信息
+/// </summary>
 public class CadVersion
 {
     /// <summary>

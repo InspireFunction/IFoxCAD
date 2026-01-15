@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
 using System;
 using System.Diagnostics;
@@ -6,6 +6,10 @@ using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
+/// <summary>
+/// 提供鼠标钩子功能的类，用于捕获和处理鼠标事件。
+/// 支持进程级和全局级的鼠标钩子设置。
+/// </summary>
 public class MouseHook
 {
     /// <summary>
@@ -43,13 +47,25 @@ public class MouseHook
         _isHookBreak = true;
     }
 
-    /// 不要试图省略此变量,否则将会导致GC变量池满后释放<br/>
-    /// 提示:激活 CallbackOnCollectedDelegate 托管调试助手(MDA)
+    /// <summary>
+    /// 不要试图省略此变量,否则将会导致GC变量池满后释放。<br/>
+    /// 提示:激活 CallbackOnCollectedDelegate 托管调试助手(MDA)。
+    /// </summary>
     internal static WindowsAPI.CallBack? HookProc;
-    internal static IntPtr _NextHookProc;//挂载成功的标记
+    /// <summary>
+    /// 挂载成功的标记
+    /// </summary>
+    internal static IntPtr _NextHookProc;
+    /// <summary>
+    /// 当前进程
+    /// </summary>
     public readonly Process Process;
 
 
+    /// <summary>
+    /// 获取系统双击时间
+    /// </summary>
+    /// <returns>双击时间（毫秒）</returns>
     [DllImport("user32.dll", EntryPoint = "GetDoubleClickTime")]
     public extern static int GetDoubleClickTime();
     static readonly Stopwatch _watch = new();
@@ -250,11 +266,20 @@ public class MouseHook
         /// </summary>
         public int dwExtraInfo;
 
+        /// <summary>
+        /// 从 IntPtr 创建鼠标钩子结构
+        /// </summary>
+        /// <param name="lParam">指向结构体的指针</param>
+        /// <returns>鼠标钩子结构体</returns>
         public static MouseHookStruct Create(IntPtr lParam)
         {
             return (MouseHookStruct)Marshal.PtrToStructure(lParam, typeof(MouseHookStruct));
         }
 
+        /// <summary>
+        /// 将当前结构体转换为IntPtr
+        /// </summary>
+        /// <param name="lParam">目标指针</param>
         public void ToPtr(IntPtr lParam)
         {
             Marshal.StructureToPtr(this, lParam, true);
@@ -263,6 +288,9 @@ public class MouseHook
 
 
     #region IDisposable接口相关函数
+    /// <summary>
+    /// 获取对象是否已释放
+    /// </summary>
     public bool IsDisposed { get; private set; } = false;
 
     /// <summary>
@@ -282,6 +310,10 @@ public class MouseHook
         Dispose(false);
     }
 
+    /// <summary>
+    /// 释放资源
+    /// </summary>
+    /// <param name="disposing">是否由 Dispose 方法调用</param>
     protected virtual void Dispose(bool disposing)
     {
         // 不重复释放,并设置已经释放

@@ -433,7 +433,7 @@ public class DBTrans : IDisposable
             if (saveAsFile == null)
                 doc.SendStringToExecute("_qsave\n", false, true, true);
             else
-                /// 无法把 <paramref name="saveAsFile"/>给这个面板
+                // 无法把 <paramref name="saveAsFile"/>给这个面板
                 doc.SendStringToExecute($"_Saveas\n", false, true, true);
             return;
         }
@@ -622,6 +622,9 @@ public class DBTrans : IDisposable
         Dispose();
     }
 
+    /// <summary>
+    /// 释放标记
+    /// </summary>
     public bool IsDisposed { get; private set; } = false;
 
     /// <summary>
@@ -641,6 +644,10 @@ public class DBTrans : IDisposable
         Dispose(false);
     }
 
+    /// <summary>
+    /// 释放
+    /// </summary>
+    /// <param name="disposing"></param>
     protected virtual void Dispose(bool disposing)
     {
         /* 事务dispose流程：
@@ -686,7 +693,7 @@ public class DBTrans : IDisposable
         _dBTrans.Pop();
     }
 
-    public static bool IsNullOrWhiteSpace(string? value)
+    static bool IsNullOrWhiteSpace(string? value)
     {
         if (value == null)
             return true;
@@ -700,14 +707,26 @@ public class DBTrans : IDisposable
     #endregion
 
     #region ToString
+    /// <summary>
+    /// 输出文字
+    /// </summary>
+    /// <returns></returns>
     public override string ToString()
     {
         return ToString(null, null);
     }
+    /// <summary>
+    /// 输出文字
+    /// </summary>
+    /// <returns></returns>
     public string ToString(IFormatProvider? provider)
     {
         return ToString(null, provider);
     }
+    /// <summary>
+    /// 输出文字
+    /// </summary>
+    /// <returns></returns>
     public string ToString(string? format = null, IFormatProvider? formatProvider = null)
     {
         List<string> lines =

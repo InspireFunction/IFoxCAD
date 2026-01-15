@@ -166,6 +166,7 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
     /// 查询四叉树,返回给定区域的数据项
     /// </summary>
     /// <param name="rect">矩形选区查询</param>
+    /// <param name="selectMode">选择模式</param>
     /// <returns></returns>
     public List<TEntity> Query(Rect rect, QuadTreeSelectMode selectMode = QuadTreeSelectMode.IntersectsWith)
     {

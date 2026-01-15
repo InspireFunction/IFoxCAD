@@ -1,10 +1,16 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 /*
  * 由于linq的函数大部分带有状态机,而cad是一个单机程序,
  * 使用状态机会变得缓慢,因此我们设计的时候着重于时间优化,
  * 本工具类在着重于数组遍历时候替代linq
  */
+
+/// <summary>
+/// 提供数组操作的扩展方法集合。
+/// 由于LINQ的函数大部分带有状态机，而CAD是一个单机程序，
+/// 使用状态机会变得缓慢，因此本工具类在着重于数组遍历时候替代LINQ。
+/// </summary>
 public static class ArrayEx
 {
     /// <summary>

@@ -1,5 +1,8 @@
 ﻿namespace IFoxCAD.Cad;
 
+/// <summary>
+/// 系统扩展
+/// </summary>
 public static class ObjEx
 {
     /// <summary>

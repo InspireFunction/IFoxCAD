@@ -1,8 +1,11 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 using System.ComponentModel;
 using System.Linq;
 
+/// <summary>
+/// 提供枚举类型操作的扩展方法集合。
+/// </summary>
 public static class EnumEx
 {
     /// <summary>
@@ -17,9 +20,11 @@ public static class EnumEx
     static readonly Dictionary<string, HashSet<string>> _cache = new();
 
     /// <summary>
-    /// 打印枚举的特性<see cref="DescriptionAttribute"/>注释内容
+    /// 获取枚举的特性注释内容
     /// </summary>
+    /// <typeparam name="T">特性类型</typeparam>
     /// <param name="e">枚举</param>
+    /// <param name="noDescrToString">当没有描述信息时，是否返回枚举的ToString()值，默认为true</param>
     /// <returns>注释内容</returns>
     public static HashSet<string>? GetAttribute<T>(this Enum e, bool noDescrToString = true)
         where T : DescriptionAttribute
@@ -90,6 +95,11 @@ public static class EnumEx
     }
 
     // 不按位运算的情况下,直接获取比较快捷
+    /// <summary>
+    /// 获取枚举值的描述信息（不使用位运算的情况）
+    /// </summary>
+    /// <param name="e">枚举值</param>
+    /// <returns>枚举值的描述信息</returns>
     public static string GetDesc(this Enum e)
     {
         return GetDesc(e.GetType(), e.ToString());

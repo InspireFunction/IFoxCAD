@@ -80,6 +80,8 @@ public enum AutoRegConfig
     /// 移除教育版
     /// </summary>
     RemoveEMR = 8,
-
+    /// <summary>
+    /// 全部
+    /// </summary>
     All = Regedit | ReflectionAttribute | ReflectionInterface | RemoveEMR,
 }

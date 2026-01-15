@@ -1,7 +1,14 @@
 ﻿namespace IFoxCAD.Cad;
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
 
 using System;
 
+/// <summary>
+/// 位图工具
+/// </summary>
 public class BitmapTool
 {
     //  https://blog.csdn.net/shellching/article/details/18405185
@@ -25,6 +32,12 @@ public class BitmapTool
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetDC(IntPtr hWnd);
 
+    /// <summary>
+    /// 释放设备上下文(DC),使其可供其他应用程序使用
+    /// </summary>
+    /// <param name="hWnd"></param>
+    /// <param name="hDC"></param>
+    /// <returns></returns>
     [DllImport("user32.dll")]
     public static extern bool ReleaseDC(IntPtr hWnd, IntPtr hDC);
 

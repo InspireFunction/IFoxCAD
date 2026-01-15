@@ -1,22 +1,50 @@
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
 #define Marshal
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
 
 namespace IFoxCAD.Cad;
+
+/// <summary>
+/// Windows API 封装类，提供常用的 Windows 系统 API 调用方法。
+/// 包含 kernel32、imm32 和 user32 等 DLL 的函数声明。
+/// </summary>
 public partial class WindowsAPI
 {
     #region kernel32
     // https://blog.csdn.net/haelang/article/details/45147121
+    /// <summary>
+    /// 获取最近一次错误代码
+    /// </summary>
+    /// <returns>错误代码</returns>
     [DllImport("kernel32.dll")]
     public extern static uint GetLastError();
 
+    /// <summary>
+    /// 获取指定句柄的标志信息
+    /// </summary>
+    /// <param name="hObject">对象句柄</param>
+    /// <param name="lpdwFlags">接收标志的变量引用</param>
+    /// <returns>执行结果</returns>
     [DllImport("kernel32.dll")]
     public static extern long GetHandleInformation(long hObject, ref long lpdwFlags);
 
+    /// <summary>
+    /// 获取模块句柄
+    /// </summary>
+    /// <param name="ModuleName">模块名称</param>
+    /// <returns>模块句柄</returns>
     [DllImport("kernel32.dll")]
     public static extern IntPtr GetModuleHandle(string ModuleName);
 
+    /// <summary>
+    /// 获取当前线程ID
+    /// </summary>
+    /// <returns>当前线程ID</returns>
     [DllImport("kernel32.dll")]
     public static extern int GetCurrentThreadId();
 
@@ -32,15 +60,15 @@ public partial class WindowsAPI
     /// <summary>
     /// 锁定内存
     /// </summary>
-    /// <param name="hMem"></param>
-    /// <returns></returns>
+    /// <param name="hMem">内存句柄</param>
+    /// <returns>内存指针</returns>
     [DllImport("kernel32.dll", SetLastError = true)]
     static extern IntPtr GlobalLock(IntPtr hMem);
     /// <summary>
     /// 解锁内存
     /// </summary>
-    /// <param name="hMem"></param>
-    /// <returns></returns>
+    /// <param name="hMem">内存句柄</param>
+    /// <returns>解锁是否成功</returns>
     [DllImport("kernel32.dll", SetLastError = true)]
     static extern bool GlobalUnlock(IntPtr hMem);
 #if !Marshal
@@ -343,7 +371,7 @@ public partial class WindowsAPI
     /// </summary>
     /// <param name="hWnd">窗口标识符</param>
     /// <param name="text">窗口文字</param>
-    /// <param name="count">文字长度</param>
+    /// <param name="nMaxCount">文字长度</param>
     /// <returns></returns>
     [DllImport("User32.dll", CharSet = CharSet.Auto)]
     public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int nMaxCount);
@@ -378,9 +406,20 @@ public partial class WindowsAPI
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
-    [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    /// <summary>
+    /// 获取窗口
+    /// </summary>
+    /// <param name="hWnd">窗口句柄</param>
+    /// <param name="uCmd">命令</param>
+    /// <returns>窗口句柄</returns>
+    [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
 
+    /// <summary>
+    /// 获取顶层窗口
+    /// </summary>
+    /// <param name="hWnd">窗口句柄</param>
+    /// <returns>顶层窗口句柄</returns>
     [DllImport("user32.DLL", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.StdCall, SetLastError = true)]
     public static extern IntPtr GetTopWindow(IntPtr hWnd);
 
@@ -388,9 +427,9 @@ public partial class WindowsAPI
     /// <summary>
     /// 获取线程对应的窗体信息
     /// </summary>
-    /// <param name="idThread">线程</param>
-    /// <param name="lpgui"></param>
-    /// <returns></returns>
+    /// <param name="idThread">线程ID</param>
+    /// <param name="lpgui">GUI线程信息</param>
+    /// <returns>获取是否成功</returns>
     [DllImport("user32.dll")]
     [return: MarshalAs(UnmanagedType.Bool)]
     static extern bool GetGUIThreadInfo(uint idThread, ref GuiThreadInfo lpgui);
@@ -401,16 +440,56 @@ public partial class WindowsAPI
     [StructLayout(LayoutKind.Sequential)]
     public struct GuiThreadInfo
     {
+        /// <summary>
+        /// 结构体大小
+        /// </summary>
         public int cbSize;
+
+        /// <summary>
+        /// 标志位
+        /// </summary>
         public int flags;
+
+        /// <summary>
+        /// 活动窗口句柄
+        /// </summary>
         public IntPtr hwndActive;
+
+        /// <summary>
+        /// 焦点窗口句柄
+        /// </summary>
         public IntPtr hwndFocus;
+
+        /// <summary>
+        /// 捕获鼠标输入的窗口句柄
+        /// </summary>
         public IntPtr hwndCapture;
+
+        /// <summary>
+        /// 菜单拥有者窗口句柄
+        /// </summary>
         public IntPtr hwndMenuOwner;
+
+        /// <summary>
+        /// 正在移动或调整大小的窗口句柄
+        /// </summary>
         public IntPtr hwndMoveSize;
+
+        /// <summary>
+        /// 插入符窗口句柄
+        /// </summary>
         public IntPtr hwndCaret;
+
+        /// <summary>
+        /// 插入符矩形区域
+        /// </summary>
         public System.Drawing.Rectangle rcCaret;
 
+        /// <summary>
+        /// 创建并初始化GuiThreadInfo结构体
+        /// </summary>
+        /// <param name="windowThreadProcessId">窗口线程进程ID</param>
+        /// <returns>初始化后的GuiThreadInfo结构体</returns>
         public static GuiThreadInfo Create(uint windowThreadProcessId)
         {
             if (windowThreadProcessId == 0)
@@ -423,37 +502,114 @@ public partial class WindowsAPI
         }
     }
 
+    /// <summary>
+    /// 获取当前焦点窗口
+    /// </summary>
+    /// <returns>焦点窗口句柄</returns>
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetFocus();
 
+    /// <summary>
+    /// 发送消息
+    /// </summary>
+    /// <summary>
+    /// 向窗口发送消息
+    /// </summary>
+    /// <param name="hwnd">窗口句柄</param>
+    /// <param name="msg">消息类型</param>
+    /// <param name="wParam">消息参数</param>
+    /// <param name="lParam">消息参数</param>
+    /// <returns>消息处理结果</returns>
     [DllImport("user32.dll")]
     public static extern IntPtr SendMessage(IntPtr hwnd, int msg, IntPtr wParam, IntPtr lParam);
 
+    /// <summary>
+    /// 获取父窗口
+    /// </summary>
+    /// <param name="hWnd">窗口句柄</param>
+    /// <returns>父窗口句柄</returns>
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetParent(IntPtr hWnd);
 
+    /// <summary>
+    /// 将虚拟键码转换为ASCII字符
+    /// </summary>
+    /// <param name="uVirtKey">虚拟键码</param>
+    /// <param name="uScancode">扫描码</param>
+    /// <param name="lpdKeyState">键盘状态</param>
+    /// <param name="lpwTransKey">输出缓冲区</param>
+    /// <param name="fuState">状态标志</param>
+    /// <returns>转换结果</returns>
     [DllImport("user32.dll")]
     public static extern int ToAscii(int uVirtKey, int uScancode, byte[] lpdKeyState, byte[] lpwTransKey, int fuState);
 
+    /// <summary>
+    /// 获取活动窗口
+    /// </summary>
+    /// <returns>活动窗口句柄</returns>
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetActiveWindow();
 
+    /// <summary>
+    /// 获取窗口线程进程ID
+    /// </summary>
+    /// <param name="hwnd">窗口句柄</param>
+    /// <param name="lpdwProcessId">进程ID</param>
+    /// <returns>线程ID</returns>
     [DllImport("user32.dll", SetLastError = true)]
     public static extern long GetWindowThreadProcessId(IntPtr hwnd, ref int lpdwProcessId);
 
+    /// <summary>
+    /// 判断窗口是否最小化
+    /// </summary>
+    /// <param name="hWnd">窗口句柄</param>
+    /// <returns>是否最小化</returns>
     [DllImport("user32.dll", SetLastError = true)]
     public static extern bool IsIconic(int hWnd);
 
+    /// <summary>
+    /// 判断窗口是否启用
+    /// </summary>
+    /// <param name="hWnd">窗口句柄</param>
+    /// <returns>是否启用</returns>
     [DllImport("user32.dll")]
     public static extern bool IsWindowEnabled(IntPtr hWnd);
     #endregion
 
     #region 键盘钩子
+    /// <summary>
+    /// Windows API回调委托
+    /// </summary>
+    /// <param name="nCode">钩子代码</param>
+    /// <param name="wParam">消息参数</param>
+    /// <param name="lParam">消息参数</param>
+    /// <returns>回调结果</returns>
     public delegate IntPtr CallBack(int nCode, int wParam, IntPtr lParam);
+    /// <summary>
+    /// 设置Windows钩子
+    /// </summary>
+    /// <param name="idHook">钩子类型</param>
+    /// <param name="lpfn">回调函数</param>
+    /// <param name="hmod">模块句柄</param>
+    /// <param name="dwThreadId">线程ID</param>
+    /// <returns>钩子句柄</returns>
     [DllImport("user32.dll")]
     public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBack lpfn, IntPtr hmod, int dwThreadId);
+    /// <summary>
+    /// 卸载Windows钩子
+    /// </summary>
+    /// <param name="hHook">钩子句柄</param>
+    /// <returns>卸载是否成功</returns>
     [DllImport("user32.dll")]
     public static extern IntPtr UnhookWindowsHookEx(IntPtr hHook);
+    /// <summary>
+    /// 调用下一个钩子
+    /// </summary>
+    /// <param name="hHook">钩子句柄</param>
+    /// <param name="ncode">钩子代码</param>
+    /// <param name="wParam">消息参数</param>
+    /// <param name="lParam">消息参数</param>
+    /// <returns>钩子处理结果</returns>
     [DllImport("user32.dll")]
     public static extern IntPtr CallNextHookEx(IntPtr hHook, int ncode, int wParam, IntPtr lParam);
     /// <summary>
@@ -466,16 +622,45 @@ public partial class WindowsAPI
     [StructLayout(LayoutKind.Sequential)]
     public struct KeyboardHookStruct
     {
-        public int VkCode;        // 键码,该代码必须有一个价值的范围1至254
-        public int ScanCode;      // 指定的硬件扫描码的关键
-        public int Flags;         // 键标志
-        public int Time;          // 指定的时间戳记的这个讯息
-        public int DwExtraInfo;   // 指定额外信息相关的信息
+        /// <summary>
+        /// 键码,该代码必须有一个价值的范围1至254
+        /// </summary>
+        public int VkCode;
 
+        /// <summary>
+        /// 指定的硬件扫描码的关键
+        /// </summary>
+        public int ScanCode;
+
+        /// <summary>
+        /// 键标志
+        /// </summary>
+        public int Flags;
+
+        /// <summary>
+        /// 指定的时间戳记的这个讯息
+        /// </summary>
+        public int Time;
+
+        /// <summary>
+        /// 指定额外信息相关的信息
+        /// </summary>
+        public int DwExtraInfo;
+
+        /// <summary>
+        /// 从IntPtr创建KeyboardHookStruct实例
+        /// </summary>
+        /// <param name="lParam">包含键盘钩子数据的指针</param>
+        /// <returns>KeyboardHookStruct实例</returns>
         public static KeyboardHookStruct Create(IntPtr lParam)
         {
             return (KeyboardHookStruct)Marshal.PtrToStructure(lParam, typeof(KeyboardHookStruct));
         }
+
+        /// <summary>
+        /// 将当前实例转换为IntPtr
+        /// </summary>
+        /// <param name="lParam">目标指针</param>
         public void ToPtr(IntPtr lParam)
         {
             Marshal.StructureToPtr(this, lParam, true);
@@ -515,13 +700,44 @@ public partial class WindowsAPI
         int _Top;
         int _Right;
         int _Bottom;
+
+        /// <summary>
+        /// 左边界
+        /// </summary>
         public int Left => _Left;
+
+        /// <summary>
+        /// 上边界
+        /// </summary>
         public int Top => _Top;
+
+        /// <summary>
+        /// 右边界
+        /// </summary>
         public int Right => _Right;
+
+        /// <summary>
+        /// 下边界
+        /// </summary>
         public int Bottom => _Bottom;
+
+        /// <summary>
+        /// 宽度
+        /// </summary>
         public int Width => checked(Right - Left);
+
+        /// <summary>
+        /// 高度
+        /// </summary>
         public int Height => checked(Bottom - Top);
 
+        /// <summary>
+        /// 初始化IntRect结构体
+        /// </summary>
+        /// <param name="left">左边界</param>
+        /// <param name="top">上边界</param>
+        /// <param name="right">右边界</param>
+        /// <param name="bottom">下边界</param>
         public IntRect(int left, int top, int right, int bottom)
         {
             _Left = left;
@@ -531,11 +747,24 @@ public partial class WindowsAPI
         }
 
         static readonly IntRect _Zero = new(0, 0, 0, 0);
+
+        /// <summary>
+        /// 获取零矩形
+        /// </summary>
         public static IntRect Zero => _Zero;
 
+        /// <summary>
+        /// 返回矩形的字符串表示
+        /// </summary>
+        /// <returns>矩形的字符串表示</returns>
         public override string ToString() => $"({_Left},{_Top},{_Right},{_Bottom})";
 
         #region 重载运算符_比较
+        /// <summary>
+        /// 判断两个矩形是否相等
+        /// </summary>
+        /// <param name="other">另一个矩形</param>
+        /// <returns>是否相等</returns>
         public bool Equals(IntRect other)
         {
             return
@@ -544,23 +773,52 @@ public partial class WindowsAPI
             _Right == other._Right &&
             _Bottom == other._Bottom;
         }
+
+        /// <summary>
+        /// 判断两个矩形是否不相等
+        /// </summary>
+        /// <param name="a">第一个矩形</param>
+        /// <param name="b">第二个矩形</param>
+        /// <returns>是否不相等</returns>
         public static bool operator !=(IntRect a, IntRect b)
         {
             return !(a == b);
         }
+
+        /// <summary>
+        /// 判断两个矩形是否相等
+        /// </summary>
+        /// <param name="a">第一个矩形</param>
+        /// <param name="b">第二个矩形</param>
+        /// <returns>是否相等</returns>
         public static bool operator ==(IntRect a, IntRect b)
         {
             return a.Equals(b);
         }
+
+        /// <summary>
+        /// 判断对象是否等于当前矩形
+        /// </summary>
+        /// <param name="obj">要比较的对象</param>
+        /// <returns>是否相等</returns>
         public override bool Equals(object obj)
         {
             return obj is IntRect d && Equals(d);
         }
+
+        /// <summary>
+        /// 获取哈希代码
+        /// </summary>
+        /// <returns>哈希代码</returns>
         public override int GetHashCode()
         {
             return ((_Left, _Top).GetHashCode(), _Right).GetHashCode() ^ _Bottom.GetHashCode();
         }
 
+        /// <summary>
+        /// 克隆矩形
+        /// </summary>
+        /// <returns>克隆的矩形</returns>
         public IntRect Clone()
         {
             return (IntRect)MemberwiseClone();
@@ -577,14 +835,31 @@ public partial class WindowsAPI
     {
         [DebuggerBrowsable(DebuggerBrowsableState.Never)]
         private string DebuggerDisplay => $"(Hight:{Hight},Width:{Width})";
+        /// <summary>
+        /// 高度
+        /// </summary>
         public int Hight;
+
+        /// <summary>
+        /// 宽度
+        /// </summary>
         public int Width;
 
+        /// <summary>
+        /// 初始化IntSize结构体
+        /// </summary>
+        /// <param name="cx">宽度</param>
+        /// <param name="cy">高度</param>
         public IntSize(int cx, int cy)
         {
             Hight = cx;
             Width = cy;
         }
+
+        /// <summary>
+        /// 返回尺寸的字符串表示
+        /// </summary>
+        /// <returns>尺寸的字符串表示</returns>
         public override string ToString() => $"({Hight},{Width})";
     }
 
@@ -599,31 +874,73 @@ public partial class WindowsAPI
         private string DebuggerDisplay => $"(X:{X},Y:{Y},Z:{Z})";
 
         /* 由于此类是用来优化,从而实现字段修改,因此直接暴露字段减少栈帧 */
+
+        /// <summary>
+        /// X坐标
+        /// </summary>
         public double X;
+
+        /// <summary>
+        /// Y坐标
+        /// </summary>
         public double Y;
+
+        /// <summary>
+        /// Z坐标
+        /// </summary>
         public double Z;
 
+        /// <summary>
+        /// 初始化Point3D结构体
+        /// </summary>
+        /// <param name="x">X坐标</param>
+        /// <param name="y">Y坐标</param>
+        /// <param name="z">Z坐标</param>
         public Point3D(double x, double y, double z)
         {
             X = x;
             Y = y;
             Z = z;
         }
+
+        /// <summary>
+        /// Point3d到Point3D的隐式转换
+        /// </summary>
+        /// <param name="pt">Point3d实例</param>
         public static implicit operator Point3D(Point3d pt)
         {
             return new Point3D(pt.X, pt.Y, pt.Z);
         }
+
+        /// <summary>
+        /// Point3D到Point3d的隐式转换
+        /// </summary>
+        /// <param name="pt">Point3D实例</param>
         public static implicit operator Point3d(Point3D pt)
         {
             return new Point3d(pt.X, pt.Y, pt.Z);
         }
+
+        /// <summary>
+        /// 返回点的字符串表示
+        /// </summary>
+        /// <returns>点的字符串表示</returns>
         public override string ToString() => $"({X},{Y},{Z})";
 
+        /// <summary>
+        /// 从IntPtr创建Point3D实例
+        /// </summary>
+        /// <param name="lParam">包含点数据的指针</param>
+        /// <returns>Point3D实例</returns>
         public static Point3D Create(IntPtr lParam)
         {
             return (Point3D)Marshal.PtrToStructure(lParam, typeof(Point3D));
         }
 
+        /// <summary>
+        /// 将当前实例转换为IntPtr
+        /// </summary>
+        /// <param name="lParam">目标指针</param>
         public void ToPtr(IntPtr lParam)
         {
             Marshal.StructureToPtr(this, lParam, true);
@@ -631,6 +948,11 @@ public partial class WindowsAPI
 
 
         #region 重载运算符_比较
+        /// <summary>
+        /// 判断两个三维点是否相等
+        /// </summary>
+        /// <param name="other">另一个点</param>
+        /// <returns>是否相等</returns>
         public bool Equals(Point3D other)
         {
             return
@@ -638,18 +960,43 @@ public partial class WindowsAPI
             Y == other.Y &&
             Z == other.Z;
         }
+
+        /// <summary>
+        /// 判断两个三维点是否不相等
+        /// </summary>
+        /// <param name="a">第一个点</param>
+        /// <param name="b">第二个点</param>
+        /// <returns>是否不相等</returns>
         public static bool operator !=(Point3D a, Point3D b)
         {
             return !(a == b);
         }
+
+        /// <summary>
+        /// 判断两个三维点是否相等
+        /// </summary>
+        /// <param name="a">第一个点</param>
+        /// <param name="b">第二个点</param>
+        /// <returns>是否相等</returns>
         public static bool operator ==(Point3D a, Point3D b)
         {
             return a.Equals(b);
         }
+
+        /// <summary>
+        /// 判断对象是否等于当前点
+        /// </summary>
+        /// <param name="obj">要比较的对象</param>
+        /// <returns>是否相等</returns>
         public override bool Equals(object obj)
         {
             return obj is Point3D d && Equals(d);
         }
+
+        /// <summary>
+        /// 获取哈希代码
+        /// </summary>
+        /// <returns>哈希代码</returns>
         public override int GetHashCode()
         {
             return (X, Y).GetHashCode() ^ Z.GetHashCode();

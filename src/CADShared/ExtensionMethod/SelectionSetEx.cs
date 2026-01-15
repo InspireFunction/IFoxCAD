@@ -68,7 +68,7 @@ public static class SelectionSetEx
     /// <typeparam name="T">指定类型</typeparam>
     /// <param name="ss">选择集</param>
     /// <param name="openMode">打开模式</param>
-    /// <param name="tr">事务</param>
+    /// <param name="trans">事务</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>图元集合</returns>

@@ -1030,10 +1030,22 @@ public static class EditorEx
     CharSet = CharSet.Auto, CallingConvention = CallingConvention.Cdecl, EntryPoint = "ads_queueexpr")]
     static extern int Ads_queueexpr(string strExpr);
 
+    /// <summary>
+    /// 命令运行方式
+    /// </summary>
     public enum RunLispFlag : byte
     {
+        /// <summary>
+        /// 同步执行
+        /// </summary>
         AdsQueueexpr = 1,
+        /// <summary>
+        /// 计算LISP表达式
+        /// </summary>
         AcedEvaluateLisp = 2,
+        /// <summary>
+        /// 发送命令栏
+        /// </summary>
         SendStringToExecute = 4,
     }
 

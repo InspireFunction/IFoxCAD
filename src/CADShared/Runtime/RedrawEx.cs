@@ -1,5 +1,8 @@
 ﻿namespace IFoxCAD.Cad;
 
+/// <summary>
+/// 刷新方式
+/// </summary>
 [Flags]
 public enum BrightEntity : int
 {
@@ -37,6 +40,9 @@ public enum BrightEntity : int
     MoveZero = 128,
 }
 
+/// <summary>
+/// 刷新枚举
+/// </summary>
 [Flags]
 public enum BrightEditor : int
 {
@@ -62,6 +68,9 @@ public enum BrightEditor : int
     ViewportsIn = 16,
 }
 
+/// <summary>
+/// 刷新扩展方法
+/// </summary>
 public static class RedrawEx
 {
     /// <summary>
@@ -171,6 +180,7 @@ public static class RedrawEx
     /// 刷新实体显示
     /// </summary>
     /// <param name="entity">实体对象</param>
+    /// <param name="trans">事务</param>
     [Obsolete("此处已经被RedrawEx代替")]
     public static void Flush(this Entity entity, DBTrans? trans = null)
     {

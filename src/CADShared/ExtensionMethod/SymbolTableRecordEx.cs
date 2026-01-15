@@ -48,12 +48,12 @@ public static class SymbolTableRecordEx
         }
     }
 
-    /// <summary>
-    /// 克隆图元实体(这个函数有问题,会出现偶尔成功,偶尔失败,拖动过变成匿名块)
-    /// <para>若为块则进行设置属性,因此控制动态块属性丢失;</para>
-    /// </summary>
-    /// <param name="ent">图元</param>
-    /// <param name="matrix">矩阵</param>
+    // <summary>
+    // 克隆图元实体(这个函数有问题,会出现偶尔成功,偶尔失败,拖动过变成匿名块)
+    // <para>若为块则进行设置属性,因此控制动态块属性丢失;</para>
+    // </summary>
+    // <param name="ent">图元</param>
+    // <param name="matrix">矩阵</param>
     // public static void EntityTransformedCopy(this Entity ent, Matrix3d matrix)
     // {
     //    var entNew = ent.GetTransformedCopy(matrix);
@@ -408,15 +408,20 @@ public static class SymbolTableRecordEx
         }
         return blockTableRecord.InsertBlock(position, DBTrans.Top.BlockTable[blockName], scale, rotation, atts, trans);
     }
+
+
     /// <summary>
     /// 插入块参照
     /// </summary>
+    /// <param name="blockTableRecord">块表记录</param>
     /// <param name="position">插入点</param>
     /// <param name="blockId">块定义id</param>
     /// <param name="scale">块插入比例，默认为1</param>
     /// <param name="rotation">块插入旋转角(弧度)，默认为0</param>
     /// <param name="atts">属性字典{Tag,Value}，默认为null</param>
     /// <returns>块参照对象id</returns>
+    /// <param name="trans">事务</param>
+    /// <returns></returns>
     public static ObjectId InsertBlock(this BlockTableRecord blockTableRecord,
                                        Point3d position,
                                        ObjectId blockId,
@@ -471,6 +476,7 @@ public static class SymbolTableRecordEx
     /// <summary>
     /// 遍历符号表记录,执行委托
     /// </summary>
+    /// <param name="record">记录</param>
     /// <param name="task">要运行的委托</param>
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId> task)
           where TRecord : SymbolTableRecord, IEnumerable
@@ -482,6 +488,7 @@ public static class SymbolTableRecordEx
     /// <summary>
     /// 遍历符号表记录,执行委托(允许循环中断)
     /// </summary>
+    /// <param name="record">记录</param>
     /// <param name="task">要执行的委托</param>
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, LoopState> task)
           where TRecord : SymbolTableRecord, IEnumerable
@@ -498,6 +505,7 @@ public static class SymbolTableRecordEx
     /// <summary>
     /// 遍历符号表记录,执行委托(允许循环中断,输出索引值)
     /// </summary>
+    /// <param name="record">记录</param>
     /// <param name="task">要执行的委托</param>
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, LoopState, int> task)

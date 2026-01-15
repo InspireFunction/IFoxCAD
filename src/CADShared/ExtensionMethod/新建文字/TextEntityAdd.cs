@@ -1,5 +1,8 @@
 ﻿namespace IFoxCAD.Cad;
 
+/// <summary>
+/// 图元处理扩展
+/// </summary>
 public static partial class EntityAdd
 {
     /// <summary>

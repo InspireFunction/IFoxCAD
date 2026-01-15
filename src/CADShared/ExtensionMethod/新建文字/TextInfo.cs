@@ -8,7 +8,9 @@ public class TextInfo
     readonly Database? Database;
     readonly string? Contents;
     readonly Point3d Position;
-
+    /// <summary>
+    /// 对齐文字
+    /// </summary>
     public string TextJustifyCn => AttachmentPointHelper.Get(TextJustify);
     readonly AttachmentPoint TextJustify;
     readonly Point3d? AlignmentPoint;
@@ -109,7 +111,9 @@ public class TextInfo
     }
 }
 
-// 反射设定对象的文字样式id
+/// <summary>
+/// 反射设定对象的文字样式id
+/// </summary>
 public static partial class TextInfoHelper
 {
     /// <summary>

@@ -1,6 +1,14 @@
 ﻿#if NET35
-#pragma warning disable CS8603 // 可能返回 null 引用。
-#pragma warning disable CS8618 // 在退出构造函数时，不可为 null 的字段必须包含非 null 值。请考虑声明为可以为 null。
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+#pragma warning disable CS8600
+#pragma warning disable CS8601
+#pragma warning disable CS8602
+#pragma warning disable CS8603
+#pragma warning disable CS8604
+#pragma warning disable CS8618
+#pragma warning disable CS8625
 
 
 using System;
@@ -9,43 +17,6 @@ using System.Text;
 
 namespace System.Collections.Generic
 {
-    /// <summary>
-    /// ABOUT:
-    /// Helps with operations that rely on bit marking to indicate whether an item in the
-    /// collection should be added, removed, visited already, etc.
-    ///
-    /// BitHelper doesn't allocate the array; you must pass in an array or ints allocated on the
-    /// stack or heap. ToIntArrayLength() tells you the int array size you must allocate.
-    ///
-    /// USAGE:
-    /// Suppose you need to represent a bit array of length (i.e. logical bit array length)
-    /// BIT_ARRAY_LENGTH. Then this is the suggested way to instantiate BitHelper:
-    /// ***************************************************************************
-    /// int intArrayLength = BitHelper.ToIntArrayLength(BIT_ARRAY_LENGTH);
-    /// BitHelper bitHelper;
-    /// if (intArrayLength less than stack alloc threshold)
-    ///     int* m_arrayPtr = stackalloc int[intArrayLength];
-    ///     bitHelper = new BitHelper(m_arrayPtr, intArrayLength);
-    /// else
-    ///     int[] m_arrayPtr = new int[intArrayLength];
-    ///     bitHelper = new BitHelper(m_arrayPtr, intArrayLength);
-    /// ***************************************************************************
-    ///
-    /// IMPORTANT:
-    /// The second ctor args, length, should be specified as the length of the int array, not
-    /// the logical bit array. Because length is used for bounds checking into the int array,
-    /// it's especially important to get this correct for the stackalloc version. See the code
-    /// samples above; this is the value gotten from ToIntArrayLength().
-    ///
-    /// The length ctor argument is the only exception; for other methods -- MarkBit and
-    /// IsMarked -- pass in values as indices into the logical bit array, and it will be mapped
-    /// to the position within the array of ints.
-    ///
-    ///
-
-
-
-
     unsafe internal class BitHelper
     {   // should not be serialized
         private const byte MarkedBitFlag = 1;
@@ -67,7 +38,7 @@ namespace System.Collections.Generic
         /// <summary>
         /// Instantiates a BitHelper with a heap alloc'd array of ints
         /// </summary>
-        /// <param name="bitArray">int array to hold bits</param>
+        /// <param name="bitArrayPtr">int array to hold bits</param>
         /// <param name="length">length of int array</param>
         // <SecurityKernel Critical="True" Ring="0">
         // <UsesUnsafeCode Name="Field: m_arrayPtr" />

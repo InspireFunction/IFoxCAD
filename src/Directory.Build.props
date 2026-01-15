@@ -10,10 +10,10 @@
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
-        <EnforceCodeStyleInBuild>false</EnforceCodeStyleInBuild>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
-        <NoWarn>1591,1573,1572,1587,1570,1584,1658,CA2022</NoWarn>
+
         <PlatformTarget>x64</PlatformTarget>
         <RootNamespace>IFoxCAD.CAD</RootNamespace>
         <UseWindowsForms>true</UseWindowsForms>

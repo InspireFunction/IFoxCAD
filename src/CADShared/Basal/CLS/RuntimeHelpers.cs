@@ -7,6 +7,9 @@ namespace System.Runtime.CompilerServices;
 
 // 编译提示多个程序集中定义,屏蔽不了,但是不影响编译
 // #pragma warning disable CS1685 // 类型与导入类型冲突
+/// <summary>
+/// 提供运行时助手方法
+/// </summary>
 public static class RuntimeHelpers
 // #pragma warning restore CS1685 // 类型与导入类型冲突
 {

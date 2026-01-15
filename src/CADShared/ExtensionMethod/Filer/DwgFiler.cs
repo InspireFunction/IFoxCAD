@@ -1,4 +1,8 @@
 ﻿namespace IFoxCAD.Cad;
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+
 
 /*
   Arx自定义实体类,加 读函数（assertReadEnabled）和写函数（assertWriteEnabled）
@@ -354,6 +358,7 @@ public class DwgFiler : Cad_DwgFiler
     }
 #endif
 
+
 #if acad || gcad
     public override void Seek(
 #if NET35
@@ -378,114 +383,202 @@ public class DwgFiler : Cad_DwgFiler
         BinaryChunkList.Add(chunk);
     }
 
+    /// <summary>
+    /// 写入布尔值到文件
+    /// </summary>
+    /// <param name="value">要写入的布尔值</param>
     public override void WriteBoolean(bool value)
     {
         BooleanList.Add(value);
     }
 
+    /// <summary>
+    /// 写入字节值到文件
+    /// </summary>
+    /// <param name="value">要写入的字节值</param>
     public override void WriteByte(byte value)
     {
         ByteList.Add(value);
     }
 
+    /// <summary>
+    /// 写入字节数组到文件
+    /// </summary>
+    /// <param name="value">要写入的字节数组</param>
     public override void WriteBytes(byte[] value)
     {
         BytesList.Add(value);
     }
 
+    /// <summary>
+    /// 写入双精度浮点值到文件
+    /// </summary>
+    /// <param name="value">要写入的双精度浮点值</param>
     public override void WriteDouble(double value)
     {
         DoubleList.Add(value);
     }
 
+    /// <summary>
+    /// 写入句柄到文件
+    /// </summary>
+    /// <param name="handle">要写入的句柄</param>
     public override void WriteHandle(Handle handle)
     {
         HandleList.Add(handle);
     }
 
+    /// <summary>
+    /// 写入硬所有权ID到文件
+    /// </summary>
+    /// <param name="value">要写入的硬所有权ID</param>
     public override void WriteHardOwnershipId(ObjectId value)
     {
         HardOwnershipIdList.Add(value);
     }
 
+    /// <summary>
+    /// 写入硬指针ID到文件
+    /// </summary>
+    /// <param name="value">要写入的硬指针ID</param>
     public override void WriteHardPointerId(ObjectId value)
     {
         HardPointerIdList.Add(value);
     }
 
+    /// <summary>
+    /// 写入16位整数值到文件
+    /// </summary>
+    /// <param name="value">要写入的16位整数值</param>
     public override void WriteInt16(short value)
     {
         Int16List.Add(value);
     }
 
+    /// <summary>
+    /// 写入32位整数值到文件
+    /// </summary>
+    /// <param name="value">要写入的32位整数值</param>
     public override void WriteInt32(int value)
     {
         Int32List.Add(value);
     }
 
 #if !NET35
+    /// <summary>
+    /// 写入64位整数值到文件
+    /// </summary>
+    /// <param name="value">要写入的64位整数值</param>
     public override void WriteInt64(long value)
     {
         Int64List.Add(value);
     }
 #endif
+    /// <summary>
+    /// 写入二维点到文件
+    /// </summary>
+    /// <param name="value">要写入的二维点</param>
     public override void WritePoint2d(Point2d value)
     {
         Point2dList.Add(value);
     }
 
+    /// <summary>
+    /// 写入三维点到文件
+    /// </summary>
+    /// <param name="value">要写入的三维点</param>
     public override void WritePoint3d(Point3d value)
     {
         Point3dList.Add(value);
     }
 
+    /// <summary>
+    /// 写入三维缩放到文件
+    /// </summary>
+    /// <param name="value">要写入的三维缩放</param>
     public override void WriteScale3d(Scale3d value)
     {
         Scale3dList.Add(value);
     }
 
+    /// <summary>
+    /// 写入软所有权ID到文件
+    /// </summary>
+    /// <param name="value">要写入的软所有权ID</param>
     public override void WriteSoftOwnershipId(ObjectId value)
     {
         SoftOwnershipIdList.Add(value);
     }
 
+    /// <summary>
+    /// 写入软指针ID到文件
+    /// </summary>
+    /// <param name="value">要写入的软指针ID</param>
     public override void WriteSoftPointerId(ObjectId value)
     {
         SoftPointerIdList.Add(value);
     }
 
+    /// <summary>
+    /// 写入字符串到文件
+    /// </summary>
+    /// <param name="value">要写入的字符串</param>
     public override void WriteString(string value)
     {
         StringList.Add(value);
     }
 
+    /// <summary>
+    /// 写入16位无符号整数值到文件
+    /// </summary>
+    /// <param name="value">要写入的16位无符号整数值</param>
     public override void WriteUInt16(ushort value)
     {
         Uint16List.Add(value);
     }
 
+    /// <summary>
+    /// 写入32位无符号整数值到文件
+    /// </summary>
+    /// <param name="value">要写入的32位无符号整数值</param>
     public override void WriteUInt32(uint value)
     {
         Uint32List.Add(value);
     }
 
 #if !NET35
+    /// <summary>
+    /// 写入64位无符号整数值到文件
+    /// </summary>
+    /// <param name="value">要写入的64位无符号整数值</param>
     public override void WriteUInt64(ulong value)
     {
         Uint64List.Add(value);
     }
 #endif
 
+    /// <summary>
+    /// 写入二维向量到文件
+    /// </summary>
+    /// <param name="value">要写入的二维向量</param>
     public override void WriteVector2d(Vector2d value)
     {
         Vector2dList.Add(value);
     }
 
+    /// <summary>
+    /// 写入三维向量到文件
+    /// </summary>
+    /// <param name="value">要写入的三维向量</param>
     public override void WriteVector3d(Vector3d value)
     {
         Vector3dList.Add(value);
     }
 
+    /// <summary>
+    /// 返回表示当前对象的字符串
+    /// </summary>
+    /// <returns>表示当前对象的字符串</returns>
     public override string ToString()
     {
         var settings = new MyJsonSettings

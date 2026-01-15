@@ -35,6 +35,7 @@ public class LoopListNode<T>
     /// 环链表节点构造函数
     /// </summary>
     /// <param name="value">节点值</param>
+    /// <param name="ts">所属的环链表</param>
     public LoopListNode(T value, LoopList<T> ts)
     {
         Value = value;
@@ -235,7 +236,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// <summary>
     /// 查找第一个出现的节点
     /// </summary>
-    /// <param name="t2"></param>
+    /// <param name="value"></param>
     /// <returns></returns>
     public LoopListNode<T>? Find(T value)
     {

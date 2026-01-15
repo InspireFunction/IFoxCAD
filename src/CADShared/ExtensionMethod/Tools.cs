@@ -2,6 +2,9 @@
 
 namespace IFoxCAD.Cad;
 
+/// <summary>
+/// 工具
+/// </summary>
 public static class Tools
 {
     /// <summary>

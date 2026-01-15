@@ -1,5 +1,8 @@
 namespace IFoxCAD.Cad;
 
+/// <summary>
+/// 文字信息
+/// </summary>
 public static class AttachmentPointHelper
 {
     static readonly Dictionary<string, AttachmentPoint> _alignment = new()
