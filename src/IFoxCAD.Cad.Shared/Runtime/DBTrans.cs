@@ -676,11 +676,23 @@ public class DBTrans : IDisposable
         _documentLock?.Dispose();
 
         //直接以文件 new 事务，最好及时释放 Database
-        if (!string.IsNullOrWhiteSpace(_fileName))
+        if (!IsNullOrWhiteSpace(_fileName))
             Database.Dispose();
 
         // 将当前事务栈弹栈
         _dBTrans.Pop();
+    }
+
+    public static bool IsNullOrWhiteSpace(string? value)
+    {
+        if (value == null)
+            return true;
+        for (int i = 0; i < value.Length; i++)
+        {
+            if (!char.IsWhiteSpace(value[i]))
+                return false;
+        }
+        return true;
     }
     #endregion
 
@@ -695,16 +707,17 @@ public class DBTrans : IDisposable
     }
     public string ToString(string? format = null, IFormatProvider? formatProvider = null)
     {
-        List<string> lines = new();
-        lines.Add($"StackCount = {_dBTrans.Count}");
-        lines.Add($"_fileName = \"{_fileName}\"");
-        lines.Add($"_commit = {_commit}");
-        lines.Add($"_documentLock = {_documentLock != null}");
-
-        lines.Add($"Document = {Document != null}");
-        lines.Add($"Editor = {Editor != null}");
-        lines.Add($"Transaction = {Transaction != null}");
-        lines.Add($"Database = {Database != null}");
+        List<string> lines =
+        [
+            $"StackCount = {_dBTrans.Count}",
+            $"_fileName = \"{_fileName}\"",
+            $"_commit = {_commit}",
+            $"_documentLock = {_documentLock != null}",
+            $"Document = {Document != null}",
+            $"Editor = {Editor != null}",
+            $"Transaction = {Transaction != null}",
+            $"Database = {Database != null}",
+        ];
 
         if (!string.IsNullOrEmpty(format))
             return string.Join(format, lines.ToArray());

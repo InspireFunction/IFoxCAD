@@ -156,7 +156,8 @@ public static class VersionTool
         // 运行时:避免求一次循环,可以把结果再重新粘贴回代码.
         // --就像快速平方根倒数,夹逼求浮点数,再转16进制,然后粘贴到代码上,成为魔法数
         var v = new int[_acadVers.Length];
-        for (var i = 0; i < _acadVers.Length; i++) {
+        for (var i = 0; i < _acadVers.Length; i++)
+        {
             var s = _acadVers[i];
             var m = (s[1] - '0') * 10 + (s[2] - '0');
             var n = (s[4] - '0'); //0是R,3是小数点,所以跳到4
@@ -172,8 +173,8 @@ public static class VersionTool
 
         // 防止开发者忘记更新数组,提供一个断言来进行维护
         var index = Array.BinarySearch(AcadVers, AcadVerOR);
-        Debug.Assert(index > 0, "运行中的CAD版本未记录,请维护DWG版本号/CAD版本号");
-        Debug.Assert(DwgVers.Length == AcadVers.Length, "怎么长度不一样了捏");
+        System.Diagnostics.Debug.Assert(index > 0, "运行中的CAD版本未记录,请维护DWG版本号/CAD版本号");
+        System.Diagnostics.Debug.Assert(DwgVers.Length == AcadVers.Length, "怎么长度不一样了捏");
 
         // 解码版本号
         var major2 = AcadVerOR >> 16;
