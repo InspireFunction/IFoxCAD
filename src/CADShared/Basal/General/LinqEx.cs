@@ -18,21 +18,19 @@ public static class LinqEx
     public static TValue FindByMax<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> func)
         where TKey : IComparable<TKey>
     {
-        var itor = source.GetEnumerator();
-        if (!itor.MoveNext())
+        using var itr = source.GetEnumerator();
+        if (!itr.MoveNext())
             throw new ArgumentNullException(nameof(source), "对象为 null");
 
-        TValue value = itor.Current;
-        TKey key = func(value);
+        var value = itr.Current;
+        var key = func(value);
 
-        while (itor.MoveNext())
+        while (itr.MoveNext())
         {
-            TKey tkey = func(itor.Current);
-            if (tkey.CompareTo(key) > 0)
-            {
-                key = tkey;
-                value = itor.Current;
-            }
+            var tKey = func(itr.Current);
+            if (tKey.CompareTo(key) <= 0) continue;
+            key = tKey;
+            value = itr.Current;
         }
         return value;
     }
@@ -49,21 +47,19 @@ public static class LinqEx
     public static TValue FindByMax<TValue, TKey>(this IEnumerable<TValue> source, out TKey maxResult, Func<TValue, TKey> func)
         where TKey : IComparable<TKey>
     {
-        var itor = source.GetEnumerator();
-        if (!itor.MoveNext())
+        using var itr = source.GetEnumerator();
+        if (!itr.MoveNext())
             throw new ArgumentNullException(nameof(source), "对象为 null");
 
-        TValue value = itor.Current;
-        TKey key = func(value);
+        var value = itr.Current;
+        var key = func(value);
 
-        while (itor.MoveNext())
+        while (itr.MoveNext())
         {
-            TKey tkey = func(itor.Current);
-            if (tkey.CompareTo(key) > 0)
-            {
-                key = tkey;
-                value = itor.Current;
-            }
+            var tKey = func(itr.Current);
+            if (tKey.CompareTo(key) <= 0) continue;
+            key = tKey;
+            value = itr.Current;
         }
         maxResult = key;
         return value;
@@ -78,16 +74,16 @@ public static class LinqEx
     /// <returns>最大键值的对应值</returns>
     public static TValue FindByMax<TValue>(this IEnumerable<TValue> source, Comparison<TValue> comparison)
     {
-        var itor = source.GetEnumerator();
-        if (!itor.MoveNext())
+        using var itr = source.GetEnumerator();
+        if (!itr.MoveNext())
             throw new ArgumentNullException(nameof(source), "对象为 null");
 
-        TValue value = itor.Current;
+        var value = itr.Current;
 
-        while (itor.MoveNext())
+        while (itr.MoveNext())
         {
-            if (comparison(itor.Current, value) > 0)
-                value = itor.Current;
+            if (comparison(itr.Current, value) > 0)
+                value = itr.Current;
         }
         return value;
     }
@@ -108,21 +104,19 @@ public static class LinqEx
     public static TValue FindByMin<TValue, TKey>(this IEnumerable<TValue> source, out TKey minKey, Func<TValue, TKey> func)
         where TKey : IComparable<TKey>
     {
-        var itor = source.GetEnumerator();
-        if (!itor.MoveNext())
+        using var itr = source.GetEnumerator();
+        if (!itr.MoveNext())
             throw new ArgumentNullException(nameof(source), "对象为 null");
 
-        TValue value = itor.Current;
-        TKey key = func(value);
+        var value = itr.Current;
+        var key = func(value);
 
-        while (itor.MoveNext())
+        while (itr.MoveNext())
         {
-            TKey tkey = func(itor.Current);
-            if (tkey.CompareTo(key) < 0)
-            {
-                key = tkey;
-                value = itor.Current;
-            }
+            var tKey = func(itr.Current);
+            if (tKey.CompareTo(key) >= 0) continue;
+            key = tKey;
+            value = itr.Current;
         }
         minKey = key;
         return value;
@@ -139,21 +133,19 @@ public static class LinqEx
     public static TValue FindByMin<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> func)
         where TKey : IComparable<TKey>
     {
-        var itor = source.GetEnumerator();
-        if (!itor.MoveNext())
+        using var itr = source.GetEnumerator();
+        if (!itr.MoveNext())
             throw new ArgumentNullException(nameof(source), "对象为 null");
 
-        TValue value = itor.Current;
-        TKey key = func(value);
+        var value = itr.Current;
+        var key = func(value);
 
-        while (itor.MoveNext())
+        while (itr.MoveNext())
         {
-            TKey tkey = func(itor.Current);
-            if (tkey.CompareTo(key) < 0)
-            {
-                key = tkey;
-                value = itor.Current;
-            }
+            var tKey = func(itr.Current);
+            if (tKey.CompareTo(key) >= 0) continue;
+            key = tKey;
+            value = itr.Current;
         }
         return value;
     }
@@ -167,16 +159,16 @@ public static class LinqEx
     /// <returns>最小键值的对应值</returns>
     public static TValue FindByMin<TValue>(this IEnumerable<TValue> source, Comparison<TValue> comparison)
     {
-        var itor = source.GetEnumerator();
-        if (!itor.MoveNext())
+        using var itr = source.GetEnumerator();
+        if (!itr.MoveNext())
             throw new ArgumentNullException(nameof(source), "对象为 null");
 
-        TValue value = itor.Current;
+        var value = itr.Current;
 
-        while (itor.MoveNext())
+        while (itr.MoveNext())
         {
-            if (comparison(itor.Current, value) < 0)
-                value = itor.Current;
+            if (comparison(itr.Current, value) < 0)
+                value = itr.Current;
         }
         return value;
     }
@@ -196,28 +188,28 @@ public static class LinqEx
     public static TValue[] FindByExt<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> func)
         where TKey : IComparable<TKey>
     {
-        var itor = source.GetEnumerator();
-        if (!itor.MoveNext())
+        using var itr = source.GetEnumerator();
+        if (!itr.MoveNext())
             throw new ArgumentNullException(nameof(source), "对象为 null");
 
-        TValue[] values = new TValue[2];
-        values[0] = values[1] = itor.Current;
+        var values = new TValue[2];
+        values[0] = values[1] = itr.Current;
 
-        TKey[] keys = new TKey[2];
-        keys[0] = keys[1] = func(itor.Current);
+        var keys = new TKey[2];
+        keys[0] = keys[1] = func(itr.Current);
 
-        while (itor.MoveNext())
+        while (itr.MoveNext())
         {
-            TKey tkey = func(itor.Current);
-            if (tkey.CompareTo(keys[0]) < 0)
+            var tKey = func(itr.Current);
+            if (tKey.CompareTo(keys[0]) < 0)
             {
-                keys[0] = tkey;
-                values[0] = itor.Current;
+                keys[0] = tKey;
+                values[0] = itr.Current;
             }
-            else if (tkey.CompareTo(keys[1]) > 0)
+            else if (tKey.CompareTo(keys[1]) > 0)
             {
-                keys[1] = tkey;
-                values[1] = itor.Current;
+                keys[1] = tKey;
+                values[1] = itr.Current;
             }
         }
         return values;
@@ -232,19 +224,19 @@ public static class LinqEx
     /// <returns>最(小/大)键值的对应值</returns>
     public static TValue[] FindByExt<TValue>(this IEnumerable<TValue> source, Comparison<TValue> comparison)
     {
-        var itor = source.GetEnumerator();
-        if (!itor.MoveNext())
+        using var itr = source.GetEnumerator();
+        if (!itr.MoveNext())
             throw new ArgumentNullException(nameof(source), "对象为 null");
 
-        TValue[] values = new TValue[2];
-        values[0] = values[1] = itor.Current;
+        var values = new TValue[2];
+        values[0] = values[1] = itr.Current;
 
-        while (itor.MoveNext())
+        while (itr.MoveNext())
         {
-            if (comparison(itor.Current, values[0]) < 0)
-                values[0] = itor.Current;
-            else if (comparison(itor.Current, values[1]) > 0)
-                values[1] = itor.Current;
+            if (comparison(itr.Current, values[0]) < 0)
+                values[0] = itr.Current;
+            else if (comparison(itr.Current, values[1]) > 0)
+                values[1] = itr.Current;
         }
         return values;
     }
@@ -260,20 +252,20 @@ public static class LinqEx
     public static TKey[] FindExt<TValue, TKey>(this IEnumerable<TValue> source, Func<TValue, TKey> func)
         where TKey : IComparable<TKey>
     {
-        var itor = source.GetEnumerator();
-        if (!itor.MoveNext())
+        using var itr = source.GetEnumerator();
+        if (!itr.MoveNext())
             throw new ArgumentNullException(nameof(source), "对象为 null");
 
-        TKey[] keys = new TKey[2];
-        keys[0] = keys[1] = func(itor.Current);
+        var keys = new TKey[2];
+        keys[0] = keys[1] = func(itr.Current);
 
-        while (itor.MoveNext())
+        while (itr.MoveNext())
         {
-            TKey tkey = func(itor.Current);
-            if (tkey.CompareTo(keys[0]) < 0)
-                keys[0] = tkey;
-            else if (tkey.CompareTo(keys[1]) > 0)
-                keys[1] = tkey;
+            var tKey = func(itr.Current);
+            if (tKey.CompareTo(keys[0]) < 0)
+                keys[0] = tKey;
+            else if (tKey.CompareTo(keys[1]) > 0)
+                keys[1] = tKey;
         }
         return keys;
     }
@@ -296,9 +288,12 @@ public static class LinqEx
         }
 
         #region IComparer<T> 成员
-        public int Compare(T x, T y)
+        
+        public int Compare(T? x, T? y)
         {
-            return _comp(x, y);
+            if (x is not null && y is not null)
+                return _comp(x, y);
+            return 0;
         }
         #endregion IComparer<T> 成员
     }

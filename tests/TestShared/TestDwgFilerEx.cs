@@ -4,13 +4,10 @@ using DxfFiler = IFoxCAD.Cad.DxfFiler;
 
 public class CmdTestDwgFilerEx
 {
-    [CommandMethod(nameof(CmdTest_DwgFilerEx))]
+    [CommandMethod(nameof(CmdTest_DwgFilerEx), CommandFlags.UsePickSet)]
     public static void CmdTest_DwgFilerEx()
     {
-        var dm = Acap.DocumentManager;
-        var doc = dm.MdiActiveDocument;
-        var db = doc.Database;
-        var ed = doc.Editor;
+        var ed = Env.Editor;
         ed.WriteMessage("\n****测试,序列化图元");
 
         var ssPsr = ed.SelectImplied();// 预选

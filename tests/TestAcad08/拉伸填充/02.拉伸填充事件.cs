@@ -960,7 +960,7 @@ public static class MathHelper
     /// <param name="bulge">凸度</param>
     /// <returns>返回腰点</returns>
     /// <exception cref="ArgumentNullException"></exception>
-    [MethodImpl]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Point2d GetArcMidPoint(Point2d arc1, Point2d arc3, double bulge)
     {
         if (bulge == 0)
@@ -993,7 +993,7 @@ public static class MathHelper
     /// <param name="arc3">圆弧尾点</param>
     /// <param name="bulge">凸度</param>
     /// <returns>圆心</returns>
-    [MethodImpl]
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static Point2d GetArcBulgeCenter(Point2d arc1, Point2d arc3, double bulge)
     {
         if (bulge == 0)

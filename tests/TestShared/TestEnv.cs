@@ -5,20 +5,29 @@ public class Testenv
     [CommandMethod(nameof(Test_Enum))]
     public void Test_Enum()
     {
-        Env.CmdEcho = true;
+        SystemVariableManager.CmdEcho = true;
     }
     [CommandMethod(nameof(Test_Enum1))]
     public void Test_Enum1()
     {
-        Env.CmdEcho = false;
+        SystemVariableManager.CmdEcho = false;
     }
 
     [CommandMethod(nameof(Test_Dimblk))]
     public void Test_Dimblk()
     {
         Env.Dimblk = Env.DimblkType.Dot;
-        Env.Dimblk = Env.DimblkType.Defult;
+        Env.Print(Env.Dimblk);
+        Env.Print(Env.GetDimblkId(Env.DimblkType.Dot));
+        Env.Dimblk = Env.DimblkType.Default;
+        Env.Print(Env.Dimblk);
+        Env.Print(Env.GetDimblkId(Env.DimblkType.Default));
         Env.Dimblk = Env.DimblkType.Oblique;
+        Env.Print(Env.Dimblk);
+        Env.Print(Env.GetDimblkId(Env.DimblkType.Oblique));
+        Env.Dimblk = Env.DimblkType.ArchTick;
+        Env.Print(Env.Dimblk);
+        Env.Print(Env.GetDimblkId(Env.DimblkType.ArchTick));
     }
     [CommandMethod(nameof(Test_Dimblk1))]
     public void Test_Dimblk1()
@@ -37,7 +46,7 @@ public class Testenv
         // 追加模式
         Env.OSMode |= Env.OSModeType.Center;
         // 检查是否有某个模式
-        var os = Env.OSMode.Include(Env.OSModeType.Center);
+        var os = Env.OSMode.HasFlag(Env.OSModeType.Center);
         // 取消某个模式
         Env.OSMode ^= Env.OSModeType.Center;
         Env.Editor.WriteMessage(Env.OSMode.ToString());
@@ -48,7 +57,7 @@ public class Testenv
         var dim = Env.OSMode;
         Env.Editor.WriteMessage(dim.ToString());
     }
-
+#if false
     [CommandMethod(nameof(Test_Cadver))]
     public void Test_Cadver()
     {
@@ -58,7 +67,7 @@ public class Testenv
         1.Print();
         "1".Print();
     }
-
+#endif 
     [CommandMethod(nameof(Test_GetVar))]
     public void Test_GetVar()
     {
@@ -114,5 +123,64 @@ public class Testenv
 
         Env.Printl("GetEnv:" + Env.GetEnv("abc"));
         Env.Printl("GetEnv PATH:" + Env.GetEnv("PATH"));
+
+        Env.Printl($"getenv-acad: {Env.GetEnv("ACAD")}");
+        Env.Printl($"getvar-acad: {Env.GetVar("TRUSTEDPATHS")}");
+        Env.Printl($"getenv-TRUSTEDPATHS: {Env.GetEnv("TRUSTEDPATHS")}");
+        Env.Printl($"getenv-osmode: {Env.GetEnv("osmode")}");
+        Env.Printl($"getvar-osmode: {Env.GetVar("osmode")}");
     }
+    [CommandMethod(nameof(Test_AppendPath))]
+    public static void Test_AppendPath()
+    {
+        Directory.Exists(@"C:\Folder4").Print();
+        Env.AppendSupportPath(@"C:\Folder4", @"C:\Folder5", @"C:\Folder6");
+        // Env.AppendTrustedPath(@"c:\a\x",@"c:\a\c");
+        // AppendSupportPath(@"c:\a\c");
+        Env.GetEnv("ACAD").Print();
+        // Env.SetEnv("ACAD",  @"C:\Folder1;"+Env.GetEnv("ACAD"));
+        Env.GetEnv("ACAD").Contains(@"C:\Folder1").Print();
+
+    }
+
+    [CommandMethod(nameof(Test_RemovePath))]
+    public static void Test_RemovePath()
+    {
+        // var acad = Acaop.TryGetSystemVariable("ACAD").ToString();
+        // acad.Print();
+        // Acaop.SetSystemVariable("ACAD", acad + @";c:\a\x");
+        Env.GetEnv("ACAD").Print();
+        Env.RemoveSupportPath();
+        // Env.RemoveTrustedPath(@"c:\a\x");
+        Env.GetEnv("ACAD").Print();
+    }
+
+#if !NET35
+    public static void AppendSupportPath(string path)
+    {
+
+        string key = HostApplicationServices.Current.UserRegistryProductRootKey;
+        // 计算机\HKEY_CURRENT_USER\SOFTWARE\Autodesk\AutoCAD\R24.0\ACAD-4101:804
+        var ackey = Registry.CurrentUser.OpenSubKey($@"{key}\Profiles") ?? null;
+
+        if (ackey != null)
+        {
+            var listkey = ackey.GetSubKeyNames();
+            foreach (var item in listkey)
+            {
+                var acadkey = ackey.OpenSubKey($@"{item}\General", true);
+                const string name = "ACAD";
+                var str = acadkey?.GetValue(name)?.ToString();
+                if (str != null && !str.ToLower().Contains(path.ToLower()))
+                {
+                    acadkey?.SetValue(name, $@"{str}{path};");
+                }
+            }
+        }
+
+        ackey?.Close();
+    } 
+#endif
+
+
 }

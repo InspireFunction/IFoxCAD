@@ -1,12 +1,4 @@
-﻿#pragma warning disable CS1591 // 缺少XML注释
-#pragma warning disable CS1572 // XML注释中有不存在的参数
-#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
-
-using System.ComponentModel;
-using System.Xml.Linq;
-using static System.Windows.Forms.AxHost;
-
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 集合扩展类
@@ -18,11 +10,14 @@ public static class CollectionEx
     /// </summary>
     /// <param name="ids">对象id的迭代器</param>
     /// <returns>对象id集合,记得释放</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static ObjectIdCollection ToCollection(this IEnumerable<ObjectId> ids)
     {
-        return new ObjectIdCollection(ids.ToArray());
+        var objectIds = ids as ObjectId[] ?? ids.ToArray();
+        // new ObjectIdCollection时填长度为0的数组会报错
+        return objectIds.Length == 0 ? new ObjectIdCollection() : new ObjectIdCollection(objectIds);
     }
+
 
     /// <summary>
     /// 实体迭代器转换为集合
@@ -30,11 +25,11 @@ public static class CollectionEx
     /// <typeparam name="T">对象类型</typeparam>
     /// <param name="objs">实体对象的迭代器</param>
     /// <returns>实体集合,记得释放</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static DBObjectCollection ToCollection<T>(this IEnumerable<T> objs) where T : DBObject
     {
         DBObjectCollection objCol = new();
-        foreach (T obj in objs)
+        foreach (var obj in objs)
             objCol.Add(obj);
         return objCol;
     }
@@ -44,10 +39,21 @@ public static class CollectionEx
     /// </summary>
     /// <param name="doubles">double 数值迭代器</param>
     /// <returns>数值集合,它没有Dispose</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static DoubleCollection ToCollection(this IEnumerable<double> doubles)
     {
         return new DoubleCollection(doubles.ToArray());
+    }
+
+    /// <summary>
+    /// double 数值迭代器转换为 double 数值集合
+    /// </summary>
+    /// <param name="ints">double 数值迭代器</param>
+    /// <returns>数值集合,它没有Dispose</returns>
+    [DebuggerStepThrough]
+    public static IntegerCollection ToCollection(this IEnumerable<int> ints)
+    {
+        return new IntegerCollection(ints.ToArray());
     }
 
     /// <summary>
@@ -55,7 +61,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="pts">二维点迭代器</param>
     /// <returns>二维点集合,!acad记得释放</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static Point2dCollection ToCollection(this IEnumerable<Point2d> pts)
     {
         return new Point2dCollection(pts.ToArray());
@@ -66,7 +72,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="pts">三维点迭代器</param>
     /// <returns>三维点集合,记得释放</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static Point3dCollection ToCollection(this IEnumerable<Point3d> pts)
     {
         return new Point3dCollection(pts.ToArray());
@@ -77,7 +83,7 @@ public static class CollectionEx
     /// </summary>
     /// <param name="ids">对象id集合</param>
     /// <returns>对象id列表</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static List<ObjectId> ToList(this ObjectIdCollection ids)
     {
         return ids.Cast<ObjectId>().ToList();
@@ -90,7 +96,7 @@ public static class CollectionEx
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
-    [System.Diagnostics.DebuggerStepThrough] //[DebuggerHidden] 两个特性差不多
+    [DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
     {
         // 这里不要嵌套调用ForEach委托,
@@ -106,12 +112,29 @@ public static class CollectionEx
     }
 
     /// <summary>
+    /// 遍历集合,执行委托
+    /// </summary>
+    /// <typeparam name="T">集合值的类型</typeparam>
+    /// <param name="source">集合</param>
+    /// <param name="action">委托</param>
+    [DebuggerStepThrough]
+    public static void ForEach<T>(this IEnumerable<T> source, Action<int, T> action)
+    {
+        var i = 0;
+        foreach (var element in source)
+        {
+            action.Invoke(i, element);
+            i++;
+        }
+    }
+
+    /// <summary>
     /// 遍历集合,执行委托(允许循环中断)
     /// </summary>
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<T, LoopState> action)
     {
         // 这里不要嵌套调用ForEach委托,
@@ -137,11 +160,11 @@ public static class CollectionEx
     /// <typeparam name="T">集合值的类型</typeparam>
     /// <param name="source">集合</param>
     /// <param name="action">委托</param>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static void ForEach<T>(this IEnumerable<T> source, Action<T, LoopState, int> action)
     {
-        int i = 0;
-        LoopState state = new();/*这种方式比Action改Func更友好*/
+        var i = 0;
+        LoopState state = new(); /*这种方式比Action改Func更友好*/
         foreach (var element in source)
         {
             action.Invoke(element, state, i);
@@ -153,11 +176,26 @@ public static class CollectionEx
 
 
     #region 关键字集合
+
+    /// <summary>
+    /// 关键字名字
+    /// </summary>
     public enum KeywordName
     {
-        GlobalName,
-        LocalName,
-        DisplayName,
+        /// <summary>
+        /// 全局名字
+        /// </summary>
+        GLOBAL,
+
+        /// <summary>
+        /// 本地名字
+        /// </summary>
+        LOCAL,
+
+        /// <summary>
+        /// 显示名字
+        /// </summary>
+        DISPLAY,
     }
 
     /// <summary>
@@ -167,14 +205,14 @@ public static class CollectionEx
     /// <param name="name">关键字</param>
     /// <param name="keywordName">关键字容器字段名</param>
     /// <returns>true含有</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static bool Contains(this KeywordCollection collection, string name,
-                                KeywordName keywordName = KeywordName.GlobalName)
+                                KeywordName keywordName = KeywordName.GLOBAL)
     {
         bool contains = false;
         switch (keywordName)
         {
-            case KeywordName.GlobalName:
+            case KeywordName.GLOBAL:
             for (int i = 0; i < collection.Count; i++)
             {
 #if gcad
@@ -189,8 +227,8 @@ public static class CollectionEx
                 }
             }
             break;
-            case KeywordName.LocalName:
-            for (int i = 0; i < collection.Count; i++)
+            case KeywordName.LOCAL:
+            for (var i = 0; i < collection.Count; i++)
             {
 #if gcad
                 var item = collection.get_Item(i);
@@ -204,7 +242,7 @@ public static class CollectionEx
                 }
             }
             break;
-            case KeywordName.DisplayName:
+            case KeywordName.DISPLAY:
             for (int i = 0; i < collection.Count; i++)
             {
 #if gcad
@@ -229,11 +267,11 @@ public static class CollectionEx
     /// </summary>
     /// <param name="collection"></param>
     /// <returns></returns>
-    [System.Diagnostics.DebuggerStepThrough]
-    public static Dictionary<string, string> GetDict(this KeywordCollection collection)
+    [DebuggerStepThrough]
+    public static Dictionary<string, string> ToDictionary(this KeywordCollection collection)
     {
         Dictionary<string, string> map = new();
-        for (int i = 0; i < collection.Count; i++)
+        for (var i = 0; i < collection.Count; i++)
         {
 #if gcad
             var item = collection.get_Item(i);
@@ -248,16 +286,17 @@ public static class CollectionEx
 
 
     #region IdMapping
+
     /// <summary>
     /// 旧块名
     /// </summary>
-    /// <param name="idmap"></param>
+    /// <param name="idMapping"></param>
     /// <returns></returns>
-    [System.Diagnostics.DebuggerStepThrough]
-    public static List<ObjectId> GetKeys(this IdMapping idmap)
+    [DebuggerStepThrough]
+    public static List<ObjectId> GetKeys(this IdMapping idMapping)
     {
-        List<ObjectId> ids = new();
-        foreach (IdPair item in idmap)
+        List<ObjectId> ids = [];
+        foreach (IdPair item in idMapping)
             ids.Add(item.Key);
         return ids;
     }
@@ -265,14 +304,17 @@ public static class CollectionEx
     /// <summary>
     /// 新块名
     /// </summary>
-    /// <param name="idmap"></param>
+    /// <param name="idMapping"></param>
     /// <returns></returns>
-    [System.Diagnostics.DebuggerStepThrough]
-    public static List<ObjectId> GetValues(this IdMapping idmap)
+    [DebuggerStepThrough]
+    public static List<ObjectId> GetValues(this IdMapping idMapping)
     {
-        List<ObjectId> ids = new();
-        foreach (IdPair item in idmap)
+        List<ObjectId> ids = [];
+        foreach (IdPair item in idMapping)
+        {
             ids.Add(item.Value);
+        }
+
         return ids;
     }
 
@@ -281,13 +323,17 @@ public static class CollectionEx
     /// </summary>
     /// <param name="mapping"></param>
     /// <returns></returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public static Dictionary<ObjectId, ObjectId> ToDictionary(this IdMapping mapping)
     {
         var keyValuePairs = new Dictionary<ObjectId, ObjectId>();
         foreach (IdPair item in mapping)
+        {
             keyValuePairs.Add(item.Key, item.Value);
+        }
+
         return keyValuePairs;
     }
+
     #endregion
 }

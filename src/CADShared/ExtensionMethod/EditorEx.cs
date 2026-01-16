@@ -16,9 +16,9 @@ public static class EditorEx
     /// <param name="filter">过滤器</param>
     /// <returns>选择集结果类</returns>
     public static PromptSelectionResult SelectAtPoint(this Editor editor, Point3d point,
-                                                      SelectionFilter? filter = default)
+        SelectionFilter? filter = null)
     {
-        return editor.SelectCrossingWindow(point, point, filter);
+        return editor.SelectCrossingWindow(point, point, filter ?? new SelectionFilter([]));
     }
 
     /// <summary>
@@ -31,25 +31,17 @@ public static class EditorEx
     {
         OpFilter filter = new OpEqual(370, lineWeight);
 
-        var lays =
-            DBTrans.Top.LayerTable
-            .GetRecords()
+        var lays = DBTrans.Top.LayerTable.GetRecords()
             .Where(ltr => ltr.LineWeight == lineWeight)
             .Select(ltr => ltr.Name)
             .ToArray();
 
         if (lays.Length > 0)
         {
-            filter =
-                new OpOr
-                {
-                        filter,
-                        new OpAnd
-                        {
-                            { 8, string.Join(",", lays) },
-                            { 370, LineWeight.ByLayer }
-                        }
-                };
+            filter = new OpOr
+            {
+                filter, new OpAnd { { 8, string.Join(",", lays) }, { 370, LineWeight.ByLayer } }
+            };
         }
 
         var res = editor.SelectAll(filter);
@@ -63,16 +55,16 @@ public static class EditorEx
     /// <param name="mode">模式</param>
     /// <param name="filter">过滤器</param>
     /// <param name="messages">消息</param>
-    /// <param name="keywords">关键字和回调函数</param>
+    /// <param name="keywords">
+    /// 关键字和回调函数
+    /// <para>不用使用下列关键字 "Window/Last/Crossing/BOX/ALL/Fence/WPolygon/CPolygon/Group/Add/Remove/Multiple/Previous/Undo/AUto/Single" </para>
+    /// </param>
     /// <returns></returns>
-    public static PromptSelectionResult SSGet(this Editor editor,
-                                              string? mode = null,
-                                              SelectionFilter? filter = null,
-                                              string[]? messages = null,
-                                              Dictionary<string, Action>? keywords = null)
+    public static PromptSelectionResult SSGet(this Editor editor, string? mode = null,
+        SelectionFilter? filter = null, (string add, string remove)? messages = null,
+        Dictionary<string, (string, Action)>? keywords = null)
     {
         PromptSelectionOptions pso = new();
-        PromptSelectionResult ss;
         if (mode is not null)
         {
             mode = mode.ToUpper();
@@ -87,10 +79,11 @@ public static class EditorEx
             pso.AllowSubSelections = mode.Contains("-A");
             pso.ForceSubSelections = mode.Contains("-F");
         }
+
         if (messages is not null)
         {
-            pso.MessageForAdding = messages[0];
-            pso.MessageForRemoval = messages[1];
+            pso.MessageForAdding = messages.Value.add;
+            pso.MessageForRemoval = messages.Value.remove;
         }
 
         if (keywords is not null)
@@ -99,24 +92,20 @@ public static class EditorEx
                 pso.Keywords.Add(keyword);
             if (pso.MessageForRemoval is null)
                 pso.MessageForAdding = "选择对象";
-            pso.MessageForAdding += $"[{string.Join(" / ", keywords.Keys.ToArray())}]";
-            pso.KeywordInput += (s, e) => {
-                if (keywords.ContainsKey(e.Input))
-                    keywords[e.Input].Invoke();
+
+            var str = keywords.Keys.Select(key => {
+                keywords.TryGetValue(key, out var value);
+                return $"{value.Item1}({key})";
+            }).ToArray();
+
+            pso.MessageForAdding += $" [{string.Join("/", str)}]";
+            pso.KeywordInput += (_, e) => {
+                if (keywords.TryGetValue(e.Input, out var value))
+                    value.Item2.Invoke();
             };
         }
-        try
-        {
-            if (filter is not null)
-                ss = editor.GetSelection(pso, filter);
-            else
-                ss = editor.GetSelection(pso);
-        }
-        catch (Exception)
-        {
-            //editor.WriteMessage($"\nKey is {e.Message}");
-            throw;
-        }
+
+        var ss = filter is not null ? editor.GetSelection(pso, filter) : editor.GetSelection(pso);
         return ss;
     }
 
@@ -164,7 +153,7 @@ public static class EditorEx
     {
         Dictionary<string, Action> tmp = new();
         // 后缀名的|号切割,移除掉,组合成新的加入tmp
-        for (int i = dicActions.Count - 1; i >= 0; i--)
+        for (var i = dicActions.Count - 1; i >= 0; i--)
         {
             var pair = dicActions.ElementAt(i);
             var key = pair.Key;
@@ -172,18 +161,16 @@ public static class EditorEx
             if (keySp.Length < 2)
                 continue;
 
-            for (int j = 0; j < keySp.Length; j++)
+            foreach (var item in keySp)
             {
-                var item = keySp[j];
                 // 防止多个后缀通过|符越过词典约束同名
                 // 后缀(key)含有,而且Action(value)不同,就把Action(value)累加到后面.
-                if (dicActions.ContainsKey(item))
+                if (dicActions.TryGetValue(item, out var value))
                 {
                     if (dicActions[item] != dicActions[key])
                         dicActions[item] += dicActions[key];
                 }
-                else
-                    tmp.Add(item, dicActions[key]);
+                else if (value != null) tmp.Add(item, value);
             }
             dicActions.Remove(key);
         }
@@ -192,12 +179,12 @@ public static class EditorEx
             dicActions.Add(item.Key, item.Value);
 
         // 去除关键字重复的,把重复的执行动作移动到前面
-        for (int i = 0; i < dicActions.Count; i++)
+        for (var i = 0; i < dicActions.Count; i++)
         {
             var pair1 = dicActions.ElementAt(i);
             var key1 = pair1.Key;
 
-            for (int j = dicActions.Count - 1; j > i; j--)
+            for (var j = dicActions.Count - 1; j > i; j--)
             {
                 var pair2 = dicActions.ElementAt(j);
                 var key2 = pair2.Key;
@@ -213,8 +200,8 @@ public static class EditorEx
 
         foreach (var item in dicActions)
         {
-            var keySplitS = item.Key.Split(new string[] { ",", "|" }, StringSplitOptions.RemoveEmptyEntries);
-            for (int i = 0; i < keySplitS.Length; i += 2)
+            var keySplitS = item.Key.Split([",", "|"], StringSplitOptions.RemoveEmptyEntries);
+            for (var i = 0; i < keySplitS.Length; i += 2)
                 pso.Keywords.Add(keySplitS[i], keySplitS[i],
                                  keySplitS[i + 1] + "(" + keySplitS[i] + ")");
         }
@@ -231,15 +218,8 @@ public static class EditorEx
         // 从选择集命令中显示关键字
         pso.MessageForAdding = keyWords.GetDisplayString(true);
         // 关键字回调事件 ssget关键字
-        pso.KeywordInput += (sender, e) => {
-            dicActions[e.Input].Invoke();
-        };
+        pso.KeywordInput += (_, e) => { dicActions[e.Input].Invoke(); };
     }
-
-
-
-
-
 
     // #region 即时选择样板
     // /// <summary>
@@ -252,7 +232,6 @@ public static class EditorEx
     //     Env.Editor.SelectionAdded += SelectTest_SelectionAdded;
     //     // 初始化坐标系
     //     Env.Editor.CurrentUserCoordinateSystem = Matrix3d.Identity;
-
     //     // 创建过滤器
     //     var sf = new OpEqual(0, "arc");
     //     var pso = new PromptSelectionOptions
@@ -270,8 +249,6 @@ public static class EditorEx
     //         // 用户选择
     //         var psr = Env.Editor.GetSelection(pso, sf);
     //         // 处理代码
-
-
     //     }
     //     catch (Exception ex)// 捕获关键字
     //     {
@@ -362,7 +339,7 @@ public static class EditorEx
             else
                 InfoMessageBox(message);
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Message(ex);
         }
@@ -372,13 +349,11 @@ public static class EditorEx
     /// 异常信息对话框
     /// </summary>
     /// <param name="ex">异常</param>
-    public static void Message(System.Exception ex)
+    public static void Message(Exception ex)
     {
         try
         {
-            System.Windows.Forms.MessageBox.Show(
-                ex.ToString(),
-                "Error",
+            System.Windows.Forms.MessageBox.Show(ex.ToString(), "Error",
                 System.Windows.Forms.MessageBoxButtons.OK,
                 System.Windows.Forms.MessageBoxIcon.Error);
         }
@@ -396,13 +371,11 @@ public static class EditorEx
     {
         try
         {
-            System.Windows.Forms.MessageBox.Show(
-                message,
-                caption,
+            System.Windows.Forms.MessageBox.Show(message, caption,
                 System.Windows.Forms.MessageBoxButtons.OK,
                 System.Windows.Forms.MessageBoxIcon.Information);
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Message(ex);
         }
@@ -447,11 +420,9 @@ public static class EditorEx
         try
         {
             if (Acceptable())
-                Acap.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n" + message);
-            else
-                return;
+                Acaop.DocumentManager.MdiActiveDocument.Editor.WriteMessage("\n" + message);
         }
-        catch (System.Exception ex)
+        catch (Exception ex)
         {
             Message(ex);
         }
@@ -473,9 +444,9 @@ public static class EditorEx
     /// <returns><see langword="true"/>有,<see langword="false"/>没有</returns>
     public static bool HasEditor()
     {
-        return Acap.DocumentManager.MdiActiveDocument is not null
-            && Acap.DocumentManager.Count != 0
-            && Acap.DocumentManager.MdiActiveDocument.Editor is not null;
+        return Acaop.DocumentManager.MdiActiveDocument is not null &&
+               Acaop.DocumentManager.Count != 0 &&
+               Acaop.DocumentManager.MdiActiveDocument.Editor is not null;
     }
 
     /// <summary>
@@ -484,8 +455,7 @@ public static class EditorEx
     /// <returns><see langword="true"/>可以打印,<see langword="false"/>不可以打印</returns>
     public static bool Acceptable()
     {
-        return HasEditor()
-            && !Acap.DocumentManager.MdiActiveDocument.Editor.IsDragging;
+        return HasEditor() && !Acaop.DocumentManager.MdiActiveDocument.Editor.IsDragging;
     }
 
     #endregion Info
@@ -500,28 +470,26 @@ public static class EditorEx
     /// <returns></returns>
     public static List<TypedValue> GetLines(IEnumerable<Point2d> pnts, bool isClosed)
     {
-        var itor = pnts.GetEnumerator();
-        if (!itor.MoveNext())
-            return new List<TypedValue>();
+        using var enumerator = pnts.GetEnumerator();
+        if (!enumerator.MoveNext())
+            return [];
 
-        List<TypedValue> values = new();
+        List<TypedValue> values = [];
 
-        TypedValue tvFirst = new((int)LispDataType.Point2d, itor.Current);
-        TypedValue tv1;
-        TypedValue tv2 = tvFirst;
+        TypedValue first = new((int)LispDataType.Point2d, enumerator.Current);
+        var last = first;
 
-        while (itor.MoveNext())
+        while (enumerator.MoveNext())
         {
-            tv1 = tv2;
-            tv2 = new TypedValue((int)LispDataType.Point2d, itor.Current);
-            values.Add(tv1);
-            values.Add(tv2);
+            values.Add(last);
+            last = new TypedValue((int)LispDataType.Point2d, enumerator.Current);
+            values.Add(last);
         }
 
         if (isClosed)
         {
-            values.Add(tv2);
-            values.Add(tvFirst);
+            values.Add(last);
+            values.Add(first);
         }
 
         return values;
@@ -534,12 +502,12 @@ public static class EditorEx
     /// <param name="pnts">点表</param>
     /// <param name="colorIndex">颜色码</param>
     /// <param name="isClosed">是否闭合,<see langword="true"/> 为闭合,<see langword="false"/> 为不闭合</param>
-    public static void DrawVectors(this Editor editor, IEnumerable<Point2d> pnts, short colorIndex, bool isClosed)
+    public static void DrawVectors(this Editor editor, IEnumerable<Point2d> pnts, short colorIndex,
+        bool isClosed)
     {
-        var rlst =
-            new LispList { { LispDataType.Int16, colorIndex } };
+        var rlst = new LispList { { LispDataType.Int16, colorIndex } };
         rlst.AddRange(GetLines(pnts, isClosed));
-        editor.DrawVectors(rlst, editor.CurrentUserCoordinateSystem);
+        editor.DrawVectors(new(rlst.ToArray()), Matrix3d.Identity);
     }
 
     /// <summary>
@@ -561,28 +529,26 @@ public static class EditorEx
     /// <param name="colorIndex">颜色码</param>
     /// <param name="radius">半径</param>
     /// <param name="numEdges">多边形边的个数</param>
-    public static void DrawCircles(this Editor editor, IEnumerable<Point2d> pnts, short colorIndex, double radius, int numEdges)
+    public static void DrawCircles(this Editor editor, IEnumerable<Point2d> pnts, short colorIndex,
+        double radius, int numEdges)
     {
-        var rlst =
-            new LispList { { LispDataType.Int16, colorIndex } };
+        var rlst = new LispList { { LispDataType.Int16, colorIndex } };
 
-        foreach (Point2d pnt in pnts)
+        foreach (var pnt in pnts)
         {
-            Vector2d vec = Vector2d.XAxis * radius;
-            double angle = Math.PI * 2 / numEdges;
+            var vec = Vector2d.XAxis * radius;
+            var angle = Math.PI * 2 / numEdges;
 
-            List<Point2d> tpnts = new()
-            {
-                pnt + vec
-            };
-            for (int i = 1; i < numEdges; i++)
+            List<Point2d> tpnts = [pnt + vec];
+            for (var i = 1; i < numEdges; i++)
             {
                 tpnts.Add(pnt + vec.RotateBy(angle * i));
             }
 
             rlst.AddRange(GetLines(tpnts, true));
         }
-        editor.DrawVectors(rlst, editor.CurrentUserCoordinateSystem);
+
+        editor.DrawVectors(new(rlst.ToArray()), editor.CurrentUserCoordinateSystem);
     }
 
     /// <summary>
@@ -593,19 +559,64 @@ public static class EditorEx
     /// <param name="colorIndex">颜色码</param>
     /// <param name="radius">半径</param>
     /// <param name="numEdges">多边形边的个数</param>
-    public static void DrawCircle(this Editor editor, Point2d pnt, short colorIndex, double radius, int numEdges)
+    public static void DrawCircle(this Editor editor, Point2d pnt, short colorIndex, double radius,
+        int numEdges)
     {
-        Vector2d vec = Vector2d.XAxis * radius;
-        double angle = Math.PI * 2 / numEdges;
+        var vec = Vector2d.XAxis * radius;
+        var angle = Math.PI * 2 / numEdges;
 
-        List<Point2d> pnts = new()
-        {
-            pnt + vec
-        };
-        for (int i = 1; i < numEdges; i++)
+        List<Point2d> pnts = [pnt + vec];
+        for (var i = 1; i < numEdges; i++)
             pnts.Add(pnt + vec.RotateBy(angle * i));
 
         editor.DrawVectors(pnts, colorIndex, true);
+    }
+
+    /// <summary>
+    /// 根据点表绘制矢量线段(每两点为一条线段的起始点和终止点)
+    /// </summary>
+    /// <param name="editor">用户交互对象</param>
+    /// <param name="points">点表</param>
+    /// <param name="colorIndex">CAD颜色索引;默认：1为红色</param>
+    /// <param name="drawHighlighted">是否高亮显示;<see langword="true"/>为高亮显示,默认：<see langword="false"/>为不高亮显示</param>
+    public static void DrawLineVectors(this Editor editor, IEnumerable<Point3d> points,
+        int colorIndex = 1, bool drawHighlighted = false)
+    {
+        using var itor = points.GetEnumerator();
+        while (itor.MoveNext())
+        {
+            var endPoint1 = itor.Current;
+            if (!itor.MoveNext())
+                return;
+            var endPoint2 = itor.Current;
+            editor.DrawVector(endPoint1, endPoint2, colorIndex, drawHighlighted);
+        }
+    }
+
+    /// <summary>
+    /// 根据点表绘制首尾相连的矢量
+    /// </summary>
+    /// <param name="editor">用户交互对象</param>
+    /// <param name="points">点表</param>
+    /// <param name="colorIndex">CAD颜色索引;默认：1为红色</param>
+    /// <param name="isClose">是否闭合;<see langword="true"/> 为闭合,默认：<see langword="false"/> 为不闭合</param>
+    /// <param name="drawHighlighted">是否高亮显示;<see langword="true"/>为高亮显示,默认：<see langword="false"/>为不高亮显示</param>
+    public static void DrawEndToEndVectors(this Editor editor, IEnumerable<Point3d> points,
+        int colorIndex = 1, bool isClose = false, bool drawHighlighted = false)
+    {
+        using var itor = points.GetEnumerator();
+        if (!itor.MoveNext())
+            return;
+        Point3d endPoint1 = itor.Current, endPoint2 = new(), firstEndPoint = endPoint1;
+        while (itor.MoveNext())
+        {
+            endPoint2 = itor.Current;
+            editor.DrawVector(endPoint1, endPoint2, colorIndex, drawHighlighted);
+            endPoint1 = endPoint2;
+        }
+
+        if (isClose)
+            editor.DrawVector(endPoint2, firstEndPoint, colorIndex, drawHighlighted);
     }
 
     #endregion
@@ -639,9 +650,8 @@ public static class EditorEx
     /// <returns>变换矩阵</returns>
     public static Matrix3d GetMatrixFromMDcsToWcs(this Editor editor)
     {
-        Matrix3d mat;
-        using ViewTableRecord vtr = editor.GetCurrentView();
-        mat = Matrix3d.PlaneToWorld(vtr.ViewDirection);
+        using var vtr = editor.GetCurrentView();
+        var mat = Matrix3d.PlaneToWorld(vtr.ViewDirection);
         mat = Matrix3d.Displacement(vtr.Target - Point3d.Origin) * mat;
         return Matrix3d.Rotation(-vtr.ViewTwist, vtr.ViewDirection, vtr.Target) * mat;
     }
@@ -666,8 +676,14 @@ public static class EditorEx
         if ((short)Env.GetVar("TILEMODE") == 1)
             throw new ArgumentException("TILEMODE == 1..Espace papier uniquement");
 
-        Matrix3d mat = Matrix3d.Identity;
-        using DBTrans tr = new();
+        var mat = Matrix3d.Identity;
+        //using DBTrans tr = new();
+        var tr = DBTrans.GetTopTransaction(editor.Document.Database);
+        if (tr is null)
+        {
+            throw new Exception("事务不存在");
+        }
+
         var vp = tr.GetObject<Viewport>(editor.CurrentViewportObjectId);
         if (vp == null)
             return mat;
@@ -685,6 +701,7 @@ public static class EditorEx
                 throw new Exception("Aucun fenêtre active...ErrorStatus.InvalidInput");
             }
         }
+
         if (vp == null)
             return mat;
 
@@ -712,85 +729,39 @@ public static class EditorEx
     /// <param name="from">源坐标系</param>
     /// <param name="to">目标坐标系</param>
     /// <returns>变换矩阵</returns>
-    public static Matrix3d GetMatrix(this Editor editor, CoordinateSystemCode from, CoordinateSystemCode to)
+    public static Matrix3d GetMatrix(this Editor editor, CoordinateSystemCode from,
+        CoordinateSystemCode to)
     {
-#if ac2009
-        switch (from)
-        {
-            case CoordinateSystemCode.Wcs:
-            switch (to)
-            {
-                case CoordinateSystemCode.Ucs:
-                return editor.GetMatrixFromWcsToUcs();
-
-                case CoordinateSystemCode.MDcs:
-                return editor.GetMatrixFromMDcsToWcs();
-
-                case CoordinateSystemCode.PDcs:
-                throw new Exception("To be used only with DCS...ErrorStatus.InvalidInput");
-            }
-            break;
-            case CoordinateSystemCode.Ucs:
-            switch (to)
-            {
-                case CoordinateSystemCode.Wcs:
-                return editor.GetMatrixFromUcsToWcs();
-
-                case CoordinateSystemCode.MDcs:
-                return editor.GetMatrixFromUcsToWcs() * editor.GetMatrixFromWcsToMDcs();
-
-                case CoordinateSystemCode.PDcs:
-                throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
-            }
-            break;
-            case CoordinateSystemCode.MDcs:
-            switch (to)
-            {
-                case CoordinateSystemCode.Wcs:
-                return editor.GetMatrixFromMDcsToWcs();
-
-                case CoordinateSystemCode.Ucs:
-                return editor.GetMatrixFromMDcsToWcs() * editor.GetMatrixFromWcsToUcs();
-
-                case CoordinateSystemCode.PDcs:
-                return editor.GetMatrixFromMDcsToPDcs();
-            }
-            break;
-            case CoordinateSystemCode.PDcs:
-            switch (to)
-            {
-                case CoordinateSystemCode.Wcs:
-                throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
-                case CoordinateSystemCode.Ucs:
-                throw new Exception("To be used only with DCS... ErrorStatus.InvalidInput");
-                case CoordinateSystemCode.MDcs:
-                return editor.GetMatrixFromPDcsToMDcs();
-            }
-            break;
-        }
-        return Matrix3d.Identity;
-#else
         return (from, to) switch
         {
             (CoordinateSystemCode.Wcs, CoordinateSystemCode.Ucs) => editor.GetMatrixFromWcsToUcs(),
-            (CoordinateSystemCode.Wcs, CoordinateSystemCode.MDcs) => editor.GetMatrixFromWcsToMDcs(),
+            (CoordinateSystemCode.Wcs, CoordinateSystemCode.MDcs) =>
+                editor.GetMatrixFromWcsToMDcs(),
             (CoordinateSystemCode.Ucs, CoordinateSystemCode.Wcs) => editor.GetMatrixFromUcsToWcs(),
-            (CoordinateSystemCode.Ucs, CoordinateSystemCode.MDcs) => editor.GetMatrixFromUcsToWcs() * editor.GetMatrixFromWcsToMDcs(),
-            (CoordinateSystemCode.MDcs, CoordinateSystemCode.Wcs) => editor.GetMatrixFromMDcsToWcs(),
-            (CoordinateSystemCode.MDcs, CoordinateSystemCode.Ucs) => editor.GetMatrixFromMDcsToWcs() * editor.GetMatrixFromWcsToUcs(),
-            (CoordinateSystemCode.MDcs, CoordinateSystemCode.PDcs) => editor.GetMatrixFromMDcsToPDcs(),
-            (CoordinateSystemCode.PDcs, CoordinateSystemCode.MDcs) => editor.GetMatrixFromPDcsToMDcs(),
+            (CoordinateSystemCode.Ucs, CoordinateSystemCode.MDcs) =>
+                editor.GetMatrixFromUcsToWcs() * editor.GetMatrixFromWcsToMDcs(),
+            (CoordinateSystemCode.MDcs, CoordinateSystemCode.Wcs) =>
+                editor.GetMatrixFromMDcsToWcs(),
+            (CoordinateSystemCode.MDcs, CoordinateSystemCode.Ucs) =>
+                editor.GetMatrixFromMDcsToWcs() * editor.GetMatrixFromWcsToUcs(),
+            (CoordinateSystemCode.MDcs, CoordinateSystemCode.PDcs) =>
+                editor.GetMatrixFromMDcsToPDcs(),
+            (CoordinateSystemCode.PDcs, CoordinateSystemCode.MDcs) =>
+                editor.GetMatrixFromPDcsToMDcs(),
             (CoordinateSystemCode.PDcs, CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs)
-            or (CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs, CoordinateSystemCode.PDcs) => throw new Exception("To be used only with DCS...ErrorStatus.InvalidInput"),
+                or (CoordinateSystemCode.Wcs or CoordinateSystemCode.Ucs, CoordinateSystemCode.PDcs)
+                => throw new Exception("To be used only with DCS...ErrorStatus.InvalidInput"),
             (_, _) => Matrix3d.Identity
         };
-#endif
+
     }
 
     #endregion
 
     #region 缩放
 
+    // todo 暂时先屏蔽这个又臭又长的代码，待搞明白为什么都这么写之后再说
+#if false
     /// <summary>
     /// 缩放窗口范围
     /// </summary>
@@ -833,33 +804,55 @@ public static class EditorEx
                           .Convert2d(Curve2dEx._planeCache);
 
         ed.SetCurrentView(vtr);
-        ed.Regen();
+        //ed.Regen();
     }
+#endif
 
     /// <summary>
     /// 缩放窗口范围
     /// </summary>
     /// <param name="ed">命令行对象</param>
     /// <param name="ext">窗口范围点</param>
-    public static void ZoomWindow(this Editor ed, Extents3d ext)
+    /// <param name="offsetDist">偏移距离</param>
+    public static void ZoomWindow(this Editor ed, Extents3d ext, double offsetDist = 0)
     {
-        ZoomWindow(ed, ext.MinPoint, ext.MaxPoint);
+        using var view = ed.GetCurrentView().CloneEx();
+        var mt = Matrix3d.WorldToPlane(view.ViewDirection) *
+                 Matrix3d.Displacement(Point3d.Origin - view.Target) *
+                 Matrix3d.Rotation(view.ViewTwist, view.ViewDirection, view.Target);
+        ext.TransformBy(mt);
+        var width = ext.MaxPoint.X - ext.MinPoint.X + offsetDist * 2;
+        var height = ext.MaxPoint.Y - ext.MinPoint.Y + offsetDist * 2;
+        var ratio = view.Width / view.Height;
+        if (width / height < ratio)
+        {
+            view.Height = height;
+            view.Width = height * ratio;
+        }
+        else
+        {
+            view.Height = width / ratio;
+            view.Width = width;
+        }
+
+        view.CenterPoint = ext.MinPoint.GetMidPointTo(ext.MaxPoint).Point2d();
+        ed.SetCurrentView(view);
     }
 
     /// <summary>
-    /// 缩放比例
+    /// 按范围缩放
     /// </summary>
     /// <param name="ed">命令行对象</param>
-    /// <param name="CenPt">中心点</param>
+    /// <param name="cenPt">中心点</param>
     /// <param name="width">窗口宽</param>
     /// <param name="height">窗口高</param>
-    public static void Zoom(this Editor ed, Point3d CenPt, double width, double height)
+    public static void Zoom(this Editor ed, Point3d cenPt, double width, double height)
     {
-        using ViewTableRecord view = ed.GetCurrentView();
-        view.Width = width;
-        view.Height = height;
-        view.CenterPoint = new Point2d(CenPt.X, CenPt.Y);
-        ed.SetCurrentView(view);// 更新当前视图
+        using var vtr = ed.GetCurrentView();
+        vtr.Width = width;
+        vtr.Height = height;
+        vtr.CenterPoint = cenPt.TransformBy(ed.GetMatrixFromWcsToMDcs()).Point2d();
+        ed.SetCurrentView(vtr); // 更新当前视图
     }
 
     /// <summary>
@@ -869,15 +862,13 @@ public static class EditorEx
     /// <param name="lpt">第一点</param>
     /// <param name="rpt">对角点</param>
     /// <param name="offsetDist">偏移距离</param>
-    public static void ZoomWindow(this Editor ed, Point3d lpt, Point3d rpt, double offsetDist = 0.00)
+    public static void ZoomWindow(this Editor ed, Point3d lpt, Point3d rpt,
+        double offsetDist = 0.00)
     {
-        Extents3d extents = new();
-        extents.AddPoint(lpt);
-        extents.AddPoint(rpt);
-        rpt = extents.MaxPoint + new Vector3d(offsetDist, offsetDist, 0);
-        lpt = extents.MinPoint - new Vector3d(offsetDist, offsetDist, 0);
-        Vector3d ver = rpt - lpt;
-        ed.Zoom(lpt + ver / 2, ver.X, ver.Y);
+        Extents3d ext = new();
+        ext.AddPoint(lpt);
+        ext.AddPoint(rpt);
+        ed.ZoomWindow(ext, offsetDist);
     }
 
 
@@ -889,7 +880,7 @@ public static class EditorEx
     /// <returns></returns>
     public static Extents3d? GetValidExtents3d(this Database db, double extention = 1e-6)
     {
-        db.UpdateExt(true);// 更新当前模型空间的范围
+        db.UpdateExt(true); // 更新当前模型空间的范围
         var ve = new Vector3d(extention, extention, extention);
         // 数据库没有图元的时候,min是大,max是小,导致新建出错
         // 数据如下:
@@ -910,7 +901,7 @@ public static class EditorEx
     /// <param name="offsetDist">偏移距离</param>
     public static void ZoomExtents(this Editor ed, double offsetDist = 0.00)
     {
-        Database db = ed.Document.Database;
+        var db = ed.Document.Database;
         // db.UpdateExt(true); // GetValidExtents3d内提供了
         var dbExtent = db.GetValidExtents3d();
         if (dbExtent == null)
@@ -927,7 +918,7 @@ public static class EditorEx
     /// <param name="offsetDist">偏移距离</param>
     public static void ZoomObject(this Editor ed, Entity ent, double offsetDist = 0.00)
     {
-        Extents3d ext = ent.GeometricExtents;
+        var ext = ent.GeometricExtents;
         ed.ZoomWindow(ext.MinPoint, ext.MaxPoint, offsetDist);
     }
 
@@ -939,16 +930,12 @@ public static class EditorEx
     /// 获取Point
     /// </summary>
     /// <param name="ed">命令行对象</param>
-    /// <param name="Message">提示信息</param>
-    /// <param name="BasePoint">提示使用的基点</param>
-    /// <returns></returns>
-    public static PromptPointResult GetPoint(this Editor ed, string Message, Point3d BasePoint)
+    /// <param name="message">提示信息</param>
+    /// <param name="basePoint">提示使用的基点</param>
+    /// <returns>交互结果</returns>
+    public static PromptPointResult GetPoint(this Editor ed, string message, Point3d basePoint)
     {
-        PromptPointOptions ptOp = new(Message)
-        {
-            BasePoint = BasePoint,
-            UseBasePoint = true
-        };
+        PromptPointOptions ptOp = new(message) { BasePoint = basePoint, UseBasePoint = true, AllowNone = true };
         return ed.GetPoint(ptOp);
     }
 
@@ -956,15 +943,13 @@ public static class EditorEx
     /// 获取double值
     /// </summary>
     /// <param name="ed">命令行对象</param>
-    /// <param name="Message">提示信息</param>
-    /// <param name="DefaultValue">double默认值</param>
-    /// <returns></returns>
-    public static PromptDoubleResult GetDouble(this Editor ed, string Message, double DefaultValue = 1.0)
+    /// <param name="message">提示信息</param>
+    /// <param name="defaultValue">double默认值</param>
+    /// <returns>交互结果</returns>
+    public static PromptDoubleResult GetDouble(this Editor ed, string message,
+        double defaultValue = 1.0)
     {
-        PromptDoubleOptions douOp = new(Message)
-        {
-            DefaultValue = DefaultValue
-        };
+        PromptDoubleOptions douOp = new(message) { DefaultValue = defaultValue, AllowNone = true };
         return ed.GetDouble(douOp);
     }
 
@@ -972,15 +957,13 @@ public static class EditorEx
     /// 获取int值
     /// </summary>
     /// <param name="ed">命令行对象</param>
-    /// <param name="Message">提示信息</param>
-    /// <param name="DefaultValue">double默认值</param>
-    /// <returns></returns>
-    public static PromptIntegerResult GetInteger(this Editor ed, string Message, int DefaultValue = 1)
+    /// <param name="message">提示信息</param>
+    /// <param name="defaultValue">默认值</param>
+    /// <returns>交互结果</returns>
+    public static PromptIntegerResult GetInteger(this Editor ed, string message,
+        int defaultValue = 1)
     {
-        PromptIntegerOptions douOp = new(Message)
-        {
-            DefaultValue = DefaultValue
-        };
+        PromptIntegerOptions douOp = new(message) { DefaultValue = defaultValue, AllowNone = true };
         return ed.GetInteger(douOp);
     }
 
@@ -988,28 +971,23 @@ public static class EditorEx
     /// 获取string值
     /// </summary>
     /// <param name="ed">命令行对象</param>
-    /// <param name="Message">提示信息</param>
-    /// <param name="DefaultValue">string默认值</param>
+    /// <param name="message">提示信息</param>
+    /// <param name="defaultValue">string默认值</param>
     /// <returns></returns>
-    public static PromptResult GetString(this Editor ed, string Message, string DefaultValue = "")
+    public static PromptResult GetString(this Editor ed, string message, string defaultValue = "")
     {
-        PromptStringOptions strOp = new(Message)
-        {
-            DefaultValue = DefaultValue
-        };
+        PromptStringOptions strOp = new(message)
+        { DefaultValue = defaultValue, UseDefaultValue = !StringHelper.IsNullOrWhiteSpace(defaultValue) };
         return ed.GetString(strOp);
     }
 
     #endregion
 
     #region 执行lisp
-#if NET35
-    [DllImport("acad.exe",
-#else
-    [DllImport("accore.dll",
-#endif
-        CallingConvention = CallingConvention.Cdecl, EntryPoint = "acedInvoke")]
-    static extern int AcedInvoke(IntPtr args, out IntPtr result);
+
+    [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "acedInvoke")]
+    private static extern int AcedInvoke(IntPtr args, out IntPtr result);
 
 #if NET35
     [DllImport("acad.exe", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl,
@@ -1031,8 +1009,9 @@ public static class EditorEx
     static extern int Ads_queueexpr(string strExpr);
 
     /// <summary>
-    /// 命令运行方式
+    /// 执行lisp的方式枚举
     /// </summary>
+    [Flags]
     public enum RunLispFlag : byte
     {
         /// <summary>
@@ -1074,7 +1053,8 @@ public static class EditorEx
     /// <param name="lispCode">lisp语句</param>
     /// <param name="flag">运行方式</param>
     /// <returns>缓冲结果,返回值</returns>
-    public static ResultBuffer? RunLisp(this Editor ed, string lispCode, RunLispFlag flag = RunLispFlag.AdsQueueexpr)
+    public static ResultBuffer? RunLisp(this Editor ed, string lispCode,
+        RunLispFlag flag = RunLispFlag.AdsQueueexpr)
     {
         if ((flag & RunLispFlag.AdsQueueexpr) == RunLispFlag.AdsQueueexpr)
         {
@@ -1085,13 +1065,14 @@ public static class EditorEx
         }
         if ((flag & RunLispFlag.AcedEvaluateLisp) == RunLispFlag.AcedEvaluateLisp)
         {
-            _ = AcedEvaluateLisp(lispCode, out IntPtr rb);
+            _ = AcedEvaluateLisp(lispCode, out var rb);
             if (rb != IntPtr.Zero)
                 return (ResultBuffer)DisposableWrapper.Create(typeof(ResultBuffer), rb, true);
         }
+
         if ((flag & RunLispFlag.SendStringToExecute) == RunLispFlag.SendStringToExecute)
         {
-            var dm = Acap.DocumentManager;
+            var dm = Acaop.DocumentManager;
             var doc = dm.MdiActiveDocument;
             doc?.SendStringToExecute(lispCode + "\n", false, false, false);
         }
@@ -1108,11 +1089,11 @@ public static class EditorEx
     /// <param name="saveFile">保存文件</param>
     /// <param name="ids">选择集的对象,为null时候手选</param>
     /// <param name="wmfSetDel">是否清空选择集</param>
-    /// <exception cref="ArgumentNullException"></exception>
-    public static void ComExportWMF(this Editor editor, string saveFile,
-                                    ObjectId[]? ids = null, bool wmfSetDel = false)
+    /// <exception cref="System.ArgumentNullException"></exception>
+    public static void ComExportWMF(this Editor editor, string saveFile, ObjectId[]? ids = null,
+        bool wmfSetDel = false)
     {
-        if (string.IsNullOrEmpty(saveFile))
+        if (StringHelper.IsNullOrWhiteSpace(saveFile))
             throw new ArgumentNullException(nameof(saveFile));
         if (File.Exists(saveFile))
             throw new FileFormatException("文件重复:" + saveFile);
@@ -1122,15 +1103,8 @@ public static class EditorEx
             return;
 
         // 剔除后缀
-        int dot = saveFile.LastIndexOf('.');
-        if (dot != -1)
-        {
-            // 因为文件名可以有.所以后缀点必须是最后\的后面
-            int s = saveFile.LastIndexOf('\\');
-            if (s < dot)
-                saveFile = saveFile.Substring(0, dot);
-        }
-
+        saveFile = Path.Combine(Path.GetDirectoryName(saveFile) ?? string.Empty,
+            Path.GetFileNameWithoutExtension(saveFile));
         // ActiveSelectionSet:
         // 第一次执行会触发选择,再次重复命令执行的时候,它会无法再选择(即使清空选择集).
         // 因此此处netAPI进行选择,它就能读取当前选择集缓冲区的对象
@@ -1162,21 +1136,65 @@ public static class EditorEx
     }
     #endregion
 
+    #region JigEx
+
     /// <summary>
-    /// 可以发送透明命令的状态<br/>
-    /// 福萝卜:这个应该是修正ribbon里输入丢焦点的问题,低版本可以不要
+    /// jig前的准备工作，使图元暗显
     /// </summary>
-    /// <param name="ed"></param>
-    /// <returns></returns>
-    public static bool IsQuiescentForTransparentCommand(this Editor ed)
+    /// <param name="ed">命令栏</param>
+    /// <param name="ents">实体（已存在数据库中）</param>
+    public static void PrepareForJig(this Editor ed, params Entity[] ents)
     {
-#if NET35
-        //if (ed.IsQuiescent)
-        //{
-        //}
-        return true;
-#else
-        return ed.IsQuiescentForTransparentCommand;
-#endif
+        ed.PrepareForJig(ents.ToList());
     }
+
+    /// <summary>
+    /// jig前的准备工作，使图元暗显
+    /// </summary>
+    /// <param name="ed">命令栏</param>
+    /// <param name="ents">实体（已存在数据库中）</param>
+    public static void PrepareForJig(this Editor ed, IEnumerable<Entity> ents)
+    {
+        var dic = new Dictionary<Entity, Color>();
+        foreach (var ent in ents)
+        {
+            if (ent.IsNewObject)
+                continue;
+            dic.Add(ent, ent.Color);
+            using (ent.ForWrite())
+            {
+                ent.ColorIndex = 250;
+                ent.Draw();
+            }
+        }
+
+        ed.Redraw();
+        foreach (var kvp in dic)
+        {
+            var ent = kvp.Key;
+            using (ent.ForWrite())
+            {
+                kvp.Key.Color = kvp.Value;
+            }
+        }
+    }
+
+    #endregion
+
+    #region Extension
+
+    /// <summary>
+    /// 获取CAD鼠标当前位置坐标
+    /// </summary>
+    /// <param name="ed">命令栏</param>
+    /// <returns>坐标(可能为null)</returns>
+    public static Point3d? GetCurrentMouthPoint(this Editor ed)
+    {
+        return ed.RunLisp("(grread T)", RunLispFlag.AcedEvaluateLisp)
+            ?.AsArray()
+            .FirstOrDefault(tv => tv.TypeCode == 5009)
+            .Value as Point3d?;
+    }
+
+    #endregion
 }

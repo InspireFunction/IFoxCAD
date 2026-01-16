@@ -288,11 +288,11 @@ public static class SymbolTableEx
     /// <param name="xscale">宽度比例</param>
     /// <returns>文字样式Id</returns>
     public static ObjectId Add(this SymbolTable<TextStyleTable, TextStyleTableRecord> table,
-                               string textStyleName, 
-                               FontTTF fontTTF, 
+                               string textStyleName,
+                               FontTTF fontTTF,
                                double xscale = 1.0)
     {
-        return table.Add(textStyleName, fontTTF.GetDesc(), xscale);
+        return table.Add(textStyleName, fontTTF.GetDescription(), xscale);
     }
 
     /// <summary>

@@ -1,17 +1,11 @@
-namespace IFoxCAD.Basal;
-
-using System.Diagnostics;
-using System.Threading;
-
+﻿namespace IFoxCAD.Basal;
 /// <summary>
-/// 提供调试输出功能的静态类。
-/// 通过环境变量 "debugx" 控制是否启用调试输出，
-/// 当环境变量值为 "1" 时启用调试输出。
+/// 调试工具
 /// </summary>
 public static class DebugEx
 {
     /// <summary>
-    /// cad命令切换: Debugx
+    /// cad命令切换: DebugEx
     /// </summary>
     /// <param name="message">打印信息</param>
     /// <param name="time">打印时间</param>
@@ -19,17 +13,16 @@ public static class DebugEx
     public static void Printl(object message, bool time = true)
     {
         var flag = Environment.GetEnvironmentVariable("debugx", EnvironmentVariableTarget.User);
-        if (flag == null || flag == "0")
+        if (flag is null or "0")
             return;
 
         if (time)
-            //message = $"{DateTime.Now.ToLongDateString() + DateTime.Now.TimeOfDay}\n" +
-            message = $"{DateTime.Now.TimeOfDay} ThreadId:{Thread.CurrentThread.ManagedThreadId}\n" +
-            $"\t\t{message}";
-
+        {
+            message = $"{DateTime.Now.TimeOfDay} ThreadId:{Thread.CurrentThread.ManagedThreadId}\n" + $"\t\t{message}";
+        }
         //System.Diagnostics.Debug.Indent();
 #if DEBUG
-        System.Diagnostics.Debug.WriteLine(message);
+        Debug.WriteLine(message);
 #else
         System.Diagnostics.Trace.WriteLine(message);
 #endif

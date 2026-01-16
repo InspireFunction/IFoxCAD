@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.WPF;
+﻿using IFoxCAD.Cad;
+
+namespace IFoxCAD.WPF;
 
 /// <summary>
 /// 事件绑定标签类
@@ -36,7 +38,7 @@ public class EventBindingExtension : MarkupExtension
         if (targetProvider.TargetProperty is not MemberInfo memberInfo)
             throw new InvalidOperationException(message: $"{nameof(ProvideValue)}:{nameof(MemberInfo)}");
 
-        if (string.IsNullOrWhiteSpace(Command))
+        if (StringHelper.IsNullOrWhiteSpace(Command))
         {
             Command = memberInfo.Name.Replace("Add", "");
             if (Command.Contains("Handler"))
@@ -122,7 +124,7 @@ public class EventBindingExtension : MarkupExtension
         {
             var cmd = GetCommand(fe, cmdName);
             object? commandParam = null;
-            if (!string.IsNullOrWhiteSpace(commandParameter))
+            if (!StringHelper.IsNullOrWhiteSpace(commandParameter))
                 commandParam = GetCommandParameter(fe, args, commandParameter!);
             if ((cmd is not null) && cmd.CanExecute(commandParam))
                 cmd.Execute(commandParam);

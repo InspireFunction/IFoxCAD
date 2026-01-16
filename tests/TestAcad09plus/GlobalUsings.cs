@@ -50,7 +50,3 @@ global using IFoxCAD.Basal;
 #if !ac2008
 global using IFoxCAD.WPF;
 #endif
-
-#if NET35
-global using MethodImplAttribute = IFoxCAD.Cad.MethodImplAttribute;
-#endif

@@ -68,7 +68,7 @@ public class StatusBar
 
     static string GetUseText()
     {
-        return EnumEx.GetDesc(Settings.IMEInputSwitch);
+        return EnumEx.GetDescription(Settings.IMEInputSwitch);
     }
     static readonly IMESwitchMode _ismMax = Enum.GetValues(typeof(IMESwitchMode)).Cast<IMESwitchMode>().Max();
 
@@ -107,7 +107,7 @@ public static class PaneHelper
 {
     public static int Count(this PaneCollection panes)
     {
-#if NET35
+#if ac2008
         return panes.get_Count();
 #else
         return panes.Count;

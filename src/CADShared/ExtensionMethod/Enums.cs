@@ -1,8 +1,4 @@
-﻿#pragma warning disable CS1591 // 缺少XML注释
-#pragma warning disable CS1572 // XML注释中有不存在的参数
-#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
-
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 参照路径转换
@@ -41,7 +37,10 @@ public enum XrefModes : byte
     /// </summary>
     Bind,
 }
-
+/// <summary>
+/// 符号表模式
+/// </summary>
+[Flags]
 public enum SymModes : ushort
 {
     /// <summary>
@@ -69,6 +68,9 @@ public enum SymModes : ushort
     /// 线型表
     /// </summary>
     LinetypeTable = 32,
+    /// <summary>
+    /// 图层|字体|标注|线型|应用
+    /// </summary>
     Option1 = LayerTable | TextStyleTable | DimStyleTable | LinetypeTable | RegAppTable,
 
     /// <summary>
@@ -83,9 +85,14 @@ public enum SymModes : ushort
     /// 视口表
     /// </summary>
     ViewportTable = 256,
+    /// <summary>
+    /// 坐标|视口|视图
+    /// </summary>
     Option2 = UcsTable | ViewTable | ViewportTable,
 
-    // 全部
+    /// <summary>
+    /// 全部
+    /// </summary>
     All = BlockTable | Option1 | Option2
 }
 
@@ -162,17 +169,34 @@ public enum PointOnRegionType
 }
 
 
-
+/// <summary>
+/// ttf字体枚举
+/// </summary>
 public enum FontTTF
 {
+    /// <summary>
+    /// 宋体
+    /// </summary>
     [Description("宋体.ttf")]
     宋体,
+    /// <summary>
+    /// 仿宋
+    /// </summary>
     [Description("simfang.ttf")]
     仿宋,
+    /// <summary>
+    /// 仿宋GB2312
+    /// </summary>
     [Description("FSGB2312.ttf")]
     仿宋GB2312,
+    /// <summary>
+    /// Arial
+    /// </summary>
     [Description("Arial.ttf")]
     Arial,
+    /// <summary>
+    /// Romans
+    /// </summary>
     [Description("Romans")]
     Romans
 }

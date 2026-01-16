@@ -4,6 +4,37 @@ namespace Test;
 
 public class TestTrans
 {
+    [CommandMethod(nameof(Test_DBTrans))]
+    public void Test_DBTrans()
+    {
+        using DBTrans tr = new();
+        if (tr.Editor is null)
+            return;
+        tr.Editor.WriteMessage("\n测试 Editor 属性是否工作！");
+        tr.Editor.WriteMessage("\n----------开始测试--------------");
+        tr.Editor.WriteMessage("\n测试document属性是否工作");
+        if (tr.Document == Getdoc())
+        {
+            tr.Editor.WriteMessage("\ndocument 正常");
+        }
+        tr.Editor.WriteMessage("\n测试database属性是否工作");
+        if (tr.Database == Getdb())
+        {
+            tr.Editor.WriteMessage("\ndatabase 正常");
+        }
+    }
+
+    private static Database Getdb()
+    {
+        var db = Acaop.DocumentManager.MdiActiveDocument.Database;
+        return db;
+    }
+
+    private static Document Getdoc()
+    {
+        var doc = Acaop.DocumentManager.MdiActiveDocument;
+        return doc;
+    }
     const string _file = @"D:\桌面\AA.dwg";
     [CommandMethod(nameof(CmdTest_DBTransActiveOpenDwg), CommandFlags.Session)]
     public static void CmdTest_DBTransActiveOpenDwg()
@@ -31,7 +62,7 @@ public class TestTrans
         //    id.Print();
         //}
 
-        tr.BlockTable.ForEach(action: (id, state) => {
+        tr.BlockTable.ForEach(action: (id) => {
             id.Print();
         });
         tr.BlockTable.ForEach(action: (id, state, index) => {
@@ -65,7 +96,8 @@ public class TestTrans
     }
 
 
-
+    // 更换了事务栈,可以更方便处理前台后台,而且可以判断路径再保存
+    // 后台:不存在路径的dwg会在桌面进行临时保存
     [CommandMethod(nameof(FileNotExist))]
     public void FileNotExist()
     {
@@ -138,5 +170,17 @@ public class TestTrans
         // Env.Print(pt1.IsEqualTo(pt2,new Tolerance(0.0,1e-6)).ToString());
         // Env.Print((pt1 == pt2).ToString());
         // Env.Print((pt1 != pt2).ToString());
+    }
+
+    [CommandMethod(nameof(Test_DBTrans_BlockCount))]
+    public void Test_DBTrans_BlockCount()
+    {
+        using var tr = new DBTrans();
+        var i = tr.CurrentSpace
+            .GetEntities<BlockReference>()
+            .Where(ent => ent.GetBlockName() == "自定义块");
+
+        var block = i.ToList()[0];
+        Env.Print(i.Count());
     }
 }

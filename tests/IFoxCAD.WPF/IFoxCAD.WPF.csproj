@@ -4,7 +4,7 @@
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
 
-        <TargetFrameworks>NET45</TargetFrameworks>
+        <TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
@@ -21,13 +21,19 @@
         <RepositoryType>git</RepositoryType>
         <PackageReleaseNotes>开启可空类型.</PackageReleaseNotes>
     </PropertyGroup>
-
-    <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|NET45|AnyCPU'">
-        <DefineConstants>DEBUG;TRACE</DefineConstants>
+    
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
+        <DefineConstants>$(Configuration);acad;ac2013</DefineConstants>
+    </PropertyGroup>
+    
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
+        <DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
     </PropertyGroup>
 
+    <!-- 条件包引用 -->
     <ItemGroup>
-        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31"/>
+        <!-- .NET 4.5+ 使用 Microsoft.Xaml.Behaviors.Wpf -->
+        <PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.31" Condition="'$(TargetFramework)' == 'NET45'" />
     </ItemGroup>
 
     <ItemGroup>
@@ -36,5 +42,4 @@
             <PackagePath></PackagePath>
         </None>
     </ItemGroup>
-
 </Project>

@@ -30,7 +30,7 @@ public class DocReactor
     static void CommandWillStart(object sender, CommandEventArgs e)
     {
         if (Settings.IMEInputSwitch == IMESwitchMode.Disable ||
-            ((Document)sender).Editor.IsQuiescentForTransparentCommand())
+            ((Document)sender).Editor.IsQuiescentForTransparentCommand)
             return;
 
         var gName = e.GlobalCommandName;

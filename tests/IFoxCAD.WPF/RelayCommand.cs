@@ -1,6 +1,6 @@
-﻿using Microsoft.Xaml.Behaviors;
+﻿namespace IFoxCAD.WPF;
 
-namespace IFoxCAD.WPF;
+using Microsoft.Xaml.Behaviors;
 
 /// <summary>
 /// 命令基类

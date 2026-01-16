@@ -40,13 +40,13 @@ public class BulgeVertexWidth
     /// <summary>
     /// 多段线的顶点,凸度,头宽,尾宽
     /// </summary>
-    public BulgeVertexWidth(double vertex_X, double vertex_Y,
+    public BulgeVertexWidth(double vertexX, double vertexY,
         double bulge = 0,
         double startWidth = 0,
         double endWidth = 0)
     {
-        X = vertex_X;
-        Y = vertex_Y;
+        X = vertexX;
+        Y = vertexY;
         Bulge = bulge;
         StartWidth = startWidth;
         EndWidth = endWidth;
@@ -83,7 +83,6 @@ public class BulgeVertexWidth
         StartWidth = pl.GetStartWidthAt(index);
         EndWidth = pl.GetEndWidthAt(index);
     }
-
     /// <summary>
     /// 转为凸度顶点
     /// </summary>

@@ -458,7 +458,7 @@ public sealed class DBTrans : IDisposable
         var ext = Path.GetExtension(file);
         if (string.Equals(ext, ".dwg", StringComparison.OrdinalIgnoreCase))
         {
-#if NET35
+#if ac2008
             db.ReadDwgFile(file, FileOpenModeHelper.GetFileShare(fileOpenMode), true, password);
 #else
             db.ReadDwgFile(file, fileOpenMode, true, password);

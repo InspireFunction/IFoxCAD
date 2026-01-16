@@ -44,19 +44,28 @@ public class Testeditor
         Env.Editor.ZoomExtents();
     }
 
+    [CommandMethod(nameof(Test_Zoom_1))]
+    public void Test_Zoom_1()
+    {
+        Env.Editor.Zoom(new(0, 0, 0), 200, 200);
+    }
+    [CommandMethod(nameof(Test_Zoom_2))]
+    public void Test_Zoom_2()
+    {
+        Env.Editor.ZoomWindow(new Point3d(-100, -100, 0), new(100, 100, 0));
+    }
+
     [CommandMethod(nameof(Test_Ssget))]
     public void Test_Ssget()
     {
-        var action_a = () => { Env.Print("this is a"); };
-        var action_b = () => { Env.Print("this is b"); };
 
-        var keyword = new Dictionary<string, Action>
+        var keyword = new Dictionary<string, (string, Action)>
         {
-            { "A", action_a },
-            { "B", action_b }
+            { "D", ("你好",  () => { Env.Print("this is c"); }) },
+            { "B", ("hello", () => { Env.Print("this is b"); }) }
         };
 
-        var ss = Env.Editor.SSGet(":S", messages: new string[2] { "get", "del" },
+        var ss = Env.Editor.SSGet(/*":S", */ messages: ("get", "del"),
                                          keywords: keyword);
         Env.Print(ss!);
     }
@@ -73,6 +82,6 @@ public class Testeditor
         var ids = psr.Value.GetObjectIds();
         // acad21(acad08没有)先选择再执行..会让你再选择一次
         // 而且只发生在启动cad之后第一次执行.
-        Env.Editor.ComExportWMF("D:\\桌面\\aaa.dwg", ids);
+        Env.Editor.ComExportWMF(@"C:\Users\vic\Desktop\aaa.dwg", ids);
     }
 }

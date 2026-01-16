@@ -8,7 +8,7 @@ namespace IFoxCAD.Basal;
 using System;
 
 /// <summary>
-/// ָ������������ֶΡ����Ի򷵻�ֵ��Ϊ null
+/// 指定输出参数、字段、属性或返回值不为 null
 /// </summary>
 [AttributeUsage(
     AttributeTargets.Parameter |
@@ -21,7 +21,7 @@ public sealed class NotNullAttribute : Attribute
 }
 
 /// <summary>
-/// ָ��������Ϊ null
+/// 指定参数可为 null
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter)]
 public sealed class MaybeNullAttribute : Attribute
@@ -29,7 +29,7 @@ public sealed class MaybeNullAttribute : Attribute
 }
 
 /// <summary>
-/// ָ��参数当返回值为 null 时，可以使用该属性
+/// 指定输入参数不为 null，即使对应类型允许为 null
 /// </summary>
 [AttributeUsage(AttributeTargets.Parameter)]
 public sealed class NotNullWhenAttribute : Attribute
@@ -50,7 +50,7 @@ public sealed class NotNullWhenAttribute : Attribute
 }
 
 /// <summary>
-/// ��ʾ������Զ�����������أ������׳��쳣����ֹ���̣�
+/// 表示方法永远不会正常返回（总是抛出异常或终止进程）
 /// </summary>
 [AttributeUsage(AttributeTargets.Method, Inherited = false)]
 public sealed class DoesNotReturnAttribute : Attribute { }
