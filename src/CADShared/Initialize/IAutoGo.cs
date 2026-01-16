@@ -238,7 +238,7 @@ public class AutoReflection
         catch (System.Exception e)
         {
 #if DEBUG
-            Debugx.Printl($"出错:{nameof(AppDomainGetTypes)};计数{error};错误信息:{e.Message}");
+            DebugEx.Printl($"出错:{nameof(AppDomainGetTypes)};计数{error};错误信息:{e.Message}");
             Debugger.Break();
 #endif
         }

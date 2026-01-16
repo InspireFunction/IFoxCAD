@@ -422,7 +422,7 @@ public partial class ClipTool
         catch (Exception e)
         {
             Debugger.Break();
-            Debugx.Printl(e.Message);
+            DebugEx.Printl(e.Message);
         }
         finally
         {

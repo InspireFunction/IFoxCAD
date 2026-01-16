@@ -55,14 +55,14 @@ public class HatchPickEvent : IDisposable
                 HatchPick.MapDocHatchPickEvent[e.Document].SetPropertiesInfoTask();
                 if (_vetoProperties)
                 {
-                    Debugx.Printl("Dm_VetoCommand 否决了");
+                    DebugEx.Printl("Dm_VetoCommand 否决了");
                     e.Veto();
                     _vetoProperties = false;
                     // 发送编辑填充命令
                     SendCommand("_hatchedit ", RunCmdFlag.AcedPostCommand);
                     return;
                 }
-                Debugx.Printl("Dm_VetoCommand 没否决");
+                DebugEx.Printl("Dm_VetoCommand 没否决");
             }
             break;
         }
@@ -125,7 +125,7 @@ public class HatchPickEvent : IDisposable
 
         // 此处无法使用文档锁,否则将导致文档锁无法释放,然后ctrl+z失败
         var cmdup = e.GlobalCommandName.ToUpper();
-        Debugx.Printl("Md_CommandWillStart::" + cmdup);
+        DebugEx.Printl("Md_CommandWillStart::" + cmdup);
 
         switch (cmdup)
         {
@@ -154,8 +154,8 @@ public class HatchPickEvent : IDisposable
         {
             var mp = HatchHook.MouseStartPoint;
             var mouseStart = Screen.ScreenToCad(mp);
-            Debugx.Printl("mouseStart,屏幕点::" + mp);
-            Debugx.Printl("mouseStart,cad点::" + mouseStart);
+            DebugEx.Printl("mouseStart,屏幕点::" + mp);
+            DebugEx.Printl("mouseStart,cad点::" + mouseStart);
 
             // 获取当前选择的对象,然后提取所有的夹点
             var prompt = Env.Editor.SelectImplied();
@@ -168,7 +168,7 @@ public class HatchPickEvent : IDisposable
 
             // TODO 屏幕像素点转cad点的误差,要随着视口高度而动态计算....这里的计算可能不太正确
             var tol = (double)Env.GetVar("viewsize") / 10;
-            Debugx.Printl("tol::" + tol);
+            DebugEx.Printl("tol::" + tol);
 
             // 0x01 移动了矩形填充中间的夹点,删除边界,并且重新生成填充和边界
             // 0x02 移动了填充边界上的夹点,不处理,然后它会通过关联进行自己修改
@@ -249,9 +249,9 @@ public class HatchPickEvent : IDisposable
 
                 // 点在边界上:就不处理了,它会通过cad的关联填充反应器自动修改
                 if (_pickInBo)
-                    Debugx.Printl("夹点在边界上");
+                    DebugEx.Printl("夹点在边界上");
                 else
-                    Debugx.Printl("夹点不在边界上");
+                    DebugEx.Printl("夹点不在边界上");
             }
         }
     }
@@ -286,7 +286,7 @@ public class HatchPickEvent : IDisposable
         {
             case "REFEDIT":
             {
-                Debugx.Printl("Md_CommandEnded:: REFEDIT");
+                DebugEx.Printl("Md_CommandEnded:: REFEDIT");
 
                 // 在位编辑命令,执行后,获取当前空间所有填充
                 var prompt = Env.Editor.SelectAll(FilterForHatch);
@@ -310,7 +310,7 @@ public class HatchPickEvent : IDisposable
             break;
             case "REFSET": // 加减在位编辑图元
             {
-                Debugx.Printl("Md_CommandEnded:: REFSET");
+                DebugEx.Printl("Md_CommandEnded:: REFSET");
 
                 // 命令历史的最后一行是:添加/删除
                 var last = Env.GetVar("lastprompt").ToString();
@@ -349,7 +349,7 @@ public class HatchPickEvent : IDisposable
             break;
             case "REFCLOSE":// 保存块,清空集合
             {
-                Debugx.Printl("Md_CommandEnded:: REFCLOSE");
+                DebugEx.Printl("Md_CommandEnded:: REFCLOSE");
                 _refeditSsgeted.Clear();
                 _refeditSsgeting.Clear();
             }
@@ -455,7 +455,7 @@ public class HatchPickEvent : IDisposable
             _selectChangedStop = false;
             return;
         }
-        Debugx.Printl("Md_ImpliedSelectionChanged");
+        DebugEx.Printl("Md_ImpliedSelectionChanged");
 
         using DBTrans tr = new(Acap.DocumentManager.MdiActiveDocument, true);
         var prompt = Env.Editor.SelectImplied();
@@ -507,7 +507,7 @@ public class HatchPickEvent : IDisposable
         // 那就不创建新的,然后选中它们
         if (hc.BoundaryIds.Count != 0)
         {
-            Debugx.Printl("CreatHatchConverter:: 加入了现有边界到选择集");
+            DebugEx.Printl("CreatHatchConverter:: 加入了现有边界到选择集");
 
             // 加入选择集
             foreach (var item in hc.BoundaryIds)
@@ -517,7 +517,7 @@ public class HatchPickEvent : IDisposable
         }
         else
         {
-            Debugx.Printl("CreatHatchConverter:: 创建新填充和边界");
+            DebugEx.Printl("CreatHatchConverter:: 创建新填充和边界");
 
             // 创建新填充和边界
             hc.GetBoundarysData();

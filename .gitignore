@@ -407,4 +407,5 @@ healthchecksdb
 .vscode
 
 #ifoxcad
+**/Properties/launchSettings.json
 #tests/TestConsole/

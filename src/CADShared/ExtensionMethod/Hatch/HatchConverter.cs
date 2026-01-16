@@ -392,5 +392,10 @@ public class HatchConverter
         // 计算填充并显示
         hatch.EvaluateHatch(true);
     }
+
+    internal IEnumerable<Entity> CreateBoundary()
+    {
+        throw new NotImplementedException();
+    }
     #endregion
 }

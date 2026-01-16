@@ -3,11 +3,12 @@
     <File Path="docs/关于IFoxCAD的架构说明.md" />
   </Folder>
   <Folder Name="/src/">
+    <File Path="src/Directory.Build.props" />
     <Project Path="src/CADShared/CADShared.shproj" />
+    <Project Path="src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj" />   
+    <Project Path="src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj" />    
     <Project Path="src/IFoxCAD.Acad08/IFoxCAD.Acad08.csproj" />
-    <Project Path="src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj" />
     <Project Path="src/IFoxCAD.Gcad/IFoxCAD.Gcad.csproj" />
-    <Project Path="src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />

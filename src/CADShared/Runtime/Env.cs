@@ -754,5 +754,53 @@ public static class Env
         }
         return dict;
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="objectId"></param>
+    /// <returns></returns>
+    public static TypedValue[] EntGet(ObjectId objectId)
+    {
+#if zcad
+        var adsName = GetAdsName(objectId);
+        var intPtr = PInvokeCad.ZcdbEntGet(adsName);
+#else
+        var adsName = GetAdsName(objectId);
+        var intPtr = PInvokeCad.AcdbEntGet(ref adsName);
+
+#endif
+#if zcad
+        var typedValues = Marshaler.ResbufToTypedValues(intPtr);
+        return typedValues;
+#endif
+
+        throw new NotSupportedException("不支持此功能");
+    }
     #endregion
+
+
+#if zcad
+    /// <summary>
+    /// GetAdsName
+    /// </summary>
+    /// <param name="objectId">ObjectId</param>
+    public static AdsName GetAdsName(ObjectId objectId)
+    {
+        _ = PInvokeCad.GetAdsName(out var adsName, objectId);
+        return adsName;
+    }
+#else
+    /// <summary>
+    /// GetAdsName
+    /// </summary>
+    /// <param name="objectId">ObjectId</param>
+    /// <returns>ads_name</returns>
+    public static ads_name GetAdsName(ObjectId objectId)
+    {
+        var adsName = new ads_name();
+        _ = PInvokeCad.GetAdsName(ref adsName, objectId);
+        return adsName;
+    }
+#endif
 }

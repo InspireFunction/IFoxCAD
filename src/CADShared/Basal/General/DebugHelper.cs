@@ -8,7 +8,7 @@ using System.Threading;
 /// 通过环境变量 "debugx" 控制是否启用调试输出，
 /// 当环境变量值为 "1" 时启用调试输出。
 /// </summary>
-public static class Debugx
+public static class DebugEx
 {
     /// <summary>
     /// cad命令切换: Debugx

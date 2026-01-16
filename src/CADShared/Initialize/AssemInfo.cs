@@ -7,6 +7,18 @@
 public struct AssemInfo
 {
     /// <summary>
+    /// 程序集信息
+    /// </summary>
+    /// <param name="assembly">程序集</param>
+    public AssemInfo(Assembly assembly)
+    {
+        Loader = assembly.Location;
+        Fullname = assembly.FullName!;
+        Name = assembly.GetName().Name!;
+        LoadType = AssemLoadType.Startting;
+    }
+
+    /// <summary>
     /// 注册名
     /// </summary>
     public string Name;
@@ -29,7 +41,7 @@ public struct AssemInfo
     /// <summary>
     /// 程序集说明
     /// </summary>
-    public string Description;
+    public string Description = "";
 }
 
 

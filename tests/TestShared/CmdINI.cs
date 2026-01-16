@@ -1,5 +1,5 @@
 //#define givePeopleTest
-
+#if false
 using System.Diagnostics;
 
 namespace Test;
@@ -167,3 +167,27 @@ public class Cmd_IFoxInitializeInterface : IFoxAutoGo
     }
 }
 #endif
+
+
+
+#endif
+
+public class Init
+{
+    [CommandMethod(nameof(Initialize))]
+    public void Initialize()
+    {
+
+        // var assembly= Assembly.GetExecutingAssembly();
+        // Env.Printl(assembly.GetName().Name);
+        // var info = new AssemInfo(assembly);
+        // Env.Printl(info.ToString());
+        // AutoReg.RegApp(info);
+        AutoReg.RegApp();
+    }
+
+    public void Terminate()
+    {
+
+    }
+}

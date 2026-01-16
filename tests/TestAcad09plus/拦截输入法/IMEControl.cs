@@ -49,7 +49,7 @@ public class IMEControl
             if (File.Exists(_ftFile_AutoEn2Cn))
                 lines = File.ReadAllText(_ftFile_AutoEn2Cn, Encoding.UTF8);
             else
-                Debugx.Printl("配置文件丢失: " + _ftFile_AutoEn2Cn);
+                DebugEx.Printl("配置文件丢失: " + _ftFile_AutoEn2Cn);
             if (lines != null)
             {
                 var ls = lines.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
@@ -65,7 +65,7 @@ public class IMEControl
             if (File.Exists(_ftFile_AutoCn2En))
                 lines = File.ReadAllText(_ftFile_AutoCn2En, Encoding.UTF8);
             else
-                Debugx.Printl("配置文件丢失: " + _ftFile_AutoCn2En);
+                DebugEx.Printl("配置文件丢失: " + _ftFile_AutoCn2En);
             if (lines != null)
             {
                 var ls = lines.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
@@ -146,11 +146,11 @@ public class IMEControl
                 if (IsOpenIEM())
                 {
                     SendKey();
-                    Debugx.Printl("恢复}", false);
+                    DebugEx.Printl("恢复}", false);
                 }
                 else
                 {
-                    Debugx.Printl("不恢复}");
+                    DebugEx.Printl("不恢复}");
                 }
             }
             _sendKeyState.Reset();
@@ -162,11 +162,11 @@ public class IMEControl
                 if (!IsOpenIEM())
                 {
                     SendKey();
-                    Debugx.Printl("恢复}");
+                    DebugEx.Printl("恢复}");
                 }
                 else
                 {
-                    Debugx.Printl("不恢复}");
+                    DebugEx.Printl("不恢复}");
                 }
             }
             _sendKeyState.Reset();
@@ -205,7 +205,7 @@ public class IMEControl
         // 切换只能发生在第一次,第2.+次需要不执行
         if (!IsOpenIEM())
         {
-            Debugx.Printl("现在是英文状态,切换前{");
+            DebugEx.Printl("现在是英文状态,切换前{");
             _sendKeyState.Stop();
             _sendKeyState.Exceptional();
             SendKey();
@@ -215,7 +215,7 @@ public class IMEControl
             // 中文状态虽然不变,
             // 但是为了避免命令中用户手动切换 中文切换到英文,然后再触发上面 英文状态转中文逻辑,
             // 所以此处也要设置状态
-            Debugx.Printl("现在是中文状态,保持不变");
+            DebugEx.Printl("现在是中文状态,保持不变");
             _sendKeyState.Cancel();
         }
     }
@@ -230,12 +230,12 @@ public class IMEControl
         // 切换只能发生在第一次,第2.+次需要不执行
         if (!IsOpenIEM())
         {
-            Debugx.Printl("现在是英文状态,保持不变");
+            DebugEx.Printl("现在是英文状态,保持不变");
             _sendKeyState.Cancel();
         }
         else
         {
-            Debugx.Printl("现在是中文状态,切换前{");
+            DebugEx.Printl("现在是中文状态,切换前{");
             _sendKeyState.Break();
             _sendKeyState.Exceptional();
             SendKey();
@@ -244,7 +244,7 @@ public class IMEControl
 
     static void SendKey()
     {
-        Debugx.Printl("触发了切换输入法", false);
+        DebugEx.Printl("触发了切换输入法", false);
         switch (Settings.IMEInputSwitch)
         {
             case IMESwitchMode.Shift:
@@ -333,7 +333,7 @@ public class IMEControl
 
         if (Settings.IMEHookStyle == IMEHookStyle.Process)
         {
-            Debugx.Printl($"切换到进程钩子控制:{DateTime.Now}");
+            DebugEx.Printl($"切换到进程钩子控制:{DateTime.Now}");
             _hookProc = (nCode, wParam, lParam) => {
                 if (nCode >= 0)
                 {
@@ -345,10 +345,10 @@ public class IMEControl
                         // 如果是ctrl就跳过
                         if (Control.ModifierKeys == Keys.None || Control.ModifierKeys == Keys.Shift)
                         {
-                            Debugx.Printl($"进程钩子按了这个{Control.ModifierKeys}^{DateTime.Now}");
+                            DebugEx.Printl($"进程钩子按了这个{Control.ModifierKeys}^{DateTime.Now}");
                             if (IMEHook(nCode, wParam, lParam))
                             {
-                                Debugx.Printl($"进程钩子拦截成功^{DateTime.Now}");
+                                DebugEx.Printl($"进程钩子拦截成功^{DateTime.Now}");
                                 return (IntPtr)1;
                             }
                         }
@@ -363,7 +363,7 @@ public class IMEControl
 
         if (Settings.IMEHookStyle == IMEHookStyle.Global)
         {
-            Debugx.Printl($"切换到全局钩子控制:{DateTime.Now}");
+            DebugEx.Printl($"切换到全局钩子控制:{DateTime.Now}");
             var moduleHandle = WindowsAPI.GetModuleHandle(_process.MainModule.ModuleName);
             _hookProc = (nCode, wParam, lParam) => {
                 if (nCode >= 0)
@@ -463,7 +463,7 @@ public class IMEControl
                     // Debugx.Printl($"afx...{left}...{DateTime.Now}");
                     if (!left.StartsWith("afx"))
                     {
-                        Debugx.Printl($"afx...拦截...{DateTime.Now}");
+                        DebugEx.Printl($"afx...拦截...{DateTime.Now}");
                         return false;
                     }
                 }
@@ -473,7 +473,7 @@ public class IMEControl
 
             if (left.StartsWith("hwndwrapper"))//cad21会进入
             {
-                Debugx.Printl($"hwndwrapper::{DateTime.Now}");
+                DebugEx.Printl($"hwndwrapper::{DateTime.Now}");
 
                 var parent = WindowsAPI.GetParent(focus);
                 if (parent == IntPtr.Zero)
@@ -492,7 +492,7 @@ public class IMEControl
 
             if (left.StartsWith("edit"))
             {
-                Debugx.Printl($"edit::{DateTime.Now}");
+                DebugEx.Printl($"edit::{DateTime.Now}");
 
                 var parent = WindowsAPI.GetParent(focus);
                 WindowsAPI.GetClassName(parent, _lpClassName, checked(_lpClassName.Capacity + 1));
@@ -509,7 +509,7 @@ public class IMEControl
 
             if (left == "cicerouiwndframe")
             {
-                Debugx.Printl($"cicerouiwndframe::{DateTime.Now}");
+                DebugEx.Printl($"cicerouiwndframe::{DateTime.Now}");
                 return true;
             }
         }

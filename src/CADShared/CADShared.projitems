@@ -9,7 +9,7 @@
     <Import_RootNamespace>CADShared.Shared</Import_RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-      <Compile Include="$(MSBuildThisFileDirectory)**\*.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)**\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="$(MSBuildThisFileDirectory)Basal\General\新文件夹\" />

@@ -381,7 +381,7 @@ public static class LogHelper
 
             if (FlagOutVsOutput)
             {
-                Debugx.Printl("错误日志: " + LogAddress);
+                DebugEx.Printl("错误日志: " + LogAddress);
                 Debug.Write(logtxtJson);
             }
             return logtxtJson;

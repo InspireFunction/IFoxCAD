@@ -35,7 +35,11 @@ public class TestBlock
             if (item is null)
                 continue;
             var box = item.GetBoundingBoxEx();
-            Env.Print("min:" + box.Min + ";max" + box.Max);
+            if (box is null)
+            {
+                throw new System.Exception("box is null");
+            }
+            Env.Print("min:" + box.Value.Min + ";max" + box.Value.Max);
         }
     }
 
@@ -204,11 +208,11 @@ public class TestBlock
         var id = tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test1");
         var brf1 = tr.GetObject<BlockReference>(id)!;
         var pts = new List<Point3d> { new Point3d(3, 3, 0), new Point3d(7, 3, 0), new Point3d(7, 7, 0), new Point3d(3, 7, 0) };
-        brf1.ClipBlockRef(pts);
+        brf1.XClip(pts);
 
         var id1 = tr.CurrentSpace.InsertBlock(new Point3d(20, 20, 0), "test1");
         var brf2 = tr.GetObject<BlockReference>(id);
-        brf2?.ClipBlockRef(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
+        brf2?.XClip(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
     }
 
     // 给用户的测试程序，不知道对错

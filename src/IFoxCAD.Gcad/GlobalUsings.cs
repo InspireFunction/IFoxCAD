@@ -26,6 +26,7 @@ global using GrxCAD.DatabaseServices;
 global using GrxCAD.Geometry;
 global using GrxCAD.Runtime;
 global using Acap = GrxCAD.ApplicationServices.Application;
+global using Acaop = GrxCAD.ApplicationServices.Application;
 global using Acgi = GrxCAD.GraphicsInterface;
 
 global using GrxCAD.DatabaseServices.Filters;

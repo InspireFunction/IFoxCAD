@@ -1,0 +1,203 @@
+﻿
+namespace IFoxCAD.Cad;
+
+/// <summary>
+/// 实体图元扩展类
+/// </summary>
+public static class EntityEx
+{
+    #region 实体线性变换
+
+    /// <summary>
+    /// 移动实体
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <param name="from">基点</param>
+    /// <param name="to">目标点</param>
+    public static void Move(this Entity ent, Point3d from, Point3d to)
+    {
+        Move(ent, to - from);
+    }
+
+    /// <summary>
+    /// 移动实体
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <param name="vector">向量</param>
+    public static void Move(this Entity ent, Vector3d vector)
+    {
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Displacement(vector));
+        }
+    }
+
+    /// <summary>
+    /// 缩放实体
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <param name="center">缩放基点坐标</param>
+    /// <param name="scaleValue">缩放比例</param>
+    public static void Scale(this Entity ent, Point3d center, double scaleValue)
+    {
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Scaling(scaleValue, center));
+        }
+    }
+
+    /// <summary>
+    /// 旋转实体
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <param name="center">旋转中心</param>
+    /// <param name="angle">转角，弧度制，正数为顺时针</param>
+    /// <param name="normal">旋转平面的法向矢量</param>
+    public static void Rotation(this Entity ent, Point3d center, double angle, Vector3d normal)
+    {
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Rotation(angle, normal, center));
+        }
+    }
+
+    /// <summary>
+    /// 在XY平面内旋转实体
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <param name="center">旋转中心</param>
+    /// <param name="angle">转角，弧度制，正数为顺时针</param>
+    public static void Rotation(this Entity ent, Point3d center, double angle)
+    {
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Rotation(angle, Vector3d.ZAxis.TransformBy(ent.Ecs), center));
+        }
+    }
+
+    /// <summary>
+    /// 按对称轴镜像实体
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <param name="startPoint">对称轴起点</param>
+    /// <param name="endPoint">对称轴终点</param>
+    public static void Mirror(this Entity ent, Point3d startPoint, Point3d endPoint)
+    {
+        using (ent.ForWrite())
+        {
+            using var line3d = new Line3d(startPoint, endPoint);
+            ent.TransformBy(Matrix3d.Mirroring(line3d));
+        }
+    }
+
+    /// <summary>
+    /// 按对称面镜像实体
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <param name="plane">对称平面</param>
+    public static void Mirror(this Entity ent, Plane plane)
+    {
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Mirroring(plane));
+        }
+    }
+
+    /// <summary>
+    /// 按对称点镜像实体
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <param name="basePoint">对称点</param>
+    public static void Mirror(this Entity ent, Point3d basePoint)
+    {
+        using (ent.ForWrite())
+        {
+            ent.TransformBy(Matrix3d.Mirroring(basePoint));
+        }
+    }
+
+    #endregion
+
+    #region 实体范围
+
+    /// <summary>
+    /// 获取实体集合的范围
+    /// </summary>
+    /// <param name="ents">实体迭代器</param>
+    /// <returns>实体集合的范围</returns>
+    public static Extents3d GetExtents(this IEnumerable<Entity> ents)
+    {
+        var ext = new Extents3d();
+        foreach (var item in ents)
+        {
+            var e = item.GetBoundingBoxEx();
+            if (e.HasValue)
+                ext.AddExtents(e.Value.Extents3d);
+        }
+
+        return ext;
+    }
+
+    #endregion
+
+
+    /// <summary>
+    /// 获取图元包围盒
+    /// </summary>
+    /// <param name="ent"></param>
+    /// <returns>包围盒信息</returns>
+    public static BoundingInfo? GetBoundingBoxEx(this Entity ent)
+    {
+        return EntityBoundingInfo.GetEntityBoxEx(ent)?.GetBoundingInfo();
+    }
+
+    /// <summary>
+    /// 获取拉伸点
+    /// </summary>
+    /// <param name="ent">实体</param>
+    /// <returns>点集</returns>
+    public static List<Point3d> GetStretchPoints(this Entity ent)
+    {
+        using var p3dc = new Point3dCollection();
+        ent.GetStretchPoints(p3dc);
+        return p3dc.Cast<Point3d>().ToList();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="startPoint"></param>
+    /// <param name="pointOnArc"></param>
+    /// <param name="endPoint"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public static Arc CreateArc(Point3d startPoint, Point3d pointOnArc, Point3d endPoint)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="p0"></param>
+    /// <param name="p1"></param>
+    /// <param name="p2"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public static Circle CreateCircle(Point3d p0, Point3d p1, Point3d p2)
+    {
+        throw new NotImplementedException();
+    }
+
+    /// <summary>
+    /// /
+    /// </summary>
+    /// <param name="point3d"></param>
+    /// <param name="v"></param>
+    /// <returns></returns>
+    /// <exception cref="NotImplementedException"></exception>
+    public static Entity? CreateCircle(Point3d point3d, int v)
+    {
+        throw new NotImplementedException();
+    }
+}
