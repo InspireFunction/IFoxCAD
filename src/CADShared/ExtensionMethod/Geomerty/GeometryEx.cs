@@ -1,3 +1,7 @@
+#if a2024
+using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
+#endif
+
 namespace IFoxCAD.Cad;
 
 using System.Drawing;
@@ -17,46 +21,84 @@ public static class GeometryEx
     /// <returns>点与多边形的关系</returns>
     public static PointOnRegionType PointOnRegion(this IEnumerable<Point2d> pts, Point2d pt)
     {
-        // 遍历点集并生成首尾连接的多边形
-        var ptlst = new LoopList<Point2d>(pts);
-        if (ptlst.Count < 3)
+        var ptList = pts.ToList();
+        if (ptList.Count < 3)
+            return PointOnRegionType.Error;
+        if (ptList[0] == ptList[^1])
+        {
+            ptList.RemoveAt(ptList.Count - 1);
+        }
+
+        if (ptList.Count < 3)
             return PointOnRegionType.Error;
 
-        var ls2ds = new List<LineSegment2d>();
-        foreach (var node in ptlst.GetNodes())
+#if !zcad
+        List<Curve2d> ls2ds = [];
+        for (var i = 0; i < ptList.Count - 1; i++)
         {
-            ls2ds.Add(new LineSegment2d(node.Value, node.Next!.Value));
+            ls2ds.Add(new LineSegment2d(ptList[i], ptList[i + 1]));
         }
-        var cc2d = new CompositeCurve2d(ls2ds.ToArray());
+
+        ls2ds.Add(new LineSegment2d(ptList[^1], ptList[0]));
+        using var cc2d = new CompositeCurve2d(ls2ds.ToArray());
+
+        // 释放资源
+        foreach (var curve2d in ls2ds)
+        {
+            using (curve2d)
+            {
+            }
+        }
 
         // 在多边形上?
         if (cc2d.IsOn(pt))
             return PointOnRegionType.On;
-
         // 在最小包围矩形外?
         var bb2d = cc2d.BoundBlock;
         if (!bb2d.Contains(pt))
             return PointOnRegionType.Outside;
+#endif
 
-        //
-        bool flag = false;
-        foreach (var node in ptlst.GetNodes())
+        #region 旧版疑似有问题的代码
+
+        // //
+        // var flag = false;
+        // foreach (var node in ptlst.GetNodes())
+        // {
+        //     var pt1 = node.Value;
+        //     var pt2 = node.Next!.Value;
+        //     if (pt.Y < pt1.Y && pt.Y < pt2.Y)
+        //         continue;
+        //     if (pt1.X < pt.X && pt2.X < pt.X)
+        //         continue;
+        //     var vec = pt2 - pt1;
+        //     var t = (pt.X - pt1.X) / vec.X;
+        //     var y = t * vec.Y + pt1.Y;
+        //     if (y < pt.Y && t >= 0 && t <= 1)
+        //         flag = !flag;
+        // }
+        // return
+        //     flag ?
+        //     PointOnRegionType.Inside : PointOnRegionType.Outside;
+
+        #endregion
+
+        var flag = false;
+        var j = ptList.Count - 1;
+        for (var i = 0; i < ptList.Count; i++)
         {
-            var pt1 = node.Value;
-            var pt2 = node.Next!.Value;
-            if (pt.Y < pt1.Y && pt.Y < pt2.Y)
-                continue;
-            if (pt1.X < pt.X && pt2.X < pt.X)
-                continue;
-            Vector2d vec = pt2 - pt1;
-            double t = (pt.X - pt1.X) / vec.X;
-            double y = t * vec.Y + pt1.Y;
-            if (y < pt.Y && t >= 0 && t <= 1)
-                flag = !flag;
+            var pi = ptList[i];
+            var pj = ptList[j];
+            if ((pi.Y < pt.Y && pj.Y >= pt.Y || pj.Y < pt.Y && pi.Y >= pt.Y) &&
+                (pi.X <= pt.X || pj.X <= pt.X))
+            {
+                flag ^= pi.X + (pt.Y - pi.Y) / (pj.Y - pi.Y) * (pj.X - pi.X) < pt.X;
+            }
+
+            j = i;
         }
-        return
-            flag ?
-            PointOnRegionType.Inside : PointOnRegionType.Outside;
+
+        return flag ? PointOnRegionType.Inside : PointOnRegionType.Outside;
     }
 
     /// <summary>
@@ -67,46 +109,60 @@ public static class GeometryEx
     /// <returns>点与多边形的关系</returns>
     public static PointOnRegionType PointOnRegion(this IEnumerable<Point3d> pts, Point3d pt)
     {
-        // 遍历点集并生成首尾连接的多边形
-        var ptlst = new LoopList<Point3d>(pts);
-        if (ptlst.First!.Value == ptlst.Last!.Value)
-            ptlst.RemoveLast();
-        if (ptlst.Count < 3)
+        var ptList = pts.ToList();
+        if (ptList.Count < 3)
+            return PointOnRegionType.Error;
+        if (ptList[0] == ptList[^1])
+        {
+            ptList.RemoveAt(ptList.Count - 1);
+        }
+
+        if (ptList.Count < 3)
             return PointOnRegionType.Error;
 
-        var ls3ds = new List<LineSegment3d>();
-        foreach (var node in ptlst.GetNodes())
-            ls3ds.Add(new LineSegment3d(node.Value, node.Next!.Value));
-        var cc3d = new CompositeCurve3d(ls3ds.ToArray());
+        List<Curve3d> ls3ds = [];
+        for (var i = 0; i < ptList.Count - 1; i++)
+        {
+            ls3ds.Add(new LineSegment3d(ptList[i], ptList[i + 1]));
+        }
+
+        ls3ds.Add(new LineSegment3d(ptList[^1], ptList[0]));
+        using var cc3d = new CompositeCurve3d(ls3ds.ToArray());
+
+        // 释放资源
+        foreach (var curve3d in ls3ds)
+        {
+            using (curve3d)
+            {
+            }
+        }
 
         // 在多边形上?
         if (cc3d.IsOn(pt))
             return PointOnRegionType.On;
 
         // 在最小包围矩形外?
-        var bb2d = cc3d.BoundBlock;
-        if (!bb2d.Contains(pt))
+        var bb3d = cc3d.BoundBlock;
+        if (!bb3d.Contains(pt))
             return PointOnRegionType.Outside;
 
-        //
-        bool flag = false;
-        foreach (var node in ptlst.GetNodes())
+
+        var flag = false;
+        var j = ptList.Count - 1;
+        for (var i = 0; i < ptList.Count; i++)
         {
-            var pt1 = node.Value;
-            var pt2 = node.Next!.Value;
-            if (pt.Y < pt1.Y && pt.Y < pt2.Y)
-                continue;
-            if (pt1.X < pt.X && pt2.X < pt.X)
-                continue;
-            Vector3d vec = pt2 - pt1;
-            double t = (pt.X - pt1.X) / vec.X;
-            double y = t * vec.Y + pt1.Y;
-            if (y < pt.Y && t >= 0 && t <= 1)
-                flag = !flag;
+            var pi = ptList[i];
+            var pj = ptList[j];
+            if ((pi.Y < pt.Y && pj.Y >= pt.Y || pj.Y < pt.Y && pi.Y >= pt.Y) &&
+                (pi.X <= pt.X || pj.X <= pt.X))
+            {
+                flag ^= pi.X + (pt.Y - pi.Y) / (pj.Y - pi.Y) * (pj.X - pi.X) < pt.X;
+            }
+
+            j = i;
         }
-        return
-            flag ?
-            PointOnRegionType.Inside : PointOnRegionType.Outside;
+
+        return flag ? PointOnRegionType.Inside : PointOnRegionType.Outside;
     }
 
     /// <summary>
@@ -118,13 +174,8 @@ public static class GeometryEx
     /// <returns>解析类圆对象</returns>
     public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, out LoopList<Point2d> ptlst)
     {
-        ptlst = new LoopList<Point2d> { pt1, pt2 };
-        return
-            new CircularArc2d
-            (
-                (pt1 + pt2.GetAsVector()) / 2,
-                pt1.GetDistanceTo(pt2) / 2
-            );
+        ptlst = [pt1, pt2];
+        return new CircularArc2d((pt1 + pt2.GetAsVector()) / 2, pt1.GetDistanceTo(pt2) / 2);
     }
 
     /// <summary>
@@ -135,21 +186,17 @@ public static class GeometryEx
     /// <param name="pt3">基准点</param>
     /// <param name="ptlst">输出圆上的点</param>
     /// <returns>解析类圆对象</returns>
-    public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, Point2d pt3, out LoopList<Point2d> ptlst)
+    public static CircularArc2d GetMinCircle(Point2d pt1, Point2d pt2, Point2d pt3,
+        out LoopList<Point2d> ptlst)
     {
-        ptlst = new LoopList<Point2d> { pt1, pt2, pt3 };
+        ptlst = [pt1, pt2, pt3];
 
         // 遍历各点与下一点的向量长度,找到距离最大的两个点
-        LoopListNode<Point2d> maxNode =
-            ptlst.GetNodes().FindByMax
-            (
-                out double maxLength,
-                node => node.Value.GetDistanceTo(node.Next!.Value)
-            );
+        var maxNode = ptlst.GetNodes()
+            .FindByMax(out _, node => node.Value.GetDistanceTo(node.Next!.Value));
 
         // 以两点做最小包围圆
-        CircularArc2d ca2d =
-            GetMinCircle(maxNode.Value, maxNode.Next!.Value, out LoopList<Point2d> tptlst);
+        var ca2d = GetMinCircle(maxNode.Value, maxNode.Next!.Value, out var tptlst);
 
         // 如果另一点属于该圆
         if (ca2d.IsIn(maxNode.Previous!.Value))
@@ -158,9 +205,10 @@ public static class GeometryEx
             ptlst = tptlst;
             return ca2d;
         }
+
         // 否则按三点做圆
         // ptlst.SetFirst(maxNode);
-        ptlst = new LoopList<Point2d> { maxNode.Value, maxNode.Next.Value, maxNode.Previous.Value };
+        ptlst = [maxNode.Value, maxNode.Next.Value, maxNode.Previous.Value];
         ca2d = new CircularArc2d(pt1, pt2, pt3);
         ca2d.SetAngles(0, Math.PI * 2);
         return ca2d;
@@ -175,7 +223,8 @@ public static class GeometryEx
     /// <param name="pt4">基准点</param>
     /// <param name="ptlst">输出圆上的点</param>
     /// <returns>解析类圆对象</returns>
-    public static CircularArc2d? GetMinCircle(Point2d pt1, Point2d pt2, Point2d pt3, Point2d pt4, out LoopList<Point2d>? ptlst)
+    public static CircularArc2d? GetMinCircle(Point2d pt1, Point2d pt2, Point2d pt3, Point2d pt4,
+        out LoopList<Point2d>? ptlst)
     {
         var iniptlst = new LoopList<Point2d>() { pt1, pt2, pt3, pt4 };
         ptlst = null;
@@ -187,7 +236,8 @@ public static class GeometryEx
             // 获取各组合下三点的最小包围圆
             var secondNode = firstNode.Next;
             var thirdNode = secondNode!.Next;
-            var tca2d = GetMinCircle(firstNode.Value, secondNode.Value, thirdNode!.Value, out LoopList<Point2d> tptlst);
+            var tca2d = GetMinCircle(firstNode.Value, secondNode.Value, thirdNode!.Value,
+                out var tptlst);
 
             // 如果另一点属于该圆,并且半径小于当前值就把它做为候选解
             if (!tca2d.IsIn(firstNode.Previous!.Value))
@@ -214,6 +264,7 @@ public static class GeometryEx
     {
         return (pt2 - ptBase).DotProduct((pt1 - ptBase).GetPerpendicularVector()) * 0.5;
     }
+
     /// <summary>
     /// 计算三点围成的三角形的真实面积
     /// </summary>
@@ -290,16 +341,16 @@ public static class GeometryEx
     /// <returns>有向面积</returns>
     private static double CalArea(IEnumerable<Point2d> pnts)
     {
-        var itor = pnts.GetEnumerator();
+        using var itor = pnts.GetEnumerator();
         if (!itor.MoveNext())
-            throw new ArgumentNullException(nameof(pnts));
+            throw new System.ArgumentNullException(nameof(pnts));
         var start = itor.Current;
-        Point2d p1, p2 = start;
+        var p2 = start;
         double area = 0;
 
         while (itor.MoveNext())
         {
-            p1 = p2;
+            var p1 = p2;
             p2 = itor.Current;
             area += (p1.X * p2.Y - p2.X * p1.Y);
         }
@@ -307,6 +358,7 @@ public static class GeometryEx
         area = (area + (p2.X * start.Y - start.X * p2.Y)) / 2.0;
         return area;
     }
+
     /// <summary>
     /// 计算点集的真实面积
     /// </summary>
@@ -344,21 +396,18 @@ public static class GeometryEx
         switch (pnts.Count)
         {
             case 0:
-            ptlst = null;
-            return null;
+                ptlst = null;
+                return null;
 
             case 1:
-            ptlst = new LoopList<Point2d> { pnts[0] };
-            return new CircularArc2d(pnts[0], 0);
+                ptlst = [pnts[0]];
+                return new CircularArc2d(pnts[0], 0);
 
-            case 2:
-            return GetMinCircle(pnts[0], pnts[1], out ptlst);
+            case 2: return GetMinCircle(pnts[0], pnts[1], out ptlst);
 
-            case 3:
-            return GetMinCircle(pnts[0], pnts[1], pnts[2], out ptlst);
+            case 3: return GetMinCircle(pnts[0], pnts[1], pnts[2], out ptlst);
 
-            case 4:
-            return GetMinCircle(pnts[0], pnts[1], pnts[2], pnts[3], out ptlst);
+            case 4: return GetMinCircle(pnts[0], pnts[1], pnts[2], pnts[3], out ptlst);
         }
 
         // 按前三点计算最小包围圆
@@ -384,10 +433,9 @@ public static class GeometryEx
             {
                 // 第三点取另两点中距离圆心较远的点
                 // 按算法中描述的任选其中一点的话,还是无法收敛......
-                tpnts[2] =
-                    tpnts.Except(ptlst)
-                    .FindByMax(pnt => ca2d!.Center.GetDistanceTo(pnt));
+                tpnts[2] = tpnts.Except(ptlst).FindByMax(pnt => ca2d!.Center.GetDistanceTo(pnt));
             }
+
             tpnts[0] = ptlst.First!.Value;
             tpnts[1] = ptlst.First.Next!.Value;
 
@@ -402,42 +450,51 @@ public static class GeometryEx
     }
 
     /// <summary>
+    /// 叉积,二维叉乘计算
+    /// </summary>
+    /// <param name="o">原点</param>
+    /// <param name="a">oa向量</param>
+    /// <param name="b">ob向量,此为判断点</param>
+    /// <returns>返回值有正负,表示绕原点四象限的位置变换,也就是有向面积</returns>
+    private static double Cross(Point2d o, Point2d a, Point2d b)
+    {
+        return (a.X - o.X) * (b.Y - o.Y) - (a.Y - o.Y) * (b.X - o.X);
+    }
+
+    /// <summary>
     /// 获取点集的凸包
     /// </summary>
     /// <param name="points">点集</param>
     /// <returns>凸包</returns>
     public static List<Point2d>? ConvexHull(this List<Point2d> points)
     {
-        if (points is null)
-            return null;
+        if (points.Count < 3) return null;
 
-        if (points.Count <= 1)
-            return points;
+        //坐标排序
+        points = points.OrderBy(p => p.X).ThenBy(p => p.Y).ToList();
 
-        int n = points.Count, k = 0;
-        List<Point2d> H = new(new Point2d[2 * n]);
+        var hullPts = new List<Point2d>();
 
-        points.Sort((a, b) =>
-             a.X == b.X ? a.Y.CompareTo(b.Y) : a.X.CompareTo(b.X));
-
-        // Build lower hull
-        for (int i = 0; i < n; ++i)
-        {
-            while (k >= 2 && IsClockWise(H[k - 2], H[k - 1], points[i]) == OrientationType.CounterClockWise)
-                k--;
-            H[k++] = points[i];
+        //构建下凸包
+        foreach (var pt in points) {
+            while (hullPts.Count >= 2 && Cross(hullPts[^2], hullPts[^1], pt) <= 0)
+                hullPts.RemoveAt(hullPts.Count - 1);
+            hullPts.Add(pt);
         }
 
-        // Build upper hull
-        for (int i = n - 2, t = k + 1; i >= 0; i--)
-        {
-            while (k >= t && IsClockWise(H[k - 2], H[k - 1], points[i]) == OrientationType.CounterClockWise)
-                k--;
-            H[k++] = points[i];
+        //构建上凸包
+        var lowerHullCount = hullPts.Count + 1;
+        for (var i = points.Count - 2; i >= 0; i--) {
+            while (hullPts.Count >= lowerHullCount && Cross(hullPts[^2], hullPts[^1], points[i]) <= 0)
+                hullPts.RemoveAt(hullPts.Count - 1);
+            hullPts.Add(points[i]);
         }
-        return H.Take(k - 1).ToList();
+
+        //移除与起点重复的尾点
+        hullPts.RemoveAt(hullPts.Count - 1);
+
+        return hullPts.Count >= 3 ? hullPts : null;
     }
-
 
     #endregion PointList
 
@@ -492,7 +549,8 @@ public static class GeometryEx
     /// <param name="from">源坐标系</param>
     /// <param name="to">目标坐标系</param>
     /// <returns>变换后的点</returns>
-    public static Point3d Trans(this Point3d point, CoordinateSystemCode from, CoordinateSystemCode to)
+    public static Point3d Trans(this Point3d point, CoordinateSystemCode from,
+        CoordinateSystemCode to)
     {
         return Env.Editor.GetMatrix(from, to) * point;
     }
@@ -504,7 +562,8 @@ public static class GeometryEx
     /// <param name="from">源坐标系</param>
     /// <param name="to">目标坐标系</param>
     /// <returns>变换后的向量</returns>
-    public static Vector3d Trans(this Vector3d vec, CoordinateSystemCode from, CoordinateSystemCode to)
+    public static Vector3d Trans(this Vector3d vec, CoordinateSystemCode from,
+        CoordinateSystemCode to)
     {
         return vec.TransformBy(Env.Editor.GetMatrix(from, to));
     }
@@ -517,11 +576,8 @@ public static class GeometryEx
     /// <returns>变换后的点</returns>
     public static Point3d Wcs2Dcs(this Point3d point, bool atPaperSpace)
     {
-        return
-            Trans(
-                point,
-                CoordinateSystemCode.Wcs, atPaperSpace ? CoordinateSystemCode.PDcs : CoordinateSystemCode.MDcs
-            );
+        return Trans(point, CoordinateSystemCode.Wcs,
+            atPaperSpace ? CoordinateSystemCode.PDcs : CoordinateSystemCode.MDcs);
     }
 
     /// <summary>
@@ -532,15 +588,11 @@ public static class GeometryEx
     /// <returns>变换后的向量</returns>
     public static Vector3d Wcs2Dcs(this Vector3d vec, bool atPaperSpace)
     {
-        return
-            Trans(
-                vec,
-                CoordinateSystemCode.Wcs, atPaperSpace ? CoordinateSystemCode.PDcs : CoordinateSystemCode.MDcs
-            );
+        return Trans(vec, CoordinateSystemCode.Wcs,
+            atPaperSpace ? CoordinateSystemCode.PDcs : CoordinateSystemCode.MDcs);
     }
 
     #endregion Ucs
-
 
     /// <summary>
     /// 返回不等比例变换矩阵
@@ -552,7 +604,7 @@ public static class GeometryEx
     /// <returns>三维矩阵</returns>
     public static Matrix3d GetScaleMatrix(this Point3d point, double x, double y, double z)
     {
-        double[] matdata = new double[16];
+        var matdata = new double[16];
         matdata[0] = x;
         matdata[3] = point.X * (1 - x);
         matdata[5] = y;
@@ -570,102 +622,119 @@ public static class GeometryEx
     /// <returns>尺寸对象</returns>
     public static Size GetSize(this Extents3d ext)
     {
-        int width = (int)Math.Floor(ext.MaxPoint.X - ext.MinPoint.X);
-        int height = (int)Math.Ceiling(ext.MaxPoint.Y - ext.MinPoint.Y);
+        var width = (int)Math.Floor(ext.MaxPoint.X - ext.MinPoint.X);
+        var height = (int)Math.Ceiling(ext.MaxPoint.Y - ext.MinPoint.Y);
         return new(width, height);
     }
 
     /// <summary>
-    /// 将三维点转换为二维点
+    /// 重绘
     /// </summary>
-    /// <param name="pt">三维点</param>
-    /// <returns>二维点</returns>
-    public static Point2d Point2d(this Point3d pt)
+    /// <param name="geometry">图形界面几何</param>
+    /// <param name="drawables">可绘制的对象列表</param>
+    public static void Draw(this Geometry geometry, IEnumerable<Drawable> drawables)
     {
-        return new(pt.X, pt.Y);
-    }
-    /// <summary>
-    /// 将三维点集转换为二维点集
-    /// </summary>
-    /// <param name="pts">三维点集</param>
-    /// <returns>二维点集</returns>
-    public static IEnumerable<Point2d> Point2d(this IEnumerable<Point3d> pts)
-    {
-        return pts.Select(pt => pt.Point2d());
-    }
-    /// <summary>
-    /// 将二维点转换为三维点
-    /// </summary>
-    /// <param name="pt">二维点</param>
-    /// <param name="z">Z值</param>
-    /// <returns>三维点</returns>
-    public static Point3d Point3d(this Point2d pt, double z = 0)
-    {
-        return new(pt.X, pt.Y, z);
+        drawables.ForEach(d => geometry.Draw(d));
     }
 
     /// <summary>
-    /// 获取两个点之间的中点
+    /// 重绘
     /// </summary>
-    /// <param name="pt1">第一点</param>
-    /// <param name="pt2">第二点</param>
-    /// <returns>返回两个点之间的中点</returns>
-    public static Point3d GetMidPointTo(this Point3d pt1, Point3d pt2)
+    /// <param name="geometry">图形界面几何</param>
+    /// <param name="drawables">可绘制的对象列表</param>
+    public static void Draw(this Geometry geometry, params Drawable[] drawables)
     {
-        return new(pt1.X * 0.5 + pt2.X * 0.5,
-                   pt1.Y * 0.5 + pt2.Y * 0.5,
-                   pt1.Z * 0.5 + pt2.Z * 0.5);
+        drawables.ForEach(d => geometry.Draw(d));
+    }
+}
+
+/// <summary>
+/// 向量扩展类
+/// </summary>
+public static class VectorEx
+{
+    /// <summary>
+    /// 转换为2d向量
+    /// </summary>
+    /// <param name="vector3d">3d向量</param>
+    /// <returns>2d向量</returns>
+    public static Vector2d Convert2d(this Vector3d vector3d)
+    {
+        return new Vector2d(vector3d.X, vector3d.Y);
     }
 
     /// <summary>
-    /// 获取两个点之间的中点
+    /// 转换为3d向量
     /// </summary>
-    /// <param name="pt1">第一点</param>
-    /// <param name="pt2">第二点</param>
-    /// <returns>返回两个点之间的中点</returns>
-    public static Point2d GetMidPointTo(this Point2d pt1, Point2d pt2)
+    /// <param name="vector2d">2d向量</param>
+    /// <param name="z">z值</param>
+    /// <returns>3d向量</returns>
+    public static Vector3d Convert3d(this Vector2d vector2d, double z = 0)
     {
-        // (pt1 + pt2) / 2; // 溢出风险
-        return new(pt1.X * 0.5 + pt2.X * 0.5,
-                   pt1.Y * 0.5 + pt2.Y * 0.5);
+        return new Vector3d(vector2d.X, vector2d.Y, z);
     }
 
     /// <summary>
-    /// 根据世界坐标计算用户坐标
+    /// 2d叉乘
     /// </summary>
-    /// <param name="basePt">基点世界坐标</param>
-    /// <param name="userPt">基点用户坐标</param>
-    /// <param name="transPt">目标世界坐标</param>
-    /// <param name="ang">坐标网旋转角，按x轴正向逆时针弧度</param>
-    /// <returns>目标用户坐标</returns>
-    public static Point3d TransPoint(this Point3d basePt, Point3d userPt, Point3d transPt, double ang)
+    /// <param name="a">向量a</param>
+    /// <param name="b">向量b</param>
+    /// <returns>叉乘值</returns>
+    public static double Cross2d(this Vector3d a, Vector3d b)
     {
-        Matrix3d transMat = Matrix3d.Displacement(userPt - basePt);
-        Matrix3d roMat = Matrix3d.Rotation(-ang, Vector3d.ZAxis, userPt);
-        return transPt.TransformBy(roMat * transMat);
+        return a.X * b.Y - b.X * a.Y;
     }
+
     /// <summary>
-    /// 计算指定距离和角度的点
+    /// 2d叉乘
     /// </summary>
-    /// <remarks>本函数仅适用于x-y平面</remarks>
-    /// <param name="pt">基点</param>
-    /// <param name="ang">角度，x轴正向逆时针弧度</param>
-    /// <param name="len">距离</param>
-    /// <returns>目标点</returns>
-    public static Point3d Polar(this Point3d pt, double ang, double len)
+    /// <param name="a">向量a</param>
+    /// <param name="b">向量b</param>
+    /// <returns>叉乘值</returns>
+    public static double Cross2d(this Vector2d a, Vector2d b)
     {
-        return pt + Vector3d.XAxis.RotateBy(ang, Vector3d.ZAxis) * len;
+        return a.X * b.Y - b.X * a.Y;
     }
+
     /// <summary>
-    /// 计算指定距离和角度的点
+    /// 向量Z值归零
     /// </summary>
-    /// <remarks>本函数仅适用于x-y平面</remarks>
-    /// <param name="pt">基点</param>
-    /// <param name="ang">角度，x轴正向逆时针弧度</param>
-    /// <param name="len">距离</param>
-    /// <returns>目标点</returns>
-    public static Point2d Polar(this Point2d pt, double ang, double len)
+    /// <param name="vector3d">向量</param>
+    /// <returns></returns>
+    public static Vector3d Z20(this Vector3d vector3d)
     {
-        return pt + Vector2d.XAxis.RotateBy(ang) * len;
+        return new Vector3d(vector3d.X, vector3d.Y, 0);
     }
+
+    /// <summary>
+    /// 向量在平面上的弧度
+    /// </summary>
+    /// <param name="vector">向量</param>
+    /// <param name="plane">平面</param>
+    /// <returns>弧度</returns>
+    public static double AngleOnPlane(this Vector3d vector, Plane? plane = null)
+    {
+        return vector.AngleOnPlane(plane ?? PlaneEx.Z);
+    }
+}
+
+/// <summary>
+/// 平面
+/// </summary>
+public static class PlaneEx
+{
+    /// <summary>
+    /// X
+    /// </summary>
+    public static readonly Plane X = new(Point3d.Origin, Vector3d.XAxis);
+
+    /// <summary>
+    /// Y
+    /// </summary>
+    public static readonly Plane Y = new(Point3d.Origin, Vector3d.YAxis);
+
+    /// <summary>
+    /// Z
+    /// </summary>
+    public static readonly Plane Z = new(Point3d.Origin, Vector3d.ZAxis);
 }

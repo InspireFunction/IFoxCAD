@@ -81,7 +81,14 @@ public static class ObjectIdEx
     /// <returns>id有效返回 <see langword="true"/>，反之返回 <see langword="false"/></returns>
     public static bool IsOk(this ObjectId id)
     {
-        return !id.IsNull && id.IsValid && !id.IsErased && !id.IsEffectivelyErased && id.IsResident;
+        return id is
+        {
+            IsNull: false,
+            IsValid: true,
+            IsErased: false,
+            IsEffectivelyErased: false,
+            IsResident: true
+        };
     }
 
     /// <summary>
@@ -90,14 +97,9 @@ public static class ObjectIdEx
     /// <param name="id">对象id</param>
     public static void Erase(this ObjectId id)
     {
-        if (id.IsOk())
-        {
-            var ent = id.GetObject<DBObject>()!;
-            using (ent.ForWrite())
-            {
-                ent.Erase();
-            }// 第一种读写权限自动转换写法
-            // Env.Editor.Regen();
-        }
+        if (!id.IsOk())
+            return;
+        var dbo = id.GetObject(OpenMode.ForWrite);
+        dbo.Erase();
     }
 }

@@ -48,7 +48,7 @@ public class LispDottedPair : LispList
             value.InsertRange(1, this);
             return value;
         }
-    } 
+    }
     #endregion
 
     #region 转换器

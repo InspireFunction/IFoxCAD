@@ -8,18 +8,12 @@ public abstract class OpLogi : OpFilter, IEnumerable<OpFilter>
     /// <summary>
     /// 返回-4组码的开始内容
     /// </summary>
-    public TypedValue First
-    {
-        get { return new TypedValue(-4, $"<{Name}"); }
-    }
+    public TypedValue First => new(-4, $"<{Name}");
 
     /// <summary>
     /// 返回-4组码的结束内容
     /// </summary>
-    public TypedValue Last
-    {
-        get { return new TypedValue(-4, $"{Name}>"); }
-    }
+    public TypedValue Last => new(-4, $"{Name}>");
 
     /// <summary>
     /// 获取过滤条件
@@ -41,10 +35,10 @@ public abstract class OpLogi : OpFilter, IEnumerable<OpFilter>
     /// 获取迭代器
     /// </summary>
     /// <returns>OpFilter迭代器</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public abstract IEnumerator<OpFilter> GetEnumerator();
 
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     IEnumerator IEnumerable.GetEnumerator()
     {
         return GetEnumerator();
@@ -70,16 +64,13 @@ public class OpNot : OpLogi
     /// <summary>
     /// 符号名
     /// </summary>
-    public override string Name
-    {
-        get { return "Not"; }
-    }
+    public override string Name => "Not";
 
     /// <summary>
     /// 获取迭代器
     /// </summary>
     /// <returns>OpFilter迭代器</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public override IEnumerator<OpFilter> GetEnumerator()
     {
         yield return Value;
@@ -115,16 +106,13 @@ public class OpXor : OpLogi
     /// <summary>
     /// 符号名
     /// </summary>
-    public override string Name
-    {
-        get { return "Xor"; }
-    }
+    public override string Name => "Xor";
 
     /// <summary>
     /// 获取迭代器
     /// </summary>
     /// <returns>选择集过滤器类型迭代器</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public override IEnumerator<OpFilter> GetEnumerator()
     {
         yield return Left;

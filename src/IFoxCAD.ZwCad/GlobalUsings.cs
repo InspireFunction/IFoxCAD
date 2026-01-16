@@ -4,9 +4,9 @@ global using ZwSoft.ZwCAD.EditorInput;
 global using ZwSoft.ZwCAD.Geometry;
 global using ZwSoft.ZwCAD.GraphicsInterface;
 global using ZwSoft.ZwCAD.Runtime;
-global using ZwSoft.ZwCAD.Windows;
 global using ZwSoft.ZwCAD.Colors;
 global using ZwSoft.ZwCAD.DatabaseServices.Filters;
+global using ZwSoft.ZwCAD.Windows;
 global using ZwSoft.ZwCAD.GraphicsSystem;
 global using LineWeight = ZwSoft.ZwCAD.DatabaseServices.LineWeight;
 global using Viewport = ZwSoft.ZwCAD.DatabaseServices.Viewport;
@@ -23,6 +23,7 @@ global using SystemVariableChangedEventArgs = ZwSoft.ZwCAD.ApplicationServices.S
 global using AcException = ZwSoft.ZwCAD.Runtime.Exception;
 global using Marshaler = ZwSoft.ZwCAD.Runtime.Marshaler;
 global using System;
+global using System.Security;
 global using System.Reflection;
 global using System.Collections;
 global using System.Collections.Generic;
@@ -57,3 +58,4 @@ global using Manager = ZwSoft.ZwCAD.GraphicsSystem.Manager;
 global using Cad_DwgFiler = ZwSoft.ZwCAD.DatabaseServices.DwgFiler;
 global using Cad_DxfFiler = ZwSoft.ZwCAD.DatabaseServices.DxfFiler;
 global using Cad_ErrorStatus = ZwSoft.ZwCAD.Runtime.ErrorStatus;
+

@@ -1,4 +1,4 @@
-﻿using System.Runtime.CompilerServices;
+﻿// ReSharper disable SuggestVarOrType_SimpleTypes
 
 namespace IFoxCAD.Cad;
 
@@ -26,13 +26,13 @@ public static class Curve3dEx
     /// 获取三维解析类曲线(自交曲线)的交点参数
     /// </summary>
     /// <param name="c3d">三维解析类曲线</param>
-    /// <param name="sort">排序</param>
+    /// <param name="sort">是否排序</param>
     /// <returns>曲线参数的列表</returns>
     public static List<double> GetParamsAtIntersectionPoints(this Curve3d c3d, bool sort = true)
     {
         CurveCurveIntersector3d cci = new(c3d, c3d, Vector3d.ZAxis);
-        List<double> pars = new();
-        for (int i = 0; i < cci.NumberOfIntersectionPoints; i++)
+        List<double> pars = [];
+        for (var i = 0; i < cci.NumberOfIntersectionPoints; i++)
             pars.AddRange(cci.GetIntersectionParameters(i));
         if (sort)
             pars.Sort();
@@ -49,8 +49,8 @@ public static class Curve3dEx
     public static Curve3d GetSubCurve(this Curve3d curve, double from, double to)
     {
         Interval inter = curve.GetInterval();
-        bool atStart = Tolerance.Global.IsEqualPoint(inter.LowerBound, from);
-        bool atEnd = Tolerance.Global.IsEqualPoint(inter.UpperBound, to);
+        var atStart = Tolerance.Global.IsEqualPoint(inter.LowerBound, from);
+        var atEnd = Tolerance.Global.IsEqualPoint(inter.UpperBound, to);
         if (atStart && atEnd)
             return (Curve3d)curve.Clone();
         if (curve is NurbCurve3d)
@@ -63,24 +63,20 @@ public static class Curve3dEx
                     clone.HardTrimByParams(from, to);
                     return clone;
                 }
-                else
-                {
-                    clone.HardTrimByParams(inter.LowerBound, to);
-                    clone.HardTrimByParams(from, to);
-                    return clone;
-                }
+
+                clone.HardTrimByParams(inter.LowerBound, to);
+                clone.HardTrimByParams(from, to);
+                return clone;
             }
-            else
-            {
-                NurbCurve3d clone1 = (NurbCurve3d)curve.Clone();
-                clone1.HardTrimByParams(from, inter.UpperBound);
-                NurbCurve3d clone2 = (NurbCurve3d)curve.Clone();
-                clone2.HardTrimByParams(inter.LowerBound, to);
-                clone1.JoinWith(clone2);
-                return clone1;
-            }
+
+            NurbCurve3d clone1 = (NurbCurve3d)curve.Clone();
+            clone1.HardTrimByParams(from, inter.UpperBound);
+            NurbCurve3d clone2 = (NurbCurve3d)curve.Clone();
+            clone2.HardTrimByParams(inter.LowerBound, to);
+            clone1.JoinWith(clone2);
+            return clone1;
         }
-        else
+
         {
             Curve3d clone = (Curve3d)curve.Clone();
             clone.SetInterval(new Interval(from, to, Tolerance.Global.EqualPoint));
@@ -150,16 +146,18 @@ public static class Curve3dEx
     /// <param name="c3d">三维复合曲线</param>
     /// <param name="pars">曲线参数列表</param>
     /// <returns>三维复合曲线列表</returns>
-    public static List<CompositeCurve3d>? GetSplitCurves(this CompositeCurve3d c3d, List<double> pars)
+    public static List<CompositeCurve3d>? GetSplitCurves(this CompositeCurve3d c3d,
+        List<double> pars)
     {
         // 曲线参数剔除重复的
         if (pars.Count > 0)
         {
             pars.Sort();
-            for (int i = pars.Count - 1; i > 0; i--)
+            for (var i = pars.Count - 1; i > 0; i--)
                 if (Tolerance.Global.IsEqualPoint(pars[i], pars[i - 1]))
                     pars.RemoveAt(i);
         }
+
         if (pars.Count == 0)
             return null;
 
@@ -189,6 +187,7 @@ public static class Curve3dEx
             {
                 pars[^1] = inter.UpperBound;
             }
+
             // 加入第一点以支持反向打断
             pars.Add(pars[0]);
         }
@@ -205,9 +204,9 @@ public static class Curve3dEx
                 pars.Add(inter.UpperBound);
         }
 
-        List<CompositeCurve3d> curves = new();
-        List<Curve3d> cc3ds = new();
-        for (int i = 0; i < pars.Count - 1; i++)
+        List<CompositeCurve3d> curves = [];
+        List<Curve3d> cc3ds = [];
+        for (var i = 0; i < pars.Count - 1; i++)
         {
             cc3ds.Clear();
             // 复合曲线参数转换到包含曲线参数
@@ -216,27 +215,20 @@ public static class Curve3dEx
             if (cp1.SegmentIndex == cp2.SegmentIndex)
             {
                 cc3ds.Add(
-                    c3ds[cp1.SegmentIndex].GetSubCurve(
-                        cp1.LocalParameter,
-                        cp2.LocalParameter));
+                    c3ds[cp1.SegmentIndex].GetSubCurve(cp1.LocalParameter, cp2.LocalParameter));
             }
             else
             {
                 inter = c3ds[cp1.SegmentIndex].GetInterval();
-                cc3ds.Add(
-                    c3ds[cp1.SegmentIndex].GetSubCurve(
-                        cp1.LocalParameter,
-                        inter.UpperBound));
+                cc3ds.Add(c3ds[cp1.SegmentIndex].GetSubCurve(cp1.LocalParameter, inter.UpperBound));
 
-                for (int j = cp1.SegmentIndex + 1; j < cp2.SegmentIndex; j++)
+                for (var j = cp1.SegmentIndex + 1; j < cp2.SegmentIndex; j++)
                     cc3ds.Add((Curve3d)c3ds[j].Clone());
 
                 inter = c3ds[cp2.SegmentIndex].GetInterval();
-                cc3ds.Add(
-                    c3ds[cp2.SegmentIndex].GetSubCurve(
-                        inter.LowerBound,
-                        cp2.LocalParameter));
+                cc3ds.Add(c3ds[cp2.SegmentIndex].GetSubCurve(inter.LowerBound, cp2.LocalParameter));
             }
+
             curves.Add(new(cc3ds.ToArray()));
         }
 
@@ -265,21 +257,20 @@ public static class Curve3dEx
         if (cs.Length == 1)
             return ToCurve(cs[0]);
 
-        bool hasNurb = false;
+        var hasNurb = false;
 
-        for (int i = 0; i < cs.Length; i++)
+        foreach (var c in cs)
         {
-            var c = cs[i];
-            if (c is NurbCurve3d || c is EllipticalArc3d)
-            {
-                hasNurb = true;
-                break;
-            }
+            if (c is not (NurbCurve3d or EllipticalArc3d))
+                continue;
+            hasNurb = true;
+            break;
         }
+
         if (hasNurb)
         {
             var nc3d = cs[0].ToNurbCurve3d();
-            for (int i = 1; i < cs.Length; i++)
+            for (var i = 1; i < cs.Length; i++)
                 nc3d?.JoinWith(cs[i].ToNurbCurve3d());
             return nc3d?.ToCurve();
         }
@@ -299,24 +290,26 @@ public static class Curve3dEx
         pl.Elevation = cc3d.StartPoint[2];
 
         Plane plane = pl.GetPlane();
-        Point2d endver = Point2d.Origin;
-        int i = 0;
+        Point2d endVer = Point2d.Origin;
+        var i = 0;
         foreach (Curve3d c3d in cc3d.GetCurves())
         {
             if (c3d is CircularArc3d ca3d)
             {
-                double b = Math.Tan(0.25 * (ca3d.EndAngle - ca3d.StartAngle)) * ca3d.Normal[2];
+                var b = Math.Tan(0.25 * (ca3d.EndAngle - ca3d.StartAngle)) * ca3d.Normal[2];
                 pl.AddVertexAt(i, c3d.StartPoint.Convert2d(plane), b, 0, 0);
-                endver = c3d.EndPoint.Convert2d(plane);
+                endVer = c3d.EndPoint.Convert2d(plane);
             }
             else
             {
                 pl.AddVertexAt(i, c3d.StartPoint.Convert2d(plane), 0, 0, 0);
-                endver = c3d.EndPoint.Convert2d(plane);
+                endVer = c3d.EndPoint.Convert2d(plane);
             }
+
             i++;
         }
-        pl.AddVertexAt(i, endver, 0, 0, 0);
+
+        pl.AddVertexAt(i, endVer, 0, 0, 0);
         return pl;
     }
 
@@ -331,12 +324,11 @@ public static class Curve3dEx
     /// <returns>实体类构造线</returns>
     public static Xline ToCurve(this Line3d line3d)
     {
-        return
-            new Xline
-            {
-                BasePoint = line3d.PointOnLine,
-                SecondPoint = line3d.PointOnLine + line3d.Direction
-            };
+        return new Xline
+        {
+            BasePoint = line3d.PointOnLine,
+            SecondPoint = line3d.PointOnLine + line3d.Direction
+        };
     }
 
     /// <summary>
@@ -346,14 +338,11 @@ public static class Curve3dEx
     /// <param name="fromParameter">起点参数</param>
     /// <param name="toParameter">终点参数</param>
     /// <returns>三维解析类线段</returns>
-    public static LineSegment3d ToLineSegment3d(this Line3d line3d, double fromParameter, double toParameter)
+    public static LineSegment3d ToLineSegment3d(this Line3d line3d, double fromParameter,
+        double toParameter)
     {
-        return
-            new LineSegment3d
-            (
-                line3d.EvaluatePoint(fromParameter),
-                line3d.EvaluatePoint(toParameter)
-            );
+        return new LineSegment3d(line3d.EvaluatePoint(fromParameter),
+            line3d.EvaluatePoint(toParameter));
     }
 
     #endregion Line3d
@@ -385,10 +374,8 @@ public static class Curve3dEx
         {
             return ToCircle(ca3d);
         }
-        else
-        {
-            return ToArc(ca3d);
-        }
+
+        return ToArc(ca3d);
     }
 
     /// <summary>
@@ -407,8 +394,9 @@ public static class Curve3dEx
     public static Arc ToArc(this CircularArc3d ca3d)
     {
         // 必须新建，而不能直接使用GetPlane()获取
-        double angle = ca3d.ReferenceVector.AngleOnPlane(new Plane(ca3d.Center, ca3d.Normal));
-        return new Arc(ca3d.Center, ca3d.Normal, ca3d.Radius, ca3d.StartAngle + angle, ca3d.EndAngle + angle);
+        var angle = ca3d.ReferenceVector.AngleOnPlane(new Plane(ca3d.Center, ca3d.Normal));
+        return new Arc(ca3d.Center, ca3d.Normal, ca3d.Radius, ca3d.StartAngle + angle,
+            ca3d.EndAngle + angle);
     }
 
     /// <summary>
@@ -418,19 +406,12 @@ public static class Curve3dEx
     /// <returns>三维解析类椭圆弧</returns>
     public static EllipticalArc3d ToEllipticalArc3d(this CircularArc3d ca3d)
     {
-        Vector3d zaxis = ca3d.Normal;
-        Vector3d xaxis = ca3d.ReferenceVector;
-        Vector3d yaxis = zaxis.CrossProduct(xaxis);
+        Vector3d zAxis = ca3d.Normal;
+        Vector3d xAxis = ca3d.ReferenceVector;
+        Vector3d yAxis = zAxis.CrossProduct(xAxis);
 
-        return
-            new EllipticalArc3d(
-                ca3d.Center,
-                xaxis,
-                yaxis,
-                ca3d.Radius,
-                ca3d.Radius,
-                ca3d.StartAngle,
-                ca3d.EndAngle);
+        return new EllipticalArc3d(ca3d.Center, xAxis, yAxis, ca3d.Radius, ca3d.Radius,
+            ca3d.StartAngle, ca3d.EndAngle);
     }
 
     /// <summary>
@@ -456,20 +437,15 @@ public static class Curve3dEx
     /// <returns>实体类椭圆弧</returns>
     public static Ellipse ToCurve(this EllipticalArc3d ea3d)
     {
-        Ellipse ell =
-            new(
-                ea3d.Center,
-                ea3d.Normal,
-                ea3d.MajorAxis * ea3d.MajorRadius,
-                ea3d.MinorRadius / ea3d.MajorRadius,
-                0,
-                Math.PI * 2);
+        Ellipse ell = new(ea3d.Center, ea3d.Normal, ea3d.MajorAxis * ea3d.MajorRadius,
+            ea3d.MinorRadius / ea3d.MajorRadius, 0, Math.PI * 2);
         // Ge椭圆角度就是Db椭圆的参数
         if (!ea3d.IsClosed())
         {
             ell.StartAngle = ell.GetAngleAtParameter(ea3d.StartAngle);
             ell.EndAngle = ell.GetAngleAtParameter(ea3d.EndAngle);
         }
+
         return ell;
     }
 
@@ -487,22 +463,15 @@ public static class Curve3dEx
         Spline spl;
         if (nc3d.HasFitData)
         {
-            NurbCurve3dFitData fdata = nc3d.FitData;
-            if (fdata.TangentsExist)
+            NurbCurve3dFitData fData = nc3d.FitData;
+            if (fData.TangentsExist)
             {
-                spl = new Spline(
-                    fdata.FitPoints,
-                    fdata.StartTangent,
-                    fdata.EndTangent,
-                    nc3d.Order,
-                    fdata.FitTolerance.EqualPoint);
+                spl = new Spline(fData.FitPoints, fData.StartTangent, fData.EndTangent, nc3d.Order,
+                    fData.FitTolerance.EqualPoint);
             }
             else
             {
-                spl = new Spline(
-                    fdata.FitPoints,
-                    nc3d.Order,
-                    fdata.FitTolerance.EqualPoint);
+                spl = new Spline(fData.FitPoints, nc3d.Order, fData.FitTolerance.EqualPoint);
             }
         }
         else
@@ -511,19 +480,14 @@ public static class Curve3dEx
             foreach (double knot in nc3d.Knots)
                 knots.Add(knot);
 
-            NurbCurve3dData ncdata = nc3d.DefinitionData;
+            NurbCurve3dData nurbCurve3dData = nc3d.DefinitionData;
 
-            spl = new Spline(
-                    ncdata.Degree,
-                    ncdata.Rational,
-                    nc3d.IsClosed(),
-                    ncdata.Periodic,
-                    ncdata.ControlPoints,
-                    knots,
-                    ncdata.Weights,
-                    Tolerance.Global.EqualPoint,
-                    ncdata.Knots.Tolerance);
+            spl = new Spline(nurbCurve3dData.Degree, nurbCurve3dData.Rational, nc3d.IsClosed(),
+                nurbCurve3dData.Periodic, nurbCurve3dData.ControlPoints, knots,
+                nurbCurve3dData.Weights, Tolerance.Global.EqualPoint,
+                nurbCurve3dData.Knots.Tolerance);
         }
+
         return spl;
     }
 
@@ -538,19 +502,20 @@ public static class Curve3dEx
     /// <returns>实体类三维多段线</returns>
     public static Polyline3d ToCurve(this PolylineCurve3d pl3d)
     {
-        using Point3dCollection pnts = new();
+        using Point3dCollection pt3dCollection = new();
 
-        for (int i = 0; i < pl3d.NumberOfControlPoints; i++)
-            pnts.Add(pl3d.ControlPointAt(i));
+        for (var i = 0; i < pl3d.NumberOfControlPoints; i++)
+            pt3dCollection.Add(pl3d.ControlPointAt(i));
 
-        bool closed = false;
-        int n = pnts.Count - 1;
-        if (pnts[0] == pnts[n])
+        var closed = false;
+        var n = pt3dCollection.Count - 1;
+        if (pt3dCollection[0] == pt3dCollection[n])
         {
-            pnts.RemoveAt(n);
+            pt3dCollection.RemoveAt(n);
             closed = true;
         }
-        return new Polyline3d(Poly3dType.SimplePoly, pnts, closed);
+
+        return new Polyline3d(Poly3dType.SimplePoly, pt3dCollection, closed);
     }
 
     #endregion PolylineCurve3d

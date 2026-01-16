@@ -328,7 +328,7 @@ public abstract class OpFilter
         /// <returns>
         /// 是否相等
         /// </returns>
-        public override bool Equals(object obj) => base.Equals(obj);
+        public override bool Equals(object? obj) => base.Equals(obj);
 
         /// <summary>
         /// 获取HashCode

@@ -6,18 +6,25 @@
 public class XDataList : TypedValueList
 {
     #region 构造函数
-    /// <summary>
-    /// 扩展数据封装类
-    /// </summary>
-    public XDataList() { }
 
     /// <summary>
     /// 扩展数据封装类
     /// </summary>
-    public XDataList(IEnumerable<TypedValue> values) : base(values) { }
+    public XDataList()
+    {
+    }
+
+    /// <summary>
+    /// 扩展数据封装类
+    /// </summary>
+    public XDataList(IEnumerable<TypedValue> values) : base(values)
+    {
+    }
+
     #endregion
 
     #region 添加数据
+
     /// <summary>
     /// 添加数据
     /// </summary>
@@ -25,8 +32,8 @@ public class XDataList : TypedValueList
     /// <param name="obj">组码值</param>
     public override void Add(int code, object obj)
     {
-        if (code < 1000 || code > 1071)
-            throw new System.Exception("传入的组码值不是 XData 有效范围!");
+        if (code is < 1000 or > 1071)
+            throw new Exception("传入的组码值不是 XData 有效范围!");
 
         Add(new TypedValue(code, obj));
     }
@@ -47,8 +54,9 @@ public class XDataList : TypedValueList
     /// <param name="appName">注册名</param>
     public bool Contains(string appName)
     {
-        bool result = false;
-        RangeTask(appName, (tv, state, i) => {
+        var result = false;
+        RangeTask(appName, (_, state, _) =>
+        {
             result = true;
             state.Break();
         });
@@ -62,8 +70,9 @@ public class XDataList : TypedValueList
     /// <param name="value">内容</param>
     public bool Contains(string appName, object value)
     {
-        bool result = false;
-        RangeTask(appName, (tv, state, i) => {
+        var result = false;
+        RangeTask(appName, (tv, state, _) =>
+        {
             if (tv.Value.Equals(value))
             {
                 result = true;
@@ -81,23 +90,26 @@ public class XDataList : TypedValueList
     /// <returns>返回任务组码的索引</returns>
     public List<int> GetXdataAppIndex(string appName, DxfCode[] dxfCodes)
     {
-        List<int> indexs = new();
-        RangeTask(appName, (tv, state, i) => {
+        List<int> indexes = [];
+        RangeTask(appName, (tv, _, i) =>
+        {
             if (dxfCodes.Contains((DxfCode)tv.TypeCode))
-                indexs.Add(i);
+                indexes.Add(i);
         });
-        return indexs;
+        return indexes;
     }
 
     /// <summary>
     /// 区间任务
     /// </summary>
-    void RangeTask(string appName, Action<TypedValue, LoopState, int> action)
+    /// <param name="appName"></param>
+    /// <param name="action"></param>
+    private void RangeTask(string appName, Action<TypedValue, LoopState, int> action)
     {
         LoopState state = new();
         // 在名称和名称之间找
-        int appNameIndex = -1;
-        for (int i = 0; i < this.Count; i++)
+        var appNameIndex = -1;
+        for (var i = 0; i < Count; i++)
         {
             if (this[i].TypeCode == (short)DxfCode.ExtendedDataRegAppName)
             {
@@ -106,40 +118,45 @@ public class XDataList : TypedValueList
                     appNameIndex = i;
                     continue;
                 }
-                if (appNameIndex != -1)//找到了下一个名称
+
+                if (appNameIndex != -1) //找到了下一个名称
                     break;
             }
-            if (appNameIndex != -1) // 找下一个的时候,获取任务(移除)的对象
-            {
-                action(this[i], state, i);
-                if (!state.IsRun)
-                    break;
-            }
+
+            if (appNameIndex == -1) continue; // 找下一个的时候,获取任务(移除)的对象
+            action(this[i], state, i);
+            if (!state.IsRun)
+                break;
         }
     }
 
     #endregion
 
     #region 转换器
+
     /// <summary>
     /// ResultBuffer 隐式转换到 XDataList
     /// </summary>
     /// <param name="buffer">ResultBuffer 实例</param>
-    public static implicit operator XDataList(ResultBuffer buffer) => new(buffer.AsArray());
+    public static implicit operator XDataList(ResultBuffer? buffer) => new(buffer?.AsArray() ?? []);
+
     /// <summary>
     /// XDataList 隐式转换到 TypedValue 数组
     /// </summary>
     /// <param name="values">TypedValueList 实例</param>
     public static implicit operator TypedValue[](XDataList values) => values.ToArray();
+
     /// <summary>
     /// XDataList 隐式转换到 ResultBuffer
     /// </summary>
     /// <param name="values">TypedValueList 实例</param>
     public static implicit operator ResultBuffer(XDataList values) => new(values);
+
     /// <summary>
     /// TypedValue 数组隐式转换到 XDataList
     /// </summary>
     /// <param name="values">TypedValue 数组</param>
     public static implicit operator XDataList(TypedValue[] values) => new(values);
+
     #endregion
 }

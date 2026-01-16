@@ -16,10 +16,7 @@ public class OpComp : OpEqual
     /// <summary>
     /// 符号名
     /// </summary>
-    public override string Name
-    {
-        get { return "Comp"; }
-    }
+    public override string Name => "Comp";
 
     /// <summary>
     /// 比较运算符类构造函数

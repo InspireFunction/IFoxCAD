@@ -1,7 +1,5 @@
-﻿#if !NET8_0_OR_GREATER
-using System.Runtime.CompilerServices;
-using System;
-
+﻿
+#if !NET8_0_OR_GREATER
 namespace IFoxCAD.Basal;
 
 /// <summary>

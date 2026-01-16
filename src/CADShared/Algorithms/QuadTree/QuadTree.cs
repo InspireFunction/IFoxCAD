@@ -51,7 +51,7 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
     public QuadTree(Rect rect)
     {
         _rootNode = new QuadTreeNode<TEntity>(rect, null, 0);// 初始化根节点
-        _points = new();
+        _points = [];
     }
     #endregion
 
@@ -166,17 +166,17 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
     /// 查询四叉树,返回给定区域的数据项
     /// </summary>
     /// <param name="rect">矩形选区查询</param>
-    /// <param name="selectMode">选择模式</param>
-    /// <returns></returns>
+    /// <param name="selectMode">查询模式</param>
+    /// <returns>查询结果列表</returns>
     public List<TEntity> Query(Rect rect, QuadTreeSelectMode selectMode = QuadTreeSelectMode.IntersectsWith)
     {
         QuadTreeEvn.SelectMode = selectMode;
 
-        var results = new List<TEntity>();
+        List<TEntity> results = [];
         // 选择图元
         _rootNode.Query(rect, results);
         // 选择点
-        var ptge = _points.GetEnumerator();
+        using var ptge = _points.GetEnumerator();
         switch (selectMode)
         {
             case QuadTreeSelectMode.IntersectsWith:
@@ -190,12 +190,12 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
             while (ptge.MoveNext())
             {
                 var ptEnt = ptge.Current;
-                if (rect._X <= ptEnt._X && ptEnt._X <= rect._Right)
+                if (ptEnt != null && rect._X <= ptEnt._X && ptEnt._X <= rect._Right)
                 {
                     if (rect._Y <= ptEnt._Y && ptEnt._Y <= rect.Top)
                         results.Add(ptEnt);
                 }
-                else if (ptEnt._X > rect._Right)
+                else if (ptEnt != null && ptEnt._X > rect._Right)
                     break;// 超过后面范围就break,因为红黑树已经排序
             }
             break;

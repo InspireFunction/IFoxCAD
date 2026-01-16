@@ -13,10 +13,7 @@ public class OpEqual : OpFilter
     /// <summary>
     /// 符号名
     /// </summary>
-    public override string Name
-    {
-        get { return "Equal"; }
-    }
+    public override string Name => "Equal";
 
     /// <summary>
     /// 相等运算符类构造函数

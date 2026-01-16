@@ -14,8 +14,8 @@ public class HatchConverter
     /// </summary>
     class CircleData
     {
-        public PointV Center;
-        public double Radius;
+        public readonly PointV Center;
+        public readonly double Radius;
 
         /// <summary>
         /// 生成圆形数据
@@ -24,7 +24,7 @@ public class HatchConverter
         /// <param name="symmetryAxisPoint2">对称点2</param>
         public CircleData(PointV symmetryAxisPoint1, PointV symmetryAxisPoint2)
         {
-            Center = symmetryAxisPoint1.GetCenter(symmetryAxisPoint2);
+            Center = symmetryAxisPoint1.GetMidPointTo(symmetryAxisPoint2);
             Radius = symmetryAxisPoint1.GetDistanceTo(symmetryAxisPoint2) * 0.5;
         }
     }
@@ -34,18 +34,18 @@ public class HatchConverter
     /// </summary>
     class HatchConverterData
     {
-        public List<BulgeVertexWidth> PolyLineData;
-        public List<CircleData> CircleData;
-        public List<NurbCurve2d> SplineData;
+        public readonly List<BulgeVertexWidth> PolyLineData;
+        public readonly List<CircleData> CircleConverterData;
+        public readonly List<NurbCurve2d> SplineData;
 
         /// <summary>
         /// 填充转换器的数据
         /// </summary>
         public HatchConverterData()
         {
-            PolyLineData = new();
-            CircleData = new();
-            SplineData = new();
+            PolyLineData = [];
+            CircleConverterData = [];
+            SplineData = [];
         }
     }
     #endregion
@@ -63,23 +63,27 @@ public class HatchConverter
             return _oldHatch.ObjectId;
         }
     }
+
     readonly Hatch? _oldHatch;
 
     readonly List<HatchConverterData> _hcDatas;
+
     /// <summary>
     /// 填充边界id(生成的/已存在反应器的直接提取)
     /// </summary>
-    public List<ObjectId> BoundaryIds;
+    public readonly List<ObjectId> BoundaryIds;
+
     #endregion
 
     #region 构造
+
     /// <summary>
     /// 填充边界转换器
     /// </summary>
     HatchConverter()
     {
-        _hcDatas = new();
-        BoundaryIds = new();
+        _hcDatas = [];
+        BoundaryIds = [];
     }
 
     /// <summary>
@@ -103,8 +107,8 @@ public class HatchConverter
                 if (BoundaryIds.Count == 0)
                 {
                     throw new ArgumentException("关联的填充边界被删除后没有清理反应器,请调用:" +
-                        "\n hatch.RemoveAssociatedObjectIds()" +
-                        "\n hatch.Associative = false");
+                                                "\n hatch.RemoveAssociatedObjectIds()" +
+                                                "\n hatch.Associative = false");
                 }
             }
         }
@@ -118,7 +122,7 @@ public class HatchConverter
         _oldHatch?.ForEach(loop => {
             HatchConverterData hcData = new();
 
-            bool isCurve2d = true;
+            var isCurve2d = true;
             if (loop.IsPolyline)
             {
                 // 边界是多段线
@@ -133,7 +137,7 @@ public class HatchConverter
                     var cir = TwoArcFormOneCircle(loop);
                     if (cir is not null)
                     {
-                        hcData.CircleData.Add(cir);
+                        hcData.CircleConverterData.Add(cir);
                         isCurve2d = false;
                     }
                 }
@@ -168,13 +172,13 @@ public class HatchConverter
         if (loop.Polyline.Count == 3 && loop.Polyline[0].Bulge == 1 && loop.Polyline[1].Bulge == 1 ||
             loop.Polyline.Count == 3 && loop.Polyline[0].Bulge == -1 && loop.Polyline[1].Bulge == -1)
         {
-            hcData.CircleData.Add(new CircleData(loop.Polyline[0].Vertex, loop.Polyline[1].Vertex));
+            hcData.CircleConverterData.Add(new CircleData(loop.Polyline[0].Vertex, loop.Polyline[1].Vertex));
         }
         else
         {
             // 遍历多段线信息
             var bvc = loop.Polyline;
-            for (int i = 0; i < bvc.Count; i++)
+            for (var i = 0; i < bvc.Count; i++)
                 hcData.PolyLineData.Add(new BulgeVertexWidth(bvc[i]));
         }
     }
@@ -190,8 +194,8 @@ public class HatchConverter
             throw new ArgumentNullException(nameof(loop));
 
         if (loop.Curves.Count != 2)
-            throw new ArgumentException(
-                "边界非多段线,而且点数!=2,点数为:" + nameof(loop.Curves.Count) + ";两个矩形交集的时候会出现此情况.");
+            throw new ArgumentException("边界非多段线,而且点数!=2,点数为:" + nameof(loop.Curves.Count) +
+                                        ";两个矩形交集的时候会出现此情况.");
 
         CircleData? circular = null;
 
@@ -244,7 +248,7 @@ public class HatchConverter
             {
                 // 判断为圆形:
                 // 获取起点,然后采样三点,中间就是对称点(直径点)
-                hcData.CircleData.Add(new CircleData(curve.StartPoint, midPt));
+                hcData.CircleConverterData.Add(new CircleData(curve.StartPoint, midPt));
                 continue;
             }
 
@@ -262,9 +266,10 @@ public class HatchConverter
     /// 创建边界图元
     /// </summary>
     /// <param name="outEnts">返回图元</param>
+    //[Obsolete("使用带返回值的CreateBoundary替代")]
     public void CreateBoundary(List<Entity> outEnts)
     {
-        for (int i = 0; i < _hcDatas.Count; i++)
+        for (var i = 0; i < _hcDatas.Count; i++)
         {
             var data = _hcDatas[i];
 
@@ -273,7 +278,7 @@ public class HatchConverter
             {
                 Polyline pl = new();
                 pl.SetDatabaseDefaults();
-                for (int j = 0; j < data.PolyLineData.Count; j++)
+                for (var j = 0; j < data.PolyLineData.Count; j++)
                 {
                     pl.AddVertexAt(j,
                         data.PolyLineData[j].Vertex,
@@ -285,14 +290,12 @@ public class HatchConverter
             }
 
             // 生成边界:圆
-            data.CircleData.ForEach(item => {
+            data.CircleConverterData.ForEach(item => {
                 outEnts.Add(new Circle(item.Center.Point3d(), Vector3d.ZAxis, item.Radius));
             });
 
             // 生成边界:样条曲线
-            data.SplineData.ForEach(item => {
-                outEnts.Add(item.ToCurve());
-            });
+            data.SplineData.ForEach(item => { outEnts.Add(item.ToCurve()); });
         }
 
         if (_oldHatch is not null)
@@ -304,6 +307,50 @@ public class HatchConverter
         }
     }
 
+    /// <summary>
+    /// 创建边界
+    /// </summary>
+    /// <returns></returns>
+    public List<Entity> CreateBoundary()
+    {
+        var outEnts = new List<Entity>();
+        for (var i = 0; i < _hcDatas.Count; i++)
+        {
+            var data = _hcDatas[i];
+
+            // 生成边界:多段线
+            if (data.PolyLineData.Count > 0)
+            {
+                Polyline pl = new();
+                pl.SetDatabaseDefaults();
+                for (var j = 0; j < data.PolyLineData.Count; j++)
+                {
+                    pl.AddVertexAt(j, data.PolyLineData[j].Vertex, data.PolyLineData[j].Bulge,
+                        data.PolyLineData[j].StartWidth, data.PolyLineData[j].EndWidth);
+                }
+
+                outEnts.Add(pl);
+            }
+
+            // 生成边界:圆
+            data.CircleConverterData.ForEach(item => {
+                outEnts.Add(new Circle(item.Center.Point3d(), Vector3d.ZAxis, item.Radius));
+            });
+
+            // 生成边界:样条曲线
+            data.SplineData.ForEach(item => { outEnts.Add(item.ToCurve()); });
+        }
+
+        if (_oldHatch is not null)
+        {
+            outEnts.ForEach(ent => {
+                ent.Color = _oldHatch.Color;
+                ent.Layer = _oldHatch.Layer;
+            });
+        }
+
+        return outEnts;
+    }
 
     /// <summary>
     /// 创建边界图元和新填充到当前空间
@@ -393,9 +440,6 @@ public class HatchConverter
         hatch.EvaluateHatch(true);
     }
 
-    internal IEnumerable<Entity> CreateBoundary()
-    {
-        throw new NotImplementedException();
-    }
+
     #endregion
 }

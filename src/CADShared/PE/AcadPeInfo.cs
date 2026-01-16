@@ -1,36 +1,61 @@
-using System.Diagnostics;
-
-#pragma warning disable CS1591 // 缺少XML注释
-#pragma warning disable CS1572 // XML注释中有不存在的参数
-#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
-
+﻿using System.Diagnostics;
 
 namespace IFoxCAD.Cad;
 
-// 选择模式
+/// <summary>
+/// 选择模式
+/// </summary>
 [Flags]
 public enum AcadPeEnum : byte
 {
+    /// <summary>
+    /// AcadExe
+    /// </summary>
     AcadExe = 1,
+    /// <summary>
+    /// AccoreDll
+    /// </summary>
     AccoreDll = 2,
+    /// <summary>
+    /// Acdb
+    /// </summary>
     Acdb = 4,
+    /// <summary>
+    /// ExeAndCore
+    /// </summary>
     ExeAndCore = AcadExe | AccoreDll,
 }
 
-// 这里的枚举对应 GetMethodException 错误值
+/// <summary>
+/// 这里的枚举对应 GetMethodException 错误值
+/// </summary>
 [Flags]
 public enum GetMethodErrorNum : byte
 {
+    /// <summary>
+    /// 
+    /// </summary>
     Ok = 0,
+    /// <summary>
+    /// 
+    /// </summary>
     NoModule = 1,
+    /// <summary>
+    /// 
+    /// </summary>
     NoFuncName = 2,
 }
 
-// 自动获取本工程上面的发送命令的接口
+/// <summary>
+/// 自动获取本工程上面的发送命令的接口
+/// </summary>
 public class AcadPeInfo
 {
     #region 静态单例获取exe/dll信息
     static PeInfo? _PeForAcadExe;
+    /// <summary>
+    /// 
+    /// </summary>
     public static PeInfo? PeForAcadExe
     {
         get
@@ -38,7 +63,9 @@ public class AcadPeInfo
             if (_PeForAcadExe is null)
             {
                 // 获取此acad.exe获取所有的函数名
-                var file = Process.GetCurrentProcess().MainModule.FileName;
+                var processModule = Process.GetCurrentProcess().MainModule;
+                if (processModule == null) return _PeForAcadExe;
+                var file = processModule.FileName;
                 _PeForAcadExe = new PeInfo(file);
             }
             return _PeForAcadExe;
@@ -46,6 +73,9 @@ public class AcadPeInfo
     }
 
     static PeInfo? _PeForAccoreDll;
+    /// <summary>
+    /// 
+    /// </summary>
     public static PeInfo? PeForAccoreDll
     {
         get
@@ -53,7 +83,7 @@ public class AcadPeInfo
             if (_PeForAccoreDll is null)
             {
                 // 获取此dll所有的函数名
-                var file = Process.GetCurrentProcess().MainModule.FileName;
+                var file = Process.GetCurrentProcess().MainModule!.FileName;
                 var dll = Path.GetDirectoryName(file) + "\\accore.dll";
                 if (File.Exists(dll))// 08没有,高版本分离的
                     _PeForAccoreDll = new PeInfo(dll);
@@ -63,6 +93,9 @@ public class AcadPeInfo
     }
 
     static PeInfo? _PeForAcdbDll;
+    /// <summary>
+    /// 
+    /// </summary>
     public static PeInfo? PeForAcdbDll
     {
         get
@@ -70,8 +103,8 @@ public class AcadPeInfo
             if (_PeForAcdbDll is null)
             {
                 // 获取此dll所有的函数名
-                var file = Process.GetCurrentProcess().MainModule.FileName;
-                var dll = Path.GetDirectoryName(file) + $"\\acdb{Acap.Version.Major}.dll";
+                var file = Process.GetCurrentProcess().MainModule!.FileName;
+                var dll = Path.GetDirectoryName(file) + $"\\acdb{Acaop.Version.Major}.dll";
                 if (File.Exists(dll))
                     _PeForAcdbDll = new PeInfo(dll);
             }
@@ -89,7 +122,7 @@ public class AcadPeInfo
         {
             if (_Methods is null)
             {
-                _Methods = new();
+                _Methods = [];
 
                 if ((_acadPeEnum & AcadPeEnum.AcadExe) == AcadPeEnum.AcadExe)
                     GetPeMethod(PeForAcadExe);
@@ -141,7 +174,7 @@ public class AcadPeInfo
 
     #region 方法
     /// <summary>
-    /// 储存旧值&lt;去除修饰函数名(查找的),带修饰函数名们&gt;
+    /// 储存旧值，去除修饰函数名（查找的）,带修饰函数名们
     /// </summary>
     static Dictionary<string, List<PeFunction>> _Dict = new();
 
@@ -162,7 +195,7 @@ public class AcadPeInfo
         }
         else
         {
-            _Methods ??= new();
+            _Methods ??= [];
             try
             {
                 PeFunction.Finds(peInfo, _findFuncName, _Methods);
@@ -204,9 +237,9 @@ public class AcadPeInfo
 
         // 排序,最少长度原则本身就是让完全相同字符串在最前面
         // 这里替换为有序哈希,因为我总是需要不带修饰的返回函数,所以是排序长度的第一个
-        _Methods = _Methods.OrderBy(str => str.CName?.Length)
-                           .ThenBy(str => str.MethodName.Length)
-                           .ToList();
+        _Methods = _Methods?.OrderBy(str => str.CName?.Length)
+            .ThenBy(str => str.MethodName.Length)
+            .ToList();
 
         func = Marshal.GetDelegateForFunctionPointer(Methods.First().GetProcAddress(), typeof(TDelegate)) as TDelegate;
         return func;
@@ -231,7 +264,7 @@ public class PeFunction
             if (_CName is null && MethodName is not null)
             {
                 _CName = MethodName.Replace("?", string.Empty); // 剔除cpp前缀
-                int num = _CName.IndexOf("@");
+                var num = _CName.IndexOf("@");
                 if (num > -1)
                     _CName = _CName.Substring(0, num); // 剔除参数部分
             }
@@ -316,20 +349,40 @@ public class PeFunction
 /// </summary>
 public class GetPeMethodException : ApplicationException
 {
+    /// <summary>
+    /// 
+    /// </summary>
     public int ErrorNum;
+    /// <summary>
+    /// 
+    /// </summary>
     public string? ErrorMsg;
+    /// <summary>
+    /// 
+    /// </summary>
     public Exception? InnerException1;
-
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="msg"></param>
     public GetPeMethodException(string msg) : base(msg)
     {
         ErrorMsg = msg;
     }
-
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="errorNum"></param>
+    /// <param name="msg"></param>
     public GetPeMethodException(int errorNum, string msg) : base(msg)
     {
         ErrorNum = errorNum;
     }
-
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="msg"></param>
+    /// <param name="innerException"></param>
     public GetPeMethodException(string msg, Exception innerException) : base(msg, innerException)
     {
         InnerException1 = innerException;

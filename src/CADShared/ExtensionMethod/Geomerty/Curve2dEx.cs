@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+// ReSharper disable SuggestVarOrType_SimpleTypes
+
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 二维解析类曲线转换为二维实体曲线扩展类
@@ -92,18 +94,18 @@ public static class Curve2dEx
     /// <returns>圆弧</returns>
     public static Arc ToArc(this CircularArc2d a2d)
     {
-        double startangle, endangle;
-        double refangle = a2d.ReferenceVector.Angle;
+        double startAngle, endAngle;
+        var refAngle = a2d.ReferenceVector.Angle;
 
         if (a2d.IsClockWise)
         {
-            startangle = -a2d.EndAngle - refangle;
-            endangle = -a2d.StartAngle - refangle;
+            startAngle = -a2d.EndAngle + refAngle;
+            endAngle = -a2d.StartAngle + refAngle;
         }
         else
         {
-            startangle = a2d.StartAngle + refangle;
-            endangle = a2d.EndAngle + refangle;
+            startAngle = a2d.StartAngle + refAngle;
+            endAngle = a2d.EndAngle + refAngle;
         }
 
         return
@@ -111,8 +113,8 @@ public static class Curve2dEx
                 new Point3d(_planeCache, a2d.Center),
                 Vector3d.ZAxis,
                 a2d.Radius,
-                startangle,
-                endangle);
+                startAngle,
+                endAngle);
     }
 
     #endregion CircularArc2d
@@ -141,12 +143,12 @@ public static class Curve2dEx
     public static Ellipse ToCurve(this EllipticalArc2d ea2d)
     {
         Ellipse ell = new(
-                new Point3d(_planeCache, ea2d.Center),
-                Vector3d.ZAxis,
-                new Vector3d(_planeCache, ea2d.MajorAxis) * ea2d.MajorRadius,
-                ea2d.MinorRadius / ea2d.MajorRadius,
-                0,
-                Math.PI * 2);
+            new Point3d(_planeCache, ea2d.Center),
+            Vector3d.ZAxis,
+            new Vector3d(_planeCache, ea2d.MajorAxis) * ea2d.MajorRadius,
+            ea2d.MinorRadius / ea2d.MajorRadius,
+            0,
+            Math.PI * 2);
         if (!ea2d.IsClosed())
         {
             if (ea2d.IsClockWise)
@@ -160,6 +162,7 @@ public static class Curve2dEx
                 ell.EndAngle = ell.GetAngleAtParameter(ea2d.EndAngle);
             }
         }
+
         return ell;
     }
 
@@ -246,9 +249,9 @@ public static class Curve2dEx
     #region NurbCurve2d
 
     /// <summary>
-    /// 将二维解析类BURB曲线转换为实体类样条曲线，并进行矩阵变换
+    /// 将二维解析类NURB曲线转换为实体类样条曲线，并进行矩阵变换
     /// </summary>
-    /// <param name="nc2d">二维解析类BURB曲线</param>
+    /// <param name="nc2d">二维解析类NURB曲线</param>
     /// <param name="mat">变换矩阵</param>
     /// <returns>实体类样条曲线</returns>
     public static Spline ToCurve(this NurbCurve2d nc2d, Matrix3d mat)
@@ -259,37 +262,42 @@ public static class Curve2dEx
     }
 
     /// <summary>
-    /// 将二维解析类BURB曲线转换为实体类样条曲线
+    /// 将二维解析类NURB曲线转换为实体类样条曲线
     /// </summary>
-    /// <param name="nc2d">二维解析类BURB曲线</param>
+    /// <param name="nc2d">二维解析类NURB曲线</param>
     /// <returns>实体类样条曲线</returns>
     public static Spline ToCurve(this NurbCurve2d nc2d)
     {
-        using Point3dCollection ctlpnts = new();
-        for (int i = 0; i < nc2d.NumControlPoints; i++)
-            ctlpnts.Add(new Point3d(_planeCache, nc2d.GetControlPointAt(i)));
+#if !NET35
+        using Point3dCollection ctlPts = new();
+        for (var i = 0; i < nc2d.NumControlPoints; i++)
+            ctlPts.Add(new Point3d(_planeCache, nc2d.GetControlPointAt(i)));
 
         DoubleCollection knots = new();
-        for (int i = 0; i < nc2d.Knots.Count; i++)
+        for (var i = 0; i < nc2d.Knots.Count; i++)
             knots.Add(nc2d.Knots[i]);
 
         DoubleCollection weights = new();
-        for (int i = 0; i < nc2d.NumWeights; i++)
+        for (var i = 0; i < nc2d.NumWeights; i++)
             weights.Add(nc2d.GetWeightAt(i));
 
-        NurbCurve2dData ncdata = nc2d.DefinitionData;
+        NurbCurve2dData nurbCurve2dData = nc2d.DefinitionData;
 
         return
             new Spline(
-                ncdata.Degree,
-                ncdata.Rational,
+                nurbCurve2dData.Degree,
+                nurbCurve2dData.Rational,
                 nc2d.IsClosed(),
-                ncdata.Periodic,
-                ctlpnts,
+                nurbCurve2dData.Periodic,
+                ctlPts,
                 knots,
                 weights,
                 0,
-                nc2d.Knots.Tolerance);
+                nc2d.Knots.Tolerance)
+            { Type = SplineType.FitPoints }; 
+#else
+        throw new NotSupportedException("在 .NET Framework 3.5 下不支持此方法。");
+#endif
     }
 
     #endregion NurbCurve2d

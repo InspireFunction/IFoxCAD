@@ -8,7 +8,7 @@ public abstract class OpList : OpLogi
     /// <summary>
     /// 过滤器列表
     /// </summary>
-    protected List<OpFilter> _lst = new();
+    protected readonly List<OpFilter> Lst = [];
 
     /// <summary>
     /// 添加过滤器条件的虚函数，子类可以重写
@@ -35,7 +35,7 @@ public abstract class OpList : OpLogi
     /// <param name="value">过滤器对象</param>
     public virtual void Add(OpFilter value)
     {
-        _lst.Add(value);
+        Lst.Add(value);
     }
 
     /// <summary>
@@ -47,7 +47,7 @@ public abstract class OpList : OpLogi
     public void Add(string speccode, int code, object value)
     {
         if (speccode == "~")
-            _lst.Add(new OpEqual(code, value).Not);
+            Lst.Add(new OpEqual(code, value).Not);
     }
 
     /// <summary>
@@ -57,7 +57,7 @@ public abstract class OpList : OpLogi
     /// <param name="value">组码值</param>
     public void Add(int code, object value)
     {
-        _lst.Add(new OpEqual(code, value));
+        Lst.Add(new OpEqual(code, value));
     }
 
     /// <summary>
@@ -67,7 +67,7 @@ public abstract class OpList : OpLogi
     /// <param name="value">组码值</param>
     public void Add(DxfCode code, object value)
     {
-        _lst.Add(new OpEqual(code, value));
+        Lst.Add(new OpEqual(code, value));
     }
 
     /// <summary>
@@ -78,7 +78,7 @@ public abstract class OpList : OpLogi
     /// <param name="comp">比较运算符</param>
     public void Add(int code, object value, string comp)
     {
-        _lst.Add(new OpComp(comp, code, value));
+        Lst.Add(new OpComp(comp, code, value));
     }
 
     /// <summary>
@@ -89,18 +89,17 @@ public abstract class OpList : OpLogi
     /// <param name="comp">比较运算符</param>
     public void Add(DxfCode code, object value, string comp)
     {
-        _lst.Add(new OpComp(comp, code, value));
+        Lst.Add(new OpComp(comp, code, value));
     }
 
     /// <summary>
     /// 过滤器迭代器
     /// </summary>
     /// <returns>OpFilter迭代器</returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public override IEnumerator<OpFilter> GetEnumerator()
     {
-        foreach (var value in _lst)
-            yield return value;
+        return Lst.GetEnumerator();
     }
 }
 
@@ -112,10 +111,7 @@ public class OpAnd : OpList
     /// <summary>
     /// 符号名
     /// </summary>
-    public override string Name
-    {
-        get { return "And"; }
-    }
+    public override string Name => "And";
 
     /// <summary>
     /// 添加过滤条件
@@ -126,11 +122,11 @@ public class OpAnd : OpList
         if (value is OpAnd opand)
         {
             foreach (var item in opand)
-                _lst.Add(item);
+                Lst.Add(item);
         }
         else
         {
-            _lst.Add(value);
+            Lst.Add(value);
         }
     }
 }
@@ -143,10 +139,7 @@ public class OpOr : OpList
     /// <summary>
     /// 符号名
     /// </summary>
-    public override string Name
-    {
-        get { return "Or"; }
-    }
+    public override string Name => "Or";
 
     /// <summary>
     /// 添加过滤条件
@@ -157,11 +150,11 @@ public class OpOr : OpList
         if (value is OpOr opor)
         {
             foreach (var item in opor)
-                _lst.Add(item);
+                Lst.Add(item);
         }
         else
         {
-            _lst.Add(value);
+            Lst.Add(value);
         }
     }
 }

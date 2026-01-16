@@ -48,6 +48,9 @@ public class HatchInfo
     /// 角度
     /// </summary>
     double Angle => _hatch.PatternAngle;
+
+    // 延后处理角度
+    private readonly double _angle;
     #endregion
 
     #region 构造
@@ -55,7 +58,7 @@ public class HatchInfo
     {
         _hatch = new Hatch();
         _hatch.SetDatabaseDefaults();
-        _boundaryIds = new();
+        _boundaryIds = [];
     }
 
     /// <summary>
@@ -74,7 +77,7 @@ public class HatchInfo
             throw new ArgumentException("填充比例不允许小于等于0");
 
         _hatch.PatternScale = hatchScale;// 填充比例
-        _hatch.PatternAngle = hatchAngle;// 填充角度
+        _angle = hatchAngle;// 填充角度
         _boundaryAssociative = boundaryAssociative;
 
         hatchOrigin ??= Point2d.Origin;
@@ -154,7 +157,7 @@ public class HatchInfo
         float shadeTintValue = 0,
         bool gradientOneColorMode = false)
     {
-        // entget渐变的名字必然是"SOLID",但是这里作为"渐变"名,而不是"填充"名
+        // entGet渐变的名字必然是"SOLID",但是这里作为"渐变"名,而不是"填充"名
         _hatchName = name.ToString();
         _hatch.HatchObjectType = HatchObjectType.GradientObject;      // 对象类型(填充/渐变)
         _patternTypeGradient = GradientPatternType.PreDefinedGradient;// 模式4:渐变
@@ -163,7 +166,7 @@ public class HatchInfo
         // 设置渐变色填充的起始和结束颜色
         var gColor1 = new GradientColor(colorStart, 0);
         var gColor2 = new GradientColor(colorEnd, 1);
-        _hatch.SetGradientColors(new GradientColor[] { gColor1, gColor2 });
+        _hatch.SetGradientColors([gColor1, gColor2]);
 
         _hatch.GradientShift = gradientShift;              // 梯度位移
         _hatch.ShadeTintValue = shadeTintValue;            // 阴影色值
@@ -187,6 +190,10 @@ public class HatchInfo
             _hatch.SetGradient(_patternTypeGradient, _hatchName);
         else
             _hatch.SetHatchPattern(_patternTypeHatch, _hatchName);
+
+        // 处理充填角度
+        _hatch.PatternAngle = _angle;
+
 
         // 关联边界,如果不先添加数据库空间内就会出错
         // 为 true 会加入反应器,因此比较慢(二维码将会十几秒才生成好),视需求而定.
@@ -226,7 +233,7 @@ public class HatchInfo
     /// </summary>
     public HatchInfo EraseBoundary()
     {
-        for (int i = 0; i < _boundaryIds.Count; i++)
+        for (var i = 0; i < _boundaryIds.Count; i++)
             _boundaryIds[i].Erase();
         return this;
     }
@@ -236,10 +243,10 @@ public class HatchInfo
     /// </summary>
     /// <param name="boundaryIds">边界id</param>
     /// <param name="hatchLoopTypes">加入方式</param>
-    void AppendLoop(IEnumerable<ObjectId> boundaryIds,
-                    HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
+    private void AppendLoop(IEnumerable<ObjectId> boundaryIds,
+                            HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
-        using ObjectIdCollection obIds = new();
+        ObjectIdCollection obIds = [];
         // 边界是闭合的,而且已经加入数据库
         // 填充闭合环类型.最外面
         foreach (var border in boundaryIds)
@@ -254,12 +261,12 @@ public class HatchInfo
     /// 加入边界(仿高版本的填充函数)
     /// </summary>
     /// <param name="pts">点集</param>
-    /// <param name="bluges">凸度集</param>
+    /// <param name="bulges">凸度集</param>
     /// <param name="btrOfAddEntitySpace">加入此空间</param>
     /// <param name="hatchLoopTypes">加入方式</param>
     /// <returns></returns>
     public HatchInfo AppendLoop(Point2dCollection pts,
-                                DoubleCollection bluges,
+                                DoubleCollection bulges,
                                 BlockTableRecord btrOfAddEntitySpace,
                                 HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
@@ -268,11 +275,11 @@ public class HatchInfo
 
         pts.End2End();
 #if NET35
-        _boundaryIds.Add(CreateAddBoundary(pts, bluges, btrOfAddEntitySpace));
+        _boundaryIds.Add(CreateAddBoundary(pts, bulges, btrOfAddEntitySpace));
 #else
         // 2011新增API,可以不生成图元的情况下加入边界,
         // 通过这里进入的话,边界 _boundaryIds 是空的,那么 Build() 时候就需要过滤空的
-        _hatch.AppendLoop(hatchLoopTypes, pts, bluges);
+        _hatch.AppendLoop(hatchLoopTypes, pts, bulges);
 #endif
         return this;
     }

@@ -32,13 +32,13 @@ public class QuadTreeNode<TEntity>
     {
         get
         {
-            return new QuadTreeNode<TEntity>[]
-            {
-                 RightTopTree!,
+            return
+            [
+                RightTopTree!,
                  LeftTopTree!,
                  LeftBottomTree!,
-                 RightBottomTree!,
-            };
+                 RightBottomTree!
+            ];
         }
     }
     /// <summary>
@@ -71,7 +71,7 @@ public class QuadTreeNode<TEntity>
             return;
         results.AddRange(Contents);
         var nodes = Nodes;
-        for (int i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < nodes.Length; i++)
             nodes[i]?.ContentsSubTree(results);
     }
 
@@ -84,10 +84,10 @@ public class QuadTreeNode<TEntity>
         {
             if (Contents is null)
                 return 0;
-            int count = Contents.Count;
+            var count = Contents.Count;
 
             var nodes = Nodes;
-            for (int i = 0; i < nodes.Length; i++)
+            for (var i = 0; i < nodes.Length; i++)
             {
                 var node = nodes[i];
                 if (node is null)
@@ -115,7 +115,7 @@ public class QuadTreeNode<TEntity>
 
         Parent = parent;
         Depth = depth;
-        Contents = new();
+        Contents = [];
     }
     #endregion
 
@@ -137,7 +137,7 @@ public class QuadTreeNode<TEntity>
         // 退出递归:4个节点都不完全包含
         // 4个节点的上层
         var nodes = Nodes;
-        for (int i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
             if (node is null)
@@ -219,7 +219,7 @@ public class QuadTreeNode<TEntity>
         // 4个子节点开始递归
         // 退出递归:4个节点都不完全包含,内容就是他们的父亲
         var nodes = Nodes;
-        for (int i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
             if (node is null)
@@ -232,7 +232,7 @@ public class QuadTreeNode<TEntity>
 
         // 为什么要用容器?
         // 相同包围盒或者四叉树分割线压着多个.
-        this.Contents.Add(ent);
+        Contents.Add(ent);
         return this;
     }
 
@@ -268,7 +268,7 @@ public class QuadTreeNode<TEntity>
         var lowerRight = new Rect(box._X + halfWidth, box._Y, box._Right, box._Top - halfHeight);
 
         // 依照象限顺序输出
-        return new Rect[] { upperRight, upperLeft, lowerleft, lowerRight };
+        return [upperRight, upperLeft, lowerleft, lowerRight];
     }
     #endregion
 
@@ -289,13 +289,13 @@ public class QuadTreeNode<TEntity>
         if (Contents.Remove(easeEnt))
         {
             if (CountSubTree == 0)
-                this.Clear(this);
+                Clear(this);
             return true;
         }
 
         // 2.递归子节点移除
         var nodes = Nodes;
-        for (int i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
             if (node is null)
@@ -313,7 +313,7 @@ public class QuadTreeNode<TEntity>
     void Clear(QuadTreeNode<TEntity> node)
     {
         var nodes = Nodes;
-        for (int i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < nodes.Length; i++)
             nodes[i]?.Clear(nodes[i]);
 
         node.Contents.Clear();
@@ -335,7 +335,7 @@ public class QuadTreeNode<TEntity>
         // 本节点内容移除
         if (Contents is not null && Contents.Count > 0)// 从最上层的根节点开始进入
         {
-            for (int i = Contents.Count - 1; i >= 0; i--)
+            for (var i = Contents.Count - 1; i >= 0; i--)
             {
                 var ent = Contents[i];
                 // 移除之后,如果容器是0,那么这里不能直接 Contents=null,
@@ -350,7 +350,7 @@ public class QuadTreeNode<TEntity>
         // 同插入一样
         // 跳到指定节点再搜索这个节点下面的图元
         var nodes = Nodes;
-        for (int i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
             if (node is null)
@@ -388,16 +388,15 @@ public class QuadTreeNode<TEntity>
     /// <summary>
     /// 查询范围内的实体
     /// </summary>
-    /// <param name="queryArea"></param>
-    /// <param name="results"></param>
-    /// <returns></returns>
+    /// <param name="queryArea">查询矩形</param>
+    /// <param name="results">查询结果</param>
     public void Query(Rect queryArea, List<TEntity> results)
     {
         GetCurrentContents(queryArea, results);
 
         // 遍历子节点
         var nodes = Nodes;
-        for (int i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
             if (node is null)
@@ -437,7 +436,7 @@ public class QuadTreeNode<TEntity>
         // 遍历当前节点内容,加入方式取决于碰撞模式
         if (QuadTreeEvn.SelectMode == QuadTreeSelectMode.IntersectsWith)
         {
-            for (int i = 0; i < Contents.Count; i++)
+            for (var i = 0; i < Contents.Count; i++)
             {
                 var ent = Contents[i];
                 if (queryArea.IntersectsWith(ent))
@@ -446,7 +445,7 @@ public class QuadTreeNode<TEntity>
         }
         else
         {
-            for (int i = 0; i < Contents.Count; i++)
+            for (var i = 0; i < Contents.Count; i++)
             {
                 var ent = Contents[i];
                 if (queryArea.Contains(ent))
@@ -483,9 +482,9 @@ public class QuadTreeNode<TEntity>
             //  再判断图元的与目标的距离,找到最小距离,即为最近
             var minPt = new Point2d(queryAreaCenter.X - hw, queryAreaCenter.Y - hh);
             var maxPt = new Point2d(queryAreaCenter.X + hw, queryAreaCenter.Y + hh);
-            var ents = new List<TEntity>();
+            List<TEntity> ents = [];
             Query(new Rect(minPt, maxPt), ents);
-            for (int i = 0; i < ents.Count; i++)
+            for (var i = 0; i < ents.Count; i++)
             {
                 var ent = ents[i];
                 if (entDic.ContainsKey(ent))
@@ -522,7 +521,7 @@ public class QuadTreeNode<TEntity>
         // 3.找到方向 findMode 拥有的节点,然后查找节点的内容
         var queryNode = GetMinNode(queryArea);
 
-        bool whileFlag = true;
+        var whileFlag = true;
         // 同一个节点可能包含邻居,因为四叉树的加入是图元压线,
         // 那么就在这里搜就得了,用中心点决定空间位置
         // 但是本空间的图元可能都比它矮,无法满足条件
@@ -609,7 +608,7 @@ public class QuadTreeNode<TEntity>
     {
         TEntity? results = default;
 
-        var lst = new List<TEntity>();
+        List<TEntity> lst = [];
         var qcent = queryArea.CenterPoint;
 
         switch (findMode)
@@ -674,7 +673,7 @@ public class QuadTreeNode<TEntity>
     QuadTreeNode<TEntity> GetMinNode(Rect queryArea)
     {
         var nodes = Nodes;
-        for (int i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
             if (node is null)
@@ -764,30 +763,32 @@ public class QuadTreeNode<TEntity>
     #endregion
 
     #region 改
-    // <summary>
-    // 所有的点归类到最小包围它的空间
-    // </summary>
-    // public void PointsToMinNode()
-    // {
-    //    ForEach(node =>
-    //    {
-    //        for (int i = 0; i < node.Contents.Count; i++)
-    //        {
-    //            var ent = node.Contents[i];
-    //            if (ent.IsPoint)
-    //            {
-    //                // 如果最小包含!=当前,就是没有放在最适合的位置
-    //                var queryNode = GetMinNode(ent);
-    //                if (queryNode != node)
-    //                {
-    //                    node.Remove(ent);
-    //                    queryNode.Contents.Add(ent);
-    //                }
-    //            }
-    //        }
-    //        return false;
-    //    });
-    // }
+    /*
+    /// <summary>
+    /// 所有的点归类到最小包围它的空间
+    /// </summary>
+    public void PointsToMinNode()
+    {
+       ForEach(node =>
+       {
+           for (int i = 0; i < node.Contents.Count; i++)
+           {
+               var ent = node.Contents[i];
+               if (ent.IsPoint)
+               {
+                   // 如果最小包含!=当前,就是没有放在最适合的位置
+                   var queryNode = GetMinNode(ent);
+                   if (queryNode != node)
+                   {
+                       node.Remove(ent);
+                       queryNode.Contents.Add(ent);
+                   }
+               }
+           }
+           return false;
+       });
+    }
+    */
     #endregion
 
     #region 方法
@@ -803,7 +804,7 @@ public class QuadTreeNode<TEntity>
 
         // 递归执行本节点的子节点
         var nodes = Nodes;
-        for (int i = 0; i < nodes.Length; i++)
+        for (var i = 0; i < nodes.Length; i++)
         {
             var node = nodes[i];
             if (node is null)

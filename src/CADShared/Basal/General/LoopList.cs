@@ -35,7 +35,7 @@ public class LoopListNode<T>
     /// 环链表节点构造函数
     /// </summary>
     /// <param name="value">节点值</param>
-    /// <param name="ts">所属的环链表</param>
+    /// <param name="ts">环链表</param>
     public LoopListNode(T value, LoopList<T> ts)
     {
         Value = value;
@@ -105,10 +105,10 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// 环链表构造函数
     /// </summary>
     /// <param name="values">节点迭代器</param>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public LoopList(IEnumerable<T> values)
     {
-        var ge = values.GetEnumerator();
+        using var ge = values.GetEnumerator();
         while (ge.MoveNext())
             Add(ge.Current);
     }
@@ -150,7 +150,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         if (first is null)
             return;
         var last = Last;
-        for (int i = 0; i < Count / 2; i++)
+        for (var i = 0; i < Count / 2; i++)
         {
             Swap(first!, last!);
             first = first!.Next;
@@ -177,7 +177,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         var node = First;
         if (node is null)
             return;
-        for (int i = 0; i < Count; i++)
+        for (var i = 0; i < Count; i++)
         {
             if (action(node!))
                 break;
@@ -194,7 +194,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         var node = First;
         if (node is null)
             return;
-        for (int i = 0; i < Count; i++)
+        for (var i = 0; i < Count; i++)
         {
             if (action(i, node!))
                 break;
@@ -211,7 +211,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// <returns></returns>
     public bool Contains(LoopListNode<T> node)
     {
-        return node is not null && node.List == this;
+        return node.List == this;
     }
 
     /// <summary>
@@ -221,14 +221,11 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// <returns></returns>
     public bool Contains(T value)
     {
-        bool result = false;
+        var result = false;
         ForEach(node => {
-            if (node.Value!.Equals(value))
-            {
-                result = true;
-                return true;
-            }
-            return false;
+            if (!node.Value!.Equals(value)) return false;
+            result = true;
+            return true;
         });
         return result;
     }
@@ -285,11 +282,11 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// <returns></returns>
     public IEnumerable<LoopListNode<T>>? Finds(T value)
     {
-        LoopListNode<T>? node = First;
+        var node = First;
         if (node is null)
             return null;
 
-        List<LoopListNode<T>> result = new();
+        List<LoopListNode<T>> result = [];
         var c = EqualityComparer<T>.Default;
         if (value is not null)
         {
@@ -391,7 +388,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// </summary>
     /// <param name="value"></param>
     /// <returns></returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public LoopListNode<T> AddLast(T value)
     {
         return Add(value);
@@ -401,10 +398,10 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// 容器内容全部加入到末尾
     /// </summary>
     /// <param name="list"></param>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public void AddRange(IEnumerable<T> list)
     {
-        var ge = list.GetEnumerator();
+        using var ge = list.GetEnumerator();
         while (ge.MoveNext())
             Add(ge.Current);
     }
@@ -420,13 +417,13 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         if (node == First)
             return AddFirst(value);
 
-        var tnode = new LoopListNode<T>(value, this);
-        node.Previous!.Next = tnode;
-        tnode.Previous = node.Previous;
-        node.Previous = tnode;
-        tnode.Next = node;
+        var tNode = new LoopListNode<T>(value, this);
+        node.Previous!.Next = tNode;
+        tNode.Previous = node.Previous;
+        node.Previous = tNode;
+        tNode.Next = node;
         Count++;
-        return tnode;
+        return tNode;
     }
 
     /// <summary>
@@ -437,13 +434,13 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// <returns></returns>
     public LoopListNode<T> AddAfter(LoopListNode<T> node, T value)
     {
-        var tnode = new LoopListNode<T>(value, this);
-        node.Next!.Previous = tnode;
-        tnode.Next = node.Next;
-        node.Next = tnode;
-        tnode.Previous = node;
+        var tNode = new LoopListNode<T>(value, this);
+        node.Next!.Previous = tNode;
+        tNode.Next = node.Next;
+        node.Next = tNode;
+        tNode.Previous = node;
         Count++;
-        return tnode;
+        return tNode;
     }
 
     #endregion
@@ -525,9 +522,10 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         if (lst is null)
             return false;
 
-        var ge = lst!.GetEnumerator();
+        using var ge = lst.GetEnumerator();
         while (ge.MoveNext())
-            InternalRemove(ge.Current);
+            if (ge.Current != null)
+                InternalRemove(ge.Current);
         return true;
     }
 
@@ -565,8 +563,8 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
         if (from != to && Contains(from) && Contains(to))
         {
             LoopListNode<T> node = from.Next!;
-            bool isFirstChanged = false;
-            int number = 0;
+            var isFirstChanged = false;
+            var number = 0;
 
             while (node != to)
             {
@@ -634,11 +632,11 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// </summary>
     /// <param name="from"></param>
     /// <returns></returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public IEnumerable<LoopListNode<T>> GetNodes(LoopListNode<T> from)
     {
         var node = from;
-        for (int i = 0; i < Count; i++)
+        for (var i = 0; i < Count; i++)
         {
             yield return node!;
             node = node!.Next;
@@ -649,11 +647,11 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// 获取节点的查询器
     /// </summary>
     /// <returns></returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public IEnumerable<LoopListNode<T>> GetNodes()
     {
         LoopListNode<T> node = First!;
-        for (int i = 0; i < Count; i++)
+        for (var i = 0; i < Count; i++)
         {
             yield return node!;
             node = node.Next!;
@@ -664,23 +662,23 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// 获取节点值的查询器
     /// </summary>
     /// <returns></returns>
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     public IEnumerator<T> GetEnumerator()
     {
         LoopListNode<T> node = First!;
-        for (int i = 0; i < Count; i++)
+        for (var i = 0; i < Count; i++)
         {
             yield return node!.Value;
             node = node.Next!;
         }
     }
 
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     IEnumerator<T> IEnumerable<T>.GetEnumerator() => GetEnumerator();
 
     #region IEnumerable 成员
 
-    [System.Diagnostics.DebuggerStepThrough]
+    [DebuggerStepThrough]
     IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
 
     #endregion IEnumerable 成员
@@ -705,7 +703,7 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     /// <returns></returns>
     public override string ToString()
     {
-        return ToString(null, null);
+        return ToString(null);
     }
 
     /// <summary>
@@ -716,13 +714,11 @@ public class LoopList<T> : IEnumerable<T>, IFormattable
     {
         var s = new StringBuilder();
         s.Append($"Count = {Count};");
-        if (format is null)
-        {
-            s.Append("{ ");
-            foreach (T value in this)
-                s.Append($"{value} ");
-            s.Append(" }");
-        }
+        if (format is not null) return s.ToString();
+        s.Append("{ ");
+        foreach (var value in this)
+            s.Append($"{value} ");
+        s.Append(" }");
         return s.ToString();
     }
     #endregion

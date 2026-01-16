@@ -1,6 +1,6 @@
-﻿#if !NET8_0_OR_GREATER
+﻿
+#if !NET8_0_OR_GREATER
 namespace System.Runtime.CompilerServices;
-
 /// <summary>
 /// 指示参数将为另一个参数传递的表达式捕获为字符串。
 /// </summary>

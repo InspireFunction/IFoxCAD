@@ -1,9 +1,7 @@
-﻿#pragma warning disable CS1591 // 缺少XML注释
-#pragma warning disable CS1572 // XML注释中有不存在的参数
-#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
-
-namespace IFoxCAD.Cad;
-
+﻿namespace IFoxCAD.Cad;
+/// <summary>
+/// 发送命令
+/// </summary>
 public class PostCmd
 {
     /*
@@ -30,12 +28,12 @@ public class PostCmd
     /// </summary>
     static PromptStatus AcedCmd(ResultBuffer args)
     {
-        if (Acap.DocumentManager.IsApplicationContext)
+        if (Acaop.DocumentManager.IsApplicationContext)
             return 0;
         if (acedCmd is null)
         {
-            string str = nameof(acedCmd);
-            if (Acap.Version.Major >= 20)// 2015.+
+            var str = nameof(acedCmd);
+            if (Acaop.Version.Major >= 20)// 2015.+
                 str += "S";
 
             acedCmd = AcadPeInfo.GetDelegate<DelegateAcedCmd>(
@@ -85,7 +83,7 @@ public class PostCmd
                                 nameof(acedPostCommand), AcadPeEnum.ExeAndCore);
 
         // 不然到CAD之后会乱码
-        byte[] bytes = Encoding.Unicode.GetBytes(args);
+        var bytes = Encoding.Unicode.GetBytes(args);
         if (acedPostCommand is null)
             return PromptStatus.Error;
         return (PromptStatus)acedPostCommand.Invoke(bytes);// 调用方法
@@ -102,7 +100,7 @@ public class PostCmd
                             nameof(acedInvoke), AcadPeEnum.ExeAndCore);
 
         // 不然到CAD之后会乱码
-        byte[] bytes = Encoding.Unicode.GetBytes(args);
+        var bytes = Encoding.Unicode.GetBytes(args);
 
         if (acedInvoke is null)
             return PromptStatus.Error;
@@ -114,7 +112,7 @@ public class PostCmd
     /// </summary>
     static void AsyncCommand(string args)
     {
-        object[] commandArray = { args + "\n" };
+        object[] commandArray = [args + "\n"];
 #if zcad
         var com = Acap.ZcadApplication;
 #else
@@ -126,14 +124,34 @@ public class PostCmd
         doc?.GetType()
             .InvokeMember("SendCommand", BindingFlags.InvokeMethod, null, doc, commandArray);// 返回值是null
     }
-
+    /// <summary>
+    /// 命令模式
+    /// </summary>
     public enum RunCmdFlag : byte
     {
+        /// <summary>
+        /// 发送命令(同步)如果2015.+这里报错,那么表示vs需要提权测试
+        /// </summary>
         AcedCmd = 1,
+        /// <summary>
+        /// 发送命令(同步)
+        /// </summary>
         AcedCommand = 2,
+        /// <summary>
+        /// 发送命令(同步)，可以多线程
+        /// </summary>
         AcedPostCommand = 4,
+        /// <summary>
+        /// 发送命令(同步)
+        /// </summary>
         AcedInvoke = 8,
+        /// <summary>
+        /// 默认的发送命令
+        /// </summary>
         SendStringToExecute = 16,
+        /// <summary>
+        /// 异步命令
+        /// </summary>
         AsyncCommand = 32,
     }
 
@@ -141,18 +159,34 @@ public class PostCmd
      * 发送命令会记录在命令历史
      * 发送lisp的(command "xx")就不会
      */
+     /// <summary>
+     /// 发送命令
+     /// </summary>
+     /// <param name="args"></param>
+     /// <returns></returns>
     public static PromptStatus SendCommand(ResultBuffer args)
     {
         return AcedCmd(args);
     }
+    /// <summary>
+    /// 发送命令
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     public static PromptStatus SendCommand(IntPtr args)
     {
         return AcedCommand(args);
     }
+    /// <summary>
+    /// 发送命令
+    /// </summary>
+    /// <param name="args"></param>
+    /// <param name="flag"></param>
+    /// <returns></returns>
     public static PromptStatus SendCommand(string args, RunCmdFlag flag)
     {
-        PromptStatus ret = PromptStatus.OK;
-        if (!Acap.DocumentManager.IsApplicationContext)
+        var ret = PromptStatus.OK;
+        if (!Acaop.DocumentManager.IsApplicationContext)
         {
             if ((flag & RunCmdFlag.AcedCmd) == RunCmdFlag.AcedCmd)
             {
@@ -182,7 +216,7 @@ public class PostCmd
         }
         else
         {
-            var dm = Acap.DocumentManager;
+            var dm = Acaop.DocumentManager;
             var doc = dm.MdiActiveDocument;
             if (doc == null)
                 return PromptStatus.Error;

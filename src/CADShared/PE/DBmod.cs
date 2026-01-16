@@ -1,7 +1,4 @@
 ﻿namespace IFoxCAD.Cad;
-#pragma warning disable CS1591 // 缺少XML注释
-#pragma warning disable CS1572 // XML注释中有不存在的参数
-#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
 
 /// <summary>
 /// 获取数据库修改状态
@@ -11,27 +8,55 @@
 [Flags]
 public enum DBmod : short
 {
-    [Description("数据库冇修改")]
+    /// <summary>
+    /// 数据库未修改
+    /// </summary>
+    [Description("数据库未修改")]
     DatabaseNoModifies = 0,
+    /// <summary>
+    /// 数据库有修改
+    /// </summary>
     [Description("数据库有修改")]
     Database = 1,
+    /// <summary>
+    /// 变量有修改
+    /// </summary>
     [Description("变量有修改")]
     Value = 4,
+    /// <summary>
+    /// 窗口有修改
+    /// </summary>
     [Description("窗口有修改")]
     Window = 8,
+    /// <summary>
+    /// 视图有修改
+    /// </summary>
     [Description("视图有修改")]
     View = 16,
+    /// <summary>
+    /// 字段有修改
+    /// </summary>
     [Description("字段有修改")]
     Field = 32
 }
-
+/// <summary>
+/// 图形修改状态
+/// </summary>
 public class DBmodEx
 {
+    /// <summary>
+    /// 图形修改状态
+    /// </summary>
     public static DBmod DBmod => (DBmod)Env.GetVar("dbmod");
 
     delegate long DelegateAcdbSetDbmod(IntPtr db, DBmod newValue);
     static DelegateAcdbSetDbmod? acdbSetDbmod;//别改名称
-
+    /// <summary>
+    /// 设置图形修改状态
+    /// </summary>
+    /// <param name="db">数据库的指针</param>
+    /// <param name="newValue">修改状态</param>
+    /// <returns></returns>
     public static long AcdbSetDbmod(IntPtr db, DBmod newValue)
     {
         acdbSetDbmod ??= AcadPeInfo.GetDelegate<DelegateAcdbSetDbmod>(
@@ -47,7 +72,7 @@ public class DBmodEx
     /// <param name="action"></param>
     public static void DBmodTask(Action action)
     {
-        var dm = Acap.DocumentManager;
+        var dm = Acaop.DocumentManager;
         if (dm.Count == 0)
             return;
         var doc = dm.MdiActiveDocument;
@@ -69,7 +94,7 @@ public class DBmodEx
     {
         if (_flag)// 仅执行一次,在初始化时候
         {
-            var dm = Acap.DocumentManager;
+            var dm = Acaop.DocumentManager;
             if (dm.Count == 0)
                 return;
             var doc = dm.MdiActiveDocument;
