@@ -28,8 +28,7 @@ public sealed class DBTrans : IDisposable
     public static Transaction? GetTopTransaction(Database db)
     {
         var tr = db?.TransactionManager.TopTransaction;
-        if (tr is null) throw new ArgumentNullException(nameof(DBTrans), $"此数据库{db}没有原生事务");
-        return tr;
+        return tr is null ? throw new ArgumentNullException(nameof(DBTrans), $"此数据库{db}没有原生事务") : tr;
     }
 
     /// <summary>
@@ -111,17 +110,15 @@ public sealed class DBTrans : IDisposable
     /// <summary>
     /// 事务栈
     /// </summary>
-    private static readonly Dictionary<Database, Stack<DBTrans>> _dBTrans = new();
+    private static readonly Dictionary<Database, Stack<DBTrans>> _dBTrans = [];
 
+    /// <summary>
+    /// 文档锁 map[文档名,文档锁]
+    /// </summary>
+    private readonly static Dictionary<Database, (Document Document, DocumentLock DocumentLock)> _docAndLockMap = [];
     #endregion
 
     #region 本类字段
-
-    /// <summary>
-    /// 文档锁
-    /// </summary>
-    private readonly DocumentLock? _documentLock;
-
     // 既然可以通过隐式转换,那么就私有它
     // 例如: Transaction tr = DBTrans.Top;
     /// <summary>
@@ -150,9 +147,12 @@ public sealed class DBTrans : IDisposable
     {
         get
         {
-            // Acad2014找不到会报错,2024则不会
-            try { return Acaop.DocumentManager.GetDocument(_database); }
-            catch { return null; }
+            if (_docAndLockMap.TryGetValue(_database, out var dx))
+                return dx.Document;
+            return null;
+            //// Acad2014找不到会报错,2024则不会
+            //try { return Acaop.DocumentManager.GetDocument(_database); }
+            //catch { return null; }
         }
     }
 
@@ -170,6 +170,7 @@ public sealed class DBTrans : IDisposable
 
     #region 构造函数
 
+
     /// <summary>
     /// 事务栈
     /// <para>默认构造函数,默认为打开当前文档,默认提交事务</para>
@@ -183,18 +184,23 @@ public sealed class DBTrans : IDisposable
     {
         doc ??= Acaop.DocumentManager.MdiActiveDocument;
 
-#if !NET35
         // 如果已经锁了就不再锁
-        if (docLock && doc.LockMode(false) == DocumentLockMode.NotLocked)
-            _documentLock = doc.LockDocument();
-#else
-        // 低版本无法判断:如果已经锁了就不再锁,要通过重入判断
+        //#if !NET35
+        //        // 用这个可以避免多个插件进行锁
+        //        if (docLock && doc.LockMode(false) == DocumentLockMode.NotLocked)
+        //            _documentLock = doc.LockDocument();
+        //#endif
+
+        // 用这个只能大家都用IFoxCAD才能避免多次锁,除非把它做成共享内存.
         if (docLock)
         {
-            if (!_dBTrans.ContainsKey(doc.Database))
-                _documentLock = doc.LockDocument();
+            if (_docAndLockMap.ContainsKey(doc.Database))
+            {
+                throw new ArgumentNullException("文档已经锁定,切勿重复加锁");
+            }
+            _docAndLockMap[doc.Database] = (doc, doc.LockDocument());
         }
-#endif
+
         _database = doc.Database;
         CheckDatabaseError();
         var tm = _database.TransactionManager;
@@ -971,7 +977,12 @@ public sealed class DBTrans : IDisposable
                 }
                 _transaction.Dispose();
             }
-            _documentLock?.Dispose();
+
+            if (_docAndLockMap.TryGetValue(_database, out var dx))
+            {
+                dx.Document.Dispose();
+                _docAndLockMap.Remove(_database);
+            }
 
             // 表记录释放
             foreach (var pair in _objectCache)
@@ -1063,7 +1074,6 @@ public sealed class DBTrans : IDisposable
         sb.AppendLine($"Document = {Document != null}");
         sb.AppendLine($"Editor = {Editor != null}");
         sb.AppendLine($"_transStatus = {_transStatus.ToString()}");
-        sb.AppendLine($"_documentLock = {_documentLock != null}");
         sb.AppendLine($"_transaction = {_transaction.UnmanagedObject}");
         return sb.ToString();
     }
