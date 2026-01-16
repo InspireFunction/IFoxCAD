@@ -52,6 +52,6 @@
     <Import Project="..\CADShared\CADShared.projitems" Label="Shared" />
 
     <ItemGroup>
-        <Compile Include="..\IFoxCAD.Aacad09plus\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
+        <Compile Include="..\IFoxCAD.AutoCad\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
     </ItemGroup>
 </Project>

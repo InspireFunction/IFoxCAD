@@ -4,8 +4,8 @@
   </Folder>
   <Folder Name="/src/">
     <Project Path="src/CADShared/CADShared.shproj" />
-    <Project Path="src/IFoxCAD.Aacad08/IFoxCAD.Acad08.csproj" />
-    <Project Path="src/IFoxCAD.Aacad09plus/IFoxCAD.Acad09plus.csproj" />
+    <Project Path="src/IFoxCAD.Acad08/IFoxCAD.Acad08.csproj" />
+    <Project Path="src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj" />
     <Project Path="src/IFoxCAD.Gcad/IFoxCAD.Gcad.csproj" />
     <Project Path="src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj" />
   </Folder>
