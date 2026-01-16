@@ -13,7 +13,7 @@ public class TestFileDatabase
         try
         {
             var fileName = @"C:\Users\Administrator\Desktop\合并详图测试BUG.dwg";
-            using DBTrans trans = new(fileName);
+            using var trans = DBTrans.OpenPushToBackend(fileName);
             trans.ModelSpace.AddEntity(new Line(new(0, 0, 0), new(1000, 1000, 0)));
             if (trans.Document is not null && trans.Document.IsActive)
                 trans.Document.SendStringToExecute("_qsave\n", false, true, true);

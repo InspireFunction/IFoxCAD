@@ -22,7 +22,7 @@ public static class ObjectIdEx
                                  bool openErased = false,
                                  bool openLockedLayer = false) where T : DBObject
     {
-        trans ??= DBTrans.Top.Transaction;
+        trans ??= DBTrans.Top;
         return trans.GetObject(id, openMode, openErased, openLockedLayer) as T;
     }
 
@@ -43,7 +43,7 @@ public static class ObjectIdEx
                                                bool openErased = false,
                                                bool openLockedLayer = false) where T : DBObject
     {
-        trans ??= DBTrans.Top.Transaction;
+        trans ??= DBTrans.Top;
         return ids.Select(id => id.GetObject<T>(openMode, trans, openErased, openLockedLayer));
     }
 

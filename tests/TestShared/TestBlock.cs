@@ -470,23 +470,25 @@ public class TestBlock
     public void Test_Back()
     {
         string dir = Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory);
-        string dwg = dir + "\\test.dwg";
-        if (!File.Exists(dwg))
+        string filename = dir + "\\test.dwg";
+        if (!File.Exists(filename))
         {
-            System.Windows.Forms.MessageBox.Show(dwg, "你还没有创建此文件");
+            System.Windows.Forms.MessageBox.Show(filename, "你还没有创建此文件");
             return;
         }
 
-        using DBTrans tr = new(dwg);
+
+        using var tr = DBTrans.OpenPushToBackend(filename);
         tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
             ent.ForWrite(e => e.ColorIndex = 3);
         });
-        tr.Database.SaveAs(dwg, DwgVersion.Current);
+        tr.Database.SaveAs(filename, DwgVersion.Current);
 
         tr.ModelSpace.GetEntities<Circle>().ForEach(ent => {
             ent.ForWrite(e => e.ColorIndex = 4);
         });
-        tr.Database.SaveAs(dwg, DwgVersion.Current);
+        //tr.Database.SaveAs(dwg, DwgVersion.Current);
+        DatabaseEx.SaveDwgFile(tr.Database, DwgVersion.Current);
     }
 }
 
@@ -497,7 +499,7 @@ public class BlockImportClass
     {
         string filename = @"C:\Users\vic\Desktop\Drawing1.dwg";
         using DBTrans tr = new();
-        using DBTrans tr1 = new(filename);
+        using var tr1 = DBTrans.OpenPushToBackend(filename);
         // tr.BlockTable.GetBlockFrom(filename, true);
         string blkdefname = SymbolUtilityServices.RepairSymbolName(SymbolUtilityServices.GetSymbolNameFromPathName(filename, "dwg"), false);
         tr.Database.Insert(blkdefname, tr1.Database, false); // 插入了块定义，未插入块参照

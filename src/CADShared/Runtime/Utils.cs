@@ -5,7 +5,7 @@ using System;
 /// <summary>
 /// 数据库事务助手类，提供数据库操作相关方法
 /// </summary>
-public class DBTransHelper
+public static class DBTransHelper
 {
     /*
      * id = db.GetObjectId(false, handle, 0);
@@ -73,18 +73,12 @@ public class DBTransHelper
     /// </summary>
     /// <param name="db">数据库</param>
     /// <param name="handle">句柄</param>
-    /// <returns>id</returns>
-    public static ObjectId TryGetObjectId(Database db, Handle handle)
+    /// <param name="id">id</param>
+    /// <returns></returns>
+    public static bool TryGetObjectId(this Database db, Handle handle, out ObjectId id)
     {
-#if !NET35
-        // 高版本直接利用
-        var es = db.TryGetObjectId(handle, out ObjectId id);
-        // if (!es)
-#else
-        var es = GetAcDbObjectId(db.UnmanagedObject, handle, out ObjectId id);
-        // if (ErrorStatus.OK != (ErrorStatus)es)
-#endif
-        return id;
+        var es = GetAcDbObjectId(db.UnmanagedObject, handle, out id);
+        return es == 0; //== Acad.ErrorStatus.eOk
     }
 
     // public static int GetCadFileVersion(string filename)

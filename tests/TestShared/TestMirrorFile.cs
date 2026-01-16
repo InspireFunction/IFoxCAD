@@ -15,7 +15,7 @@ public class MirrorFile
     public static void CmdTest_MirrorFile()
     {
         var yaxis = new Point3d(0, 1, 0);
-        using DBTrans tr = new(file, fileOpenMode: FileOpenMode.OpenForReadAndReadShare);
+        using DBTrans tr = DBTrans.OpenPushToBackend(file);
         tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
             modelSpace.ForEach(entId => {
                 var dbText = tr.GetObject<DBText>(entId, OpenMode.ForRead)!;
@@ -42,7 +42,7 @@ public class MirrorFile
     [CommandMethod(nameof(CmdTest_MirrorFile2))]
     public static void CmdTest_MirrorFile2()
     {
-        using DBTrans tr = new(file);
+        using var tr = DBTrans.OpenPushToBackend(file);
 
         tr.Task(() => {
             var yaxis = new Point3d(0, 1, 0);
@@ -70,6 +70,7 @@ public class MirrorFile
                 });
             });
         });
-        tr.Database.SaveAs(fileSave, (DwgVersion)27 /*AC1021 AutoCAD 2007/2008/2009.*/);
+        //tr.Database.SaveAs(fileSave, (DwgVersion)27 /*AC1021 AutoCAD 2007/2008/2009.*/);
+        DatabaseEx.SaveDwgFile(tr.Database, (DwgVersion)27);
     }
 }

@@ -1,11 +1,16 @@
-﻿namespace Test;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+
+namespace Test;
 
 public class TestTrans
 {
+    const string _file = @"D:\桌面\AA.dwg";
     [CommandMethod(nameof(CmdTest_DBTransActiveOpenDwg), CommandFlags.Session)]
     public static void CmdTest_DBTransActiveOpenDwg()
     {
-        using DBTrans tr = new(@"D:\桌面\AA.dwg", activeOpen: true);
+        // 前台打开,并且设置为当前文档
+        var doc = DBTrans.OpenFileForFrontend(_file, FileOpenMode.OpenForReadAndAllShare, null);
+        Acap.DocumentManager.MdiActiveDocument = doc;
     }
 
     [CommandMethod(nameof(CmdTest_ForEachDemo))]
@@ -61,43 +66,20 @@ public class TestTrans
 
 
 
-    // 后台:不存在路径的dwg会在桌面进行临时保存
     [CommandMethod(nameof(FileNotExist))]
     public void FileNotExist()
     {
-        using DBTrans tr = new("test.dwg");
-        tr.SaveFile((DwgVersion)24, false);
-    }
+        if (!File.Exists(_file))
+        {
+            throw new FileNotFoundException("文件不存在", _file);
+        }
 
-    // 前台:由于是弹出面板,此时路径不会起任何作用
-    [CommandMethod(nameof(FileNotExist2))]
-    public void FileNotExist2()
-    {
-        using DBTrans tr = new();
-        tr.SaveFile(saveAsFile: "D:\\");
-    }
-
-    // 后台:只有路径,没有文件名
-    [CommandMethod(nameof(FileNotExist3))]
-    public void FileNotExist3()
-    {
-        using DBTrans tr = new("D:\\");
-        tr.SaveDwgFile();
-
-        using DBTrans tr2 = new("D:\\");
-        tr2.SaveFile(saveAsFile: "D:\\");
-    }
-
-
-    [CommandMethod(nameof(Test_SaveDwgFile))]
-    public void Test_SaveDwgFile()
-    {
-        string filename = @"C:\Users\vic\Desktop\test.dwg";
-        using DBTrans tr = new(filename);
+        // 后台:不存在路径的dwg会在桌面进行临时保存
+        using var tr = DBTrans.OpenPushToBackend(_file);
         tr.ModelSpace.AddCircle(new Point3d(10, 10, 0), 20);
-        // tr.Database.SaveAs(filename,DwgVersion.Current);
-        tr.SaveDwgFile();
+        DatabaseEx.SaveDwgFile(tr.Database);
     }
+
     [CommandMethod(nameof(Test_DBTransAbort))]
     public void Test_DBTransAbort()
     {
@@ -139,12 +121,12 @@ public class TestTrans
         using DBTrans tr2 = new();
         var tr3 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
         var tr6 = Acap.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
-        Env.Print(tr2.Transaction == tr3);
+        Env.Print(tr2 == tr3);
         Env.Print(tr3 == tr6);
         using DBTrans tr4 = new();
         var tr5 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
         var tr7 = Acap.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
-        Env.Print(tr4.Transaction == tr5);
+        Env.Print(tr4 == tr5);
         Env.Print(tr5 == tr7);
         var trm = HostApplicationServices.WorkingDatabase.TransactionManager;
 

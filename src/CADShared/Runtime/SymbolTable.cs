@@ -107,7 +107,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         using (CurrentSymbolTable.ForWrite())
         {
             id = CurrentSymbolTable.Add(record);
-            DTrans.Transaction.AddNewlyCreatedDBObject(record, true);
+            DTrans.AddNewlyCreatedDBObject(record, true);
         }
         return id;
     }
@@ -315,7 +315,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
                                     string name,
                                     bool over)
     {
-        using DBTrans tr = new(fileName);
+        using var tr = DBTrans.OpenPushToBackend(fileName);
         return GetRecordFrom(tableSelector(tr), name, over);
     }
     #endregion

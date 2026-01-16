@@ -1,5 +1,4 @@
 ﻿using System.Drawing;
-using System.Runtime.CompilerServices;
 using System.Windows.Forms;
 using static IFoxCAD.Cad.PostCmd;
 
@@ -436,8 +435,7 @@ public class HatchPickEvent : IDisposable
     {
         if (!State.IsRun)
             return;
-
-        using DBTrans tr = new(doclock: true);
+        using DBTrans tr = new(Acap.DocumentManager.MdiActiveDocument, true);
         EraseAllHatchBorders();
     }
 
@@ -459,7 +457,7 @@ public class HatchPickEvent : IDisposable
         }
         Debugx.Printl("Md_ImpliedSelectionChanged");
 
-        using DBTrans tr = new(doclock: true);
+        using DBTrans tr = new(Acap.DocumentManager.MdiActiveDocument, true);
         var prompt = Env.Editor.SelectImplied();
         if (prompt.Status != PromptStatus.OK)
         {
@@ -591,7 +589,7 @@ public class HatchPickEvent : IDisposable
             dict.Value.BoundaryIds.ForEach(boId => {
                 if (!boId.IsOk())
                     return;
-                using DBTrans tr = new(database: boId.Database);
+                using DBTrans tr = new(boId.Database);
                 var boEnt = tr.GetObject<Entity>(boId, OpenMode.ForWrite);
                 if (boEnt == null)
                     return;

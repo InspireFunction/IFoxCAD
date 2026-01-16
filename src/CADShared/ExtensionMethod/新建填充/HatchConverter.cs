@@ -339,7 +339,7 @@ public class HatchConverter
         using IdMapping map = new();
         btrOfAddEntitySpace.DeepCloneEx(idc, map);
         var newHatchId = map.GetValues()[0];
-        trans ??= DBTrans.Top.Transaction;
+        trans ??= DBTrans.Top;
 
         bool openErased = false;
         bool openLockedLayer = false;

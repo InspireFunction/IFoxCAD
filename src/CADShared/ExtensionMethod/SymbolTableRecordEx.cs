@@ -78,7 +78,7 @@ public static class SymbolTableRecordEx
         //    throw new ArgumentNullException(nameof(entity), "对象为 null");
 
         ObjectId id;
-        trans ??= DBTrans.Top.Transaction;
+        trans ??= DBTrans.Top;
         using (btr.ForWrite())
         {
             id = btr.AppendEntity(entity);
@@ -101,7 +101,7 @@ public static class SymbolTableRecordEx
         // if (ents.Any(ent => ent is null))
         //    throw new ArgumentNullException(nameof(ents), "实体集合内存在 null 对象");
 
-        trans ??= DBTrans.Top.Transaction;
+        trans ??= DBTrans.Top;
         using (btr.ForWrite())
         {
             return ents.Select(ent => {
@@ -329,7 +329,7 @@ public static class SymbolTableRecordEx
                                                 bool openErased = false,
                                                 bool openLockedLayer = false) where T : Entity
     {
-        trans ??= DBTrans.Top.Transaction;
+        trans ??= DBTrans.Top;
         return
             btr
             .Cast<ObjectId>()
@@ -375,7 +375,7 @@ public static class SymbolTableRecordEx
                                                     bool openErased = false,
                                                     bool openLockedLayer = false)
     {
-        trans ??= DBTrans.Top.Transaction;
+        trans ??= DBTrans.Top;
         return trans.GetObject(btr.DrawOrderTableId, OpenMode.ForRead,
                openErased, openLockedLayer) as DrawOrderTable;
     }
@@ -400,7 +400,7 @@ public static class SymbolTableRecordEx
                                        Dictionary<string, string>? atts = null,
                                        Transaction? trans = null)
     {
-        trans ??= DBTrans.Top.Transaction;
+        trans ??= DBTrans.Top;
         if (!DBTrans.Top.BlockTable.Has(blockName))
         {
             DBTrans.Top.Editor?.WriteMessage($"\n不存在名字为{blockName}的块定义。");
@@ -430,7 +430,7 @@ public static class SymbolTableRecordEx
                                        Dictionary<string, string>? atts = null,
                                        Transaction? trans = null)
     {
-        trans ??= DBTrans.Top.Transaction;
+        trans ??= DBTrans.Top;
         if (!DBTrans.Top.BlockTable.Has(blockId))
         {
             DBTrans.Top.Editor?.WriteMessage($"\n不存在块定义。");

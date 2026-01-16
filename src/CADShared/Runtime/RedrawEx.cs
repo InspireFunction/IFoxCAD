@@ -176,26 +176,26 @@ public static class RedrawEx
 
 
     #region 实体刷新
-    /// <summary>
-    /// 刷新实体显示
-    /// </summary>
-    /// <param name="entity">实体对象</param>
-    /// <param name="trans">事务</param>
-    [Obsolete("此处已经被RedrawEx代替")]
-    public static void Flush(this Entity entity, DBTrans? trans = null)
-    {
-        trans ??= DBTrans.Top;
-        entity.RecordGraphicsModified(true);
-        trans.Transaction.TransactionManager.QueueForGraphicsFlush();
-        trans.Document?.TransactionManager.FlushGraphics();
-    }
+    // <summary>
+    // 刷新实体显示
+    // </summary>
+    // <param name="entity">实体对象</param>
+    // <param name="trans">事务</param>
+    //[Obsolete("此处已经被RedrawEx代替")]
+    //public static void Flush(this Entity entity, DBTrans? trans = null)
+    //{
+    //    trans ??= DBTrans.Top;
+    //    entity.RecordGraphicsModified(true);
+    //    trans.Transaction.TransactionManager.QueueForGraphicsFlush();
+    //    trans.Document?.TransactionManager.FlushGraphics();
+    //}
 
-    /// <summary>
-    /// 刷新实体显示
-    /// </summary>
-    /// <param name="id">实体id</param>
-    [Obsolete("此处已经被RedrawEx代替")]
-    public static void Flush(this ObjectId id)
-        => Flush(DBTrans.Top.GetObject<Entity>(id)!);
+    // <summary>
+    // 刷新实体显示
+    // </summary>
+    // <param name="id">实体id</param>
+    //[Obsolete("此处已经被RedrawEx代替")]
+    //public static void Flush(this ObjectId id)
+    //    => Flush(DBTrans.Top.GetObject<Entity>(id)!);
     #endregion
 }

@@ -11,6 +11,7 @@ global using Microsoft.Win32;
 global using System.ComponentModel;
 global using System.Runtime.InteropServices;
 global using System.Collections.Specialized;
+global using System.Runtime.CompilerServices;
 
 global using Exception = System.Exception;
 
@@ -47,4 +48,8 @@ global using IFoxCAD.Cad;
 global using IFoxCAD.Basal;
 #if !ac2008
 global using IFoxCAD.WPF;
+#endif
+
+#if NET35
+global using MethodImplAttribute = IFoxCAD.Cad.MethodImplAttribute;
 #endif

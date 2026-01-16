@@ -54,7 +54,7 @@ public static class DBDictionaryEx
     /// <param name="newValue">值</param>
     public static void SetAt<T>(this DBDictionary dict, string key, T newValue, Transaction? trans = null) where T : DBObject
     {
-        trans ??= DBTrans.Top.Transaction;
+        trans ??= DBTrans.Top;
         using (dict.ForWrite())
         {
             dict.SetAt(key, newValue);
@@ -286,7 +286,7 @@ public static class DBDictionaryEx
             Group g = new();
             g.Append(ids);
             dict.SetAt(name, g);
-            DBTrans.Top.Transaction.AddNewlyCreatedDBObject(g, true);
+            DBTrans.Top.AddNewlyCreatedDBObject(g, true);
             return g.ObjectId;
         }
     }

@@ -3,6 +3,7 @@
 #define PASTECLIP
 
 namespace Test;
+
 using Autodesk.AutoCAD.DatabaseServices;
 using System;
 using System.Diagnostics;
@@ -300,10 +301,10 @@ public class Copyclip
             var cadClipType = new TagClipboardInfo(tempFile, pt);
 
             // 克隆到目标块表内
-            using (DBTrans fileTr = new(cadClipType.File))
+            using (var fileTr = DBTrans.OpenPushToBackend(cadClipType.File))
             {
                 fileTr.Task(() => {
-                    using IdMapping map = new();
+                    using IdMapping map = [];
                     using ObjectIdCollection ids = new(idArray);
                     tr.Database.WblockCloneObjects(
                         ids,
@@ -316,7 +317,7 @@ public class Copyclip
                 // 大于dwg07格式的,保存为07,以实现高低版本通用剪贴板
                 // 小于dwg07格式的,本工程没有支持cad06dll
                 if ((int)DwgVersion.Current >= 27)
-                    fileTr.SaveFile((DwgVersion)27, false);
+                    DatabaseEx.SaveDwgFile(fileTr.Database, (DwgVersion)27);
                 else
                     throw new ArgumentException($"版本过低,无法保存,版本号:{DwgVersion.Current}");
             }
@@ -405,8 +406,7 @@ public class Copyclip
 
             // 获取临时文件的图元id
             var fileEntityIds = new List<ObjectId>();
-            using (DBTrans fileTr = new(cadClipType.File, commit: false,
-                                        fileOpenMode: FileOpenMode.OpenForReadAndAllShare))
+            using (var fileTr = DBTrans.OpenPushToBackend(cadClipType.File, false, FileOpenMode.OpenForReadAndAllShare))
             {
                 fileTr.ModelSpace.ForEach(id => {
                     if (id.IsOk())
@@ -417,17 +417,17 @@ public class Copyclip
                 return;
 
             using DBTrans tr = new();
-            tr.Editor?.SetImpliedSelection(new ObjectId[0]); // 清空选择集
+            tr.Editor?.SetImpliedSelection([]); // 清空选择集
 
             // 新建块表记录
             var btr = CreateBlockTableRecord(tr, cadClipType.File);
             if (btr == null)
                 return;
 
-            /// 克隆进块表记录
-            /// 动态块粘贴之后,用ctrl+z导致动态块特性无法恢复,
-            /// 是因为它: <see cref="DuplicateRecordCloning.Replace"/>
-            using IdMapping map = new();
+            // 克隆进块表记录
+            // 动态块粘贴之后,用ctrl+z导致动态块特性无法恢复,
+            // 是因为它: <see cref="DuplicateRecordCloning.Replace"/>
+            using IdMapping map = [];
             using ObjectIdCollection idc = new(fileEntityIds.ToArray());
             tr.Task(() => {
                 tr.Database.WblockCloneObjects(
@@ -502,7 +502,7 @@ public class Copyclip
                     // win32api 不成功
                     ClipTool.OpenClipboardTask(false, () => {
                         // 剪贴板数据保存目标数据列表
-                        List<byte[]> _bytes = new();
+                        List<byte[]> _bytes = [];
                         var cf = (uint)ClipboardFormat.CF_ENHMETAFILE;
                         var clipTypeData = ClipTool.GetClipboardData(cf);
                         if (clipTypeData == IntPtr.Zero)
