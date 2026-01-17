@@ -1,7 +1,6 @@
-﻿#if true
+﻿#if true 
+#if acad
 namespace IFoxCAD.Cad;
-
-using System.Diagnostics;
 
 // 作者: [VB.net]福萝卜  莱昂纳多·胖子
 // Email:oneeshine@163.com
@@ -14,13 +13,13 @@ using System.Diagnostics;
 /// <returns></returns>
 internal class AcadEMR
 {
-    /// <summary>
-    /// 释放库
-    /// </summary>
-    /// <param name="loadLibraryIntPtr">句柄</param>
-    /// <returns></returns>
-    [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
-    static extern IntPtr FreeLibrary(IntPtr loadLibraryIntPtr);
+    // /// <summary>
+    // /// 释放库
+    // /// </summary>
+    // /// <param name="loadLibraryIntPtr">句柄</param>
+    // /// <returns></returns>
+    // [DllImport("kernel32.dll", CharSet = CharSet.Auto)]
+    // static extern IntPtr FreeLibrary(IntPtr loadLibraryIntPtr);
 
     /// <summary>
     /// 获取一个应用程序或dll的模块句柄,要求已经载入
@@ -48,6 +47,7 @@ internal class AcadEMR
     /// <param name="lpflOldProtect"></param>
     /// <returns></returns>
     [DllImport("kernel32.dll", CharSet = CharSet.Auto, SetLastError = true)]
+    // ReSharper disable once IdentifierTypo
     static extern bool VirtualProtect(IntPtr lpAddress, IntPtr dwSize, uint flNewProtect, ref uint lpflOldProtect);
 
 
@@ -58,7 +58,7 @@ internal class AcadEMR
     public static void Remove(bool echoes = false)
     {
         var dllName = Env.GetAcapVersionDll();
-        IntPtr moduleHandle = GetModuleHandle(dllName);
+        var moduleHandle = GetModuleHandle(dllName);
         if (moduleHandle == IntPtr.Zero)
         {
             if (echoes)
@@ -66,43 +66,42 @@ internal class AcadEMR
             return;
         }
 
-        string funcname = System.Text.Encoding.Unicode.GetString(new byte[] { 63 });
+        var funcName = Encoding.Unicode.GetString([63]);
         if (IntPtr.Size == 4)
-            funcname += "isEMR@AcDbDatabase@@QBE_NXZ";
+            funcName += "isEMR@AcDbDatabase@@QBE_NXZ";
         else
-            funcname += "isEMR@AcDbDatabase@@QEBA_NXZ";
+            funcName += "isEMR@AcDbDatabase@@QEBA_NXZ";
 
-        IntPtr funcAdress = GetProcAddress(moduleHandle, funcname);
-        if (funcAdress == IntPtr.Zero)
+        var funcAddress = GetProcAddress(moduleHandle, funcName);
+        if (funcAddress == IntPtr.Zero)
         {
             if (echoes)
-                Env.Printl("无法找指定函数：" + funcname);
+                Env.Printl("无法找指定函数：" + funcName);
             return;
         }
 
-        IntPtr ptr;
-        if (IntPtr.Size == 4)
-            ptr = new IntPtr(funcAdress.ToInt32() + 3);
-        else
-            ptr = new IntPtr(funcAdress.ToInt64() + 4);
+        var ptr = IntPtr.Size == 4
+            ? new IntPtr(funcAddress.ToInt32() + 3)
+            : new IntPtr(funcAddress.ToInt64() + 4);
 
-        if (!CheckFunc(ref ptr, 51, 2))// 08 通过此处
+        if (!CheckFunc(ref ptr, 51, 2)) // 08 通过此处
             if (echoes)
                 Env.Printl("无法验证函数体：0x33");
-        IntPtr destPtr = ptr;
+        var destPtr = ptr;
 
-        if (!CheckFunc(ref ptr, 57, 6))// 08 无法通过此处,所以只是打印提示
+        if (!CheckFunc(ref ptr, 57, 6)) // 08 无法通过此处,所以只是打印提示
             if (echoes)
                 Env.Printl("无法验证函数体：0x39");
-        if (!CheckFunc(ref ptr, 15, 2))// 08 无法通过此处,所以只是打印提示
+        if (!CheckFunc(ref ptr, 15, 2)) // 08 无法通过此处,所以只是打印提示
             if (echoes)
                 Env.Printl("无法验证函数体：0x0F");
 
         uint flag = default;
+        // ReSharper disable once IdentifierTypo
         uint tccc = default;
 
         IntPtr ip100 = new(100);
-        if (!VirtualProtect(destPtr, ip100, 64, ref flag))// 修改内存权限
+        if (!VirtualProtect(destPtr, ip100, 64, ref flag)) // 修改内存权限
         {
             if (echoes)
                 Env.Printl("内存模式修改失败!");
@@ -110,40 +109,45 @@ internal class AcadEMR
         }
 
         Marshal.WriteByte(destPtr, 137);
-        VirtualProtect(destPtr, ip100, flag, ref tccc);// 恢复内存权限
+        VirtualProtect(destPtr, ip100, flag, ref tccc); // 恢复内存权限
     }
 
     /// <summary>
     /// 验证函数体
     /// </summary>
-    /// <param name="adress"></param>
+    /// <param name="address"></param>
     /// <param name="val"></param>
     /// <param name="len"></param>
     /// <returns></returns>
-    static bool CheckFunc(ref IntPtr adress, byte val, int len)
+    static bool CheckFunc(ref IntPtr address, byte val, int len)
     {
-        if (Marshal.ReadByte(adress) == 233)
+        if (address.ToInt64() > 0)
         {
-            if (IntPtr.Size == 4)
+            if (Marshal.ReadByte(address) == 233)
             {
-                var pass = Marshal.ReadInt32(new IntPtr(adress.ToInt32() + 1));
-                adress = new IntPtr(adress.ToInt32() + pass + 5);
+                if (IntPtr.Size == 4)
+                {
+                    var pass = Marshal.ReadInt32(new IntPtr(address.ToInt32() + 1));
+                    address = new IntPtr(address.ToInt32() + pass + 5);
+                }
+                else
+                {
+                    var pass = Marshal.ReadInt64(new IntPtr(address.ToInt64() + 1));
+                    address = new IntPtr(address.ToInt64() + pass + 5);
+                }
             }
-            else
+
+            if (address.ToInt64() > 0 && Marshal.ReadByte(address) == val)
             {
-                var pass = Marshal.ReadInt64(new IntPtr(adress.ToInt64() + 1));
-                adress = new IntPtr(adress.ToInt64() + pass + 5);
+                address = IntPtr.Size == 4
+                    ? new IntPtr(address.ToInt32() + len)
+                    : new IntPtr(address.ToInt64() + len);
+                return true;
             }
         }
-        if (Marshal.ReadByte(adress) == val)
-        {
-            if (IntPtr.Size == 4)
-                adress = new IntPtr(adress.ToInt32() + len);
-            else
-                adress = new IntPtr(adress.ToInt64() + len);
-            return true;
-        }
+
         return false;
     }
 }
+#endif
 #endif

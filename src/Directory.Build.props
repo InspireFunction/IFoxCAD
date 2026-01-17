@@ -13,7 +13,6 @@
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <GenerateDocumentationFile>True</GenerateDocumentationFile>
-
         <PlatformTarget>x64</PlatformTarget>
         <RootNamespace>IFoxCAD.CAD</RootNamespace>
         <UseWindowsForms>true</UseWindowsForms>

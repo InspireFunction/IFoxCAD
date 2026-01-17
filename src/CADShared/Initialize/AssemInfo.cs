@@ -15,35 +15,34 @@ public struct AssemInfo
         Loader = assembly.Location;
         Fullname = assembly.FullName!;
         Name = assembly.GetName().Name!;
-        LoadType = AssemLoadType.Startting;
+        LoadType = AssemLoadType.Starting;
     }
 
     /// <summary>
     /// 注册名
     /// </summary>
-    public string Name;
+    public string Name = "";
 
     /// <summary>
     /// 程序集全名
     /// </summary>
-    public string Fullname;
+    public string Fullname = "";
 
     /// <summary>
     /// 程序集路径
     /// </summary>
-    public string Loader;
+    public string Loader = "";
 
     /// <summary>
     /// 加载方式
     /// </summary>
-    public AssemLoadType LoadType;
+    public AssemLoadType LoadType = AssemLoadType.Starting;
 
     /// <summary>
     /// 程序集说明
     /// </summary>
     public string Description = "";
 }
-
 
 /// <summary>
 /// 程序集加载类型
@@ -53,7 +52,7 @@ public enum AssemLoadType
     /// <summary>
     /// 启动
     /// </summary>
-    Startting = 2,
+    Starting = 2,
 
     /// <summary>
     /// 随命令
@@ -66,32 +65,37 @@ public enum AssemLoadType
     Disabled = 20
 }
 
-
 /// <summary>
 /// 注册中心配置信息
 /// </summary>
+[Flags]
 public enum AutoRegConfig
 {
     /// <summary>
     /// 不进行任何操作
     /// </summary>
     Undefined = 0,
+
     /// <summary>
     /// 注册表
     /// </summary>
     Regedit = 1,
+
     /// <summary>
     /// 反射特性
     /// </summary>
     ReflectionAttribute = 2,
+
     /// <summary>
     /// 反射接口
     /// </summary>
     ReflectionInterface = 4,
+
     /// <summary>
     /// 移除教育版
     /// </summary>
     RemoveEMR = 8,
+
     /// <summary>
     /// 全部
     /// </summary>

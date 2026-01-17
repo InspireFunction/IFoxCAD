@@ -90,6 +90,7 @@ public static class SelectionSetEx
     #endregion
 
     #region ForEach
+#if true123123
     /// <summary>
     /// 遍历选择集
     /// </summary>
@@ -111,7 +112,8 @@ public static class SelectionSetEx
         ForEach<T>(ss, (ent, state) => {
             action.Invoke(ent);
         }, openMode, tr, openErased, openLockedLayer);
-    }
+    } 
+#endif
 
     /// <summary>
     /// 遍历选择集

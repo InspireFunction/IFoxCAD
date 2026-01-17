@@ -6,7 +6,7 @@ using MenuItem = Autodesk.AutoCAD.Windows.MenuItem;
 namespace JoinBoxAcad;
 public class HatchPick
 {
-    [IFoxInitialize]
+    [IFoxInitializeAttribute]
     [CommandMethod(nameof(HatchPickInit))]
     public void HatchPickInit()
     {

@@ -177,7 +177,7 @@ public class Init
     [CommandMethod(nameof(Initialize))]
     public void Initialize()
     {
-        
+
         // var assembly= Assembly.GetExecutingAssembly();
         // Env.Printl(assembly.GetName().Name);
         // var info = new AssemInfo(assembly);
@@ -188,6 +188,6 @@ public class Init
 
     public void Terminate()
     {
-        
+
     }
 }

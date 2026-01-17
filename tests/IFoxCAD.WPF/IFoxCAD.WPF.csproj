@@ -22,6 +22,10 @@
         <PackageReleaseNotes>开启可空类型.</PackageReleaseNotes>
     </PropertyGroup>
     
+    <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
+        <DefineConstants>$(Configuration);acad;ac2009</DefineConstants>
+    </PropertyGroup>
+
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
         <DefineConstants>$(Configuration);acad;ac2013</DefineConstants>
     </PropertyGroup>
