@@ -1,4 +1,4 @@
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 #if !NET8_0_OR_GREATER
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
 #endif

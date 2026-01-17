@@ -1,4 +1,4 @@
-// ReSharper disable CompareOfFloatsByEqualityOperator
+﻿// ReSharper disable CompareOfFloatsByEqualityOperator
 
 namespace IFoxCAD.Cad;
 

@@ -1,4 +1,4 @@
-#define test
+﻿#define test
 #define COPYCLIP
 #define PASTECLIP
 #if false

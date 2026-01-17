@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
     <PropertyGroup>
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
@@ -12,14 +12,14 @@
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
         <DefineConstants>$(Configuration);zcad</DefineConstants>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <PackageReference Include="System.Text.Json" Version="9.0.0"/>
         <PackageReference Include="ZWCAD.NetApi" Version="20.25.0" ExcludeAssets="runtime"/>
     </ItemGroup>
-    
+
     <ItemGroup>
-      <ProjectReference Include="..\..\src\IFoxCAD.ZwCad\IFoxCAD.ZwCad.csproj" />
+        <ProjectReference Include="..\..\src\IFoxCAD.ZwCad\IFoxCAD.ZwCad.csproj" />
     </ItemGroup>
     <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
 </Project>

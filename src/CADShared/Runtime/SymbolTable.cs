@@ -1,4 +1,4 @@
-// ReSharper disable RedundantNameQualifier
+﻿// ReSharper disable RedundantNameQualifier
 
 #if !NET8_0_OR_GREATER
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
