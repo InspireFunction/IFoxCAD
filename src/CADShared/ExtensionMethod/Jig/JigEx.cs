@@ -1,4 +1,4 @@
-#pragma warning disable CS1591 // 缺少XML注释
+﻿#pragma warning disable CS1591 // 缺少XML注释
 #pragma warning disable CS1572 // XML注释中有不存在的参数
 #pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
 
@@ -30,7 +30,7 @@ public class JigEx : DrawJig, IDisposable
     /// <summary>
     /// 最后的图元,用来生成
     /// </summary>
-    public Entity[] Entitys => _drawEntitys.ToArray();
+    public Entity[] Entities => _drawEntitys.ToArray();
 
 
     readonly Action<Point3d, Queue<Entity>>? _mouseAction;

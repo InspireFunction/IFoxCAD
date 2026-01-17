@@ -1,9 +1,19 @@
-﻿using System.Diagnostics;
-
-namespace Test;
+﻿namespace Test;
 
 public partial class Test
 {
+
+
+
+    
+   
+
+    
+
+
+    
+
+
     [CommandMethod(nameof(Test_Rec))]
     public void Test_Rec()
     {
@@ -45,6 +55,10 @@ public partial class Test
         });
 #pragma warning restore CS0219 // 变量已被赋值，但从未使用过它的值
     }
+
+  
+
+
     [CommandMethod(nameof(Test_EntRoration))]
     public void Test_EntRoration()
     {

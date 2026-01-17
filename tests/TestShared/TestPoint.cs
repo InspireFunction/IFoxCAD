@@ -1,11 +1,66 @@
 ﻿namespace Test;
-
-
-using System.Diagnostics;
-
-
 public class TestPoint
 {
+#if false
+    [CommandMethod(nameof(Test_GetAngle))]
+    public void Test_GetAngle()
+    {
+        var pt1 = new Point2d(0, 0);
+        var pt2 = new Point2d(1, 1);
+        var angle_pt1_pt2 = pt1.GetAngle(pt2);
+        var angle_pt2_pt1 = pt2.GetAngle(pt1);
+        Env.Printl($"pt1-pt2 angle is : {angle_pt1_pt2}, 角度是： {MathEx.ConvertRadToDeg(angle_pt1_pt2)}");
+        Env.Printl($"pt2-pt1 angle is : {angle_pt2_pt1}, 角度是： {MathEx.ConvertRadToDeg(angle_pt2_pt1)}");
+
+        var polar = pt1.Polar(Math.PI / 2, 10);
+        Env.Printl($"pt1 90° 距离10的点是: {polar}");
+        
+    }
+#endif
+    [CommandMethod(nameof(Test_Endtoend))]
+    public void Test_Endtoend()
+    {
+        var pts = new Point2dCollection
+        {
+            new(0, 0),
+            new(0, 1),
+            new(1, 1),
+            new(1, 0)
+        };
+
+
+        foreach (Point2d pt in pts)
+        {
+            Env.Printl($"X={pt.X},Y={pt.Y}");
+        }
+        pts.End2End();
+        Env.Printl("-------");
+        foreach (Point2d pt in pts)
+        {
+            Env.Printl($"X={pt.X},Y={pt.Y}");
+        }
+        Env.Printl("--------");
+        var ptss = new Point3dCollection
+        {
+            new(0, 0,0),
+            new(0, 1,0),
+            new(1, 1,0),
+            new(1, 0,0)
+        };
+        
+        foreach (Point3d pt in ptss)
+        {
+            Env.Printl($"X={pt.X},Y={pt.Y},Z={pt.Z}");
+        }
+        ptss.End2End();
+        Env.Printl("-------");
+        foreach (Point3d pt in ptss)
+        {
+            Env.Printl($"X={pt.X},Y={pt.Y},Z={pt.Z}");
+        }
+        
+    }
+    
     /// <summary>
     /// 红黑树排序点集
     /// </summary>
@@ -98,9 +153,9 @@ public class TestPoint
     {
         var lst1 = new List<int> { 1, 2, 3, 4 };
         var lst2 = new List<int> { 1, 2, 3, 4 };
-        lst1.EqualsAll(null!);
+        lst1.SequenceEqual(null!);
         Tools.TestTimes2(1000000, "eqaulspeed:", () => {
-            lst1.EqualsAll(lst2);
+            lst1.SequenceEqual(lst2);
         });
     }
 

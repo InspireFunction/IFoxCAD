@@ -1,7 +1,8 @@
-﻿namespace IFoxCAD.Cad;
-#pragma warning disable CS1591 // 缺少XML注释
-#pragma warning disable CS1572 // XML注释中有不存在的参数
-#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
+﻿#pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
+#if true
+namespace IFoxCAD.Basal;
+
+// https://blog.csdn.net/qq_43812868/article/details/108587936
 
 /// <summary>
 /// 进程快照标志枚举，用于指定 CreateToolhelp32Snapshot 函数要获取的信息类型。
@@ -1708,3 +1709,4 @@ public enum GetWindowCmd : uint
     /// </summary>
     GW_ENABLEDPOPUP = 6
 }
+#endif

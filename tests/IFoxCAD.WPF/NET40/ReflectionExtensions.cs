@@ -1,4 +1,4 @@
-#if NET40 || NET35
+﻿#if NET40 || NET35
 using System.Reflection;
 
 namespace System

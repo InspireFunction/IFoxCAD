@@ -1,4 +1,4 @@
-using static System.Windows.Forms.AxHost;
+﻿using static System.Windows.Forms.AxHost;
 
 namespace IFoxCAD.Cad;
 

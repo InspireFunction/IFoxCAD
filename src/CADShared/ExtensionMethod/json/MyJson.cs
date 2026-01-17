@@ -1,6 +1,6 @@
-#pragma warning disable CS1591 // È±ÉÙXML×¢ÊÍ
-#pragma warning disable CS1572 // XML×¢ÊÍÖĞÓĞ²»´æÔÚµÄ²ÎÊı
-#pragma warning disable CS1573 // ²ÎÊıÔÚXML×¢ÊÍÖĞÃ»ÓĞÆ¥ÅäµÄ²ÎÊı±ê¼Ç
+ï»¿#pragma warning disable CS1591 // ç¼ºå°‘XMLæ³¨é‡Š
+#pragma warning disable CS1572 // XMLæ³¨é‡Šä¸­æœ‰ä¸å­˜åœ¨çš„å‚æ•°
+#pragma warning disable CS1573 // å‚æ•°åœ¨XMLæ³¨é‡Šä¸­æ²¡æœ‰åŒ¹é…çš„å‚æ•°æ ‡è®°
 
 using System;
 using System.Collections.Generic;

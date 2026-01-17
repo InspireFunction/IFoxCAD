@@ -1,4 +1,4 @@
-namespace IFoxCAD.Basal;
+﻿namespace IFoxCAD.Basal;
 
 #line hidden // 调试的时候跳过它
 

@@ -3,7 +3,7 @@
 using System;
 using System.Diagnostics;
 using System.Text;
-using static IFoxCAD.Cad.WindowsAPI;
+using static IFoxCAD.Basal.WindowsAPI;
 
 /// <summary>
 /// 剪贴板环境配置类

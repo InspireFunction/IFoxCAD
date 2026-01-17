@@ -27,7 +27,7 @@ public class Commands_Jig
             // 所以此处不加入已经在数据库的图元,而是加入new Entity的.
             // drawEntitys.Enqueue(cir);
         });
-        moveJig.SetOptions(cir.GeometricExtents.MinPoint, orthomode: true);
+        moveJig.SetOptions(cir.GeometricExtents.MinPoint);
 
         // 此处详见方法注释
         moveJig.DatabaseEntityDraw(draw => {
@@ -36,7 +36,7 @@ public class Commands_Jig
 
         while (true)
         {
-            var prDrag = moveJig.Drag();
+            var prDrag = Env.Editor.Drag(moveJig);
             if (prDrag.Status == PromptStatus.OK)
                 break;
         }
@@ -69,14 +69,13 @@ public class Commands_Jig
             // 不要这样做: jig.SetOptions(closestPt) 而是使用底层暴露
             options!.BasePoint = closestPt;
 
-            // 需要避免重复加入同一个关键字
+            // 允许在循环中替换关键字,需要避免重复加入同一个关键字
             if (!options.Keywords.Contains("A"))
                 options.Keywords.Add("A");
 
             // 生成文字
             var dictString = (pl.GetDistAtPoint(closestPt) * 0.001).ToString("0.00");
-            var acText = new TextInfo(dictString, closestPt, AttachmentPoint.BaseLeft, textHeight: 200)
-                        .AddDBTextToEntity();
+            var acText = DBTextEx.CreateDBText(closestPt, dictString, 200);
 
             // 加入刷新队列
             drawEntitys.Enqueue(acText);
@@ -84,14 +83,17 @@ public class Commands_Jig
 
         options = jig.SetOptions(per.PickedPoint);
 
+        // 在这里加入关键字
         // 如果没有这个,那么空格只会是 PromptStatus.None 而不是 PromptStatus.Keyword
         // options.Keywords.Add(" ", " ", "空格结束啊");
         // jig.SetSpaceIsKeyword();
+        options.Keywords.Add("A", "A", "A");
+
 
         bool flag = true;
         while (flag)
         {
-            var pr = jig.Drag();
+            var pr = Env.Editor.Drag(jig);
             if (pr.Status == PromptStatus.Keyword)
             {
                 switch (pr.StringResult)
@@ -114,7 +116,7 @@ public class Commands_Jig
             else
                 flag = false;
         }
-        tr.CurrentSpace.AddEntity(jig.Entitys);
+        tr.CurrentSpace.AddEntity(jig.Entities);
     }
 
     [CommandMethod(nameof(Test_MessageFilter))]
@@ -186,10 +188,7 @@ public class Commands_Jig
         var btr = (BlockTableRecord)tr.GetObject(db.CurrentSpaceId, OpenMode.ForWrite);
         // Create the text object, set its normal and contents
 
-        var acText = new TextInfo(pr.StringResult,
-                         Point3d.Origin,
-                         AttachmentPoint.BaseLeft, textHeight: 200)
-                         .AddDBTextToEntity();
+        var acText = DBTextEx.CreateDBText(Point3d.Origin, pr.StringResult, 200);
 
         acText.Normal = ed.CurrentUserCoordinateSystem.CoordinateSystem3d.Zaxis;
         btr.AppendEntity(acText);

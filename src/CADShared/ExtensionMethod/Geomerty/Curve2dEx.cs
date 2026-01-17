@@ -1,4 +1,4 @@
-// ReSharper disable SuggestVarOrType_SimpleTypes
+﻿// ReSharper disable SuggestVarOrType_SimpleTypes
 
 namespace IFoxCAD.Cad;
 

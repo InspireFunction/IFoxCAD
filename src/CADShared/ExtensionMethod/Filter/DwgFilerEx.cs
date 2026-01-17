@@ -1,4 +1,4 @@
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// Dwg序列化

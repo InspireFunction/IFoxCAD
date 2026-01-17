@@ -1,4 +1,4 @@
-namespace Gstar_IMEFilter;
+﻿namespace Gstar_IMEFilter;
 
 using System.Diagnostics;
 using System.Linq;

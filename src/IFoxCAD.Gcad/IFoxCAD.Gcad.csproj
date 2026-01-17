@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>NET48</TargetFrameworks>
@@ -30,11 +30,10 @@
     </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
-        <PackageReference Include="GrxCAD.Net.2022" Version="1.0.0">
-            <ExcludeAssets>runtime</ExcludeAssets>
-        </PackageReference>
+        <PackageReference Include="GrxCAD.Net.2022" Version="1.0.0"  ExcludeAssets="runtime" />
+        <Reference Include="Microsoft.CSharp" />
     </ItemGroup>
-
+ 
 
     <ItemGroup>
         <None Include="..\..\LICENSE">

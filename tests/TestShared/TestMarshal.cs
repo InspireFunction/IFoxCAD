@@ -1,5 +1,5 @@
 ﻿using System.Diagnostics;
-using static IFoxCAD.Cad.WindowsAPI;
+using static IFoxCAD.Basal.WindowsAPI;
 
 namespace TestShared;
 
@@ -104,7 +104,7 @@ public class TestMarshal
         IntPtr structPtr = Marshal.AllocHGlobal(Marshal.SizeOf(pt));
         Marshal.StructureToPtr(pt, structPtr, true);
         Marshal.Copy(structPtr, bytes, 0, typeSize);
-        var result = (Point3d)Marshal.PtrToStructure(structPtr, typeof(Point3d));
+        var result = (Point3d)(Marshal.PtrToStructure(structPtr, typeof(Point3d)) ?? throw new InvalidOperationException());
         "内存拷贝:".Print();
         result.Print();
 

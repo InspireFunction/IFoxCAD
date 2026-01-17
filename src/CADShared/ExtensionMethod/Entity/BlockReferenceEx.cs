@@ -236,9 +236,9 @@ public static class BlockReferenceEx
         foreach (var id in btr)
         {
 #if NET35
-            var a = id.ObjectClass().Name;
+            var a = id.ObjectClass().DxfName;
 #else
-            var a = id.ObjectClass.Name;
+            var a = id.ObjectClass.DxfName;
 #endif
             if (a == "AcDbBlockReference")
             {
@@ -354,13 +354,9 @@ public static class BlockReferenceEx
     /// <returns>可见性信息</returns>
     public static BlockVisibilityInfo? GetVisibilityInfo(this BlockReference blockReference)
     {
-        BlockVisibilityInfo? info = null;
-        if (blockReference.IsDynamicBlock)
-        {
-            var btr = (BlockTableRecord)blockReference.DynamicBlockTableRecord.GetObject(OpenMode.ForRead);
-            info = btr.GetVisibilityInfo();
-        }
-        return info;
+        var tr = DBTrans.GetTopTransaction(blockReference.Database);
+        var btr = (BlockTableRecord)tr!.GetObject(blockReference.DynamicBlockTableRecord, OpenMode.ForRead);
+        return btr.GetVisibilityInfo();
     }
 
     /// <summary>
@@ -370,7 +366,6 @@ public static class BlockReferenceEx
     /// <returns>可见性信息</returns>
     public static BlockVisibilityInfo? GetVisibilityInfo(this BlockTableRecord btr)
     {
-        var info = new BlockVisibilityInfo();
         if (btr.IsDynamicBlock && btr.ExtensionDictionary.IsOk())
         {
             var dict = btr.GetXDictionary();
@@ -380,6 +375,7 @@ public static class BlockReferenceEx
             }
             if (dict.Contains("ACAD_ENHANCEDBLOCK"))
             {
+                var info = new BlockVisibilityInfo();
                 var idEnhancedBlock = dict.GetAt("ACAD_ENHANCEDBLOCK");
                 var enhancedBlockTypedValues = Env.EntGet(idEnhancedBlock);
                 var parm = enhancedBlockTypedValues.FirstOrDefault(e => e.TypeCode == 360 && e.Value is ObjectId id && IsDxfBV(id)).Value;
@@ -394,10 +390,10 @@ public static class BlockReferenceEx
                         .Where(e => !StringHelper.IsNullOrWhiteSpace(e))
                         .ToList();
                 }
+                return info;
             }
         }
-
-        return info;
+        return null;
     }
 
     static bool IsDxfBV(ObjectId id)

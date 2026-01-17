@@ -1,8 +1,7 @@
-namespace TestShared;
+﻿namespace TestShared;
 
 public class TestJson
 {
-    // ���л�����
     [CommandMethod(nameof(JavaScriptSerializer))]
     public void JavaScriptSerializer()
     {
@@ -14,11 +13,11 @@ public class TestJson
             3
         };
 
-        Env.Printl("���л�:");
+        Env.Printl("序列化:");
         var serializedResult = MyJson.SerializeObject(RegisteredUsers);
         Env.Printl(serializedResult);
 
-        Env.Printl("�����л�:");
+        Env.Printl("反序列化:");
         var deserializedResult = MyJson.DeserializeObject<List<int>>(serializedResult);
     }
 }

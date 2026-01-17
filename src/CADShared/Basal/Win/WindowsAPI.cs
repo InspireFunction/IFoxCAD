@@ -1,13 +1,9 @@
-#pragma warning disable CS1591 // 缺少XML注释
-#pragma warning disable CS1572 // XML注释中有不存在的参数
-#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
-
+﻿#pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
 #define Marshal
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading;
-
-namespace IFoxCAD.Cad;
+namespace IFoxCAD.Basal;
 
 /// <summary>
 /// Windows API 封装类，提供常用的 Windows 系统 API 调用方法。
@@ -254,10 +250,14 @@ public partial class WindowsAPI
         }
     }
 #endif
+
     #endregion
 }
 
-public partial class WindowsAPI
+/// <summary>
+/// 系统Api
+/// </summary>
+public static partial class WindowsAPI
 {
     #region imm32
     /// <summary>

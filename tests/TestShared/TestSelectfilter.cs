@@ -1,4 +1,4 @@
-namespace Test;
+﻿namespace Test;
 
 public class Testselectfilter
 {
@@ -29,4 +29,35 @@ public class Testselectfilter
         var sel2 = Env.Editor.SelectAtPoint(new Point3d(0, 0, 0));
         Env.Editor.WriteMessage("");
     }
+}
+
+public class TestSelectObjectType
+{
+    [CommandMethod(nameof(Test_Select_type))]
+    public void Test_Select_type()
+    {
+        var sel = Env.Editor.SSGet();
+        if (sel.Status != PromptStatus.OK) return;
+        var ids = sel.Value.GetObjectIds<Dimension>();
+        foreach (var item in ids)
+        {
+            item.Print();
+        }
+
+        var dxfName = RXObject.GetClass(typeof(Dimension)).DxfName;
+        dxfName.Print();
+        var idss = sel.Value.GetObjectIds();
+        foreach (var item in idss)
+        {
+            item.Print();
+#if NET35
+            var a = item.ObjectClass().DxfName;
+#else
+            var a = item.ObjectClass.DxfName;
+#endif
+            a.Print();
+        }
+
+    }
+
 }

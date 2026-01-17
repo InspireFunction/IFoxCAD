@@ -2,7 +2,7 @@
 #define XTextString
 
 using System.Diagnostics;
-using static IFoxCAD.Cad.WindowsAPI;
+using static IFoxCAD.Basal.WindowsAPI;
 
 namespace Test_XRecord;
 

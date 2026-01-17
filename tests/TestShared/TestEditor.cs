@@ -47,12 +47,12 @@ public class Testeditor
     [CommandMethod(nameof(Test_Zoom_1))]
     public void Test_Zoom_1()
     {
-        Env.Editor.Zoom(new(0, 0, 0), 200, 200);
+        Env.Editor.Zoom(new(0, 0, 0),200,200);
     }
     [CommandMethod(nameof(Test_Zoom_2))]
     public void Test_Zoom_2()
     {
-        Env.Editor.ZoomWindow(new Point3d(-100, -100, 0), new(100, 100, 0));
+        Env.Editor.ZoomWindow(new Point3d(-100,-100,0),new(100,100,0));
     }
 
     [CommandMethod(nameof(Test_Ssget))]
@@ -65,7 +65,7 @@ public class Testeditor
             { "B", ("hello", () => { Env.Print("this is b"); }) }
         };
 
-        var ss = Env.Editor.SSGet(/*":S", */ messages: ("get", "del"),
+        var ss = Env.Editor.SSGet(/*":S", */ messages: ("get", "del" ),
                                          keywords: keyword);
         Env.Print(ss!);
     }
