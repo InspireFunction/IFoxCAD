@@ -1,0 +1,31 @@
+name: Publish NuGet Package
+
+on:
+  push:
+    tags:
+      - 'v*' # 当推送以 v 开头的标签时触发，例如 v0.9
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-net@v4
+        with:
+          dotnet-version: '8.0.x' # 根据你的项目选择版本
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      # 自动从 Tag 名称提取版本号并打包
+      - name: Pack
+        run: dotnet pack --configuration Release /p:PackageVersion=${{ github.ref_name }} --output .
+
+      - name: Publish to NuGet
+        run: dotnet nuget push *.nupkg --api-key ${{ secrets.NUGET_AUTH_TOKEN }} --source https://api.nuget.org/v3/index.json --skip-duplicate
