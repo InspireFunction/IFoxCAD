@@ -5,7 +5,7 @@ using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using Control = System.Windows.Forms.Control;
-
+#line hidden
 public class IMEControl
 {
     // 豁免命令组: 默认和配置的
@@ -571,3 +571,4 @@ public class IMEControl
         }
     }
 }
+#line default

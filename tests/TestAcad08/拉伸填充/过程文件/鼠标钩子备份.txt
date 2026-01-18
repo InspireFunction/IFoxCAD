@@ -1,0 +1,80 @@
+#if true2
+
+/// <summary>
+/// 填充的鼠标钩子
+/// </summary>
+public static class HatchHook
+{
+    static readonly MouseHook MouseHook;
+    // 夹点拉伸前的点,拉伸后利用命令后反应器去处理"GRIP_STRETCH"
+    static volatile int _X;
+    static volatile int _Y;
+    public static Point MouseStartPoint { get => new(_X, _Y); }
+
+    /// <summary>
+    /// 鼠标双击事件
+    /// </summary>
+    public static event EventHandler? DoubleClick;
+
+    static HatchHook()
+    {
+        MouseHook = new();
+    }
+
+    /// <summary>
+    /// 查找主线程<br/>
+    /// 代替<see cref="AppDomain.GetCurrentThreadId()"/><br/>
+    /// 托管线程和他们不一样: <see cref="Thread.CurrentThread.ManagedThreadId"/>
+    /// </summary>
+    /// <param name="hWnd">主窗口</param>
+    /// <param name="lpdwProcessId">进程ID</param>
+    /// <returns>线程ID</returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+
+    [DllImport("user32.dll")]
+    static extern bool IsWindowEnabled(IntPtr hWnd);
+    /// <summary>
+    /// 获取当前窗口
+    /// </summary>
+    /// <returns>当前窗口标识符</returns>
+    [DllImport("user32.dll")]
+    static extern IntPtr GetForegroundWindow();
+
+    public static void SetHook()
+    {
+        // 如果是全局钩子会发生偶尔失效的情况,改用进程钩子反而好多了
+        MouseHook.SetHook(true);
+        MouseHook.MouseDown += (sender, e) => {
+            // 此处断点时候就会使得钩子失效
+            if (!IsWindowEnabled(Acap.MainWindow.Handle))
+                return;
+            // 进程号拦截
+            GetWindowThreadProcessId(GetForegroundWindow(), out uint winId);
+            if (MouseHook.Process.Id != winId)
+                return;
+            if (e.Button == MouseButtons.Left)
+            {
+                _X = e.X;
+                _Y = e.Y;
+            }
+        };
+
+        MouseHook.DoubleClick += (sender, e) => {
+            // 此处断点时候就会使得钩子失效
+            if (!IsWindowEnabled(Acap.MainWindow.Handle))
+                return;
+            // 进程号拦截
+            GetWindowThreadProcessId(GetForegroundWindow(), out uint winId);
+            if (MouseHook.Process.Id != winId)
+                return;
+            DoubleClick?.Invoke(sender, e);
+        };
+    }
+
+    public static void RemoveHook()
+    {
+        MouseHook?.Dispose();
+    }
+} 
+#endif

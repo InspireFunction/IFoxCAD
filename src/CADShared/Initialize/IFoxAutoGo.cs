@@ -289,6 +289,7 @@ public class AutoClass
         if (doc is null) return;
         AcadIdleManager.OnIdle -= OnIdle;
 
+        Env.Printl("空闲事件判断");
         if (Interlocked.CompareExchange(ref _isOnceExecuted, 1, 0) == 0)
         {
             var docArgs = new object[] { doc };

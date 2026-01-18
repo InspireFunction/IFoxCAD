@@ -1,11 +1,6 @@
-﻿//#define cpp
-namespace JoinBoxAcad;
+﻿using System.Drawing;
 
-using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.Geometry;
-using IFoxCAD.Cad;
-using System.Drawing;
-using static IFoxCAD.Basal.WindowsAPI;
+namespace JoinBoxAcad;
 
 public partial class Screen
 {

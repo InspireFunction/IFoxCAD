@@ -6,6 +6,9 @@ using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
+
+#line hidden
+
 /// <summary>
 /// AutoCAD窗口消息拦截器 - 支持自定义空闲事件
 /// </summary>
@@ -110,6 +113,7 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// <summary>
     /// 自定义窗口过程
     /// </summary>
+    [System.Diagnostics.DebuggerStepThrough]
     private IntPtr WindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
         var message = Message.Create(hWnd, (int)msg, wParam, lParam);
@@ -202,6 +206,11 @@ public static class AcadIdleManager
     private static System.Timers.Timer? _idleTimer;
     private static Control? _dummyControl;
 
+    // 保存原始事件处理程序和对应的lambda表达式之间的映射关系
+#if ac2008
+    private static readonly Dictionary<EventHandler, Action<object, EventArgs>> _eventHandlers = new Dictionary<EventHandler, Action<object, EventArgs>>();
+#endif
+
     /// <summary>
     /// 空闲事件间隔（毫秒），默认100ms
     /// </summary>
@@ -220,13 +229,12 @@ public static class AcadIdleManager
         add
         {
 #if ac2008
-            if (_windowProc == null)
+            if (_windowProc != null && value != null)
             {
-                Initialize();
-            }
-            if (_windowProc != null)
-            {
-                _windowProc.OnIdle += (s, e) => value?.Invoke(s, e);
+                // 创建lambda表达式并保存映射关系
+                Action<object, EventArgs> handler = (s, e) => value?.Invoke(s, e);
+                _eventHandlers[value] = handler;
+                _windowProc.OnIdle += handler;
             }
 #else
             Acap.Idle += value;
@@ -235,16 +243,25 @@ public static class AcadIdleManager
         remove
         {
 #if ac2008
-            if (_windowProc != null)
+            if (_windowProc != null && value != null && _eventHandlers.TryGetValue(value, out Action<object, EventArgs>? handler))
             {
-                // 注意：这里简化处理，实际可能需要更复杂的委托管理
-                _windowProc.OnIdle -= (s, e) => value?.Invoke(s, e);
+                // 从映射中获取对应的lambda表达式并移除
+                _windowProc.OnIdle -= handler;
+                _eventHandlers.Remove(value);
             }
 #else
             Acap.Idle -= value;
 #endif
         }
     }
+
+
+    static AcadIdleManager()
+    {
+        Initialize();
+    }
+
+
 
     /// <summary>
     /// 初始化2008版本的空闲管理器
@@ -325,3 +342,6 @@ public static class AcadIdleManager
 #endif
     }
 }
+
+
+#line default

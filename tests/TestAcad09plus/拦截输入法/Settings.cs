@@ -2,6 +2,7 @@
 using System.Xml;
 
 namespace Gstar_IMEFilter;
+
 public class Settings
 {
     static string _MyDir = "";

@@ -5,7 +5,7 @@ namespace Gstar_IMEFilter;
 
 public class ShowWPFWindowCentered
 {
-    internal static bool Show(Window window, bool modal)
+    internal static bool Show(System.Windows.Window window, bool modal)
     {
         new WindowInteropHelper(window).Owner = Acap.MainWindow.Handle;
         WindowsAPI.IntRect lpRect = new();

@@ -34,19 +34,9 @@ public class HatchConverter
     /// </summary>
     class HatchConverterData
     {
-        public readonly List<BulgeVertexWidth> PolyLineData;
-        public readonly List<CircleData> CircleConverterData;
-        public readonly List<NurbCurve2d> SplineData;
-
-        /// <summary>
-        /// 填充转换器的数据
-        /// </summary>
-        public HatchConverterData()
-        {
-            PolyLineData = [];
-            CircleConverterData = [];
-            SplineData = [];
-        }
+        public readonly List<BulgeVertexWidth> PolyLineData = [];
+        public readonly List<CircleData> CircleConverterData = [];
+        public readonly List<NurbCurve2d> SplineData = [];
     }
     #endregion
 
@@ -54,62 +44,44 @@ public class HatchConverter
     /// <summary>
     /// 外部只能调用id,否则跨事务造成错误
     /// </summary>
-    public ObjectId OldHatchId
-    {
-        get
-        {
-            if (_oldHatch is null)
-                return ObjectId.Null;
-            return _oldHatch.ObjectId;
-        }
-    }
+    public ObjectId OldHatchId => _oldHatch.ObjectId;
 
-    readonly Hatch? _oldHatch;
+    readonly Hatch _oldHatch;
 
-    readonly List<HatchConverterData> _hcDatas;
+    readonly List<HatchConverterData> _hcDatas = [];
 
     /// <summary>
     /// 填充边界id(生成的/已存在反应器的直接提取)
     /// </summary>
-    public readonly List<ObjectId> BoundaryIds;
+    public readonly List<ObjectId> BoundaryIds = [];
 
     #endregion
 
     #region 构造
-
-    /// <summary>
-    /// 填充边界转换器
-    /// </summary>
-    HatchConverter()
-    {
-        _hcDatas = [];
-        BoundaryIds = [];
-    }
-
     /// <summary>
     /// 填充边界转换器
     /// </summary>
     /// <param name="hatch">需要转化的Hatch对象</param>
-    public HatchConverter(Hatch hatch) : this()
+    public HatchConverter(Hatch hatch)
     {
         _oldHatch = hatch;
 
         if (hatch.Associative)
         {
             // 填充边界反应器
-            var assIds = hatch.GetAssociatedObjectIds();
-            if (assIds != null)
-            {
-                foreach (ObjectId id in assIds)
-                    if (id.IsOk())
-                        BoundaryIds.Add(id);
+            using var assIds = hatch.GetAssociatedObjectIds();
+            if (assIds == null)
+                return;
 
-                if (BoundaryIds.Count == 0)
-                {
-                    throw new ArgumentException("关联的填充边界被删除后没有清理反应器,请调用:" +
-                                                "\n hatch.RemoveAssociatedObjectIds()" +
-                                                "\n hatch.Associative = false");
-                }
+            foreach (ObjectId id in assIds)
+                if (id.IsOk())
+                    BoundaryIds.Add(id);
+
+            if (BoundaryIds.Count == 0)
+            {
+                throw new ArgumentException("关联的填充边界被删除后没有清理反应器,请调用:" +
+                                            "\n hatch.RemoveAssociatedObjectIds()" +
+                                            "\n hatch.Associative = false");
             }
         }
     }
@@ -119,7 +91,7 @@ public class HatchConverter
     /// </summary>
     public void GetBoundarysData()
     {
-        _oldHatch?.ForEach(loop => {
+        _oldHatch.ForEach(loop => {
             HatchConverterData hcData = new();
 
             var isCurve2d = true;
@@ -265,10 +237,11 @@ public class HatchConverter
     /// <summary>
     /// 创建边界图元
     /// </summary>
-    /// <param name="outEnts">返回图元</param>
+    /// <returns>返回图元</returns>
     //[Obsolete("使用带返回值的CreateBoundary替代")]
-    public void CreateBoundary(List<Entity> outEnts)
+    public List<Entity> CreateBoundary()
     {
+        List<Entity> outEnts = [];
         for (var i = 0; i < _hcDatas.Count; i++)
         {
             var data = _hcDatas[i];
@@ -298,56 +271,10 @@ public class HatchConverter
             data.SplineData.ForEach(item => { outEnts.Add(item.ToCurve()); });
         }
 
-        if (_oldHatch is not null)
-        {
-            outEnts.ForEach(ent => {
-                ent.Color = _oldHatch.Color;
-                ent.Layer = _oldHatch.Layer;
-            });
-        }
-    }
-
-    /// <summary>
-    /// 创建边界
-    /// </summary>
-    /// <returns></returns>
-    public List<Entity> CreateBoundary()
-    {
-        var outEnts = new List<Entity>();
-        for (var i = 0; i < _hcDatas.Count; i++)
-        {
-            var data = _hcDatas[i];
-
-            // 生成边界:多段线
-            if (data.PolyLineData.Count > 0)
-            {
-                Polyline pl = new();
-                pl.SetDatabaseDefaults();
-                for (var j = 0; j < data.PolyLineData.Count; j++)
-                {
-                    pl.AddVertexAt(j, data.PolyLineData[j].Vertex, data.PolyLineData[j].Bulge,
-                        data.PolyLineData[j].StartWidth, data.PolyLineData[j].EndWidth);
-                }
-
-                outEnts.Add(pl);
-            }
-
-            // 生成边界:圆
-            data.CircleConverterData.ForEach(item => {
-                outEnts.Add(new Circle(item.Center.Point3d(), Vector3d.ZAxis, item.Radius));
-            });
-
-            // 生成边界:样条曲线
-            data.SplineData.ForEach(item => { outEnts.Add(item.ToCurve()); });
-        }
-
-        if (_oldHatch is not null)
-        {
-            outEnts.ForEach(ent => {
-                ent.Color = _oldHatch.Color;
-                ent.Layer = _oldHatch.Layer;
-            });
-        }
+        outEnts.ForEach(ent => {
+            ent.Color = _oldHatch.Color;
+            ent.Layer = _oldHatch.Layer;
+        });
 
         return outEnts;
     }
@@ -365,9 +292,9 @@ public class HatchConverter
         bool createHatchFlag = true,
         Transaction? trans = null)
     {
-        List<Entity> boEnts = new();
-        CreateBoundary(boEnts);
-        boEnts.ForEach(ent => {
+        trans ??= DBTrans.GetTop(btrOfAddEntitySpace.Database);
+
+        CreateBoundary().ForEach(ent => {
             BoundaryIds.Add(btrOfAddEntitySpace.AddEntity(ent));
         });
 
@@ -383,20 +310,14 @@ public class HatchConverter
          */
 
         using ObjectIdCollection idc = new([OldHatchId]);
-        using IdMapping map = new();
+        using IdMapping map = [];
         btrOfAddEntitySpace.DeepCloneEx(idc, map);
-        var newHatchId = map.GetValues()[0];
-        trans ??= DBTrans.Top;
+        var newHatchId = map.GetValues().FirstOrDefault();
 
         bool openErased = false;
         bool openLockedLayer = false;
-        var hatchEnt = trans.GetObject(newHatchId, OpenMode.ForWrite,
-                                       openErased, openLockedLayer) as Hatch;
-        if (hatchEnt != null)
-        {
-            ResetBoundary(hatchEnt, boundaryAssociative);
-            hatchEnt.DowngradeOpen();
-        }
+        using var hatchEnt = (Hatch)trans.GetObject(newHatchId, OpenMode.ForWrite, openErased, openLockedLayer);
+        ResetBoundary(hatchEnt, boundaryAssociative);
         return newHatchId;
     }
 
@@ -425,7 +346,7 @@ public class HatchConverter
 
         hatch.Associative = boundaryAssociative;
 
-        using ObjectIdCollection obIds = new();
+        using ObjectIdCollection obIds = [];
         for (int i = 0; i < BoundaryIds.Count; i++)
         {
             obIds.Clear();

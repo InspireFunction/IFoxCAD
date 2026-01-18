@@ -1,26 +1,11 @@
-﻿using Autodesk.AutoCAD.Windows;
-using System.Diagnostics;
-using static IFoxCAD.Cad.PostCmd;
-using MenuItem = Autodesk.AutoCAD.Windows.MenuItem;
+﻿using static IFoxCAD.Cad.PostCmd;
+using System.Linq;
 
 namespace JoinBoxAcad;
 
-public class HatchPick
+public class StretchFill​
 {
-    [CommandMethod(nameof(提权没有问题啊))]
-    public void 提权没有问题啊()
-    {
-        using var tr = new DBTrans();
-        var btr = tr.CurrentSpace;
-        using (btr.ForWrite())
-        {
-
-        }
-    }
-
-
-
-    [IFoxInitializeAttribute] // 这个没有执行哦
+    [IFoxInitializeAttribute]
     [CommandMethod(nameof(HatchPickInit))]
     public void HatchPickInit(Document doc)
     {
@@ -28,8 +13,10 @@ public class HatchPick
 
         if (Debugger.IsAttached)
             Env.SetVar("hpscale", 22);
+
         // 设定高版本双击填充启动修改面板
         // JoinBoxAcad.Menu.Cui.CuiInit();
+
         LoadHelper(true);
     }
 
@@ -43,21 +30,22 @@ public class HatchPick
     [CommandMethod(nameof(HatchPickSwitch))]
     public void HatchPickSwitch()
     {
-        if (HatchPickEvent.State.IsStop)
+        if (HatchPick.State.IsStop)
         {
             Env.Printl("已经 卸载 拉伸填充控制+ 用: " + nameof(HatchPickInit) + " 加载");
             return;
         }
 
-        if (HatchPickEvent.State.IsRun)
-            HatchPickEvent.State.Break();
+        if (HatchPick.State.IsRun)
+            HatchPick.State.Break();
         else
-            HatchPickEvent.State.Start();
-        Env.Printl("已经 " + (HatchPickEvent.State.IsRun ? "开启" : "禁用") + " 拉伸填充控制+");
+            HatchPick.State.Start();
+        Env.Printl("已经 " + (HatchPick.State.IsRun ? "开启" : "禁用") + " 拉伸填充控制+");
     }
 
 
-    internal static Dictionary<Document, HatchPickEvent> MapDocHatchPickEvent = new();
+    internal static Dictionary<Document, HatchPick> HatchPickMap = [];
+
     void LoadHelper(bool isLoad)
     {
         var dm = Acap.DocumentManager;
@@ -68,14 +56,17 @@ public class HatchPick
             dm.DocumentCreated += Dm_DocumentCreated;
             Dm_DocumentCreated(); // 自执行一次
             AddRightClickMenu();
-            HatchPickEvent.AddInit();
+            HatchPick.AddInit();
+            Acap.DocumentManager.DocumentLockModeChanged += Dm_VetoCommand;
         }
         else
         {
-            HatchPickEvent.RemoveInit();
+            HatchPick.RemoveInit();
             dm.DocumentCreated -= Dm_DocumentCreated;
             UnDocumentCreated();
-            HatchPick.RemoveRightClickMenu();
+            StretchFill​.RemoveRightClickMenu();
+
+            Acap.DocumentManager.DocumentLockModeChanged -= Dm_VetoCommand;
         }
     }
 
@@ -90,8 +81,8 @@ public class HatchPick
         var doc = dm.MdiActiveDocument;
         if (doc is null)
             return;
-        if (!MapDocHatchPickEvent.ContainsKey(doc))
-            MapDocHatchPickEvent.Add(doc, new HatchPickEvent(doc));
+        if (!HatchPickMap.ContainsKey(doc))
+            HatchPickMap.Add(doc, new HatchPick(doc));
     }
 
     /// <summary>
@@ -105,12 +96,109 @@ public class HatchPick
         var doc = dm.MdiActiveDocument;
         if (doc is null)
             return;
-        if (MapDocHatchPickEvent.ContainsKey(doc))
+        if (HatchPickMap.ContainsKey(doc))
         {
-            MapDocHatchPickEvent[doc].Dispose();
-            MapDocHatchPickEvent.Remove(doc);
+            HatchPickMap[doc].Dispose();
+            HatchPickMap.Remove(doc);
         }
     }
+
+
+
+    #region 否决特性面板
+    // 文档锁事件: 期间是不允许再次锁文档.
+    // 最好就是直接异步发送命令,
+    // 清理当前文档拉伸边界,则内部需要保证不锁文档.
+
+    /// <summary>
+    /// 否决特性面板Ctrl+1
+    /// </summary>
+    bool _vetoProperties = false;
+
+
+    /// <summary>
+    /// 反应器->命令否决触发命令前(不可锁文档)
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    void Dm_VetoCommand(object sender, DocumentLockModeChangedEventArgs e)
+    {
+        if (!HatchPick.State.IsRun)
+            return;
+        if (string.IsNullOrEmpty(e.GlobalCommandName) || e.GlobalCommandName == "#")
+            return;
+        switch (e.GlobalCommandName.ToUpper())
+        {
+            case "PROPERTIES": // 特性面板
+            {
+                // 事件顺序问题:
+                // 开cad之后第一次双击必弹出特性面板
+                // 所以这里直接删除填充边界
+                SetPropertiesInfoTask();
+                if (_vetoProperties)
+                {
+                    DebugEx.Printl("Dm_VetoCommand 否决了");
+                    e.Veto();
+                    _vetoProperties = false;
+                    // 发送编辑填充命令
+                    SendCommand("_hatchedit ", RunCmdFlag.AcedPostCommand);
+                    return;
+                }
+                DebugEx.Printl("Dm_VetoCommand 没否决");
+            }
+            break;
+        }
+    }
+
+
+    void SetPropertiesInfoTask()
+    {
+        // 原有选择集
+        var prompt = Env.Editor.SelectImplied();
+        if (prompt.Status != PromptStatus.OK)
+            return;
+
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc == null) return;
+        if (!HatchPickMap.TryGetValue(doc, out var hpe))
+            return;
+
+        using DBTrans tr = new();
+
+        // 获取当前文档记录的填充边界
+        HashSet<ObjectId> boAll = [];
+        foreach (var boid in hpe.HatchConvMap.Values.SelectMany(hc => hc.BoundaryIds))
+        {
+            boAll.Add(boid);
+        }
+
+        // 获取选择集上面所有的填充,如果没有填充就结束(不屏蔽特性面板)
+        bool hasHatch = false;
+
+        HashSet<ObjectId> idsOfSsget = [];
+        foreach (var id in prompt.Value.GetObjectIds())
+        {
+            // 含有填充
+            if (hpe.HatchConvMap.ContainsKey(id))
+                hasHatch = true;
+
+            // 排除边界的加入
+            if (!boAll.Contains(id))
+                idsOfSsget.Add(id);
+        }
+        if (!hasHatch)
+            return;
+
+        // 删除填充边界,并清理关联反应器
+        hpe.EraseAllHatchBorders(false);
+
+        // 重设选择集 提供给后续命令判断
+        hpe.SetImpliedSelection(idsOfSsget);
+
+        // 如果有填充才否决
+        _vetoProperties = idsOfSsget.Count != 0;
+    }
+    #endregion
 
 
 
@@ -171,26 +259,26 @@ public class HatchPick
         switch (mi.Text)
         {
             case V0:
-            HatchPickEvent.State.Start();
+            HatchPick.State.Start();
             break;
             case V1:
-            HatchPickEvent.State.Break();
+            HatchPick.State.Break();
             break;
             case V2:
             {
-                HatchPickEvent.State.Break();
+                HatchPick.State.Break();
                 PromptSelectionOptions pso = new()
                 {
                     AllowDuplicates = true, // 不允许重复选择
                     SingleOnly = true,      // 隐含窗口选择(不需要空格确认)
                 };
-                var ssPsr = Env.Editor.GetSelection(pso, HatchPickEvent.FilterForHatch);
+                var ssPsr = Env.Editor.GetSelection(pso, HatchPick.FilterForHatch);
                 if (ssPsr.Status != PromptStatus.OK)
                     return;
 
                 Env.Editor.SetImpliedSelection(ssPsr.Value.GetObjectIds());
                 SendCommand("-hatchedit H ", RunCmdFlag.AcedPostCommand);
-                HatchPickEvent.State.Start();
+                HatchPick.State.Start();
             }
             break;
         }

@@ -42,7 +42,10 @@ global using Polyline = Autodesk.AutoCAD.DatabaseServices.Polyline;
 global using Cad_DwgFiler = Autodesk.AutoCAD.DatabaseServices.DwgFiler;
 global using Cad_DxfFiler = Autodesk.AutoCAD.DatabaseServices.DxfFiler;
 global using Cad_ErrorStatus = Autodesk.AutoCAD.Runtime.ErrorStatus;
+global using MenuItem = Autodesk.AutoCAD.Windows.MenuItem;
+global using Autodesk.AutoCAD.Windows;
 
+global using System.Diagnostics;
 
 /// ifoxcad
 global using IFoxCAD.Cad;

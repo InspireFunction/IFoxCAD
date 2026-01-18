@@ -63,18 +63,71 @@ public class CmdInit
     public void Debugx()
     {
         var flag = Environment.GetEnvironmentVariable("debugx", EnvironmentVariableTarget.User);
-        if (flag == null || flag == "0")
+        if (flag == null || flag != "1")
         {
             Environment.SetEnvironmentVariable("debugx", "1", EnvironmentVariableTarget.User);
             Env.Printl($"vs输出 -- 已启用");
         }
-        else
+        else if (flag != "0")
         {
             Environment.SetEnvironmentVariable("debugx", "0", EnvironmentVariableTarget.User);
             Env.Printl($"vs输出 -- 已禁用");
         }
     }
 }
+
+
+/// <summary>
+/// 重定向 Console
+/// </summary>
+public class ConsoleToEditorRedirector : TextWriter
+{
+    /// <summary>
+    /// 重定向 Console
+    /// </summary>
+    public ConsoleToEditorRedirector(Document doc)
+    {
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public override Encoding Encoding => Encoding.UTF8;
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public override void WriteLine(string value)
+    {
+        var doc = Application.DocumentManager.MdiActiveDocument;
+        doc?.Editor?.WriteMessage($"\n{value}");
+    }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    public override void Write(string value)
+    {
+
+        var doc = Application.DocumentManager.MdiActiveDocument;
+        doc?.Editor?.WriteMessage(value);
+    }
+}
+
+public class Cmd
+{
+    /// <summary>
+    /// 重定向Console命令
+    /// </summary>
+    /// <param name="doc"></param>
+    [IFoxInitialize]
+    public void RedirectConsole(Document doc)
+    {
+        Console.SetOut(new ConsoleToEditorRedirector(doc));
+        Console.WriteLine("现在 Console.WriteLine 会输出到编辑器！\r");
+    }
+}
+
 
 /*
  * 自动执行:特性
