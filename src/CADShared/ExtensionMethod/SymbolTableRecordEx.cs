@@ -101,7 +101,7 @@ public static class SymbolTableRecordEx
         // if (ents.Any(ent => ent is null))
         //    throw new ArgumentNullException(nameof(ents), "实体集合内存在 null 对象");
 
-        trans ??= DBTrans.Top;
+        trans ??= DBTrans.GetTop(btr.Database);
         using (btr.ForWrite())
         {
             return ents.Select(ent => {

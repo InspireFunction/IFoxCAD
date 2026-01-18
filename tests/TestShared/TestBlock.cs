@@ -76,7 +76,8 @@ public class TestBlock
     [CommandMethod(nameof(Test_BlockDefbehind))]
     public void Test_BlockDefbehind()
     {
-        using var tr = DBTrans.OpenPushToBackend(@"C:\Users\vic\Desktop\test.dwg");
+        var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "test.dwg");
+        using var tr = DBTrans.OpenPushToBackend(file);
         // var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.BlockTable.Add("test",
             btr => {
@@ -93,7 +94,6 @@ public class TestBlock
                 return new List<AttributeDefinition> { id1, id2 };
             }
         );
-
 
         // ObjectId objectId = tr.BlockTable.Add("a");// 新建块
         // objectId.GetObject<BlockTableRecord>().AddEntity();// 测试添加空实体
@@ -251,7 +251,8 @@ public class TestBlock
     public void Test_BlockFile()
     {
         using DBTrans tr = new();
-        var id = tr.BlockTable.GetBlockFrom(@"C:\Users\vic\Desktop\test.dwg", false);
+        var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "test.dwg");
+        var id = tr.BlockTable.GetBlockFrom(file, false);
         tr.CurrentSpace.InsertBlock(Point3d.Origin, id);
     }
 
@@ -281,7 +282,7 @@ public class TestBlock
 
     }
 
-    [CommandMethod("Test_CreateMTextAttributeBlock")]
+    [CommandMethod(nameof(Test_CreateMTextAttributeBlock))]
     public void Test_CreateMTextAttributeBlock()
     {
 

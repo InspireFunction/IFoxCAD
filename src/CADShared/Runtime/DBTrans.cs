@@ -105,8 +105,6 @@ public sealed class DBTrans : IDisposable
     #endregion
 
     #region 静态资源
-
-    // 静态资源是不算到类大小的.
     /// <summary>
     /// 事务栈
     /// </summary>
@@ -489,6 +487,8 @@ public sealed class DBTrans : IDisposable
         }
         return map;
     }
+
+
 
     // 后台可以之后加入
     /// <summary>
