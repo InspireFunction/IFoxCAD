@@ -3,7 +3,7 @@ name: Publish NuGet Package
 on:
   push:
     tags:
-      - 'v0.7' # 当推送以 v 开头的标签时触发，例如 v0.9
+      - 'v0.7*' # 当推送以 v 开头的标签时触发，例如 v0.9
 
 jobs:
   build-and-publish:
