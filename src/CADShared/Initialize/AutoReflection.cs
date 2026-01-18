@@ -12,29 +12,6 @@ namespace IFoxCAD.Cad;
 
 public class AutoReflection
 {
-    private readonly string _dllName;
-    private readonly AutoRegConfig _config;
-    AutoClass? autoClass = null;
-
-    public AutoReflection(string dllName, AutoRegConfig config)
-    {
-        _dllName = dllName;
-        _config = config;
-    }
-
-    public void Initialize()
-    {
-        autoClass = new AutoClass();
-        autoClass.Initialize();
-    }
-
-    public void Terminate()
-    {
-        autoClass?.Terminate();
-    }
-
-
-
     // CheckFactory.
 
     /// <summary>

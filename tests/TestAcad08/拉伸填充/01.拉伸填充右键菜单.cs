@@ -22,7 +22,7 @@ public class HatchPick
 
     [IFoxInitializeAttribute] // 这个没有执行哦
     [CommandMethod(nameof(HatchPickInit))]
-    public void HatchPickInit()
+    public void HatchPickInit(Document doc)
     {
         Env.Printl($"※拉伸填充控制※\n{nameof(HatchPickSwitch)} - 切换开关\n");
 

@@ -102,18 +102,62 @@ public class Actuator : IEquatable<Actuator>, IComparable<Actuator>
             TypeCache.Invoke(_methodInfo, args);
             return this;
         }
-        catch (System.Exception e)
+        //catch (System.Exception e)
+        catch (System.Exception)
         {
-            var paramTypes = _methodInfo.GetParameters()
-                .Select(p => p.ParameterType.Name)
-                .ToArray();
-            Debug.WriteLine("Actuator.Run出错: " + e.Message + Environment.NewLine +
-            $"出错位置: {_methodInfo.ReflectedType?.FullName}.{_methodInfo.Name}" + Environment.NewLine +
-            $"方法类型: {_methodInfo.GetType().Name}" + Environment.NewLine +
-            $"参数类型: ({string.Join(", ", paramTypes)})" + Environment.NewLine +
-            $"传入参数: ({string.Join(", ", args.Select(a => a?.GetType().Name ?? "null").ToArray())})");
+            //var paramTypes = _methodInfo.GetParameters()
+            //    .Select(p => p.ParameterType.Name)
+            //    .ToArray();
+            //Debug.WriteLine("Actuator.Run出错: " + e.Message + Environment.NewLine +
+            //$"出错位置: {_methodInfo.ReflectedType?.FullName}.{_methodInfo.Name}" + Environment.NewLine +
+            //$"方法类型: {_methodInfo.GetType().Name}" + Environment.NewLine +
+            //$"参数类型: ({string.Join(", ", paramTypes)})" + Environment.NewLine +
+            //$"传入参数: ({string.Join(", ", args.Select(a => a?.GetType().Name ?? "null").ToArray())})");
+            //Debugger.Break();
+            //return this;
+
+
+            var methodName = _methodInfo.Name;
+            var className = _methodInfo.ReflectedType?.FullName ?? _methodInfo.DeclaringType?.FullName ?? "UnknownClass";
+            var parameters = _methodInfo.GetParameters();
+
+            // 构建正确调用字符串
+            var correctCall = $"{className}.{methodName}({string.Join(", ", args.Select(a => a?.ToString() ?? "null").ToArray())})";
+
+            // 构建错误调用字符串
+            var paramString = string.Join(", ", parameters.Select(p => p.Name).ToArray());
+            var errorCall = parameters.Length == 0
+                ? $"{className}.{methodName}()"
+                : $"{className}.{methodName}({paramString})";
+
+            Debug.WriteLine("════════════════════════════════════════════════");
+            Debug.WriteLine("🔥 参数调用错误修复指南");
+            Debug.WriteLine("");
+            Debug.WriteLine($"❌ 您这样写是错误的:");
+            Debug.WriteLine($"   {errorCall}");
+            Debug.WriteLine("");
+            Debug.WriteLine($"✅ 您应该这样写:");
+            Debug.WriteLine($"   {correctCall}");
+            Debug.WriteLine("");
+
+            if (parameters.Length > 0)
+            {
+                Debug.WriteLine("📋 需要传入以下参数:");
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    var param = parameters[i];
+                    Debug.WriteLine($"   {i + 1}. {param.Name} : {param.ParameterType.FullName}");
+                }
+            }
+
+            Debug.WriteLine("");
+            Debug.WriteLine($"💡 提示: 该方法要求 {args?.Length} 个参数，但您没有接收传入的参数 {parameters.Length} 个");
+            Debug.WriteLine("════════════════════════════════════════════════");
+
             Debugger.Break();
             return this;
+
+
         }
     }
 }
@@ -203,8 +247,16 @@ public class AutoClass
             }
 
             // 执行任务,此时即使调用doc.Editor输出也是无效的
-            _actuatorMap[Sequence.StartFirst].ForEach(ac => ac.Run());
-            _actuatorMap[Sequence.StartLast].ForEach(ac => ac.Run());
+            var tasks = _actuatorMap[Sequence.StartFirst];
+            foreach (var item in tasks)
+            {
+                item.Run();
+            }
+            tasks = _actuatorMap[Sequence.StartLast];
+            foreach (var item in tasks)
+            {
+                item.Run();
+            }
 
             // 为了能够无论何种加载都能doc.Editor输出:
             // x01,通过注册表加载StartFirst/Last,有doc没有doc.Editor,所以不会输出.
@@ -233,6 +285,10 @@ public class AutoClass
 
     // 加载之后有文档立即执行(单次执行)
     int _isOnceExecuted = 0;
+
+    private string _assName;
+    private AutoRegConfig _autoRegConfig;
+
     bool MyTask(Document doc)
     {
         if (doc is null)
@@ -411,9 +467,12 @@ public class AutoClass
         string? dll = null;
         if (_constraint)
         {
-            var ass = Assembly.GetExecutingAssembly();
-            dll = Path.GetFileNameWithoutExtension(ass.Location);
+            // TODO "IFoxCAD.Acad08" 不对,要是: TestAcad08
+            //var ass = Assembly.GetExecutingAssembly();
+            //dll = Path.GetFileNameWithoutExtension(ass.Location); 
+            dll = _assName;
         }
+
         var ts = AppDomainGetTypes(dll);
 
 #if parallel
@@ -424,7 +483,7 @@ public class AutoClass
             .Where(type => !type.IsAbstract)
             .Where(type => type.GetInterfaces().FirstOrDefault(
                 iface => iface.Name == nameof(IFoxAutoGo)) is not null)
-        // .SelectMany(type => type.GetMethods()); // 方法展开会错序.
+            // .SelectMany(type => type.GetMethods()); // 方法展开会错序.
             .Select(type => CreateActuator2(type))
             .ToArray();
 
@@ -456,6 +515,14 @@ public class AutoClass
     const string _sequenceId = nameof(Sequence) + "Id";
     const string _in = "Initialize";
     const string _te = "Terminate";
+
+    public AutoClass(string name, AutoRegConfig autoRegConfig)
+    {
+        this._assName = name;
+        this._autoRegConfig = autoRegConfig;
+    }
+
+
 
     (Actuator Init, Actuator Term)? CreateActuator2(Type type)
     {
@@ -530,9 +597,12 @@ public class AutoClass
         string? dll = null;
         if (_constraint)
         {
-            var ass = Assembly.GetExecutingAssembly();
-            dll = Path.GetFileNameWithoutExtension(ass.Location);
+            // TODO "IFoxCAD.Acad08" 不对,要是: TestAcad08
+            //var ass = Assembly.GetExecutingAssembly();
+            //dll = Path.GetFileNameWithoutExtension(ass.Location);
+            dll = _assName;
         }
+
         var ts = AppDomainGetTypes(dll);
 
 #if parallel

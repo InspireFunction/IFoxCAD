@@ -83,13 +83,13 @@ public class Cmd_IFoxInitialize
 {
     int TestInt = 0;
 
-    [IFoxInitialize]
+    [IFoxInitialize(Sequence.StartFirst)]
     public void Initialize()
     {
         Env.Printl($"开始自动执行,可以分开多个类和多个函数:{nameof(Cmd_IFoxInitialize)}.{nameof(Initialize)}+{TestInt}");
     }
 
-    [IFoxInitialize]
+    [IFoxInitialize(Sequence.StartFirst)]
     public void Initialize2()
     {
         Env.Printl($"开始自动执行,可以分开多个类和多个函数,又一次测试:{nameof(Cmd_IFoxInitialize)}.{nameof(Initialize2)}");
@@ -113,7 +113,7 @@ public class Cmd_IFoxInitialize
     //}
 
     [IFoxInitialize]
-    public static void StaticInitialize()
+    public static void StaticInitialize(Document doc)
     {
         Env.Printl($"开始自动执行,静态调用:{nameof(Cmd_IFoxInitialize)}.{nameof(StaticInitialize)}");
     }
