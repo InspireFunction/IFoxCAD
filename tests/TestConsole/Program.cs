@@ -9,6 +9,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Diagnostics;
 
+
 #if true
 namespace CalculatorDemo
 {
@@ -27,6 +28,10 @@ namespace CalculatorDemo
             a.ForEach(a => {
                 Console.WriteLine(a);
             });
+            
+            // 运行MemoryCache测试
+            Console.WriteLine();
+            TestMemoryCache.RunTest();
         }
 
         [DebuggerHidden]

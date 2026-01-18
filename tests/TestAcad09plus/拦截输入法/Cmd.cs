@@ -3,7 +3,7 @@
 public class Cmd
 {
     [IFoxInitialize]
-    public void Initialize()
+    public void Initialize(Document doc)
     {
         Env.Printl($"※拦截输入法控制※{nameof(Gstar_IMEFilterSettings)} - 设置");
         DocReactor.IntialReactor();

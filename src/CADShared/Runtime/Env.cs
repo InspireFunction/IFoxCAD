@@ -474,7 +474,6 @@ public static class Env
     static extern int AcedSetEnv(string? envName, StringBuilder NewValue);
 #endif
 
-    // TODO: 中望没有测试,此处仅为不报错;本工程所有含有"中望"均存在问题
 #if zcad
     [System.Security.SuppressUnmanagedCodeSecurity]
     [DllImport("zwcad.exe", CharSet = CharSet.Unicode, CallingConvention = CallingConvention.Cdecl, 
@@ -486,7 +485,6 @@ public static class Env
         EntryPoint = "zcedSetEnv")]
     private static extern int AcedSetEnv(string? envName, StringBuilder newValue);
 #endif
-
 
     /// <summary>
     /// 读取acad环境变量<br/>
@@ -582,7 +580,6 @@ public static class Env
 
     #endregion
 
-
     #region win环境变量/由于 Aced的 能够同时获取此变量与cad内的,所以废弃
     // /// <summary>
     // /// 获取系统环境变量
@@ -607,7 +604,6 @@ public static class Env
     //     Environment.SetEnvironmentVariable(var, value);
     // }
     #endregion
-
 
     /// <summary>
     /// 命令行打印，会自动调用对象的toString函数
@@ -830,7 +826,6 @@ public static class Env
         throw new NotSupportedException("不支持此功能");
     }
     #endregion
-
 
 #if zcad
     /// <summary>

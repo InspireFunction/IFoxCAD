@@ -97,7 +97,7 @@ public class TestXdata
         var res = Env.Editor.GetEntity("\n select the entity:");
         if (res.Status != PromptStatus.OK) return;
 
-        var ent = (Entity)tr.GetObject(res.ObjectId);
+        using var ent = (Entity)tr.GetObject(res.ObjectId);
         if (ent == null || ent.XData == null)
             return;
 

@@ -24,4 +24,17 @@
     <ItemGroup>
         <Compile Include="..\TestAcad09plus\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
     </ItemGroup>
+
+    <!--<ItemGroup>
+        <Compile Include="..\TestAcad09plus\拦截输入法\**\*.cs">
+            <Link>拦截输入法\%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Compile>
+    </ItemGroup>
+
+    <ItemGroup>
+        <Page Include="..\TestAcad09plus\拦截输入法\**\*.xaml">
+            <Link>拦截输入法\%(RecursiveDir)%(FileName)%(Extension)</Link>
+        </Page>
+    </ItemGroup>-->
+
 </Project>

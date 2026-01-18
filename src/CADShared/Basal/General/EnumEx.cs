@@ -5,16 +5,8 @@
 /// </summary>
 public static class EnumEx
 {
-    /// <summary>
-    /// 清理缓存
-    /// </summary>
-    public static void CleanCache()
-    {
-        Cache.Clear();
-    }
-
     // (类型完整名,描述组合)
-    private static readonly Dictionary<string, HashSet<string>> Cache = [];
+    private static readonly MemoryCache<string, HashSet<string>> _cache = new(TimeSpan.FromMilliseconds(2000));
 
     /// <summary>
     /// 打印枚举的特性<see cref="DescriptionAttribute"/>注释内容
@@ -28,7 +20,7 @@ public static class EnumEx
         var eType = e.GetType();
         var eFullName = eType.FullName + "." + e;
 
-        if (Cache.TryGetValue(eFullName, out var attribute1))
+        if (_cache.TryGet(eFullName, out var attribute1))
             return attribute1;
 
         var fieldInfo = eType.GetField(Enum.GetName(eType, e) ?? string.Empty);
@@ -40,7 +32,7 @@ public static class EnumEx
         if (Attribute.GetCustomAttribute(fieldInfo, typeof(T)) is T attribute)
         {
             nodes.Add(attribute.Description);
-            Cache.Add(eFullName, nodes);
+            _cache.Set(eFullName, nodes, new TimeSpan(5000));
             return nodes;
         }
 
@@ -71,7 +63,7 @@ public static class EnumEx
         if (nodes.Count == 0 && noDescrToString)
             nodes.Add(e.ToString());
 
-        Cache.Add(eFullName, nodes);
+        _cache.Set(eFullName, nodes, new TimeSpan(5000));
         return nodes;
     }
 
@@ -83,7 +75,7 @@ public static class EnumEx
         var hash = GetAttribute<DescriptionAttribute>(e, noDescToString);
         return hash == null ? null : string.Join("|", [.. hash]);
     }
-    
+
     /// <summary>
     /// 获取枚举的描述内容
     /// </summary>

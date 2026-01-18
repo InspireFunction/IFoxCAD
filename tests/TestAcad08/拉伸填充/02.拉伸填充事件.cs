@@ -167,7 +167,6 @@ public class HatchPickEvent : IDisposable
             if (_hatchIds.Count == 0)
                 return;
 
-            // TODO 屏幕像素点转cad点的误差,要随着视口高度而动态计算....这里的计算可能不太正确
             var tol = (double)Env.GetVar("viewsize") / 10;
             DebugEx.Printl("tol::" + tol);
 
@@ -186,7 +185,7 @@ public class HatchPickEvent : IDisposable
                         return;
 
                     // 获取夹点在哪个图元边界上
-                    HashSet<Point3d> boPts = new();
+                    HashSet<Point3d> boPts = [];
                     if (boEnt is Circle circle)
                     {
                         // 圆形的边界夹点是: 圆心+半径

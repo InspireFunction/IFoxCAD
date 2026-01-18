@@ -6,6 +6,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 
 namespace System.Linq
@@ -13,63 +14,114 @@ namespace System.Linq
     public class ParallelQuery<TSource> : IEnumerable<TSource>
     {
         private readonly IEnumerable<TSource> _source;
+        private int _degreeOfParallelism = Environment.ProcessorCount;
 
         public ParallelQuery(IEnumerable<TSource> source)
         {
             _source = source;
         }
 
+        public ParallelQuery<TSource> WithDegreeOfParallelism(int degree)
+        {
+            if (degree <= 0)
+                throw new ArgumentOutOfRangeException(nameof(degree), "并行度必须大于0");
+
+            _degreeOfParallelism = Math.Min(degree, 512); // 限制最大线程数
+            return this;
+        }
+
         public IEnumerable<TSource> Where(Func<TSource, bool> predicate)
         {
-            return new ParallelWhereQuery<TSource>(_source, predicate);
+            return new ParallelWhereQuery<TSource>(_source, predicate, _degreeOfParallelism);
         }
 
         public IEnumerable<TResult> Select<TResult>(Func<TSource, TResult> selector)
         {
-            return new ParallelSelectQuery<TSource, TResult>(_source, selector);
+            return new ParallelSelectQuery<TSource, TResult>(_source, selector, _degreeOfParallelism);
         }
 
         public List<TSource> ToList()
         {
-            var result = new List<TSource>();
+            var sourceList = new List<TSource>(_source);
+            if (sourceList.Count == 0)
+                return new List<TSource>();
 
-            // 使用ManualResetEvent等待所有线程完成
-            var resetEvents = new List<ManualResetEvent>();
-            var locker = new object();
+            int degree = Math.Min(_degreeOfParallelism, sourceList.Count);
+            int batchSize = (int)Math.Ceiling((double)sourceList.Count / degree);
 
-            foreach (var item in _source)
+            var results = new List<TSource>[degree];
+            var resetEvents = new ManualResetEvent[degree];
+            int completedCount = 0;
+            var allDoneEvent = new ManualResetEvent(false);
+
+            for (int i = 0; i < degree; i++)
             {
-                var resetEvent = new ManualResetEvent(false);
-                resetEvents.Add(resetEvent);
+                results[i] = new List<TSource>();
+                resetEvents[i] = new ManualResetEvent(false);
+                int threadIndex = i;
 
                 ThreadPool.QueueUserWorkItem(state => {
-                    var tuple = (ValueTuple<TSource, ManualResetEvent>)state;
-                    lock (locker)
+                    try
                     {
-                        result.Add(tuple.Item1);
+                        int startIndex = threadIndex * batchSize;
+                        int endIndex = (threadIndex == degree - 1)
+                            ? sourceList.Count
+                            : Math.Min(startIndex + batchSize, sourceList.Count);
+                        var batchResults = new List<TSource>();
+
+                        for (int j = startIndex; j < endIndex; j++)
+                        {
+                            batchResults.Add(sourceList[j]);
+                        }
+
+                        results[threadIndex] = batchResults;
                     }
-                    tuple.Item2.Set();
-                }, new ValueTuple<TSource, ManualResetEvent>(item, resetEvent));
+                    finally
+                    {
+                        resetEvents[threadIndex].Set();
+
+                        if (Interlocked.Increment(ref completedCount) == degree)
+                        {
+                            allDoneEvent.Set();
+                        }
+                    }
+                });
             }
 
-            try
-            {
-                // SAT上面不能用WaitAll，会报异常
-                // WaitHandle.WaitAll(resetEvents.ToArray());
+            // 优化的等待策略
+            WaitForCompletion(resetEvents, allDoneEvent);
 
-                // 改用WaitOne逐个等待
-                foreach (var resetEvent in resetEvents)
+            // 合并结果
+            var finalResult = new List<TSource>();
+            for (int i = 0; i < degree; i++)
+            {
+                if (results[i] != null)
                 {
-                    resetEvent.WaitOne();
+                    finalResult.AddRange(results[i]);
                 }
             }
-            catch (Exception)
-            {
-                Debugger.Break();
-                throw;
-            }
 
-            return result;
+            return finalResult;
+        }
+
+        public TSource[] ToArray()
+        {
+            return ToList().ToArray();
+        }
+
+        private static void WaitForCompletion(ManualResetEvent[] resetEvents, ManualResetEvent allDoneEvent)
+        {
+            // 优先等待allDoneEvent（最快完成时）
+            allDoneEvent.WaitOne();
+
+            // 确保所有线程都完成
+            for (int i = 0; i < resetEvents.Length; i++)
+            {
+                if (!resetEvents[i].WaitOne(0))
+                {
+                    resetEvents[i].WaitOne();
+                }
+            }
         }
 
         public IEnumerator<TSource> GetEnumerator()
@@ -87,57 +139,94 @@ namespace System.Linq
     {
         private readonly IEnumerable<TSource> _source;
         private readonly Func<TSource, bool> _predicate;
+        private readonly int _degreeOfParallelism;
 
-        public ParallelWhereQuery(IEnumerable<TSource> source, Func<TSource, bool> predicate)
+        public ParallelWhereQuery(IEnumerable<TSource> source, Func<TSource, bool> predicate, int degreeOfParallelism)
         {
             _source = source;
             _predicate = predicate;
+            _degreeOfParallelism = degreeOfParallelism;
         }
 
         public IEnumerator<TSource> GetEnumerator()
         {
-            var results = new List<TSource>();
-            var resetEvents = new List<ManualResetEvent>();
-            var locker = new object();
+            var sourceList = new List<TSource>(_source);
+            if (sourceList.Count == 0)
+                return (new List<TSource>()).GetEnumerator();
 
-            foreach (var item in _source)
+            int degree = Math.Min(_degreeOfParallelism, sourceList.Count);
+            int batchSize = (int)Math.Ceiling((double)sourceList.Count / degree);
+
+            var results = new List<TSource>[degree];
+            var resetEvents = new ManualResetEvent[degree];
+            int completedCount = 0;
+            var allDoneEvent = new ManualResetEvent(false);
+
+            for (int i = 0; i < degree; i++)
             {
-                var resetEvent = new ManualResetEvent(false);
-                resetEvents.Add(resetEvent);
+                results[i] = new List<TSource>();
+                resetEvents[i] = new ManualResetEvent(false);
+                int threadIndex = i;
 
                 ThreadPool.QueueUserWorkItem(state => {
-                    var tuple = (ValueTuple<TSource, ManualResetEvent>)state;
-                    if (_predicate(tuple.Item1))
+                    try
                     {
-                        lock (locker)
+                        int startIndex = threadIndex * batchSize;
+                        int endIndex = (threadIndex == degree - 1)
+                            ? sourceList.Count
+                            : Math.Min(startIndex + batchSize, sourceList.Count);
+                        var batchResults = new List<TSource>();
+
+                        for (int j = startIndex; j < endIndex; j++)
                         {
-                            results.Add(tuple.Item1);
+                            var item = sourceList[j];
+                            if (_predicate(item))
+                            {
+                                batchResults.Add(item);
+                            }
+                        }
+
+                        results[threadIndex] = batchResults;
+                    }
+                    finally
+                    {
+                        resetEvents[threadIndex].Set();
+
+                        if (Interlocked.Increment(ref completedCount) == degree)
+                        {
+                            allDoneEvent.Set();
                         }
                     }
-                    tuple.Item2.Set();
-                }, new ValueTuple<TSource, ManualResetEvent>(item, resetEvent));
+                });
             }
 
+            // 等待所有线程完成
+            WaitForCompletion(resetEvents, allDoneEvent);
 
-            try
+            // 合并结果
+            var finalResult = new List<TSource>();
+            for (int i = 0; i < degree; i++)
             {
-                // SAT上面不能用WaitAll，会报异常
-                // WaitHandle.WaitAll(resetEvents.ToArray());
+                if (results[i] != null)
+                {
+                    finalResult.AddRange(results[i]);
+                }
+            }
 
-                // 改用WaitOne逐个等待
-                foreach (var resetEvent in resetEvents)
+            return finalResult.GetEnumerator();
+        }
+
+        private static void WaitForCompletion(ManualResetEvent[] resetEvents, ManualResetEvent allDoneEvent)
+        {
+            allDoneEvent.WaitOne();
+
+            foreach (var resetEvent in resetEvents)
+            {
+                if (!resetEvent.WaitOne(0))
                 {
                     resetEvent.WaitOne();
                 }
             }
-            catch (Exception)
-            {
-                Debugger.Break();
-                throw;
-            }
-
-
-            return results.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -150,54 +239,90 @@ namespace System.Linq
     {
         private readonly IEnumerable<TSource> _source;
         private readonly Func<TSource, TResult> _selector;
+        private readonly int _degreeOfParallelism;
 
-        public ParallelSelectQuery(IEnumerable<TSource> source, Func<TSource, TResult> selector)
+        public ParallelSelectQuery(IEnumerable<TSource> source, Func<TSource, TResult> selector, int degreeOfParallelism)
         {
             _source = source;
             _selector = selector;
+            _degreeOfParallelism = degreeOfParallelism;
         }
 
         public IEnumerator<TResult> GetEnumerator()
         {
-            var results = new List<TResult>();
-            var resetEvents = new List<ManualResetEvent>();
-            var locker = new object();
+            var sourceList = new List<TSource>(_source);
+            if (sourceList.Count == 0)
+                return (new List<TResult>()).GetEnumerator();
 
-            foreach (var item in _source)
+            int degree = Math.Min(_degreeOfParallelism, sourceList.Count);
+            int batchSize = (int)Math.Ceiling((double)sourceList.Count / degree);
+
+            var results = new List<TResult>[degree];
+            var resetEvents = new ManualResetEvent[degree];
+            int completedCount = 0;
+            var allDoneEvent = new ManualResetEvent(false);
+
+            for (int i = 0; i < degree; i++)
             {
-                var resetEvent = new ManualResetEvent(false);
-                resetEvents.Add(resetEvent);
+                results[i] = new List<TResult>();
+                resetEvents[i] = new ManualResetEvent(false);
+                int threadIndex = i;
 
                 ThreadPool.QueueUserWorkItem(state => {
-                    var tuple = (ValueTuple<TSource, ManualResetEvent>)state;
-                    var transformed = _selector(tuple.Item1);
-
-                    lock (locker)
+                    try
                     {
-                        results.Add(transformed);
+                        int startIndex = threadIndex * batchSize;
+                        int endIndex = (threadIndex == degree - 1)
+                            ? sourceList.Count
+                            : Math.Min(startIndex + batchSize, sourceList.Count);
+                        var batchResults = new List<TResult>();
+
+                        for (int j = startIndex; j < endIndex; j++)
+                        {
+                            batchResults.Add(_selector(sourceList[j]));
+                        }
+
+                        results[threadIndex] = batchResults;
                     }
-                    tuple.Item2.Set();
-                }, new ValueTuple<TSource, ManualResetEvent>(item, resetEvent));
+                    finally
+                    {
+                        resetEvents[threadIndex].Set();
+
+                        if (Interlocked.Increment(ref completedCount) == degree)
+                        {
+                            allDoneEvent.Set();
+                        }
+                    }
+                });
             }
 
-            try
-            {
-                // SAT上面不能用WaitAll，会报异常
-                // WaitHandle.WaitAll(resetEvents.ToArray());
+            // 等待所有线程完成
+            WaitForCompletion(resetEvents, allDoneEvent);
 
-                // 改用WaitOne逐个等待
-                foreach (var resetEvent in resetEvents)
+            // 合并结果
+            var finalResult = new List<TResult>();
+            for (int i = 0; i < degree; i++)
+            {
+                if (results[i] != null)
+                {
+                    finalResult.AddRange(results[i]);
+                }
+            }
+
+            return finalResult.GetEnumerator();
+        }
+
+        private static void WaitForCompletion(ManualResetEvent[] resetEvents, ManualResetEvent allDoneEvent)
+        {
+            allDoneEvent.WaitOne();
+
+            foreach (var resetEvent in resetEvents)
+            {
+                if (!resetEvent.WaitOne(0))
                 {
                     resetEvent.WaitOne();
                 }
             }
-            catch (Exception)
-            {
-                Debugger.Break();
-                throw;
-            }
-
-            return results.GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -220,9 +345,7 @@ namespace System.Linq
         public static ParallelQuery<TSource> WithDegreeOfParallelism<TSource>(
             this ParallelQuery<TSource> source, int degreeOfParallelism)
         {
-            // 在 .NET 3.5 中，我们可以通过设置线程池大小来模拟这个行为
-            // 但这里我们简单地返回原对象，因为在自定义实现中线程数由系统决定
-            return source;
+            return source.WithDegreeOfParallelism(degreeOfParallelism);
         }
 
         public static IEnumerable<TSource> Where<TSource>(
@@ -246,83 +369,150 @@ namespace System.Linq
 
         public static TSource[] ToArray<TSource>(this ParallelQuery<TSource> source)
         {
-            return source.ToList().ToArray();
+            return source.ToArray();
         }
 
         public static int Count<TSource>(this ParallelQuery<TSource> source, Func<TSource, bool> predicate)
         {
-            int count = 0;
-            var resetEvents = new List<ManualResetEvent>();
-            var locker = new object();
+            var sourceList = new List<TSource>(source);
+            if (sourceList.Count == 0)
+                return 0;
 
-            foreach (var item in source)
+            int degreeOfParallelism = Math.Min(Environment.ProcessorCount, sourceList.Count);
+            int batchSize = (int)Math.Ceiling((double)sourceList.Count / degreeOfParallelism);
+
+            var counts = new int[degreeOfParallelism];
+            var resetEvents = new ManualResetEvent[degreeOfParallelism];
+            int completedCount = 0;
+            var allDoneEvent = new ManualResetEvent(false);
+
+            for (int i = 0; i < degreeOfParallelism; i++)
             {
-                var resetEvent = new ManualResetEvent(false);
-                resetEvents.Add(resetEvent);
+                counts[i] = 0;
+                resetEvents[i] = new ManualResetEvent(false);
+                int threadIndex = i;
 
                 ThreadPool.QueueUserWorkItem(state => {
-                    var tuple = (ValueTuple<TSource, ManualResetEvent>)state;
-                    if (predicate(tuple.Item1))
+                    try
                     {
-                        lock (locker)
+                        int startIndex = threadIndex * batchSize;
+                        int endIndex = Math.Min(startIndex + batchSize, sourceList.Count);
+                        int localCount = 0;
+
+                        for (int j = startIndex; j < endIndex; j++)
                         {
-                            count++;
+                            if (predicate(sourceList[j]))
+                            {
+                                localCount++;
+                            }
+                        }
+
+                        counts[threadIndex] = localCount;
+                    }
+                    finally
+                    {
+                        resetEvents[threadIndex].Set();
+
+                        if (Interlocked.Increment(ref completedCount) == degreeOfParallelism)
+                        {
+                            allDoneEvent.Set();
                         }
                     }
-                    tuple.Item2.Set();
-                }, new ValueTuple<TSource, ManualResetEvent>(item, resetEvent));
+                });
             }
 
-            try
-            {
-                // SAT上面不能用WaitAll，会报异常
-                // WaitHandle.WaitAll(resetEvents.ToArray());
+            // 等待完成
+            WaitForCompletion(resetEvents, allDoneEvent);
 
-                // 改用WaitOne逐个等待
-                foreach (var resetEvent in resetEvents)
-                {
-                    resetEvent.WaitOne();
-                }
-            }
-            catch (Exception)
+            // 汇总结果
+            int totalCount = 0;
+            for (int i = 0; i < degreeOfParallelism; i++)
             {
-                Debugger.Break();
-                throw;
+                totalCount += counts[i];
             }
-            return count;
+
+            return totalCount;
         }
 
         public static TSource? FirstOrDefault<TSource>(
             this ParallelQuery<TSource> source,
             Func<TSource, bool> predicate)
         {
-            TSource? result = default(TSource);
-            var found = false;
-            var resetEvent = new ManualResetEvent(false);
-            var locker = new object();
+            var sourceList = new List<TSource>(source);
+            if (sourceList.Count == 0)
+                return default(TSource);
 
-            foreach (var item in source)
+            TSource? result = default(TSource);
+            bool found = false;
+            object lockObj = new object();
+            int degreeOfParallelism = Math.Min(Environment.ProcessorCount, sourceList.Count);
+            int batchSize = (int)Math.Ceiling((double)sourceList.Count / degreeOfParallelism);
+            var resetEvents = new ManualResetEvent[degreeOfParallelism];
+            int completedCount = 0;
+            var allDoneEvent = new ManualResetEvent(false);
+
+            for (int i = 0; i < degreeOfParallelism; i++)
             {
-                if (found) break;
+                resetEvents[i] = new ManualResetEvent(false);
+                int threadIndex = i;
 
                 ThreadPool.QueueUserWorkItem(state => {
-                    var current = (TSource)state;
-                    if (predicate(current))
+                    try
                     {
-                        lock (locker)
+                        int startIndex = threadIndex * batchSize;
+                        int endIndex = Math.Min(startIndex + batchSize, sourceList.Count);
+
+                        for (int j = startIndex; j < endIndex; j++)
                         {
-                            if (!found)
+                            lock (lockObj)
                             {
-                                result = current;
-                                found = true;
+                                if (found) return;
+                            }
+
+                            var item = sourceList[j];
+                            if (predicate(item))
+                            {
+                                lock (lockObj)
+                                {
+                                    if (!found)
+                                    {
+                                        result = item;
+                                        found = true;
+                                    }
+                                }
+                                return;
                             }
                         }
                     }
-                }, item);
+                    finally
+                    {
+                        resetEvents[threadIndex].Set();
+
+                        if (Interlocked.Increment(ref completedCount) == degreeOfParallelism)
+                        {
+                            allDoneEvent.Set();
+                        }
+                    }
+                });
             }
 
-            resetEvent.WaitOne(1000); // 超时等待
+            // 等待完成
+            WaitForCompletion(resetEvents, allDoneEvent);
+
             return result;
+        }
+
+        private static void WaitForCompletion(ManualResetEvent[] resetEvents, ManualResetEvent allDoneEvent)
+        {
+            allDoneEvent.WaitOne();
+
+            foreach (var resetEvent in resetEvents)
+            {
+                if (!resetEvent.WaitOne(0))
+                {
+                    resetEvent.WaitOne();
+                }
+            }
         }
     }
 }

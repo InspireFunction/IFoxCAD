@@ -29,10 +29,14 @@ public class DocReactor
 
     static void CommandWillStart(object sender, CommandEventArgs e)
     {
+#if ac2008
+        if (Settings.IMEInputSwitch == IMESwitchMode.Disable)
+            return; 
+#else
         if (Settings.IMEInputSwitch == IMESwitchMode.Disable ||
-            ((Document)sender).Editor.IsQuiescentForTransparentCommand)
+          ((Document)sender).Editor.IsQuiescentForTransparentCommand)
             return;
-
+#endif
         var gName = e.GlobalCommandName;
         if (gName == "-HATCHEDIT" || gName == "UNDO")
             return;

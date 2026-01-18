@@ -366,7 +366,7 @@ public partial class TestQuadTree
         // 仿选择集
         var ces = _quadTreeRoot.Query(rect, mode);
         ces.ForEach(item => {
-            var ent = (Entity)tr.GetObject(item.ObjectId, OpenMode.ForWrite);
+            using var ent = (Entity)tr.GetObject(item.ObjectId, OpenMode.ForWrite);
             ent.Color = Color.FromColor(item.Color);
             ent.DowngradeOpen();
             ent.Dispose();

@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <LangVersion>preview</LangVersion>
@@ -9,29 +9,16 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <Compile Include="..\..\src\CADShared\Basal\CLS\AsParallel.cs" Link="CLS\AsParallel.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\CLS\AssemblyExtensions.cs" Link="CLS\AssemblyExtensions.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\CLS\Index.cs" Link="CLS\Index.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\CLS\Range.cs" Link="CLS\Range.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\CLS\RuntimeHelpers.cs" Link="CLS\RuntimeHelpers.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\CLS\TupleElementNamesAttribute.cs" Link="CLS\TupleElementNamesAttribute.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\CLS\ValueTuple.cs" Link="CLS\ValueTuple.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\DataStructures\ConcurrentDictionary.cs" Link="DataStructures\ConcurrentDictionary.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\DataStructures\ConcurrentSet.cs" Link="DataStructures\ConcurrentSet.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\DataStructures\HashSet.cs" Link="DataStructures\HashSet.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\DataStructures\LinkedHashMap.cs" Link="DataStructures\LinkedHashMap.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\DataStructures\LinkedHashSet.cs" Link="DataStructures\LinkedHashSet.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\DataStructures\ListEx.cs" Link="DataStructures\ListEx.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\DataStructures\LoopList.cs" Link="DataStructures\LoopList.cs" />
-      <Compile Include="..\..\src\CADShared\Basal\DataStructures\LoopState.cs" Link="DataStructures\LoopState.cs" />
+        <Compile Include="..\..\src\CADShared\Basal\CLS\*.cs" Link="CLS\%(Filename)%(Extension)" />
+        <Compile Include="..\..\src\CADShared\Basal\DataStructures\*.cs" Link="DataStructures\%(Filename)%(Extension)" />
+        <Compile Include="..\..\src\CADShared\Basal\Cache\*.cs" Link="Cache\%(Filename)%(Extension)" />
     </ItemGroup>
 
-    
     <ItemGroup>
-      <Folder Include="DataStructures\" />
+        <Folder Include="DataStructures\" />
     </ItemGroup>
     <ItemGroup>
-      <Folder Include="CLS\" />
+        <Folder Include="CLS\" />
     </ItemGroup>
 
 </Project>

@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
     <PropertyGroup>
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
@@ -19,7 +19,7 @@
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
         <DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
     </PropertyGroup>
-    
+
     <ItemGroup>
         <!--<ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />-->
         <ProjectReference Include="..\..\src\IFoxCAD.AutoCad\IFoxCAD.AutoCad.csproj" />

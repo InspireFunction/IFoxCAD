@@ -410,7 +410,7 @@ public class HatchConverter
         if (BoundaryIds.Count == 0)
             return;
 
-        // todo ------ acad08分离填充报错: Microsoft Visual Studio C 运行库在 acad.exe 中检测到一个错误
+        // TODO acad08分离填充报错: Microsoft Visual Studio C 运行库在 acad.exe 中检测到一个错误
         // 0x01 测试命令 CmdTest_CreateHatch 创建是可以分离的,
         // 那么可能是 克隆后 修改导致的,
         // 我是克隆了之后移除原有边界,为了一些xdata之类的
