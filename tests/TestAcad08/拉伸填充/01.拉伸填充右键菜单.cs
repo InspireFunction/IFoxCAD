@@ -7,7 +7,20 @@ namespace JoinBoxAcad;
 
 public class HatchPick
 {
-    [IFoxInitializeAttribute]
+    [CommandMethod(nameof(提权没有问题啊))]
+    public void 提权没有问题啊()
+    {
+        using var tr = new DBTrans();
+        var btr = tr.CurrentSpace;
+        using (btr.ForWrite())
+        {
+
+        }
+    }
+
+
+
+    [IFoxInitializeAttribute] // 这个没有执行哦
     [CommandMethod(nameof(HatchPickInit))]
     public void HatchPickInit()
     {
@@ -104,7 +117,7 @@ public class HatchPick
     private const string V0 = "拉伸填充-开";
     private const string V1 = "拉伸填充-关";// (面板的独立填充必须关,否则致命错误)
     private const string V2 = "独立填充";//(快捷,不需要关...目前还是会崩溃)
-    static readonly HashSet<string> _menuItems = new() { V0, V1, V2 };
+    static readonly HashSet<string> _menuItems = [V0, V1, V2];
     static readonly ContextMenuExtension _contextMenu = new() { Title = "惊惊盒子" };
     /// <summary>
     /// 添加右键菜单

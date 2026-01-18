@@ -382,9 +382,7 @@ public class HatchPickEvent : IDisposable
                     _mapHatchConv[hatId].BoundaryIds.ForEach(boId => {
                         if (!boId.IsOk())
                             return;
-                        var boEnt = tr.GetObject<Entity>(boId);
-                        if (boEnt == null)
-                            return;
+                        var boEnt = (Entity)tr.GetObject(boId);
                         if (!HatchPickEnv.IsMeCreate(boEnt))
                             return;
                         boId.Erase();
@@ -397,9 +395,7 @@ public class HatchPickEvent : IDisposable
                     _mapHatchConv[hatId].BoundaryIds.Clear();
 
                     // 清理填充反应器
-                    var hatch = tr.GetObject<Hatch>(hatId);
-                    if (hatch == null)
-                        return;
+                    var hatch = (Hatch)tr.GetObject(hatId);
                     using (hatch.ForWrite())
                         RemoveAssociative(hatch);
                     CreatHatchConverter(hatch, idsOfSsget);
@@ -498,7 +494,7 @@ public class HatchPickEvent : IDisposable
     /// <param name="tr"></param>
     void CreatHatchConverter(Hatch hatch, HashSet<ObjectId> outSsgetIds, DBTrans? tr = null)
     {
-        tr ??= DBTrans.Top;
+        tr ??= DBTrans.GetTop(hatch.Database);
 
         var hc = new HatchConverter(hatch);
         ObjectId newid;

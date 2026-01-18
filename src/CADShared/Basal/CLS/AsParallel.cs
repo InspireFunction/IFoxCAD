@@ -52,7 +52,23 @@ namespace System.Linq
                 }, new ValueTuple<TSource, ManualResetEvent>(item, resetEvent));
             }
 
-            WaitHandle.WaitAll(resetEvents.ToArray());
+            try
+            {
+                // SAT上面不能用WaitAll，会报异常
+                // WaitHandle.WaitAll(resetEvents.ToArray());
+
+                // 改用WaitOne逐个等待
+                foreach (var resetEvent in resetEvents)
+                {
+                    resetEvent.WaitOne();
+                }
+            }
+            catch (Exception)
+            {
+                Debugger.Break();
+                throw;
+            }
+
             return result;
         }
 
@@ -102,7 +118,25 @@ namespace System.Linq
                 }, new ValueTuple<TSource, ManualResetEvent>(item, resetEvent));
             }
 
-            WaitHandle.WaitAll(resetEvents.ToArray());
+
+            try
+            {
+                // SAT上面不能用WaitAll，会报异常
+                // WaitHandle.WaitAll(resetEvents.ToArray());
+
+                // 改用WaitOne逐个等待
+                foreach (var resetEvent in resetEvents)
+                {
+                    resetEvent.WaitOne();
+                }
+            }
+            catch (Exception)
+            {
+                Debugger.Break();
+                throw;
+            }
+
+
             return results.GetEnumerator();
         }
 
@@ -146,7 +180,23 @@ namespace System.Linq
                 }, new ValueTuple<TSource, ManualResetEvent>(item, resetEvent));
             }
 
-            WaitHandle.WaitAll(resetEvents.ToArray());
+            try
+            {
+                // SAT上面不能用WaitAll，会报异常
+                // WaitHandle.WaitAll(resetEvents.ToArray());
+
+                // 改用WaitOne逐个等待
+                foreach (var resetEvent in resetEvents)
+                {
+                    resetEvent.WaitOne();
+                }
+            }
+            catch (Exception)
+            {
+                Debugger.Break();
+                throw;
+            }
+
             return results.GetEnumerator();
         }
 
@@ -223,7 +273,22 @@ namespace System.Linq
                 }, new ValueTuple<TSource, ManualResetEvent>(item, resetEvent));
             }
 
-            WaitHandle.WaitAll(resetEvents.ToArray());
+            try
+            {
+                // SAT上面不能用WaitAll，会报异常
+                // WaitHandle.WaitAll(resetEvents.ToArray());
+
+                // 改用WaitOne逐个等待
+                foreach (var resetEvent in resetEvents)
+                {
+                    resetEvent.WaitOne();
+                }
+            }
+            catch (Exception)
+            {
+                Debugger.Break();
+                throw;
+            }
             return count;
         }
 

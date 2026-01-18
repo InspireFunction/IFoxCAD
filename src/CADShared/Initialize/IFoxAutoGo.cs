@@ -8,6 +8,7 @@ namespace IFoxCAD.Cad;
 
 using ConcurrentCollections;
 using System.Linq;
+using System.Reflection;
 using System.Windows.Controls;
 
 
@@ -205,8 +206,6 @@ public class AutoClass
             _actuatorMap[Sequence.StartFirst].ForEach(ac => ac.Run());
             _actuatorMap[Sequence.StartLast].ForEach(ac => ac.Run());
 
-
-
             // 为了能够无论何种加载都能doc.Editor输出:
             // x01,通过注册表加载StartFirst/Last,有doc没有doc.Editor,所以不会输出.
             // 用订阅文档事件等待,其后会立即触发一次,文档事件内就可以发送打印了.
@@ -214,64 +213,22 @@ public class AutoClass
             // 它会在下次创建文档(ctrl+n)触发,此时必然有doc.Editor需要直接触发.
             dm.DocumentCreated += DmCreated;
             dm.DocumentToBeDestroyed += DmDestroyed;
-
-            // NETLOAD这个方案是通用的,
-            // 若用户不是NETLOAD命令加载呢?例如程序集动态加载.
-            // 比较推荐空闲事件方案,但是acad08此事件失效,要转为子类化.
-            // 反正有一个执行成功就行了,会自动阻塞另一个的.
-            if (IsNetload())
-            {
-                MyTask(dm.MdiActiveDocument);
-            }
-
-            MyIdle();
-
-            // 开启线程等待editor就绪,会打印四次,不知道为什么.
-            // ThreadHelper.NewlyThread(ed => MyTask(ed));
+            AcadIdleManager.OnIdle += OnIdle;
         }
         catch (System.Exception e)
         {
             Debugger.Break();
-            Debug.WriteLine("AutoClass.Initialize出错::" + e.Message);
+            Env.Printl("AutoClass.Initialize出错::" + e.Message);
         }
-    }
-
-    private void MyIdle()
-    {
-#if !ac2008
-        Acap.Idle += OnIdle;
-#else
-        throw new System.Exception("MyIdle");
-#endif
     }
 
     // 空闲事件判断
     void OnIdle(object sender, EventArgs e)
     {
-#if !ac2008
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (doc is null) return;
-        Acap.Idle -= OnIdle;
+        AcadIdleManager.OnIdle -= OnIdle;
         MyTask(doc);
-#else
-        throw new System.Exception("OnIdle");
-#endif
-    }
-
-    // 用命令输入判断
-    bool IsNetload()
-    {
-        var dm = Acap.DocumentManager;
-        var doc = dm.MdiActiveDocument;
-        var ed = doc?.Editor;
-        return doc is not null && doc.CommandInProgress.ToUpper() == "NETLOAD"
-          && ed is not null
-          && !(ed.IsDragging && ed.IsQuiescent
-#if !ac2008
-              && ed.IsQuiescentForTransparentCommand
-#endif
-              && ed.MouseHasMoved
-              && ed.UseCommandLineInterface);
     }
 
     // 加载之后有文档立即执行(单次执行)
@@ -374,6 +331,7 @@ public class AutoClass
             const string str1 = "AcInfoCenterConn";
             const string str2 = "Microsoft";
 
+
 #if parallel
             System.Diagnostics.Trace.WriteLine("这是一条Trace消息,此时是并行");
             var assemblies = AppDomain.CurrentDomain.GetAssemblies()
@@ -386,9 +344,7 @@ public class AutoClass
             // 约束在此dll中反射.
             if (dllNameWithoutExtension is not null)
             {
-                assemblies = assemblies.Where(ass =>
-                    Path.GetFileNameWithoutExtension(ass.Location)
-                    == dllNameWithoutExtension);
+                assemblies = assemblies.Where(ass => Path.GetFileNameWithoutExtension(ass.Location) == dllNameWithoutExtension);
             }
             // 只反射公开
             var types = assemblies.SelectMany(ass => ass.GetExportedTypes());

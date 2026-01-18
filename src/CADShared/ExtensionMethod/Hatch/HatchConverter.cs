@@ -382,7 +382,7 @@ public class HatchConverter
          * 那么它的平移后的基点在哪里呢?
          */
 
-        using ObjectIdCollection idc = new(new ObjectId[] { OldHatchId });
+        using ObjectIdCollection idc = new([OldHatchId]);
         using IdMapping map = new();
         btrOfAddEntitySpace.DeepCloneEx(idc, map);
         var newHatchId = map.GetValues()[0];

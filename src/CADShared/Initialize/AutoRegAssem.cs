@@ -64,14 +64,14 @@ public abstract class AutoRegAssem : IExtensionApplication
             LoadType = AssemLoadType.Starting
         };
 
-        if ((autoRegConfig & AutoRegConfig.Regedit) == AutoRegConfig.Regedit)
+        if (autoRegConfig.HasFlag(AutoRegConfig.Regedit))
         {
             if (!AutoReg.SearchForReg(info))
                 AutoReg.RegApp(info);
         }
 
 #if acad
-        if ((autoRegConfig & AutoRegConfig.RemoveEMR) == AutoRegConfig.RemoveEMR)
+        if (autoRegConfig.HasFlag(AutoRegConfig.RemoveEMR))
             AcadEMR.Remove();
 #endif
 
@@ -79,8 +79,10 @@ public abstract class AutoRegAssem : IExtensionApplication
         // 以及自动执行特性 [IFoxInitialize]
         // 类库用户不在此处进行其他代码,而是实现特性
         if ((autoRegConfig & AutoRegConfig.ReflectionInterface) != AutoRegConfig.ReflectionInterface &&
-            (autoRegConfig & AutoRegConfig.ReflectionAttribute) != AutoRegConfig.ReflectionAttribute) return;
-        _autoRef = new AutoReflection(info.Name, autoRegConfig);
+            (autoRegConfig & AutoRegConfig.ReflectionAttribute) != AutoRegConfig.ReflectionAttribute)
+            return;
+
+        _autoRef = new(info.Name, autoRegConfig);
         _autoRef.Initialize();
     }
 
@@ -88,7 +90,7 @@ public abstract class AutoRegAssem : IExtensionApplication
 
     #region RegApp
 
-    // 这里的是不会自动执行的
+
     /// <summary>
     /// 
     /// </summary>

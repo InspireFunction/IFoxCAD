@@ -5,6 +5,7 @@ using System.IO;
 using Exception = System.Exception;
 using Acaop = Application;
 using IFoxCAD.Com;
+using ConcurrentCollections;
 
 
 /// <summary>
@@ -578,7 +579,10 @@ public sealed class DBTrans : IDisposable
 
     #region 表记录
 
-    private readonly Dictionary<ObjectId, DBObject> _objectCache = new();
+    //private readonly ConcurrentDictionary<ObjectId, DBObject> _objectCache = new();
+    private readonly ConcurrentDictionary<ObjectId, WeakReference> _objectCache = new();
+
+    private readonly object _lock = new();
 
     private T GetCache<T>(ObjectId objectId) where T : DBObject
     {
@@ -587,8 +591,11 @@ public sealed class DBTrans : IDisposable
         {
             return result;
         }
-        result = (T)GetObject(objectId);
-        _objectCache.Add(objectId, result);
+        lock (_lock)
+        {
+            result = (T)GetObject(objectId);
+            _objectCache.TryAdd(objectId, new(result));
+        }
         return result;
     }
 
@@ -987,7 +994,10 @@ public sealed class DBTrans : IDisposable
             // 表记录释放
             foreach (var pair in _objectCache)
             {
-                pair.Value.Dispose();
+                if (pair.Value.IsAlive)
+                {
+                    ((DBObject)(pair.Value.Target)).Dispose();
+                }
             }
             _objectCache.Clear();
 

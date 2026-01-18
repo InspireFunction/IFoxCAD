@@ -69,6 +69,10 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         {
             if (Has(key))
                 return CurrentSymbolTable[key];
+            //#if DEBUG
+            //            throw new ArgumentNullException("索引不存在:" + key);
+            //#else
+            //#endif
             return ObjectId.Null;
         }
     }
@@ -234,7 +238,10 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
                               bool openErased = false,
                               bool openLockedLayer = false)
     {
-        return GetRecord(this[name], openMode, openErased, openLockedLayer);
+        var a = this[name];
+        if (!a.IsOk())
+            throw new ArgumentNullException("对象不存在:" + name);
+        return GetRecord(a, openMode, openErased, openLockedLayer);
     }
 
     /// <summary>

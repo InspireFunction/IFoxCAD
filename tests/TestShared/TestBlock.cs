@@ -131,6 +131,10 @@ public class TestBlock
         tr.BlockTable.Change("test", btr => {
             foreach (var id in btr)
             {
+                if (!id.IsOk())
+                {
+                    continue;
+                }
                 var ent = tr.GetObject<Entity>(id);
                 using (ent!.ForWrite())
                 {

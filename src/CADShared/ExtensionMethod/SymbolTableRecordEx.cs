@@ -78,7 +78,8 @@ public static class SymbolTableRecordEx
         //    throw new ArgumentNullException(nameof(entity), "对象为 null");
 
         ObjectId id;
-        trans ??= DBTrans.Top;
+        trans ??= DBTrans.GetTop(btr.Database);
+
         using (btr.ForWrite())
         {
             id = btr.AppendEntity(entity);
