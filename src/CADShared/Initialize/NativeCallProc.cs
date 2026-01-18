@@ -1,90 +1,8 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 using System;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
-
-#if true2
-/// <summary>
-/// 窗口控件子类化
-/// </summary>
-public class NativeCallProc : NativeWindow, IDisposable
-{
-    Func<Message, bool>? WndProcEvent;
-
-    /// <summary>
-    /// 窗口控件子类化<br/>
-    /// 声明一定要写到类成员上,否则导致GC不确定的释放,从而触发析构
-    /// </summary>
-    /// <param name="intPtr">窗体句柄</param>
-    public NativeCallProc(IntPtr intPtr)
-    {
-        this.AssignHandle(intPtr);
-    }
-
-    /// <summary>
-    /// 消息循环:传委托进去不断替换
-    /// </summary>
-    /// <param name="WndProc">消息,true不拦截回调</param>
-    public void WndProc(Func<Message, bool> WndProc)
-    {
-        WndProcEvent = WndProc;
-    }
-
-#line hidden
-    /// <summary>
-    /// 窗口过程,此处会不断进行消息循环
-    /// </summary>
-    /// <param name="msg"></param>
-    protected override void WndProc(ref Message msg)
-    {
-        if (WndProcEvent is null)
-            return;
-        if (WndProcEvent.Invoke(msg))
-            base.WndProc(ref msg);
-    }
-#line default
-
-    #region IDisposable接口相关函数
-    /// <summary>
-    /// 
-    /// </summary>
-    public bool IsDisposed { get; private set; } = false;
-
-    /// <summary>
-    /// 手动调用释放
-    /// </summary>
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
-
-    /// <summary>
-    /// 析构函数调用释放
-    /// </summary>
-    ~NativeCallProc()
-    {
-        Dispose(false);
-    }
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="disposing"></param>
-    protected virtual void Dispose(bool disposing)
-    {
-        // 不重复释放,并设置已经释放
-        if (IsDisposed) return;
-        IsDisposed = true;
-
-        // 释放占用窗体的句柄
-        ReleaseHandle();
-    }
-    #endregion
-}
-
-
-#endif
-
 
 /// <summary>
 /// AutoCAD窗口消息拦截器 - 支持自定义空闲事件
@@ -109,6 +27,9 @@ public class AcadWindowProc : NativeWindow, IDisposable
     // 原窗口过程地址
     private IntPtr _oldWndProc = IntPtr.Zero;
 
+    // 关键修复：保持对委托的引用，防止被垃圾回收
+    private WndProcDelegate? _wndProcDelegate;
+
     /// <summary>
     /// 空闲事件委托
     /// </summary>
@@ -118,11 +39,6 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// 消息过滤器委托
     /// </summary>
     public Func<Message, bool>? MessageFilter;
-
-    // <summary>
-    // 当前窗口句柄
-    // </summary>
-    // public IntPtr Handle { get; private set; }
 
     /// <summary>
     /// 是否已安装消息钩子
@@ -138,7 +54,6 @@ public class AcadWindowProc : NativeWindow, IDisposable
         if (hWnd == IntPtr.Zero)
             throw new ArgumentException("无效的窗口句柄");
 
-        // this.Handle = hWnd;
         this.AssignHandle(hWnd);
         HookWindowProc();
     }
@@ -154,10 +69,13 @@ public class AcadWindowProc : NativeWindow, IDisposable
         // 保存原窗口过程
         _oldWndProc = GetWindowLong(Handle, GWL_WNDPROC);
 
+        // 创建委托并保持引用
+        _wndProcDelegate = new WndProcDelegate(WindowProc);
+
         // 设置新的窗口过程
         SetWindowLong(Handle,
             GWL_WNDPROC,
-            Marshal.GetFunctionPointerForDelegate(new WndProcDelegate(WindowProc)));
+            Marshal.GetFunctionPointerForDelegate(_wndProcDelegate));
 
         IsHooked = true;
     }
@@ -172,6 +90,14 @@ public class AcadWindowProc : NativeWindow, IDisposable
 
         // 恢复原窗口过程
         SetWindowLong(Handle, GWL_WNDPROC, _oldWndProc);
+
+        // 释放委托引用
+        if (_wndProcDelegate != null)
+        {
+            // 注意：不能手动释放委托，但可以清空引用
+            _wndProcDelegate = null;
+        }
+
         _oldWndProc = IntPtr.Zero;
         IsHooked = false;
     }
@@ -204,12 +130,11 @@ public class AcadWindowProc : NativeWindow, IDisposable
         {
             if (_oldWndProc != IntPtr.Zero)
             {
-                DefWndProc(ref message);
                 return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
             }
             else
             {
-                base.WndProc(ref message);
+                DefWndProc(ref message);
             }
         }
 
@@ -259,7 +184,6 @@ public class AcadWindowProc : NativeWindow, IDisposable
         if (Handle != IntPtr.Zero)
         {
             ReleaseHandle();
-            // Handle = IntPtr.Zero;
         }
 
         _disposed = true;
@@ -274,8 +198,6 @@ public static class AcadIdleManager
 {
     private static AcadWindowProc? _windowProc;
     private static System.Timers.Timer? _idleTimer;
-
-    // 添加一个虚拟控件用于线程同步
     private static Control? _dummyControl;
 
     /// <summary>
@@ -291,61 +213,77 @@ public static class AcadIdleManager
     /// <summary>
     /// 空闲事件
     /// </summary>
-#if ac2008
-    public static event EventHandler? OnIdle;
-#else
     public static event EventHandler? OnIdle
     {
         add
         {
+#if ac2008
+            if (_windowProc == null)
+            {
+                Initialize();
+            }
+            if (_windowProc != null)
+            {
+                _windowProc.OnIdle += (s, e) => value?.Invoke(s, e);
+            }
+#else
             Acap.Idle += value;
+#endif
         }
         remove
         {
+#if ac2008
+            if (_windowProc != null)
+            {
+                // 注意：这里简化处理，实际可能需要更复杂的委托管理
+                _windowProc.OnIdle -= (s, e) => value?.Invoke(s, e);
+            }
+#else
             Acap.Idle -= value;
+#endif
         }
     }
-#endif
 
-
-    static AcadIdleManager()
+    /// <summary>
+    /// 初始化2008版本的空闲管理器
+    /// </summary>
+    private static void Initialize()
     {
-        MainWindowHandle = Acap.MainWindow.Handle;
 #if ac2008
-        // 创建窗口过程拦截器
-        _windowProc = new AcadWindowProc(MainWindowHandle);
+        if (_windowProc != null) return;
 
-        // 订阅空闲事件
-        _windowProc.OnIdle += (s, e) => OnIdle?.Invoke(s, e);
+        try
+        {
+            MainWindowHandle = Acap.MainWindow.Handle;
 
-        // 设置消息过滤器
-        _windowProc.MessageFilter = (msg) => {
-            // 可以在这里过滤特定消息
-            return true; // 返回true表示继续处理消息
-        };
+            // 创建窗口过程拦截器
+            _windowProc = new AcadWindowProc(MainWindowHandle);
 
-        // 创建一个虚拟控件用于线程同步
-        _dummyControl = new Control();
-        _dummyControl.CreateControl(); // 确保控件句柄被创建
+            // 创建虚拟控件用于线程同步
+            _dummyControl = new Control();
+            _dummyControl.CreateControl();
 
-        // 启动定时器模拟空闲事件
-        _idleTimer = new System.Timers.Timer(IdleInterval);
-        _idleTimer.Elapsed += (s, e) => {
-            // 使用虚拟控件确保在UI线程上执行
-            if (_dummyControl.InvokeRequired)
-            {
-                // 使用Invoke确保在UI线程上执行，同时保持上下文
-                _dummyControl.Invoke(new Action(() => {
+            // 启动定时器模拟空闲事件
+            _idleTimer = new System.Timers.Timer(IdleInterval);
+            _idleTimer.Elapsed += (s, e) => {
+                if (_dummyControl != null && _dummyControl.InvokeRequired)
+                {
+                    _dummyControl.BeginInvoke(new Action(() => {
+                        _windowProc?.DoIdle();
+                    }));
+                }
+                else
+                {
                     _windowProc?.DoIdle();
-                }));
-            }
-            else
-            {
-                // 如果已经在UI线程上，直接调用空闲事件
-                _windowProc?.DoIdle();
-            }
-        };
-        _idleTimer.Start();
+                }
+            };
+            _idleTimer.Start();
+        }
+        catch (Exception ex)
+        {
+            // 记录错误
+            System.Diagnostics.Debug.WriteLine($"AcadIdleManager初始化失败: {ex.Message}");
+        }
 #endif
     }
 
@@ -359,19 +297,29 @@ public static class AcadIdleManager
         {
             _idleTimer.Stop();
             _idleTimer.Dispose();
+            _idleTimer = null;
         }
 
         if (_dummyControl != null)
         {
-            _dummyControl.Dispose();
+            if (_dummyControl.InvokeRequired)
+            {
+                _dummyControl.Invoke(new Action(() => {
+                    _dummyControl.Dispose();
+                }));
+            }
+            else
+            {
+                _dummyControl.Dispose();
+            }
             _dummyControl = null;
         }
 
         if (_windowProc != null)
         {
             _windowProc.Dispose();
+            _windowProc = null;
         }
-        OnIdle = null;
 #endif
     }
 }

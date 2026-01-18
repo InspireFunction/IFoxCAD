@@ -82,10 +82,7 @@ public abstract class AutoRegAssem : IExtensionApplication
             (autoRegConfig & AutoRegConfig.ReflectionAttribute) != AutoRegConfig.ReflectionAttribute)
             return;
 
-
         _autoRef = new AutoClass(info.Name, autoRegConfig);
-        _autoRef.Initialize();
-
     }
 
     #endregion
@@ -94,14 +91,15 @@ public abstract class AutoRegAssem : IExtensionApplication
 
 
     /// <summary>
-    /// 
+    /// 开启时候执行
     /// </summary>
     public void Initialize()
     {
+        _autoRef?.Initialize();
     }
 
     /// <summary>
-    /// 
+    /// 关闭时候执行
     /// </summary>
     public void Terminate()
     {
@@ -113,7 +111,7 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// </summary>
     ~AutoRegAssem()
     {
-        _autoRef?.Terminate();
+
     }
 
     #endregion RegApp

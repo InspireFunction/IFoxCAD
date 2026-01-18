@@ -2,7 +2,7 @@
 
 public class TestAddEntity
 {
-#region 直线
+    #region 直线
     [CommandMethod(nameof(Test_AddLinetoCurrentSpace))]
     public void Test_AddLinetoCurrentSpace()
     {
@@ -54,28 +54,28 @@ public class TestAddEntity
         // c#12 新语法，集合表达式
         tr.CurrentSpace.AddEntity([line1, line2, circle]);
     }
-#endregion
+    #endregion
 
-#region 圆
+    #region 圆
     [CommandMethod(nameof(Test_AddCircle))]
     public void Test_AddCircle()
     {
-        var cir = CircleEx.CreateCircle(Point3d.Origin, new(1,0,0)); // 两点创建圆
-        var cir1 = CircleEx.CreateCircle(Point3d.Origin, new(1,1,0), new(2,0,0)); //三点创建圆
+        var cir = CircleEx.CreateCircle(Point3d.Origin, new(1, 0, 0)); // 两点创建圆
+        var cir1 = CircleEx.CreateCircle(Point3d.Origin, new(1, 1, 0), new(2, 0, 0)); //三点创建圆
         var cir2 = CircleEx.CreateCircle(Point3d.Origin, 5); // 圆心半径创建圆
 
         using DBTrans tr = new();
         tr.CurrentSpace.AddEntity(cir, cir2);
-        
+
         // 由于三点不一定能成功创建一个圆，因此返回值是可空的，需要判空
         if (cir1 is not null)
         {
             tr.CurrentSpace.AddEntity(cir1);
         }
     }
-#endregion
+    #endregion
 
-#region 圆弧
+    #region 圆弧
     [CommandMethod(nameof(Test_AddArc))]
     public void Test_AddArc()
     {
@@ -86,13 +86,9 @@ public class TestAddEntity
         tr.CurrentSpace.AddEntity(arc1, arc2, arc3);
     }
 
-#endregion
+    #endregion
 
-
-
-
-
-#region 多段线
+    #region 多段线
     [CommandMethod(nameof(Test_AddPolyline1))]
     public void Test_AddPolyline1()
     {
@@ -121,7 +117,7 @@ public class TestAddEntity
             (new Point3d(0,10,0),0,0,0),
             (new Point3d(5,5,0),0,0,0)
         ];
-        
+
         using DBTrans tr = new();
         var pl = pts.CreatePolyline();
         tr.CurrentSpace.AddEntity(pl);
@@ -143,8 +139,7 @@ public class TestAddEntity
         tr.CurrentSpace.AddEntity(pline);
 
         // 可以通过委托，一次性的创建多段线并设置属性
-        var pline1 = pts.CreatePolyline(p =>
-        {
+        var pline1 = pts.CreatePolyline(p => {
             p.Closed = true;
             p.ConstantWidth = 0.2;
             p.ColorIndex = 1;
@@ -152,6 +147,5 @@ public class TestAddEntity
         tr.CurrentSpace.AddEntity(pline1);
     }
 
-#endregion
-
+    #endregion
 }

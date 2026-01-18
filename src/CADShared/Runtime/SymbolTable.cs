@@ -69,10 +69,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         {
             if (Has(key))
                 return CurrentSymbolTable[key];
-            //#if DEBUG
-            //            throw new ArgumentNullException("索引不存在:" + key);
-            //#else
-            //#endif
+            // 新建时候靠这个判断是否存在,所以不能抛异常
             return ObjectId.Null;
         }
     }

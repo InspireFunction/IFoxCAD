@@ -1,4 +1,4 @@
-﻿#define parallel
+#define parallel
 
 #pragma warning disable CS1591 // 缺少XML注释
 #pragma warning disable CS1572 // XML注释中有不存在的参数
@@ -9,8 +9,6 @@ namespace IFoxCAD.Cad;
 using ConcurrentCollections;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Controls;
-
 
 #region 工具
 [Flags]
@@ -219,6 +217,16 @@ public class AutoClass
     // 只反射本dll的程序集
     private readonly bool _constraint = true;
     private readonly Dictionary<Sequence, List<Actuator>> _actuatorMap = new();
+    // 加载之后有文档立即执行(单次执行)
+    private int _isOnceExecuted = 0;
+
+    private string _assName;
+    private AutoRegConfig _autoRegConfig;
+    public AutoClass(string name, AutoRegConfig autoRegConfig)
+    {
+        _assName = name;
+        _autoRegConfig = autoRegConfig;
+    }
 
     // 被cad加载时候自动执行
     public void Initialize()
@@ -280,30 +288,13 @@ public class AutoClass
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (doc is null) return;
         AcadIdleManager.OnIdle -= OnIdle;
-        MyTask(doc);
-    }
-
-    // 加载之后有文档立即执行(单次执行)
-    int _isOnceExecuted = 0;
-
-    private string _assName;
-    private AutoRegConfig _autoRegConfig;
-
-    bool MyTask(Document doc)
-    {
-        if (doc is null)
-        {
-            throw new System.Exception("AutoClass.MyTask不可思议的为空doc");
-        }
 
         if (Interlocked.CompareExchange(ref _isOnceExecuted, 1, 0) == 0)
         {
             var docArgs = new object[] { doc };
             _actuatorMap[Sequence.StartOnce].ForEach(ac => ac.Run(docArgs));
             _actuatorMap[Sequence.StartDocs].ForEach(ac => ac.Run(docArgs));
-            return true;
         }
-        return false;
     }
 
     // 文档开启(多次执行)
@@ -318,7 +309,7 @@ public class AutoClass
         catch (System.Exception ex)
         {
             Debugger.Break();
-            Debug.WriteLine("AutoClass.DmCreated出错::" + ex.Message);
+            Debug.WriteLine($"{nameof(AutoClass.DmCreated)} 出错::{ex.Message}");
         }
     }
 
@@ -348,9 +339,14 @@ public class AutoClass
     {
         try
         {
+            // 虽然可以获取dm,但是下面的事件已经被清空了
             var dm = Acap.DocumentManager ?? throw new System.Exception("不可思议的为空Acap.DocumentManager");
-            dm.DocumentCreated -= DmCreated;
-            dm.DocumentToBeDestroyed -= DmDestroyed;
+            if (dm.Count > 0)
+            {
+                // 这里从不进入
+                dm.DocumentCreated -= DmCreated;
+                dm.DocumentToBeDestroyed -= DmDestroyed;
+            }
 
             // 执行任务
             _actuatorMap[Sequence.EndFirst].ForEach(ac => ac.Run());
@@ -358,7 +354,6 @@ public class AutoClass
 
             // 释放缓存,类析构会在此之后.
             TypeCache.Clear();
-
         }
         catch (System.Exception e)
         {
@@ -516,14 +511,6 @@ public class AutoClass
     const string _in = "Initialize";
     const string _te = "Terminate";
 
-    public AutoClass(string name, AutoRegConfig autoRegConfig)
-    {
-        this._assName = name;
-        this._autoRegConfig = autoRegConfig;
-    }
-
-
-
     (Actuator Init, Actuator Term)? CreateActuator2(Type type)
     {
         // 获取接口实现的成员函数,虽然它们只会出现一次,
@@ -608,7 +595,7 @@ public class AutoClass
 #if parallel
         System.Diagnostics.Trace.WriteLine("这是一条Trace消息,此时是并行");
         var acs = ts.SelectMany(type => type.GetMethods())
-            .SelectMany(m => CreateActuator(m)).ToArray();
+            .SelectMany(CreateActuator).ToArray();
         // 串行加入
         foreach (var ac in acs)
         {

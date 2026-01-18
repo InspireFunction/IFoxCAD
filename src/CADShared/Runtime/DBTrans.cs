@@ -702,21 +702,21 @@ public sealed class DBTrans : IDisposable
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>数据库DBObject对象</returns>
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    //[MethodImpl(MethodImplOptions.AggressiveInlining)]
     public DBObject GetObject(ObjectId objectId, OpenMode openMode = OpenMode.ForRead,
         bool openErased = false, bool openLockedLayer = false)
     {
-        // 先尝试获取缓存,并发容器
-        if (_objectCache.TryGetValue(objectId, out var obj) && obj.Target is not null)
+        // 通过并发容器实现多线程获取
+        if (_objectCache.TryGetValue(objectId, out var obj) && obj.IsAlive)
         {
             return (DBObject)obj.Target;
         }
+        if (openLockedLayer)
+            openMode = OpenMode.ForWrite;
 
+        // 由于锁图层+读模式+提权是失败的,所以要直接用写模式.
         lock (_lock)
         {
-            // 由于锁图层+读模式+提权是失败的,所以要直接用写模式.
-            if (openLockedLayer)
-                openMode = OpenMode.ForWrite;
             var result = _transaction.GetObject(objectId, openMode, openErased, openLockedLayer);
             _objectCache[objectId] = new(result);
             return result;
@@ -989,7 +989,7 @@ public sealed class DBTrans : IDisposable
 
             if (_docAndLockMap.TryGetValue(_database, out var dx))
             {
-                dx.Document.Dispose();
+                dx.DocumentLock.Dispose();
                 _docAndLockMap.Remove(_database);
             }
 

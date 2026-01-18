@@ -13,7 +13,7 @@ public class HatchPickEvent : IDisposable
     // 临时标记(重设选择集会触发一次选择集反应器)
     static bool _selectChangedStop = false;
     // 临时选择集用
-    static List<ObjectId> _hatchIds = new();
+    readonly static HashSet<ObjectId> _hatchIds = [];
     // 获取夹点在哪个图元边界上面,是为true
     static bool _pickInBo = false;
     static bool _vetoProperties = false;
@@ -137,10 +137,11 @@ public class HatchPickEvent : IDisposable
                     return;
                 using DBTrans tr = new();
                 GetHatchIds(prompt);
-                if (_hatchIds.Count == 0)
-                    return;
-                for (int i = 0; i < _hatchIds.Count; i++)
-                    _refeditSsgeting.Add(_hatchIds[i]);
+
+                foreach (var id in _hatchIds)
+                {
+                    _refeditSsgeting.Add(id);
+                }
             }
             break;
         }
@@ -154,14 +155,14 @@ public class HatchPickEvent : IDisposable
         {
             var mp = HatchHook.MouseStartPoint;
             var mouseStart = Screen.ScreenToCad(mp);
-            DebugEx.Printl("mouseStart,屏幕点::" + mp);
-            DebugEx.Printl("mouseStart,cad点::" + mouseStart);
+            //DebugEx.Printl("mouseStart,屏幕点::" + mp);
+            //DebugEx.Printl("mouseStart,cad点::" + mouseStart);
 
             // 获取当前选择的对象,然后提取所有的夹点
             var prompt = Env.Editor.SelectImplied();
             if (prompt.Status != PromptStatus.OK)
                 return;
-            using DBTrans tr = new();
+            using DBTrans tr = new(docLock: true);
             GetHatchIds(prompt);
             if (_hatchIds.Count == 0)
                 return;
@@ -173,9 +174,9 @@ public class HatchPickEvent : IDisposable
             // 0x01 移动了矩形填充中间的夹点,删除边界,并且重新生成填充和边界
             // 0x02 移动了填充边界上的夹点,不处理,然后它会通过关联进行自己修改
             _pickInBo = false;
-            for (int i = 0; i < _hatchIds.Count; i++)
+
+            foreach (var hatId in _hatchIds)
             {
-                var hatId = _hatchIds[i];
                 if (!_mapHatchConv.ContainsKey(hatId))
                     continue;
 
@@ -268,9 +269,6 @@ public class HatchPickEvent : IDisposable
         return pts3d.Cast<Point3d>().ToList();
     }
 
-
-
-
     /// <summary>
     /// 反应器->command命令完成后
     /// </summary>
@@ -298,9 +296,10 @@ public class HatchPickEvent : IDisposable
                 if (_hatchIds.Count == 0)
                     return;
 
-                for (int i = 0; i < _hatchIds.Count; i++)
-                    if (!_refeditSsgeting.Contains(_hatchIds[i]))//Except
-                        _refeditSsgeted.Add(_hatchIds[i]);
+                foreach (var item in _hatchIds)
+                {
+                    _refeditSsgeted.Add(item);
+                }
 
                 var sb = new StringBuilder();
                 foreach (var id in _refeditSsgeted)
@@ -329,19 +328,19 @@ public class HatchPickEvent : IDisposable
                 // 就是因为无法遍历到在位编辑的块内图元,只能进行布尔运算
                 if (last.Contains("添加") || last.Contains("Added"))// 中英文cad
                 {
-                    for (int i = 0; i < _hatchIds.Count; i++)
+                    foreach (var item in _hatchIds)
                     {
-                        _refeditSsgeting.Remove(_hatchIds[i]);
-                        _refeditSsgeted.Add(_hatchIds[i]);
+                        _refeditSsgeting.Remove(item);
+                        _refeditSsgeted.Add(item);
                     }
                     return;
                 }
                 if (last.Contains("删除") || last.Contains("Removed"))// 中英文cad
                 {
-                    for (int i = 0; i < _hatchIds.Count; i++)
+                    foreach (var item in _hatchIds)
                     {
-                        _refeditSsgeted.Remove(_hatchIds[i]);
-                        _refeditSsgeting.Add(_hatchIds[i]);
+                        _refeditSsgeted.Remove(item);
+                        _refeditSsgeting.Add(item);
                     }
                     return;
                 }
@@ -415,12 +414,9 @@ public class HatchPickEvent : IDisposable
     {
         tr ??= DBTrans.Top;
         _hatchIds.Clear();
-        var ids = psr.Value.GetObjectIds();
-        for (int i = 0; i < ids.Length; i++)
+        foreach (var id in psr.Value.GetObjectIds())
         {
-            var hatch = (Hatch)tr.GetObject(ids[i]);
-            if (hatch is not null)
-                _hatchIds.Add(ids[i]);
+            _hatchIds.Add(id);
         }
     }
 
@@ -445,7 +441,6 @@ public class HatchPickEvent : IDisposable
         if (!State.IsRun)
             return;
 
-        // 此处必须要文档锁
         if (_selectChangedStop)
         {
             _selectChangedStop = false;
@@ -453,13 +448,16 @@ public class HatchPickEvent : IDisposable
         }
         DebugEx.Printl("Md_ImpliedSelectionChanged");
 
-        using DBTrans tr = new(Acap.DocumentManager.MdiActiveDocument);
+        using DBTrans tr = new(Acap.DocumentManager.MdiActiveDocument, docLock: true);
+
+        // 这里就需要锁文档了
         var prompt = Env.Editor.SelectImplied();
         if (prompt.Status != PromptStatus.OK)
         {
             EraseAllHatchBorders();
             return;
         }
+
 
         // 获取图层锁定的记录,用于跳过
         Dictionary<string, bool> islocks = new();
@@ -469,13 +467,12 @@ public class HatchPickEvent : IDisposable
 
         // 遍历选择,创建边界转换器
         // 重设选择集
-        HashSet<ObjectId> idsOfSsget = new();
+        HashSet<ObjectId> idsOfSsget = [];
         foreach (var entId in prompt.Value.GetObjectIds())
         {
             idsOfSsget.Add(entId);
-            using var hatch = (Hatch)tr.GetObject(entId, openLockedLayer: true);
-            if (hatch is null)
-                continue;
+            using var ent = tr.GetObject(entId, openLockedLayer: true);
+            if (ent is not Hatch hatch) continue;
             if (islocks[hatch.Layer])
                 continue;
             // 重复选择 || 在位编辑外
