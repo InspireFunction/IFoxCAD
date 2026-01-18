@@ -15,7 +15,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-net@v4
         with:
-          dotnet-version: '8.0.x' # 根据你的项目选择版本
+          dotnet-version: '8.0.4' # 根据你的项目选择版本
 
       - name: Restore dependencies
         run: dotnet restore
@@ -25,7 +25,7 @@ jobs:
 
       # 自动从 Tag 名称提取版本号并打包
       - name: Pack
-        run: dotnet pack --configuration Release /p:PackageVersion=${{ github.ref_name }} --output .
+        run: dotnet pack --configuration Release /p:PackageVersion=${{ github.ref_name }} --output ./dist
 
       - name: Publish to NuGet
-        run: dotnet nuget push *.nupkg --api-key ${{ secrets.NUGET_AUTH_TOKEN }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push ./dist*.nupkg --api-key ${{ secrets.NUGET_AUTH_TOKEN }} --source https://api.nuget.org/v3/index.json --skip-duplicate
