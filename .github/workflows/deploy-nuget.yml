@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v4
 
       - name: Setup .NET
-        uses: actions/setup-net@v4
+        uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '8.0.4' # 根据你的项目选择版本
 
