@@ -4,6 +4,7 @@ using static IFoxCAD.Cad.PostCmd;
 using MenuItem = Autodesk.AutoCAD.Windows.MenuItem;
 
 namespace JoinBoxAcad;
+
 public class HatchPick
 {
     [IFoxInitializeAttribute]

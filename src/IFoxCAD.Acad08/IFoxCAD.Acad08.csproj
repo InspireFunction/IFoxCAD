@@ -2,8 +2,10 @@
 
     <PropertyGroup>
         <TargetFrameworks>NET35</TargetFrameworks>
+        <PlatformTarget>x86</PlatformTarget>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     </PropertyGroup>
-
+    
     <PropertyGroup>
         <PackageId>IFox.CAD.ACAD</PackageId>
         <Title>IFox.CAD.ACAD</Title>
