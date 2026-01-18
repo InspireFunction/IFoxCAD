@@ -1,0 +1,44 @@
+name: Publish NuGet Package # Action名称
+
+# 设置触发器
+# 以下示例为master分支，Directory.Build.props文件发生变动后，
+# 触发本action
+on:
+  push:
+    branches:
+      - v0.9 # 监听的分支
+    paths: # 监听的文件
+      - 'src/Directory.Build.props'
+
+# 设置运行环境及执行步骤
+# 作用见step name
+jobs:
+  build-and-publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        
+
+
+      - name: Restore NuGet packages
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release
+
+    #   - name: Pack NuGet package
+    #     run: |
+    #       cd src/IFoxCAD.AutoCad
+    #       dotnet pack src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj  --configuration Release --no-build
+    #       cd src/IFoxCAD.ZwCad
+    #       dotnet pack src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj  --configuration Release --no-build
+
+
+      # 需在github库中设置${{ secrets.NUGET_API_KEY }}
+      - name: Publish NuGet package
+        run: dotnet nuget push **/*.nupkg --api-key ${{ secrets.NUGET_AUTH_TOKEN }} --source https://api.nuget.org/v3/index.json --skip-duplicate
