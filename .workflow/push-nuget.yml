@@ -26,6 +26,7 @@ stages:
           - mkdir out
           - dotnet restore
           - dotnet build --configuration Release -o out
+          - dotnet pack --configuration Release -o ./out
         artifacts:
           - name: BUILD_ARTIFACT
             path:
@@ -35,23 +36,6 @@ stages:
         notify: []
         strategy:
           retry: '0'
-      - step: build@dotnet
-        name: pack_dotnet
-        displayName: .NET Core 构建
-        dotnetVersion: '8.0'
-        commands:
-          - '# input your command here'
-          - dotnet pack --configuration Release /p:PackageVersion=${GITEE_TAG_NAME#v} -o ./out
-        artifacts:
-          - name: BUILD_ARTIFACT
-            path:
-              - ./out
-        caches:
-          - ~/.nuget/packages
-        notify: []
-        strategy:
-          retry: '0'
-        dependsOn: build_dotnet
   - name: stage-0f206cdc
     displayName: 未命名
     strategy: naturally
