@@ -467,7 +467,7 @@ public class AutoClass
         string? dll = null;
         if (_constraint)
         {
-            // TODO "IFoxCAD.Acad08" 不对,要是: TestAcad08
+            //"IFoxCAD.Acad08" 不对,要是: TestAcad08
             //var ass = Assembly.GetExecutingAssembly();
             //dll = Path.GetFileNameWithoutExtension(ass.Location); 
             dll = _assName;
@@ -597,7 +597,7 @@ public class AutoClass
         string? dll = null;
         if (_constraint)
         {
-            // TODO "IFoxCAD.Acad08" 不对,要是: TestAcad08
+            //"IFoxCAD.Acad08" 不对,要是: TestAcad08
             //var ass = Assembly.GetExecutingAssembly();
             //dll = Path.GetFileNameWithoutExtension(ass.Location);
             dll = _assName;

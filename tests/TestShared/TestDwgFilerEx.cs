@@ -24,7 +24,7 @@ public class CmdTestDwgFilerEx
         {
             if (!id.IsOk())
                 continue;
-            var ent = tr.GetObject<Entity>(id, OpenMode.ForRead);
+            using var ent = (Entity)tr.GetObject(id, OpenMode.ForRead);
             if (ent is null)
                 continue;
             var dwgFilerEx = new DwgFilerEx(ent);
@@ -56,9 +56,7 @@ public class CmdTestDwgFilerEx
         {
             if (!id.IsOk())
                 continue;
-            var ent = tr.GetObject<Entity>(id, OpenMode.ForRead);
-            if (ent is null)
-                continue;
+            using var ent = (Entity)tr.GetObject(id, OpenMode.ForRead);
             // ResultBuffer rbDxf = new();
             var filer = new DxfFiler(ent.UnmanagedObject, true);/// 这里有问题
             ent.DxfOut(filer);
@@ -96,7 +94,7 @@ public class CmdTestDwgFilerEx
 
         using DBTrans tr = new();
         var dwgFilerEx = new DwgFilerEx();
-        var bText = tr.GetObject<DBText>(gt1.ObjectId, OpenMode.ForRead);
+        using var bText = (DBText)tr.GetObject(gt1.ObjectId, OpenMode.ForRead);
         if (bText is null)
             return;
 

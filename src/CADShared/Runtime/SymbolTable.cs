@@ -41,7 +41,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         DTrans = tr;
         Database = tr.Database;
-        CurrentSymbolTable = DTrans.GetObject<TTable>(tableId)!;
+        CurrentSymbolTable = (TTable)DTrans.GetObject(tableId);
 
         if (!defaultBehavior)
             return;
@@ -221,7 +221,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
                               bool openErased = false,
                               bool openLockedLayer = false)
     {
-        return DTrans.GetObject<TRecord>(id, openMode, openErased, openLockedLayer);
+        return (TRecord)DTrans.GetObject(id, openMode, openErased, openLockedLayer);
     }
 
     /// <summary>

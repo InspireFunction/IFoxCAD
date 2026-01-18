@@ -180,7 +180,7 @@ public class HatchPickEvent : IDisposable
                     continue;
 
                 _mapHatchConv[hatId].BoundaryIds.ForEach((id, idState) => {
-                    var boEnt = tr.GetObject<Entity>(id);
+                    var boEnt = (Entity)tr.GetObject(id);
                     if (boEnt == null)
                         return;
 
@@ -418,7 +418,7 @@ public class HatchPickEvent : IDisposable
         var ids = psr.Value.GetObjectIds();
         for (int i = 0; i < ids.Length; i++)
         {
-            var hatch = tr.GetObject<Hatch>(ids[i]);
+            var hatch = (Hatch)tr.GetObject(ids[i]);
             if (hatch is not null)
                 _hatchIds.Add(ids[i]);
         }
@@ -453,7 +453,7 @@ public class HatchPickEvent : IDisposable
         }
         DebugEx.Printl("Md_ImpliedSelectionChanged");
 
-        using DBTrans tr = new(Acap.DocumentManager.MdiActiveDocument, true);
+        using DBTrans tr = new(Acap.DocumentManager.MdiActiveDocument);
         var prompt = Env.Editor.SelectImplied();
         if (prompt.Status != PromptStatus.OK)
         {
@@ -473,7 +473,7 @@ public class HatchPickEvent : IDisposable
         foreach (var entId in prompt.Value.GetObjectIds())
         {
             idsOfSsget.Add(entId);
-            var hatch = tr.GetObject<Hatch>(entId, openLockedLayer: true);
+            using var hatch = (Hatch)tr.GetObject(entId, openLockedLayer: true);
             if (hatch is null)
                 continue;
             if (islocks[hatch.Layer])
@@ -586,7 +586,7 @@ public class HatchPickEvent : IDisposable
                 if (!boId.IsOk())
                     return;
                 using DBTrans tr = new(boId.Database);
-                var boEnt = tr.GetObject<Entity>(boId, OpenMode.ForWrite);
+                var boEnt = (Entity)tr.GetObject(boId, OpenMode.ForWrite);
                 if (boEnt == null)
                     return;
                 // 删除填充边界并清理关联反应器
@@ -595,7 +595,7 @@ public class HatchPickEvent : IDisposable
                 boEnt.Erase();
                 if (dict.Key.IsOk())
                 {
-                    var hatch = tr.GetObject<Hatch>(dict.Key, OpenMode.ForWrite);
+                    var hatch = (Hatch)tr.GetObject(dict.Key, OpenMode.ForWrite);
                     if (hatch == null)
                         return;
                     RemoveAssociative(hatch);
@@ -670,7 +670,7 @@ public class HatchPickEvent : IDisposable
                     var hatchId = HatchPickEnv.GetXdataHatch(boEnt);
                     if (hatchId.IsOk())
                     {
-                        var hatchEnt = tr.GetObject<Hatch>(hatchId, OpenMode.ForWrite);
+                        using var hatchEnt = (Hatch)tr.GetObject(hatchId, OpenMode.ForWrite);
                         if (hatchEnt != null)
                             RemoveAssociative(hatchEnt);
                     }
@@ -904,14 +904,13 @@ public static class HatchPickEnv
     public static void SetMeXData(ObjectId newHatchId, List<ObjectId> boIds, DBTrans? trans = null)
     {
         trans ??= DBTrans.Top;
-        var hatchEnt = trans.GetObject<Hatch>(newHatchId);
-        if (hatchEnt != null)
-            using (hatchEnt.ForWrite())
-                hatchEnt.XData = GetMeBuffer(hatchEnt.Handle, trans); // 设置xdata仅仅为debug可以通过鼠标悬停看见它数据,因此设置为自己
+        var hatchEnt = (Hatch)trans.GetObject(newHatchId);
+        using (hatchEnt.ForWrite())
+            hatchEnt.XData = GetMeBuffer(hatchEnt.Handle, trans); // 设置xdata仅仅为debug可以通过鼠标悬停看见它数据,因此设置为自己
 
         // 修改边界的xdata为新填充的
         boIds.ForEach(id => {
-            var boEnt = trans.GetObject<Entity>(id);
+            var boEnt = (Entity)trans.GetObject(id);
             if (boEnt is null)
                 return;
             using (boEnt.ForWrite())

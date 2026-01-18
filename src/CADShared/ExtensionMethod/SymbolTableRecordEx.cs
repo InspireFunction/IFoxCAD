@@ -446,7 +446,8 @@ public static class SymbolTableRecordEx
 
         if (atts != null)
         {
-            var btr = DBTrans.Top.GetObject<BlockTableRecord>(blockref.BlockTableRecord)!;
+            var tr = DBTrans.GetTop(blockref.Database);
+            var btr = (BlockTableRecord)tr.GetObject(blockref.BlockTableRecord)!;
             if (btr.HasAttributeDefinitions)
             {
                 var attdefs = btr.GetEntities<AttributeDefinition>();

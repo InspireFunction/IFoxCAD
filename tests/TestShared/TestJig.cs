@@ -12,9 +12,7 @@ public class Commands_Jig
         var per = tr.Editor?.GetEntity("\n点选圆形:");
         if (per?.Status != PromptStatus.OK)
             return;
-        var cir = tr.GetObject<Circle>(per.ObjectId, OpenMode.ForWrite);
-        if (cir == null)
-            return;
+        var cir = (Circle)tr.GetObject(per.ObjectId, OpenMode.ForWrite);
         var oldSp = cir.StartPoint;
         JigEx? moveJig = null;
         moveJig = new JigEx((mousePoint, drawEntitys) => {
@@ -52,7 +50,7 @@ public class Commands_Jig
         var per = Env.Editor.GetEntity("\n请选择一条多段线:");
         if (per.Status != PromptStatus.OK)
             return;
-        var ent = tr.GetObject<Entity>(per.ObjectId, OpenMode.ForWrite);
+        var ent = (Entity)tr.GetObject(per.ObjectId, OpenMode.ForWrite);
         if (ent is not Polyline pl)
             return;
 

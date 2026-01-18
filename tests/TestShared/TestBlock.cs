@@ -135,8 +135,8 @@ public class TestBlock
                 {
                     continue;
                 }
-                var ent = tr.GetObject<Entity>(id);
-                using (ent!.ForWrite())
+                using var ent = (Entity)tr.GetObject(id);
+                using (ent.ForWrite())
                 {
                     switch (ent)
                     {
@@ -229,9 +229,7 @@ public class TestBlock
     {
         using DBTrans tr = new();
         var blockid = Env.Editor.GetEntity("pick block:").ObjectId;
-        var btf = tr.GetObject<BlockReference>(blockid);
-        if (btf is null)
-            return;
+        var btf = (BlockReference)tr.GetObject(blockid);
         var att1 = new AttributeDefinition() { Position = new Point3d(20, 20, 0), Tag = "addtagTest1", Height = 1, TextString = "valueTest1" };
         var att2 = new AttributeDefinition() { Position = new Point3d(10, 12, 0), Tag = "tagTest2", Height = 1, TextString = "valueTest2" };
         tr.BlockTable.AddAttsToBlocks(btf.BlockTableRecord, new() { att1, att2 });
@@ -335,12 +333,12 @@ public class TestBlock
         });
         // tr.BlockTable.Add("hah");
         var id = tr.CurrentSpace.InsertBlock(new Point3d(0, 0, 0), "test1");
-        var brf1 = tr.GetObject<BlockReference>(id)!;
+        var brf1 = (BlockReference)tr.GetObject(id);
         var pts = new List<Point3d> { new Point3d(3, 3, 0), new Point3d(7, 3, 0), new Point3d(7, 7, 0), new Point3d(3, 7, 0) };
         brf1.XClip(pts);
 
         var id1 = tr.CurrentSpace.InsertBlock(new Point3d(20, 20, 0), "test1");
-        var brf2 = tr.GetObject<BlockReference>(id);
+        var brf2 = (BlockReference)tr.GetObject(id);
         brf2?.XClip(new Point3d(13, 13, 0), new Point3d(17, 17, 0));
     }
 
@@ -352,7 +350,7 @@ public class TestBlock
         var ent = Env.Editor.GetEntity("pick block");
         if (ent.Status != PromptStatus.OK) return;
 
-        var brf1 = tr.GetObject<BlockReference>(ent.ObjectId)!;
+        var brf1 = (BlockReference)tr.GetObject(ent.ObjectId);
         var pts = new List<Point3d> { new Point3d(3, 3, 0), new Point3d(7, 3, 0), new Point3d(7, 7, 0), new Point3d(3, 7, 0) };
         brf1.XClip(pts);
 
@@ -389,7 +387,7 @@ public class TestBlock
             });
 
             var id = tr.ModelSpace.InsertBlock(Point3d.Origin, blockdef);// 插入块参照
-            var brf = tr.GetObject<BlockReference>(id);
+            var brf = (BlockReference)tr.GetObject(id);
             brf?.Draw();
         }
 
@@ -402,7 +400,7 @@ public class TestBlock
         if (per.Status != PromptStatus.OK)
             return;
 
-        var brf2 = tr2.GetObject<BlockReference>(per.ObjectId)!;
+        var brf2 = (BlockReference)tr2.GetObject(per.ObjectId);
         // var BTR = tr.GetObject<BlockTableRecord>(Bref.BlockTableRecord, OpenMode.ForWrite);
         //// 如果知道块名字BTRName
         // BlockTableRecord BTR = tr.GetObject<BlockTableRecord>(tr.BlockTable[blockName], OpenMode.ForWrite);
@@ -412,7 +410,7 @@ public class TestBlock
         tr2.BlockTable.Change(btr, ltr => {
             foreach (ObjectId oid in ltr)
             {
-                var ent = tr2.GetObject<Entity>(oid);
+                using var ent = (Entity)tr2.GetObject(oid);
                 if (ent is MText mText)
                 {
                     using (ent.ForWrite())
@@ -610,7 +608,7 @@ public class TestBlock
         };
         var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
         using DBTrans tr = new();
-        var brf = tr.GetObject<BlockReference>(blockid)!;
+        var brf = (BlockReference)tr.GetObject(blockid);
         brf.ChangeBlockProperty(pro);
         // 这是第一个函数的用法
     }
@@ -623,7 +621,7 @@ public class TestBlock
         };
         var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
         using DBTrans tr = new();
-        var brf = tr.GetObject<BlockReference>(blockid)!;
+        var brf = (BlockReference)tr.GetObject(blockid);
         brf.ChangeBlockProperty(pro);
         // 这是第一个函数的用法
     }

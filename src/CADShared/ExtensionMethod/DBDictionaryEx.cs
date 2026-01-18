@@ -18,7 +18,7 @@ public static class DBDictionaryEx
         trans ??= DBTrans.Top;
         foreach (DBDictionaryEntry e in dict)
         {
-            var ent = trans.GetObject<T>(e.Value);
+            var ent = (T)trans.GetObject(e.Value);
             if (ent is not null)
                 yield return ent;
         }
@@ -39,7 +39,7 @@ public static class DBDictionaryEx
         {
             ObjectId id = dict.GetAt(key);
             if (!id.IsNull)
-                return trans.GetObject<T>(id);
+                return (T)trans.GetObject(id);
         }
         return null;
     }

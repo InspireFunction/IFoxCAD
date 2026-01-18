@@ -284,7 +284,7 @@ public class XrefFactory : IXrefBindModes
                     // 为空的时候全部加入 || 有内容时候含有目标
                     if (XrefNamesContains(xNodeName))
                     {
-                        var btr = _tr.GetObject<BlockTableRecord>(xNodeId);
+                        var btr = (BlockTableRecord)_tr.GetObject(xNodeId);
                         if (btr != null && btr.IsFromExternalReference)
                         {
                             if (!xNodeIsNested)
@@ -366,9 +366,10 @@ public class XrefFactory : IXrefBindModes
             foreach (var item in nested)
             {
                 var name = item.Value;
-                if (_tr.BlockTable.Has(name))
-                    _tr.GetObject<BlockTableRecord>(_tr.BlockTable[name], OpenMode.ForWrite)?
-                      .Erase();
+                if (_tr.BlockTable.Has(name)) {
+                   using var a = (BlockTableRecord)_tr.GetObject(_tr.BlockTable[name], OpenMode.ForWrite);
+                   a.Erase();
+                }
             }
 #endif
         }
@@ -477,10 +478,7 @@ public class XrefPath
 
         CurrentDatabasePath = Path.GetDirectoryName(tr.Database.Filename);
 
-        var btRec = tr.GetObject<BlockTableRecord>(brf.BlockTableRecord);// 块表记录
-        if (btRec == null)
-            return;
-
+        using var btRec = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord);// 块表记录
         IsFromExternalReference = btRec.IsFromExternalReference;
         if (!IsFromExternalReference)
             return;

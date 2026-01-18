@@ -73,7 +73,7 @@ public static class SelectionSetEx
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>图元集合</returns>
     [System.Diagnostics.DebuggerStepThrough]
-    public static IEnumerable<T?> GetEntities<T>(this SelectionSet ss,
+    public static IEnumerable<T> GetEntities<T>(this SelectionSet ss,
                                                  OpenMode openMode = OpenMode.ForRead,
                                                  DBTrans? trans = null,
                                                  bool openErased = false,
@@ -84,7 +84,7 @@ public static class SelectionSetEx
 
         trans ??= DBTrans.Top;
         return ss.GetObjectIds()
-                 .Select(id => trans.GetObject<T>(id, openMode, openErased, openLockedLayer))
+                 .Select(id => (T)trans.GetObject(id, openMode, openErased, openLockedLayer))
                  .Where(ent => ent != null);
     }
     #endregion

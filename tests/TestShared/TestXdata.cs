@@ -10,7 +10,7 @@ public class TestXdata
     public void Test_AddXdata()
     {
         using DBTrans tr = new();
-       
+
         tr.RegAppTable.Add("myapp1");
         tr.RegAppTable.Add(Appname); // add函数会默认的在存在这个名字的时候返回这个名字的regapp的id，不存在就新建
         tr.RegAppTable.Add("myapp3");
@@ -59,7 +59,7 @@ public class TestXdata
             { 1070, 12 }
         };
 
-        tr.CurrentSpace.AddEntity(line,line1);
+        tr.CurrentSpace.AddEntity(line, line1);
     }
     // 删
     [CommandMethod(nameof(Test_RemoveXdata))]
@@ -67,10 +67,10 @@ public class TestXdata
     {
         var res = Env.Editor.GetEntity("\n select the entity:");
         if (res.Status != PromptStatus.OK) return;
-        
+
         using DBTrans tr = new();
-        var ent = tr.GetObject<Entity>(res.ObjectId);
-        if (ent == null || ent.XData == null)
+        using var ent = (Entity)tr.GetObject(res.ObjectId);
+        if (ent.XData == null)
             return;
 
         Env.Printl("\n移除前:" + ent.XData);
@@ -91,13 +91,13 @@ public class TestXdata
         tr.RegAppTable.GetRecords().ForEach(rec => rec.Name.Print());
         tr.RegAppTable.GetRecordNames().ForEach(name => name.Print());
         tr.RegAppTable.ForEach(reg => reg.Name.Print(), checkIdOk: false);
-        
+
         // 查询appName里面是否含有某个
 
         var res = Env.Editor.GetEntity("\n select the entity:");
         if (res.Status != PromptStatus.OK) return;
-        
-        var ent = tr.GetObject<Entity>(res.ObjectId);
+
+        var ent = (Entity)tr.GetObject(res.ObjectId);
         if (ent == null || ent.XData == null)
             return;
 
@@ -119,9 +119,9 @@ public class TestXdata
     {
         var res = Env.Editor.GetEntity("\n select the entity:");
         if (res.Status != PromptStatus.OK) return;
-        
+
         using DBTrans tr = new();
-        var data = tr.GetObject<Entity>(res.ObjectId)!;
+        using var data = (Entity)tr.GetObject(res.ObjectId);
         data.ChangeXData(Appname, DxfCode.ExtendedDataAsciiString, "change");
 
         if (data.XData == null)

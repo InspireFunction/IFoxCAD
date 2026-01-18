@@ -18,10 +18,7 @@ public class MirrorFile
         using DBTrans tr = DBTrans.OpenPushToBackend(file);
         tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
             modelSpace.ForEach(entId => {
-                var dbText = tr.GetObject<DBText>(entId, OpenMode.ForRead)!;
-                if (dbText is null)
-                    return;
-
+                using var dbText = (DBText)tr.GetObject(entId, OpenMode.ForRead);
                 dbText.UpgradeOpen();
                 var pos = dbText.Position;
                 // text.Move(pos, Point3d.Origin);
@@ -48,7 +45,7 @@ public class MirrorFile
             var yaxis = new Point3d(0, 1, 0);
             tr.BlockTable.Change(tr.ModelSpace.ObjectId, modelSpace => {
                 modelSpace.ForEach(entId => {
-                    var entity = tr.GetObject<Entity>(entId, OpenMode.ForWrite)!;
+                    using var entity = (Entity)tr.GetObject(entId, OpenMode.ForWrite);
                     if (entity is DBText dbText)
                     {
                         dbText.Mirror(Point3d.Origin, yaxis);

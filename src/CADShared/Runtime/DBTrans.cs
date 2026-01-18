@@ -1,11 +1,10 @@
 ﻿namespace IFoxCAD.Cad;
 
+using ConcurrentCollections;
 using System.Diagnostics;
 using System.IO;
-using Exception = System.Exception;
 using Acaop = Application;
-using IFoxCAD.Com;
-using ConcurrentCollections;
+using Exception = System.Exception;
 
 
 /// <summary>
@@ -579,26 +578,6 @@ public sealed class DBTrans : IDisposable
 
     #region 表记录
 
-    //private readonly ConcurrentDictionary<ObjectId, DBObject> _objectCache = new();
-    private readonly ConcurrentDictionary<ObjectId, WeakReference> _objectCache = new();
-
-    private readonly object _lock = new();
-
-    private T GetCache<T>(ObjectId objectId) where T : DBObject
-    {
-        if (_objectCache.TryGetValue(objectId, out var obj)
-            && obj is T result)
-        {
-            return result;
-        }
-        lock (_lock)
-        {
-            result = (T)GetObject(objectId);
-            _objectCache.TryAdd(objectId, new(result));
-        }
-        return result;
-    }
-
     /// <summary>
     /// 当前绘图空间(可能是不同布局的)
     /// </summary>
@@ -707,22 +686,41 @@ public sealed class DBTrans : IDisposable
 
     #region 通用方法
 
+    //private readonly ConcurrentDictionary<ObjectId, DBObject> _objectCache = new();
+    private readonly ConcurrentDictionary<ObjectId, WeakReference> _objectCache = new();
+    private readonly object _lock = new();
+    private T GetCache<T>(ObjectId objectId) where T : DBObject
+    {
+        return (T)GetObject(objectId);
+    }
+
     /// <summary>
     /// 根据对象id获取对象
     /// </summary>
-    /// <param name="id">对象id</param>
+    /// <param name="objectId">对象id</param>
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>数据库DBObject对象</returns>
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public DBObject GetObject(ObjectId id, OpenMode openMode = OpenMode.ForRead,
+    public DBObject GetObject(ObjectId objectId, OpenMode openMode = OpenMode.ForRead,
         bool openErased = false, bool openLockedLayer = false)
     {
-        // 由于锁图层+读模式+提权是失败的,所以要直接用写模式.
-        if (openLockedLayer)
-            openMode = OpenMode.ForWrite;
-        return _transaction.GetObject(id, openMode, openErased, openLockedLayer);
+        // 先尝试获取缓存,并发容器
+        if (_objectCache.TryGetValue(objectId, out var obj) && obj.Target is not null)
+        {
+            return (DBObject)obj.Target;
+        }
+
+        lock (_lock)
+        {
+            // 由于锁图层+读模式+提权是失败的,所以要直接用写模式.
+            if (openLockedLayer)
+                openMode = OpenMode.ForWrite;
+            var result = _transaction.GetObject(objectId, openMode, openErased, openLockedLayer);
+            _objectCache[objectId] = new(result);
+            return result;
+        }
     }
 
     /*
@@ -733,22 +731,26 @@ public sealed class DBTrans : IDisposable
     还记得那句话吗:可空类型标记不是让你写if,而是让你尽可能不写if.
     是is还是as呢?这就是我们得放弃这个API.
     */
+
+
+#if true2
     /// <summary>
     /// 根据对象id获取图元对象
     /// </summary>
     /// <typeparam name="T">要获取的图元对象的类型</typeparam>
-    /// <param name="id">对象id</param>
+    /// <param name="objectId">对象id</param>
     /// <param name="openMode">打开模式,默认为只读</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     /// <returns>图元对象</returns>
     //[Obsolete("可空类型标记出现后,建议使用非泛型标记的", false)]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    public T? GetObject<T>(ObjectId id, OpenMode openMode = OpenMode.ForRead,
+    public T? GetObject<T>(ObjectId objectId, OpenMode openMode = OpenMode.ForRead,
         bool openErased = false, bool openLockedLayer = false) where T : DBObject
     {
-        return _transaction.GetObject(id, openMode, openErased, openLockedLayer) as T;
-    }
+        return _transaction.GetObject(objectId, openMode, openErased, openLockedLayer) as T;
+    } 
+#endif
 
     /// <summary>
     /// id有效,未被删除

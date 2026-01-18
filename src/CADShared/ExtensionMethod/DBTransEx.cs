@@ -82,9 +82,7 @@ public static class DBTransEx
         else
         {
             symbolTable.ForEach(id => {
-                var tabRec = tr.GetObject<TRecord>(id);
-                if (tabRec == null)
-                    return;
+                var tabRec = (TRecord)tr.GetObject(id);
                 if (!tabRec.Name.Contains("|"))
                     ids.Add(tabRec.Id);
             });
