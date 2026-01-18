@@ -23,6 +23,7 @@ stages:
         dotnetVersion: '8.0'
         commands:
           - '# input your command here'
+          - mkdir out
           - dotnet restore
           - dotnet build --configuration Release -o out
         artifacts:
