@@ -31,12 +31,12 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release
 
-      - name: Pack NuGet package
-        run: |
-          cd src/IFoxCAD.AutoCad
-          dotnet pack src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj  --configuration Release --no-build
-          cd src/IFoxCAD.ZwCad
-          dotnet pack src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj  --configuration Release --no-build
+    #   - name: Pack NuGet package
+    #     run: |
+    #       cd src/IFoxCAD.AutoCad
+    #       dotnet pack src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj  --configuration Release --no-build
+    #       cd src/IFoxCAD.ZwCad
+    #       dotnet pack src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj  --configuration Release --no-build
 
 
       # 需在github库中设置${{ secrets.NUGET_API_KEY }}
