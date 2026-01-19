@@ -1,7 +1,7 @@
 <Project>
     <!--版本号和提示-->
     <PropertyGroup>
-        <Version>0.9.8.1</Version>
+        <Version>0.9.8.2-beta1</Version>
         <PackageReleaseNotes>支持中望cad的进度条</PackageReleaseNotes>
     </PropertyGroup>
 
