@@ -452,6 +452,7 @@ public class HatchPick : IDisposable
 
         // 直接选中进入此处
         HashSet<ObjectId> setImpSelect = [];
+        //using var _ = _doc.LockDocument();
         using (DBTrans tr = new(Acap.DocumentManager.MdiActiveDocument, docLock: true))
         {
             // 获取图层锁定的记录,用于跳过
@@ -471,6 +472,7 @@ public class HatchPick : IDisposable
                 // 重复选择 || 在位编辑外
                 if (HatchConvMap.ContainsKey(entId) || _refedit.Contains(entId))
                     continue;
+
                 CreatHatchConverter(hatch, setImpSelect);
             }
         }
@@ -483,12 +485,14 @@ public class HatchPick : IDisposable
     /// <param name="hatch"></param>
     /// <param name="outSsgetIds"></param>
     /// <param name="tr"></param>
-    void CreatHatchConverter(Hatch hatch, HashSet<ObjectId> outSsgetIds, DBTrans? tr = null)
+    void CreatHatchConverter(Hatch hatch, HashSet<ObjectId> outSsgetIds)
     {
-        tr ??= DBTrans.GetTop(hatch.Database);
+        var tr = DBTrans.GetTop(hatch.Database);
 
         var hc = new HatchConverter(hatch);
         ObjectId newid;
+
+        // TODO 分离填充致命错误,原来是我新建对象的问题
 
         // 如果边界在图纸上没有删除(删除就不是关联的),
         // 那就不创建新的,然后选中它们
@@ -507,7 +511,7 @@ public class HatchPick : IDisposable
 
             // 创建新填充和边界
             hc.GetBoundarysData();
-            newid = hc.CreateBoundarysAndHatchToMsPs(tr.CurrentSpace, trans: tr);
+            newid = hc.CreateBoundarysAndHatchToMsPs();
             HatchPickEnv.SetMeXData(newid, hc.BoundaryIds);
 
             // 加入选择集
@@ -516,14 +520,16 @@ public class HatchPick : IDisposable
             outSsgetIds.Add(newid);
 
             // 重建了新填充就删除旧的
-            hatch.ObjectId.Erase();
-
-            // 清理上次,删除边界和填充
-            if (HatchConvMap.TryGetValue(hatch.ObjectId, out var hcx))
+            if (newid != hatch.ObjectId)
             {
-                foreach (var item in hcx.BoundaryIds)
-                    item.Erase();
-                HatchConvMap.Remove(hatch.ObjectId);
+                hatch.ObjectId.Erase();
+                // 清理上次,删除边界和填充
+                if (HatchConvMap.TryGetValue(hatch.ObjectId, out var hcx))
+                {
+                    foreach (var bo in hcx.BoundaryIds)
+                        bo.Erase();
+                    HatchConvMap.Remove(hatch.ObjectId);
+                }
             }
         }
 
@@ -531,7 +537,6 @@ public class HatchPick : IDisposable
 
         if (newid == hatch.ObjectId)
             return;
-
         // 优先: 块内含有旧的,就加入新的
         if (_refedit.Remove(hatch.ObjectId))
             _refedit.Add(newid);
@@ -809,8 +814,6 @@ public static class HatchPickEnv
         // 修改边界的xdata为新填充的
         boIds.ForEach(id => {
             var boEnt = (Entity)trans.GetObject(id);
-            if (boEnt is null)
-                return;
             using (boEnt.ForWrite())
             {
                 boEnt.RemoveXData(_appName);

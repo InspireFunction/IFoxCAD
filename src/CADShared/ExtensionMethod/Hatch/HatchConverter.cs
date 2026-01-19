@@ -1,6 +1,6 @@
 ﻿namespace IFoxCAD.Cad;
 
-using System.Data;
+using Autodesk.AutoCAD.DatabaseServices;
 using PointV = Point2d;
 
 /// <summary>
@@ -282,44 +282,48 @@ public class HatchConverter
     /// <summary>
     /// 创建边界图元和新填充到当前空间
     /// </summary>
-    /// <param name="btrOfAddEntitySpace"></param>
     /// <param name="boundaryAssociative">边界关联</param>
     /// <param name="createHatchFlag">是否创建填充,false则只创建边界</param>
-    /// <param name="trans">事务</param>
     /// <returns>新填充id,边界在<see cref="BoundaryIds"/>获取</returns>
-    public ObjectId CreateBoundarysAndHatchToMsPs(BlockTableRecord btrOfAddEntitySpace,
+    public ObjectId CreateBoundarysAndHatchToMsPs(
         bool boundaryAssociative = true,
-        bool createHatchFlag = true,
-        Transaction? trans = null)
+        bool createHatchFlag = true)
     {
-        trans ??= DBTrans.GetTop(btrOfAddEntitySpace.Database);
+        var tr = DBTrans.GetTop(OldHatchId.Database);
 
         CreateBoundary().ForEach(ent => {
-            BoundaryIds.Add(btrOfAddEntitySpace.AddEntity(ent));
+            BoundaryIds.Add(tr.CurrentSpace.AddEntity(ent));
         });
 
         if (!createHatchFlag)
             return ObjectId.Null;
-        /*
-         * 此处为什么要克隆填充,而不是新建填充?
-         * 因为填充如果是新建的,那么将会丢失基点,概念如下:
-         * 两个一样的填充,平移其中一个,那么再提取他们的基点会是一样的!
-         * 所以生成时候就不等同于画面相同.
-         * 也因为我不知道什么新建方式可以新建一模一样的填充,因此使用了克隆
-         * 那么它的平移后的基点在哪里呢?
-         */
 
+#if true
+        // 此处为什么要克隆填充,而不是新建填充?
+        // 因为我们没有创建填充的技术,丢失原点这个问题无法解决.
+        // 两个一样的填充,平移其中一个,那么再提取他们的原点会是一样的!
+        // 所以生成时候就不等同于画面相同.
+        // 也因为我不知道什么新建方式可以新建一模一样的填充,因此使用了克隆
+        // 那么它的平移后的原点在哪里呢?
         using ObjectIdCollection idc = new([OldHatchId]);
         using IdMapping map = [];
-        btrOfAddEntitySpace.DeepCloneEx(idc, map);
+        tr.CurrentSpace.DeepCloneEx(idc, map);
         var newHatchId = map.GetValues().FirstOrDefault();
 
-        bool openErased = false;
-        bool openLockedLayer = false;
-        using var hatchEnt = (Hatch)trans.GetObject(newHatchId, OpenMode.ForWrite, openErased, openLockedLayer);
+        // 这里居然不允许using/Dispose这个对象,否则无法再次提权
+        // 毕竟是克隆的,还没有加入数据库,有短暂的销毁时间
+        var hatchEnt = (Hatch)tr.GetObject(newHatchId, OpenMode.ForWrite, false, false);
+
+        // TODO 此处将会导致分离填充出错,是由于我们计算边界不正确?
         ResetBoundary(hatchEnt, boundaryAssociative);
         return newHatchId;
+#else
+        return OldHatchId;
+#endif
     }
+
+
+    // TODO 此处将会导致分离填充出错,是由于我们计算边界不正确?
 
     /// <summary>
     /// 重设边界
@@ -331,22 +335,16 @@ public class HatchConverter
         if (BoundaryIds.Count == 0)
             return;
 
-        // TODO acad08分离填充报错: Microsoft Visual Studio C 运行库在 acad.exe 中检测到一个错误
-        // 0x01 测试命令 CmdTest_CreateHatch 创建是可以分离的,
-        // 那么可能是 克隆后 修改导致的,
-        // 我是克隆了之后移除原有边界,为了一些xdata之类的
-        // 0x02 测试了 hatch.SetDatabaseDefaults(); 并不是因为这个
-        // 0x03 测试了 v1110 不移除原有边界,而是加入了之后再移除旧的边界,也是一样
-        // 要处理这个问题,我想:自己实现一个分离填充,不用cad自带的,然后单独填充每个.
-        // 填充边界的算法是扫描线算法.这样就可以绕过去了...发现过于麻烦,放弃...
-
-        // v1110 删除原有边界
+        // 移除原本的填充边界
         while (hatch.NumberOfLoops != 0)
             hatch.RemoveLoopAt(0);
 
         hatch.Associative = boundaryAssociative;
 
         using ObjectIdCollection obIds = [];
+
+        // 两种都会致命错误
+#if true2
         for (int i = 0; i < BoundaryIds.Count; i++)
         {
             obIds.Clear();
@@ -357,6 +355,17 @@ public class HatchConverter
             else
                 hatch.AppendLoop(HatchLoopTypes.Default, obIds);
         }
+#else
+        for (int i = 0; i < BoundaryIds.Count; i++)
+        {
+            obIds.Clear();
+            obIds.Add(BoundaryIds[i]);
+            hatch.AppendLoop(HatchLoopTypes.Default, obIds);
+        }
+#endif
+
+        // 设置填充样式
+        hatch.HatchStyle = HatchStyle.Normal;
         // 计算填充并显示
         hatch.EvaluateHatch(true);
     }

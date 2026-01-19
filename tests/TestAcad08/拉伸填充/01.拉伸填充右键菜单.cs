@@ -20,8 +20,6 @@ public class StretchFill​
         // JoinBoxAcad.Menu.Cui.CuiInit();
 
         LoadHelper(true);
-
-        AcadIdleManager.OnIdle += AcadIdleManager_OnIdle;
     }
 
     // 只能命令卸载哦,因为关闭cad是不需要卸载的
@@ -144,23 +142,7 @@ public class StretchFill​
                     DebugEx.Printl("Dm_VetoCommand 否决了");
                     e.Veto();
                     _vetoProperties = false;
-
-
-                    // 致命错误:即使卸载了整个功能
-                    LoadHelper(false);
-
-                    // TODO 致命错误: 发送命令编辑填充,可以成功弹出编辑面板,
-                    // 但是我怀疑是错误弹起,有某些东西和原生肯定存在不一样
                     SendCommand("_hatchedit ", RunCmdFlag.AcedPostCommand);
-
-                    // 这样发送会致命
-                    //var doc = Acap.DocumentManager.MdiActiveDocument;
-                    //doc?.SendStringToExecute("-hatchedit H ", true, false, false);
-
-                    // 这样不会致命错误,但是无效
-                    // doc?.SendStringToExecute("-hatchedit H ", true, false, false);
-
-                    //_send = true;
                     return;
                 }
                 DebugEx.Printl("Dm_VetoCommand 没否决");
@@ -173,24 +155,6 @@ public class StretchFill​
             break;
         }
     }
-
-    // 利用空闲事件和直接在文档锁事件发送是一样的
-    bool _send = false;
-    private void AcadIdleManager_OnIdle(object sender, EventArgs e)
-    {
-        if (_send)
-        {
-            _send = !_send;
-            // 可以打印,但是发送命令无效
-            //SendCommand("_hatchedit ", RunCmdFlag.AcedPostCommand);
-
-            // 全部true就会致命错误
-            //var doc = Acap.DocumentManager.MdiActiveDocument;
-            //doc?.SendStringToExecute("-hatchedit H ", true, true, true);
-        }
-    }
-
-
 
     /// <summary>
     /// 这是文档事件期间,不能再次锁文档!!
@@ -270,6 +234,7 @@ public class StretchFill​
         //加入到某一种对象的右键菜单中
         //RXClass rxClass = Entity.GetClass(typeof(BlockReference));
         //Acap.AddObjectContextMenuExtension(rxClass, contextMenu);
+
         //// 选择实体右键菜单才有用. 获得实体所属的RXClass类型
         // RXClass rx = RXObject.GetClass(typeof(Entity));
         // Acap.AddObjectContextMenuExtension(rx, contextMenu); // 这里为什么又可以不带标题
@@ -310,7 +275,6 @@ public class StretchFill​
             break;
             case V2:
             {
-                HatchPick.State.Break();
                 PromptSelectionOptions pso = new()
                 {
                     AllowDuplicates = true, // 不允许重复选择
@@ -321,12 +285,7 @@ public class StretchFill​
                     return;
 
                 Env.Editor.SetImpliedSelection(ssPsr.Value.GetObjectIds());
-
                 SendCommand("-hatchedit H ", RunCmdFlag.AcedPostCommand);
-                //var doc = Acap.DocumentManager.MdiActiveDocument;
-                //doc?.SendStringToExecute("-hatchedit H ", false, false, false);
-
-                HatchPick.State.Start();
             }
             break;
         }
