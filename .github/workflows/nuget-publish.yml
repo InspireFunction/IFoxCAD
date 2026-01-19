@@ -41,4 +41,4 @@ jobs:
 
       # 需在github库中设置${{ secrets.NUGET_API_KEY }}
       - name: Publish NuGet package
-        run: dotnet nuget push **/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        run: dotnet nuget push **/*.nupkg --api-key ${{ secrets.NUGET_AUTH_TOKEN }} --source https://api.nuget.org/v3/index.json --skip-duplicate
