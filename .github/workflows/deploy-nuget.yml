@@ -21,12 +21,12 @@ jobs:
 
       - name: Build
         run: dotnet build --configuration Release --no-restore
-        working-directory: ./src/CAD/
+        working-directory: ./src/CAD/IFox.CAD.ACAD/
 
       # 自动从 Tag 名称提取版本号并打包
       - name: Pack NuGet Package
         uses: alirezanet/publish-nuget@v3.1.0
         with:
-          PROJECT_FILE_PATH: src\CAD\IFox.CAD.ACAD\IFox.CAD.ACAD.csproj
+          PROJECT_FILE_PATH: src/CAD/IFox.CAD.ACAD/IFox.CAD.ACAD.csproj
           NUGET_KEY: ${{ secrets.NUGET_AUTH_TOKEN }}
           NUGET_SOURCE: https://api.nuget.org/v3/index.json
