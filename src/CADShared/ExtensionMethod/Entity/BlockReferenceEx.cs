@@ -51,8 +51,10 @@ public static class BlockReferenceEx
         using SpatialFilter sf = new();
         sf.Definition = new(pts, Vector3d.ZAxis, 0.0, double.PositiveInfinity,
             double.NegativeInfinity, true);
-        var dict = brf.GetXDictionary()?.GetSubDictionary(true, [kFilterDictName]);
-        dict?.SetAt(kSpatialName, sf);
+
+        brf.GetXDictionary()
+           ?.GetSubDictionary(true, [kFilterDictName])
+           ?.SetAt(kSpatialName, sf);
 #if !acad
         pts.Dispose();
 #endif
