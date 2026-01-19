@@ -12,6 +12,7 @@ public class Cmd
         StatusBar.IMEAddPane();
     }
 
+
     [CommandMethod(nameof(Gstar_IMEFilterSettings))]
     public void Gstar_IMEFilterSettings()
     {

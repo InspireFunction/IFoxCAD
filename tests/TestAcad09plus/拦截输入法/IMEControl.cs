@@ -5,7 +5,13 @@ using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Forms;
 using Control = System.Windows.Forms.Control;
-#line hidden
+
+
+
+
+//#line hidden
+
+
 public class IMEControl
 {
     // 豁免命令组: 默认和配置的
@@ -313,23 +319,16 @@ public class IMEControl
 
         #region 读取配置
         ExceptCmds_AutoEn2Cn.Clear();
-        {
-            foreach (var item in DefaultCmds_AutoEn2Cn)
-                ExceptCmds_AutoEn2Cn.Add(item);
-            var ss = Settings.UserFilter_AutoEn2Cn.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var item in ss)
-                ExceptCmds_AutoEn2Cn.Add(item);
-        }
+        ExceptCmds_AutoEn2Cn.Add(DefaultCmds_AutoEn2Cn);
+        var ss1 = Settings.UserFilter_AutoEn2Cn.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
+        ExceptCmds_AutoEn2Cn.Add(ss1);
 
         ExceptCmds_AutoCn2En.Clear();
-        {
-            foreach (var item in DefaultCmds_AutoCn2En)
-                ExceptCmds_AutoCn2En.Add(item);
-            var ss = Settings.UserFilter_AutoCn2En.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
-            foreach (var item in ss)
-                ExceptCmds_AutoCn2En.Add(item);
-        }
+        ExceptCmds_AutoCn2En.Add(DefaultCmds_AutoCn2En);
+        var ss2 = Settings.UserFilter_AutoCn2En.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
+        ExceptCmds_AutoCn2En.Add(ss2);
         #endregion
+
 
         if (Settings.IMEHookStyle == IMEHookStyle.Process)
         {
@@ -356,12 +355,10 @@ public class IMEControl
                 }
                 return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
             };
-            _nextHookProc = WindowsAPI.SetWindowsHookEx(HookType.WH_KEYBOARD, _hookProc,
-                                                        IntPtr.Zero, WindowsAPI.GetCurrentThreadId());
-            return;
+            _nextHookProc = WindowsAPI.SetWindowsHookEx(
+                HookType.WH_KEYBOARD, _hookProc, IntPtr.Zero, WindowsAPI.GetCurrentThreadId());
         }
-
-        if (Settings.IMEHookStyle == IMEHookStyle.Global)
+        else if (Settings.IMEHookStyle == IMEHookStyle.Global)
         {
             DebugEx.Printl($"切换到全局钩子控制:{DateTime.Now}");
             var moduleHandle = WindowsAPI.GetModuleHandle(_process.MainModule.ModuleName);
@@ -373,11 +370,18 @@ public class IMEControl
                 }
                 return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
             };
-            _nextHookProc = WindowsAPI.SetWindowsHookEx(HookType.WH_KEYBOARD_LL,
-                                                        _hookProc, moduleHandle, 0);
-            return;
+            _nextHookProc = WindowsAPI.SetWindowsHookEx(
+                HookType.WH_KEYBOARD_LL, _hookProc, moduleHandle, 0);
         }
+
+        _TangentTextEditHook = new();
     }
+
+    /// <summary>
+    /// 天正窗口拦截
+    /// </summary>
+    static TangentTextEditHook _TangentTextEditHook;
+
 
     /// <summary>
     /// 豁免命令处理
@@ -568,6 +572,8 @@ public class IMEControl
         {
             WindowsAPI.UnhookWindowsHookEx(_nextHookProc);
             _nextHookProc = IntPtr.Zero;
+
+            _TangentTextEditHook.Dispose();
         }
     }
 }
