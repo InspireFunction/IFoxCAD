@@ -12,6 +12,7 @@
         <Compile Include="..\..\src\CADShared\Basal\CLS\*.cs" Link="CLS\%(Filename)%(Extension)" />
         <Compile Include="..\..\src\CADShared\Basal\DataStructures\*.cs" Link="DataStructures\%(Filename)%(Extension)" />
         <Compile Include="..\..\src\CADShared\Basal\Cache\*.cs" Link="Cache\%(Filename)%(Extension)" />
+        <Compile Include="..\..\src\CADShared\ExtensionMethod\json\MyJson.cs" Link="json\%(Filename)%(Extension)" />
     </ItemGroup>
 
     <ItemGroup>
@@ -19,6 +20,9 @@
     </ItemGroup>
     <ItemGroup>
         <Folder Include="CLS\" />
+    </ItemGroup>
+    <ItemGroup>
+        <Folder Include="json\" />
     </ItemGroup>
 
 </Project>

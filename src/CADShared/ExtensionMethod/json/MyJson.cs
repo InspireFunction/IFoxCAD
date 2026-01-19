@@ -1,4 +1,4 @@
-﻿#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1591 // 缺少XML注释
 #pragma warning disable CS1572 // XML注释中有不存在的参数
 #pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
 
@@ -73,6 +73,11 @@ public class MyJson
         var sb = new StringBuilder();
         SerializeValue(obj, sb, 0);
         return sb.ToString();
+    }
+
+    private string GetIndentString(int indent)
+    {
+        return _indent ? new string(' ', indent * 4) : string.Empty;
     }
 
     private void SerializeValue(object obj, StringBuilder sb, int indent)
@@ -152,10 +157,32 @@ public class MyJson
     private void SerializeArray(Array array, StringBuilder sb, int indent)
     {
         sb.Append("[");
-        for (int i = 0; i < array.Length; i++)
+        if (array.Length > 0)
         {
-            if (i > 0) sb.Append(", ");
-            SerializeValue(array.GetValue(i), sb, indent);
+            if (_indent)
+            {
+                sb.AppendLine();
+                int newIndent = indent + 1;
+                for (int i = 0; i < array.Length; i++)
+                {
+                    sb.Append(GetIndentString(newIndent));
+                    SerializeValue(array.GetValue(i), sb, newIndent);
+                    if (i < array.Length - 1)
+                    {
+                        sb.Append(",");
+                    }
+                    sb.AppendLine();
+                }
+                sb.Append(GetIndentString(indent));
+            }
+            else
+            {
+                for (int i = 0; i < array.Length; i++)
+                {
+                    if (i > 0) sb.Append(", ");
+                    SerializeValue(array.GetValue(i), sb, indent);
+                }
+            }
         }
         sb.Append("]");
     }
@@ -164,11 +191,34 @@ public class MyJson
     {
         sb.Append("[");
         bool first = true;
-        foreach (var item in enumerable)
+        var items = enumerable.Cast<object>().ToList();
+        if (items.Count > 0)
         {
-            if (!first) sb.Append(", ");
-            first = false;
-            SerializeValue(item, sb, indent);
+            if (_indent)
+            {
+                sb.AppendLine();
+                int newIndent = indent + 1;
+                for (int i = 0; i < items.Count; i++)
+                {
+                    sb.Append(GetIndentString(newIndent));
+                    SerializeValue(items[i], sb, newIndent);
+                    if (i < items.Count - 1)
+                    {
+                        sb.Append(",");
+                    }
+                    sb.AppendLine();
+                }
+                sb.Append(GetIndentString(indent));
+            }
+            else
+            {
+                foreach (var item in items)
+                {
+                    if (!first) sb.Append(", ");
+                    first = false;
+                    SerializeValue(item, sb, indent);
+                }
+            }
         }
         sb.Append("]");
     }
@@ -176,13 +226,37 @@ public class MyJson
     private void SerializeDictionary(IDictionary dict, StringBuilder sb, int indent)
     {
         sb.Append("{");
+        var keys = dict.Keys.Cast<object>().ToList();
         bool first = true;
-        foreach (var key in dict.Keys)
+        for (int i = 0; i < keys.Count; i++)
         {
-            if (!first) sb.Append(", ");
+            var key = keys[i];
+            if (!first)
+            {
+                if (_indent)
+                {
+                    sb.Append(",");
+                    sb.AppendLine();
+                    sb.Append(GetIndentString(indent + 1));
+                }
+                else
+                {
+                    sb.Append(", ");
+                }
+            }
+            else if (_indent)
+            {
+                sb.AppendLine();
+                sb.Append(GetIndentString(indent + 1));
+            }
             first = false;
-            sb.Append($"\"{EscapeString(key.ToString() ?? "")}\": ");
-            SerializeValue(dict[key]!, sb, indent);
+            sb.Append("\"" + EscapeString(key.ToString() ?? "") + "\": ");
+            SerializeValue(dict[key]!, sb, indent + 1);
+        }
+        if (keys.Count > 0 && _indent)
+        {
+            sb.AppendLine();
+            sb.Append(GetIndentString(indent));
         }
         sb.Append("}");
     }
@@ -190,32 +264,79 @@ public class MyJson
     private void SerializeDictionary(IDictionary<string, object> dict, StringBuilder sb, int indent)
     {
         sb.Append("{");
+        var keys = dict.Keys.ToList();
         bool first = true;
-        foreach (var key in dict.Keys)
+        for (int i = 0; i < keys.Count; i++)
         {
-            if (!first) sb.Append(", ");
+            var key = keys[i];
+            if (!first)
+            {
+                if (_indent)
+                {
+                    sb.Append(",");
+                    sb.AppendLine();
+                    sb.Append(GetIndentString(indent + 1));
+                }
+                else
+                {
+                    sb.Append(", ");
+                }
+            }
+            else if (_indent)
+            {
+                sb.AppendLine();
+                sb.Append(GetIndentString(indent + 1));
+            }
             first = false;
-            sb.Append($"\"{EscapeString(key.ToString() ?? "")}\": ");
-            SerializeValue(dict[key], sb, indent);
+            sb.Append("\"" + EscapeString(key.ToString() ?? "") + "\": ");
+            SerializeValue(dict[key], sb, indent + 1);
+        }
+        if (keys.Count > 0 && _indent)
+        {
+            sb.AppendLine();
+            sb.Append(GetIndentString(indent));
         }
         sb.Append("}");
     }
 
     private void SerializeObject(object obj, StringBuilder sb, int indent)
     {
+        sb.Append("{");
         if (TypeNameHandling == TypeNameHandling.Auto)
         {
-            sb.Append("{");
-            sb.Append($"\"$type\": \"{obj.GetType().FullName}\", ");
-            SerializeFields(obj, sb, indent);
-            sb.Append("}");
+            if (_indent)
+            {
+                sb.AppendLine();
+                int newIndent = indent + 1;
+                sb.Append(GetIndentString(newIndent));
+                sb.Append($"\"$type\": \"{obj.GetType().FullName}\",");
+                sb.AppendLine();
+                sb.Append(GetIndentString(newIndent));
+                SerializeFields(obj, sb, newIndent);
+                sb.AppendLine();
+                sb.Append(GetIndentString(indent));
+            }
+            else
+            {
+                sb.Append($"\"$type\": \"{obj.GetType().FullName}\", ");
+                SerializeFields(obj, sb, indent);
+            }
         }
         else
         {
-            sb.Append("{");
-            SerializeFields(obj, sb, indent);
-            sb.Append("}");
+            if (_indent)
+            {
+                sb.AppendLine();
+                SerializeFields(obj, sb, indent + 1);
+                sb.AppendLine();
+                sb.Append(GetIndentString(indent));
+            }
+            else
+            {
+                SerializeFields(obj, sb, indent);
+            }
         }
+        sb.Append("}");
     }
 
     private void SerializeFields(object obj, StringBuilder sb, int indent)
@@ -225,25 +346,47 @@ public class MyJson
         var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
 
         bool first = true;
+        int fieldCount = fields.Length + properties.Length;
+        int currentIndex = 0;
 
         foreach (var field in fields)
         {
-            if (!first) sb.Append(", ");
+            if (!first && _indent)
+            {
+                sb.Append(",");
+                sb.AppendLine();
+                sb.Append(GetIndentString(indent));
+            }
+            else if (!first && !_indent)
+            {
+                sb.Append(", ");
+            }
             first = false;
             sb.Append($"\"{field.Name}\": ");
             object? value = field.GetValue(obj);
             SerializeValue(value, sb, indent);
+            currentIndex++;
         }
 
         foreach (var prop in properties)
         {
-            if (!first) sb.Append(", ");
+            if (!first && _indent)
+            {
+                sb.Append(",");
+                sb.AppendLine();
+                sb.Append(GetIndentString(indent));
+            }
+            else if (!first && !_indent)
+            {
+                sb.Append(", ");
+            }
             first = false;
             sb.Append($"\"{prop.Name}\": ");
             object? value;
             try { value = prop.GetValue(obj, null); }
             catch { value = null; }
             SerializeValue(value!, sb, indent);
+            currentIndex++;
         }
     }
 

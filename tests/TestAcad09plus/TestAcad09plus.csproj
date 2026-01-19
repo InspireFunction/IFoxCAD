@@ -3,7 +3,10 @@
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
 
-        <TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
+        <!--如果编译时候有大量的WPF错误,就隐藏NET35先,然后编译,然后打开,再编译-->
+        <!--<TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>-->
+        
+        <TargetFrameworks>NET40;NET45</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
         <PlatformTarget>x64</PlatformTarget>

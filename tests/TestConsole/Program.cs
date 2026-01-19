@@ -1,4 +1,4 @@
-﻿// See https://aka.ms/new-console-template for more information
+// See https://aka.ms/new-console-template for more information
 using System;
 using System.Runtime.InteropServices;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -10,7 +10,7 @@ using System.Text;
 using System.Diagnostics;
 
 
-#if true
+#if true2
 namespace CalculatorDemo
 {
     class Program
@@ -28,10 +28,14 @@ namespace CalculatorDemo
             a.ForEach(a => {
                 Console.WriteLine(a);
             });
-            
+
             // 运行MemoryCache测试
             Console.WriteLine();
             TestMemoryCache.RunTest();
+
+            // 运行JSON序列化测试
+            Console.WriteLine();
+            TestJson.RunTests();
         }
 
         [DebuggerHidden]

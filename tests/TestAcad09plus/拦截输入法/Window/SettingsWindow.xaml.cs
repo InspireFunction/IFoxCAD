@@ -1,5 +1,6 @@
 ﻿using System.Windows;
 using System.Windows.Input;
+using Window = System.Windows.Window;
 
 namespace Gstar_IMEFilter;
 
@@ -17,19 +18,19 @@ public partial class SettingsWindow : Window
 
     private void Button_Click(object sender, RoutedEventArgs e)
     {
-        Settings._UserFilter_AutoEn2Cn = ExCMD.Text;
+        Settings._AutoEn2Cn = ExCMD.Text.Split(';').ToHashSet();
         Settings._IMEHookStyle = (IMEHookStyle)CBox.SelectedIndex;
         Settings.SaveSettings();
         IMEControl.SetIMEHook();
-        IMEControl.SaveFt();
         DialogResult = true;
     }
 
     private void Window_Loaded(object sender, RoutedEventArgs e)
     {
         CBox.SelectedIndex = (int)Settings.IMEHookStyle;
-        ExCMD.Text = Settings.UserFilter_AutoEn2Cn;
-        DeCMD.Text = string.Join(",", IMEControl.DefaultCmds_AutoEn2Cn.ToArray());
+        ExCMD.Text = string.Join(";", Settings.AutoEn2Cn.ToArray());
+        // todo 高版本
+        // DeCMD.Text = string.Join(",", IMEControl.DefaultCmds_AutoEn2Cn.ToArray());
     }
 
     private void Window_PreviewKeyDown(object sender, KeyEventArgs e)

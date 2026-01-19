@@ -7,26 +7,13 @@ using System.Windows.Forms;
 using Control = System.Windows.Forms.Control;
 
 
-
-
 //#line hidden
 
 
 public class IMEControl
 {
-    // 豁免命令组: 默认和配置的
-    internal static HashSet<string> DefaultCmds_AutoEn2Cn;
-    // 豁免命令组: 默认和配置的+用户面板输入的
-    internal static HashSet<string> ExceptCmds_AutoEn2Cn;
-    static string _ftFile_AutoEn2Cn;
-
-    // 豁免命令组: 默认和配置的
-    internal static HashSet<string> DefaultCmds_AutoCn2En;
-    // 豁免命令组: 自动切换为英文输入法
-    internal static HashSet<string> ExceptCmds_AutoCn2En;
-    static string _ftFile_AutoCn2En;
-
     static readonly Regex CMDReg = new("\\(C:.*\\)");
+
     /*某些窗口没有 WM_KEYDOWN 消息，就只有 WM_KEYUP 消息*/
     const int WM_KEYDOWN = 256;
     const int WM_KEYUP = 257;
@@ -37,48 +24,12 @@ public class IMEControl
 
     // 优化内存,减少消息循环时候,频繁创建此类
     static StringBuilder _lpClassName = new(byte.MaxValue);
-    static string[] _separator = new string[] { "," };
-
 
     static IMEControl()
     {
         _nextHookProc = IntPtr.Zero;
         _process = Process.GetCurrentProcess();
         WindowsAPI.CheckLowLevelHooksTimeout();
-
-        ExceptCmds_AutoEn2Cn = new();
-        {
-            DefaultCmds_AutoEn2Cn = new() { "MTEXT", "DDEDIT", "MTEDIT", "TABLEDIT", "MLEADER",
-            "QLEADER", "MLEADERCONTENTEDIT", "MLEADEREDIT", "TEXTEDIT", "TEXT", "QLEADER" };
-            string? lines = null;
-            _ftFile_AutoEn2Cn = Path.Combine(Settings.MyDir, nameof(Gstar_IMEFilter) + nameof(ExceptCmds_AutoEn2Cn) + ".ft");
-            if (File.Exists(_ftFile_AutoEn2Cn))
-                lines = File.ReadAllText(_ftFile_AutoEn2Cn, Encoding.UTF8);
-            else
-                DebugEx.Printl("配置文件丢失: " + _ftFile_AutoEn2Cn);
-            if (lines != null)
-            {
-                var ls = lines.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < ls.Length; i++)
-                    DefaultCmds_AutoEn2Cn.Add(ls[i]);
-            }
-        }
-        ExceptCmds_AutoCn2En = new();
-        {
-            DefaultCmds_AutoCn2En = new() { "BLOCK", "GROUP" };
-            string? lines = null;
-            _ftFile_AutoCn2En = Path.Combine(Settings.MyDir, nameof(Gstar_IMEFilter) + nameof(ExceptCmds_AutoCn2En) + ".ft");
-            if (File.Exists(_ftFile_AutoCn2En))
-                lines = File.ReadAllText(_ftFile_AutoCn2En, Encoding.UTF8);
-            else
-                DebugEx.Printl("配置文件丢失: " + _ftFile_AutoCn2En);
-            if (lines != null)
-            {
-                var ls = lines.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
-                for (int i = 0; i < ls.Length; i++)
-                    DefaultCmds_AutoCn2En.Add(ls[i]);
-            }
-        }
 
         // 命令反应器
         var dm = Acap.DocumentManager;
@@ -92,32 +43,9 @@ public class IMEControl
         // 卸载钩子
         Acap.QuitWillStart += (s, e) => {
             IMEControl.UnIMEHook();
-            IMEControl.SaveFt();
         };
     }
 
-    public static void SaveFt()
-    {
-        HashSet<string> lst = new();
-        foreach (var item in ExceptCmds_AutoEn2Cn)
-            if (!DefaultCmds_AutoEn2Cn.Contains(item))
-                lst.Add(item);
-        if (lst.Any())
-        {
-            var jo = string.Join(",", lst.ToArray());
-            File.WriteAllText(_ftFile_AutoEn2Cn, jo, Encoding.UTF8);
-        }
-
-        lst.Clear();
-        foreach (var item in ExceptCmds_AutoCn2En)
-            if (!DefaultCmds_AutoCn2En.Contains(item))
-                lst.Add(item);
-        if (lst.Any())
-        {
-            var jo = string.Join(",", lst.ToArray());
-            File.WriteAllText(_ftFile_AutoCn2En, jo, Encoding.UTF8);
-        }
-    }
 
     #region 切换输入法
     // 关键字问题:
@@ -145,7 +73,7 @@ public class IMEControl
          */
         // 如果程序切换了,就恢复原本的
         // 当前是英文状态被切换到中文(当前),{然后用户切换了英文,此时应该保证是用户},而不是发送切换(会这样变成中文)
-        if (ExceptCmds_AutoEn2Cn.Contains(e.GlobalCommandName))
+        if (Settings.AutoEn2Cn.Contains(e.GlobalCommandName))
         {
             if (_sendKeyState.IsStop && _sendKeyState.IsExceptional)
             {
@@ -161,7 +89,7 @@ public class IMEControl
             }
             _sendKeyState.Reset();
         }
-        if (ExceptCmds_AutoCn2En.Contains(e.GlobalCommandName))
+        if (Settings.AutoCn2En.Contains(e.GlobalCommandName))
         {
             if (_sendKeyState.IsBreak && _sendKeyState.IsExceptional)
             {
@@ -181,7 +109,7 @@ public class IMEControl
     // 命令开始反应器
     static void Doc_CommandWillStart(object sender, CommandEventArgs e)
     {
-        if (ExceptCmds_AutoCn2En.Contains(e.GlobalCommandName))
+        if (Settings.AutoCn2En.Contains(e.GlobalCommandName))
         {
             IMESwitch_AutoCn2En();
             return;
@@ -317,19 +245,6 @@ public class IMEControl
         if (_nextHookProc != IntPtr.Zero)
             return;
 
-        #region 读取配置
-        ExceptCmds_AutoEn2Cn.Clear();
-        ExceptCmds_AutoEn2Cn.Add(DefaultCmds_AutoEn2Cn);
-        var ss1 = Settings.UserFilter_AutoEn2Cn.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
-        ExceptCmds_AutoEn2Cn.Add(ss1);
-
-        ExceptCmds_AutoCn2En.Clear();
-        ExceptCmds_AutoCn2En.Add(DefaultCmds_AutoCn2En);
-        var ss2 = Settings.UserFilter_AutoCn2En.Split(_separator, StringSplitOptions.RemoveEmptyEntries);
-        ExceptCmds_AutoCn2En.Add(ss2);
-        #endregion
-
-
         if (Settings.IMEHookStyle == IMEHookStyle.Process)
         {
             DebugEx.Printl($"切换到进程钩子控制:{DateTime.Now}");
@@ -380,7 +295,7 @@ public class IMEControl
     /// <summary>
     /// 天正窗口拦截
     /// </summary>
-    static TangentTextEditHook _TangentTextEditHook;
+    static TangentTextEditHook? _TangentTextEditHook;
 
 
     /// <summary>
@@ -404,7 +319,7 @@ public class IMEControl
         if (match.Success)
             input = input.Substring(checked(match.Index + 3), checked(match.Length - 4));
 
-        if (ExceptCmds_AutoEn2Cn.Contains(input.ToUpper()))
+        if (Settings.AutoEn2Cn.Contains(input.ToUpper()))
         {
             IMESwitch_AutoEn2Cn();
             return false;
@@ -573,7 +488,8 @@ public class IMEControl
             WindowsAPI.UnhookWindowsHookEx(_nextHookProc);
             _nextHookProc = IntPtr.Zero;
 
-            _TangentTextEditHook.Dispose();
+            _TangentTextEditHook?.Dispose();
+            _TangentTextEditHook = null;
         }
     }
 }

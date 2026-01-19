@@ -1,5 +1,10 @@
-﻿using System.Diagnostics;
-using System.Xml;
+using ConcurrentCollections;
+using IFoxCAD.Cad;
+using System.Diagnostics;
+using System.IO;
+using System.Reflection;
+using System.Text;
+using System.Threading;
 
 namespace Gstar_IMEFilter;
 
@@ -22,33 +27,41 @@ public class Settings
         get
         {
             if (_MySettingsPath.Length == 0)
-                _MySettingsPath = Path.Combine(MyDir, nameof(Gstar_IMEFilter) + ".xml");
+                _MySettingsPath = Path.Combine(MyDir, nameof(Gstar_IMEFilter) + ".json");
             return _MySettingsPath;
         }
     }
 
-    internal static string _UserFilter_AutoEn2Cn = "";
-    public static string UserFilter_AutoEn2Cn
+    // 这里更新容器期间会多线程访问
+    internal static ConcurrentSet<string> _AutoEn2Cn = ["MTEXT", "DDEDIT", "MTEDIT", "TEXT", "DTEXT", "TEXTEDIT", "EATTEDIT", "TABLEDIT", "MLEADER", "MLEADERCONTENTEDIT", "QLEADER", "-BLOCK", "-GROUP", "GROUP", "GROUPEDIT", "ATTIPEDIT"];
+
+    /// <summary>
+    /// 豁免命令组: 默认和配置的
+    /// </summary>
+    public static ConcurrentSet<string> AutoEn2Cn
     {
-        get => _UserFilter_AutoEn2Cn;
+        get => _AutoEn2Cn;
         set
         {
-            if (_UserFilter_AutoEn2Cn.Length == 0)
+            if (_AutoEn2Cn.Count == 0)
                 return;
-            _UserFilter_AutoEn2Cn = value;
+            _AutoEn2Cn = value;
             SaveSettings();
         }
     }
 
-    internal static string _UserFilter_AutoCn2En = "";
-    public static string UserFilter_AutoCn2En
+    internal static ConcurrentSet<string> _AutoCn2En = ["BLOCK", "GROUP"];
+    /// <summary>
+    /// 豁免命令组: 自动切换为英文输入法
+    /// </summary>
+    public static ConcurrentSet<string> AutoCn2En
     {
-        get => _UserFilter_AutoCn2En;
+        get => _AutoCn2En;
         set
         {
-            if (_UserFilter_AutoCn2En.Length == 0)
+            if (_AutoCn2En.Count == 0)
                 return;
-            _UserFilter_AutoCn2En = value;
+            _AutoCn2En = value;
             SaveSettings();
         }
     }
@@ -80,99 +93,82 @@ public class Settings
         }
     }
 
-    public static void LoadSettings()
+    public static bool LoadSettings()
     {
         if (!File.Exists(MySettingsPath))
-            return;
+        {
+            return false;
+        }
 
         try
         {
-            using var xmlReader = XmlReader.Create(MySettingsPath);
-            while (xmlReader.Read())
+            string json = File.ReadAllText(MySettingsPath, Encoding.UTF8);
+            var settings = MyJson.DeserializeObject<SettingsData>(json);
+            if (settings != null)
             {
-                if (xmlReader.NodeType != XmlNodeType.Element)
-                    continue;
-                string left = xmlReader.Name.ToLower();
-                switch (left)
-                {
-                    case nameof(UserFilter_AutoEn2Cn):
-                    {
-                        _UserFilter_AutoEn2Cn = xmlReader.ReadInnerXml().ToUpper();
-                    }
-                    break;
-                    case nameof(UserFilter_AutoCn2En):
-                    {
-                        _UserFilter_AutoCn2En = xmlReader.ReadInnerXml().ToUpper();
-                    }
-                    break;
-                    case nameof(IMEHookStyle):
-                    {
-                        int.TryParse(xmlReader.ReadInnerXml(), out int ime);
-                        _IMEHookStyle = (IMEHookStyle)ime;
-                    }
-                    break;
-                    case nameof(IMEInputSwitch):
-                    {
-                        int.TryParse(xmlReader.ReadInnerXml(), out int ime);
-                        _IMEInputSwitch = (IMESwitchMode)ime;
-                    }
-                    break;
-                }
+                _AutoEn2Cn = settings.AutoEn2Cn;
+                _AutoCn2En = settings.AutoCn2En;
+                _IMEHookStyle = settings.IMEHookStyle;
+                _IMEInputSwitch = settings.IMEInputSwitch;
             }
+            return true;
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Debugger.Break();
-            throw ex;
+            throw;
         }
     }
 
-    internal static void SaveSettings()
+    public static void SaveSettings()
     {
+        _lock.EnterReadLock(); // 获取读锁
         try
         {
-            XmlWriterSettings settings = new()
+            var settings = new SettingsData
             {
-                Indent = 1 != 0,
-                NewLineChars = Environment.NewLine
+                AutoEn2Cn = Settings.AutoEn2Cn,
+                AutoCn2En = Settings.AutoCn2En,
+                IMEHookStyle = Settings.IMEHookStyle,
+                IMEInputSwitch = Settings.IMEInputSwitch,
             };
 
-            using var xmlWriter = XmlWriter.Create(MySettingsPath, settings);
-            xmlWriter.WriteStartDocument(1 != 0);
-            xmlWriter.WriteComment("拦截输入法");
+            string json = MyJson.SerializeObject(settings, new MyJsonSettings { Formatting = Formatting.Indented });
 
-            xmlWriter.WriteStartElement(nameof(Settings));
-            {
-                xmlWriter.WriteStartElement(nameof(UserFilter_AutoEn2Cn));
-                xmlWriter.WriteString(UserFilter_AutoEn2Cn);
-                xmlWriter.WriteEndElement();
-
-                xmlWriter.WriteStartElement(nameof(UserFilter_AutoCn2En));
-                xmlWriter.WriteString(UserFilter_AutoCn2En);
-                xmlWriter.WriteEndElement();
-
-                xmlWriter.WriteStartElement(nameof(IMEHookStyle));
-                xmlWriter.WriteString(((int)IMEHookStyle).ToString());
-                xmlWriter.WriteEndElement();
-
-                xmlWriter.WriteStartElement(nameof(IMEInputSwitch));
-                xmlWriter.WriteString(((int)IMEInputSwitch).ToString());
-                xmlWriter.WriteEndElement();
-            }
-            xmlWriter.WriteEndElement();
-            xmlWriter.WriteEndDocument();
+            Env.Printl(json);
+            File.WriteAllText(MySettingsPath, json, Encoding.UTF8);
         }
-        catch (Exception ex)
+        catch (Exception)
         {
             Debugger.Break();
-            throw ex;
+            throw;
+        }
+        finally
+        {
+            _lock.ExitReadLock(); // 释放读锁
         }
     }
+
+    // 写入文件需要读写锁的
+    private static readonly ReaderWriterLockSlim _lock = new();
+}
+
+
+/// <summary>
+/// 设置数据类，用于JSON序列化
+/// </summary>
+public class SettingsData
+{
+    public ConcurrentSet<string> AutoEn2Cn { get; set; } = [];
+    public ConcurrentSet<string> AutoCn2En { get; set; } = [];
+    public IMEHookStyle IMEHookStyle { get; set; } = IMEHookStyle.Global;
+    public IMESwitchMode IMEInputSwitch { get; set; } = IMESwitchMode.Shift;
 }
 
 /// <summary>
 /// 钩子样式
 /// </summary>
+[Flags]
 public enum IMEHookStyle : byte
 {
     Global,//全局钩子控制
@@ -183,6 +179,7 @@ public enum IMEHookStyle : byte
 /// 切换输入法方式<br/>
 /// 作用的地方仅为输入豁免命令时候自动切换到中文
 /// </summary>
+[Flags]
 public enum IMESwitchMode : byte
 {
     [Description("输入拦截关闭")]
