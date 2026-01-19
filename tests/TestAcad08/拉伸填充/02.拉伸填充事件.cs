@@ -18,12 +18,12 @@ public class HatchPick : IDisposable
     /// </summary>
     private static Tolerance Tol = new(1e-6, 1e-6);
 
-    public static void AddInit()
+    public static void Start()
     {
         State.Start();
     }
 
-    public static void RemoveInit()
+    public static void Stop()
     {
         State.Stop();
     }
@@ -476,13 +476,6 @@ public class HatchPick : IDisposable
         }
         SetImpliedSelection(setImpSelect);
     }
-
-    // TODO 2, 选中复制出来的填充,它的边界居然用了原本的关联边界
-    // 场景: 画两个rec,然后关联填充a,复制出来成为b,点选b.
-    // 就会有这种情况,选择集是b+rec,而不是新建边界
-
-    // TODO 3 双击有未删除边界的关联填充,会致命
-
 
     /// <summary>
     /// 创建填充和填充边界转换器

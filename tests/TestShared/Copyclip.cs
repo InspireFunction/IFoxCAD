@@ -1,8 +1,10 @@
 ﻿#define test
 #define COPYCLIP
 #define PASTECLIP
-#if false
+
+#if true
 namespace Test;
+
 using System;
 using System.Diagnostics;
 using System.Drawing.Imaging;
@@ -30,7 +32,7 @@ public class Copyclip
 #if test
     static bool _IsRunIFoxCopyClip = false;
     [IFoxInitialize] // 惊惊: 遇到了高版本无法导出WMF,放弃此功能,等待有缘人
-    public void Init()
+    public void Init(Document _)
     {
         Acap.DocumentManager.DocumentLockModeChanged += Dm_VetoCommand;
         Env.Printl($"※剪贴板控制※\n{nameof(Copyclip_Switch)} - 切换开关\n");
@@ -283,9 +285,7 @@ public class Copyclip
                 double minz = double.MaxValue;
                 foreach (var id in idArray)
                 {
-                    var ent = tr.GetObject<Entity>(id);
-                    if (ent == null)
-                        continue;
+                    var ent = (Entity)tr.GetObject(id);
                     var info = ent.GetBoundingBoxEx();
                     if (info != null)
                     {
@@ -302,10 +302,10 @@ public class Copyclip
             var cadClipType = new TagClipboardInfo(tempFile, pt);
 
             // 克隆到目标块表内
-            using (DBTrans fileTr = new(cadClipType.File))
+            using (var fileTr = DBTrans.OpenPushToBackend(cadClipType.File))
             {
                 fileTr.Task(() => {
-                    using IdMapping map = new();
+                    using IdMapping map = [];
                     using ObjectIdCollection ids = new(idArray);
                     tr.Database.WblockCloneObjects(
                         ids,
@@ -407,8 +407,8 @@ public class Copyclip
 
             // 获取临时文件的图元id
             List<ObjectId> fileEntityIds = [];
-            using (DBTrans fileTr = new(cadClipType.File, commit: false,
-                                        fileOpenMode: FileOpenMode.OpenForReadAndAllShare))
+
+            using (DBTrans fileTr = DBTrans.OpenPushToBackend(cadClipType.File, commit: false, fileOpenMode: FileOpenMode.OpenForReadAndAllShare))
             {
                 fileTr.ModelSpace.ForEach(id => {
                     if (id.IsOk())
@@ -448,9 +448,7 @@ public class Copyclip
                     Env.Printl("jig预览块内有克隆失败的脏东西,是否天正克隆期间导致?");
                     continue;
                 }
-                var ent = tr.GetObject<Entity>(id);
-                if (ent == null)
-                    continue;
+                var ent = (Entity)tr.GetObject(id);
                 using (ent.ForWrite())
                     ent.Move(cadClipType.Point, Point3d.Origin);
             }
@@ -482,7 +480,7 @@ public class Copyclip
 
             if (isBlock)
             {
-                PasteIsBlock(tr, moveJig.Entitys, moveJig.MousePointWcsLast, moveTo);
+                PasteIsBlock(tr, moveJig.Entities, moveJig.MousePointWcsLast, moveTo);
             }
             else
             {
@@ -649,9 +647,7 @@ public class Copyclip
         map.GetValues().ForEach(id => {
             if (!id.IsOk())
                 return;
-            var ent = tr.GetObject<Entity>(id);
-            if (ent == null)
-                return;
+            var ent = (Entity)tr.GetObject(id);
             using (ent.ForWrite())
                 ent.Move(move, moveTo);
         });
@@ -663,7 +659,7 @@ public class Copyclip
     /// <param name="tr"></param>
     /// <param name="tempFile">此名称若已在块表存在,就会自动用时间名称代替</param>
     /// <returns></returns>
-    BlockTableRecord? CreateBlockTableRecord(DBTrans tr, string tempFile)
+    BlockTableRecord CreateBlockTableRecord(DBTrans tr, string tempFile)
     {
         var blockNameNew = Path.GetFileNameWithoutExtension(tempFile);
         while (tr.BlockTable.Has(blockNameNew))
@@ -673,7 +669,7 @@ public class Copyclip
             Thread.Sleep(1);
         }
         var btrIdNew = tr.BlockTable.Add(blockNameNew);
-        return tr.GetObject<BlockTableRecord>(btrIdNew);
+        return (BlockTableRecord)tr.GetObject(btrIdNew);
     }
 
     /// <summary>
@@ -714,18 +710,30 @@ public class TestImageFormat
     [CommandMethod(nameof(CreatePreviewImage))]
     public void CreatePreviewImage()
     {
+        var doc = Acap.DocumentManager.MdiActiveDocument;
         using DBTrans tr = new();
-        if (tr.Document == null)
-            return;
 
-        var doc = tr.Document;
+#if NET35
+        var size = Win32Helper.GetActiveWindowSize();
 
+        // 获取窗口句柄并截图
+        var hwnd = Acap.MainWindow.Handle;
+        var yes = Win32Helper.GetWindowRect(hwnd, out var rect);
+        using var bmp = new System.Drawing.Bitmap(rect.Width, rect.Height);
+        using (var g = System.Drawing.Graphics.FromImage(bmp))
+        {
+            var hdc = g.GetHdc();
+            Win32Helper.PrintWindow(hwnd, hdc, 0);
+            g.ReleaseHdc(hdc);
+        }
+#else
         var size = doc.Window.DeviceIndependentSize;
         using var bmp = doc.CapturePreviewImage(
             Convert.ToUInt32(size.Width),
-            Convert.ToUInt32(size.Height));
+            Convert.ToUInt32(size.Height));//CAD2008没有这个函数
+#endif
 
-        //保存wmf会变png,看二进制签名
+        // 保存wmf会变png,看二进制签名
         var outFile = Path.ChangeExtension(tr.Database.Filename, ".bmp");
         bmp.Save(outFile, GetFormat(outFile));
         Env.Printl($"保存文件:{outFile}");
@@ -738,6 +746,44 @@ public class TestImageFormat
                 ClipTool.SetClipboardData((uint)ClipboardFormat.CF_BITMAP, bitmapHandle);
             });
         });
+    }
+}
+
+
+
+public class Win32Helper
+{
+    [DllImport("user32.dll")]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool GetWindowRect(IntPtr hWnd, out RECT lpRect);
+
+    [DllImport("user32.dll")]
+    public static extern IntPtr GetForegroundWindow();
+
+    // 窗口绘图相关
+    [DllImport("user32.dll")]
+    public static extern bool PrintWindow(IntPtr hwnd, IntPtr hdcBlt, uint nFlags);
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct RECT
+    {
+        public int Left;
+        public int Top;
+        public int Right;
+        public int Bottom;
+
+        public int Width => Right - Left;
+        public int Height => Bottom - Top;
+    }
+
+    public static Size GetActiveWindowSize()
+    {
+        IntPtr hWnd = GetForegroundWindow();
+        if (hWnd != IntPtr.Zero && GetWindowRect(hWnd, out RECT rect))
+        {
+            return new Size(rect.Width, rect.Height);
+        }
+        return Size.Empty;
     }
 }
 
@@ -769,14 +815,13 @@ public class OleTestClass
             return;
 
         using DBTrans tr = new();
-        var ole2frame = tr.GetObject<Ole2Frame>(per.ObjectId);
-        if (ole2frame == null)
-            return;
-        using (ole2frame.ForWrite())
-        {
-            IntPtr ptrClientItem = AcDbOle2Frame_getOleClientItem(ole2frame.UnmanagedObject);
-            COleClientItem_UpdateLink(ptrClientItem);
-        }
+        using var ent = tr.GetObject(per.ObjectId);
+        if (ent is Ole2Frame ole2frame)
+            using (ole2frame.ForWrite())
+            {
+                IntPtr ptrClientItem = AcDbOle2Frame_getOleClientItem(ole2frame.UnmanagedObject);
+                COleClientItem_UpdateLink(ptrClientItem);
+            }
     }
 
 
@@ -791,9 +836,10 @@ public class OleTestClass
             if (!id.IsOk())
                 continue;
 
-            var ole2frame = tr.GetObject<Ole2Frame>(id);
-            if (ole2frame == null)
+            var ent = tr.GetObject(id);
+            if (ent is not Ole2Frame ole2frame)
                 continue;
+
             switch (ole2frame.Type)
             {
                 case Ole2Frame.ItemType.Static:

@@ -116,35 +116,42 @@ public class AcadWindowProc : NativeWindow, IDisposable
     [System.Diagnostics.DebuggerStepThrough]
     private IntPtr WindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
-        var message = Message.Create(hWnd, (int)msg, wParam, lParam);
-
-        // 调用消息过滤器
-        bool callBase = true;
-        if (MessageFilter != null)
+        try
         {
-            callBase = MessageFilter.Invoke(message);
-        }
+            var message = Message.Create(hWnd, (int)msg, wParam, lParam);
 
-        // 检测空闲消息
-        if (msg == WM_ENTERIDLE || msg == WM_NULL)
-        {
-            OnIdle?.Invoke(this, EventArgs.Empty);
-        }
-
-        // 调用基类窗口过程
-        if (callBase)
-        {
-            if (_oldWndProc != IntPtr.Zero)
+            // 调用消息过滤器
+            bool callBase = true;
+            if (MessageFilter != null)
             {
-                return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+                callBase = MessageFilter.Invoke(message);
             }
-            else
-            {
-                DefWndProc(ref message);
-            }
-        }
 
-        return message.Result;
+            // 检测空闲消息
+            if (msg == WM_ENTERIDLE || msg == WM_NULL)
+            {
+                OnIdle?.Invoke(this, EventArgs.Empty);
+            }
+
+            // 调用基类窗口过程
+            if (callBase)
+            {
+                if (_oldWndProc != IntPtr.Zero)
+                {
+                    return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+                }
+                else
+                {
+                    DefWndProc(ref message);
+                }
+            }
+            return message.Result;
+        }
+        catch (Exception e)
+        {
+            DebugEx.Printl(e);
+            throw;
+        }
     }
 
     /// <summary>

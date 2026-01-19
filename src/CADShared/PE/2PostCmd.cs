@@ -159,11 +159,11 @@ public class PostCmd
      * 发送命令会记录在命令历史
      * 发送lisp的(command "xx")就不会
      */
-     /// <summary>
-     /// 发送命令
-     /// </summary>
-     /// <param name="args"></param>
-     /// <returns></returns>
+    /// <summary>
+    /// 发送命令
+    /// </summary>
+    /// <param name="args"></param>
+    /// <returns></returns>
     public static PromptStatus SendCommand(ResultBuffer args)
     {
         return AcedCmd(args);

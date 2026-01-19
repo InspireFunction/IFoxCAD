@@ -1,10 +1,12 @@
-﻿using static IFoxCAD.Cad.PostCmd;
-using System.Linq;
+﻿using IFoxCAD.Cad;
+using System.Drawing.Drawing2D;
+using static IFoxCAD.Cad.PostCmd;
 
 namespace JoinBoxAcad;
 
 public class StretchFill​
 {
+
     [IFoxInitializeAttribute]
     [CommandMethod(nameof(HatchPickInit))]
     public void HatchPickInit(Document doc)
@@ -18,6 +20,8 @@ public class StretchFill​
         // JoinBoxAcad.Menu.Cui.CuiInit();
 
         LoadHelper(true);
+
+        AcadIdleManager.OnIdle += AcadIdleManager_OnIdle;
     }
 
     // 只能命令卸载哦,因为关闭cad是不需要卸载的
@@ -51,22 +55,22 @@ public class StretchFill​
         var dm = Acap.DocumentManager;
         if (dm is null || dm.Count == 0)
             return;
+
         if (isLoad)
         {
             dm.DocumentCreated += Dm_DocumentCreated;
             Dm_DocumentCreated(); // 自执行一次
             AddRightClickMenu();
-            HatchPick.AddInit();
-            Acap.DocumentManager.DocumentLockModeChanged += Dm_VetoCommand;
+            HatchPick.Start();
+            dm.DocumentLockModeChanged += Dm_VetoCommand;
         }
         else
         {
-            HatchPick.RemoveInit();
+            HatchPick.Stop();
             dm.DocumentCreated -= Dm_DocumentCreated;
             UnDocumentCreated();
             StretchFill​.RemoveRightClickMenu();
-
-            Acap.DocumentManager.DocumentLockModeChanged -= Dm_VetoCommand;
+            dm.DocumentLockModeChanged -= Dm_VetoCommand;
         }
     }
 
@@ -96,9 +100,9 @@ public class StretchFill​
         var doc = dm.MdiActiveDocument;
         if (doc is null)
             return;
-        if (HatchPickMap.ContainsKey(doc))
+        if (HatchPickMap.TryGetValue(doc, out var xx))
         {
-            HatchPickMap[doc].Dispose();
+            xx.Dispose();
             HatchPickMap.Remove(doc);
         }
     }
@@ -140,17 +144,57 @@ public class StretchFill​
                     DebugEx.Printl("Dm_VetoCommand 否决了");
                     e.Veto();
                     _vetoProperties = false;
-                    // 发送编辑填充命令
+
+
+                    // 致命错误:即使卸载了整个功能
+                    LoadHelper(false);
+
+                    // TODO 致命错误: 发送命令编辑填充,可以成功弹出编辑面板,
+                    // 但是我怀疑是错误弹起,有某些东西和原生肯定存在不一样
                     SendCommand("_hatchedit ", RunCmdFlag.AcedPostCommand);
+
+                    // 这样发送会致命
+                    //var doc = Acap.DocumentManager.MdiActiveDocument;
+                    //doc?.SendStringToExecute("-hatchedit H ", true, false, false);
+
+                    // 这样不会致命错误,但是无效
+                    // doc?.SendStringToExecute("-hatchedit H ", true, false, false);
+
+                    //_send = true;
                     return;
                 }
                 DebugEx.Printl("Dm_VetoCommand 没否决");
             }
             break;
+            case "#PROPERTIES":
+            {
+                DebugEx.Printl("#PROPERTIES");
+            }
+            break;
+        }
+    }
+
+    // 利用空闲事件和直接在文档锁事件发送是一样的
+    bool _send = false;
+    private void AcadIdleManager_OnIdle(object sender, EventArgs e)
+    {
+        if (_send)
+        {
+            _send = !_send;
+            // 可以打印,但是发送命令无效
+            //SendCommand("_hatchedit ", RunCmdFlag.AcedPostCommand);
+
+            // 全部true就会致命错误
+            //var doc = Acap.DocumentManager.MdiActiveDocument;
+            //doc?.SendStringToExecute("-hatchedit H ", true, true, true);
         }
     }
 
 
+
+    /// <summary>
+    /// 这是文档事件期间,不能再次锁文档!!
+    /// </summary>
     void SetPropertiesInfoTask()
     {
         // 原有选择集
@@ -277,7 +321,11 @@ public class StretchFill​
                     return;
 
                 Env.Editor.SetImpliedSelection(ssPsr.Value.GetObjectIds());
+
                 SendCommand("-hatchedit H ", RunCmdFlag.AcedPostCommand);
+                //var doc = Acap.DocumentManager.MdiActiveDocument;
+                //doc?.SendStringToExecute("-hatchedit H ", false, false, false);
+
                 HatchPick.State.Start();
             }
             break;
