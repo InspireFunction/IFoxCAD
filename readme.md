@@ -47,3 +47,42 @@ IFoxCAD的API文档请看 **[IFoxCAD API 文档](https://inspirefunction.github.
 - 帮助开发人员编写使用文档，文档地址见 **[IFoxCAD类库从入门到精通](https://www.kdocs.cn/l/cc6ZXSa0vMgD)**
 - fork本项目，修复bug，增加功能，并提交pr。
 
+#### 六、使用 GitHub Actions 自动打包，并上传nuget
+ - 添加GitHub远程仓库
+ ```
+ git remote add upstream https://github.com/InspireFunction/IFoxCAD.git
+
+ ```
+ 这时输入命令 `git remote -v` ，你的远程仓库设置应该是这样的：
+ ```
+origin   https://gitee.com/inspirefunction/ifoxcad.git (fetch)
+origin   https://gitee.com/inspirefunction/ifoxcad.git (push)
+upstream  https://github.com/InspireFunction/IFoxCAD.git (fetch)
+upstream  https://github.com/InspireFunction/IFoxCAD.git (push)
+ ```
+ 其中 origin 是你的主远程仓库， upstream 是你的GitHub远程仓库。
+
+- 拉取远程仓库
+```
+git fetch upstream
+```
+- 合并远程仓库到本地分支
+```
+git merge upstream/v0.9
+```
+注意合并的时候，一定要在v0.9分支。
+
+处理冲突，确保没有问题，就可以随意的修改代码，提交。
+
+- 提交到GitHub，自动打包
+
+当你要更新版本的时候，只要修改 Directory.Build.props 里的版本号，然后提交。
+
+推送所有的提交到远程仓库。
+
+```
+git push origin  // 提交到主远程仓库
+
+git push upstream   // 提交到GitHub
+```
+当代码提交到GitHub后，就会触发GitHub Actions，然后自动打包，自动上传到nuget。
