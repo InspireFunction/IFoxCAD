@@ -280,7 +280,9 @@ public class StretchFill​
                     AllowDuplicates = true, // 不允许重复选择
                     SingleOnly = true,      // 隐含窗口选择(不需要空格确认)
                 };
-                var ssPsr = Env.Editor.GetSelection(pso, HatchPick.FilterForHatch);
+                //
+                //var ssPsr = Env.Editor.GetSelection(pso, HatchPick.FilterForHatch);
+                var ssPsr = Env.Editor.GetSelection(pso);
                 if (ssPsr.Status != PromptStatus.OK)
                     return;
 

@@ -11,11 +11,6 @@ public class HatchPick : IDisposable
     public static ProState State = new();
 
     /// <summary>
-    /// 选择集过滤器
-    /// </summary>
-    public static readonly SelectionFilter FilterForHatch = new([new((int)DxfCode.Start, "HATCH")]);
-
-    /// <summary>
     /// 容差
     /// </summary>
     private static Tolerance Tol = new(1e-6, 1e-6);
@@ -31,7 +26,6 @@ public class HatchPick : IDisposable
     }
     #endregion
 
-
     #region 动态成员
     /// <summary>
     /// 临时标记(重设选择集会触发一次选择集反应器)
@@ -39,20 +33,9 @@ public class HatchPick : IDisposable
     bool _selectChangedStop = false;
 
     /// <summary>
-    /// 临时选择集用
-    /// </summary>
-    readonly HashSet<ObjectId> _hatchIds = [];
-
-    /// <summary>
     /// 鼠标夹点在边界上面 == true
     /// </summary>
     bool _pickInBo = false;
-    private bool _refeditRun;
-
-    /// <summary>
-    /// 在位编辑器记录全图选择集的填充
-    /// </summary>
-    readonly HashSet<ObjectId> _refedit = [];
 
     /// <summary>
     /// 填充id,边界转换器
@@ -76,7 +59,6 @@ public class HatchPick : IDisposable
             _doc.LispWillStart += Md_LispWillStart;
             _doc.CommandEnded += Md_CommandEnded;
 
-            _doc.Database.ObjectAppended += Database_ObjectAppended;
             _doc.Database.ObjectErased += DB_ObjectErased;
             _doc.Database.ObjectModified += DB_ObjectModified;
         }
@@ -86,18 +68,13 @@ public class HatchPick : IDisposable
             _doc.CommandWillStart -= Md_CommandWillStart;
             _doc.LispWillStart -= Md_LispWillStart;
             _doc.CommandEnded -= Md_CommandEnded;
-            _doc.Database.ObjectAppended -= Database_ObjectAppended;
             _doc.Database.ObjectErased -= DB_ObjectErased;
             _doc.Database.ObjectModified -= DB_ObjectModified;
         }
     }
     #endregion
 
-
     #region 事件
-
-
-
     /// <summary>
     /// 反应器->command命令执行前
     /// </summary>
@@ -113,20 +90,6 @@ public class HatchPick : IDisposable
         var cmdup = e.GlobalCommandName.ToUpper();
         DebugEx.Printl("Md_CommandWillStart::" + cmdup);
 
-        switch (cmdup)
-        {
-            case "REFEDIT":
-            {
-                // 在位编辑命令,执行前,获取当前空间所有填充
-                var prompt = Env.Editor.SelectAll(FilterForHatch);
-                if (prompt.Status != PromptStatus.OK)
-                    return;
-                using DBTrans tr = new();
-                GetHatchIds(prompt);
-            }
-            break;
-        }
-
         // 拉伸夹点命令前触发
         if (cmdup != "GRIP_STRETCH")
         {
@@ -136,12 +99,8 @@ public class HatchPick : IDisposable
         {
             try
             {
-                // var screenPos = HatchHook.MouseStartPoint;
-
                 var screenPos = System.Windows.Forms.Control.MousePosition;
                 var mouseStart = Screen.ScreenToCad(screenPos);
-                //DebugEx.Printl("mouseStart,屏幕点::" + screenPos);
-                //DebugEx.Printl("mouseStart,cad点::" + mouseStart);
 
                 // 获取当前选择的对象,然后提取所有的夹点
                 var prompt = Env.Editor.SelectImplied();
@@ -149,8 +108,8 @@ public class HatchPick : IDisposable
                     return;
 
                 using DBTrans tr = new(docLock: true);
-                GetHatchIds(prompt);
-                if (_hatchIds.Count == 0)
+                var _hatchIds = prompt.Value.GetObjectIds();
+                if (_hatchIds.Length == 0)
                     return;
 
                 var tol = (double)Env.GetVar("viewsize") / 10;
@@ -281,68 +240,6 @@ public class HatchPick : IDisposable
         var cmdup = e.GlobalCommandName.ToUpper();
         switch (cmdup)
         {
-
-            case "REFEDIT":
-            {
-                _refeditRun = true;
-
-                DebugEx.Printl("Md_CommandEnded:: REFEDIT");
-
-                var prompt = Env.Editor.SelectPrevious();
-                if (prompt.Status != PromptStatus.OK)
-                    return;
-
-                using DBTrans tr = new();
-                GetHatchIds(prompt);
-                if (_hatchIds.Count == 0)
-                    return;
-
-                _refedit.Add(_hatchIds);
-
-                var sb = new StringBuilder();
-                foreach (var id in _refedit)
-                    sb.AppendLine(id.ToString());
-                Env.Printl("块内id:" + sb.ToString());
-            }
-            break;
-            case "REFSET": // 加减在位编辑图元
-            {
-                DebugEx.Printl("Md_CommandEnded:: REFSET");
-
-                // 命令历史的最后一行是:添加/删除
-                var last = Env.GetVar("lastprompt").ToString();
-                if (last is null)
-                    return;
-
-                // 完成后必然有上次选择集
-                var prompt = Env.Editor.SelectPrevious();
-                if (prompt.Status != PromptStatus.OK)
-                    return;
-                using DBTrans tr = new();
-                GetHatchIds(prompt);
-                if (_hatchIds.Count == 0)
-                    return;
-
-                // 就是因为无法遍历到在位编辑的块内图元,只能进行布尔运算
-                if (last.Contains("添加") || last.Contains("Added"))// 中英文cad
-                {
-                    _refedit.Add(_hatchIds);
-                    return;
-                }
-                if (last.Contains("删除") || last.Contains("Removed"))// 中英文cad
-                {
-                    _refedit.Remove(_hatchIds);
-                    return;
-                }
-            }
-            break;
-            case "REFCLOSE":// 保存块,清空集合
-            {
-                _refeditRun = false;
-                DebugEx.Printl("Md_CommandEnded:: REFCLOSE");
-                _refedit.Clear();
-            }
-            break;
             case "GRIP_STRETCH":// 拉伸夹点命令后触发
             {
                 try
@@ -363,10 +260,9 @@ public class HatchPick : IDisposable
                         return;
                     }
 
-
                     using DBTrans tr = new(docLock: true);
-                    GetHatchIds(prompt);
-                    if (_hatchIds.Count == 0)
+                    var _hatchIds = prompt.Value.GetObjectIds();
+                    if (_hatchIds.Length == 0)
                     {
                         _pickInBo = false; // 重置状态
                         return;
@@ -418,21 +314,6 @@ public class HatchPick : IDisposable
                 }
             }
             break;
-        }
-    }
-
-    /// <summary>
-    /// 获取选择集上的填充,在缓存内提取<see cref="_hatchIds"/>
-    /// </summary>
-    /// <param name="psr"></param>
-    /// <param name="tr"></param>
-    void GetHatchIds(PromptSelectionResult psr, DBTrans? tr = null)
-    {
-        tr ??= DBTrans.Top;
-        _hatchIds.Clear();
-        foreach (var id in psr.Value.GetObjectIds())
-        {
-            _hatchIds.Add(id);
         }
     }
 
@@ -497,7 +378,7 @@ public class HatchPick : IDisposable
                     continue;
 
                 // 在为编辑期间并且不是块内图元,就跳过
-                if (_refeditRun && !_refedit.Contains(entId))
+                if (LongTransManager.RefeditRun() && !LongTransManager.WorkSetHas(entId))
                 {
                     DebugEx.Printl($"在为编辑期间并且不是块内图元,就跳过: {entId}");
                     continue;
@@ -568,12 +449,6 @@ public class HatchPick : IDisposable
         }
 
         HatchConvMap[newid] = hc;
-
-        if (newid == hatch.ObjectId)
-            return;
-        // 优先: 块内含有旧的,就加入新的
-        if (_refedit.Remove(hatch.ObjectId))
-            _refedit.Add(newid);
     }
 
     /// <summary>
@@ -633,6 +508,7 @@ public class HatchPick : IDisposable
                     }
                 }
             }
+
             HatchConvMap.Clear();
         }
         finally
@@ -673,23 +549,6 @@ public class HatchPick : IDisposable
 
 
     /// <summary>
-    /// 数据库加入事件
-    /// </summary>
-    /// <param name="sender"></param>
-    /// <param name="e"></param>
-    private void Database_ObjectAppended(object sender, ObjectEventArgs e)
-    {
-        if (!State.IsRun)
-            return;
-
-        if (_refeditRun)
-        {
-            _refedit.Add(e.DBObject.ObjectId);
-            DebugEx.Printl($"在位编辑创建对象: {e.DBObject.ObjectId}");
-        }
-    }
-
-    /// <summary>
     /// 撤回事件(获取删除对象)
     /// </summary>
     /// <param name="sender"></param>
@@ -702,21 +561,10 @@ public class HatchPick : IDisposable
         // object erased.
         if (e.Erased)
         {
-            if (_refeditRun)
-            {
-                _refedit.Remove(e.DBObject.ObjectId);
-                DebugEx.Printl($"在位编辑删除对象: {e.DBObject.ObjectId}");
-            }
             return;
         }
 
         // UNDO
-        if (_refeditRun)
-        {
-            _refedit.Add(e.DBObject.ObjectId);
-            DebugEx.Printl($"在位编辑撤回时候创建对象: {e.DBObject.ObjectId}");
-        }
-
         if (e.DBObject is Hatch hatch)
         {
             if (HatchPickEnv.IsMeCreate(hatch))
@@ -772,12 +620,6 @@ public class HatchPick : IDisposable
         {
             if (HatchPickEnv.IsMeCreate(hatch))
                 RemoveAssociative(hatch);
-        }
-
-        if (_refeditRun)
-        {
-            _refedit.Add(e.DBObject.ObjectId);
-            DebugEx.Printl($"在位编辑撤回时候创建对象: {e.DBObject.ObjectId}");
         }
     }
 

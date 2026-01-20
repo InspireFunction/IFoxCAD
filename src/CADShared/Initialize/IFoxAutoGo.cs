@@ -101,7 +101,7 @@ public class Actuator : IEquatable<Actuator>, IComparable<Actuator>
             return this;
         }
         //catch (System.Exception e)
-        catch (System.Exception)
+        catch (System.Exception e)
         {
             //var paramTypes = _methodInfo.GetParameters()
             //    .Select(p => p.ParameterType.Name)
@@ -113,7 +113,13 @@ public class Actuator : IEquatable<Actuator>, IComparable<Actuator>
             //$"传入参数: ({string.Join(", ", args.Select(a => a?.GetType().Name ?? "null").ToArray())})");
             //Debugger.Break();
             //return this;
-
+            if (e.Message == "没有为该对象定义无参数的构造函数。")
+            {
+                Debug.WriteLine("════════════════════════════════════════════════");
+                Debug.WriteLine(e);
+                Debug.WriteLine("════════════════════════════════════════════════");
+                return this;
+            }
 
             var methodName = _methodInfo.Name;
             var className = _methodInfo.ReflectedType?.FullName ?? _methodInfo.DeclaringType?.FullName ?? "UnknownClass";
