@@ -1,3 +1,5 @@
+using System.Collections.ObjectModel;
+
 namespace JoinBoxAcad;
 
 public class HatchPick : IDisposable
@@ -45,6 +47,7 @@ public class HatchPick : IDisposable
     /// 鼠标夹点在边界上面 == true
     /// </summary>
     bool _pickInBo = false;
+    private bool _refeditRun;
 
     /// <summary>
     /// 在位编辑器记录全图选择集的填充
@@ -72,6 +75,8 @@ public class HatchPick : IDisposable
             _doc.CommandWillStart += Md_CommandWillStart;
             _doc.LispWillStart += Md_LispWillStart;
             _doc.CommandEnded += Md_CommandEnded;
+
+            _doc.Database.ObjectAppended += Database_ObjectAppended;
             _doc.Database.ObjectErased += DB_ObjectErased;
             _doc.Database.ObjectModified += DB_ObjectModified;
         }
@@ -81,13 +86,18 @@ public class HatchPick : IDisposable
             _doc.CommandWillStart -= Md_CommandWillStart;
             _doc.LispWillStart -= Md_LispWillStart;
             _doc.CommandEnded -= Md_CommandEnded;
+            _doc.Database.ObjectAppended -= Database_ObjectAppended;
             _doc.Database.ObjectErased -= DB_ObjectErased;
             _doc.Database.ObjectModified -= DB_ObjectModified;
         }
     }
     #endregion
 
+
     #region 事件
+
+
+
     /// <summary>
     /// 反应器->command命令执行前
     /// </summary>
@@ -113,7 +123,6 @@ public class HatchPick : IDisposable
                     return;
                 using DBTrans tr = new();
                 GetHatchIds(prompt);
-                _refedit.Add(_hatchIds);
             }
             break;
         }
@@ -153,75 +162,13 @@ public class HatchPick : IDisposable
 
                 foreach (var hatId in _hatchIds)
                 {
-                    if (!HatchConvMap.ContainsKey(hatId))
+                    if (!HatchConvMap.TryGetValue(hatId, out var hc))
                         continue;
 
-                    HatchConvMap[hatId].BoundaryIds.ForEach((id, idState) => {
-                        if (!id.IsOk())
-                            return;
-                        using var boEnt = (Entity)tr.GetObject(id, OpenMode.ForRead);
+                    var idss = hc.BoundaryIds ?? hc.BoundaryNewlyIds;
 
-                        // 获取夹点在哪个图元边界上
-                        HashSet<Point3d> boPts = [];
-                        if (boEnt is Circle circle)
-                        {
-                            // 圆形的边界夹点是: 圆心+半径
-                            var x = circle.Center.X;
-                            var y = circle.Center.Y;
-                            var z = circle.Center.Z;
-                            var r = circle.Radius;
-                            boPts.Add(new(x + r, y, z));//上
-                            boPts.Add(new(x - r, y, z));//下
-                            boPts.Add(new(x, y - r, z));//左
-                            boPts.Add(new(x, y + r, z));//右
-                        }
-                        else
-                        {
-                            // 获取所有的边点
-                            // 这里圆形会获取圆心,所以剔除圆形
-                            var tmp = GetEntityPoint3ds(boEnt);
-                            for (int j = 0; j < tmp.Count; j++)
-                                boPts.Add(tmp[j]);
-                        }
-
-                        if (boEnt is Arc arc)
-                        {
-                            if (!arc.StartPoint.IsEqualTo(arc.EndPoint, Tol))
-                            {
-                                // 圆弧的腰点
-                                var arc2 = arc.GetPointAtDist(arc.GetDistAtPoint(arc.EndPoint) * 0.5);
-                                boPts.Add(arc2);
-                            }
-                        }
-                        else if (boEnt is Polyline pl)
-                        {
-                            for (int j = 0; j < pl.NumberOfVertices; j++)
-                            {
-                                var bulge = pl.GetBulgeAt(j);
-                                if (bulge == 0.0)
-                                    continue;
-                                // 有凸度就是有每段的中点
-                                var pta = pl.GetPoint2dAt(j);
-                                Point2d ptb;
-                                if (j + 1 < pl.NumberOfVertices)
-                                    ptb = pl.GetPoint2dAt(j + 1);
-                                else
-                                    ptb = pl.GetPoint2dAt(0);
-
-                                var p = MathHelper.GetArcMidPoint(pta, ptb, bulge);
-                                boPts.Add(p.Point3d());
-                            }
-                        }
-
-                        boPts.ForEach((pt, ptState) => {
-                            var dist = pt.DistanceTo(mouseStart);
-                            //Debugx.Printl("pt::" + pt + "     dist::" + dist);
-                            if (dist < tol)
-                            {
-                                ptState.Break();
-                                _pickInBo = true;
-                            }
-                        });
+                    idss?.ForEach((id, idState) => {
+                        PickBo(id, mouseStart, tr, tol);
                     });
 
                     // 点在边界上:就不处理了,它会通过cad的关联填充反应器自动修改
@@ -237,6 +184,76 @@ public class HatchPick : IDisposable
                 _pickInBo = false;
             }
         }
+    }
+
+
+    private void PickBo(ObjectId id, Point3d mouseStart, DBTrans tr, double tol)
+    {
+        if (!id.IsOk())
+            return;
+        using var boEnt = (Entity)tr.GetObject(id, OpenMode.ForRead);
+
+        // 获取夹点在哪个图元边界上
+        HashSet<Point3d> boPts = [];
+        if (boEnt is Circle circle)
+        {
+            // 圆形的边界夹点是: 圆心+半径
+            var x = circle.Center.X;
+            var y = circle.Center.Y;
+            var z = circle.Center.Z;
+            var r = circle.Radius;
+            boPts.Add(new(x + r, y, z));//上
+            boPts.Add(new(x - r, y, z));//下
+            boPts.Add(new(x, y - r, z));//左
+            boPts.Add(new(x, y + r, z));//右
+        }
+        else
+        {
+            // 获取所有的边点
+            // 这里圆形会获取圆心,所以剔除圆形
+            var tmp = GetEntityPoint3ds(boEnt);
+            for (int j = 0; j < tmp.Count; j++)
+                boPts.Add(tmp[j]);
+        }
+
+        if (boEnt is Arc arc)
+        {
+            if (!arc.StartPoint.IsEqualTo(arc.EndPoint, Tol))
+            {
+                // 圆弧的腰点
+                var arc2 = arc.GetPointAtDist(arc.GetDistAtPoint(arc.EndPoint) * 0.5);
+                boPts.Add(arc2);
+            }
+        }
+        else if (boEnt is Polyline pl)
+        {
+            for (int j = 0; j < pl.NumberOfVertices; j++)
+            {
+                var bulge = pl.GetBulgeAt(j);
+                if (bulge == 0.0)
+                    continue;
+                // 有凸度就是有每段的中点
+                var pta = pl.GetPoint2dAt(j);
+                Point2d ptb;
+                if (j + 1 < pl.NumberOfVertices)
+                    ptb = pl.GetPoint2dAt(j + 1);
+                else
+                    ptb = pl.GetPoint2dAt(0);
+
+                var p = MathHelper.GetArcMidPoint(pta, ptb, bulge);
+                boPts.Add(p.Point3d());
+            }
+        }
+
+        boPts.ForEach((pt, ptState) => {
+            var dist = pt.DistanceTo(mouseStart);
+            //Debugx.Printl("pt::" + pt + "     dist::" + dist);
+            if (dist < tol)
+            {
+                ptState.Break();
+                _pickInBo = true;
+            }
+        });
     }
 
     /// <summary>
@@ -264,12 +281,14 @@ public class HatchPick : IDisposable
         var cmdup = e.GlobalCommandName.ToUpper();
         switch (cmdup)
         {
+
             case "REFEDIT":
             {
+                _refeditRun = true;
+
                 DebugEx.Printl("Md_CommandEnded:: REFEDIT");
 
-                // 在位编辑命令,执行后,获取当前空间所有填充
-                var prompt = Env.Editor.SelectAll(FilterForHatch);
+                var prompt = Env.Editor.SelectPrevious();
                 if (prompt.Status != PromptStatus.OK)
                     return;
 
@@ -283,7 +302,7 @@ public class HatchPick : IDisposable
                 var sb = new StringBuilder();
                 foreach (var id in _refedit)
                     sb.AppendLine(id.ToString());
-                Env.Printl("块内填充id:" + sb.ToString());
+                Env.Printl("块内id:" + sb.ToString());
             }
             break;
             case "REFSET": // 加减在位编辑图元
@@ -319,6 +338,7 @@ public class HatchPick : IDisposable
             break;
             case "REFCLOSE":// 保存块,清空集合
             {
+                _refeditRun = false;
                 DebugEx.Printl("Md_CommandEnded:: REFCLOSE");
                 _refedit.Clear();
             }
@@ -342,6 +362,8 @@ public class HatchPick : IDisposable
                         _pickInBo = false; // 重置状态
                         return;
                     }
+
+
                     using DBTrans tr = new(docLock: true);
                     GetHatchIds(prompt);
                     if (_hatchIds.Count == 0)
@@ -360,7 +382,7 @@ public class HatchPick : IDisposable
                         }
 
                         bool clearFlag = false;
-                        conv.BoundaryIds.ForEach(boId => {
+                        conv.BoundaryNewlyIds?.ForEach(boId => {
                             if (!boId.IsOk())
                                 return;
                             using var boEnt = (Entity)tr.GetObject(boId, OpenMode.ForRead);
@@ -373,7 +395,7 @@ public class HatchPick : IDisposable
                         if (!clearFlag)
                             continue; // 跳过没有清除边界的填充
 
-                        conv.BoundaryIds.Clear();
+                        //conv.BoundaryIds.Clear();
 
                         // 清理填充反应器
                         using var hatchEnt = tr.GetObject(hatId, OpenMode.ForWrite);
@@ -450,6 +472,7 @@ public class HatchPick : IDisposable
             return;
         }
 
+
         // 直接选中进入此处
         HashSet<ObjectId> setImpSelect = [];
         //using var _ = _doc.LockDocument();
@@ -469,9 +492,16 @@ public class HatchPick : IDisposable
                 using var ent = tr.GetObject(entId, openLockedLayer: true);
                 if (ent is not Hatch hatch || islocks.Contains(hatch.Layer))
                     continue;
-                // 重复选择 || 在位编辑外
-                if (HatchConvMap.ContainsKey(entId) || _refedit.Contains(entId))
+                // 重复选择
+                if (HatchConvMap.ContainsKey(entId))
                     continue;
+
+                // 在为编辑期间并且不是块内图元,就跳过
+                if (_refeditRun && !_refedit.Contains(entId))
+                {
+                    DebugEx.Printl($"在为编辑期间并且不是块内图元,就跳过: {entId}");
+                    continue;
+                }
 
                 CreatHatchConverter(hatch, setImpSelect);
             }
@@ -488,15 +518,12 @@ public class HatchPick : IDisposable
     void CreatHatchConverter(Hatch hatch, HashSet<ObjectId> outSsgetIds)
     {
         var tr = DBTrans.GetTop(hatch.Database);
-
         var hc = new HatchConverter(hatch);
         ObjectId newid;
 
-        // TODO 分离填充致命错误,原来是我新建对象的问题
-
         // 如果边界在图纸上没有删除(删除就不是关联的),
         // 那就不创建新的,然后选中它们
-        if (hc.BoundaryIds.Count != 0)
+        if (hc.BoundaryIds is not null)
         {
             DebugEx.Printl("CreatHatchConverter:: 加入了现有边界到选择集");
 
@@ -512,11 +539,15 @@ public class HatchPick : IDisposable
             // 创建新填充和边界
             hc.GetBoundarysData();
             newid = hc.CreateBoundarysAndHatchToMsPs();
-            HatchPickEnv.SetMeXData(newid, hc.BoundaryIds);
+
+            if (hc.BoundaryNewlyIds is null)
+                return;
+
+            HatchPickEnv.SetMeXData(newid, hc.BoundaryNewlyIds);
 
             // 加入选择集
             outSsgetIds.Remove(hatch.ObjectId);
-            outSsgetIds.Add(hc.BoundaryIds);
+            outSsgetIds.Add(hc.BoundaryNewlyIds);
             outSsgetIds.Add(newid);
 
             // 重建了新填充就删除旧的
@@ -526,9 +557,12 @@ public class HatchPick : IDisposable
                 // 清理上次,删除边界和填充
                 if (HatchConvMap.TryGetValue(hatch.ObjectId, out var hcx))
                 {
-                    foreach (var bo in hcx.BoundaryIds)
-                        bo.Erase();
-                    HatchConvMap.Remove(hatch.ObjectId);
+                    if (hcx.BoundaryNewlyIds is not null)
+                    {
+                        foreach (var bo in hcx.BoundaryNewlyIds)
+                            bo.Erase();
+                        HatchConvMap.Remove(hatch.ObjectId);
+                    }
                 }
             }
         }
@@ -548,19 +582,6 @@ public class HatchPick : IDisposable
     /// <param name="setImpSelect">加入选择集的成员</param>
     public void SetImpliedSelection(HashSet<ObjectId> setImpSelect)
     {
-        // 如果只是选择一个多段线,那么就不应该选中填充啊
-        // 要遍历选择区域范围的内容,看看是否存在填充,如果有就选中.
-#if true2
-        // 获取填充
-        foreach (var id in _mapHatchConv.Keys)
-            setImpSelect.Add(id);
-
-        // 获取填充边界
-        foreach (var item in _mapHatchConv.Values)
-            foreach (var id in item.BoundaryIds)
-                setImpSelect.Add(id);
-#endif
-
         // 设置选择集,没有标记的话会死循环
         _selectChangedStop = true;
         Env.Editor.SetImpliedSelection(setImpSelect.ToArray());
@@ -582,15 +603,15 @@ public class HatchPick : IDisposable
         {
             foreach (var dict in HatchConvMap)
             {
-                foreach (var boId in dict.Value.BoundaryIds)
+                if (dict.Value.BoundaryNewlyIds is null)
+                    continue;
+                foreach (var boId in dict.Value.BoundaryNewlyIds)
                 {
                     if (!boId.IsOk())
                         continue; // 跳过无效ID，继续处理其他边界
 
                     try
                     {
-                        // 处理是填充时候就会报错,rec就不会
-
                         using DBTrans tr = new(boId.Database);
                         using var boEnt = (Entity)tr.GetObject(boId);
                         // 删除填充边界并清理关联反应器
@@ -631,9 +652,7 @@ public class HatchPick : IDisposable
             return;
 
         // 填充边界反应器
-        var assIds = hatch.GetAssociatedObjectIds();
-        if (assIds == null)
-            return;
+        using var assIds = hatch.GetAssociatedObjectIds();
         bool isok = true;
         foreach (ObjectId id in assIds)
         {
@@ -646,8 +665,28 @@ public class HatchPick : IDisposable
         // 这里边界id已经删除了,所以移除会导致异常
         if (isok)
             hatch.RemoveAssociatedObjectIds();
+
         // 取消关联反应器才能生成的正确
         hatch.Associative = false;
+    }
+
+
+
+    /// <summary>
+    /// 数据库加入事件
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
+    private void Database_ObjectAppended(object sender, ObjectEventArgs e)
+    {
+        if (!State.IsRun)
+            return;
+
+        if (_refeditRun)
+        {
+            _refedit.Add(e.DBObject.ObjectId);
+            DebugEx.Printl($"在位编辑创建对象: {e.DBObject.ObjectId}");
+        }
     }
 
     /// <summary>
@@ -663,10 +702,21 @@ public class HatchPick : IDisposable
         // object erased.
         if (e.Erased)
         {
+            if (_refeditRun)
+            {
+                _refedit.Remove(e.DBObject.ObjectId);
+                DebugEx.Printl($"在位编辑删除对象: {e.DBObject.ObjectId}");
+            }
             return;
         }
 
         // UNDO
+        if (_refeditRun)
+        {
+            _refedit.Add(e.DBObject.ObjectId);
+            DebugEx.Printl($"在位编辑撤回时候创建对象: {e.DBObject.ObjectId}");
+        }
+
         if (e.DBObject is Hatch hatch)
         {
             if (HatchPickEnv.IsMeCreate(hatch))
@@ -722,6 +772,12 @@ public class HatchPick : IDisposable
         {
             if (HatchPickEnv.IsMeCreate(hatch))
                 RemoveAssociative(hatch);
+        }
+
+        if (_refeditRun)
+        {
+            _refedit.Add(e.DBObject.ObjectId);
+            DebugEx.Printl($"在位编辑撤回时候创建对象: {e.DBObject.ObjectId}");
         }
     }
 
@@ -804,15 +860,15 @@ public static class HatchPickEnv
     /// <param name="newHatchId"></param>
     /// <param name="boIds"></param>
     /// <param name="trans"></param>
-    public static void SetMeXData(ObjectId newHatchId, List<ObjectId> boIds, DBTrans? trans = null)
+    public static void SetMeXData(ObjectId newHatchId, ReadOnlyCollection<ObjectId>? boIds)
     {
-        trans ??= DBTrans.Top;
+        var trans = DBTrans.GetTop(newHatchId.Database);
         var hatchEnt = (Hatch)trans.GetObject(newHatchId);
         using (hatchEnt.ForWrite())
             hatchEnt.XData = GetMeBuffer(hatchEnt.Handle, trans); // 设置xdata仅仅为debug可以通过鼠标悬停看见它数据,因此设置为自己
 
         // 修改边界的xdata为新填充的
-        boIds.ForEach(id => {
+        boIds?.ForEach(id => {
             var boEnt = (Entity)trans.GetObject(id);
             using (boEnt.ForWrite())
             {

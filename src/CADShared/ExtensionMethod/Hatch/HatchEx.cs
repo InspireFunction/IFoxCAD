@@ -124,8 +124,7 @@ public static class HatchEx
         // if (!hatch.Id.IsOk())
         //     throw new ArgumentException("填充未加入或不存在于数据库");
 
-        boundaryIds.ForEach(ids =>
-        {
+        boundaryIds.ForEach(ids => {
             foreach (ObjectId id in ids)
             {
                 if (!id.IsOk())
@@ -143,8 +142,7 @@ public static class HatchEx
 
             var isOutermost = true;
 
-            boundaryIds.ForEach(ids =>
-            {
+            boundaryIds.ForEach(ids => {
                 try
                 {
                     // 要先添加最外面的边界
@@ -347,8 +345,7 @@ public static class HatchEx
         }
 
         // 生成多段线
-        polyLineData.ForEach(list =>
-        {
+        polyLineData.ForEach(list => {
             if (list.Count == 0) return;
             var pl = new Polyline();
             pl.SetDatabaseDefaults();

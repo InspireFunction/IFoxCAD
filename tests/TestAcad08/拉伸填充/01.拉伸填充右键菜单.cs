@@ -175,7 +175,7 @@ public class StretchFill​
 
         // 获取当前文档记录的填充边界
         HashSet<ObjectId> boAll = [];
-        foreach (var boid in hpe.HatchConvMap.Values.SelectMany(hc => hc.BoundaryIds))
+        foreach (var boid in hpe.HatchConvMap.Values.SelectMany(hc => hc.BoundaryNewlyIds))
         {
             boAll.Add(boid);
         }

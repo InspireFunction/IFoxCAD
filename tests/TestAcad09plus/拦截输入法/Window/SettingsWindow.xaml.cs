@@ -18,7 +18,7 @@ public partial class SettingsWindow : Window
 
     private void Button_Click(object sender, RoutedEventArgs e)
     {
-        Settings._AutoEn2Cn = ExCMD.Text.Split(';').ToHashSet();
+        Settings._AutoEn2Cn = [.. ExCMD.Text.Split(';')];
         Settings._IMEHookStyle = (IMEHookStyle)CBox.SelectedIndex;
         Settings.SaveSettings();
         IMEControl.SetIMEHook();
@@ -29,7 +29,7 @@ public partial class SettingsWindow : Window
     {
         CBox.SelectedIndex = (int)Settings.IMEHookStyle;
         ExCMD.Text = string.Join(";", Settings.AutoEn2Cn.ToArray());
-        // todo 高版本
+        // TODO 高版本这里没有测试,惊惊电脑没有装
         // DeCMD.Text = string.Join(",", IMEControl.DefaultCmds_AutoEn2Cn.ToArray());
     }
 

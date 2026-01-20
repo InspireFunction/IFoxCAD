@@ -220,17 +220,23 @@ internal static class EntityBoundingInfo
             if (!blockExt.IsEmptyExt())
                 ext = blockExt;
             break;
-            // 和尚_2024-10-26
+            // 和尚_2024-10-26 
             case Hatch hatch:
+            var extTmp = new Extents3d();
+
+            var tr = DBTrans.GetTop(hatch.Database);
             var hc = new HatchConverter(hatch);
             hc.GetBoundarysData();
-            var extTmp = new Extents3d();
-            foreach (var curve in hc.CreateBoundary())
+            hc.CreateBoundary();
+            var ids = hc.BoundaryNewlyIds;
+            if (ids is not null)
             {
-                extTmp.AddExtents(GetEntityBoxEx(curve)!.Value);
-                curve.Dispose();
+                foreach (var curveId in ids)
+                {
+                    using var curve = (Entity)tr.GetObject(curveId);
+                    extTmp.AddExtents(GetEntityBoxEx(curve)!.Value);
+                }
             }
-
             ext = extTmp;
             break;
             default:

@@ -1,6 +1,5 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
-using Autodesk.AutoCAD.DatabaseServices;
 using PointV = Point2d;
 
 /// <summary>
@@ -34,9 +33,11 @@ public class HatchConverter
     /// </summary>
     class HatchConverterData
     {
+        public HatchLoopTypes HatchLoopTypes;
         public readonly List<BulgeVertexWidth> PolyLineData = [];
         public readonly List<CircleData> CircleConverterData = [];
         public readonly List<NurbCurve2d> SplineData = [];
+        public readonly List<Entity> Entitys = [];
     }
     #endregion
 
@@ -50,10 +51,17 @@ public class HatchConverter
 
     readonly List<HatchConverterData> _hcDatas = [];
 
+    readonly static Tolerance _tol = new(1e-6, 1e-6);
+
     /// <summary>
-    /// 填充边界id(生成的/已存在反应器的直接提取)
+    /// 填充边界id(已经存在数据库没删除的关联边界)
     /// </summary>
-    public readonly List<ObjectId> BoundaryIds = [];
+    public ReadOnlyCollection<ObjectId>? BoundaryIds;
+
+    /// <summary>
+    /// 填充边界id(新创建的)
+    /// </summary>
+    public ReadOnlyCollection<ObjectId>? BoundaryNewlyIds => _hcDatas.SelectMany(a => a.Entitys.Select(b => b.ObjectId)).ToList().AsReadOnly();
 
     #endregion
 
@@ -66,22 +74,20 @@ public class HatchConverter
     {
         _oldHatch = hatch;
 
-        if (hatch.Associative)
+        // 如果是关联的,将已有的边界id加入
+        if (_oldHatch.Associative)
         {
             // 填充边界反应器
-            using var assIds = hatch.GetAssociatedObjectIds();
+            using var assIds = _oldHatch.GetAssociatedObjectIds();
             if (assIds == null)
                 return;
-
-            foreach (ObjectId id in assIds)
-                if (id.IsOk())
-                    BoundaryIds.Add(id);
-
+            BoundaryIds = assIds.ToList().Where(id => id.IsOk()).ToList().AsReadOnly();
             if (BoundaryIds.Count == 0)
             {
-                throw new ArgumentException("关联的填充边界被删除后没有清理反应器,请调用:" +
-                                            "\n hatch.RemoveAssociatedObjectIds()" +
-                                            "\n hatch.Associative = false");
+                throw new ArgumentException(
+                    "关联的填充边界被删除后没有清理反应器,请调用:" +
+                    "\n hatch.RemoveAssociatedObjectIds()" +
+                    "\n hatch.Associative = false");
             }
         }
     }
@@ -92,7 +98,10 @@ public class HatchConverter
     public void GetBoundarysData()
     {
         _oldHatch.ForEach(loop => {
-            HatchConverterData hcData = new();
+            HatchConverterData hcData = new()
+            {
+                HatchLoopTypes = loop.LoopType
+            };
 
             var isCurve2d = true;
             if (loop.IsPolyline)
@@ -103,7 +112,8 @@ public class HatchConverter
             }
             else
             {
-                if (loop.Curves.Count == 2)// 1是不可能的,大于2的是曲线
+                // 1是不可能的,大于2的是曲线
+                if (loop.Curves.Count == 2)
                 {
                     // 边界是曲线,过滤可能是圆形的情况
                     var cir = TwoArcFormOneCircle(loop);
@@ -122,6 +132,9 @@ public class HatchConverter
             _hcDatas.Add(hcData);
         });
     }
+
+
+
     #endregion
 
     #region 方法
@@ -166,8 +179,10 @@ public class HatchConverter
             throw new ArgumentNullException(nameof(loop));
 
         if (loop.Curves.Count != 2)
-            throw new ArgumentException("边界非多段线,而且点数!=2,点数为:" + nameof(loop.Curves.Count) +
-                                        ";两个矩形交集的时候会出现此情况.");
+            throw new ArgumentException(
+                "边界非多段线,而且点数!=2,点数为:"
+                + nameof(loop.Curves.Count)
+                + ";两个矩形交集的时候会出现此情况.");
 
         CircleData? circular = null;
 
@@ -216,7 +231,7 @@ public class HatchConverter
 
             var pts = curve.GetSamplePoints(3);
             var midPt = pts[1];
-            if (curve.StartPoint.IsEqualTo(curve.EndPoint, new Tolerance(1e-6, 1e-6)))// 首尾相同,就是圆形
+            if (curve.StartPoint.IsEqualTo(curve.EndPoint, _tol))// 首尾相同,就是圆形
             {
                 // 判断为圆形:
                 // 获取起点,然后采样三点,中间就是对称点(直径点)
@@ -239,9 +254,8 @@ public class HatchConverter
     /// </summary>
     /// <returns>返回图元</returns>
     //[Obsolete("使用带返回值的CreateBoundary替代")]
-    public List<Entity> CreateBoundary()
+    public void CreateBoundary()
     {
-        List<Entity> outEnts = [];
         for (var i = 0; i < _hcDatas.Count; i++)
         {
             var data = _hcDatas[i];
@@ -259,24 +273,23 @@ public class HatchConverter
                         data.PolyLineData[j].StartWidth,
                         data.PolyLineData[j].EndWidth);
                 }
-                outEnts.Add(pl);
+                data.Entitys.Add(pl);
             }
 
             // 生成边界:圆
             data.CircleConverterData.ForEach(item => {
-                outEnts.Add(new Circle(item.Center.Point3d(), Vector3d.ZAxis, item.Radius));
+                data.Entitys.Add(new Circle(item.Center.Point3d(), Vector3d.ZAxis, item.Radius));
             });
 
             // 生成边界:样条曲线
-            data.SplineData.ForEach(item => { outEnts.Add(item.ToCurve()); });
+            data.SplineData.ForEach(item => { data.Entitys.Add(item.ToCurve()); });
+
+            // 跟随颜色
+            data.Entitys.ForEach(ent => {
+                ent.Color = _oldHatch.Color;
+                ent.Layer = _oldHatch.Layer;
+            });
         }
-
-        outEnts.ForEach(ent => {
-            ent.Color = _oldHatch.Color;
-            ent.Layer = _oldHatch.Layer;
-        });
-
-        return outEnts;
     }
 
     /// <summary>
@@ -284,21 +297,30 @@ public class HatchConverter
     /// </summary>
     /// <param name="boundaryAssociative">边界关联</param>
     /// <param name="createHatchFlag">是否创建填充,false则只创建边界</param>
-    /// <returns>新填充id,边界在<see cref="BoundaryIds"/>获取</returns>
+    /// <returns>新填充id</returns>
     public ObjectId CreateBoundarysAndHatchToMsPs(
         bool boundaryAssociative = true,
         bool createHatchFlag = true)
     {
         var tr = DBTrans.GetTop(OldHatchId.Database);
 
-        CreateBoundary().ForEach(ent => {
-            BoundaryIds.Add(tr.CurrentSpace.AddEntity(ent));
-        });
+        // 创建边界图元,加入当前空间
+        CreateBoundary();
+        foreach (var data in _hcDatas)
+        {
+            data.Entitys.ForEach(ent => {
+                // 防止已经存在数据库的边界加入
+                if (ent.IsNewObject)
+                {
+                    tr.CurrentSpace.AddEntity(ent);
+                    // ent.ObjectId 会自动更新
+                }
+            });
+        }
 
         if (!createHatchFlag)
             return ObjectId.Null;
 
-#if true
         // 此处为什么要克隆填充,而不是新建填充?
         // 因为我们没有创建填充的技术,丢失原点这个问题无法解决.
         // 两个一样的填充,平移其中一个,那么再提取他们的原点会是一样的!
@@ -314,16 +336,10 @@ public class HatchConverter
         // 毕竟是克隆的,还没有加入数据库,有短暂的销毁时间
         var hatchEnt = (Hatch)tr.GetObject(newHatchId, OpenMode.ForWrite, false, false);
 
-        // TODO 此处将会导致分离填充出错,是由于我们计算边界不正确?
         ResetBoundary(hatchEnt, boundaryAssociative);
         return newHatchId;
-#else
-        return OldHatchId;
-#endif
     }
 
-
-    // TODO 此处将会导致分离填充出错,是由于我们计算边界不正确?
 
     /// <summary>
     /// 重设边界
@@ -332,40 +348,32 @@ public class HatchConverter
     /// <param name="boundaryAssociative">边界关联</param>
     void ResetBoundary(Hatch hatch, bool boundaryAssociative = true)
     {
-        if (BoundaryIds.Count == 0)
+        if (_hcDatas.Count == 0)
             return;
+        var tr = DBTrans.GetTop(hatch.Database);
 
-        // 移除原本的填充边界
+        // 设置关联,之后才可以加入边界
+        hatch.Associative = boundaryAssociative;
+        using ObjectIdCollection obIds = [];
+
+        // 先移除再添加,用原本的填充边界类型
         while (hatch.NumberOfLoops != 0)
             hatch.RemoveLoopAt(0);
 
-        hatch.Associative = boundaryAssociative;
-
-        using ObjectIdCollection obIds = [];
-
-        // 两种都会致命错误
-#if true2
-        for (int i = 0; i < BoundaryIds.Count; i++)
+        for (int i = 0; i < _hcDatas.Count; i++)
         {
             obIds.Clear();
-            obIds.Add(BoundaryIds[i]);
-            // 要先添加最外面的边界
-            if (i == 0)
+            foreach (var ent in _hcDatas[i].Entitys)
+                obIds.Add(ent.ObjectId);
+
+            if (_hcDatas[i].HatchLoopTypes.HasFlag(HatchLoopTypes.External))
+                hatch.AppendLoop(HatchLoopTypes.External, obIds);
+            else if (_hcDatas[i].HatchLoopTypes.HasFlag(HatchLoopTypes.Outermost))
                 hatch.AppendLoop(HatchLoopTypes.Outermost, obIds);
-            else
+            else if (_hcDatas[i].HatchLoopTypes.HasFlag(HatchLoopTypes.Default))
                 hatch.AppendLoop(HatchLoopTypes.Default, obIds);
         }
-#else
-        for (int i = 0; i < BoundaryIds.Count; i++)
-        {
-            obIds.Clear();
-            obIds.Add(BoundaryIds[i]);
-            hatch.AppendLoop(HatchLoopTypes.Default, obIds);
-        }
-#endif
 
-        // 设置填充样式
-        hatch.HatchStyle = HatchStyle.Normal;
         // 计算填充并显示
         hatch.EvaluateHatch(true);
     }

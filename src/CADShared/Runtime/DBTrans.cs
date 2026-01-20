@@ -1075,7 +1075,7 @@ public sealed class DBTrans : IDisposable
     public override string ToString()
     {
         StringBuilder sb = new();
-        sb.AppendLine("事务栈信息:");
+        sb.Append("事务栈信息:");
         int i = 0;
         foreach (var pair in _dBTrans)
         {
