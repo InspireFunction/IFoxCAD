@@ -1,4 +1,4 @@
-﻿#if NET35
+#if NET35
 #pragma warning disable CS1591 // 缺少XML注释
 #pragma warning disable CS1572 // XML注释中有不存在的参数
 #pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
@@ -107,6 +107,11 @@ namespace System.Linq
         public TSource[] ToArray()
         {
             return ToList().ToArray();
+        }
+
+        public int GetDegreeOfParallelism()
+        {
+            return _degreeOfParallelism;
         }
 
         private static void WaitForCompletion(ManualResetEvent[] resetEvents, ManualResetEvent allDoneEvent)
@@ -332,6 +337,140 @@ namespace System.Linq
     }
 }
 
+
+
+public static class ParallelExtensions
+{
+    public static void ForAll<T>(this ParallelQuery<T> source, Action<T> action, int maxDegreeOfParallelism = -1)
+    {
+        if (source == null) throw new ArgumentNullException("source");
+        if (action == null) throw new ArgumentNullException("action");
+
+        var sourceList = new List<T>(source);
+        if (sourceList.Count == 0) return;
+
+        // 确定并行度：如果未指定，使用ParallelQuery的并行度；如果指定为-1，使用默认核心数
+        int degree;
+        if (maxDegreeOfParallelism == -1)
+        {
+            degree = Math.Min(source.GetDegreeOfParallelism(), sourceList.Count);
+        }
+        else
+        {
+            degree = Math.Min(maxDegreeOfParallelism, sourceList.Count);
+        }
+
+        int batchSize = (int)Math.Ceiling((double)sourceList.Count / degree);
+
+        var resetEvents = new ManualResetEvent[degree];
+        int completedCount = 0;
+        var allDoneEvent = new ManualResetEvent(false);
+
+        for (int i = 0; i < degree; i++)
+        {
+            resetEvents[i] = new ManualResetEvent(false);
+            int threadIndex = i;
+
+            ThreadPool.QueueUserWorkItem(state => {
+                try
+                {
+                    int startIndex = threadIndex * batchSize;
+                    int endIndex = (threadIndex == degree - 1)
+                        ? sourceList.Count
+                        : Math.Min(startIndex + batchSize, sourceList.Count);
+
+                    for (int j = startIndex; j < endIndex; j++)
+                    {
+                        try
+                        {
+                            action(sourceList[j]);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Parallel execution error: {ex.Message}");
+                        }
+                    }
+                }
+                finally
+                {
+                    resetEvents[threadIndex].Set();
+
+                    if (Interlocked.Increment(ref completedCount) == degree)
+                    {
+                        allDoneEvent.Set();
+                    }
+                }
+            });
+        }
+
+        // 等待完成
+        ParallelEnumerableExtensions.WaitForCompletion(resetEvents, allDoneEvent);
+    }
+
+    public static void ForAll<T>(this IEnumerable<T> source, Action<T> action, int maxDegreeOfParallelism = -1)
+    {
+        if (source == null) throw new ArgumentNullException("source");
+        if (action == null) throw new ArgumentNullException("action");
+
+        // 默认并行度为核心数
+        int degree = maxDegreeOfParallelism == -1 ? Environment.ProcessorCount : maxDegreeOfParallelism;
+
+        var sourceList = new List<T>(source);
+        if (sourceList.Count == 0) return;
+
+        degree = Math.Min(degree, sourceList.Count);
+        int batchSize = (int)Math.Ceiling((double)sourceList.Count / degree);
+
+        var resetEvents = new ManualResetEvent[degree];
+        int completedCount = 0;
+        var allDoneEvent = new ManualResetEvent(false);
+
+        for (int i = 0; i < degree; i++)
+        {
+            resetEvents[i] = new ManualResetEvent(false);
+            int threadIndex = i;
+
+            ThreadPool.QueueUserWorkItem(state => {
+                try
+                {
+                    int startIndex = threadIndex * batchSize;
+                    int endIndex = (threadIndex == degree - 1)
+                        ? sourceList.Count
+                        : Math.Min(startIndex + batchSize, sourceList.Count);
+
+                    for (int j = startIndex; j < endIndex; j++)
+                    {
+                        try
+                        {
+                            action(sourceList[j]);
+                        }
+                        catch (Exception ex)
+                        {
+                            Debug.WriteLine($"Parallel execution error: {ex.Message}");
+                        }
+                    }
+                }
+                finally
+                {
+                    resetEvents[threadIndex].Set();
+
+                    if (Interlocked.Increment(ref completedCount) == degree)
+                    {
+                        allDoneEvent.Set();
+                    }
+                }
+            });
+        }
+
+        // 等待完成
+        ParallelEnumerableExtensions.WaitForCompletion(resetEvents, allDoneEvent);
+    }
+}
+
+
+
+
+
 namespace System.Linq
 {
     public static class ParallelEnumerableExtensions
@@ -502,7 +641,12 @@ namespace System.Linq
             return result;
         }
 
-        private static void WaitForCompletion(ManualResetEvent[] resetEvents, ManualResetEvent allDoneEvent)
+        /// <summary>
+        /// 等待完成
+        /// </summary>
+        /// <param name="resetEvents"></param>
+        /// <param name="allDoneEvent"></param>
+        public static void WaitForCompletion(ManualResetEvent[] resetEvents, ManualResetEvent allDoneEvent)
         {
             allDoneEvent.WaitOne();
 

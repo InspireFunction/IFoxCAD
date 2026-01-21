@@ -1,4 +1,6 @@
-﻿namespace JoinBoxAcad;
+﻿using System.Threading;
+
+namespace JoinBoxAcad;
 
 public static class DocumentEx
 {
@@ -79,8 +81,8 @@ public class LongTransactionManager
     }
 
 
-    [CommandMethod(nameof(bb))]
-    public static void bb()
+    [CommandMethod(nameof(WorkSet))]
+    public static void WorkSet()
     {
         using var tr = new DBTrans();
         StringBuilder stringBuilder = new();
@@ -94,6 +96,31 @@ public class LongTransactionManager
         }
         Env.Printl(stringBuilder);
     }
+
+
+    // Acad08 为什么没有用呢?其他版本呢?
+    [CommandMethod(nameof(CmdTransperentcy), CommandFlags.Redraw)]
+    public void CmdTransperentcy()
+    {
+        using DBTrans tr = new();
+        var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
+        var x = EditorEx.GetInteger(ed, "输入透明度", 255);
+        var ts = new Transparency((byte)x.Value);
+        foreach (var id in tr.BlockTable)
+        {
+            if (!id.IsOk())
+                continue;
+            using var obj = tr.GetObject(id);
+            if (obj is not BlockTableRecord btr)
+                continue;
+            foreach (var entid in btr)
+            {
+                using var ent = (Entity)tr.GetObject(entid, OpenMode.ForWrite, openLockedLayer: true);
+                ent.Transparency = ts;
+            }
+        }
+    }
+
 }
 
 /// <summary>
@@ -131,6 +158,7 @@ public class LongTransaction : IDisposable
     }
 
     // TODO 在位编辑期间不知道为什么多了个块表记录??!!
+    // 而且是已经删除的,怀疑是acad08的删除不清理bug
     bool WorkSetAdd(ObjectId id)
     {
         if (WorkSet.Add(id))
@@ -178,7 +206,14 @@ public class LongTransaction : IDisposable
     /// <summary>
     /// 在位编辑器运行状态
     /// </summary>
-    public bool RefeditRun { get => _refeditRun; set => _refeditRun = value; }
+    public bool RefeditRun
+    {
+        get
+        {
+            var refeditName = Env.GetVar("REFEDITNAME");
+            return !StringHelper.IsNullOrWhiteSpace(refeditName.ToString());
+        }
+    }
 
     /// <summary>
     /// 长事务
@@ -189,10 +224,9 @@ public class LongTransaction : IDisposable
         _doc = doc;
 
         // 检查是否在了你在位编辑期间
-        var refeditName = Env.GetVar("REFEDITNAME");
-        if (!StringHelper.IsNullOrWhiteSpace(refeditName.ToString()))
+        if (RefeditRun)
         {
-            Env.Printl("您必须关闭在位编辑器之后运行初始化命令,否则监控长事务功能会失效.");
+            Env.Printl($"长事务监控功能失效,该文档已经打开在位编辑器,重启文档才能进入监控: {doc.Name}");
             return;
         }
         LoadHelper(true);
@@ -223,7 +257,7 @@ public class LongTransaction : IDisposable
     /// <summary>
     /// 快照:执行前记录全局图元(因为存在撤回问题,所以必须记录)
     /// </summary>
-    HashSet<ObjectId> _currentIds = [];
+    readonly HashSet<ObjectId> _currentIds = [];
 
     /// <summary>
     /// 反应器->command命令执行前
@@ -314,15 +348,29 @@ public class LongTransaction : IDisposable
                 if (!_refeditRun)
                     return;
 
-                // 由于acad arx 存在一个部分撤回功能,也就是撤回时候不通过事件.
-                // 通过快照再进行一次过滤
-
                 // TODO 撤回对象跟踪问题
-                // 具体测试: 画rect和填充 组块,在位编辑,只选中填充减去,执行u,会发现没有任何事件执行...
-                // 1,对象是编辑期间减出去,运行u命令,
-                // 此时快照是原本的,就不对了,因此我们要删除和添加时候更新原本的快照.
-                // 但是撤回时候如何跟踪对象???
-                // 2,多次撤回,由于无法跟踪对象,导致它目前代码也不对.
+                // 由于 acad arx 存在一个部分撤回功能,也就是撤回时候不通过事件.
+                // 局部撤回技术 https://www.codeleading.com/article/18306112823/
+                // 造成我们存在无法跟踪撤回了哪些图元致命问题.
+
+                // 具体测试:
+                // 画rect和填充 组块,在位编辑,只选中填充减去,执行u,会发现除了命令事件,没有触发数据库事件.
+                // 在位编辑这个功能使用了局部撤回技术.
+                // 你只能捕捉u命令,无法捕捉哪个对象被撤回了.
+                // 此时就无法区分 在为编辑 图元在内部还是外部.
+
+                // 通过快照再进行一次过滤?? 不行.
+                // 对象是编辑期间减出去,运行u命令,此时快照是原本的,就不对了.
+                // 因此我们要 删除和添加 时候更新原本的快照.
+                // 但是多次撤回呢? 由于无法跟踪对象,导致它目前代码也不对.
+
+                // 我来从头做一个数据日志? redolog?
+                // 每次画一个东西就记录,
+                // 发生 ctrl+z 找到撤回点,
+                // 由我进行删除对象,把期间加入的图元抛到自定义事件中...
+                // 这似乎很恐怖啊...
+                // 还是那句话,我要怎么找到cad原生命令的撤回点呢?
+                // 似乎不需要找了,因为撤回点是我的,而且是记录事务和undoMark(多命令撤回)
 
                 //var prompt = Env.Editor.SelectAll(FilterForHatch);
                 //if (prompt.Status == PromptStatus.OK)
@@ -332,6 +380,9 @@ public class LongTransaction : IDisposable
                 //        .AsParallel()
                 //        .Where(a => !_currentIds.Contains(a)));
                 //}
+
+                var tr = new DBTrans();
+
             }
             break;
         }
