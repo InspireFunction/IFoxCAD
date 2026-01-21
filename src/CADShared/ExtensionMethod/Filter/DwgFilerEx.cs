@@ -14,6 +14,7 @@ public class DwgFilerEx
     #endregion
 
     #region 构造
+
     /// <summary>
     /// Dwg序列化
     /// </summary>
@@ -64,7 +65,8 @@ public class DwgFilerEx
         {
             Converters = new List<MyJsonConverter> { new ObjectIdConverter() }
         };
-        return MyJson.DeserializeObject<DwgFilerEx>(json, settings);
+        var s = MyJson.DeserializeObject<DwgFiler>(json, settings);
+        return new DwgFilerEx(s);
     }
 
     /// <summary>

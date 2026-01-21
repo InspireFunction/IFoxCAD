@@ -26,8 +26,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="..\TestAcad09plus\拦截输入法\**\*.cs" 
-                 Exclude="..\TestAcad09plus\拦截输入法\**\*xaml*.cs">
+        <Compile Include="..\TestAcad09plus\拦截输入法\**\*.cs" Exclude="..\TestAcad09plus\拦截输入法\**\*xaml*.cs">
             <Link>拦截输入法\%(RecursiveDir)%(FileName)%(Extension)</Link>
         </Compile>
     </ItemGroup>

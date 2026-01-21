@@ -5,10 +5,10 @@
   <Folder Name="/src/">
     <File Path="src/Directory.Build.props" />
     <Project Path="src/CADShared/CADShared.shproj" />
-    <Project Path="src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj" />   
-    <Project Path="src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj" />    
     <Project Path="src/IFoxCAD.Acad08/IFoxCAD.Acad08.csproj" />
+    <Project Path="src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj" />
     <Project Path="src/IFoxCAD.Gcad/IFoxCAD.Gcad.csproj" />
+    <Project Path="src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj" />
   </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />
@@ -17,5 +17,6 @@
     <Project Path="tests/TestAcad09plus/TestAcad09plus.csproj" />
     <Project Path="tests/TestConsole/TestConsole.csproj" />
     <Project Path="tests/TestShared/TestShared.shproj" />
+    <Project Path="tests/TestUndoDAG/ConsoleTestUndoDAG.csproj" />
   </Folder>
 </Solution>

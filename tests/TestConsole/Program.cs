@@ -10,32 +10,36 @@ using System.Text;
 using System.Diagnostics;
 
 
-#if true2
+#if true
 namespace CalculatorDemo
 {
     class Program
     {
         static void Main(string[] args)
         {
-            int nResult = AddTwoNumbers(10, 20);
-            Console.WriteLine(nResult);
+            //int nResult = AddTwoNumbers(10, 20);
+            //Console.WriteLine(nResult);
 
-            AddTwoNumbers22((a, b) => {
-                Console.WriteLine(a + b);
-            });
+            //AddTwoNumbers22((a, b) => {
+            //    Console.WriteLine(a + b);
+            //});
 
-            var a = new int[] { 1, 2, 3, 4, 5, 6, 78, 9, 92, };
-            a.ForEach(a => {
-                Console.WriteLine(a);
-            });
+            //var a = new int[] { 1, 2, 3, 4, 5, 6, 78, 9, 92, };
+            //a.ForEach(a => {
+            //    Console.WriteLine(a);
+            //});
 
-            // 运行MemoryCache测试
-            Console.WriteLine();
-            TestMemoryCache.RunTest();
+            //// 运行MemoryCache测试
+            //Console.WriteLine();
+            //TestMemoryCache.RunTest();
 
             // 运行JSON序列化测试
             Console.WriteLine();
             TestJson.RunTests();
+
+            // 运行Newtonsoft.Json对比测试
+            Console.WriteLine();
+            TestNewtonsoftJsonComparison.RunTests();
         }
 
         [DebuggerHidden]

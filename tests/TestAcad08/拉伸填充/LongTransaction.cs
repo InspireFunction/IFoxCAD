@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿#if true
+using System.Threading;
 
 namespace JoinBoxAcad;
 
@@ -28,6 +29,16 @@ public static class DocumentEx
 
 
 #if NET35
+
+/*
+ * TODO 长事务管理器问题
+ * 惊惊:
+ * 难以实现长事务管理器,用高版本才行.
+ * 如果非要做就需要实现: 回滚与重做日志
+ * 在日志中监控全部数据录入
+ * 
+ */
+
 public class LongTransactionManager
 {
     /// <summary>
@@ -229,6 +240,7 @@ public class LongTransaction : IDisposable
             Env.Printl($"长事务监控功能失效,该文档已经打开在位编辑器,重启文档才能进入监控: {doc.Name}");
             return;
         }
+
         LoadHelper(true);
     }
 
@@ -290,12 +302,12 @@ public class LongTransaction : IDisposable
     void Md_CommandEnded(object sender, CommandEventArgs e)
     {
         var cmdup = e.GlobalCommandName.ToUpper();
+
         switch (cmdup)
         {
             case "REFEDIT":
             {
                 _refeditRun = true;
-
                 // 命令后,扫描全图获取,多出来的就是在位编辑块内的
                 var prompt = Env.Editor.SelectAll(FilterForHatch);
                 if (prompt.Status == PromptStatus.OK)
@@ -337,52 +349,6 @@ public class LongTransaction : IDisposable
             {
                 _refeditRun = false;
                 Clear();
-            }
-            break;
-            case "MREDO": // 重做 ctrl+y
-            {
-            }
-            break;
-            case "U": // 撤回 ctrl+z
-            {
-                if (!_refeditRun)
-                    return;
-
-                // TODO 撤回对象跟踪问题
-                // 由于 acad arx 存在一个部分撤回功能,也就是撤回时候不通过事件.
-                // 局部撤回技术 https://www.codeleading.com/article/18306112823/
-                // 造成我们存在无法跟踪撤回了哪些图元致命问题.
-
-                // 具体测试:
-                // 画rect和填充 组块,在位编辑,只选中填充减去,执行u,会发现除了命令事件,没有触发数据库事件.
-                // 在位编辑这个功能使用了局部撤回技术.
-                // 你只能捕捉u命令,无法捕捉哪个对象被撤回了.
-                // 此时就无法区分 在为编辑 图元在内部还是外部.
-
-                // 通过快照再进行一次过滤?? 不行.
-                // 对象是编辑期间减出去,运行u命令,此时快照是原本的,就不对了.
-                // 因此我们要 删除和添加 时候更新原本的快照.
-                // 但是多次撤回呢? 由于无法跟踪对象,导致它目前代码也不对.
-
-                // 我来从头做一个数据日志? redolog?
-                // 每次画一个东西就记录,
-                // 发生 ctrl+z 找到撤回点,
-                // 由我进行删除对象,把期间加入的图元抛到自定义事件中...
-                // 这似乎很恐怖啊...
-                // 还是那句话,我要怎么找到cad原生命令的撤回点呢?
-                // 似乎不需要找了,因为撤回点是我的,而且是记录事务和undoMark(多命令撤回)
-
-                //var prompt = Env.Editor.SelectAll(FilterForHatch);
-                //if (prompt.Status == PromptStatus.OK)
-                //{
-                //    Clear();
-                //    WorkSetAdd(prompt.Value.GetObjectIds()
-                //        .AsParallel()
-                //        .Where(a => !_currentIds.Contains(a)));
-                //}
-
-                var tr = new DBTrans();
-
             }
             break;
         }
@@ -487,4 +453,5 @@ public class LongTransaction : IDisposable
     #endregion
 }
 
+#endif
 #endif

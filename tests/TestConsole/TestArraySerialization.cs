@@ -5,7 +5,11 @@ namespace IFoxCAD.Cad.Tests
 {
     class TestArraySerialization
     {
+#if TEST_ARRAY_SERIALIZATION
         static void Main(string[] args)
+#else
+        static void TestMain(string[] args)
+#endif
         {
             // 测试对象1：包含空数组
             var testObj1 = new TestData
@@ -34,8 +38,7 @@ namespace IFoxCAD.Cad.Tests
 
             Console.WriteLine("=== 测试2：用户提供的IME配置对象 ===");
             TestSerialization(testObj2);
-
-            Console.ReadKey();
+            Console.WriteLine(); // Added for spacing
         }
 
         static void TestSerialization(object obj)

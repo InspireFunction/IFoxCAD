@@ -2,18 +2,13 @@
 #pragma warning disable CS1572 // XML注释中有不存在的参数
 #pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
 
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Reflection;
+using System.Xml.Linq;
 
 namespace IFoxCAD.Cad;
 
 public class MyJson
 {
-    private List<MyJsonConverter> _converters = new();
+    private List<MyJsonConverter> _converters = [];
     private bool _indent;
 
     public Formatting Formatting
@@ -24,9 +19,11 @@ public class MyJson
 
     public TypeNameHandling TypeNameHandling { get; set; }
 
-    public static string SerializeObject(object? obj)
+    public static string SerializeObject(object? obj, Formatting formatting = Formatting.None)
     {
-        return SerializeObject(obj, new MyJsonSettings());
+        var ms = new MyJsonSettings();
+        ms.Formatting = formatting;
+        return SerializeObject(obj, ms);
     }
 
     public static string SerializeObject(object? obj, MyJsonSettings settings)
@@ -77,7 +74,7 @@ public class MyJson
 
     private string GetIndentString(int indent)
     {
-        return _indent ? new string(' ', indent * 4) : string.Empty;
+        return _indent ? new string(' ', indent * 2) : string.Empty; // 使用2个空格缩进，与Newtonsoft.Json保持一致
     }
 
     private void SerializeValue(object obj, StringBuilder sb, int indent)
@@ -98,13 +95,20 @@ public class MyJson
             return;
         }
 
-        if (type.IsPrimitive || type == typeof(string) || type == typeof(decimal))
+        if (obj == null)
+        {
+            sb.Append("null");
+            return;
+        }
+
+        if (type.IsPrimitive || type == typeof(string) || type == typeof(decimal) || type == typeof(DateTime))
         {
             SerializePrimitive(obj, sb);
         }
         else if (type.IsEnum)
         {
-            sb.Append($"\"{obj}\"");
+            // 默认将枚举序列化为数字，与Newtonsoft.Json保持一致
+            sb.Append(Convert.ChangeType(obj, Enum.GetUnderlyingType(type)).ToString());
         }
         else if (type.IsArray)
         {
@@ -114,9 +118,14 @@ public class MyJson
         {
             SerializeDictionary(dict, sb, indent);
         }
-        else if (obj is IEnumerable enumerable)
+        else if (obj is IEnumerable enumerable && !(obj is string))
         {
             SerializeEnumerable(enumerable, sb, indent);
+        }
+        else if (type.IsValueType && !type.IsPrimitive && !type.IsEnum)
+        {
+            // 处理结构体（struct），包括自定义结构体
+            SerializeObject(obj, sb, indent);
         }
         else if (type.IsClass)
         {
@@ -137,6 +146,30 @@ public class MyJson
         else if (obj is bool b)
         {
             sb.Append(b ? "true" : "false");
+        }
+        else if (obj is double d)
+        {
+            // 保留小数点表示，与Newtonsoft.Json保持一致
+            if (d == Math.Floor(d))
+                sb.Append(d.ToString("R"));
+            else
+                sb.Append(d.ToString("R"));
+        }
+        else if (obj is float f)
+        {
+            // 保留小数点表示，与Newtonsoft.Json保持一致
+            if (f == Math.Floor(f))
+                sb.Append(f.ToString("R"));
+            else
+                sb.Append(f.ToString("R"));
+        }
+        else if (obj is decimal dec)
+        {
+            // 保留小数点表示，与Newtonsoft.Json保持一致
+            if (dec == Math.Floor(dec))
+                sb.Append(dec.ToString());
+            else
+                sb.Append(dec.ToString());
         }
         else
         {
@@ -179,7 +212,7 @@ public class MyJson
             {
                 for (int i = 0; i < array.Length; i++)
                 {
-                    if (i > 0) sb.Append(", ");
+                    if (i > 0) sb.Append(",");
                     SerializeValue(array.GetValue(i), sb, indent);
                 }
             }
@@ -191,7 +224,14 @@ public class MyJson
     {
         sb.Append("[");
         bool first = true;
-        var items = enumerable.Cast<object>().ToList();
+
+        // Handle different collection types properly
+        var items = new List<object>();
+        foreach (var item in enumerable)
+        {
+            items.Add(item);
+        }
+
         if (items.Count > 0)
         {
             if (_indent)
@@ -214,7 +254,7 @@ public class MyJson
             {
                 foreach (var item in items)
                 {
-                    if (!first) sb.Append(", ");
+                    if (!first) sb.Append(",");
                     first = false;
                     SerializeValue(item, sb, indent);
                 }
@@ -250,7 +290,7 @@ public class MyJson
                 sb.Append(GetIndentString(indent + 1));
             }
             first = false;
-            sb.Append("\"" + EscapeString(key.ToString() ?? "") + "\": ");
+            sb.Append(_indent ? "\"" + EscapeString(key.ToString() ?? "") + "\": " : "\"" + EscapeString(key.ToString() ?? "") + "\":");
             SerializeValue(dict[key]!, sb, indent + 1);
         }
         if (keys.Count > 0 && _indent)
@@ -288,7 +328,7 @@ public class MyJson
                 sb.Append(GetIndentString(indent + 1));
             }
             first = false;
-            sb.Append("\"" + EscapeString(key.ToString() ?? "") + "\": ");
+            sb.Append(_indent ? "\"" + EscapeString(key.ToString() ?? "") + "\": " : "\"" + EscapeString(key.ToString() ?? "") + "\":");
             SerializeValue(dict[key], sb, indent + 1);
         }
         if (keys.Count > 0 && _indent)
@@ -309,7 +349,7 @@ public class MyJson
                 sb.AppendLine();
                 int newIndent = indent + 1;
                 sb.Append(GetIndentString(newIndent));
-                sb.Append($"\"$type\": \"{obj.GetType().FullName}\",");
+                sb.Append($"\"$type\":\"{obj.GetType().FullName}\",");
                 sb.AppendLine();
                 sb.Append(GetIndentString(newIndent));
                 SerializeFields(obj, sb, newIndent);
@@ -318,7 +358,7 @@ public class MyJson
             }
             else
             {
-                sb.Append($"\"$type\": \"{obj.GetType().FullName}\", ");
+                sb.Append($"\"$type\":\"{obj.GetType().FullName}\",");
                 SerializeFields(obj, sb, indent);
             }
         }
@@ -326,8 +366,10 @@ public class MyJson
         {
             if (_indent)
             {
+                int newIndent = indent + 1;
                 sb.AppendLine();
-                SerializeFields(obj, sb, indent + 1);
+                sb.Append(GetIndentString(newIndent));
+                SerializeFields(obj, sb, newIndent);
                 sb.AppendLine();
                 sb.Append(GetIndentString(indent));
             }
@@ -353,16 +395,16 @@ public class MyJson
         {
             if (!first && _indent)
             {
-                sb.Append(",");
+                sb.Append(',');
                 sb.AppendLine();
                 sb.Append(GetIndentString(indent));
             }
             else if (!first && !_indent)
             {
-                sb.Append(", ");
+                sb.Append(",");
             }
             first = false;
-            sb.Append($"\"{field.Name}\": ");
+            sb.Append(_indent ? $"\"{field.Name}\": " : $"\"{field.Name}\":");
             object? value = field.GetValue(obj);
             SerializeValue(value, sb, indent);
             currentIndex++;
@@ -370,21 +412,40 @@ public class MyJson
 
         foreach (var prop in properties)
         {
+            // 检查是否是索引器属性（有参数的属性）
+            var indexParams = prop.GetIndexParameters();
+            if (indexParams.Length > 0)
+            {
+                // 跳过所有索引器属性
+                continue;
+            }
+
             if (!first && _indent)
             {
-                sb.Append(",");
+                sb.Append(',');
                 sb.AppendLine();
                 sb.Append(GetIndentString(indent));
             }
             else if (!first && !_indent)
             {
-                sb.Append(", ");
+                sb.Append(',');
             }
             first = false;
-            sb.Append($"\"{prop.Name}\": ");
+            sb.Append(_indent ? $"\"{prop.Name}\": " : $"\"{prop.Name}\":");
             object? value;
-            try { value = prop.GetValue(obj, null); }
-            catch { value = null; }
+            try
+            {
+                //if (type.Name == "Point3d")
+                //{
+                //}
+                // TODO 图元经过序列化时候上下文存在问题,例如com接口这些被反射了直接报错
+                value = prop.GetValue(obj, null);
+            }
+            catch
+            {
+                value = null;
+                Debugger.Break();
+            }
             SerializeValue(value!, sb, indent);
             currentIndex++;
         }
@@ -418,6 +479,12 @@ public class MyJson
         if (targetType == typeof(int))
             return Convert.ToInt32(token.Value);
 
+        if (targetType == typeof(long))
+            return Convert.ToInt64(token.Value);
+
+        if (targetType == typeof(float))
+            return Convert.ToSingle(token.Value);
+
         if (targetType == typeof(double))
             return Convert.ToDouble(token.Value);
 
@@ -426,6 +493,14 @@ public class MyJson
 
         if (targetType == typeof(decimal))
             return Convert.ToDecimal(token.Value);
+
+        if (targetType == typeof(DateTime))
+        {
+            if (token.Value is string dateString)
+                return DateTime.Parse(dateString);
+            else
+                return DateTime.MinValue;
+        }
 
         if (targetType.IsEnum)
             return Enum.Parse(targetType, token.Value?.ToString() ?? "");
@@ -511,17 +586,26 @@ public class MyJson
         }
         else
         {
+            // 这里报错了
             var genericArgs = type.GetGenericArguments();
             if (genericArgs.Length > 0)
             {
                 elementType = genericArgs[0];
                 var listType = typeof(List<>).MakeGenericType(elementType);
                 var result = Activator.CreateInstance(listType);
+                if (result == null)
+                    return null;
                 var addMethod = listType.GetMethod("Add");
                 foreach (var item in list)
                 {
-                    var value = DeserializeToken(new Token { Type = GetTokenType(item), Value = item }, elementType);
-                    addMethod?.Invoke(result, new[] { value });
+                    var token = new Token { Type = GetTokenType(item), Value = item };
+                    var rawValue = DeserializeToken(token, elementType);
+                    var convertedValue = ConvertToType(rawValue, elementType);
+
+                    if (convertedValue != null || elementType.IsClass || Nullable.GetUnderlyingType(elementType) != null)
+                    {
+                        addMethod?.Invoke(result, new[] { convertedValue });
+                    }
                 }
                 return result;
             }
@@ -529,6 +613,46 @@ public class MyJson
 
         return list;
     }
+
+    private object? ConvertToType(object? value, Type targetType)
+    {
+        if (value == null)
+        {
+            if (targetType.IsClass || Nullable.GetUnderlyingType(targetType) != null)
+                return null;
+            else
+                return Activator.CreateInstance(targetType); // 值类型的默认值
+        }
+
+        if (targetType.IsAssignableFrom(value.GetType()))
+            return value;
+
+        try
+        {
+            // 处理数字类型转换
+            if (targetType == typeof(byte) && value is int intVal)
+                return Convert.ToByte(intVal);
+            if (targetType == typeof(short) && value is int intVal2)
+                return Convert.ToInt16(intVal2);
+            if (targetType == typeof(ushort) && value is int intVal3)
+                return Convert.ToUInt16(intVal3);
+            if (targetType == typeof(float) && value is double doubleVal1)
+                return Convert.ToSingle(doubleVal1);
+            if (targetType == typeof(decimal) && value is double doubleVal2)
+                return Convert.ToDecimal(doubleVal2);
+
+            // 通用转换
+            return Convert.ChangeType(value, targetType);
+        }
+        catch
+        {
+            // 返回目标类型的默认值
+            if (targetType.IsValueType)
+                return Activator.CreateInstance(targetType);
+            return null;
+        }
+    }
+
 
     private TokenType GetTokenType(object value)
     {
