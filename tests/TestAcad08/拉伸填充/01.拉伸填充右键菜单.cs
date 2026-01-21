@@ -1,8 +1,6 @@
-﻿using IFoxCAD.Cad;
-using System.Drawing.Drawing2D;
-using static IFoxCAD.Cad.PostCmd;
+﻿namespace JoinBoxAcad;
 
-namespace JoinBoxAcad;
+using static IFoxCAD.Cad.PostCmd;
 
 public class StretchFill​
 {

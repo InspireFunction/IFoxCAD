@@ -1,4 +1,4 @@
-namespace IFoxCAD.Cad;
+﻿namespace IFoxCAD.Cad;
 
 using PointV = Point2d;
 

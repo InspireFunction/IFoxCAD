@@ -1,6 +1,6 @@
-﻿using System.Drawing;
+﻿namespace JoinBoxAcad;
 
-namespace JoinBoxAcad;
+using System.Drawing;
 
 public partial class Screen
 {

@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+﻿using System.Collections.ObjectModel;
 
 namespace JoinBoxAcad;
 
@@ -367,8 +367,9 @@ public class HatchPick : IDisposable
 
             // 遍历选择,创建边界转换器
             // 重设选择集
-            setImpSelect.Add(prompt.Value.GetObjectIds());
-            foreach (var entId in prompt.Value.GetObjectIds())
+            var ids = prompt.Value.GetObjectIds();
+            setImpSelect.Add(ids);
+            foreach (var entId in ids)
             {
                 using var ent = tr.GetObject(entId, openLockedLayer: true);
                 if (ent is not Hatch hatch || islocks.Contains(hatch.Layer))
@@ -378,7 +379,8 @@ public class HatchPick : IDisposable
                     continue;
 
                 // 在为编辑期间并且不是块内图元,就跳过
-                if (LongTransManager.RefeditRun() && !LongTransManager.WorkSetHas(entId))
+                var doc = Acap.DocumentManager.MdiActiveDocument;
+                if (LongTransactionManager.RefeditRun(doc) && !LongTransactionManager.WorkSetHas(doc, entId))
                 {
                     DebugEx.Printl($"在为编辑期间并且不是块内图元,就跳过: {entId}");
                     continue;
@@ -557,6 +559,7 @@ public class HatchPick : IDisposable
     {
         if (!State.IsRun)
             return;
+        DebugEx.Printl($"{nameof(DB_ObjectErased)}: {e.DBObject} , {e.DBObject.IsUndoing} , {e.DBObject.IsErased}");
 
         // object erased.
         if (e.Erased)
@@ -609,6 +612,7 @@ public class HatchPick : IDisposable
     {
         if (!State.IsRun)
             return;
+        DebugEx.Printl($"{nameof(DB_ObjectModified)}: {e.DBObject} , {e.DBObject.IsUndoing} , {e.DBObject.IsErased}");
 
         // 然后删除我制造的拉伸填充上面的关联反应器
         if (!e.DBObject.IsUndoing)

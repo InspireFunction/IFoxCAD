@@ -1,4 +1,4 @@
-using ConcurrentCollections;
+﻿using ConcurrentCollections;
 using IFoxCAD.Cad;
 using System.Diagnostics;
 using System.IO;
