@@ -56,7 +56,7 @@ public static class IFoxUtils
             if (doc is null)
                 continue; // 获取不到文档说明是后台开图，后台开图就不用刷新了
             using var dl = doc.LockDocument();
-            using var tr = new DBTrans(db);
+            using var tr = DBTrans.Create(db);
             var layerIdSet = group.ToHashSet();
             foreach (var ltr in layerIdSet.Select(id => tr.GetObject(id, OpenMode.ForWrite))
                          .OfType<LayerTableRecord>())

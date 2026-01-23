@@ -27,7 +27,7 @@ public class TestBlock
     [CommandMethod(nameof(Test_GetBoundingBoxEx))]
     public void Test_GetBoundingBoxEx()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var ents = Env.Editor.SSGet().Value?.GetEntities<Entity>();
         if (ents == null)
             return;
@@ -44,7 +44,7 @@ public class TestBlock
     [CommandMethod(nameof(Test_BlockDef))]
     public void Test_BlockDef()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         // var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.BlockTable.Add("test",
             btr => {
@@ -115,7 +115,7 @@ public class TestBlock
     [CommandMethod(nameof(Test_BlockDefChange))]
     public void Test_BlockDefChange()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         // var line = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         // tr.BlockTable.Change("test", btr =>
         // {
@@ -157,7 +157,7 @@ public class TestBlock
     [CommandMethod(nameof(Test_InsertBlockDef))]
     public void Test_InsertBlockDef()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var line1 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         var line2 = new Line(new Point3d(0, 0, 0), new Point3d(-1, 1, 0));
         var att1 = new AttributeDefinition() { Position = new Point3d(10, 10, 0), Tag = "tagTest1", Height = 1, TextString = "valueTest1" };
@@ -204,22 +204,22 @@ public class TestBlock
     public void Test_InsertBlockWithDoubleDatabase()
     {
         var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "test.dwg");
-        using var tr = DBTrans.OpenPushToBackend(file);
-        using var trans = new DBTrans();
+        using var trf = DBTrans.OpenPushToBackend(file);
+        using var tr = DBTrans.Create();
 
-        tr.BlockTable.Add("test456",
+        trf.BlockTable.Add("test456",
             btr => {
                 btr.Origin = new(0, 0, 0);
             },
             () => {
                 var line = new Line(new(0, 0, 0), new(1, 1, 0));
-                var actext = DBTextEx.CreateDBText(Point3d.Origin, "123", 2.5, database: tr.Database);
+                var actext = DBTextEx.CreateDBText(Point3d.Origin, "123", 2.5, database: trf.Database);
 
                 return new List<Entity> { line, actext };
 
             });
-        tr.CurrentSpace.InsertBlock(Point3d.Origin, "test456");
-        tr.Database.SaveDwgFile();
+        trf.CurrentSpace.InsertBlock(Point3d.Origin, "test456");
+        trf.Database.SaveDwgFile();
     }
 
 
@@ -227,7 +227,7 @@ public class TestBlock
     [CommandMethod(nameof(Test_AddAttsDef))]
     public void Test_AddAttsDef()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var blockid = Env.Editor.GetEntity("pick block:").ObjectId;
         var btf = (BlockReference)tr.GetObject(blockid);
         var att1 = new AttributeDefinition() { Position = new Point3d(20, 20, 0), Tag = "addtagTest1", Height = 1, TextString = "valueTest1" };
@@ -238,7 +238,7 @@ public class TestBlock
     [CommandMethod(nameof(Test_BlockNullBug))]
     public void Test_BlockNullBug()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
 
         var ents = new List<Entity>();
         var line5 = new Line(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
@@ -252,7 +252,7 @@ public class TestBlock
     [CommandMethod(nameof(Test_BlockFile))]
     public void Test_BlockFile()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var file = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.Desktop), "test.dwg");
         var id = tr.BlockTable.GetBlockFrom(file, false);
         tr.CurrentSpace.InsertBlock(Point3d.Origin, id);
@@ -266,7 +266,7 @@ public class TestBlock
         if (folder.ShowDialog() == System.Windows.Forms.DialogResult.OK)
         {
             files = Directory.GetFiles(folder.SelectedPath, "*.dxf", SearchOption.AllDirectories);
-            using DBTrans tr = new();
+            using var tr = DBTrans.Create();
             foreach (var item in files)
             {
                 var id = tr.BlockTable.GetBlockFrom(item, false);
@@ -288,7 +288,7 @@ public class TestBlock
     public void Test_CreateMTextAttributeBlock()
     {
 
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
 
         tr.BlockTable.Add("MTextAttributeBlock", btr => {
             btr.Origin = Point3d.Origin;
@@ -325,7 +325,7 @@ public class TestBlock
     [CommandMethod(nameof(Test_ClipBlock))]
     public void Test_ClipBlock()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.BlockTable.Add("test1", btr => {
             btr.Origin = new Point3d(0, 0, 0);
             btr.AddEntity(new Line(new Point3d(0, 0, 0), new Point3d(10, 10, 0)),
@@ -346,7 +346,7 @@ public class TestBlock
     [CommandMethod(nameof(Test_ClipBlock1))]
     public void Test_ClipBlock1()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var ent = Env.Editor.GetEntity("pick block");
         if (ent.Status != PromptStatus.OK) return;
 
@@ -362,7 +362,7 @@ public class TestBlock
     [CommandMethod(nameof(Test_Block_ej))]
     public void Test_Block_ej()
     {
-        using (DBTrans tr = new())
+        using var tr = DBTrans.Create();
         {
             // Point3d.Origin.AddBellowToModelSpace(100, 100, 5, 3, 30);// 画波纹管
 
@@ -391,7 +391,7 @@ public class TestBlock
             brf?.Draw();
         }
 
-        using DBTrans tr2 = new();
+        using var tr2 = DBTrans.Create();
         PromptEntityOptions peo = new("\n请选择一个块");
         peo.SetRejectMessage("\n对象必须是块");
         peo.AddAllowedClass(typeof(BlockReference), true);
@@ -460,7 +460,7 @@ public class TestBlock
         string blockName = "W_BLOCK_" + DateTime.Now.ToString("yyyyMMdd_HHmmss");
         // var rss = ed.GetSelection(promptOpt);
         var rss = Env.Editor.GetSelection(promptOpt);
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         if (rss.Status == PromptStatus.OK)
         {
             // SelectionSet ss = rss.Value;
@@ -607,7 +607,7 @@ public class TestBlock
             { "haha", 1 }
         };
         var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var brf = (BlockReference)tr.GetObject(blockid);
         brf.ChangeBlockProperty(pro);
         // 这是第一个函数的用法
@@ -620,7 +620,7 @@ public class TestBlock
             { "haha", "1" }
         };
         var blockid = Env.Editor.GetEntity("选择个块").ObjectId;
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var brf = (BlockReference)tr.GetObject(blockid);
         brf.ChangeBlockProperty(pro);
         // 这是第一个函数的用法
@@ -657,7 +657,7 @@ public class TestBlock
         var r1 = Env.Editor.GetEntity("pick block");
         if (r1.Status != PromptStatus.OK)
             return;
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         if (tr.GetObject(r1.ObjectId, OpenMode.ForWrite) is not BlockReference brf)
             return;
         var dboc = new DBObjectCollection();
@@ -781,7 +781,7 @@ public class BlockImportClass
     public void Test_Cbll()
     {
         string filename = @"C:\Users\vic\Desktop\Drawing1.dwg";
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         using var tr1 = DBTrans.OpenPushToBackend(filename);
         // tr.BlockTable.GetBlockFrom(filename, true);
         string blkdefname = SymbolUtilityServices.RepairSymbolName(SymbolUtilityServices.GetSymbolNameFromPathName(filename, "dwg"), false);

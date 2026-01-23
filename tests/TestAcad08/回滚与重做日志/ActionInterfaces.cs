@@ -1,26 +1,16 @@
-#if true
-using System.Security.Cryptography;
-using System.Text;
-using static IFoxCAD.Cad.PostCmd;
-
-namespace JoinBoxAcad
-{ 
+namespace JoinBoxAcad;
 
 // 动作类型枚举
 public enum ActionType
 {
     // 系统操作(根节点使用)
     OtherOperation,
-
-    // 命令相关
     CommandExecution,      // 执行命令
 
-    // 数据库操作
     DatabaseAdd,           // 数据库添加
     DatabaseDelete,       // 数据库删除
     DatabaseModify,       // 数据库修改
 
-    // 在位编辑
     InPlaceAdd,           // 添加到在位编辑
     InPlaceRemove,        // 从在位编辑移除
 }
@@ -76,5 +66,3 @@ public interface IAction
     /// <returns></returns>
     IAction MergeWith(IAction otherAction);
 }
-}
-#endif

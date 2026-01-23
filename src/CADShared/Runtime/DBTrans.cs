@@ -113,7 +113,7 @@ public sealed class DBTrans : IDisposable
     /// <summary>
     /// 文档锁 map[文档名,文档锁]
     /// </summary>
-    private readonly static Dictionary<Database, (Document Document, DocumentLock DocumentLock)> _docAndLockMap = [];
+    private readonly static Dictionary<Database, Document> _dbDocMap = [];
     #endregion
 
     #region 本类字段
@@ -145,8 +145,8 @@ public sealed class DBTrans : IDisposable
     {
         get
         {
-            if (_docAndLockMap.TryGetValue(_database, out var dx))
-                return dx.Document;
+            if (_dbDocMap.TryGetValue(_database, out var doc))
+                return doc;
             return null;
             //// Acad2014找不到会报错,2024则不会
             //try { return Acaop.DocumentManager.GetDocument(_database); }
@@ -167,8 +167,6 @@ public sealed class DBTrans : IDisposable
     #endregion
 
     #region 构造函数
-
-
     /// <summary>
     /// 事务栈
     /// <para>默认构造函数,默认为打开当前文档,默认提交事务</para>
@@ -177,11 +175,33 @@ public sealed class DBTrans : IDisposable
     /// <param name="commit">事务是否提交</param>
     /// <param name="docLock">是否锁文档</param>
     /// <param name="openCloseTrans">无撤事务</param>
-    public DBTrans(Document? doc = null, bool commit = true,
-     bool docLock = false, bool openCloseTrans = false)
+    /// <returns></returns>
+    public static DBTrans Create(Document? doc = null, bool commit = true,
+        bool docLock = false, bool openCloseTrans = false)
     {
         doc ??= Acaop.DocumentManager.MdiActiveDocument;
+        CheckDatabaseError(doc.Database);
+        var tr = new DBTrans(doc, commit, docLock, openCloseTrans);
+        return tr;
+    }
 
+    /// <summary>
+    /// 事务栈
+    /// <para>打开数据库,默认提交事务</para>
+    /// </summary>
+    /// <param name="db">要打开的数据库</param>
+    /// <param name="commit">事务是否提交</param>
+    /// <param name="openCloseTrans">无撤事务</param>
+    public static DBTrans Create(Database db, bool commit = true, bool openCloseTrans = false)
+    {
+        CheckDatabaseError(db);
+        var tr = new DBTrans(db, commit, openCloseTrans);
+        return tr;
+    }
+
+    // 构造函数不许报错,否则会导致触发dispose
+    DBTrans(Document doc, bool commit = true, bool docLock = false, bool openCloseTrans = false)
+    {
         // 如果已经锁了就不再锁
         //#if !NET35
         //        // 用这个可以避免多个插件进行锁
@@ -192,15 +212,11 @@ public sealed class DBTrans : IDisposable
         // 用这个只能大家都用IFoxCAD才能避免多次锁,除非把它做成共享内存.
         if (docLock)
         {
-            if (_docAndLockMap.ContainsKey(doc.Database))
-            {
-                throw new ArgumentNullException("文档已经锁定,切勿重复加锁");
-            }
-            _docAndLockMap[doc.Database] = (doc, doc.LockDocument());
+            DocumentLockManager.LockDocument(doc);
         }
 
+        _dbDocMap[doc.Database] = doc;
         _database = doc.Database;
-        CheckDatabaseError();
         var tm = _database.TransactionManager;
 #if !NET35
         if (openCloseTrans)
@@ -219,17 +235,10 @@ public sealed class DBTrans : IDisposable
         trStack.Push(this);
     }
 
-    /// <summary>
-    /// 事务栈
-    /// <para>打开数据库,默认提交事务</para>
-    /// </summary>
-    /// <param name="db">要打开的数据库</param>
-    /// <param name="commit">事务是否提交</param>
-    /// <param name="openCloseTrans">无撤事务</param>
-    public DBTrans(Database db, bool commit = true, bool openCloseTrans = false)
+    // 构造函数不许报错,否则会导致触发dispose
+    DBTrans(Database db, bool commit = true, bool openCloseTrans = false)
     {
         _database = db;
-        CheckDatabaseError();
         var tm = _database.TransactionManager;
 #if !NET35
         if (openCloseTrans)
@@ -810,7 +819,7 @@ public sealed class DBTrans : IDisposable
     public DBTrans Task(Action action, Echo echo = Echo.All)
     {
         if (action is null) throw new ArgumentNullException(nameof(action));
-        if (CheckDatabaseError(echo.HasFlag(Echo.FatalErrors)))
+        if (CheckDatabaseError(_database, echo.HasFlag(Echo.FatalErrors)))
         {
             return this;
         }
@@ -984,35 +993,25 @@ public sealed class DBTrans : IDisposable
                     _transaction.Abort();
                     if (vtr is not null) Editor?.SetCurrentView(vtr);
                 }
+
+                // 表记录释放
+                foreach (var pair in _objectCache)
+                {
+                    if (pair.Value.IsAlive)
+                    {
+                        ((DBObject)pair.Value.Target).Dispose();
+                    }
+                }
+                _objectCache.Clear();
+
                 _transaction.Dispose();
             }
 
-            if (_docAndLockMap.TryGetValue(_database, out var dx))
+            if (_dbDocMap.TryGetValue(_database, out var doc))
             {
-                dx.DocumentLock.Dispose();
-                _docAndLockMap.Remove(_database);
+                DocumentLockManager.RemoveLock(doc);
+                _dbDocMap.Remove(_database);
             }
-
-            // 表记录释放
-            foreach (var pair in _objectCache)
-            {
-                if (pair.Value.IsAlive)
-                {
-                    ((DBObject)(pair.Value.Target)).Dispose();
-                }
-            }
-            _objectCache.Clear();
-
-            // 符号表释放
-            //_blockTable?.Dispose();
-            //_layerTable?.Dispose();
-            //_textStyleTable?.Dispose();
-            //_regAppTable?.Dispose();
-            //_dimStyleTable?.Dispose();
-            //_linetypeTable?.Dispose();
-            //_ucsTable?.Dispose();
-            //_viewTable?.Dispose();
-            //_viewportTable?.Dispose();
         }
 
         // 释放全局资源,将当前事务栈弹栈
@@ -1022,9 +1021,17 @@ public sealed class DBTrans : IDisposable
             if (trStack.Count == 0)
             {
                 _dBTrans.Remove(_database);
+
                 // 释放读取文件创建的数据库
                 if (Document is null)
-                    _database.Dispose();
+                {
+                    // 前台持有就无法释放
+                    var doc = Acaop.DocumentManager.GetDocument(_database);
+                    if (doc is null)
+                    {
+                        _database.Dispose();
+                    }
+                }
             }
         }
 
@@ -1055,16 +1062,15 @@ public sealed class DBTrans : IDisposable
     // _database没有可空标记,
     // 被用户意外释放.
     [MethodImpl(MethodImplOptions.NoInlining)]
-    private bool CheckDatabaseError(bool echo = true)
+    private static bool CheckDatabaseError(Database db, bool echo = true)
     {
-        if (_database.IsDisposed)
+        if (db.IsDisposed)
         {
             if (!echo) return true;
             throw new Exception("致命错误,数据库被错误释放");
         }
         return false;
     }
-
     #endregion
 
     #region ToString

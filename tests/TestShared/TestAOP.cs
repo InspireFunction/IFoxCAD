@@ -56,7 +56,7 @@ namespace Test
         {
             // 拒绝注入就要自己开事务,通常用在循环提交事务上面.
             // 另见 报错0x02 https://www.cnblogs.com/JJBox/p/10798940.html
-            using DBTrans tr = new();
+            using var tr = DBTrans.Create();
         }
 
         [CommandMethod(nameof(InjectionTransaction2))]

@@ -8,7 +8,7 @@ public static class TestPointOnRegion
         var r1 = Env.Editor.GetEntity("\n选择多段线");
         if (r1.Status != PromptStatus.OK)
             return;
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         if (tr.GetObject(r1.ObjectId) is not Polyline pl || pl.HasBulges)
             return;
         var stretchPoints = pl.GetStretchPoints();

@@ -16,7 +16,7 @@ public class TestCmd_BindXrefs
     [CommandMethod(nameof(Test_Bind2))]
     public static void Test_Bind2()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         tr.XrefFactory(XrefModes.Bind);
         DatabaseEx.SaveDwgFile(tr.Database);
     }

@@ -7,7 +7,8 @@ public class TestText
     [CommandMethod(nameof(TestDBText))]
     public void TestDBText()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
+
         tr.CurrentSpace.AddEntity(DBTextEx.CreateDBText(new(-1, -1, 0), "123", 2.5, action: t => t.ColorIndex = 1));
 
         tr.CurrentSpace.AddEntity(DBTextEx.CreateDBText(new(-1, -1, 0), "123", 2.5, action: t => {
@@ -36,7 +37,7 @@ public class TestText
     [CommandMethod(nameof(TestMText))]
     public void TestMText()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         tr.CurrentSpace.AddEntity(MTextEx.CreateMText(new(5, 5, 0), "123", 2.5, action: t => t.ColorIndex = 1));
 
         tr.CurrentSpace.AddEntity(MTextEx.CreateMText(new(5, 5, 0), "123", 2.5, action: t => {

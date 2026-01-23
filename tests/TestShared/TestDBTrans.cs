@@ -7,7 +7,7 @@ public class TestTrans
     [CommandMethod(nameof(Test_DBTrans))]
     public void Test_DBTrans()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         if (tr.Editor is null)
             return;
         tr.Editor.WriteMessage("\n测试 Editor 属性是否工作！");
@@ -47,7 +47,7 @@ public class TestTrans
     [CommandMethod(nameof(CmdTest_ForEachDemo))]
     public static void CmdTest_ForEachDemo()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
 
         // 泛型扩展(用变量名来使用它)
         tr.BlockTable.ForEach(action: (id) => {
@@ -115,7 +115,7 @@ public class TestTrans
     [CommandMethod(nameof(Test_DBTransAbort))]
     public void Test_DBTransAbort()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.ModelSpace.AddCircle(new Point3d(0, 0, 0), 20);
         tr.Abort();
         // tr.Commit();
@@ -127,7 +127,7 @@ public class TestTrans
     // [CommandMethod(nameof(Test_AOP1))]
     // public void TestAOP1()
     // {
-    //    // 不用 using DBTrans tr = new();
+    //    // 不用 using var tr = DBTrans.Create();
     //    var tr = DBTrans.Top;
     //    tr.ModelSpace.AddCircle(new Point3d(0, 0, 0), 20);
     // }
@@ -150,12 +150,12 @@ public class TestTrans
         // var pl = Env.Editor.GetEntity("pick pl").ObjectId;
 
         var tr1 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
-        using DBTrans tr2 = new();
+        using var tr2 = DBTrans.Create();
         var tr3 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
         var tr6 = Acap.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
         Env.Print(tr2 == tr3);
         Env.Print(tr3 == tr6);
-        using DBTrans tr4 = new();
+        using var tr4 = DBTrans.Create();
         var tr5 = HostApplicationServices.WorkingDatabase.TransactionManager.TopTransaction;
         var tr7 = Acap.DocumentManager.MdiActiveDocument.TransactionManager.TopTransaction;
         Env.Print(tr4 == tr5);
@@ -175,7 +175,7 @@ public class TestTrans
     [CommandMethod(nameof(Test_DBTrans_BlockCount))]
     public void Test_DBTrans_BlockCount()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         var i = tr.CurrentSpace
             .GetEntities<BlockReference>()
             .Where(ent => ent.GetBlockName() == "自定义块");

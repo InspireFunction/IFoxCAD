@@ -61,11 +61,14 @@ public class DwgFilerEx
     /// <returns></returns>
     public static DwgFilerEx? DeserializeObject(string json)
     {
-        var settings = new MyJsonSettings
+        var serializeSettings = new MyJsonSettings
         {
+            ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+            PreserveReferencesHandling = PreserveReferencesHandling.All,
+            Formatting = Formatting.Indented,
             Converters = new List<MyJsonConverter> { new ObjectIdConverter() }
         };
-        var s = MyJson.DeserializeObject<DwgFiler>(json, settings);
+        var s = MyJson.DeserializeObject<DwgFiler>(json, serializeSettings);
         return new DwgFilerEx(s);
     }
 
@@ -75,12 +78,14 @@ public class DwgFilerEx
     /// <returns></returns>
     public string SerializeObject()
     {
-        var settings = new MyJsonSettings
+        var serializeSettings = new MyJsonSettings
         {
+            ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+            PreserveReferencesHandling = PreserveReferencesHandling.All,
             Formatting = Formatting.Indented,
             Converters = new List<MyJsonConverter> { new ObjectIdConverter() }
         };
-        return MyJson.SerializeObject(DwgFiler, settings);
+        return MyJson.SerializeObject(DwgFiler, serializeSettings);
     }
 
     /// <summary>

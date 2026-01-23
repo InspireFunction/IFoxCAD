@@ -11,7 +11,7 @@ public partial class HatchChange
     {
         // 你这个代码不是acad2008的
         // 获取命名对象词典-主词典 Dictionaries
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         var nod = tr.NamedObjectsDict;
 
         var a = GetDictCount(nod);
@@ -93,7 +93,7 @@ public partial class HatchChange
     [CommandMethod(nameof(aaa))]
     public void aaa()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         var nod = tr.NamedObjectsDict;
 
         _visitedObjects.Clear();

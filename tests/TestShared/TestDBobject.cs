@@ -9,7 +9,7 @@ namespace TestShared
         [CommandMethod(nameof(TestForWrite))]
         public static void TestForWrite()
         {
-            using var tr = new DBTrans();
+            using var tr = DBTrans.Create();
             var ent = Env.Editor.GetEntity("\npick entity");
             if (ent.Status is not PromptStatus.OK) return;
             var entid = ent.ObjectId.GetObject<Entity>()!;

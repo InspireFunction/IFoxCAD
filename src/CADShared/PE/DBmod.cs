@@ -112,7 +112,7 @@ public class DBmodEx
     //public void TestCmd_AcdbSetDbmodChange()
     //{
     //    DBmodTask(() => {
-    //        using DBTrans tr = new();
+    //        using var tr = DBTrans.Create();
     //        Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
     //        tr.CurrentSpace.AddEntity(line);
     //    });

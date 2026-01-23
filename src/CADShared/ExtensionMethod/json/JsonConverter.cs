@@ -43,7 +43,7 @@ public class ObjectIdConverter : MyJsonConverter
         {
             if (dictionary.TryGetValue(_id, out object va))
             {
-                using DBTrans tr = new();
+                using var tr = DBTrans.Create();
                 id = tr.GetObjectId(va.ToString());
             }
         }

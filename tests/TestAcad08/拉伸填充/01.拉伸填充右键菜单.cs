@@ -4,7 +4,6 @@ using static IFoxCAD.Cad.PostCmd;
 
 public class StretchFill​
 {
-
     [IFoxInitializeAttribute]
     [CommandMethod(nameof(HatchPickInit))]
     public void HatchPickInit(Document doc)
@@ -169,7 +168,7 @@ public class StretchFill​
         if (!HatchPickMap.TryGetValue(doc, out var hpe))
             return;
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
 
         // 获取当前文档记录的填充边界
         HashSet<ObjectId> boAll = [];

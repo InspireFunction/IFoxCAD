@@ -83,7 +83,7 @@ public class TestJson
                 Value = 123,
                 Items = new List<int> { 1, 2, 3, 4, 5 }
             },
-            NullValue = (string)null
+            NullValue = (string?)null
         };
 
         // 未格式化输出

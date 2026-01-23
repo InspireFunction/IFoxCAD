@@ -1,3 +1,5 @@
+using System.Windows.Media.Animation;
+
 namespace JoinBoxAcad;
 
 // 基础动作实现
@@ -76,16 +78,20 @@ public abstract class EntityAction : BaseAction
     /// <summary>
     /// 快照
     /// </summary>
-    public DBObject EntitySnapshot { get; internal set; }
+    public string EntitySnapshot { get; internal set; }
 
     protected EntityAction(ObjectId entityId)
     {
         DBObjectId = entityId;
-        var tr = new DBTrans(entityId.Database);
-        using var entity = tr.GetObject(entityId, OpenMode.ForRead);
+
+        using var tr = DBTrans.Create(entityId.Database);
+        using var entity = tr.GetObject(entityId);
         if (entity is null) throw new ArgumentNullException();
         EntityType = entity.GetType().Name;
-        EntitySnapshot = EntitySerializer.CloneEntityWithDwgFiler(entity);
+
+        var dwgFiler = new DwgFilerEx();
+        dwgFiler.DwgOut(entity);
+        EntitySnapshot = dwgFiler.SerializeObject();
     }
 }
 
@@ -108,22 +114,14 @@ public class CreateEntityAction : EntityAction
     public override void Execute()
     {
         // 如果id对象已经删除,那么这里重新加入
-        var tr = new DBTrans(DBObjectId.Database);
+        using var tr = DBTrans.Create(DBObjectId.Database);
         using var obj = tr.GetObject(DBObjectId, OpenMode.ForRead, true, true);
         if (obj is not null && obj.IsErased)
         {
-            var obj2 = EntitySerializer.CloneEntityWithDwgFiler(obj);
-            if (obj2 is null) return;
-
-            if (obj2 is Entity ent)
+            var dwgFiler = DwgFilerEx.DeserializeObject(EntitySnapshot);
+            if (dwgFiler != null)
             {
-                var b = tr.GetObject(ent.BlockId);
-                if (b is null) return;
-                if (b is BlockTableRecord msps)
-                {
-                    var newId = msps.AppendEntity(ent);
-                }
-                tr.AddNewlyCreatedDBObject(obj2, true);
+                dwgFiler.DwgIn();
             }
         }
     }
@@ -154,8 +152,8 @@ public class DeleteEntityAction : EntityAction
 
     public override void Execute()
     {
-        using var trans = new DBTrans(DBObjectId.Database);
-        var entity = trans.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
+        using var tr = DBTrans.Create(DBObjectId.Database);
+        var entity = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
         if (entity != null && !entity.IsErased)
             entity.Erase();
     }
@@ -191,16 +189,18 @@ public class ModifyEntityAction : EntityAction
     /// <summary>
     /// 旧值(首次加入就没有旧值)
     /// </summary>
-    public DBObject? OldSnapshot { get; }
+    public string OldSnapshot { get; }
     /// <summary>
     /// 新值
     /// </summary>
-    public DBObject NewSnapshot { get; }
+    public string NewSnapshot { get; }
 
     public override ActionType Type => ActionType.DatabaseModify;
     public override string Description => $"修改实体: {EntityType} ({PropertyChanges.Count} 个属性)";
 
-    public ModifyEntityAction(ObjectId entityId, DBObject? oldSnapshot, DBObject newSnapshot,
+    public ModifyEntityAction(ObjectId entityId,
+        string? oldSnapshot,
+        string newSnapshot,
         Dictionary<string, (object, object)> changes) : base(entityId)
     {
         OldSnapshot = oldSnapshot;
@@ -210,8 +210,8 @@ public class ModifyEntityAction : EntityAction
 
     public override void Execute()
     {
-        var trans = DBTrans.GetTop(DBObjectId.Database);
-        var entity = trans.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
+        using var tr = DBTrans.Create(DBObjectId.Database);
+        var entity = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
         if (entity != null)
         {
             ApplyProperties(entity, PropertyChanges, true);
@@ -230,16 +230,12 @@ public class ModifyEntityAction : EntityAction
 
     public override IAction Clone()
     {
-        var a = OldSnapshot != null ? EntitySerializer.CloneEntityWithDwgFiler(OldSnapshot) : null;
-        var b = EntitySerializer.CloneEntityWithDwgFiler(NewSnapshot);
-        if (a is null && OldSnapshot is not null)
-            throw new ArgumentNullException(nameof(a));
-        if (b is null)
-            throw new ArgumentNullException(nameof(b));
+        if (OldSnapshot is null)
+            throw new InvalidOperationException();
+        if (NewSnapshot is null)
+            throw new InvalidOperationException();
 
-        return new ModifyEntityAction(DBObjectId, a, b,
-            new Dictionary<string, (object, object)>(PropertyChanges)
-        );
+        return new ModifyEntityAction(DBObjectId, OldSnapshot, NewSnapshot, new Dictionary<string, (object, object)>(PropertyChanges));
     }
 
     public override bool CanMergeWith(IAction otherAction)
@@ -348,10 +344,7 @@ public class CommandAction : BaseAction
     public override void Execute()
     {
         var doc = Application.DocumentManager.MdiActiveDocument;
-        if (doc != null)
-        {
-            doc.SendStringToExecute($"{CommandName} ", true, false, true);
-        }
+        doc?.SendStringToExecute($"{CommandName} ", true, false, true);
     }
 
     public override IAction GetInverseAction()

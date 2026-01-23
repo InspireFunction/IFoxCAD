@@ -6,7 +6,7 @@ public class TestAddEntity
     [CommandMethod(nameof(Test_AddLinetoCurrentSpace))]
     public void Test_AddLinetoCurrentSpace()
     {
-        using DBTrans tr = new(); // 开启事务
+        using var tr = DBTrans.Create(); // 开启事务
 
         Line line = new(new(0, 0, 0), new(1, 1, 0)); // 定义一个直线
         tr.CurrentSpace.AddEntity(line); // 将直线添加到当前空间
@@ -15,7 +15,7 @@ public class TestAddEntity
     [CommandMethod(nameof(Test_AddLinetoModelSpace))]
     public void Test_AddLinetoModelSpace()
     {
-        using DBTrans tr = new(); // 开启事务
+        using var tr = DBTrans.Create(); // 开启事务
 
         Line line = new(new(0, 0, 0), new(1, 1, 0)); // 定义一个直线
         tr.ModelSpace.AddEntity(line); // 将直线添加到模型空间
@@ -24,7 +24,7 @@ public class TestAddEntity
     [CommandMethod(nameof(Test_AddLinetoPaperSpace))]
     public void Test_AddLinetoPaperSpace()
     {
-        using DBTrans tr = new(); // 开启事务
+        using var tr = DBTrans.Create(); // 开启事务
 
         Line line = new(new(0, 0, 0), new(1, 1, 0)); // 定义一个直线
         tr.PaperSpace.AddEntity(line); // 将直线添加到图纸空间
@@ -34,7 +34,7 @@ public class TestAddEntity
     public void Test_AddEntities()
     {
         // 开启事务
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         // 定义三条直线
         Line line1 = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         Line line2 = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
@@ -64,7 +64,7 @@ public class TestAddEntity
         var cir1 = CircleEx.CreateCircle(Point3d.Origin, new(1, 1, 0), new(2, 0, 0)); //三点创建圆
         var cir2 = CircleEx.CreateCircle(Point3d.Origin, 5); // 圆心半径创建圆
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.CurrentSpace.AddEntity(cir, cir2);
 
         // 由于三点不一定能成功创建一个圆，因此返回值是可空的，需要判空
@@ -79,7 +79,7 @@ public class TestAddEntity
     [CommandMethod(nameof(Test_AddArc))]
     public void Test_AddArc()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         Arc arc1 = ArcEx.CreateArcSCE(new Point3d(2, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 2, 0));// 起点，圆心，终点
         Arc arc2 = ArcEx.CreateArc(new Point3d(4, 0, 0), new Point3d(0, 0, 0), Math.PI / 2);            // 起点，圆心，弧度
         Arc arc3 = ArcEx.CreateArc(new Point3d(1, 0, 0), new Point3d(0, 0, 0), new Point3d(0, 1, 0));   // 起点，圆上一点，终点
@@ -92,7 +92,7 @@ public class TestAddEntity
     [CommandMethod(nameof(Test_AddPolyline1))]
     public void Test_AddPolyline1()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         Polyline pl = new();
         pl.SetDatabaseDefaults();
         pl.AddVertexAt(0, new Point2d(0, 0), 0, 0, 0);
@@ -118,7 +118,7 @@ public class TestAddEntity
             (new Point3d(5,5,0),0,0,0)
         ];
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var pl = pts.CreatePolyline();
         tr.CurrentSpace.AddEntity(pl);
     }
@@ -126,7 +126,7 @@ public class TestAddEntity
     [CommandMethod(nameof(Test_AddPolyline3))]
     public void Test_AddPolyline3()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
 
         List<Point3d> pts =
         [

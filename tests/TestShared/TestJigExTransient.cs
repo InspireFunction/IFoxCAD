@@ -43,7 +43,7 @@ public partial class Test
         Env.Editor.GetPoint("\n此拾取无意义,仅为了暂停查看");
 
         // 加到图纸中,为测试瞬态容器可以自行dispose消失,所以未全部加入
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.CurrentSpace.AddEntity(c3);
 
         // 若想将容器中所有图元全部加入提供了Entities属性
@@ -67,7 +67,7 @@ public partial class Test
             pts.Add(ppr.Value);
         }
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
 
         using RotatedDimension dimension = new();
         dimension.SetDatabaseDefaults();// cad16没有这个不显示

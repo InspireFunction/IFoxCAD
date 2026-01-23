@@ -107,7 +107,7 @@ public class HatchPick : IDisposable
                 if (prompt.Status != PromptStatus.OK)
                     return;
 
-                using DBTrans tr = new(docLock: true);
+                using var tr = DBTrans.Create(docLock: true);
                 var _hatchIds = prompt.Value.GetObjectIds();
                 if (_hatchIds.Length == 0)
                     return;
@@ -260,7 +260,7 @@ public class HatchPick : IDisposable
                         return;
                     }
 
-                    using DBTrans tr = new(docLock: true);
+                    using var tr = DBTrans.Create(docLock: true);
                     var _hatchIds = prompt.Value.GetObjectIds();
                     if (_hatchIds.Length == 0)
                     {
@@ -324,7 +324,7 @@ public class HatchPick : IDisposable
     {
         if (!State.IsRun)
             return;
-        using DBTrans tr = new(Acap.DocumentManager.MdiActiveDocument, true);
+        using var tr = DBTrans.Create(Acap.DocumentManager.MdiActiveDocument, true);
         EraseAllHatchBorders();
     }
 
@@ -353,11 +353,9 @@ public class HatchPick : IDisposable
             return;
         }
 
-
         // 直接选中进入此处
         HashSet<ObjectId> setImpSelect = [];
-        //using var _ = _doc.LockDocument();
-        using (DBTrans tr = new(Acap.DocumentManager.MdiActiveDocument, docLock: true))
+        using (var tr = DBTrans.Create(Acap.DocumentManager.MdiActiveDocument, docLock: true))
         {
             // 获取图层锁定的记录,用于跳过
             HashSet<string> islocks = [];
@@ -489,7 +487,7 @@ public class HatchPick : IDisposable
 
                     try
                     {
-                        using DBTrans tr = new(boId.Database);
+                        using var tr = DBTrans.Create(boId.Database);
                         using var boEnt = (Entity)tr.GetObject(boId);
                         // 删除填充边界并清理关联反应器
                         if (!HatchPickEnv.IsMeCreate(boEnt))
@@ -584,7 +582,7 @@ public class HatchPick : IDisposable
                     // 通过xdata回溯填充,清理关联反应器
                     if (boEnt.XData != null)
                     {
-                        using DBTrans tr = new();
+                        using var tr = DBTrans.Create();
                         var hatchId = HatchPickEnv.GetXdataHatch(boEnt);
                         if (hatchId.IsOk())
                         {

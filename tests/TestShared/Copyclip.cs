@@ -233,7 +233,7 @@ public class Copyclip
                 Thread.Sleep(1);
             }
 
-            using DBTrans tr = new();
+            using var tr = DBTrans.Create();
 
 
             #region 写入 WMF 数据
@@ -418,7 +418,7 @@ public class Copyclip
             if (fileEntityIds.Count == 0)
                 return;
 
-            using DBTrans tr = new();
+            using var tr = DBTrans.Create();
             tr.Editor?.SetImpliedSelection(new ObjectId[0]); // 清空选择集
 
             // 新建块表记录
@@ -711,7 +711,7 @@ public class TestImageFormat
     public void CreatePreviewImage()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
 
 #if NET35
         var size = Win32Helper.GetActiveWindowSize();
@@ -814,7 +814,7 @@ public class OleTestClass
         if (per.Status != PromptStatus.OK)
             return;
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         using var ent = tr.GetObject(per.ObjectId);
         if (ent is Ole2Frame ole2frame)
             using (ole2frame.ForWrite())
@@ -830,7 +830,7 @@ public class OleTestClass
     [CommandMethod(nameof(GetOlePath))]
     public void GetOlePath()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         foreach (ObjectId id in tr.CurrentSpace)
         {
             if (!id.IsOk())
@@ -864,7 +864,7 @@ public class OleTestClass
         //    return;
         //var pt = pr.Value;
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
 
         // https://forums.autodesk.com/t5/net/how-to-create-an-ole-object-with-ole2frame/td-p/3203222
         var oo = new Ole2Frame();
@@ -889,7 +889,7 @@ public class OleTestClass
     // https://forums.autodesk.com/t5/net/how-can-i-read-data-from-ole2frame-object-excel-through-api/td-p/7944241
     public void GetOleForOffice()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         foreach (ObjectId id in tr.CurrentSpace)
         {
             if (!id.IsOk())

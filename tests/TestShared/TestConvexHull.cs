@@ -6,7 +6,7 @@ public class TestConvexHull
     [CommandMethod(nameof(Test_ConvexHull))]
     public void Test_ConvexHull()
     {
-        // using DBTrans tr = new();
+        // using var tr = DBTrans.Create();
         // var pts = new List<Point3d>();
         // var flag = true;
         // while (flag)

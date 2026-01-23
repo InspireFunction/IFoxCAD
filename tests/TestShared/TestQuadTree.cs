@@ -39,7 +39,7 @@ public partial class TestQuadTree
     [CommandMethod(nameof(Test_QuadTree))]
     public void Test_QuadTree()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
 
         Rect dbExt;
         // 使用数据库边界来进行
@@ -354,7 +354,7 @@ public partial class TestQuadTree
         if (_quadTreeRoot is null)
             return;
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         if (tr.Editor is null)
             return;
         var rect = GetCorner(tr.Editor);
@@ -404,7 +404,7 @@ public partial class TestQuadTree
 // {
 //    public void Cmd_tt6()
 //    {
-//        using DBTrans tr = new();
+//        using var tr = DBTrans.Create();
 //        var ed = tr.Editor;
 //        // 创建四叉树,默认参数无所谓
 //        var TreeRoot = new QuadTree<CadEntity>(new Rect(0, 0, 32525, 32525));

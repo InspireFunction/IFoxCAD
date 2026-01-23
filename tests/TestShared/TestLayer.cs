@@ -5,7 +5,7 @@ public class TestLayer
     [CommandMethod(nameof(Test_LayerAdd0))]
     public void Test_LayerAdd0()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.LayerTable.Add("1");
         tr.LayerTable.Add("2", lt => {
             lt.Color = Color.FromColorIndex(ColorMethod.ByColor, 1);
@@ -23,7 +23,7 @@ public class TestLayer
     [CommandMethod(nameof(Test_LayerAdd1))]
     public void Test_LayerAdd1()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.LayerTable.Add("test1", Color.FromColorIndex(ColorMethod.ByColor, 1));
     }
 
@@ -31,7 +31,7 @@ public class TestLayer
     [CommandMethod(nameof(Test_LayerAdd2))]
     public void Test_LayerAdd2()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.LayerTable.Add("test2", 2);
         // tr.LayerTable["3"] = new LayerTableRecord();
     }
@@ -39,7 +39,7 @@ public class TestLayer
     [CommandMethod(nameof(Test_LayerDel))]
     public void Test_LayerDel()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.LayerTable.Remove("0");        // 删除图层 0
         tr.LayerTable.Remove("Defpoints");// 删除图层 Defpoints
         tr.LayerTable.Remove("1");        // 删除不存在的图层 1
@@ -52,7 +52,7 @@ public class TestLayer
     [CommandMethod(nameof(Test_PrintLayerName))]
     public void Test_PrintLayerName()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         foreach (var layerRecord in tr.LayerTable.GetRecords())
         {
             Env.Printl(layerRecord.Name);

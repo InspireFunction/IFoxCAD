@@ -21,7 +21,7 @@ public class TestMarshal
         if (prs.Status != PromptStatus.OK)
             return;
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
 
         prs.Value.GetObjectIds().ForEach(id => {
             var line = id.GetObject<Line>();

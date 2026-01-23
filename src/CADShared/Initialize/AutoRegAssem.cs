@@ -55,6 +55,9 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// <param name="autoRegConfig">配置项目</param>
     protected AutoRegAssem(AutoRegConfig autoRegConfig)
     {
+        // 必须注册文档锁,不然无法实现死锁检测
+        DocumentLockManager.Init();
+
         var assem = Assembly.GetCallingAssembly();
         var info = new AssemInfo
         {
@@ -83,6 +86,7 @@ public abstract class AutoRegAssem : IExtensionApplication
             return;
 
         _autoRef = new AutoClass(info.Name, autoRegConfig);
+
     }
 
     #endregion

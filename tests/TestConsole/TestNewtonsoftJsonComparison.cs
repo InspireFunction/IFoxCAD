@@ -94,7 +94,7 @@ namespace TestConsole
                     { "Created", DateTime.Now.ToString() },
                     { "Version", 1.0 }
                 },
-                NullValue = (string)null
+                NullValue = (string?)null
             };
 
             // MyJson 序列化
@@ -212,9 +212,12 @@ namespace TestConsole
             {
                 // MyJson 反序列化
                 var myJsonResult = MyJson.DeserializeObject<Person>(jsonString, new MyJsonSettings());
-                Console.WriteLine("MyJson 反序列化结果：");
-                Console.WriteLine($"  Id: {myJsonResult.Id}, Name: {myJsonResult.Name}, Age: {myJsonResult.Age}, Email: {myJsonResult.Email}");
-                Console.WriteLine($"  技能: [{string.Join(", ", myJsonResult.Skills)}]");
+                if (myJsonResult != null)
+                {
+                    Console.WriteLine("MyJson 反序列化结果：");
+                    Console.WriteLine($"  Id: {myJsonResult.Id}, Name: {myJsonResult.Name}, Age: {myJsonResult.Age}, Email: {myJsonResult.Email}");
+                    Console.WriteLine($"  技能: [{string.Join(", ", myJsonResult.Skills ?? new string[0])}]");
+                }
             }
             catch (Exception ex)
             {
@@ -225,9 +228,12 @@ namespace TestConsole
             {
                 // Newtonsoft.Json 反序列化
                 var newtonsoftResult = JsonConvert.DeserializeObject<Person>(jsonString);
-                Console.WriteLine("Newtonsoft.Json 反序列化结果：");
-                Console.WriteLine($"  Id: {newtonsoftResult.Id}, Name: {newtonsoftResult.Name}, Age: {newtonsoftResult.Age}, Email: {newtonsoftResult.Email}");
-                Console.WriteLine($"  技能: [{string.Join(", ", newtonsoftResult.Skills)}]");
+                if (newtonsoftResult != null)
+                {
+                    Console.WriteLine("Newtonsoft.Json 反序列化结果：");
+                    Console.WriteLine($"  Id: {newtonsoftResult.Id}, Name: {newtonsoftResult.Name}, Age: {newtonsoftResult.Age}, Email: {newtonsoftResult.Email}");
+                    Console.WriteLine($"  技能: [{string.Join(", ", newtonsoftResult.Skills ?? new string[0])}]");
+                }
             }
             catch (Exception ex)
             {
@@ -305,18 +311,18 @@ namespace TestConsole
     public class Person
     {
         public int Id { get; set; }
-        public string Name { get; set; }
+        public string Name { get; set; } = string.Empty;
         public int Age { get; set; }
-        public string Email { get; set; }
-        public List<Address> Addresses { get; set; }
-        public string[] Skills { get; set; }
+        public string Email { get; set; } = string.Empty;
+        public List<Address> Addresses { get; set; } = new List<Address>();
+        public string[] Skills { get; set; } = new string[0];
     }
 
     public class Address
     {
-        public string Street { get; set; }
-        public string City { get; set; }
-        public string ZipCode { get; set; }
+        public string Street { get; set; } = string.Empty;
+        public string City { get; set; } = string.Empty;
+        public string ZipCode { get; set; } = string.Empty;
     }
     
     public struct Point

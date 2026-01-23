@@ -41,7 +41,7 @@ public static class TestSingleKeyWordHook
             }
             if (r1.Status == PromptStatus.OK)
             {
-                using var tr = new DBTrans();
+                using var tr = DBTrans.Create();
                 tr.CurrentSpace.AddEntity(line1);
             }
             return;

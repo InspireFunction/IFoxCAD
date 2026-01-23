@@ -52,7 +52,7 @@ public partial class Test
     {
         var line = new Line(new(0, 0, 0), new(100, 0, 0));
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.CurrentSpace.AddEntity(line);
         var line2 = (Line)line.Clone();
         tr.CurrentSpace.AddEntity(line2);
@@ -80,7 +80,7 @@ public partial class Test
     [CommandMethod(nameof(Test_sleeptrans))]
     public static void Test_sleeptrans()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         for (int i = 0; i < 100; i++)
         {
             var cir = CircleEx.CreateCircle(new Point3d(i, i, 0), 0.5);

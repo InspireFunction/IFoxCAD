@@ -6,7 +6,7 @@ public class TestExtents
     [CommandMethod(nameof(Test_BlockExtents))]
     public void Test_BlockExtents()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         var ent = Env.Editor.GetEntity("pick the entity");
         if (ent.Status != PromptStatus.OK)
         {
@@ -55,7 +55,7 @@ public class TestExtents
     [CommandMethod(nameof(Test_entextents))]
     public void Test_entextents()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         var a = Env.Editor.GetSelection().Value.
             GetEntities<Entity>(OpenMode.ForWrite);
         foreach (var e in a)

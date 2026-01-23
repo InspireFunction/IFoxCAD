@@ -6,31 +6,97 @@ using System.Xml.Linq;
 
 namespace IFoxCAD.Cad;
 
+/// <summary>
+/// 自定义JSON序列化器，功能类似于Newtonsoft.Json
+/// </summary>
 public class MyJson
 {
+    /// <summary>
+    /// JSON转换器列表
+    /// </summary>
     private List<MyJsonConverter> _converters = [];
+
+    /// <summary>
+    /// 是否格式化输出（缩进）
+    /// </summary>
     private bool _indent;
 
+    /// <summary>
+    /// 对象到ID的映射，用于处理引用
+    /// </summary>
+    private readonly Dictionary<object, int> _objectReferences = new Dictionary<object, int>();
+
+    /// <summary>
+    /// ID到对象的映射，用于处理引用
+    /// </summary>
+    private readonly Dictionary<int, object> _idToObject = new Dictionary<int, object>();
+
+    /// <summary>
+    /// 引用ID计数器
+    /// </summary>
+    private int _referenceIdCounter = 1;
+
+    /// <summary>
+    /// 用于检测循环引用的已处理对象集合
+    /// </summary>
+    private readonly HashSet<object> _processedObjects = new HashSet<object>();
+
+    /// <summary>
+    /// 获取或设置格式化选项
+    /// </summary>
     public Formatting Formatting
     {
         get => _indent ? Formatting.Indented : Formatting.None;
         set => _indent = value == Formatting.Indented;
     }
 
+    /// <summary>
+    /// 获取或设置类型名称处理选项
+    /// </summary>
     public TypeNameHandling TypeNameHandling { get; set; }
 
-    public static string SerializeObject(object? obj, Formatting formatting = Formatting.None)
+    /// <summary>
+    /// 获取或设置引用保留处理选项
+    /// </summary>
+    public PreserveReferencesHandling PreserveReferencesHandling { get; set; }
+
+    /// <summary>
+    /// 获取或设置循环引用处理选项
+    /// </summary>
+    public ReferenceLoopHandling ReferenceLoopHandling { get; set; }
+
+    /// <summary>
+    /// 将对象序列化为JSON字符串
+    /// </summary>
+    /// <typeparam name="T">对象类型</typeparam>
+    /// <param name="obj">要序列化的对象</param>
+    /// <param name="formatting">格式化选项</param>
+    /// <returns>JSON字符串</returns>
+    public static string SerializeObject<T>(T? obj, Formatting formatting = Formatting.None)
     {
-        var ms = new MyJsonSettings();
-        ms.Formatting = formatting;
-        return SerializeObject(obj, ms);
+        var serializeSettings = new MyJsonSettings
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+            PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+            Formatting = formatting
+        };
+        return SerializeObject(obj, serializeSettings);
     }
 
-    public static string SerializeObject(object? obj, MyJsonSettings settings)
+    /// <summary>
+    /// 使用指定设置将对象序列化为JSON字符串
+    /// </summary>
+    /// <typeparam name="T">对象类型</typeparam>
+    /// <param name="obj">要序列化的对象</param>
+    /// <param name="settings">序列化设置</param>
+    /// <returns>JSON字符串</returns>
+    public static string SerializeObject<T>(T? obj, MyJsonSettings settings)
     {
         var json = new MyJson();
         json.Formatting = settings.Formatting;
         json.TypeNameHandling = settings.TypeNameHandling;
+        json.PreserveReferencesHandling = settings.PreserveReferencesHandling;
+        json.ReferenceLoopHandling = settings.ReferenceLoopHandling;
         if (settings.Converters != null)
         {
             foreach (var converter in settings.Converters)
@@ -39,16 +105,30 @@ public class MyJson
         return json.Serialize(obj);
     }
 
+    /// <summary>
+    /// 反序列化JSON字符串为指定类型的对象
+    /// </summary>
+    /// <typeparam name="T">目标对象类型</typeparam>
+    /// <param name="json">JSON字符串</param>
+    /// <returns>反序列化后的对象</returns>
     public static T? DeserializeObject<T>(string json)
     {
         return DeserializeObject<T>(json, new MyJsonSettings());
     }
 
+    /// <summary>
+    /// 使用指定设置反序列化JSON字符串为指定类型的对象
+    /// </summary>
+    /// <typeparam name="T">目标对象类型</typeparam>
+    /// <param name="json">JSON字符串</param>
+    /// <param name="settings">反序列化设置</param>
+    /// <returns>反序列化后的对象</returns>
     public static T? DeserializeObject<T>(string json, MyJsonSettings settings)
     {
         var jsonSerializer = new MyJson();
         jsonSerializer.Formatting = settings.Formatting;
         jsonSerializer.TypeNameHandling = settings.TypeNameHandling;
+        jsonSerializer.ReferenceLoopHandling = settings.ReferenceLoopHandling;
         if (settings.Converters != null)
         {
             foreach (var converter in settings.Converters)
@@ -57,27 +137,79 @@ public class MyJson
         return jsonSerializer.Deserialize<T>(json);
     }
 
+    /// <summary>
+    /// 注册JSON转换器
+    /// </summary>
+    /// <param name="converters">转换器集合</param>
     public void RegisterConverters(IEnumerable<MyJsonConverter> converters)
     {
         _converters.AddRange(converters);
     }
 
-    public string Serialize(object? obj)
+    /// <summary>
+    /// 序列化对象为JSON字符串
+    /// </summary>
+    /// <typeparam name="T">对象类型</typeparam>
+    /// <param name="obj">要序列化的对象</param>
+    /// <returns>JSON字符串</returns>
+    public string Serialize<T>(T? obj)
     {
         if (obj == null)
             return "null";
 
+        // 清理引用跟踪状态
+        _objectReferences.Clear();
+        _idToObject.Clear();
+        _referenceIdCounter = 1;
+        _processedObjects.Clear();
+
         var sb = new StringBuilder();
-        SerializeValue(obj, sb, 0);
+        SerializeValue<T>(obj, sb, 0);
         return sb.ToString();
     }
 
+    /// <summary>
+    /// 判断类型是否应该保留引用
+    /// </summary>
+    /// <param name="type">要检查的类型</param>
+    /// <returns>是否应该保留引用</returns>
+    private bool ShouldPreserveReferences(Type type)
+    {
+        if (PreserveReferencesHandling == PreserveReferencesHandling.None)
+            return false;
+
+        if (PreserveReferencesHandling == PreserveReferencesHandling.All)
+            return true;
+
+        if (PreserveReferencesHandling == PreserveReferencesHandling.Objects)
+            return type.IsClass && type != typeof(string);
+
+        if (PreserveReferencesHandling == PreserveReferencesHandling.Arrays)
+            return type.IsArray || (type.IsGenericType &&
+                (type.GetGenericTypeDefinition() == typeof(List<>) ||
+                 type.GetGenericTypeDefinition() == typeof(IList<>)));
+
+        return false;
+    }
+
+    /// <summary>
+    /// 获取缩进字符串
+    /// </summary>
+    /// <param name="indent">缩进级别</param>
+    /// <returns>缩进字符串</returns>
     private string GetIndentString(int indent)
     {
         return _indent ? new string(' ', indent * 2) : string.Empty; // 使用2个空格缩进，与Newtonsoft.Json保持一致
     }
 
-    private void SerializeValue(object obj, StringBuilder sb, int indent)
+    /// <summary>
+    /// 序列化值到StringBuilder
+    /// </summary>
+    /// <typeparam name="T">值的类型</typeparam>
+    /// <param name="obj">要序列化的值</param>
+    /// <param name="sb">StringBuilder实例</param>
+    /// <param name="indent">缩进级别</param>
+    private void SerializeValue<T>(T obj, StringBuilder sb, int indent)
     {
         if (obj == null)
         {
@@ -110,9 +242,9 @@ public class MyJson
             // 默认将枚举序列化为数字，与Newtonsoft.Json保持一致
             sb.Append(Convert.ChangeType(obj, Enum.GetUnderlyingType(type)).ToString());
         }
-        else if (type.IsArray)
+        else if (obj is Array array)
         {
-            SerializeArray((Array)obj, sb, indent);
+            SerializeArray(array, sb, indent);
         }
         else if (obj is IDictionary dict)
         {
@@ -137,6 +269,11 @@ public class MyJson
         }
     }
 
+    /// <summary>
+    /// 序列化基本类型（字符串、布尔值、数字等）
+    /// </summary>
+    /// <param name="obj">要序列化的对象</param>
+    /// <param name="sb">StringBuilder实例</param>
     private void SerializePrimitive(object obj, StringBuilder sb)
     {
         if (obj is string str)
@@ -177,6 +314,11 @@ public class MyJson
         }
     }
 
+    /// <summary>
+    /// 转义字符串中的特殊字符
+    /// </summary>
+    /// <param name="str">要转义的字符串</param>
+    /// <returns>转义后的字符串</returns>
     private string EscapeString(string str)
     {
         return str
@@ -187,80 +329,191 @@ public class MyJson
             .Replace("\t", "\\t");
     }
 
+    /// <summary>
+    /// 序列化数组
+    /// </summary>
+    /// <param name="array">要序列化的数组</param>
+    /// <param name="sb">StringBuilder实例</param>
+    /// <param name="indent">缩进级别</param>
     private void SerializeArray(Array array, StringBuilder sb, int indent)
     {
-        sb.Append("[");
-        if (array.Length > 0)
+        // 处理数组引用
+        if (ShouldPreserveReferences(array.GetType()))
         {
-            if (_indent)
+            if (_objectReferences.TryGetValue(array, out int existingId))
             {
-                sb.AppendLine();
-                int newIndent = indent + 1;
-                for (int i = 0; i < array.Length; i++)
+                sb.Append($"{{\"$ref\":\"{existingId}\"}}");
+                return;
+            }
+
+            int newId = _referenceIdCounter++;
+            _objectReferences[array] = newId;
+
+            sb.Append($"{{\"$id\":\"{newId}\",\"$values\":[");
+
+            if (array.Length > 0)
+            {
+                if (_indent)
                 {
-                    sb.Append(GetIndentString(newIndent));
-                    SerializeValue(array.GetValue(i), sb, newIndent);
-                    if (i < array.Length - 1)
-                    {
-                        sb.Append(",");
-                    }
                     sb.AppendLine();
+                    int newIndent = indent + 1;
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        sb.Append(GetIndentString(newIndent));
+                        SerializeValue(array.GetValue(i), sb, newIndent);
+                        if (i < array.Length - 1)
+                        {
+                            sb.Append(",");
+                        }
+                        sb.AppendLine();
+                    }
+                    sb.Append(GetIndentString(indent));
                 }
-                sb.Append(GetIndentString(indent));
-            }
-            else
-            {
-                for (int i = 0; i < array.Length; i++)
+                else
                 {
-                    if (i > 0) sb.Append(",");
-                    SerializeValue(array.GetValue(i), sb, indent);
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        if (i > 0) sb.Append(",");
+                        SerializeValue(array.GetValue(i), sb, indent);
+                    }
                 }
             }
+
+            sb.Append("]}");
+            _objectReferences.Remove(array);
         }
-        sb.Append("]");
+        else
+        {
+            // 普通数组序列化
+            sb.Append("[");
+            if (array.Length > 0)
+            {
+                if (_indent)
+                {
+                    sb.AppendLine();
+                    int newIndent = indent + 1;
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        sb.Append(GetIndentString(newIndent));
+                        SerializeValue(array.GetValue(i), sb, newIndent);
+                        if (i < array.Length - 1)
+                        {
+                            sb.Append(",");
+                        }
+                        sb.AppendLine();
+                    }
+                    sb.Append(GetIndentString(indent));
+                }
+                else
+                {
+                    for (int i = 0; i < array.Length; i++)
+                    {
+                        if (i > 0) sb.Append(",");
+                        SerializeValue(array.GetValue(i), sb, indent);
+                    }
+                }
+            }
+            sb.Append("]");
+        }
     }
 
     private void SerializeEnumerable(IEnumerable enumerable, StringBuilder sb, int indent)
     {
-        sb.Append("[");
-        bool first = true;
-
-        // Handle different collection types properly
-        var items = new List<object>();
-        foreach (var item in enumerable)
+        // 处理集合引用
+        if (ShouldPreserveReferences(enumerable.GetType()))
         {
-            items.Add(item);
-        }
-
-        if (items.Count > 0)
-        {
-            if (_indent)
+            if (_objectReferences.TryGetValue(enumerable, out int existingId))
             {
-                sb.AppendLine();
-                int newIndent = indent + 1;
-                for (int i = 0; i < items.Count; i++)
+                sb.Append($"{{\"$ref\":\"{existingId}\"}}");
+                return;
+            }
+
+            int newId = _referenceIdCounter++;
+            _objectReferences[enumerable] = newId;
+
+            sb.Append($"{{\"$id\":\"{newId}\",\"$values\":[");
+
+            bool first = true;
+            var items = new List<object>();
+            foreach (var item in enumerable)
+            {
+                items.Add(item);
+            }
+
+            if (items.Count > 0)
+            {
+                if (_indent)
                 {
-                    sb.Append(GetIndentString(newIndent));
-                    SerializeValue(items[i], sb, newIndent);
-                    if (i < items.Count - 1)
-                    {
-                        sb.Append(",");
-                    }
                     sb.AppendLine();
+                    int newIndent = indent + 1;
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        sb.Append(GetIndentString(newIndent));
+                        SerializeValue(items[i], sb, newIndent);
+                        if (i < items.Count - 1)
+                        {
+                            sb.Append(",");
+                        }
+                        sb.AppendLine();
+                    }
+                    sb.Append(GetIndentString(indent));
                 }
-                sb.Append(GetIndentString(indent));
-            }
-            else
-            {
-                foreach (var item in items)
+                else
                 {
-                    if (!first) sb.Append(",");
-                    first = false;
-                    SerializeValue(item, sb, indent);
+                    foreach (var item in items)
+                    {
+                        if (!first) sb.Append(",");
+                        first = false;
+                        SerializeValue(item, sb, indent);
+                    }
                 }
             }
+
+            sb.Append("]}");
+            _objectReferences.Remove(enumerable);
         }
-        sb.Append("]");
+        else
+        {
+            // 普通集合序列化
+            sb.Append("[");
+            bool first = true;
+
+            var items = new List<object>();
+            foreach (var item in enumerable)
+            {
+                items.Add(item);
+            }
+
+            if (items.Count > 0)
+            {
+                if (_indent)
+                {
+                    sb.AppendLine();
+                    int newIndent = indent + 1;
+                    for (int i = 0; i < items.Count; i++)
+                    {
+                        sb.Append(GetIndentString(newIndent));
+                        SerializeValue(items[i], sb, newIndent);
+                        if (i < items.Count - 1)
+                        {
+                            sb.Append(",");
+                        }
+                        sb.AppendLine();
+                    }
+                    sb.Append(GetIndentString(indent));
+                }
+                else
+                {
+                    foreach (var item in items)
+                    {
+                        if (!first) sb.Append(",");
+                        first = false;
+                        SerializeValue(item, sb, indent);
+                    }
+                }
+            }
+            sb.Append("]");
+        }
     }
 
     private void SerializeDictionary(IDictionary dict, StringBuilder sb, int indent)
@@ -339,57 +592,171 @@ public class MyJson
         sb.Append("}");
     }
 
-    private void SerializeObject(object obj, StringBuilder sb, int indent)
+    private void SerializeObjectWithId(object obj, StringBuilder sb, int indent, int referenceId)
     {
         sb.Append("{");
-        if (TypeNameHandling == TypeNameHandling.Auto)
+
+        // 首先输出$id标记
+        if (_indent)
         {
+            sb.AppendLine();
+            int newIndent = indent + 1;
+            sb.Append(GetIndentString(newIndent));
+            sb.Append($"\"$id\":\"{referenceId}\",");
+            sb.AppendLine();
+            sb.Append(GetIndentString(newIndent));
+            bool first = true;
+            SerializeFields(obj, sb, newIndent, ref first);
+            sb.AppendLine();
+            sb.Append(GetIndentString(indent));
+        }
+        else
+        {
+            sb.Append($"\"$id\":\"{referenceId}\",");
+            bool first = true;
+            SerializeFields(obj, sb, indent, ref first);
+        }
+
+        sb.Append("}");
+    }
+
+    /// <summary>
+    /// 序列化对象
+    /// </summary>
+    /// <param name="obj">要序列化的对象</param>
+    /// <param name="sb">StringBuilder实例</param>
+    /// <param name="indent">缩进级别</param>
+    private void SerializeObject(object obj, StringBuilder sb, int indent)
+    {
+        Type objType = obj.GetType();
+
+        // 检查是否是循环引用
+        if (_processedObjects.Contains(obj))
+        {
+            // 根据ReferenceLoopHandling设置处理循环引用
+            switch (ReferenceLoopHandling)
+            {
+                case ReferenceLoopHandling.Error:
+                throw new InvalidOperationException("发现循环引用");
+                case ReferenceLoopHandling.Ignore:
+                // 忽略循环引用，输出空对象
+                sb.Append("{}");
+                return;
+                case ReferenceLoopHandling.Serialize:
+                // 继续序列化，使用引用机制
+                break;
+            }
+        }
+
+        // 将对象添加到已处理集合
+        _processedObjects.Add(obj);
+
+        // 处理引用保留
+        if (ShouldPreserveReferences(objType))
+        {
+            if (_objectReferences.TryGetValue(obj, out int existingId))
+            {
+                // 已经序列化过，输出引用
+                sb.Append($"{{\"$ref\":\"{existingId}\"}}");
+                // 从已处理对象集合中移除
+                _processedObjects.Remove(obj);
+                return;
+            }
+
+            // 新对象，分配ID并注册
+            int newId = _referenceIdCounter++;
+            _objectReferences[obj] = newId;
+
+            // 输出$id并继续序列化
+            sb.Append("{");
+
             if (_indent)
             {
                 sb.AppendLine();
                 int newIndent = indent + 1;
                 sb.Append(GetIndentString(newIndent));
+                sb.Append($"\"$id\":\"{newId}\",");
+                sb.AppendLine();
+
+                bool first = true;
+                SerializeFields(obj, sb, newIndent, ref first);
+
+                sb.AppendLine();
+                sb.Append(GetIndentString(indent));
+            }
+            else
+            {
+                sb.Append($"\"$id\":\"{newId}\",");
+
+                bool first = true;
+                SerializeFields(obj, sb, indent, ref first);
+            }
+
+            sb.Append("}");
+
+            // 从已处理对象集合中移除
+            _processedObjects.Remove(obj);
+            return;
+        }
+
+        // 普通对象序列化
+        sb.Append("{");
+
+        bool first2 = true;
+        int newIndent2 = indent + 1;
+
+        if (TypeNameHandling == TypeNameHandling.Auto)
+        {
+            if (_indent)
+            {
+                sb.AppendLine();
+                sb.Append(GetIndentString(newIndent2));
                 sb.Append($"\"$type\":\"{obj.GetType().FullName}\",");
                 sb.AppendLine();
-                sb.Append(GetIndentString(newIndent));
-                SerializeFields(obj, sb, newIndent);
+                sb.Append(GetIndentString(newIndent2));
+                SerializeFields(obj, sb, newIndent2, ref first2);
                 sb.AppendLine();
                 sb.Append(GetIndentString(indent));
             }
             else
             {
                 sb.Append($"\"$type\":\"{obj.GetType().FullName}\",");
-                SerializeFields(obj, sb, indent);
+                SerializeFields(obj, sb, indent, ref first2);
             }
         }
         else
         {
             if (_indent)
             {
-                int newIndent = indent + 1;
                 sb.AppendLine();
-                sb.Append(GetIndentString(newIndent));
-                SerializeFields(obj, sb, newIndent);
+                sb.Append(GetIndentString(newIndent2));
+                SerializeFields(obj, sb, newIndent2, ref first2);
                 sb.AppendLine();
                 sb.Append(GetIndentString(indent));
             }
             else
             {
-                SerializeFields(obj, sb, indent);
+                SerializeFields(obj, sb, indent, ref first2);
             }
         }
         sb.Append("}");
+
+        // 从已处理对象集合中移除
+        _processedObjects.Remove(obj);
     }
 
-    private void SerializeFields(object obj, StringBuilder sb, int indent)
+    /// <summary>
+    /// 序列化对象的字段和属性
+    /// </summary>
+    /// <param name="obj">要序列化的对象</param>
+    /// <param name="sb">StringBuilder实例</param>
+    /// <param name="indent">缩进级别</param>
+    /// <param name="first">是否为第一个元素</param>
+    private void SerializeFields(object obj, StringBuilder sb, int indent, ref bool first)
     {
         Type type = obj.GetType();
         var fields = type.GetFields(BindingFlags.Public | BindingFlags.Instance);
         var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-        bool first = true;
-        int fieldCount = fields.Length + properties.Length;
-        int currentIndex = 0;
 
         foreach (var field in fields)
         {
@@ -401,13 +768,12 @@ public class MyJson
             }
             else if (!first && !_indent)
             {
-                sb.Append(",");
+                sb.Append(',');
             }
             first = false;
             sb.Append(_indent ? $"\"{field.Name}\": " : $"\"{field.Name}\":");
             object? value = field.GetValue(obj);
             SerializeValue(value, sb, indent);
-            currentIndex++;
         }
 
         foreach (var prop in properties)
@@ -416,7 +782,7 @@ public class MyJson
             var indexParams = prop.GetIndexParameters();
             if (indexParams.Length > 0)
             {
-                // 跳过所有索引器属性
+                // 跳过索引器属性
                 continue;
             }
 
@@ -435,10 +801,8 @@ public class MyJson
             object? value;
             try
             {
-                //if (type.Name == "Point3d")
-                //{
-                //}
-                // TODO 图元经过序列化时候上下文存在问题,例如com接口这些被反射了直接报错
+                // obj 类型 { System.Collections.Hashtable.HashtableEnumerator}
+                // System.InvalidOperationException:“枚举尚未开始。调用 MoveNext。”
                 value = prop.GetValue(obj, null);
             }
             catch
@@ -446,17 +810,34 @@ public class MyJson
                 value = null;
                 Debugger.Break();
             }
-            SerializeValue(value!, sb, indent);
-            currentIndex++;
+            SerializeValue(value, sb, indent);
         }
     }
 
+    /// <summary>
+    /// 反序列化JSON字符串为指定类型的对象
+    /// </summary>
+    /// <typeparam name="T">目标对象类型</typeparam>
+    /// <param name="json">JSON字符串</param>
+    /// <returns>反序列化后的对象</returns>
     public T? Deserialize<T>(string json)
     {
+        // 清理引用跟踪状态
+        _objectReferences.Clear();
+        _idToObject.Clear();
+        _referenceIdCounter = 1;
+        _processedObjects.Clear();
+
         using var reader = new StringReader(json);
         return DeserializeValue<T>(reader);
     }
 
+    /// <summary>
+    /// 从文本读取器反序列化值
+    /// </summary>
+    /// <typeparam name="T">目标类型</typeparam>
+    /// <param name="reader">文本读取器</param>
+    /// <returns>反序列化后的值</returns>
     private T? DeserializeValue<T>(TextReader reader)
     {
         var token = ReadToken(reader);
@@ -466,10 +847,30 @@ public class MyJson
         return (T)DeserializeToken(token, typeof(T))!;
     }
 
+    /// <summary>
+    /// 反序列化令牌为指定类型的对象
+    /// </summary>
+    /// <param name="token">令牌</param>
+    /// <param name="targetType">目标类型</param>
+    /// <returns>反序列化后的对象</returns>
     private object? DeserializeToken(Token token, Type targetType)
     {
         if (token.Type == TokenType.Null)
             return null;
+
+        // 处理$ref引用
+        if (token.Type == TokenType.Object && token.Value is Dictionary<string, object> dict)
+        {
+            if (dict.TryGetValue("$ref", out var refValue) && refValue != null)
+            {
+                int refId = Convert.ToInt32(refValue.ToString());
+                if (_idToObject.TryGetValue(refId, out var referencedObject))
+                {
+                    return referencedObject;
+                }
+                return null; // 找不到引用的对象
+            }
+        }
 
         if (targetType == typeof(string))
         {
@@ -521,13 +922,83 @@ public class MyJson
             return DeserializeArray(token.Value as List<object>, targetType);
         }
 
+        // 处理带$id的数组或集合
+        if (token.Type == TokenType.Object && token.Value is Dictionary<string, object> objDict)
+        {
+            if (objDict.TryGetValue("$id", out var idValue) && objDict.TryGetValue("$values", out var valuesValue))
+            {
+                int arrayId = Convert.ToInt32(idValue.ToString());
+                var valuesList = valuesValue as List<object>;
+
+                if (targetType.IsArray)
+                {
+                    Type elementType = targetType.GetElementType()!;
+                    var array = Array.CreateInstance(elementType, valuesList?.Count ?? 0);
+
+                    if (valuesList != null)
+                    {
+                        for (int i = 0; i < valuesList.Count; i++)
+                        {
+                            array.SetValue(DeserializeToken(new Token { Type = GetTokenType(valuesList[i]), Value = valuesList[i] }, elementType), i);
+                        }
+                    }
+
+                    _idToObject[arrayId] = array;
+                    return array;
+                }
+                else if (targetType.IsGenericType)
+                {
+                    var genericArgs = targetType.GetGenericArguments();
+                    if (genericArgs.Length > 0)
+                    {
+                        Type elementType = genericArgs[0];
+                        var listType = typeof(List<>).MakeGenericType(elementType);
+                        var result = Activator.CreateInstance(listType);
+                        var addMethod = listType.GetMethod("Add");
+
+                        if (valuesList != null && result != null && addMethod != null)
+                        {
+                            foreach (var item in valuesList)
+                            {
+                                var token2 = new Token { Type = GetTokenType(item), Value = item };
+                                var deserializedItem = DeserializeToken(token2, elementType);
+                                var convertedItem = ConvertToType(deserializedItem, elementType);
+
+                                if (convertedItem != null || elementType.IsClass || Nullable.GetUnderlyingType(elementType) != null)
+                                {
+                                    addMethod.Invoke(result, new[] { convertedItem });
+                                }
+                            }
+                        }
+
+                        _idToObject[arrayId] = result!;
+                        return result;
+                    }
+                }
+            }
+        }
+
         return token.Value;
     }
 
+    /// <summary>
+    /// 反序列化字典为对象
+    /// </summary>
+    /// <param name="dict">键值对字典</param>
+    /// <param name="type">目标类型</param>
+    /// <returns>反序列化后的对象</returns>
     private object? DeserializeObject(Dictionary<string, object>? dict, Type type)
     {
         if (dict == null)
             return null;
+
+        // 处理$id引用
+        int objectId = 0;
+        if (dict.TryGetValue("$id", out var idValue) && idValue != null)
+        {
+            objectId = Convert.ToInt32(idValue.ToString());
+            dict.Remove("$id");
+        }
 
         if (TypeNameHandling == TypeNameHandling.Auto && dict.TryGetValue("$type", out var typeName))
         {
@@ -546,6 +1017,12 @@ public class MyJson
         var obj = Activator.CreateInstance(type);
         if (obj == null)
             return null;
+
+        // 注册对象引用（如果有ID）
+        if (objectId > 0)
+        {
+            _idToObject[objectId] = obj;
+        }
 
         foreach (var kvp in dict)
         {
@@ -568,6 +1045,12 @@ public class MyJson
         return obj;
     }
 
+    /// <summary>
+    /// 反序列化数组
+    /// </summary>
+    /// <param name="list">对象列表</param>
+    /// <param name="type">目标类型</param>
+    /// <returns>反序列化后的数组</returns>
     private object? DeserializeArray(List<object>? list, Type type)
     {
         if (list == null)
@@ -586,7 +1069,7 @@ public class MyJson
         }
         else
         {
-            // 这里报错了
+            // 处理List<T>等泛型集合
             var genericArgs = type.GetGenericArguments();
             if (genericArgs.Length > 0)
             {
@@ -866,45 +1349,197 @@ public class MyJson
     }
 }
 
+/// <summary>
+/// MyJson序列化器的配置设置
+/// </summary>
 public class MyJsonSettings
 {
+    /// <summary>
+    /// 格式化选项
+    /// </summary>
     public Formatting Formatting { get; set; }
+
+    /// <summary>
+    /// 类型名称处理选项
+    /// </summary>
     public TypeNameHandling TypeNameHandling { get; set; }
+
+    /// <summary>
+    /// 引用保留处理选项
+    /// </summary>
+    public PreserveReferencesHandling PreserveReferencesHandling { get; set; }
+
+    /// <summary>
+    /// 循环引用处理选项
+    /// </summary>
+    public ReferenceLoopHandling ReferenceLoopHandling { get; set; }
+
+    /// <summary>
+    /// 转换器列表
+    /// </summary>
     public List<MyJsonConverter>? Converters { get; set; }
 }
 
+/// <summary>
+/// 格式化选项枚举
+/// </summary>
 public enum Formatting
 {
+    /// <summary>
+    /// 无格式化
+    /// </summary>
     None = 0,
+
+    /// <summary>
+    /// 缩进格式化
+    /// </summary>
     Indented = 1
 }
 
+/// <summary>
+/// 类型名称处理选项枚举
+/// </summary>
 public enum TypeNameHandling
 {
+    /// <summary>
+    /// 不处理类型名称
+    /// </summary>
     None = 0,
+
+    /// <summary>
+    /// 自动处理类型名称
+    /// </summary>
     Auto = 1
 }
 
+/// <summary>
+/// 引用保留处理选项枚举
+/// </summary>
+public enum PreserveReferencesHandling
+{
+    /// <summary>
+    /// 不保留引用
+    /// </summary>
+    None = 0,
+
+    /// <summary>
+    /// 仅保留对象引用
+    /// </summary>
+    Objects = 1,
+
+    /// <summary>
+    /// 仅保留数组引用
+    /// </summary>
+    Arrays = 2,
+
+    /// <summary>
+    /// 保留所有引用
+    /// </summary>
+    All = 3
+}
+
+/// <summary>
+/// 循环引用处理选项枚举
+/// </summary>
+public enum ReferenceLoopHandling
+{
+    /// <summary>
+    /// 抛出错误
+    /// </summary>
+    Error = 0,
+
+    /// <summary>
+    /// 忽略循环引用
+    /// </summary>
+    Ignore = 1,
+
+    /// <summary>
+    /// 序列化循环引用
+    /// </summary>
+    Serialize = 2
+}
+
+/// <summary>
+/// 令牌类，表示JSON中的一个语法单元
+/// </summary>
 public class Token
 {
+    /// <summary>
+    /// 令牌类型
+    /// </summary>
     public TokenType Type { get; set; }
+
+    /// <summary>
+    /// 令牌值
+    /// </summary>
     public object? Value { get; set; }
 }
 
+/// <summary>
+/// 令牌类型枚举
+/// </summary>
 public enum TokenType
 {
+    /// <summary>
+    /// 无类型
+    /// </summary>
     None,
+
+    /// <summary>
+    /// 对象类型
+    /// </summary>
     Object,
+
+    /// <summary>
+    /// 数组类型
+    /// </summary>
     Array,
+
+    /// <summary>
+    /// 字符串类型
+    /// </summary>
     String,
+
+    /// <summary>
+    /// 数字类型
+    /// </summary>
     Number,
+
+    /// <summary>
+    /// 布尔类型
+    /// </summary>
     Boolean,
+
+    /// <summary>
+    /// 空值类型
+    /// </summary>
     Null
 }
 
+/// <summary>
+/// JSON转换器抽象基类
+/// </summary>
 public abstract class MyJsonConverter
 {
+    /// <summary>
+    /// 支持的类型集合
+    /// </summary>
     public abstract IEnumerable<Type> SupportedTypes { get; }
+
+    /// <summary>
+    /// 序列化对象
+    /// </summary>
+    /// <param name="obj">要序列化的对象</param>
+    /// <param name="serializer">序列化器实例</param>
+    /// <returns>序列化后的字典</returns>
     public abstract IDictionary<string, object> Serialize(object obj, MyJson serializer);
+
+    /// <summary>
+    /// 反序列化对象
+    /// </summary>
+    /// <param name="dictionary">包含数据的字典</param>
+    /// <param name="type">目标类型</param>
+    /// <param name="serializer">序列化器实例</param>
+    /// <returns>反序列化后的对象</returns>
     public abstract object Deserialize(IDictionary<string, object> dictionary, Type type, MyJson serializer);
 }

@@ -1,11 +1,14 @@
-﻿namespace IFoxCAD.Cad;
-#pragma warning disable CS1591 // 缺少XML注释
+﻿#pragma warning disable CS1591 // 缺少XML注释
 #pragma warning disable CS1572 // XML注释中有不存在的参数
 #pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
 
+using System.Xml;
+
+namespace IFoxCAD.Cad;
 
 /*
   Arx自定义实体类,加 读函数（assertReadEnabled）和写函数（assertWriteEnabled）
+  实现局部撤销
 */
 
 [Serializable]
@@ -581,11 +584,14 @@ public class DwgFiler : Cad_DwgFiler
     /// <returns>表示当前对象的字符串</returns>
     public override string ToString()
     {
-        var settings = new MyJsonSettings
+        // 处理循环引用
+        var serializeSettings = new MyJsonSettings
         {
+            ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+            PreserveReferencesHandling = PreserveReferencesHandling.All,
             Formatting = Formatting.Indented,
             Converters = new List<MyJsonConverter> { new ObjectIdConverter() }
         };
-        return MyJson.SerializeObject(this, settings);
+        return MyJson.SerializeObject(this, serializeSettings);
     }
 }

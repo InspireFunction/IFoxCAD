@@ -16,7 +16,7 @@ public class TestCmd_XRecord
         if (prs.Status != PromptStatus.OK)
             return;
 
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         var pls = prs.Value.GetEntities<Polyline>();
         Tools.TestTimes(1, nameof(TestSerializeSetXRecord), () => {
             foreach (var pl in pls)
@@ -50,7 +50,7 @@ public class TestCmd_XRecord
         if (prs.Status != PromptStatus.OK)
             return;
 
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
 
         TestABCList? datas = null;
         Tools.TestTimes(1, nameof(TestDeserializeGetXRecord), () => {

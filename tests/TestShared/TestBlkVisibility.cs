@@ -10,7 +10,7 @@ public static class TestBlkVisibility
         var r1 = Env.Editor.GetEntity("\n选择块参照");
         if (r1.Status != PromptStatus.OK)
             return;
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         if (tr.GetObject(r1.ObjectId) is not BlockReference { IsDynamicBlock: true } brf)
             return;
         var info = brf.GetVisibilityInfo();

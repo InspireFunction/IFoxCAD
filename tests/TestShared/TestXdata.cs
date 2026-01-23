@@ -9,7 +9,7 @@ public class TestXdata
     [CommandMethod(nameof(Test_AddXdata))]
     public void Test_AddXdata()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
 
         tr.RegAppTable.Add("myapp1");
         tr.RegAppTable.Add(Appname); // add函数会默认的在存在这个名字的时候返回这个名字的regapp的id，不存在就新建
@@ -68,7 +68,7 @@ public class TestXdata
         var res = Env.Editor.GetEntity("\n select the entity:");
         if (res.Status != PromptStatus.OK) return;
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         using var ent = (Entity)tr.GetObject(res.ObjectId);
         if (ent.XData == null)
             return;
@@ -85,7 +85,7 @@ public class TestXdata
     [CommandMethod(nameof(Test_GetXdata))]
     public void Test_GetXdata()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.RegAppTable.ForEach(id =>
             id.GetObject<RegAppTableRecord>()?.Name.Print());
         tr.RegAppTable.GetRecords().ForEach(rec => rec.Name.Print());
@@ -120,7 +120,7 @@ public class TestXdata
         var res = Env.Editor.GetEntity("\n select the entity:");
         if (res.Status != PromptStatus.OK) return;
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         using var data = (Entity)tr.GetObject(res.ObjectId);
         data.ChangeXData(Appname, DxfCode.ExtendedDataAsciiString, "change");
 

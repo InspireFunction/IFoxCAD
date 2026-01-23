@@ -18,7 +18,7 @@ public class CmdTestDwgFilerEx
                 return;
         }
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var ids = ssPsr.Value.GetObjectIds();
         foreach (var id in ids)
         {
@@ -50,7 +50,7 @@ public class CmdTestDwgFilerEx
         if (ssPsr.Status != PromptStatus.OK)
             return;
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var ids = ssPsr.Value.GetObjectIds();
         foreach (var id in ids)
         {
@@ -92,7 +92,7 @@ public class CmdTestDwgFilerEx
             return;
 #endif
 
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var dwgFilerEx = new DwgFilerEx();
         using var bText = (DBText)tr.GetObject(gt1.ObjectId, OpenMode.ForRead);
         if (bText is null)

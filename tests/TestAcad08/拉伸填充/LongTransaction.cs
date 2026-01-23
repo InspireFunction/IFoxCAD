@@ -95,7 +95,7 @@ public class LongTransactionManager
     [CommandMethod(nameof(WorkSet))]
     public static void WorkSet()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         StringBuilder stringBuilder = new();
         var doc = Acap.DocumentManager.MdiActiveDocument;
         stringBuilder.AppendLine($"WorkSet  id数量: {_map[doc].WorkSet.Count}");
@@ -113,7 +113,7 @@ public class LongTransactionManager
     [CommandMethod(nameof(CmdTransperentcy), CommandFlags.Redraw)]
     public void CmdTransperentcy()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var ed = Acap.DocumentManager.MdiActiveDocument.Editor;
         var x = EditorEx.GetInteger(ed, "输入透明度", 255);
         var ts = new Transparency((byte)x.Value);

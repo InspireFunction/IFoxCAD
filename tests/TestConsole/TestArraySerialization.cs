@@ -60,20 +60,20 @@ namespace IFoxCAD.Cad.Tests
 
     class TestData
     {
-        public string Name { get; set; }
-        public string[] EmptyArray { get; set; }
-        public HashSet<string> aaa { get; set; }
-        public List<int> EmptyList { get; set; }
-        public int[] NormalArray { get; set; }
-        public List<string> NormalList { get; set; }
+        public string Name { get; set; } = string.Empty;
+        public string[] EmptyArray { get; set; } = new string[0];
+        public HashSet<string> aaa { get; set; } = new HashSet<string>();
+        public List<int> EmptyList { get; set; } = new List<int>();
+        public int[] NormalArray { get; set; } = new int[0];
+        public List<string> NormalList { get; set; } = new List<string>();
     }
 
     class IMEConfig
     {
-        public HashSet<string> aaa { get; set; }
-        public string[] AutoEn2Cn { get; set; }
-        public string[] AutoCn2En { get; set; }
-        public string IMEHookStyle { get; set; }
-        public string IMEInputSwitch { get; set; }
+        public HashSet<string> aaa { get; set; } = new HashSet<string>();
+        public string[] AutoEn2Cn { get; set; } = new string[0];
+        public string[] AutoCn2En { get; set; } = new string[0];
+        public string IMEHookStyle { get; set; } = string.Empty;
+        public string IMEInputSwitch { get; set; } = string.Empty;
     }
 }

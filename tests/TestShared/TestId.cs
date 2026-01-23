@@ -5,7 +5,7 @@ public class Testid
     [CommandMethod(nameof(Test_Id))]
     public void Test_Id()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         Line line = new(new Point3d(0, 0, 0), new Point3d(1, 1, 0));
         tr.CurrentSpace.AddEntity(line);
         tr.Dispose();
@@ -29,7 +29,7 @@ public class Testid
     [CommandMethod(nameof(Test_MyCommand))]
     public void Test_MyCommand()
     {
-        using DBTrans dbtrans = new(Env.Document, true, false);
+        using var tr = DBTrans.Create(Env.Document, true, false);
         using var trans = Env.Database.TransactionManager.StartTransaction();
 
         var l1 = new Line(new Point3d(0, 0, 0), new Point3d(100, 100, 0));
@@ -42,7 +42,7 @@ public class Testid
     [CommandMethod(nameof(Test_TextStyle))]
     public void Test_TextStyle()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         tr.TextStyleTable.Add("宋体", "宋体.ttf", 0.8);
 
         tr.TextStyleTable.Add("宋体1", FontTTF.宋体, 0.8);
@@ -62,7 +62,7 @@ public class Testid
     [CommandMethod(nameof(Test_TextStyleChange))]
     public void Test_TextStyleChange()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
 
 
         tr.TextStyleTable.AddWithChange("宋体1", "simfang.ttf", height: 5);

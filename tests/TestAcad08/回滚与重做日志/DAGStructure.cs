@@ -1,10 +1,6 @@
-#if true
-using System.Security.Cryptography;
-using System.Text;
-using static IFoxCAD.Cad.PostCmd;
+namespace JoinBoxAcad;
 
-namespace JoinBoxAcad
-{ 
+using System.Security.Cryptography;
 
 // 版本节点
 public class VersionNode
@@ -218,7 +214,15 @@ public class ActionDAG
 
         try
         {
-            var result = MyJson.SerializeObject(data, Formatting.Indented);
+            var serializeSettings = new MyJsonSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
+                PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+                Formatting = Formatting.Indented,
+                Converters = new List<MyJsonConverter> { new ObjectIdConverter() }
+            };
+
+            var result = MyJson.SerializeObject(data, serializeSettings);
             Console.WriteLine($"DAG Serialize Success, Result Length: {result.Length}");
             return result;
         }
@@ -241,7 +245,7 @@ public class ActionDAG
                 Console.WriteLine($"Serializing node: {node.Id}, Action Type: {node.Action?.GetType().Name}");
                 var actionSerialized = node.Action is BaseAction baseAction ? baseAction.Serialize() : "";
                 Console.WriteLine($"Node {node.Id} Action Serialized Length: {actionSerialized.Length}");
-                
+
                 nodes[node.Id] = new
                 {
                     Action = actionSerialized,
@@ -268,16 +272,9 @@ public class RootAction : BaseAction
 {
     public override ActionType Type => ActionType.CommandExecution;
     public override string Description => "初始状态";
-
     public override void Execute() { }
-
     public override IAction GetInverseAction() => this;
-
     public override IAction Clone() => this;
-
     public override bool CanMergeWith(IAction otherAction) => false;
-
     public override IAction MergeWith(IAction otherAction) => this;
 }
-}
-#endif

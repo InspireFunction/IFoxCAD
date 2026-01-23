@@ -677,7 +677,7 @@ public static class EditorEx
             throw new ArgumentException("TILEMODE == 1..Espace papier uniquement");
 
         var mat = Matrix3d.Identity;
-        //using DBTrans tr = new();
+        //using var tr = DBTrans.Create();
         var tr = DBTrans.GetTopTransaction(editor.Document.Database);
         if (tr is null)
         {

@@ -24,7 +24,7 @@ public class TestGraph
     [CommandMethod(nameof(Test_Graph1))]
     public void Test_Graph1()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
         if (ents == null)
             return;
@@ -40,7 +40,7 @@ public class TestGraph
     [CommandMethod(nameof(Test_Graphspeed))]
     public void Test_Graphspeed()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var ents = Env.Editor.SSGet()?.Value?.GetEntities<Curve>();
         if (ents == null)
             return;
@@ -89,7 +89,7 @@ public partial class TestCurve
     [CommandMethod(nameof(Test_CurveExtend))]
     public void Test_CurveExtend()
     {
-        using var tr =  new DBTrans();
+        using var tr = DBTrans.Create();
         var ent = Env.Editor.GetEntity("pick curve").ObjectId.GetObject<Entity>();
         if (ent is Curve curve)
             curve.ForWrite(e => e.Extend(e.EndParam + 1));
@@ -127,7 +127,7 @@ public partial class TestCurve
     [CommandMethod(nameof(Test_Curve_ToArc))]
     public void Test_Curve_ToArc()
     {
-        using var tr = new DBTrans();
+        using var tr = DBTrans.Create();
         var gearc = new CircularArc2d(new Point2d(0,0),new Point2d(0.5,0.5),new Point2d(1,0));
         var dbarc =  gearc.ToArc();
         var dbarc1 = ToArc1(gearc);
@@ -265,7 +265,7 @@ public partial class TestCurve
     [CommandMethod(nameof(Test_BreakCurve))]
     public void Test_BreakCurve()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var ents = Env.Editor.SSGet()?.Value.GetEntities<Curve>();
         if (ents is null)
             return;
@@ -277,7 +277,7 @@ public partial class TestCurve
     [CommandMethod(nameof(Test_CurveCurveIntersector3d))]
     public void Test_CurveCurveIntersector3d()
     {
-        using DBTrans tr = new();
+        using var tr = DBTrans.Create();
         var ents = Env.Editor.SSGet()?
             .Value.GetEntities<Curve>()
             .Select(e => e?.ToCompositeCurve3d()).ToList();
