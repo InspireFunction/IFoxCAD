@@ -1,6 +1,4 @@
-﻿using TestAcad08.回滚与重做日志;
-
-namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 增强的动作日志记录器

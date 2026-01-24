@@ -1,6 +1,4 @@
-﻿using TestAcad08.回滚与重做日志;
-
-namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 初始化日志系统 - 使用增强的撤销重做机制

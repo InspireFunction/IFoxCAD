@@ -1,6 +1,4 @@
-﻿using TestAcad08.回滚与重做日志;
-
-namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 增强的数据库监控器，提供完整的命令上下文跟踪

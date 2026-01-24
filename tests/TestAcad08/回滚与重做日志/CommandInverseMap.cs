@@ -1,4 +1,4 @@
-﻿namespace TestAcad08.回滚与重做日志;
+﻿namespace JoinBoxAcad;
 
 // 命令映射表
 public static class CommandInverseMap

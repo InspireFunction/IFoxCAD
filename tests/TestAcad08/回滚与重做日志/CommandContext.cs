@@ -1,4 +1,4 @@
-﻿namespace TestAcad08.回滚与重做日志;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 命令上下文，包含命令执行期间的所有数据库变更

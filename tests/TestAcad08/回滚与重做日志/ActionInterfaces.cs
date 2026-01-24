@@ -1,4 +1,4 @@
-﻿namespace TestAcad08.回滚与重做日志;
+﻿namespace JoinBoxAcad;
 
 // 动作类型枚举
 public enum ActionType

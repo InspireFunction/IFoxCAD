@@ -1,6 +1,4 @@
-﻿using JoinBoxAcad;
-
-namespace TestAcad08.回滚与重做日志;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 命令事件监听

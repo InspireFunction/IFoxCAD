@@ -1,6 +1,4 @@
-﻿using TestAcad08.回滚与重做日志;
-
-namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 增强的命令动作，包含完整的上下文信息
