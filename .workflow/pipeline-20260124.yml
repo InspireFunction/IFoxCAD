@@ -1,0 +1,37 @@
+version: '1.0'
+name: pipeline-20260124
+displayName: autopushnuget
+triggers:
+  trigger: auto
+  push:
+    branches:
+      precise:
+        - v0.9
+    paths:
+      precise:
+        - src/Directory.Build.props
+variables:
+  global:
+    - NUGET_AUTH_TOKEN
+stages:
+  - name: stage-dc699468
+    displayName: buildandpush
+    strategy: naturally
+    trigger: auto
+    executor: []
+    steps:
+      - step: build@dotnet
+        name: build_dotnet
+        displayName: .NET Core 构建
+        dotnetVersion: '8.0'
+        commands:
+          - '# 显示当前目录和文件结构'
+          - pwd && ls -la
+          - '# 恢复依赖'
+          - dotnet restore
+          - '# 构建项目'
+          - dotnet build -c Release
+          - dotnet pack -c Release --no-build -o ./packages
+          - '# 返回根目录推送包'
+          - dotnet nuget push ./packages/*.nupkg --api-key ${NUGET_AUTH_TOKEN} --source https://api.nuget.org/v3/index.json --skip-duplicate
+        strategy: {}
