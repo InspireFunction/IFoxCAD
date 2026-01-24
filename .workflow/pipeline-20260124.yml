@@ -6,7 +6,7 @@ triggers:
   push:
     branches:
       precise:
-        - v0.9
+        - main
     paths:
       precise:
         - src/Directory.Build.props
