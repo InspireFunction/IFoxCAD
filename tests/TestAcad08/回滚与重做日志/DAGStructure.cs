@@ -1,59 +1,13 @@
-namespace JoinBoxAcad;
+﻿namespace TestAcad08.回滚与重做日志;
 
 using System.Security.Cryptography;
 
-// 版本节点
-public class VersionNode
-{
-    public string Id { get; } = Guid.NewGuid().ToString();
-    public IAction Action { get; set; }
-    public VersionNode Parent { get; set; }
-    public List<VersionNode> Children { get; } = new();
-    public int Depth { get; set; }
-    public string Hash { get; private set; }
-
-    public VersionNode(IAction action, VersionNode parent = null)
-    {
-        Action = action;
-        Parent = parent;
-        Depth = parent?.Depth + 1 ?? 0;
-        CalculateHash();
-    }
-
-    public void RecalculateHash()
-    {
-        CalculateHash();
-    }
-
-    public void CalculateHash()
-    {
-        var data = $"{Action.GuId}-{Action.Type}-{Action.Timestamp.Ticks}-{Depth}";
-        using (var sha256 = SHA256.Create())
-        {
-            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(data));
-            Hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-        }
-    }
-
-    public bool IsAncestorOf(VersionNode node)
-    {
-        var current = node;
-        while (current != null)
-        {
-            if (current == this) return true;
-            current = current.Parent;
-        }
-        return false;
-    }
-
-    public bool IsDescendantOf(VersionNode node) => node.IsAncestorOf(this);
-}
 
 // DAG版本图
 public class ActionDAG
 {
     public VersionNode Root { get; }
-    public VersionNode Current { get; private set; }
+    public VersionNode Current { get; set; }
     public List<VersionNode> Branches { get; } = new();
     public List<VersionNode> History => GetAllNodes();
 
@@ -111,6 +65,7 @@ public class ActionDAG
             if (step != null)
             {
                 step.Execute();
+                Env.Printl($"动作链执行了: ({step.Description})");
             }
         }
 
@@ -143,7 +98,17 @@ public class ActionDAG
             var current = fromNode;
             while (current != toNode)
             {
-                path.Add(current.Action.GetInverseAction());
+                var ac = current.Action.GetInverseAction();
+                if (ac is not null)
+                {
+                    // 有逆向命令
+                    path.Add(ac);
+                }
+                else
+                {
+                    // 没有逆向命令,就用逆向数据
+
+                }
                 current = current.Parent;
             }
         }
@@ -223,13 +188,13 @@ public class ActionDAG
             };
 
             var result = MyJson.SerializeObject(data, serializeSettings);
-            Console.WriteLine($"DAG Serialize Success, Result Length: {result.Length}");
+            Env.Printl($"DAG Serialize Success, Result Length: {result.Length}");
             return result;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"DAG Serialize Error, Message: {ex.Message}");
-            Console.WriteLine($"DAG Serialize Error Details: {ex}");
+            Env.Printl($"DAG Serialize Error, Message: {ex.Message}");
+            Env.Printl($"DAG Serialize Error Details: {ex}");
             throw;
         }
     }
@@ -242,9 +207,9 @@ public class ActionDAG
         {
             try
             {
-                Console.WriteLine($"Serializing node: {node.Id}, Action Type: {node.Action?.GetType().Name}");
+                Env.Printl($"Serializing node: {node.Id}, Action Type: {node.Action?.GetType().Name}");
                 var actionSerialized = node.Action is BaseAction baseAction ? baseAction.Serialize() : "";
-                Console.WriteLine($"Node {node.Id} Action Serialized Length: {actionSerialized.Length}");
+                Env.Printl($"Node {node.Id} Action Serialized Length: {actionSerialized.Length}");
 
                 nodes[node.Id] = new
                 {
@@ -256,13 +221,13 @@ public class ActionDAG
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error serializing node {node.Id}: {ex.Message}");
-                Console.WriteLine($"Error serializing node details: {ex}");
+                Env.Printl($"Error serializing node {node.Id}: {ex.Message}");
+                Env.Printl($"Error serializing node details: {ex}");
                 throw;
             }
         }
 
-        Console.WriteLine($"Total nodes serialized: {nodes.Count}");
+        Env.Printl($"Total nodes serialized: {nodes.Count}");
         return nodes;
     }
 }
@@ -270,11 +235,58 @@ public class ActionDAG
 // 根动作（虚拟）
 public class RootAction : BaseAction
 {
-    public override ActionType Type => ActionType.CommandExecution;
-    public override string Description => "初始状态";
+    public override ActionType Type => ActionType.OtherOperation;
+    public override string Description => "系统初始状态 (根节点)";
     public override void Execute() { }
     public override IAction GetInverseAction() => this;
     public override IAction Clone() => this;
     public override bool CanMergeWith(IAction otherAction) => false;
     public override IAction MergeWith(IAction otherAction) => this;
+}
+
+// 版本节点
+public class VersionNode
+{
+    public string Id { get; } = Guid.NewGuid().ToString();
+    public IAction Action { get; set; }
+    public VersionNode Parent { get; set; }
+    public List<VersionNode> Children { get; } = new();
+    public int Depth { get; set; }
+    public string Hash { get; private set; }
+
+    public VersionNode(IAction action, VersionNode parent = null)
+    {
+        Action = action;
+        Parent = parent;
+        Depth = parent?.Depth + 1 ?? 0;
+        CalculateHash();
+    }
+
+    public void RecalculateHash()
+    {
+        CalculateHash();
+    }
+
+    public void CalculateHash()
+    {
+        var data = $"{Action.GuId}-{Action.Type}-{Action.Timestamp.Ticks}-{Depth}";
+        using (var sha256 = SHA256.Create())
+        {
+            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(data));
+            Hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
+        }
+    }
+
+    public bool IsAncestorOf(VersionNode node)
+    {
+        var current = node;
+        while (current != null)
+        {
+            if (current == this) return true;
+            current = current.Parent;
+        }
+        return false;
+    }
+
+    public bool IsDescendantOf(VersionNode node) => node.IsAncestorOf(this);
 }

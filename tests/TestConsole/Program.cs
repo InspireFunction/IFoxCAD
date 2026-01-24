@@ -18,6 +18,7 @@ namespace CalculatorDemo
     {
         static void Main(string[] args)
         {
+#if true
             //int nResult = AddTwoNumbers(10, 20);
             //Console.WriteLine(nResult);
 
@@ -32,7 +33,9 @@ namespace CalculatorDemo
 
             // 运行MemoryCache测试
             //Console.WriteLine();
-            //TestMemoryCache.RunTest();
+            //TestMemoryCache.RunTest();  
+#endif
+
             // 运行JSON序列化测试
             Console.WriteLine();
             TestJson.RunTests();
@@ -40,32 +43,34 @@ namespace CalculatorDemo
             // 运行Newtonsoft.Json对比测试
             Console.WriteLine();
             TestNewtonsoftJsonComparison.RunTests();
-            
+
             // 运行JSON对比测试
             Console.WriteLine();
             TestJsonComparison.RunTests();
-            
+
             // 运行简化JSON比较测试
             Console.WriteLine();
             SimpleJsonComparison.RunSimpleTest();
-            
+
             // 运行 PreserveReferencesHandling 专项测试
             Console.WriteLine();
             PreserveRefTest.RunTest();
-            
+
             // 运行循环引用测试
             Console.WriteLine();
             TestCircularReference.RunTests();
 
+#if true2
             // 运行栈溢出修复测试
             Console.WriteLine();
             StackOverflowTestHelper.TestStackOverflowFix();
-            
+
             // 运行HashtableEnumerator测试
             Console.WriteLine();
-            TestHashtableEnumerator.RunTests();
-            
-            
+            TestHashtableEnumerator.RunTests(); 
+#endif
+
+
         }
 
         [DebuggerHidden]

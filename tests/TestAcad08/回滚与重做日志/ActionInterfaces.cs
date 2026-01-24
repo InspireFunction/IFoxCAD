@@ -1,18 +1,17 @@
-namespace JoinBoxAcad;
+﻿namespace TestAcad08.回滚与重做日志;
 
 // 动作类型枚举
 public enum ActionType
 {
-    // 系统操作(根节点使用)
-    OtherOperation,
-    CommandExecution,      // 执行命令
+    OtherOperation,      // 系统操作(根节点使用)
 
-    DatabaseAdd,           // 数据库添加
+    CommandExecution,    // 执行命令
+    DatabaseAdd,         // 数据库添加
     DatabaseDelete,       // 数据库删除
     DatabaseModify,       // 数据库修改
 
-    InPlaceAdd,           // 添加到在位编辑
-    InPlaceRemove,        // 从在位编辑移除
+    //InPlaceAdd,           // 添加到在位编辑
+    //InPlaceRemove,        // 从在位编辑移除
 }
 
 // 动作接口

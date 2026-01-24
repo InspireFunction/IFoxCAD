@@ -1,8 +1,8 @@
-using System.Windows.Media.Animation;
+﻿namespace TestAcad08.回滚与重做日志;
 
-namespace JoinBoxAcad;
-
-// 基础动作实现
+/// <summary>
+/// 基础动作实现
+/// </summary>
 public abstract class BaseAction : IAction
 {
     public string GuId { get; } = Guid.NewGuid().ToString();
@@ -26,13 +26,13 @@ public abstract class BaseAction : IAction
         try
         {
             var result = MyJson.SerializeObject(this, Formatting.Indented);
-            Console.WriteLine($"Action Serialize Success: {this.GetType().Name}, Result Length: {result.Length}");
+            Env.Printl($"Action Serialize Success: {this.GetType().Name}, Result Length: {result.Length}");
             return result;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Action Serialize Error: {this.GetType().Name}, Message: {ex.Message}");
-            Console.WriteLine($"Action Serialize Error Details: {ex}");
+            Env.Printl($"Action Serialize Error: {this.GetType().Name}, Message: {ex.Message}");
+            Env.Printl($"Action Serialize Error Details: {ex}");
             throw;
         }
     }
@@ -44,27 +44,34 @@ public abstract class BaseAction : IAction
     /// <returns></returns>
     public static IAction? Deserialize(string json)
     {
+        if (json is null)
+        {
+            throw new ArgumentNullException(nameof(json));
+        }
+
         try
         {
-            Console.WriteLine($"Action Deserialize Input Json Length: {json?.Length}, Content Preview: {(json?.Length > 100 ? json.Substring(0, 100) : json)}");
+            Env.Printl($"Action Deserialize Input Json Length: {json?.Length}, Content Preview: {(json?.Length > 100 ? json.Substring(0, 100) : json)}");
             var s = MyJson.DeserializeObject<BaseAction>(json);
-            Console.WriteLine($"Action Deserialize Success: {(s != null ? s.GetType().Name : "null")}");
+            Env.Printl($"Action Deserialize Success: {(s != null ? s.GetType().Name : "null")}");
             if (s is null)
                 return null;
             return s;
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Action Deserialize Error, Message: {ex.Message}");
-            Console.WriteLine($"Action Deserialize Error Details: {ex}");
-            Console.WriteLine($"Problematic JSON: {(json?.Length > 200 ? json.Substring(0, 200) + "..." : json)}");
+            Env.Printl($"Action Deserialize Error, Message: {ex.Message}");
+            Env.Printl($"Action Deserialize Error Details: {ex}");
+            Env.Printl($"Problematic JSON: {(json?.Length > 200 ? json.Substring(0, 200) + "..." : json)}");
             throw;
         }
     }
 }
 
 
-// 实体动作基类
+/// <summary>
+/// 实体动作基类
+/// </summary>
 public abstract class EntityAction : BaseAction
 {
     /// <summary>
@@ -75,23 +82,13 @@ public abstract class EntityAction : BaseAction
     /// 类型
     /// </summary>
     public string? EntityType { get; internal set; }
-    /// <summary>
-    /// 快照
-    /// </summary>
-    public string EntitySnapshot { get; internal set; }
 
     protected EntityAction(ObjectId entityId)
     {
         DBObjectId = entityId;
-
         using var tr = DBTrans.Create(entityId.Database);
-        using var entity = tr.GetObject(entityId);
-        if (entity is null) throw new ArgumentNullException();
+        using var entity = tr.GetObject(entityId) ?? throw new ArgumentNullException();
         EntityType = entity.GetType().Name;
-
-        var dwgFiler = new DwgFilerEx();
-        dwgFiler.DwgOut(entity);
-        EntitySnapshot = dwgFiler.SerializeObject();
     }
 }
 
@@ -113,16 +110,12 @@ public class CreateEntityAction : EntityAction
     /// </summary>
     public override void Execute()
     {
-        // 如果id对象已经删除,那么这里重新加入
+        // 如果对象被删除,使用Erase(false)恢复它
         using var tr = DBTrans.Create(DBObjectId.Database);
-        using var obj = tr.GetObject(DBObjectId, OpenMode.ForRead, true, true);
+        using var obj = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
         if (obj is not null && obj.IsErased)
         {
-            var dwgFiler = DwgFilerEx.DeserializeObject(EntitySnapshot);
-            if (dwgFiler != null)
-            {
-                dwgFiler.DwgIn();
-            }
+            obj.Erase(false); // 使用false参数恢复被删除的对象
         }
     }
 
@@ -142,12 +135,17 @@ public class CreateEntityAction : EntityAction
         throw new InvalidOperationException("创建动作不能合并");
 }
 
-// 删除实体动作
+/// <summary>
+/// 删除实体动作
+/// </summary>
 public class DeleteEntityAction : EntityAction
 {
     public override ActionType Type => ActionType.DatabaseDelete;
     public override string Description => $"删除实体: {EntityType}";
 
+    /// <summary>
+    /// 删除实体动作
+    /// </summary>
     public DeleteEntityAction(ObjectId entityId) : base(entityId) { }
 
     public override void Execute()
@@ -155,7 +153,7 @@ public class DeleteEntityAction : EntityAction
         using var tr = DBTrans.Create(DBObjectId.Database);
         var entity = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
         if (entity != null && !entity.IsErased)
-            entity.Erase();
+            entity.Erase(true); // 使用true参数确保正确删除
     }
 
     public override IAction GetInverseAction()
@@ -171,7 +169,9 @@ public class DeleteEntityAction : EntityAction
         throw new InvalidOperationException("删除动作不能合并");
 }
 
-// 属性变化结构体
+/// <summary>
+/// 属性变化结构体
+/// </summary>
 public struct PropertyChange
 {
     public object OldValue { get; set; }
@@ -183,28 +183,20 @@ public struct PropertyChange
         NewValue = newValue;
     }
 }
+
+/// <summary>
+/// 修改的动作
+/// </summary>
 public class ModifyEntityAction : EntityAction
 {
     public Dictionary<string, (object OldValue, object NewValue)> PropertyChanges { get; }
-    /// <summary>
-    /// 旧值(首次加入就没有旧值)
-    /// </summary>
-    public string OldSnapshot { get; }
-    /// <summary>
-    /// 新值
-    /// </summary>
-    public string NewSnapshot { get; }
 
     public override ActionType Type => ActionType.DatabaseModify;
     public override string Description => $"修改实体: {EntityType} ({PropertyChanges.Count} 个属性)";
 
     public ModifyEntityAction(ObjectId entityId,
-        string? oldSnapshot,
-        string newSnapshot,
         Dictionary<string, (object, object)> changes) : base(entityId)
     {
-        OldSnapshot = oldSnapshot;
-        NewSnapshot = newSnapshot;
         PropertyChanges = changes;
     }
 
@@ -224,18 +216,12 @@ public class ModifyEntityAction : EntityAction
             kvp => kvp.Key,
             kvp => (kvp.Value.NewValue, kvp.Value.OldValue)
         );
-        if (OldSnapshot is null) throw new InvalidOperationException();
-        return new ModifyEntityAction(DBObjectId, NewSnapshot, OldSnapshot, inverseChanges);
+        return new ModifyEntityAction(DBObjectId, inverseChanges);
     }
 
     public override IAction Clone()
     {
-        if (OldSnapshot is null)
-            throw new InvalidOperationException();
-        if (NewSnapshot is null)
-            throw new InvalidOperationException();
-
-        return new ModifyEntityAction(DBObjectId, OldSnapshot, NewSnapshot, new Dictionary<string, (object, object)>(PropertyChanges));
+        return new ModifyEntityAction(DBObjectId, new Dictionary<string, (object, object)>(PropertyChanges));
     }
 
     public override bool CanMergeWith(IAction otherAction)
@@ -257,8 +243,6 @@ public class ModifyEntityAction : EntityAction
 
         return new ModifyEntityAction(
             DBObjectId,
-            OldSnapshot,
-            otherModify.NewSnapshot,
             mergedChanges
         );
     }
@@ -314,7 +298,8 @@ public class ModifyEntityAction : EntityAction
                 try
                 {
                     var value = applyNewValue ? change.Value.Item2 : change.Value.Item1;
-                    property.SetValue(entity, value, null);
+                    if (value is not null)
+                        property.SetValue(entity, value, null);
                 }
                 catch
                 {
@@ -325,39 +310,69 @@ public class ModifyEntityAction : EntityAction
     }
 }
 
+
 // 命令动作
 public class CommandAction : BaseAction
 {
     public string CommandName { get; }
     public object[] Parameters { get; }
-    public object Result { get; set; }
+    public object? Result { get; set; }
 
     public override ActionType Type => ActionType.CommandExecution;
     public override string Description => $"执行命令: {CommandName}";
 
     public CommandAction(string commandName, params object[] parameters)
     {
-        CommandName = commandName;
-        Parameters = parameters;
+        CommandName = commandName ?? throw new ArgumentNullException(nameof(commandName));
+        Parameters = parameters ?? [];
+
+        // 验证参数，确保没有可能导致CAD API问题的类型
+        if (parameters != null)
+        {
+            for (int i = 0; i < parameters.Length; i++)
+            {
+                if (parameters[i] != null && !IsValidParameterType(parameters[i]))
+                {
+                    Env.Printl($"[WARNING] CommandAction参数类型可能有问题: {parameters[i].GetType().Name}, value: {parameters[i]}");
+                    parameters[i] = parameters[i].ToString(); // 转换为字符串
+                }
+            }
+        }
+    }
+
+    private bool IsValidParameterType(object param)
+    {
+        if (param == null) return true;
+
+        var type = param.GetType();
+        return type.IsPrimitive ||
+               type == typeof(string) ||
+               type == typeof(decimal) ||
+               type.IsEnum;
     }
 
     public override void Execute()
     {
-        var doc = Application.DocumentManager.MdiActiveDocument;
-        doc?.SendStringToExecute($"{CommandName} ", true, false, true);
+        // 命令动作的执行由CAD系统自动处理，这里不需要额外操作
+        // 避免递归调用 SendStringToExecute
+        Env.Printl($"[DEBUG] 将要执行命令 {CommandName}");
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+
+        doc?.SendStringToExecute($"{CommandName}\n", false, false, false);
     }
 
     public override IAction GetInverseAction()
     {
         // 查找命令的逆命令
         var inverseCommand = CommandInverseMap.GetInverseCommand(CommandName);
-        if (inverseCommand != null)
+        if (inverseCommand != string.Empty) // 存在逆命令
         {
             return new CommandAction(inverseCommand, Parameters);
         }
 
-        // 如果没有预定义的逆命令，返回一个通用的撤销命令
-        return new CommandAction("U");
+        // 如果没有预定义的逆命令,尝试使用数据库监控器提供的数据来构建逆操作
+        // 如果仍然无法确定逆操作，返回一个描述性的命令动作
+        return null;
     }
 
     public override IAction Clone() => new CommandAction(CommandName, Parameters);
@@ -366,50 +381,4 @@ public class CommandAction : BaseAction
 
     public override IAction MergeWith(IAction otherAction) =>
         throw new InvalidOperationException("命令动作不能合并");
-}
-
-
-// 命令映射表
-public static class CommandInverseMap
-{
-    private static readonly Dictionary<string, string> _commandPairs = new()
-{
-    // CAD命令映射
-    { "LINE", "ERASE LAST" },
-    { "CIRCLE", "ERASE LAST" },
-    { "RECTANG", "ERASE LAST" },
-    { "MOVE", "U" },  // UNDO
-    { "COPY", "U" },
-    { "ROTATE", "U" },
-    { "SCALE", "U" },
-    { "MIRROR", "U" },
-    { "ERASE", "OOPS" },
-    { "OOPS", "ERASE LAST" },
-    
-    // 图层命令
-    { "-LAYER", "U" },
-    { "LAYISO", "LAYUNISO" },
-    { "LAYUNISO", "LAYISO" },
-    { "LAYFRZ", "LAYTHW" },
-    { "LAYTHW", "LAYFRZ" },
-    { "LAYLOK", "LAYULK" },
-    { "LAYULK", "LAYLOK" },
-    
-    // 在位编辑命令
-    { "REFEDIT", "REFCLOSE _D" },
-    { "REFCLOSE _S", "U" },  // 保存修改
-    { "REFCLOSE _D", "U" },  // 放弃修改
-};
-
-    public static string GetInverseCommand(string command)
-    {
-        if (_commandPairs.TryGetValue(command.ToUpper(), out var inverse))
-            return inverse;
-
-        // 尝试匹配模式
-        if (command.StartsWith("_"))
-            return GetInverseCommand(command.Substring(1));
-
-        return string.Empty;
-    }
 }
