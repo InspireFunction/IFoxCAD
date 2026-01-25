@@ -1,4 +1,6 @@
-﻿namespace JoinBoxAcad;
+﻿using static IFoxCAD.Cad.PostCmd;
+
+namespace JoinBoxAcad;
 
 /// <summary>
 /// 基础动作实现
@@ -87,8 +89,12 @@ public abstract class EntityAction : BaseAction
     {
         DBObjectId = entityId;
         using var tr = DBTrans.Create(entityId.Database);
-        using var entity = tr.GetObject(entityId) ?? throw new ArgumentNullException();
-        EntityType = entity.GetType().Name;
+        using var entity = tr.GetObject(entityId, OpenMode.ForWrite, true, true);
+        if (entity is null)
+        {
+            Env.Printl("怎么它是null呢");
+        }
+        EntityType = entity?.GetType().Name;
     }
 }
 
@@ -381,4 +387,111 @@ public class CommandAction : BaseAction
 
     public override IAction MergeWith(IAction otherAction) =>
         throw new InvalidOperationException("命令动作不能合并");
+}
+
+/// <summary>
+/// 在位编辑添加动作
+/// </summary>
+public class InPlaceAddAction : BaseAction
+{
+    public ObjectId[] ObjectIds { get; }
+
+    public override ActionType Type => ActionType.InPlaceAdd;
+    public override string Description => $"添加到在位编辑: {ObjectIds.Length} 个对象";
+
+    public InPlaceAddAction(IEnumerable<ObjectId> objectIds)
+    {
+        ObjectIds = objectIds.ToArray();
+    }
+
+    public override void Execute()
+    {
+        // 选中 ObjectIds, 然后发送命令,在位编辑添加
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc != null)
+        {
+            // 先选择对象
+            var ed = doc.Editor;
+            // 设置新的选择集
+            ed.SetImpliedSelection(ObjectIds);
+            // TODO 异步命令导致
+            // OnCommandEnded 的 "添加/删除" 时候没有状态标记,
+            // 又再次加入动作,造成无限回滚,并且丢失重做
+
+            // 发送异步命令,添加
+            doc.SendStringToExecute("REFSET\nA\n", false, false, false);
+            //SendCommand("REFSET\nA\n", RunCmdFlag.AcedPostCommand);
+        }
+
+        Env.Printl($"[DEBUG] 执行在位编辑添加操作，对象数: {ObjectIds.Length}");
+    }
+
+    public override IAction GetInverseAction()
+    {
+        // 逆向动作是从在位编辑中移除这些对象
+        return new InPlaceRemoveAction(ObjectIds);
+    }
+
+    public override IAction Clone()
+    {
+        return new InPlaceAddAction(ObjectIds);
+    }
+
+    public override bool CanMergeWith(IAction otherAction) => false;
+
+    public override IAction MergeWith(IAction otherAction) =>
+        throw new InvalidOperationException("在位编辑添加动作不能合并");
+}
+
+/// <summary>
+/// 在位编辑移除动作
+/// </summary>
+public class InPlaceRemoveAction : BaseAction
+{
+    public ObjectId[] ObjectIds { get; }
+
+    public override ActionType Type => ActionType.InPlaceRemove;
+    public override string Description => $"从在位编辑移除: {ObjectIds.Length} 个对象";
+
+    public InPlaceRemoveAction(IEnumerable<ObjectId> objectIds)
+    {
+        ObjectIds = objectIds.ToArray();
+    }
+
+    public override void Execute()
+    {
+        // 选中 ObjectIds, 然后发送命令,在位编辑移除
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc != null)
+        {
+            // 先选择对象
+            var ed = doc.Editor;
+            // 设置新的选择集
+            ed.SetImpliedSelection(ObjectIds);
+            // TODO 异步命令导致
+            // OnCommandEnded 的 "添加/删除" 时候没有状态标记,
+            // 又再次加入动作,造成无限回滚,并且丢失重做
+
+            // 发送异步命令,移除
+            doc.SendStringToExecute("REFSET\nR\n", false, false, false);
+            //SendCommand("REFSET\nR\n", RunCmdFlag.AcedPostCommand);
+        }
+        Env.Printl($"[DEBUG] 执行在位编辑移除操作，对象数: {ObjectIds.Length}");
+    }
+
+    public override IAction GetInverseAction()
+    {
+        // 逆向动作是添加这些对象到在位编辑
+        return new InPlaceAddAction(ObjectIds);
+    }
+
+    public override IAction Clone()
+    {
+        return new InPlaceRemoveAction(ObjectIds);
+    }
+
+    public override bool CanMergeWith(IAction otherAction) => false;
+
+    public override IAction MergeWith(IAction otherAction) =>
+        throw new InvalidOperationException("在位编辑移除动作不能合并");
 }

@@ -5,9 +5,21 @@ using System.Security.Cryptography;
 // DAG版本图
 public class ActionDAG
 {
+    /// <summary>
+    /// 根节点
+    /// </summary>
     public VersionNode Root { get; }
+    /// <summary>
+    /// 当前版本的节点
+    /// </summary>
     public VersionNode Current { get; set; }
-    public List<VersionNode> Branches { get; } = new();
+    /// <summary>
+    /// 分支
+    /// </summary>
+    public List<VersionNode> Branches { get; } = [];
+    /// <summary>
+    /// 历史版本
+    /// </summary>
     public List<VersionNode> History => GetAllNodes();
 
     public ActionDAG()
@@ -97,16 +109,15 @@ public class ActionDAG
             var current = fromNode;
             while (current != toNode)
             {
-                var ac = current.Action.GetInverseAction();
-                if (ac is not null)
+                var inverseAction = current.Action.GetInverseAction();
+                if (inverseAction is not null)
                 {
                     // 有逆向命令
-                    path.Add(ac);
+                    path.Add(inverseAction);
                 }
                 else
                 {
                     // 没有逆向命令,就用逆向数据
-
                 }
                 current = current.Parent;
             }
@@ -183,7 +194,7 @@ public class ActionDAG
                 ReferenceLoopHandling = ReferenceLoopHandling.Serialize,
                 PreserveReferencesHandling = PreserveReferencesHandling.Objects,
                 Formatting = Formatting.Indented,
-                Converters = new List<MyJsonConverter> { new ObjectIdConverter() }
+                Converters = [new ObjectIdConverter()]
             };
 
             var result = MyJson.SerializeObject(data, serializeSettings);

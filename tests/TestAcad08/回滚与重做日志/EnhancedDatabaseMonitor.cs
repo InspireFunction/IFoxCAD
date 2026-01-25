@@ -1,46 +1,63 @@
-﻿namespace JoinBoxAcad;
+namespace JoinBoxAcad;
 
 /// <summary>
 /// 增强的数据库监控器，提供完整的命令上下文跟踪
 /// </summary>
-public class EnhancedDatabaseMonitor
+public class EnhancedDatabaseMonitor : IDisposable
 {
     private readonly Document _document;
     private CommandContext? _currentCommandContext;
-    private readonly Dictionary<ObjectId, EntitySnapshot> _entitySnapshots = new();
-    private readonly List<DatabaseChange> _pendingChanges = new();
+    private readonly Dictionary<ObjectId, EntitySnapshot> _entitySnapshots = [];
+    /// <summary>
+    /// 数据改变记录
+    /// </summary>
+    private readonly List<DatabaseChange> _pendingChanges = [];
+    private bool _IsDisposed;
 
     public EnhancedDatabaseMonitor(Document document)
     {
         _document = document;
-    }
-
-    public void StartMonitoring()
-    {
         _document.Database.ObjectAppended += OnObjectAppended;
         _document.Database.ObjectModified += OnObjectModified;
         _document.Database.ObjectErased += OnObjectErased;
     }
 
-    public void StopMonitoring()
+    // 公共 Dispose 方法
+    public void Dispose()
     {
-        _document.Database.ObjectAppended -= OnObjectAppended;
-        _document.Database.ObjectModified -= OnObjectModified;
-        _document.Database.ObjectErased -= OnObjectErased;
+        Dispose(true);
+        // 阻止垃圾回收器调用析构函数
+        GC.SuppressFinalize(this);
+    }
+
+    // 受保护的虚拟 Dispose 方法
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_IsDisposed)
+            return;
+        _IsDisposed = true;
+
+        if (disposing)
+        {
+            _document.Database.ObjectAppended -= OnObjectAppended;
+            _document.Database.ObjectModified -= OnObjectModified;
+            _document.Database.ObjectErased -= OnObjectErased;
+
+            Clear();
+        }
     }
 
     /// <summary>
-    /// 开始新的命令上下文
+    /// 开始录制新的命令上下文
     /// </summary>
     public void StartCommandContext(string commandName, object[] parameters)
     {
         _currentCommandContext = new CommandContext(commandName, parameters);
         _pendingChanges.Clear();
-        Env.Printl($"[DEBUG] 开始命令上下文: {commandName}");
     }
 
     /// <summary>
-    /// 结束当前命令上下文
+    /// 结束录制当前命令上下文
     /// </summary>
     public CommandContext? EndCommandContext()
     {
@@ -49,8 +66,6 @@ public class EnhancedDatabaseMonitor
 
         _currentCommandContext.Complete();
         _currentCommandContext.Changes.AddRange(_pendingChanges);
-
-        Env.Printl($"[DEBUG] 结束命令上下文: {_currentCommandContext.CommandName}, 变更数: {_pendingChanges.Count}");
 
         var completedContext = _currentCommandContext;
         _currentCommandContext = null;
@@ -72,10 +87,7 @@ public class EnhancedDatabaseMonitor
     /// </summary>
     private EntitySnapshot CreateEntitySnapshot(DBObject entity)
     {
-        var snapshot = new EntitySnapshot(entity.ObjectId)
-        {
-            EntityType = entity.GetType().Name
-        };
+        var snapshot = new EntitySnapshot(entity.ObjectId);
 
         var type = entity.GetType();
         var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
@@ -114,6 +126,7 @@ public class EnhancedDatabaseMonitor
 
     private void OnObjectAppended(object sender, ObjectEventArgs e)
     {
+        DebugEx.Printl($"OnObjectAppended - {DateTime.Now}");
         if (!ShouldRecordChange())
             return;
 
@@ -121,23 +134,19 @@ public class EnhancedDatabaseMonitor
         if (entity == null)
             return;
 
-        var change = new DatabaseChange(ActionType.DatabaseAdd, entity.ObjectId)
-        {
-            EntityType = entity.GetType().Name,
-            NewValue = entity
-        };
-
+        var change = new DatabaseChange(ActionType.DatabaseAdd, entity.ObjectId);
         _pendingChanges.Add(change);
 
         // 创建实体快照用于后续比较
         var snapshot = CreateEntitySnapshot(entity);
         _entitySnapshots[entity.ObjectId] = snapshot;
 
-        Env.Printl($"[DEBUG] 记录添加操作: {entity.ObjectId}, 类型: {entity.GetType().Name}");
+        DebugEx.Printl($"[DEBUG] 记录添加操作: {entity.ObjectId}, 类型: {entity.GetType().Name}");
     }
 
     private void OnObjectModified(object sender, ObjectEventArgs e)
     {
+        DebugEx.Printl($"OnObjectModified - {DateTime.Now}");
         if (!ShouldRecordChange())
             return;
 
@@ -160,19 +169,19 @@ public class EnhancedDatabaseMonitor
         {
             var change = new DatabaseChange(ActionType.DatabaseModify, entity.ObjectId)
             {
-                EntityType = entity.GetType().Name,
                 PropertyChanges = propertyChanges
             };
 
             _pendingChanges.Add(change);
             _entitySnapshots[entity.ObjectId] = newSnapshot;
 
-            Env.Printl($"[DEBUG] 记录修改操作: {entity.ObjectId}, 属性变更数: {propertyChanges.Count}");
+            DebugEx.Printl($"[DEBUG] 记录修改操作: {entity.ObjectId}, 属性变更数: {propertyChanges.Count}");
         }
     }
 
     private void OnObjectErased(object sender, ObjectErasedEventArgs e)
     {
+        DebugEx.Printl($"OnObjectErased - {DateTime.Now}");
         if (!ShouldRecordChange())
             return;
 
@@ -180,18 +189,13 @@ public class EnhancedDatabaseMonitor
         if (entity == null)
             return;
 
-        var change = new DatabaseChange(ActionType.DatabaseDelete, entity.ObjectId)
-        {
-            EntityType = entity.GetType().Name,
-            OldValue = entity
-        };
-
+        var change = new DatabaseChange(ActionType.DatabaseDelete, entity.ObjectId);
         _pendingChanges.Add(change);
 
         // 移除快照
         _entitySnapshots.Remove(entity.ObjectId);
 
-        Env.Printl($"[DEBUG] 记录删除操作: {entity.ObjectId}, 类型: {entity.GetType().Name}");
+        DebugEx.Printl($"[DEBUG] 记录删除操作: {entity.ObjectId}, 类型: {entity.GetType().Name}");
     }
 
     /// <summary>
@@ -249,7 +253,7 @@ public class EnhancedDatabaseMonitor
     /// </summary>
     public List<DatabaseChange> GetCurrentChanges()
     {
-        return new List<DatabaseChange>(_pendingChanges);
+        return [.. _pendingChanges];
     }
 
     /// <summary>

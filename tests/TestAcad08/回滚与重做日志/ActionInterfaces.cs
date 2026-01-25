@@ -10,8 +10,8 @@ public enum ActionType
     DatabaseDelete,       // 数据库删除
     DatabaseModify,       // 数据库修改
 
-    //InPlaceAdd,           // 添加到在位编辑
-    //InPlaceRemove,        // 从在位编辑移除
+    InPlaceAdd,           // 添加到在位编辑
+    InPlaceRemove,        // 从在位编辑移除
 }
 
 // 动作接口

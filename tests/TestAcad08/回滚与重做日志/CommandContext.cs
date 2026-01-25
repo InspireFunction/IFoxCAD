@@ -32,18 +32,18 @@ public class DatabaseChange
 {
     public ActionType Type { get; set; }
     public ObjectId EntityId { get; set; }
-    public string? EntityType { get; set; }
-    public object? OldValue { get; set; }
-    public object? NewValue { get; set; }
-    public Dictionary<string, (object OldValue, object NewValue)>? PropertyChanges { get; set; }
+    // 属性名,旧值,新值
+    public Dictionary<string, (object OldValue, object NewValue)> PropertyChanges { get; set; } = [];
     public DateTime Timestamp { get; set; } = DateTime.Now;
 
-    public DatabaseChange(ActionType type, ObjectId entityId, object? oldValue = null, object? newValue = null)
+    public DatabaseChange(ActionType type, ObjectId entityId,
+        string? propertyName = null, object? oldValue = null, object? newValue = null)
     {
         Type = type;
         EntityId = entityId;
-        OldValue = oldValue;
-        NewValue = newValue;
+        if (propertyName is null || oldValue is null)
+            return;
+        PropertyChanges[propertyName] = (oldValue, newValue!);
     }
 }
 
@@ -53,7 +53,6 @@ public class DatabaseChange
 public class EntitySnapshot
 {
     public ObjectId EntityId { get; set; }
-    public string? EntityType { get; set; }
     public Dictionary<string, object?> Properties { get; set; } = new();
     public DateTime Timestamp { get; set; } = DateTime.Now;
 

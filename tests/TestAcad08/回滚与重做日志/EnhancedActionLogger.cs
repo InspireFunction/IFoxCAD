@@ -5,40 +5,26 @@
 /// </summary>
 public class EnhancedActionLogger : IDisposable
 {
-    private readonly Document _document;
+    private readonly Document _doc;
     private readonly EnhancedDatabaseMonitor _dbMonitor;
-    private readonly CommandEventMonitor _cmdMonitor;
+    private readonly InPlaceEditHandler _inPlaceEditHandler;
     private readonly ActionDAG _dag = new();
     private bool _isExecutingUndoRedo = false;
+    private bool _IsDisposed;
 
     // 实体动作映射 - 跟踪每个实体的所有相关动作
-    private readonly Dictionary<ObjectId, List<VersionNode>> _entityActionMap = new();
+    private readonly Dictionary<ObjectId, List<VersionNode>> _entityActionMap = [];
 
     public EnhancedActionLogger(Document document)
     {
-        _document = document;
+        _doc = document;
+        _doc.CommandWillStart += OnCommandWillStart;
+        _doc.CommandEnded += OnCommandEnded;
+        _doc.CommandCancelled += OnCommandCancelled;
+        _doc.CommandFailed += OnCommandFailed;
+
         _dbMonitor = new EnhancedDatabaseMonitor(document);
-        _cmdMonitor = new CommandEventMonitor(document);
-    }
-
-    public void StartLogging()
-    {
-        _dbMonitor.StartMonitoring();
-        _cmdMonitor.StartMonitoring();
-        _document.CommandWillStart += OnCommandWillStart;
-        _document.CommandEnded += OnCommandEnded;
-        _document.CommandCancelled += OnCommandCancelled;
-        _document.CommandFailed += OnCommandFailed;
-    }
-
-    public void StopLogging()
-    {
-        _dbMonitor.StopMonitoring();
-        _cmdMonitor.StopMonitoring();
-        _document.CommandWillStart -= OnCommandWillStart;
-        _document.CommandEnded -= OnCommandEnded;
-        _document.CommandCancelled -= OnCommandCancelled;
-        _document.CommandFailed -= OnCommandFailed;
+        _inPlaceEditHandler = new(document, this);
     }
 
     /// <summary>
@@ -46,15 +32,28 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     private void OnCommandWillStart(object? sender, CommandEventArgs e)
     {
+        DebugEx.Printl($"OnCommandWillStart - {DateTime.Now}");
+        if (_isExecutingUndoRedo)
+            return;
         if (ShouldExcludeCommand(e.GlobalCommandName))
             return;
 
-        if (_isExecutingUndoRedo)
-            return;
+        // 结束无命令上下文并记录动作
+        var context = _dbMonitor.EndCommandContext();
+        if (context != null && context.Changes.Count > 0)
+        {
+            var action = new EnhancedCommandAction(e.GlobalCommandName, context.Parameters, context);
+            LogAction(action);
+            Env.Printl($"[DEBUG] 结束录制无命令期间的动作, 变更数: {context.Changes.Count}");
+        }
+        else
+        {
+            Env.Printl($"[DEBUG] 结束录制无命令期间 无变化");
+        }
 
         // 开始新的命令上下文
         _dbMonitor.StartCommandContext(e.GlobalCommandName, []);
-        Env.Printl($"[DEBUG] 命令开始: {e.GlobalCommandName}");
+        DebugEx.Printl($"[DEBUG] 开始录制命令期间: {e.GlobalCommandName}");
     }
 
     /// <summary>
@@ -62,20 +61,24 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     private void OnCommandEnded(object? sender, CommandEventArgs e)
     {
+        DebugEx.Printl($"OnCommandEnded - {DateTime.Now}");
+        if (_isExecutingUndoRedo)
+            return;
         if (ShouldExcludeCommand(e.GlobalCommandName))
             return;
 
-        if (_isExecutingUndoRedo)
-            return;
-
-        // 结束命令上下文并记录动作
+        // 结束有命令上下文并记录动作
         var context = _dbMonitor.EndCommandContext();
         if (context != null && context.Changes.Count > 0)
         {
             var action = new EnhancedCommandAction(e.GlobalCommandName, context.Parameters, context);
             LogAction(action);
-            Env.Printl($"[DEBUG] 记录命令动作: {e.GlobalCommandName}, 变更数: {context.Changes.Count}");
+            DebugEx.Printl($"[DEBUG] 结束录制命令期间的动作: {e.GlobalCommandName}, 变更数: {context.Changes.Count}");
         }
+
+        // 开始无命令期间录制
+        _dbMonitor.StartCommandContext("无命令", []);
+        DebugEx.Printl($"[DEBUG] 开始录制无命令期间");
     }
 
     /// <summary>
@@ -83,15 +86,15 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     private void OnCommandCancelled(object? sender, CommandEventArgs e)
     {
-        if (ShouldExcludeCommand(e.GlobalCommandName))
-            return;
-
+        DebugEx.Printl($"OnCommandCancelled - {DateTime.Now}");
         if (_isExecutingUndoRedo)
+            return;
+        if (ShouldExcludeCommand(e.GlobalCommandName))
             return;
 
         // 取消的命令不记录，只清理上下文
         _dbMonitor.Clear();
-        Env.Printl($"[DEBUG] 命令取消: {e.GlobalCommandName}");
+        DebugEx.Printl($"[DEBUG] 命令取消: {e.GlobalCommandName}");
     }
 
     /// <summary>
@@ -99,23 +102,37 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     private void OnCommandFailed(object? sender, CommandEventArgs e)
     {
-        if (ShouldExcludeCommand(e.GlobalCommandName))
-            return;
-
+        DebugEx.Printl($"OnCommandFailed - {DateTime.Now}");
         if (_isExecutingUndoRedo)
+            return;
+        if (ShouldExcludeCommand(e.GlobalCommandName))
             return;
 
         // 失败的命令不记录，只清理上下文
         _dbMonitor.Clear();
-        Env.Printl($"[DEBUG] 命令失败: {e.GlobalCommandName}");
+        DebugEx.Printl($"[DEBUG] 命令失败: {e.GlobalCommandName}");
     }
 
-    HashSet<string> excludedCommands = new(StringComparer.OrdinalIgnoreCase)
-    {
-        "U", "UNDO", "MREDO", "REDO", "_U", "_UNDO", "_MREDO", "_REDO",
-        "MYUNDO", "MYREDO", "SHOWHISTORY", "SHOWENTITYHISTORY", "SHOWCURRENTPOSITION", "SHOWDAGSTRUCTURE",
-        "STARTLOGGING", "STOPLOGGING"
+
+    // 需要排除的命令列表（自定义命令不应被记录）
+    // 避免循环执行
+    internal static readonly HashSet<string> ExcludedCommands = new(StringComparer.OrdinalIgnoreCase)
+    { 
+        // CAD内部命令（可能导致问题）
+        "U",           // 原生撤销
+        "UNDO",        // 原生撤销
+        "MREDO",       // 原生重做
+        "REDO",        // 原生重做
+        "_U",          // 命令行撤销
+        "_UNDO",       // 命令行撤销
+        "_MREDO",      // 命令行重做
+        "_REDO",       // 命令行重做
+
+        // 这些感觉也是需要记录啊
+        //"PASTECLIP",   // 粘贴命令（系统级）
+        //"_PASTECLIP"   // 命令行粘贴
     };
+
 
     /// <summary>
     /// 是否应该排除命令
@@ -124,7 +141,7 @@ public class EnhancedActionLogger : IDisposable
     {
         if (StringHelper.IsNullOrWhiteSpace(commandName))
             return true;
-        return excludedCommands.Contains(commandName);
+        return ExcludedCommands.Contains(commandName);
     }
 
     /// <summary>
@@ -132,12 +149,52 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     public void LogAction(IAction action)
     {
+        // 检查是否正在执行undo/redo操作
+        if (_isExecutingUndoRedo)
+            return;
+
+        // 如果是EnhancedCommandAction，创建子动作
+        if (action is EnhancedCommandAction commandAction)
+        {
+            // 将数据库变更转换为子动作
+            foreach (var change in commandAction.Context.Changes)
+            {
+                IAction? childAction = null;
+                switch (change.Type)
+                {
+                    case ActionType.DatabaseAdd:
+                    childAction = new CreateEntityAction(change.EntityId);
+                    break;
+                    case ActionType.DatabaseDelete:
+                    childAction = new DeleteEntityAction(change.EntityId);
+                    break;
+                    case ActionType.DatabaseModify:
+                    if (change.PropertyChanges.Count > 0)
+                        childAction = new ModifyEntityAction(change.EntityId, change.PropertyChanges);
+                    break;
+                }
+                if (childAction != null)
+                    commandAction.ChildActions.Add(childAction);
+            }
+        }
+
         var node = _dag.AddAction(action);
 
         // 如果是实体动作，记录到实体动作映射中
         if (action is EntityAction entityAction)
         {
             RecordEntityAction(entityAction.DBObjectId, node);
+        }
+        // 如果是EnhancedCommandAction，记录其子动作
+        else if (action is EnhancedCommandAction commandAction2)
+        {
+            foreach (var childAction in commandAction2.ChildActions)
+            {
+                if (childAction is EntityAction childEntityAction)
+                {
+                    RecordEntityAction(childEntityAction.DBObjectId, node);
+                }
+            }
         }
     }
 
@@ -159,7 +216,7 @@ public class EnhancedActionLogger : IDisposable
     {
         if (_entityActionMap.TryGetValue(entityId, out var nodes))
             return nodes;
-        return new List<VersionNode>();
+        return [];
     }
 
     /// <summary>
@@ -182,12 +239,15 @@ public class EnhancedActionLogger : IDisposable
         _isExecutingUndoRedo = true;
         try
         {
+            // 执行撤销之前,把当前动作加入redolog以便回滚?
+            // 但是似乎DAG图,拥有完整的数据了.
+            // 但是为什么撤回 在位编辑器 添加 移除 这两个没有成功记录呢?
             var currentAction = _dag.Current.Action;
             Env.Printl($"\n开始撤销: {currentAction.Description}");
 
             // 获取逆向动作
             var inverseAction = currentAction.GetInverseAction();
-            if (inverseAction != null)
+            if (inverseAction is not null)
             {
                 Env.Printl($"使用逆向动作: {inverseAction.Description}");
                 inverseAction.Execute();
@@ -216,24 +276,87 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     public void Redo()
     {
+        Redo(1);
+    }
+
+    /// <summary>
+    /// 执行多次重做
+    /// </summary>
+    /// <param name="count">重做次数</param>
+    public void Redo(int count)
+    {
         if (_dag.Current.Children.Count == 0)
         {
-            Env.Printl("\n没有可重做的操作。\n");
+            Env.Printl("\n居然没有可重做的操作。\n");
             return;
         }
 
         _isExecutingUndoRedo = true;
+
         try
         {
-            // 切换到第一个子节点
-            var nextNode = _dag.Current.Children[0];
-            var action = nextNode.Action;
+            int executed = 0;
+            for (int i = 0; i < count && _dag.Current.Children.Count > 0; i++)
+            {
+                // 切换到第一个子节点
+                var nextNode = _dag.Current.Children[0];
+                var action = nextNode.Action;
 
-            Env.Printl($"\n开始重做: {action.Description}");
-            action.Execute();
+                Env.Printl($"\n开始重做: {action.Description}");
+                action.Execute();
 
-            _dag.Current = nextNode;
-            Env.Printl("重做完成\n");
+                _dag.Current = nextNode;
+                executed++;
+            }
+
+            if (executed > 0)
+            {
+                Env.Printl($"\n已完成 {executed} 个操作的重做\n");
+            }
+        }
+        catch (Exception ex)
+        {
+            Env.Printl($"[ERROR] 重做失败: {ex.Message}");
+        }
+        finally
+        {
+            _isExecutingUndoRedo = false;
+        }
+    }
+
+    /// <summary>
+    /// 执行全部重做
+    /// </summary>
+    public void RedoAll()
+    {
+        if (_dag.Current.Children.Count == 0)
+        {
+            Env.Printl("\n居然没有可重做的操作。\n");
+            return;
+        }
+
+        _isExecutingUndoRedo = true;
+
+        try
+        {
+            int executed = 0;
+            while (_dag.Current.Children.Count > 0)
+            {
+                // 切换到第一个子节点
+                var nextNode = _dag.Current.Children[0];
+                var action = nextNode.Action;
+
+                Env.Printl($"\n开始重做: {action.Description}");
+                action.Execute();
+
+                _dag.Current = nextNode;
+                executed++;
+            }
+
+            if (executed > 0)
+            {
+                Env.Printl($"\n已完成全部 {executed} 个操作的重做\n");
+            }
         }
         catch (Exception ex)
         {
@@ -393,8 +516,32 @@ public class EnhancedActionLogger : IDisposable
         set => _isExecutingUndoRedo = value;
     }
 
+    // 公共 Dispose 方法
     public void Dispose()
     {
-        StopLogging();
+        Dispose(true);
+        // 阻止垃圾回收器调用析构函数
+        GC.SuppressFinalize(this);
+    }
+
+    // 受保护的虚拟 Dispose 方法
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_IsDisposed)
+            return;
+        _IsDisposed = true;
+
+        if (disposing)
+        {
+            // 释放在位编辑处理器
+            _inPlaceEditHandler?.Dispose();
+
+            // 释放托管资源
+            _dbMonitor.Dispose();
+            _doc.CommandWillStart -= OnCommandWillStart;
+            _doc.CommandEnded -= OnCommandEnded;
+            _doc.CommandFailed -= OnCommandFailed;
+            _doc.CommandCancelled -= OnCommandCancelled;
+        }
     }
 }

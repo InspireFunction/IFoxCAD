@@ -1,4 +1,4 @@
-﻿namespace JoinBoxAcad;
+namespace JoinBoxAcad;
 
 /// <summary>
 /// 增强撤销重做管理器 - 统一的管理器，消除重复存储
@@ -20,7 +20,6 @@ public class EnhancedUndoRedoManager
         }
 
         var logger = new EnhancedActionLogger(doc);
-        logger.StartLogging();
         _loggers[doc] = logger;
 
         Env.Printl($"已为文档启用增强撤销重做功能: {doc.Name}");
@@ -33,7 +32,6 @@ public class EnhancedUndoRedoManager
     {
         if (_loggers.TryGetValue(doc, out var logger))
         {
-            logger.StopLogging();
             logger.Dispose();
             _loggers.Remove(doc);
 
@@ -64,6 +62,39 @@ public class EnhancedUndoRedoManager
         if (_loggers.TryGetValue(doc, out var logger))
         {
             logger.Redo();
+        }
+        else
+        {
+            Env.Printl("文档未启用增强撤销重做功能");
+        }
+    }
+
+    /// <summary>
+    /// 执行多次重做操作
+    /// </summary>
+    /// <param name="doc">文档</param>
+    /// <param name="count">重做次数</param>
+    public static void Redo(Document doc, int count)
+    {
+        if (_loggers.TryGetValue(doc, out var logger))
+        {
+            logger.Redo(count);
+        }
+        else
+        {
+            Env.Printl("文档未启用增强撤销重做功能");
+        }
+    }
+
+    /// <summary>
+    /// 执行全部重做操作
+    /// </summary>
+    /// <param name="doc">文档</param>
+    public static void RedoAll(Document doc)
+    {
+        if (_loggers.TryGetValue(doc, out var logger))
+        {
+            logger.RedoAll();
         }
         else
         {
@@ -124,82 +155,6 @@ public class EnhancedUndoRedoManager
         {
             logger.Clear();
             Env.Printl("已清空历史记录");
-        }
-    }
-}
-
-/// <summary>
-/// 增强撤销重做命令
-/// </summary>
-public class EnhancedUndoRedoCommands
-{
-    [CommandMethod("MYENHANCEDUNDO")]
-    public void MyEnhancedUndo()
-    {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (doc != null)
-        {
-            EnhancedUndoRedoManager.Undo(doc);
-        }
-    }
-
-    [CommandMethod("MYENHANCEDREDO")]
-    public void MyEnhancedRedo()
-    {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (doc != null)
-        {
-            EnhancedUndoRedoManager.Redo(doc);
-        }
-    }
-
-    [CommandMethod("SHOWENHANCEDSTATUS")]
-    public void ShowEnhancedStatus()
-    {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (doc != null)
-        {
-            EnhancedUndoRedoManager.ShowStatus(doc);
-        }
-    }
-
-    [CommandMethod("SHOWENHANCEDHISTORY")]
-    public void ShowEnhancedHistory()
-    {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (doc != null)
-        {
-            EnhancedUndoRedoManager.ShowHistory(doc);
-        }
-    }
-
-    [CommandMethod("CLEARENHANCEDHISTORY")]
-    public void ClearEnhancedHistory()
-    {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (doc != null)
-        {
-            EnhancedUndoRedoManager.ClearHistory(doc);
-        }
-    }
-
-    [CommandMethod("ENABLEENHANCEDUNDO")]
-    public void EnableEnhancedUndo()
-    {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (doc != null)
-        {
-            EnhancedUndoRedoManager.EnableEnhancedUndoRedo(doc);
-        }
-    }
-
-    [CommandMethod("DISABLEENHANCEDUNDO")]
-    public void DisableEnhancedUndo()
-    {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (doc != null)
-        {
-            EnhancedUndoRedoManager.DisableEnhancedUndoRedo(doc);
         }
     }
 }

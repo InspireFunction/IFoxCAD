@@ -17,18 +17,27 @@ public class LoggerInitializer
         EnhancedUndoRedoManager.EnableEnhancedUndoRedo(doc);
         var logger = EnhancedUndoRedoManager.GetLogger(doc);
 
-        doc.Editor.WriteMessage($"\nCAD增强日志系统已启用");
-        doc.Editor.WriteMessage($"\n可用命令:");
-        doc.Editor.WriteMessage($"\n  MYUNDO - 增强撤销（优先逆命令，否则数据回滚）");
-        doc.Editor.WriteMessage($"\n  MYREDO - 增强重做");
-        doc.Editor.WriteMessage($"\n  SHOWHISTORY - 显示操作历史");
-        doc.Editor.WriteMessage($"\n  SHOWENTITYHISTORY - 显示实体历史");
-        doc.Editor.WriteMessage($"\n  SHOWCURRENTPOSITION - 显示当前位置");
-        doc.Editor.WriteMessage($"\n  SHOWDAGSTRUCTURE - 显示DAG结构");
-        doc.Editor.WriteMessage($"\n  ENABLEENHANCEDUNDO - 启用增强撤销重做");
-        doc.Editor.WriteMessage($"\n  DISABLEENHANCEDUNDO - 禁用增强撤销重做");
-        doc.Editor.WriteMessage($"\n{logger.GetCurrentStatus()}\n");
-        doc.Editor.WriteMessage("提示: 新的增强机制支持智能逆向选择（逆命令优先，数据回滚兜底）\n");
+        Env.Printl($"CAD增强日志系统已启用");
+        Env.Printl($"可用命令:");
+        Env.Printl($"  MYUNDO - 增强撤销（优先逆命令，否则数据回滚）");
+        Env.Printl($"  MYREDO - 增强重做");
+        Env.Printl($"  SHOWHISTORY - 显示操作历史");
+        Env.Printl($"  SHOWENTITYHISTORY - 显示实体历史");
+        Env.Printl($"  SHOWCURRENTPOSITION - 显示当前位置");
+        Env.Printl($"  SHOWDAGSTRUCTURE - 显示DAG结构");
+        Env.Printl($"  ENABLEENHANCEDUNDO - 启用增强撤销重做");
+        Env.Printl($"  DISABLEENHANCEDUNDO - 禁用增强撤销重做");
+        Env.Printl($"{logger?.GetCurrentStatus()}\n");
+        Env.Printl("提示: 新的增强机制支持智能逆向选择（逆命令优先，数据回滚兜底）\n");
+
+        // 这些命令需要排除,避免循环执行
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(MyUndo));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowHistory));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowEntityHistory));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowCurrentPosition));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowDAGStructure));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(StartLogging));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(StopLogging));
     }
 
     /// <summary>
@@ -90,14 +99,33 @@ public class LoggerInitializer
             {
                 // 屏蔽原生重做
                 e.Veto();
-                e.Document?.SendStringToExecute(nameof(MyRedo) + "\n", false, false, false);
-                //SendCommand(nameof(MyRedo) + " ", RunCmdFlag.AcedCommand);
+                // 模仿 _mredo 输入动作数目或 [全部(A)/上一个(L)]:
+                // 直接执行方法,这样可以处理命令行参数,而不是发送命令
+                var doc = e.Document;
+                var ed = doc.Editor;
+
+                var pko = new PromptKeywordOptions("\n输入动作数目或 ");
+                // 添加可接受的关键字
+                pko.Keywords.Add("a", "a", "全部(A)");  // 全部选项
+                pko.Keywords.Add("l", "l", "上一个(L)");  // 上一个选项
+                pko.Keywords.Default = "l";
+
+                // 设置允许用户输入数字
+                pko.AllowNone = true;
+                pko.AllowArbitraryInput = true;
+
+                var prompt = ed.GetKeywords(pko);
+                if (prompt.Status != PromptStatus.OK)
+                    return;
+                var input = prompt.StringResult.Trim().ToUpper();
+                // 处理命令行参数
+                ProcessRedoInput(doc, ed, input);
             }
             break;
         }
     }
 
-    [CommandMethod("STOPLOGGING")]
+    [CommandMethod(nameof(StopLogging))]
     public void StopLogging()
     {
         var doc = Application.DocumentManager.MdiActiveDocument;
@@ -120,11 +148,25 @@ public class LoggerInitializer
         EnhancedUndoRedoManager.Undo(doc);
     }
 
-    [CommandMethod(nameof(MyRedo))]
-    public void MyRedo()
+
+    // 处理重做输入的辅助方法
+    private void ProcessRedoInput(Document doc, Editor ed, string input)
     {
-        var doc = Application.DocumentManager.MdiActiveDocument;
-        EnhancedUndoRedoManager.Redo(doc);
+        if (input == "A" || input == "全部")
+        {
+            // 执行全部重做
+            EnhancedUndoRedoManager.RedoAll(doc);
+        }
+        else if (input == "L" || input == "上一个" || StringHelper.IsNullOrWhiteSpace(input))
+        {
+            // 执行一次重做
+            EnhancedUndoRedoManager.Redo(doc);
+        }
+        else if (int.TryParse(input, out int count) && count > 0)
+        {
+            // 执行指定次数的重做
+            EnhancedUndoRedoManager.Redo(doc, count);
+        }
     }
 
     [CommandMethod(nameof(ShowHistory))]

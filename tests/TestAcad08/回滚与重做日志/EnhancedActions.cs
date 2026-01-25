@@ -153,7 +153,6 @@ public class DataRollbackAction : BaseAction
                     Env.Printl($"[DEBUG] 回滚添加操作: 删除实体 {change.EntityId}");
                 }
                 break;
-
                 case ActionType.DatabaseDelete:
                 // 如果是删除操作，回滚就是恢复
                 if (entity.IsErased)
@@ -162,26 +161,11 @@ public class DataRollbackAction : BaseAction
                     Env.Printl($"[DEBUG] 回滚删除操作: 恢复实体 {change.EntityId}");
                 }
                 break;
-
                 case ActionType.DatabaseModify:
                 // 如果是修改操作，回滚就是恢复旧值
                 if (change.PropertyChanges != null)
                 {
                     RollbackPropertyChanges(entity, change.PropertyChanges);
-                }
-                else if (change.OldValue != null)
-                {
-                    // 简单的属性回滚
-                    var type = entity.GetType();
-                    var properties = type.GetProperties();
-                    foreach (var prop in properties)
-                    {
-                        if (prop.CanWrite && prop.Name == "GenericChange")
-                        {
-                            prop.SetValue(entity, change.OldValue, null);
-                            break;
-                        }
-                    }
                 }
                 break;
             }

@@ -11,7 +11,9 @@ public static class CommandInverseMap
     static readonly Dictionary<string, string> _commandPairs = new(StringComparer.OrdinalIgnoreCase)
     {
         // CAD命令映射
-        { "REFEDIT", "REFCLOSE _D" },
+
+        // TODO 在位编辑器的面板是可以取消的!此时我不应该清理记录
+        { "REFEDIT", "REFCLOSE _d" }, 
         //{ "REFCLOSE _S", "U" },  // 保存修改
         //{ "REFCLOSE _D", "U" },  // 放弃修改
     };
