@@ -7,6 +7,7 @@ public class EnhancedDatabaseMonitor : IDisposable
 {
     private readonly Document _document;
     private CommandContext? _currentCommandContext;
+    private EnhancedActionLogger _logger;
     private readonly Dictionary<ObjectId, EntitySnapshot> _entitySnapshots = [];
     /// <summary>
     /// 数据改变记录
@@ -14,9 +15,10 @@ public class EnhancedDatabaseMonitor : IDisposable
     private readonly List<DatabaseChange> _pendingChanges = [];
     private bool _IsDisposed;
 
-    public EnhancedDatabaseMonitor(Document document)
+    public EnhancedDatabaseMonitor(Document document, EnhancedActionLogger logger)
     {
         _document = document;
+        _logger = logger;
         _document.Database.ObjectAppended += OnObjectAppended;
         _document.Database.ObjectModified += OnObjectModified;
         _document.Database.ObjectErased += OnObjectErased;
@@ -52,7 +54,7 @@ public class EnhancedDatabaseMonitor : IDisposable
     /// </summary>
     public void StartCommandContext(string commandName, object[] parameters)
     {
-        _currentCommandContext = new CommandContext(commandName, parameters);
+        _currentCommandContext = new(commandName, parameters);
         _pendingChanges.Clear();
     }
 
@@ -121,6 +123,7 @@ public class EnhancedDatabaseMonitor : IDisposable
         return snapshot;
     }
 
+    // 这些接口反射会爆异常
     HashSet<string> jump = ["IncludingErased", "PreviewIcon"];
 
 

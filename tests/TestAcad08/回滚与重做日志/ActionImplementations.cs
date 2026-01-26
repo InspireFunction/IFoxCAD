@@ -410,19 +410,16 @@ public class InPlaceAddAction : BaseAction
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (doc != null)
         {
-            // 先选择对象
+            // 发送异步命令需要添加进容器,外部 IsExecutingUndoRedo 就不会设置
+            var logger = EnhancedUndoRedoManager.GetLogger(doc);
+            logger?.AsyncCmdsPush("REFSET");
+
             var ed = doc.Editor;
             // 设置新的选择集
             ed.SetImpliedSelection(ObjectIds);
-            // TODO 异步命令导致
-            // OnCommandEnded 的 "添加/删除" 时候没有状态标记,
-            // 又再次加入动作,造成无限回滚,并且丢失重做
-
             // 发送异步命令,添加
             doc.SendStringToExecute("REFSET\nA\n", false, false, false);
-            //SendCommand("REFSET\nA\n", RunCmdFlag.AcedPostCommand);
         }
-
         Env.Printl($"[DEBUG] 执行在位编辑添加操作，对象数: {ObjectIds.Length}");
     }
 
@@ -464,17 +461,15 @@ public class InPlaceRemoveAction : BaseAction
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (doc != null)
         {
-            // 先选择对象
+            // 发送异步命令需要添加进容器,外部 IsExecutingUndoRedo 就不会设置
+            var logger = EnhancedUndoRedoManager.GetLogger(doc);
+            logger?.AsyncCmdsPush("REFSET");
+
             var ed = doc.Editor;
             // 设置新的选择集
             ed.SetImpliedSelection(ObjectIds);
-            // TODO 异步命令导致
-            // OnCommandEnded 的 "添加/删除" 时候没有状态标记,
-            // 又再次加入动作,造成无限回滚,并且丢失重做
-
             // 发送异步命令,移除
             doc.SendStringToExecute("REFSET\nR\n", false, false, false);
-            //SendCommand("REFSET\nR\n", RunCmdFlag.AcedPostCommand);
         }
         Env.Printl($"[DEBUG] 执行在位编辑移除操作，对象数: {ObjectIds.Length}");
     }

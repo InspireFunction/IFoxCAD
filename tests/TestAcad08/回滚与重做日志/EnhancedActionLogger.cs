@@ -23,7 +23,7 @@ public class EnhancedActionLogger : IDisposable
         _doc.CommandCancelled += OnCommandCancelled;
         _doc.CommandFailed += OnCommandFailed;
 
-        _dbMonitor = new EnhancedDatabaseMonitor(document);
+        _dbMonitor = new(document, this);
         _inPlaceEditHandler = new(document, this);
     }
 
@@ -267,7 +267,9 @@ public class EnhancedActionLogger : IDisposable
         }
         finally
         {
-            _isExecutingUndoRedo = false;
+            // #260126a 使用了异步命令这里就不清理了,在命令结束后事件清理
+            if (AsyncCmds.Count == 0)
+                _isExecutingUndoRedo = false;
         }
     }
 
@@ -515,6 +517,58 @@ public class EnhancedActionLogger : IDisposable
         get => _isExecutingUndoRedo;
         set => _isExecutingUndoRedo = value;
     }
+
+
+    #region 异步命令计数器
+    /// <summary>
+    /// 异步命令计数器
+    /// </summary>
+    Dictionary<string, int> AsyncCmds = new(StringComparer.OrdinalIgnoreCase);
+
+    public int AsyncCmdsCount => AsyncCmds.Count;
+
+
+    /// <summary>
+    /// 如果含有就计数+1,否则添加
+    /// </summary>
+    /// <param name="cmd"></param>
+    /// <returns>返回计数</returns>
+    public int AsyncCmdsPush(string cmd)
+    {
+        if (AsyncCmds.TryGetValue(cmd, out var counter))
+        {
+            counter++;
+            AsyncCmds[cmd] = counter;
+            return counter;
+        }
+        else
+        {
+            AsyncCmds[cmd] = 1;
+            return 1;
+        }
+    }
+
+    /// <summary>
+    /// 如果含有就计数-1,为0移除
+    /// </summary>
+    /// <param name="cmd"></param>
+    /// <returns>返回true表示含有</returns>
+    public bool AsyncCmdsPop(string cmd)
+    {
+        if (AsyncCmds.TryGetValue(cmd, out var counter))
+        {
+            counter--;
+            if (counter == 0)
+                AsyncCmds.Remove(cmd);
+            else
+                AsyncCmds[cmd] = counter;
+            return true;
+        }
+        return false;
+    }
+    #endregion
+
+
 
     // 公共 Dispose 方法
     public void Dispose()

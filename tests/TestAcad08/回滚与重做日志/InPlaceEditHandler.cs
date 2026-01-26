@@ -1,3 +1,5 @@
+using IFoxCAD.Cad;
+
 namespace JoinBoxAcad;
 
 /// <summary>
@@ -28,8 +30,14 @@ public class InPlaceEditHandler : IDisposable
     {
         DebugEx.Printl($"OnCommandEnded - {DateTime.Now}");
 
-        // 异步命令会导致undo无法检测.
-        // 检查是否正在执行undo/redo操作
+        // #260126a 使用了异步命令这里需要清理
+        if (_logger.AsyncCmdsPop(e.GlobalCommandName))
+        {
+            //全部移除就恢复
+            if (_logger.AsyncCmdsCount == 0 && _logger.IsExecutingUndoRedo)
+                _logger.IsExecutingUndoRedo = false;
+            return;
+        }
         if (_logger.IsExecutingUndoRedo)
             return;
 
