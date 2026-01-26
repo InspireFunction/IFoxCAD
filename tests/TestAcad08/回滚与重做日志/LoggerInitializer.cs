@@ -31,7 +31,6 @@ public class LoggerInitializer
         Env.Printl("提示: 新的增强机制支持智能逆向选择（逆命令优先，数据回滚兜底）\n");
 
         // 这些命令需要排除,避免循环执行
-        EnhancedActionLogger.ExcludedCommands.Add(nameof(MyUndo));
         EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowHistory));
         EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowEntityHistory));
         EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowCurrentPosition));
@@ -74,15 +73,6 @@ public class LoggerInitializer
         if (StringHelper.IsNullOrWhiteSpace(e.GlobalCommandName) || e.GlobalCommandName == "#")
             return;
 
-        // 获取当前文档的日志器
-        var logger = EnhancedUndoRedoManager.GetLogger(e.Document);
-        if (logger == null)
-            return;
-
-        // 如果正在执行自定义撤销/重做，不处理
-        if (logger.IsExecutingUndoRedo)
-            return;
-
         switch (e.GlobalCommandName.ToUpper())
         {
             case "U":
@@ -90,8 +80,11 @@ public class LoggerInitializer
             {
                 // 屏蔽原生撤回,否则导致不知道官方撤回点.
                 e.Veto();
-                e.Document?.SendStringToExecute(nameof(MyUndo) + "\n", false, false, false);
+                //e.Document?.SendStringToExecute(nameof(MyUndo) + "\n", false, false, false);
                 //SendCommand(nameof(MyUndo) + " ", RunCmdFlag.AcedCommand);
+
+                var doc = Application.DocumentManager.MdiActiveDocument;
+                EnhancedUndoRedoManager.Undo(doc);
             }
             break;
             case "MREDO":
@@ -141,12 +134,12 @@ public class LoggerInitializer
         Env.Printl("CAD日志系统已停止");
     }
 
-    [CommandMethod(nameof(MyUndo))]
-    public void MyUndo()
-    {
-        var doc = Application.DocumentManager.MdiActiveDocument;
-        EnhancedUndoRedoManager.Undo(doc);
-    }
+    //[CommandMethod(nameof(MyUndo))]
+    //public void MyUndo()
+    //{
+    //    var doc = Application.DocumentManager.MdiActiveDocument;
+    //    EnhancedUndoRedoManager.Undo(doc);
+    //}
 
 
     // 处理重做输入的辅助方法
@@ -214,7 +207,7 @@ public class LoggerInitializer
 
             if (action is ModifyEntityAction modifyAction)
             {
-                ed.WriteMessage($"  修改了 {modifyAction.PropertyChanges.Count} 个属性\n");
+                ed.WriteMessage($"  修改了 {modifyAction.FieldChanges.Count} 个属性\n");
             }
         }
 

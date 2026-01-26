@@ -1,4 +1,4 @@
-namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 增强撤销重做管理器 - 统一的管理器，消除重复存储

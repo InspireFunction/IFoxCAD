@@ -29,21 +29,54 @@ public class ActionDAG
     }
 
     // 添加动作
-    public VersionNode AddAction(IAction action)
+    public VersionNode AddAction(IAction action, string commandContext = "无命令")
     {
-        // 检查是否可以合并到当前节点
-        if (Current.Action.CanMergeWith(action))
+        // 检查是否可以添加到当前节点的动作链
+        if (CanAddToCurrentNode(action, commandContext))
         {
-            Current.Action = Current.Action.MergeWith(action);
+            // 添加到当前节点的动作链
+            Current.Actions.Add(action);
+            Current.CommandContext = commandContext;
             Current.CalculateHash();
+            // 打印日志：加入到现有节点
+            Env.Printl($"[DEBUG] 动作加入到现有节点: 节点ID={Current.Id.Substring(0, 8)}..., 命令上下文={Current.CommandContext}, 动作描述={action.Description}, 动作链长度={Current.Actions.Count}");
             return Current;
         }
 
+        // 不能添加到当前节点，创建新节点
         var node = new VersionNode(action, Current);
+        node.CommandContext = commandContext;
         Current.Children.Add(node);
         Current = node;
-
+        // 打印日志：创建新节点
+        Env.Printl($"[DEBUG] 动作创建新节点: 节点ID={node.Id.Substring(0, 8)}..., 命令上下文={node.CommandContext}, 动作描述={action.Description}");
         return node;
+    }
+
+    // 检查是否可以添加到当前节点
+    private bool CanAddToCurrentNode(IAction action, string commandContext)
+    {
+        // 如果没有当前节点或当前节点是根节点，不能添加
+        if (Current == null || Current == Root)
+            return false;
+
+        // 情况1：当前节点是<有命令>，直接加入
+        if (commandContext != "无命令")
+            return true;
+
+        // 情况2：当前节点是<无命令>，检查动作链条末尾是否是相同图元id
+        if (commandContext == "无命令" && Current.LastAction != null)
+        {
+            // 检查当前动作是否是实体动作
+            if (action is EntityAction newEntityAction && Current.LastAction is EntityAction lastEntityAction)
+            {
+                // 如果动作链条末尾是相同图元id，就加入
+                return newEntityAction.DBObjectId == lastEntityAction.DBObjectId;
+            }
+        }
+
+        // 其他情况不能加入
+        return false;
     }
 
     // 添加分支
@@ -99,7 +132,8 @@ public class ActionDAG
                 var child = current.Children.FirstOrDefault(c => c.IsAncestorOf(toNode));
                 if (child == null) break;
 
-                path.Add(child.Action);
+                // 添加子节点的所有动作到路径中
+                path.AddRange(child.Actions);
                 current = child;
             }
         }
@@ -109,15 +143,16 @@ public class ActionDAG
             var current = fromNode;
             while (current != toNode)
             {
-                var inverseAction = current.Action.GetInverseAction();
-                if (inverseAction is not null)
+                // 为当前节点的每个动作添加逆动作，创建一个反转的副本
+                var reversedActions = current.Actions.ToList();
+                reversedActions.Reverse();
+                foreach (var action in reversedActions)
                 {
-                    // 有逆向命令
-                    path.Add(inverseAction);
-                }
-                else
-                {
-                    // 没有逆向命令,就用逆向数据
+                    var inverseAction = action.GetInverseAction();
+                    if (inverseAction is not null)
+                    {
+                        path.Add(inverseAction);
+                    }
                 }
                 current = current.Parent;
             }
@@ -217,13 +252,24 @@ public class ActionDAG
         {
             try
             {
-                Env.Printl($"Serializing node: {node.Id}, Action Type: {node.Action?.GetType().Name}");
-                var actionSerialized = node.Action is BaseAction baseAction ? baseAction.Serialize() : "";
-                Env.Printl($"Node {node.Id} Action Serialized Length: {actionSerialized.Length}");
+                // 序列化所有动作
+                var actionsSerialized = new List<string>();
+                foreach (var action in node.Actions)
+                {
+                    if (action is BaseAction baseAction)
+                    {
+                        actionsSerialized.Add(baseAction.Serialize());
+                    }
+                }
+                
+                var actionType = node.Actions.Count > 0 ? node.Actions[0].GetType().Name : "None";
+                Env.Printl($"Serializing node: {node.Id}, Action Type: {actionType}, Actions Count: {node.Actions.Count}");
+                Env.Printl($"Node {node.Id} Actions Serialized Length: {actionsSerialized.Sum(s => s.Length)}");
 
                 nodes[node.Id] = new
                 {
-                    Action = actionSerialized,
+                    Actions = actionsSerialized,
+                    CommandContext = node.CommandContext,
                     ParentId = node.Parent?.Id,
                     Depth = node.Depth,
                     Hash = node.Hash
@@ -258,15 +304,29 @@ public class RootAction : BaseAction
 public class VersionNode
 {
     public string Id { get; } = Guid.NewGuid().ToString();
-    public IAction Action { get; set; }
+    public List<IAction> Actions { get; set; } = new(); // 动作链
     public VersionNode Parent { get; set; }
     public List<VersionNode> Children { get; } = new();
     public int Depth { get; set; }
     public string Hash { get; private set; }
+    public string CommandContext { get; set; } = "无命令"; // 节点的命令上下文
+
+    // 快捷属性：获取第一个动作的描述
+    public IAction FirstAction => Actions.FirstOrDefault();
+    // 快捷属性：获取最后一个动作
+    public IAction LastAction => Actions.LastOrDefault();
 
     public VersionNode(IAction action, VersionNode parent = null)
     {
-        Action = action;
+        Actions.Add(action);
+        Parent = parent;
+        Depth = parent?.Depth + 1 ?? 0;
+        CalculateHash();
+    }
+
+    public VersionNode(List<IAction> actions, VersionNode parent = null)
+    {
+        Actions = actions;
         Parent = parent;
         Depth = parent?.Depth + 1 ?? 0;
         CalculateHash();
@@ -279,7 +339,9 @@ public class VersionNode
 
     public void CalculateHash()
     {
-        var data = $"{Action.GuId}-{Action.Type}-{Action.Timestamp.Ticks}-{Depth}";
+        // 基于所有动作生成哈希
+        var actionData = Actions.Select(a => $"{a.GuId}-{a.Type}-{a.Timestamp.Ticks}").ToArray();
+        var data = string.Join("-", actionData) + $"-{Depth}";
         using (var sha256 = SHA256.Create())
         {
             var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(data));

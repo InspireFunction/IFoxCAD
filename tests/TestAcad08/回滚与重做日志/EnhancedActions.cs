@@ -24,64 +24,18 @@ public class EnhancedCommandAction : BaseAction
     {
         Env.Printl($"[DEBUG] 执行命令: {Context.CommandName}");
 
-        // 如果有子动作，执行子动作
-        foreach (var action in ChildActions)
-        {
-            try
-            {
-                action.Execute();
-            }
-            catch (Exception ex)
-            {
-                Env.Printl($"[ERROR] 执行子动作失败: {action.Description}, 错误: {ex.Message}");
-                throw;
-            }
-        }
-
-        // 如果没有子动作，尝试通过CAD命令执行
-        if (ChildActions.Count == 0)
-        {
-            var doc = Acap.DocumentManager.MdiActiveDocument;
-            if (doc != null)
-            {
-                try
-                {
-                    doc.SendStringToExecute($"{Context.CommandName}\n", false, false, false);
-                }
-                catch (Exception ex)
-                {
-                    Env.Printl($"[ERROR] 执行CAD命令失败: {ex.Message}");
-                    throw;
-                }
-            }
-        }
+        // 由于实体动作已经作为独立节点添加，这里不需要执行任何操作
+        // 命令级别的动作已经被分解为多个实体动作节点
     }
 
     /// <summary>
-    /// 获取逆向动作 - 优先使用逆命令，如果没有则使用数据回滚
+    /// 获取逆向动作 - 现在实体动作已经作为独立节点，不需要命令级别的逆向动作
     /// </summary>
     public override IAction GetInverseAction()
     {
-        // 1. 首先尝试获取逆命令
-        var inverseCommand = CommandInverseMap.GetInverseCommand(Context.CommandName);
-        if (!string.IsNullOrEmpty(inverseCommand))
-        {
-            Env.Printl($"[DEBUG] 找到逆命令: {Context.CommandName} -> {inverseCommand}");
-            var inverseContext = new CommandContext(inverseCommand, Context.Parameters);
-            return new EnhancedCommandAction(inverseCommand, Context.Parameters, inverseContext);
-        }
-
-        // 2. 如果没有逆命令，但有子动作，创建逆向子动作集合
-        if (ChildActions.Count > 0)
-        {
-            Env.Printl($"[DEBUG] 没有逆命令，使用数据回滚: {Context.CommandName}");
-            var inverseAction = new DataRollbackAction(Context);
-            return inverseAction;
-        }
-
-        // 3. 如果既没有逆命令也没有子动作，返回数据回滚动作
-        Env.Printl($"[DEBUG] 使用数据回滚: {Context.CommandName}");
-        return new DataRollbackAction(Context);
+        // 由于实体动作已经作为独立节点添加，这里不需要返回任何逆向动作
+        // 每个实体动作都会有自己的逆向动作
+        return null;
     }
 
     public override IAction Clone()
@@ -119,10 +73,10 @@ public class DataRollbackAction : BaseAction
     {
         Env.Printl($"[DEBUG] 执行数据回滚: {OriginalContext.CommandName}");
 
-        // 按相反顺序回滚所有变更
-        for (int i = OriginalContext.Changes.Count - 1; i >= 0; i--)
+        // 只回滚当前操作的变更，不影响其他操作
+        // 每个命令动作对应一个操作，所以只处理该操作的变更
+        foreach (var change in OriginalContext.Changes)
         {
-            var change = OriginalContext.Changes[i];
             RollbackChange(change);
         }
     }
@@ -147,7 +101,8 @@ public class DataRollbackAction : BaseAction
             {
                 case ActionType.DatabaseAdd:
                 // 如果是添加操作，回滚就是删除
-                if (!entity.IsErased)
+                // 但只有当该操作是添加实体时才执行，避免误删
+                if (!entity.IsErased && OriginalContext.Changes.Count == 1)
                 {
                     entity.Erase(true);
                     Env.Printl($"[DEBUG] 回滚添加操作: 删除实体 {change.EntityId}");
@@ -163,14 +118,12 @@ public class DataRollbackAction : BaseAction
                 break;
                 case ActionType.DatabaseModify:
                 // 如果是修改操作，回滚就是恢复旧值
-                if (change.PropertyChanges != null)
+                if (change.FieldChanges != null && change.FieldChanges.Count > 0)
                 {
-                    RollbackPropertyChanges(entity, change.PropertyChanges);
+                    RollbackFieldChanges(entity, change.FieldChanges);
                 }
                 break;
             }
-
-            tr.Commit();
         }
         catch (Exception ex)
         {
@@ -179,26 +132,18 @@ public class DataRollbackAction : BaseAction
     }
 
     /// <summary>
-    /// 回滚属性变更
+    /// 回滚字段变更
     /// </summary>
-    private void RollbackPropertyChanges(DBObject entity, Dictionary<string, (object OldValue, object NewValue)> propertyChanges)
+    private void RollbackFieldChanges(DBObject entity, Dictionary<string, (object OldValue, object NewValue)> fieldChanges)
     {
-        var type = entity.GetType();
-
-        foreach (var kvp in propertyChanges)
+        foreach (var kvp in fieldChanges)
         {
-            var property = type.GetProperty(kvp.Key);
-            if (property != null && property.CanWrite)
+            // 优先尝试直接操作字段
+            bool success = MemberHelper.TryRollbackMember(entity, kvp.Key, kvp.Value.OldValue, true);
+            if (!success)
             {
-                try
-                {
-                    property.SetValue(entity, kvp.Value.OldValue, null);
-                    Env.Printl($"[DEBUG] 回滚属性: {kvp.Key} = {kvp.Value.OldValue}");
-                }
-                catch (Exception ex)
-                {
-                    Env.Printl($"[ERROR] 回滚属性失败: {kvp.Key}, 错误: {ex.Message}");
-                }
+                // 字段操作失败，尝试属性操作
+                MemberHelper.TryRollbackMember(entity, kvp.Key, kvp.Value.OldValue, false);
             }
         }
     }

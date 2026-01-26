@@ -31,4 +31,8 @@
         </Compile>
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="回滚与重做日志\ActionImplementations.cs~RF9a7bbb8b.TMP" />
+    </ItemGroup>
+
 </Project>

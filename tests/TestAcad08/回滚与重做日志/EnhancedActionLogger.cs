@@ -7,7 +7,7 @@ public class EnhancedActionLogger : IDisposable
 {
     private readonly Document _doc;
     private readonly EnhancedDatabaseMonitor _dbMonitor;
-    private readonly InPlaceEditHandler _inPlaceEditHandler;
+    private readonly LongTransaction _inPlaceEditHandler;
     private readonly ActionDAG _dag = new();
     private bool _isExecutingUndoRedo = false;
     private bool _IsDisposed;
@@ -38,22 +38,8 @@ public class EnhancedActionLogger : IDisposable
         if (ShouldExcludeCommand(e.GlobalCommandName))
             return;
 
-        // 结束无命令上下文并记录动作
-        var context = _dbMonitor.EndCommandContext();
-        if (context != null && context.Changes.Count > 0)
-        {
-            var action = new EnhancedCommandAction(e.GlobalCommandName, context.Parameters, context);
-            LogAction(action);
-            Env.Printl($"[DEBUG] 结束录制无命令期间的动作, 变更数: {context.Changes.Count}");
-        }
-        else
-        {
-            Env.Printl($"[DEBUG] 结束录制无命令期间 无变化");
-        }
-
-        // 开始新的命令上下文
-        _dbMonitor.StartCommandContext(e.GlobalCommandName, []);
-        DebugEx.Printl($"[DEBUG] 开始录制命令期间: {e.GlobalCommandName}");
+        EndCommandContext("无命令");
+        StartCommandContext(e.GlobalCommandName);
     }
 
     /// <summary>
@@ -66,19 +52,38 @@ public class EnhancedActionLogger : IDisposable
             return;
         if (ShouldExcludeCommand(e.GlobalCommandName))
             return;
+        EndCommandContext(e.GlobalCommandName);
+        StartCommandContext("无命令");
+    }
 
+    /// <summary>
+    /// 开始上下文
+    /// </summary>
+    /// <param name="cmd"></param>
+    private void StartCommandContext(string cmd)
+    {
+        _dbMonitor.StartCommandContext(cmd, []);
+        DebugEx.Printl($"[DEBUG] >>>>开始录制 {cmd} 命令期间");
+    }
+
+    /// <summary>
+    /// 结束上下文
+    /// </summary>
+    /// <param name="cmd"></param>
+    private void EndCommandContext(string cmd)
+    {
         // 结束有命令上下文并记录动作
         var context = _dbMonitor.EndCommandContext();
         if (context != null && context.Changes.Count > 0)
         {
-            var action = new EnhancedCommandAction(e.GlobalCommandName, context.Parameters, context);
+            var action = new EnhancedCommandAction(cmd, context.Parameters, context);
             LogAction(action);
-            DebugEx.Printl($"[DEBUG] 结束录制命令期间的动作: {e.GlobalCommandName}, 变更数: {context.Changes.Count}");
+            DebugEx.Printl($"[DEBUG] <<<<结束录制 {cmd} 命令期间的动作, 变更数: {context.Changes.Count}");
         }
-
-        // 开始无命令期间录制
-        _dbMonitor.StartCommandContext("无命令", []);
-        DebugEx.Printl($"[DEBUG] 开始录制无命令期间");
+        else
+        {
+            //Env.Printl($"[DEBUG] 结束录制命令期间 无变化");
+        }
     }
 
     /// <summary>
@@ -153,47 +158,50 @@ public class EnhancedActionLogger : IDisposable
         if (_isExecutingUndoRedo)
             return;
 
-        // 如果是EnhancedCommandAction，创建子动作
+        // 获取当前命令上下文
+        string commandContext = _dbMonitor.GetCurrentCommandContext()?.CommandName ?? "无命令";
+
+        // 如果是EnhancedCommandAction，将每个数据库变更作为独立动作添加
         if (action is EnhancedCommandAction commandAction)
         {
-            // 将数据库变更转换为子动作
+            // 将数据库变更转换为独立动作
             foreach (var change in commandAction.Context.Changes)
             {
-                IAction? childAction = null;
+                IAction? entityAction = null;
                 switch (change.Type)
                 {
                     case ActionType.DatabaseAdd:
-                    childAction = new CreateEntityAction(change.EntityId);
+                    entityAction = new CreateEntityAction(change.EntityId);
                     break;
                     case ActionType.DatabaseDelete:
-                    childAction = new DeleteEntityAction(change.EntityId);
+                    entityAction = new DeleteEntityAction(change.EntityId);
                     break;
                     case ActionType.DatabaseModify:
-                    if (change.PropertyChanges.Count > 0)
-                        childAction = new ModifyEntityAction(change.EntityId, change.PropertyChanges);
+                    if (change.FieldChanges.Count > 0)
+                        entityAction = new ModifyEntityAction(change.EntityId, change.FieldChanges);
                     break;
                 }
-                if (childAction != null)
-                    commandAction.ChildActions.Add(childAction);
+                if (entityAction != null)
+                {
+                    // 添加到DAG，传递命令上下文
+                    var node = _dag.AddAction(entityAction, commandContext);
+                    // 记录实体动作映射
+                    if (entityAction is EntityAction ea)
+                    {
+                        RecordEntityAction(ea.DBObjectId, node);
+                    }
+                }
             }
         }
-
-        var node = _dag.AddAction(action);
-
-        // 如果是实体动作，记录到实体动作映射中
-        if (action is EntityAction entityAction)
+        else
         {
-            RecordEntityAction(entityAction.DBObjectId, node);
-        }
-        // 如果是EnhancedCommandAction，记录其子动作
-        else if (action is EnhancedCommandAction commandAction2)
-        {
-            foreach (var childAction in commandAction2.ChildActions)
+            // 其他类型的动作正常添加，传递命令上下文
+            var node = _dag.AddAction(action, commandContext);
+
+            // 如果是实体动作，记录到实体动作映射中
+            if (action is EntityAction entityAction)
             {
-                if (childAction is EntityAction childEntityAction)
-                {
-                    RecordEntityAction(childEntityAction.DBObjectId, node);
-                }
+                RecordEntityAction(entityAction.DBObjectId, node);
             }
         }
     }
@@ -222,7 +230,7 @@ public class EnhancedActionLogger : IDisposable
     /// <summary>
     /// 执行撤销
     /// </summary>
-    public void Undo()
+    public void Undo(int count = 1)
     {
         if (IsAtRoot)
         {
@@ -230,36 +238,48 @@ public class EnhancedActionLogger : IDisposable
             return;
         }
 
-        if (_dag.Current.Parent == null)
-        {
-            Env.Printl("\n没有可撤销的操作。\n");
-            return;
-        }
+        // 这里要先结束 无命令 修改
+        EndCommandContext("无命令");
 
         _isExecutingUndoRedo = true;
         try
         {
-            // 执行撤销之前,把当前动作加入redolog以便回滚?
-            // 但是似乎DAG图,拥有完整的数据了.
-            // 但是为什么撤回 在位编辑器 添加 移除 这两个没有成功记录呢?
-            var currentAction = _dag.Current.Action;
-            Env.Printl($"\n开始撤销: {currentAction.Description}");
-
-            // 获取逆向动作
-            var inverseAction = currentAction.GetInverseAction();
-            if (inverseAction is not null)
+            int executed = 0;
+            for (int i = 0; i < count && !IsAtRoot; i++)
             {
-                Env.Printl($"使用逆向动作: {inverseAction.Description}");
-                inverseAction.Execute();
-            }
-            else
-            {
-                Env.Printl("[WARNING] 无法获取逆向动作");
+                // 获取当前节点
+                var currentNode = _dag.Current;
+
+                Env.Printl($"\n开始撤销节点: {currentNode.CommandContext}，包含 {currentNode.Actions.Count} 个动作");
+
+                // 回退当前节点的所有动作，按逆序执行
+                var reversedActions = currentNode.Actions.ToList();
+                reversedActions.Reverse();
+                foreach (var action in reversedActions)
+                {
+                    Env.Printl($"  撤销动作: {action.Description}");
+                    var inverseAction = action.GetInverseAction();
+                    if (inverseAction is not null)
+                    {
+                        Env.Printl($"  使用逆向动作: {inverseAction.Description}");
+                        inverseAction.Execute();
+                        executed++;
+                    }
+                    else
+                    {
+                        Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
+                    }
+                }
+
+                // 切换到父节点
+                _dag.Current = currentNode.Parent;
+                Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
             }
 
-            // 切换到父节点
-            _dag.Current = _dag.Current.Parent;
-            Env.Printl("撤销完成\n");
+            if (executed > 0)
+            {
+                Env.Printl($"\n已完成 {executed} 个操作的撤销\n");
+            }
         }
         catch (Exception ex)
         {
@@ -269,29 +289,28 @@ public class EnhancedActionLogger : IDisposable
         {
             // #260126a 使用了异步命令这里就不清理了,在命令结束后事件清理
             if (AsyncCmds.Count == 0)
+            {
                 _isExecutingUndoRedo = false;
+                StartCommandContext("无命令");
+            }
         }
     }
 
-    /// <summary>
-    /// 执行重做
-    /// </summary>
-    public void Redo()
-    {
-        Redo(1);
-    }
+
 
     /// <summary>
     /// 执行多次重做
     /// </summary>
     /// <param name="count">重做次数</param>
-    public void Redo(int count)
+    public void Redo(int count = 1)
     {
         if (_dag.Current.Children.Count == 0)
         {
             Env.Printl("\n居然没有可重做的操作。\n");
             return;
         }
+
+        EndCommandContext("无命令");
 
         _isExecutingUndoRedo = true;
 
@@ -302,13 +321,19 @@ public class EnhancedActionLogger : IDisposable
             {
                 // 切换到第一个子节点
                 var nextNode = _dag.Current.Children[0];
-                var action = nextNode.Action;
 
-                Env.Printl($"\n开始重做: {action.Description}");
-                action.Execute();
+                Env.Printl($"\n开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
+
+                // 执行该节点的所有动作
+                foreach (var action in nextNode.Actions)
+                {
+                    Env.Printl($"  重做动作: {action.Description}");
+                    action.Execute();
+                    executed++;
+                }
 
                 _dag.Current = nextNode;
-                executed++;
+                Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
             }
 
             if (executed > 0)
@@ -322,7 +347,12 @@ public class EnhancedActionLogger : IDisposable
         }
         finally
         {
-            _isExecutingUndoRedo = false;
+            // #260126a 使用了异步命令这里就不清理了,在命令结束后事件清理
+            if (AsyncCmds.Count == 0)
+            {
+                _isExecutingUndoRedo = false;
+                StartCommandContext("无命令");
+            }
         }
     }
 
@@ -346,13 +376,18 @@ public class EnhancedActionLogger : IDisposable
             {
                 // 切换到第一个子节点
                 var nextNode = _dag.Current.Children[0];
-                var action = nextNode.Action;
 
-                Env.Printl($"\n开始重做: {action.Description}");
-                action.Execute();
+                Env.Printl($"\n开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
+
+                // 执行该节点的所有动作
+                foreach (var action in nextNode.Actions)
+                {
+                    Env.Printl($"  重做动作: {action.Description}");
+                    action.Execute();
+                    executed++;
+                }
 
                 _dag.Current = nextNode;
-                executed++;
             }
 
             if (executed > 0)
@@ -382,7 +417,12 @@ public class EnhancedActionLogger : IDisposable
     {
         var sb = new StringBuilder();
         sb.AppendLine("=== 撤销重做状态 ===");
-        sb.AppendLine($"当前动作: {_dag.Current.Action.Description}");
+        sb.AppendLine($"当前节点: {_dag.Current.CommandContext}");
+        sb.AppendLine($"当前节点动作数: {_dag.Current.Actions.Count}");
+        if (_dag.Current.Actions.Count > 0)
+        {
+            sb.AppendLine($"最近动作: {_dag.Current.LastAction.Description}");
+        }
         sb.AppendLine($"是否根节点: {IsAtRoot}");
         sb.AppendLine($"可撤销: {!IsAtRoot}");
         sb.AppendLine($"可重做: {_dag.Current.Children.Count > 0}");
@@ -394,7 +434,10 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     public List<string> GetHistory()
     {
-        return _dag.History.Select(n => n.Action.Description).ToList();
+        return _dag.History.Select(n =>
+            n.Actions.Count > 0 ?
+            $"{n.CommandContext} - {n.Actions.Count}个动作" :
+            n.CommandContext).ToList();
     }
 
     /// <summary>
@@ -403,7 +446,7 @@ public class EnhancedActionLogger : IDisposable
     public List<IAction> GetEntityHistory(ObjectId entityId)
     {
         var nodes = GetEntityActionNodes(entityId);
-        return nodes.Select(n => n.Action).ToList();
+        return nodes.SelectMany(n => n.Actions).ToList();
     }
 
     /// <summary>
@@ -466,8 +509,13 @@ public class EnhancedActionLogger : IDisposable
     {
         var sb = new StringBuilder();
         sb.AppendLine("=== DAG 结构 ===");
-        sb.AppendLine($"根节点: {_dag.Root.Action.Description}");
-        sb.AppendLine($"当前节点: {_dag.Current.Action.Description}");
+        sb.AppendLine($"根节点: {_dag.Root.LastAction.Description}");
+        sb.AppendLine($"当前节点: {_dag.Current.CommandContext}");
+        sb.AppendLine($"当前节点动作数: {_dag.Current.Actions.Count}");
+        if (_dag.Current.Actions.Count > 0)
+        {
+            sb.AppendLine($"当前节点最近动作: {_dag.Current.LastAction.Description}");
+        }
         sb.AppendLine($"当前深度: {_dag.Current.Depth}");
         sb.AppendLine($"总节点数: {_dag.History.Count}");
 
@@ -480,7 +528,6 @@ public class EnhancedActionLogger : IDisposable
             sb.AppendLine("当前处于最新状态，无法继续重做。");
         }
 
-        // 显示当前路径
         var path = new List<VersionNode>();
         var current = _dag.Current;
         while (current != null)
@@ -495,7 +542,10 @@ public class EnhancedActionLogger : IDisposable
         {
             var node = path[i];
             var marker = node == _dag.Current ? "-> " : "   ";
-            sb.AppendLine($"{marker}[{i}] {node.Action.Description} ({node.Depth})");
+            var nodeDesc = node.Actions.Count > 0 ?
+                $"{node.CommandContext} - {node.Actions.Count}个动作" :
+                node.CommandContext;
+            sb.AppendLine($"{marker}[{i}] {nodeDesc} ({node.Depth})");
         }
 
         return sb.ToString();

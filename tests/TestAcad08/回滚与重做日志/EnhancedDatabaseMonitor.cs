@@ -1,3 +1,5 @@
+﻿using System.Reflection;
+
 namespace JoinBoxAcad;
 
 /// <summary>
@@ -90,42 +92,9 @@ public class EnhancedDatabaseMonitor : IDisposable
     private EntitySnapshot CreateEntitySnapshot(DBObject entity)
     {
         var snapshot = new EntitySnapshot(entity.ObjectId);
-
-        var type = entity.GetType();
-        var properties = type.GetProperties(BindingFlags.Public | BindingFlags.Instance);
-
-        foreach (var property in properties)
-        {
-            if (!property.CanRead || !property.CanWrite)
-                continue;
-
-            // 过滤掉索引器属性（索引器有参数）
-            var indexParameters = property.GetIndexParameters();
-            if (indexParameters.Length > 0)
-                continue;
-
-            try
-            {
-                if (jump.Contains(property.Name))
-                {
-                    continue;
-                }
-                var value = property.GetValue(entity, null);
-                snapshot.Properties[property.Name] = value;
-            }
-            catch
-            {
-                // 忽略无法读取的属性
-                jump.Add(property.Name);
-            }
-        }
-
+        MemberHelper.GetMemberInHierarchy(entity, snapshot, entity.GetType());
         return snapshot;
     }
-
-    // 这些接口反射会爆异常
-    HashSet<string> jump = ["IncludingErased", "PreviewIcon"];
-
 
     private void OnObjectAppended(object sender, ObjectEventArgs e)
     {
@@ -164,21 +133,23 @@ public class EnhancedDatabaseMonitor : IDisposable
             _entitySnapshots[entity.ObjectId] = oldSnapshot;
         }
 
+        // TODO 为什么这里没有记录 颜色的字段呢? 难道cad是远程字段?也就是属性=>cpp/cli字段?
+        // 如果真的是这样,那么我们就不能只反射字段了,但是属性改起来可能会异常...
         // 创建新的快照进行比较
         var newSnapshot = CreateEntitySnapshot(entity);
-        var propertyChanges = CompareSnapshots(oldSnapshot, newSnapshot);
+        var fieldChanges = CompareSnapshots(oldSnapshot, newSnapshot);
 
-        if (propertyChanges.Count > 0)
+        if (fieldChanges.Count > 0)
         {
             var change = new DatabaseChange(ActionType.DatabaseModify, entity.ObjectId)
             {
-                PropertyChanges = propertyChanges
+                FieldChanges = fieldChanges
             };
 
             _pendingChanges.Add(change);
             _entitySnapshots[entity.ObjectId] = newSnapshot;
 
-            DebugEx.Printl($"[DEBUG] 记录修改操作: {entity.ObjectId}, 属性变更数: {propertyChanges.Count}");
+            DebugEx.Printl($"[DEBUG] 记录修改操作: {entity.ObjectId}, 字段变更数: {fieldChanges.Count}");
         }
     }
 
@@ -202,22 +173,23 @@ public class EnhancedDatabaseMonitor : IDisposable
     }
 
     /// <summary>
-    /// 比较两个快照，找出变更的属性
+    /// 比较两个快照，找出变更的字段
     /// </summary>
     private Dictionary<string, (object OldValue, object NewValue)> CompareSnapshots(
         EntitySnapshot oldSnapshot, EntitySnapshot newSnapshot)
     {
         var changes = new Dictionary<string, (object, object)>();
 
-        foreach (var kvp in newSnapshot.Properties)
+        // 只比较新快照中的字段
+        foreach (var kvp in newSnapshot.Fields)
         {
-            var propertyName = kvp.Key;
+            var fieldName = kvp.Key;
             var newValue = kvp.Value;
-            var oldValue = oldSnapshot.Properties.TryGetValue(propertyName, out var oldVal) ? oldVal : null;
+            var oldValue = oldSnapshot.Fields.TryGetValue(fieldName, out var oldVal) ? oldVal : null;
 
             if (!AreEqual(oldValue, newValue))
             {
-                changes[propertyName] = (oldValue!, newValue!);
+                changes[fieldName] = (oldValue!, newValue!);
             }
         }
 

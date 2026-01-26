@@ -13,9 +13,9 @@ public static class CommandInverseMap
         // CAD命令映射
 
         // TODO 在位编辑器的面板是可以取消的!此时我不应该清理记录
-        { "REFEDIT", "REFCLOSE _d" }, 
-        //{ "REFCLOSE _S", "U" },  // 保存修改
-        //{ "REFCLOSE _D", "U" },  // 放弃修改
+        { "REFEDIT", "REFCLOSE _d" },
+        { "REFCLOSE _S", "REFEDIT" },  // 保存修改
+        { "REFCLOSE _D", "REFEDIT" },  // 放弃修改
     };
 
     public static string GetInverseCommand(string command)

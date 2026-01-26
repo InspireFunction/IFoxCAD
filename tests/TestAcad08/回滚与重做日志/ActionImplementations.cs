@@ -1,4 +1,5 @@
-﻿using static IFoxCAD.Cad.PostCmd;
+﻿using System.Reflection;
+using static IFoxCAD.Cad.PostCmd;
 
 namespace JoinBoxAcad;
 
@@ -195,15 +196,15 @@ public struct PropertyChange
 /// </summary>
 public class ModifyEntityAction : EntityAction
 {
-    public Dictionary<string, (object OldValue, object NewValue)> PropertyChanges { get; }
+    public Dictionary<string, (object OldValue, object NewValue)> FieldChanges { get; }
 
     public override ActionType Type => ActionType.DatabaseModify;
-    public override string Description => $"修改实体: {EntityType} ({PropertyChanges.Count} 个属性)";
+    public override string Description => $"修改实体: {EntityType} ({FieldChanges.Count} 个字段)";
 
     public ModifyEntityAction(ObjectId entityId,
         Dictionary<string, (object, object)> changes) : base(entityId)
     {
-        PropertyChanges = changes;
+        FieldChanges = changes;
     }
 
     public override void Execute()
@@ -212,13 +213,13 @@ public class ModifyEntityAction : EntityAction
         var entity = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
         if (entity != null)
         {
-            ApplyProperties(entity, PropertyChanges, true);
+            ApplyFields(entity, FieldChanges, true);
         }
     }
 
     public override IAction GetInverseAction()
     {
-        var inverseChanges = PropertyChanges.ToDictionary(
+        var inverseChanges = FieldChanges.ToDictionary(
             kvp => kvp.Key,
             kvp => (kvp.Value.NewValue, kvp.Value.OldValue)
         );
@@ -227,7 +228,7 @@ public class ModifyEntityAction : EntityAction
 
     public override IAction Clone()
     {
-        return new ModifyEntityAction(DBObjectId, new Dictionary<string, (object, object)>(PropertyChanges));
+        return new ModifyEntityAction(DBObjectId, new Dictionary<string, (object, object)>(FieldChanges));
     }
 
     public override bool CanMergeWith(IAction otherAction)
@@ -236,7 +237,7 @@ public class ModifyEntityAction : EntityAction
             return false;
 
         return DBObjectId == otherModify.DBObjectId &&
-               CanMergeProperties(otherModify.PropertyChanges);
+               CanMergeFields(otherModify.FieldChanges);
     }
 
     public override IAction MergeWith(IAction otherAction)
@@ -245,30 +246,31 @@ public class ModifyEntityAction : EntityAction
             throw new InvalidOperationException("动作不能合并");
 
         var otherModify = (ModifyEntityAction)otherAction;
-        var mergedChanges = MergePropertyChanges(PropertyChanges, otherModify.PropertyChanges);
+        var mergedChanges = MergeFieldChanges(FieldChanges, otherModify.FieldChanges);
 
+        // TODO 为什么修改颜色之后触发了合并动作
         return new ModifyEntityAction(
             DBObjectId,
             mergedChanges
         );
     }
 
-    private bool CanMergeProperties(Dictionary<string, (object, object)> otherChanges)
+    private bool CanMergeFields(Dictionary<string, (object OldValue, object NewValue)> otherChanges)
     {
-        // 检查属性变化是否可以合并
+        // 检查字段变化是否可以合并
         foreach (var kvp in otherChanges)
         {
-            if (PropertyChanges.TryGetValue(kvp.Key, out var currentChange))
+            if (FieldChanges.TryGetValue(kvp.Key, out var currentChange))
             {
-                // 如果属性被多次修改，需要检查是否兼容
-                if (!(currentChange.NewValue?.Equals(kvp.Value.Item1) ?? false))
+                // 如果字段被多次修改，需要检查是否兼容
+                if (!(currentChange.NewValue?.Equals(kvp.Value.OldValue) ?? false))
                     return false;
             }
         }
         return true;
     }
 
-    private Dictionary<string, (object, object)> MergePropertyChanges(
+    private Dictionary<string, (object, object)> MergeFieldChanges(
         Dictionary<string, (object, object)> changes1,
         Dictionary<string, (object, object)> changes2)
     {
@@ -290,27 +292,21 @@ public class ModifyEntityAction : EntityAction
         return merged;
     }
 
-    private void ApplyProperties(
+    private void ApplyFields(
         DBObject entity,
         Dictionary<string, (object OldValue, object NewValue)> changes,
         bool applyNewValue)
     {
-        var type = entity.GetType();
         foreach (var change in changes)
         {
-            var property = type.GetProperty(change.Key);
-            if (property != null && property.CanWrite)
+            var value = applyNewValue ? change.Value.NewValue : change.Value.OldValue;
+
+            // 优先尝试直接操作字段
+            bool success = MemberHelper.TrySetMember(entity, change.Key, value, true);
+            if (!success)
             {
-                try
-                {
-                    var value = applyNewValue ? change.Value.Item2 : change.Value.Item1;
-                    if (value is not null)
-                        property.SetValue(entity, value, null);
-                }
-                catch
-                {
-                    // 记录日志
-                }
+                // 字段操作失败，尝试属性操作
+                MemberHelper.TrySetMember(entity, change.Key, value, false);
             }
         }
     }
@@ -418,7 +414,7 @@ public class InPlaceAddAction : BaseAction
             // 设置新的选择集
             ed.SetImpliedSelection(ObjectIds);
             // 发送异步命令,添加
-            doc.SendStringToExecute("REFSET\nA\n", false, false, false);
+            doc.SendStringToExecute("REFSET\nA\n", true, false, false);
         }
         Env.Printl($"[DEBUG] 执行在位编辑添加操作，对象数: {ObjectIds.Length}");
     }
@@ -469,7 +465,7 @@ public class InPlaceRemoveAction : BaseAction
             // 设置新的选择集
             ed.SetImpliedSelection(ObjectIds);
             // 发送异步命令,移除
-            doc.SendStringToExecute("REFSET\nR\n", false, false, false);
+            doc.SendStringToExecute("REFSET\nR\n", true, false, false);
         }
         Env.Printl($"[DEBUG] 执行在位编辑移除操作，对象数: {ObjectIds.Length}");
     }
