@@ -3,7 +3,6 @@
 using ConcurrentCollections;
 using System.Diagnostics;
 using System.IO;
-using Acaop = Application;
 using Exception = System.Exception;
 
 
@@ -106,12 +105,12 @@ public sealed class DBTrans : IDisposable
 
     #region 静态资源
     /// <summary>
-    /// 事务栈
+    /// map[数据库,事务栈]
     /// </summary>
     private static readonly Dictionary<Database, Stack<DBTrans>> _dBTrans = [];
 
     /// <summary>
-    /// 文档锁 map[文档名,文档锁]
+    /// map[数据库,文档]
     /// </summary>
     private readonly static Dictionary<Database, Document> _dbDocMap = [];
     #endregion
@@ -139,7 +138,8 @@ public sealed class DBTrans : IDisposable
     #region 公开属性
 
     /// <summary>
-    /// 文档
+    /// 文档<br/>
+    /// 此处获取当前加入事务栈的文档,如果没有加入则不能获取
     /// </summary>
     public Document? Document
     {
@@ -1025,12 +1025,15 @@ public sealed class DBTrans : IDisposable
                 // 释放读取文件创建的数据库
                 if (Document is null)
                 {
-                    // 前台持有就无法释放
-                    var doc = Acaop.DocumentManager.GetDocument(_database);
-                    if (doc is null)
+                    try
                     {
-                        _database.Dispose();
+                        // 前台持有就无法释放,此处判断前台
+                        // Acad2014找不到会报错,2024则不会
+                        var doc = Acaop.DocumentManager.GetDocument(_database);
+                        if (doc is null)
+                            _database.Dispose();
                     }
+                    catch { }
                 }
             }
         }
