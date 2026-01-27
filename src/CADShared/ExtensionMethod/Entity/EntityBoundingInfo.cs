@@ -245,7 +245,7 @@ internal static class EntityBoundingInfo
                 ext = ent.GeometricExtents;
             break;
 #else
-            throw new System.Exception("不支持");
+            throw new System.Exception("net35 不支持,需要获取包围盒");
 #endif
         }
 

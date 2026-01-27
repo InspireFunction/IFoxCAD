@@ -5,7 +5,6 @@ using System.Diagnostics;
 using System.IO;
 using Exception = System.Exception;
 
-
 /// <summary>
 /// 事务栈
 /// </summary>
@@ -84,6 +83,17 @@ public sealed class DBTrans : IDisposable
     }
 
     /// <summary>
+    /// 尝试通过文档获取栈顶事务
+    /// </summary>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static bool TryGetTop(Document doc, out DBTrans dBTrans)
+    {
+        var db = doc.Database;
+        return TryGetTop(db, out dBTrans);
+    }
+
+
+    /// <summary>
     /// 设置工作数据库
     /// </summary>
     public static void SetWorking(Database db)
@@ -138,8 +148,7 @@ public sealed class DBTrans : IDisposable
     #region 公开属性
 
     /// <summary>
-    /// 文档<br/>
-    /// 此处获取当前加入事务栈的文档,如果没有加入则不能获取
+    /// 获取加入事务栈的文档,不会查找全部文档.
     /// </summary>
     public Document? Document
     {
@@ -148,9 +157,6 @@ public sealed class DBTrans : IDisposable
             if (_dbDocMap.TryGetValue(_database, out var doc))
                 return doc;
             return null;
-            //// Acad2014找不到会报错,2024则不会
-            //try { return Acaop.DocumentManager.GetDocument(_database); }
-            //catch { return null; }
         }
     }
 
@@ -181,8 +187,12 @@ public sealed class DBTrans : IDisposable
     {
         doc ??= Acaop.DocumentManager.MdiActiveDocument;
         CheckDatabaseError(doc.Database);
-        var tr = new DBTrans(doc, commit, docLock, openCloseTrans);
-        return tr;
+        // 如果文档已经锁定,重复加锁会导致死锁,界面卡死,此处报错.
+        // 都用IFoxCAD才能避免多次锁,除非把它做成共享内存.
+        if (docLock)
+            DocumentLockManager.LockDocument(doc);
+
+        return new DBTrans(doc, commit, openCloseTrans);
     }
 
     /// <summary>
@@ -200,39 +210,9 @@ public sealed class DBTrans : IDisposable
     }
 
     // 构造函数不许报错,否则会导致触发dispose
-    DBTrans(Document doc, bool commit = true, bool docLock = false, bool openCloseTrans = false)
+    DBTrans(Document doc, bool commit = true, bool openCloseTrans = false) : this(doc.Database, commit, openCloseTrans)
     {
-        // 如果已经锁了就不再锁
-        //#if !NET35
-        //        // 用这个可以避免多个插件进行锁
-        //        if (docLock && doc.LockMode(false) == DocumentLockMode.NotLocked)
-        //            _documentLock = doc.LockDocument();
-        //#endif
-
-        // 用这个只能大家都用IFoxCAD才能避免多次锁,除非把它做成共享内存.
-        if (docLock)
-        {
-            DocumentLockManager.LockDocument(doc);
-        }
-
         _dbDocMap[doc.Database] = doc;
-        _database = doc.Database;
-        var tm = _database.TransactionManager;
-#if !NET35
-        if (openCloseTrans)
-            _transaction = tm.StartOpenCloseTransaction();
-        else
-            _transaction = tm.StartTransaction();
-#else
-        _transaction = tm.StartTransaction();
-#endif
-        if (commit) _transStatus.Commit();
-        if (!_dBTrans.TryGetValue(_database, out var trStack))
-        {
-            trStack = new();
-            _dBTrans.Add(_database, trStack);
-        }
-        trStack.Push(this);
     }
 
     // 构造函数不许报错,否则会导致触发dispose
@@ -276,7 +256,8 @@ public sealed class DBTrans : IDisposable
 #endif
 
     /*
-    0x01,前台开图创建文档,记录doc的.
+    0x01,
+    前台开图创建文档,记录doc的.
     前台打开会被文档持有,是无法释放db的,并且需要发送命令保存和关闭.
 
     后台开图或者后台创建数据库,不记录doc的,
@@ -284,7 +265,8 @@ public sealed class DBTrans : IDisposable
     所以我删掉file字段了,
     并且移除了保存方式到外部,它就更加没有存在价值了.
 
-    0x02,原本参数有file的构造函数存在问题
+    0x02,
+    原本参数有file的构造函数存在问题
 
     21,有同名file已经加入事务栈,表示已经开过,
     但是在此无论如何都会再次开图,因为构造函数必然是构造有效对象.
@@ -297,9 +279,11 @@ public sealed class DBTrans : IDisposable
     分解成 后台打开 和 前台打开 两个静态函数,
     让调用者自行规避或明知而为.
 
-    0x03,当前进程前台已经打开,通过文档集合判断.
+    0x03,
+    当前进程前台已经打开,通过文档集合判断.
 
-    0x04,当前进程后台已经打开呢?
+    0x04,
+    当前进程后台已经打开呢?
     你无法通过遍历文档集合得到,它压根不加入文档集合,
     因此和21规避同名file一样,自行构造后台 fdbMap<file, db>,
     再通过DBTrans.GetTop(db)得到事务,两个O(1)检索就得到了.
@@ -312,7 +296,8 @@ public sealed class DBTrans : IDisposable
     所以提供静态创建数据库函数,不加入事务栈.
     由调用者自行持有.
 
-    0x05,前台开图必须设置: CommandFlags.Session 标记
+    0x05,
+    前台开图必须设置: CommandFlags.Session 标记
     前台开图如果用命令,不设置标记的话就会卡死.
 
     如何判断调用的函数位置是Session呢?
@@ -496,8 +481,6 @@ public sealed class DBTrans : IDisposable
         }
         return map;
     }
-
-
 
     // 后台可以之后加入
     /// <summary>
@@ -998,55 +981,57 @@ public sealed class DBTrans : IDisposable
                 foreach (var pair in _objectCache)
                 {
                     if (pair.Value.IsAlive)
-                    {
                         ((DBObject)pair.Value.Target).Dispose();
-                    }
                 }
                 _objectCache.Clear();
-
                 _transaction.Dispose();
             }
 
-            if (_dbDocMap.TryGetValue(_database, out var doc))
+            // 将当前事务弹栈
+            if (_dBTrans.TryGetValue(_database, out var trStack))
             {
-                DocumentLockManager.RemoveLock(doc);
+                trStack.Pop();
+                if (trStack.Count == 0)
+                    _dBTrans.Remove(_database);
+            }
+
+            // 释放通过直接读取文件而创建的数据库
+            // 1,并非通过文档加入的.
+            if (Document is null)
+            {
+                // 中望 / Acad2014 找不到会报错,2024则不会
+                // Acaop.DocumentManager.GetDocument(database)
+                // 使用遍历查找
+                Document? doc = null;
+                foreach (Document item in Acaop.DocumentManager)
+                {
+                    if (item.Database == _database)
+                    {
+                        doc = item;
+                        break;
+                    }
+                }
+                // 2,前台不持有就可以释放
+                if (doc is null)
+                    _database.Dispose();
+            }
+            else
+            {
+                // 释放文档锁,并且移除记录
+                DocumentLockManager.RemoveLock(Document);
                 _dbDocMap.Remove(_database);
             }
+
+            _blockTable = null!;
+            _layerTable = null!;
+            _textStyleTable = null!;
+            _regAppTable = null!;
+            _dimStyleTable = null!;
+            _linetypeTable = null!;
+            _ucsTable = null!;
+            _viewTable = null!;
+            _viewportTable = null!;
         }
-
-        // 释放全局资源,将当前事务栈弹栈
-        if (_dBTrans.TryGetValue(_database, out var trStack))
-        {
-            trStack.Pop();
-            if (trStack.Count == 0)
-            {
-                _dBTrans.Remove(_database);
-
-                // 释放读取文件创建的数据库
-                if (Document is null)
-                {
-                    try
-                    {
-                        // 前台持有就无法释放,此处判断前台
-                        // Acad2014找不到会报错,2024则不会
-                        var doc = Acaop.DocumentManager.GetDocument(_database);
-                        if (doc is null)
-                            _database.Dispose();
-                    }
-                    catch { }
-                }
-            }
-        }
-
-        _blockTable = null!;
-        _layerTable = null!;
-        _textStyleTable = null!;
-        _regAppTable = null!;
-        _dimStyleTable = null!;
-        _linetypeTable = null!;
-        _ucsTable = null!;
-        _viewTable = null!;
-        _viewportTable = null!;
     }
 
     // 提交事务前如果工作数据库=后台图纸(还没有释放)

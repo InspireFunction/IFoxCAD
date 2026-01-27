@@ -93,9 +93,14 @@ public static class DocumentLockManager
     /// </summary>
     public static void LockDocument(Document doc)
     {
+#if !NET35
         // 这是高版本才有的,但是我实现了死锁检测耶,直接屏蔽算了.
         // 如果文档未锁定，则尝试锁定文档，否则不创建锁实例。
-        // _documentLock = doc.LockMode(false) == DocumentLockMode.NotLocked ? doc.LockDocument() : null; 
+        if (doc.LockMode(false) != DocumentLockMode.NotLocked)
+        {
+            throw new Exception($"该文档已经锁定,重复加锁导致死锁,请修改逻辑: {doc.Name}");
+        }
+#endif
 
         if (_docAndLockMap.TryGetValue(doc.Database, out var dlock))
         {
@@ -105,7 +110,7 @@ public static class DocumentLockManager
     }
 
     /// <summary>
-    /// 移除文档锁
+    /// 释放并移除文档锁
     /// </summary>
     /// <param name="doc"></param>
     public static bool RemoveLock(Document doc)
