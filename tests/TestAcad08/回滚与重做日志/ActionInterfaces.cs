@@ -12,6 +12,7 @@ public enum ActionType
 
     InPlaceAdd,           // 添加到在位编辑
     InPlaceRemove,        // 从在位编辑移除
+    InPlaceClear,         // 清空在位编辑工作集
 }
 
 // 动作接口
@@ -33,31 +34,26 @@ public interface IAction
     /// 时间 
     /// </summary>
     DateTime Timestamp { get; }
-
     /// <summary>
     /// 正向动作
     /// </summary>
     void Execute();
-
     /// <summary>
     /// 逆向动作
     /// </summary>
     /// <returns></returns>
     IAction GetInverseAction();
-
     /// <summary>
     /// 克隆动作
     /// </summary>
     /// <returns></returns>
     IAction Clone();
-
     /// <summary>
     /// 能否合并动作
     /// </summary>
     /// <param name="otherAction"></param>
     /// <returns></returns>
     bool CanMergeWith(IAction otherAction);
-
     /// <summary>
     /// 合并动作
     /// </summary>

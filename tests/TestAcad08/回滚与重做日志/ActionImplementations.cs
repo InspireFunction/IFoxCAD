@@ -90,12 +90,8 @@ public abstract class EntityAction : BaseAction
     {
         DBObjectId = entityId;
         using var tr = DBTrans.Create(entityId.Database);
-        using var entity = tr.GetObject(entityId, OpenMode.ForWrite, true, true);
-        if (entity is null)
-        {
-            Env.Printl("怎么它是null呢");
-        }
-        EntityType = entity?.GetType().Name;
+        using var obj = tr.GetObject(entityId, OpenMode.ForWrite, true, true);
+        EntityType = obj?.GetType().Name;
     }
 }
 
@@ -121,9 +117,7 @@ public class CreateEntityAction : EntityAction
         using var tr = DBTrans.Create(DBObjectId.Database);
         using var obj = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
         if (obj is not null && obj.IsErased)
-        {
             obj.Erase(false); // 使用false参数恢复被删除的对象
-        }
     }
 
     /// <summary>
@@ -158,9 +152,9 @@ public class DeleteEntityAction : EntityAction
     public override void Execute()
     {
         using var tr = DBTrans.Create(DBObjectId.Database);
-        var entity = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
-        if (entity != null && !entity.IsErased)
-            entity.Erase(true); // 使用true参数确保正确删除
+        using var obj = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
+        if (obj != null && !obj.IsErased)
+            obj.Erase(true); // 使用true参数确保正确删除
     }
 
     public override IAction GetInverseAction()
@@ -176,20 +170,6 @@ public class DeleteEntityAction : EntityAction
         throw new InvalidOperationException("删除动作不能合并");
 }
 
-/// <summary>
-/// 属性变化结构体
-/// </summary>
-public struct PropertyChange
-{
-    public object OldValue { get; set; }
-    public object NewValue { get; set; }
-
-    public PropertyChange(object oldValue, object newValue)
-    {
-        OldValue = oldValue;
-        NewValue = newValue;
-    }
-}
 
 /// <summary>
 /// 修改的动作
@@ -313,77 +293,6 @@ public class ModifyEntityAction : EntityAction
 }
 
 
-// 命令动作
-public class CommandAction : BaseAction
-{
-    public string CommandName { get; }
-    public object[] Parameters { get; }
-    public object? Result { get; set; }
-
-    public override ActionType Type => ActionType.CommandExecution;
-    public override string Description => $"执行命令: {CommandName}";
-
-    public CommandAction(string commandName, params object[] parameters)
-    {
-        CommandName = commandName ?? throw new ArgumentNullException(nameof(commandName));
-        Parameters = parameters ?? [];
-
-        // 验证参数，确保没有可能导致CAD API问题的类型
-        if (parameters != null)
-        {
-            for (int i = 0; i < parameters.Length; i++)
-            {
-                if (parameters[i] != null && !IsValidParameterType(parameters[i]))
-                {
-                    Env.Printl($"[WARNING] CommandAction参数类型可能有问题: {parameters[i].GetType().Name}, value: {parameters[i]}");
-                    parameters[i] = parameters[i].ToString(); // 转换为字符串
-                }
-            }
-        }
-    }
-
-    private bool IsValidParameterType(object param)
-    {
-        if (param == null) return true;
-
-        var type = param.GetType();
-        return type.IsPrimitive ||
-               type == typeof(string) ||
-               type == typeof(decimal) ||
-               type.IsEnum;
-    }
-
-    public override void Execute()
-    {
-        // 命令动作的执行由CAD系统自动处理，这里不需要额外操作
-        // 避免递归调用 SendStringToExecute
-        Env.Printl($"[DEBUG] 将要执行命令 {CommandName}");
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-
-        doc?.SendStringToExecute($"{CommandName}\n", false, false, false);
-    }
-
-    public override IAction GetInverseAction()
-    {
-        // 查找命令的逆命令
-        var inverseCommand = CommandInverseMap.GetInverseCommand(CommandName);
-        if (inverseCommand != string.Empty) // 存在逆命令
-        {
-            return new CommandAction(inverseCommand, Parameters);
-        }
-
-        // 如果没有预定义的逆命令,尝试使用数据库监控器提供的数据来构建逆操作
-        // 如果仍然无法确定逆操作，返回一个描述性的命令动作
-        return null;
-    }
-
-    public override IAction Clone() => new CommandAction(CommandName, Parameters);
-
-    public override bool CanMergeWith(IAction otherAction) => false;
-
-    public override IAction MergeWith(IAction otherAction) =>
-        throw new InvalidOperationException("命令动作不能合并");
-}
 
 /// <summary>
 /// 在位编辑添加动作
@@ -444,7 +353,7 @@ public class InPlaceRemoveAction : BaseAction
     public ObjectId[] ObjectIds { get; }
 
     public override ActionType Type => ActionType.InPlaceRemove;
-    public override string Description => $"从在位编辑移除: {ObjectIds.Length} 个对象";
+    public override string Description => $"从在位编辑块: {ObjectIds.Length} 个对象";
 
     public InPlaceRemoveAction(IEnumerable<ObjectId> objectIds)
     {
@@ -486,3 +395,74 @@ public class InPlaceRemoveAction : BaseAction
     public override IAction MergeWith(IAction otherAction) =>
         throw new InvalidOperationException("在位编辑移除动作不能合并");
 }
+
+/// <summary>
+/// 在位编辑清空动作
+/// </summary>
+public class InPlaceClearAction : BaseAction
+{
+    public ObjectId[] ObjectIds { get; }
+    public override ActionType Type => ActionType.InPlaceClear;
+    public override string Description => $"清空在位编辑工作集";
+
+    public InPlaceClearAction(IEnumerable<ObjectId> objectIds) // 这里传入了编辑块
+    {
+        ObjectIds = objectIds.ToArray();
+    }
+
+    public override void Execute()
+    {
+        // 清空工作集
+        //var doc = Acap.DocumentManager.MdiActiveDocument;
+        //if (doc != null)
+        //{
+        //    // 获取 LongTransaction 实例并清空工作集
+        //    LongTransaction.WorkSetClear(doc);
+        //    Env.Printl($"[DEBUG] 执行清空在位编辑工作集操作，对象数: {ObjectIds.Length}");
+        //}
+    }
+
+    public override IAction GetInverseAction()
+    {
+        // 在为编辑的逆向动作设计非常复杂:
+        // 1,先通过DAG向前找到在位编辑命令,如果不是就一直递归找,肯定有的,因为它是回滚.
+        // 2,这个命令备份选择集的ids,设置ids到选择集.
+        // 3,发送在位编辑命令,打开编辑器状态.
+        // 4,恢复 在位编辑清空动作 到 workSet.
+
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc == null)
+            return null!;
+        var logger = EnhancedUndoRedoManager.GetLogger(doc);
+        logger?.AsyncCmdsPush("REFEDIT");
+
+        // 设置选择集
+        doc.Editor?.SetImpliedSelection(ObjectIds);
+
+        // TODO #260127a 这里有面板啊...那还不如直接原生U,然后恢复我们的 _workSet?
+        // 1. 发送在位编辑命令
+        doc.SendStringToExecute("REFEDIT\n", true, false, false);
+
+        // 2. 恢复 在位编辑清空动作 到 workSet,
+        // 这里可以直接通过事件重新计算就好了啊
+
+        // 获取 LongTransaction 实例并恢复工作集
+        //var longTransaction = LongTransaction._map[doc];
+        //longTransaction._workSet.Clear();
+        //longTransaction._workSet.Add(ObjectIds);
+
+        Env.Printl($"[DEBUG] 执行恢复在位编辑工作集操作，对象数: {ObjectIds.Length}");
+        return null!;
+    }
+
+    public override IAction Clone()
+    {
+        return new InPlaceClearAction(ObjectIds);
+    }
+
+    public override bool CanMergeWith(IAction otherAction) => false;
+
+    public override IAction MergeWith(IAction otherAction) =>
+        throw new InvalidOperationException("在位编辑清空动作不能合并");
+}
+

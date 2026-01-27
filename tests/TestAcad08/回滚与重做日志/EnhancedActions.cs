@@ -11,10 +11,9 @@ public class EnhancedCommandAction : BaseAction
     public override ActionType Type => ActionType.CommandExecution;
     public override string Description => $"执行命令: {Context.CommandName}";
 
-    public EnhancedCommandAction(string commandName, object[] parameters, CommandContext context) : base()
+    public EnhancedCommandAction(CommandContext context) : base()
     {
         Context = context;
-        Context.Parameters = parameters;
     }
 
     /// <summary>
@@ -40,7 +39,7 @@ public class EnhancedCommandAction : BaseAction
 
     public override IAction Clone()
     {
-        var clonedAction = new EnhancedCommandAction(Context.CommandName, Context.Parameters, Context);
+        var clonedAction = new EnhancedCommandAction(Context);
         clonedAction.ChildActions = ChildActions.Select(a => a.Clone()).ToList();
         return clonedAction;
     }
@@ -151,7 +150,7 @@ public class DataRollbackAction : BaseAction
     public override IAction GetInverseAction()
     {
         // 数据回滚的逆向动作就是重新执行原命令
-        return new EnhancedCommandAction(OriginalContext.CommandName, OriginalContext.Parameters, OriginalContext);
+        return new EnhancedCommandAction(OriginalContext);
     }
 
     public override IAction Clone()

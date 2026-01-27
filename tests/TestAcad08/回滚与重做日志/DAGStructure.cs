@@ -1,4 +1,4 @@
-﻿namespace JoinBoxAcad;
+namespace JoinBoxAcad;
 
 using System.Security.Cryptography;
 
@@ -24,7 +24,7 @@ public class ActionDAG
 
     public ActionDAG()
     {
-        Root = new VersionNode(new RootAction());
+        Root = new VersionNode(new RootAction(), null!);
         Current = Root;
     }
 
@@ -60,9 +60,30 @@ public class ActionDAG
         if (Current == null || Current == Root)
             return false;
 
-        // 情况1：当前节点是<有命令>，直接加入
+        // 情况1：当前节点是<有命令>，只有当动作是同一命令的后续修改时才加入
+        // 例如：CIRCLE命令中先创建圆，再修改圆的属性
         if (commandContext != "无命令")
-            return true;
+        {
+            // 检查当前节点的命令上下文是否与新动作的命令上下文相同
+            // 但更重要的是，检查当前节点是否已经包含了创建实体的动作
+            // 如果已经包含了创建实体的动作，就不应该再添加新的创建实体动作
+            if (Current.CommandContext == commandContext)
+            {
+                // 检查当前节点是否已经包含了创建实体的动作
+                bool hasCreateAction = Current.Actions.Any(a => a is CreateEntityAction);
+                // 检查新动作是否是创建实体的动作
+                bool isCreateAction = action is CreateEntityAction;
+                
+                // 如果当前节点已经包含了创建实体的动作，并且新动作也是创建实体的动作
+                // 那么应该创建新节点，而不是添加到当前节点
+                if (hasCreateAction && isCreateAction)
+                    return false;
+                
+                // 否则，可以添加到当前节点
+                return true;
+            }
+            return false;
+        }
 
         // 情况2：当前节点是<无命令>，检查动作链条末尾是否是相同图元id
         if (commandContext == "无命令" && Current.LastAction != null)
@@ -261,7 +282,7 @@ public class ActionDAG
                         actionsSerialized.Add(baseAction.Serialize());
                     }
                 }
-                
+
                 var actionType = node.Actions.Count > 0 ? node.Actions[0].GetType().Name : "None";
                 Env.Printl($"Serializing node: {node.Id}, Action Type: {actionType}, Actions Count: {node.Actions.Count}");
                 Env.Printl($"Node {node.Id} Actions Serialized Length: {actionsSerialized.Sum(s => s.Length)}");
@@ -303,20 +324,41 @@ public class RootAction : BaseAction
 // 版本节点
 public class VersionNode
 {
+    /// <summary>
+    /// 编号
+    /// </summary>
     public string Id { get; } = Guid.NewGuid().ToString();
-    public List<IAction> Actions { get; set; } = new(); // 动作链
+    /// <summary>
+    /// 动作链
+    /// </summary>
+    public List<IAction> Actions { get; set; } = [];
+    /// <summary>
+    /// 父节点
+    /// </summary>
     public VersionNode Parent { get; set; }
-    public List<VersionNode> Children { get; } = new();
+    /// <summary>
+    /// 子节点(多个分支)
+    /// </summary>
+    public List<VersionNode> Children { get; } = [];
+    /// <summary>
+    /// 深度
+    /// </summary>
     public int Depth { get; set; }
+    /// <summary>
+    /// 哈希
+    /// </summary>
     public string Hash { get; private set; }
-    public string CommandContext { get; set; } = "无命令"; // 节点的命令上下文
+    /// <summary>
+    /// 节点的命令上下文
+    /// </summary>
+    public string CommandContext { get; set; } = "无命令";
 
     // 快捷属性：获取第一个动作的描述
     public IAction FirstAction => Actions.FirstOrDefault();
     // 快捷属性：获取最后一个动作
     public IAction LastAction => Actions.LastOrDefault();
 
-    public VersionNode(IAction action, VersionNode parent = null)
+    public VersionNode(IAction action, VersionNode parent)
     {
         Actions.Add(action);
         Parent = parent;
@@ -324,7 +366,7 @@ public class VersionNode
         CalculateHash();
     }
 
-    public VersionNode(List<IAction> actions, VersionNode parent = null)
+    public VersionNode(List<IAction> actions, VersionNode parent)
     {
         Actions = actions;
         Parent = parent;
@@ -342,11 +384,9 @@ public class VersionNode
         // 基于所有动作生成哈希
         var actionData = Actions.Select(a => $"{a.GuId}-{a.Type}-{a.Timestamp.Ticks}").ToArray();
         var data = string.Join("-", actionData) + $"-{Depth}";
-        using (var sha256 = SHA256.Create())
-        {
-            var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(data));
-            Hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
-        }
+        using var sha256 = SHA256.Create();
+        var hashBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(data));
+        Hash = BitConverter.ToString(hashBytes).Replace("-", "").ToLower();
     }
 
     public bool IsAncestorOf(VersionNode node)

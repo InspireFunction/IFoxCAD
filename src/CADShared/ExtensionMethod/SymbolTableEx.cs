@@ -80,7 +80,6 @@ public static class SymbolTableEx
     /// <param name="ents">添加图元的委托</param>
     /// <param name="attdef">添加属性定义的委托</param>
     /// <returns>块定义id</returns>
-    /// TODO 需要测试匿名块等特殊的块是否能定义
     public static ObjectId Add(this SymbolTable<BlockTable, BlockTableRecord> table,
                                string name,
                                Action<BlockTableRecord>? action = null,

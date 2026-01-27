@@ -1,4 +1,7 @@
-﻿namespace JoinBoxAcad;
+using System;
+using System.Windows.Controls;
+
+namespace JoinBoxAcad;
 
 /// <summary>
 /// 增强的动作日志记录器
@@ -74,15 +77,15 @@ public class EnhancedActionLogger : IDisposable
     {
         // 结束有命令上下文并记录动作
         var context = _dbMonitor.EndCommandContext();
-        if (context != null && context.Changes.Count > 0)
+        if (context is null)
+            return;
+        //Env.Printl($"[DEBUG] 结束录制命令期间 无变化");
+
+        if (context.Changes.Count > 0)
         {
-            var action = new EnhancedCommandAction(cmd, context.Parameters, context);
+            var action = new EnhancedCommandAction(context);
             LogAction(action);
             DebugEx.Printl($"[DEBUG] <<<<结束录制 {cmd} 命令期间的动作, 变更数: {context.Changes.Count}");
-        }
-        else
-        {
-            //Env.Printl($"[DEBUG] 结束录制命令期间 无变化");
         }
     }
 
@@ -154,16 +157,27 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     public void LogAction(IAction action)
     {
+        LogAction(action, "无命令");
+    }
+
+    /// <summary>
+    /// 记录动作（带命令上下文）
+    /// </summary>
+    /// <param name="action">动作</param>
+    /// <param name="commandContext">命令上下文</param>
+    public void LogAction(IAction action, string commandContext)
+    {
         // 检查是否正在执行undo/redo操作
         if (_isExecutingUndoRedo)
             return;
 
-        // 获取当前命令上下文
-        string commandContext = _dbMonitor.GetCurrentCommandContext()?.CommandName ?? "无命令";
-
         // 如果是EnhancedCommandAction，将每个数据库变更作为独立动作添加
         if (action is EnhancedCommandAction commandAction)
         {
+            // 使用动作自身的命令上下文，而不是从dbMonitor获取
+            // 因为此时dbMonitor的上下文可能已经被清除（在命令结束时）
+            string actionCommandContext = commandAction.Context.CommandName;
+
             // 将数据库变更转换为独立动作
             foreach (var change in commandAction.Context.Changes)
             {
@@ -184,7 +198,7 @@ public class EnhancedActionLogger : IDisposable
                 if (entityAction != null)
                 {
                     // 添加到DAG，传递命令上下文
-                    var node = _dag.AddAction(entityAction, commandContext);
+                    var node = _dag.AddAction(entityAction, actionCommandContext);
                     // 记录实体动作映射
                     if (entityAction is EntityAction ea)
                     {
@@ -195,7 +209,7 @@ public class EnhancedActionLogger : IDisposable
         }
         else
         {
-            // 其他类型的动作正常添加，传递命令上下文
+            // 使用指定的命令上下文
             var node = _dag.AddAction(action, commandContext);
 
             // 如果是实体动作，记录到实体动作映射中
@@ -242,38 +256,91 @@ public class EnhancedActionLogger : IDisposable
         EndCommandContext("无命令");
 
         _isExecutingUndoRedo = true;
+
         try
         {
             int executed = 0;
-            for (int i = 0; i < count && !IsAtRoot; i++)
+            int commandsUndone = 0;
+
+            while (commandsUndone < count && !IsAtRoot)
             {
                 // 获取当前节点
                 var currentNode = _dag.Current;
 
-                Env.Printl($"\n开始撤销节点: {currentNode.CommandContext}，包含 {currentNode.Actions.Count} 个动作");
+                // 打印回滚节点的命令
+                Env.Printl($"开始撤销节点: {currentNode.CommandContext}，包含 {currentNode.Actions.Count} 个动作");
 
-                // 回退当前节点的所有动作，按逆序执行
-                var reversedActions = currentNode.Actions.ToList();
-                reversedActions.Reverse();
-                foreach (var action in reversedActions)
+                // 如果有逆命令,直接执行,不需要处理数据了.
+                var inverseCommand = CommandInverseMap.GetInverseCommand(currentNode.CommandContext);
+                if (!string.IsNullOrEmpty(inverseCommand))
                 {
-                    Env.Printl($"  撤销动作: {action.Description}");
-                    var inverseAction = action.GetInverseAction();
-                    if (inverseAction is not null)
+                    // TODO 组块,在位编辑,撤回,撤回...仍然有错误
+                    var logger = EnhancedUndoRedoManager.GetLogger(_doc);
+                    logger?.AsyncCmdsPush(inverseCommand);
+                    _doc?.SendStringToExecute($"{inverseCommand}\n", true, false, false);
+                }
+                else
+                {
+                    // 回退当前节点的所有动作，按逆序执行
+                    var reversedActions = currentNode.Actions.ToList();
+                    reversedActions.Reverse();
+                    foreach (var action in reversedActions)
                     {
-                        Env.Printl($"  使用逆向动作: {inverseAction.Description}");
-                        inverseAction.Execute();
-                        executed++;
-                    }
-                    else
-                    {
-                        Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
+                        Env.Printl($"  撤销动作: {action.Description}");
+                        var inverseAction = action.GetInverseAction();
+                        if (inverseAction is not null)
+                        {
+                            Env.Printl($"  使用逆向动作: {inverseAction.Description}");
+                            inverseAction.Execute();
+                            executed++;
+                        }
+                        else
+                        {
+                            Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
+                        }
                     }
                 }
 
                 // 切换到父节点
                 _dag.Current = currentNode.Parent;
                 Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
+
+                // 增加命令撤销计数
+                commandsUndone++;
+
+                // 如果当前节点不是"无命令"，则认为已经撤销了一个完整的命令
+                if (currentNode.CommandContext != "无命令")
+                {
+                    // 检查是否还有连续的"无命令"节点需要一并撤销
+                    while (!IsAtRoot && _dag.Current.CommandContext == "无命令")
+                    {
+                        var noCommandNode = _dag.Current;
+                        Env.Printl($"开始撤销节点: {noCommandNode.CommandContext}，包含 {noCommandNode.Actions.Count} 个动作");
+
+                        // 回退无命令节点的所有动作
+                        var reversedNoCommandActions = noCommandNode.Actions.ToList();
+                        reversedNoCommandActions.Reverse();
+                        foreach (var action in reversedNoCommandActions)
+                        {
+                            Env.Printl($"  撤销动作: {action.Description}");
+                            var inverseAction = action.GetInverseAction();
+                            if (inverseAction is not null)
+                            {
+                                Env.Printl($"  使用逆向动作: {inverseAction.Description}");
+                                inverseAction.Execute();
+                                executed++;
+                            }
+                            else
+                            {
+                                Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
+                            }
+                        }
+
+                        // 切换到父节点
+                        _dag.Current = noCommandNode.Parent;
+                        Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
+                    }
+                }
             }
 
             if (executed > 0)

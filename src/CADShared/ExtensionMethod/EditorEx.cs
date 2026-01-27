@@ -1127,7 +1127,7 @@ public static class EditorEx
         var doc = com.GetProperty("ActiveDocument");
         var wmfSet = doc.GetProperty("ActiveSelectionSet");
 
-        // TODO 20221007 导出wmf的bug
+        // TODO #221007 导出wmf的bug
         // cad21 先net选择,再进行,此处再选择一次?
         // cad21 调试期间无法选择性粘贴?
         var exp = doc.Invoke("Export", saveFile, "wmf", wmfSet); // JPGOUT,PNGOUT

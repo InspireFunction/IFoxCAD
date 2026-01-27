@@ -1,10 +1,13 @@
-﻿namespace JoinBoxAcad;
+using Autodesk.AutoCAD.DatabaseServices;
+using System.Windows.Controls;
+
+namespace JoinBoxAcad;
 
 
 public static class DocumentEx
 {
     /// <summary>
-    /// 判断对象是否在工作集中(判断在位编辑块时块内外图元)
+    /// 工作集是否含有对象
     /// </summary>
     /// <param name="doc">块所在文档</param>
     /// <param name="entityId">文档中的实体Id</param>
@@ -40,9 +43,9 @@ public class LongTransaction : IDisposable
     #region 工作集获取
 
     // 用来储存在位编辑前获取.
-    private HashSet<ObjectId> _workSet = [];
+    internal HashSet<ObjectId> _workSet = [];
 
-    static Dictionary<Document, LongTransaction> _map = [];
+    internal static Dictionary<Document, LongTransaction> _map = [];
 
     /// <summary>
     /// 长事务中含有id
@@ -53,6 +56,28 @@ public class LongTransaction : IDisposable
     public bool WorkSetHas(ObjectId id, bool openErased)
     {
         return _workSet.Contains(id);
+    }
+
+    internal static void WorkAdd(Document doc, ObjectId id)
+    {
+        if (doc == null)
+            throw new ArgumentNullException("文档不存在");
+        _map[doc]._workSet.Add(id);
+    }
+
+    internal static void WorkRemove(Document doc, ObjectId id)
+    {
+        if (doc == null)
+            throw new ArgumentNullException("文档不存在");
+        _map[doc]._workSet.Remove(id);
+    }
+
+    public static void WorkSetClear(Document doc)
+    {
+        if (doc == null)
+            throw new ArgumentNullException("文档不存在");
+
+        _map[doc]._workSet.Clear();
     }
 
     /// <summary>
@@ -87,11 +112,39 @@ public class LongTransaction : IDisposable
         // 注册命令结束事件
         _document.CommandEnded += OnCommandEnded;
 
+        // 数据库
+        _document.Database.ObjectAppended += OnObjectAppended;
+        _document.Database.ObjectModified += OnObjectModified;
+        _document.Database.ObjectErased += OnObjectErased;
+
         _map[document] = this;
+    }
+
+    private void OnObjectErased(object sender, ObjectErasedEventArgs e)
+    {
+        var entity = e.DBObject as Entity;
+        if (entity == null)
+            return;
+        _workSet.Remove(entity.ObjectId);
+    }
+
+    private void OnObjectModified(object sender, ObjectEventArgs e)
+    {
+
+    }
+
+    private void OnObjectAppended(object sender, ObjectEventArgs e)
+    {
+        var entity = e.DBObject as Entity;
+        if (entity == null)
+            return;
+        _workSet.Add(entity.ObjectId);
     }
 
     #region 事件处理
 
+    // 在位编辑击中的块
+    ObjectId[] _refBlock = [];
 
     private void OnCommandWillStart(object sender, CommandEventArgs e)
     {
@@ -102,11 +155,17 @@ public class LongTransaction : IDisposable
         {
             case "REFEDIT":
             {
-                _workSet.Clear();
-                // 触发编辑器打开命令前,扫描全图
-                var prompt = Env.Editor.SelectAll(Filter);
+                // TODO #260127a 为了保存时候撤回,这里要备份选择集
+                var prompt = _document.Editor.SelectImplied();// 预选
                 if (prompt.Status == PromptStatus.OK)
-                    _workSet.Add(prompt.Value.GetObjectIds());
+                    _refBlock = prompt.Value.GetObjectIds();
+
+                _workSet.Clear();
+
+                // 触发编辑器打开命令前,扫描全图,命令后再获取一次全图,得到不相交就是多出来的块内元素.
+                var prompt2 = Env.Editor.SelectAll(Filter);
+                if (prompt2.Status == PromptStatus.OK)
+                    _workSet.Add(prompt2.Value.GetObjectIds());
             }
             break;
         }
@@ -138,7 +197,14 @@ public class LongTransaction : IDisposable
             {
                 _refeditRun = false;
                 // 发生回滚的时候呢?清理的就没了啊 
-                _workSet.Clear();
+                // 因此我们需要把 refclose 命令时候 把workset作为动作,这样实现回滚才有数据恢复
+                if (_workSet.Count > 0)
+                {
+                    // 创建在位编辑清空动作
+                    var action = new InPlaceClearAction(_refBlock);
+                    _logger.LogAction(action, "REFCLOSE");
+                    _workSet.Clear();
+                }
             }
             break;
         }
@@ -189,7 +255,7 @@ public class LongTransaction : IDisposable
 
         // 创建在位编辑添加动作
         var action = new InPlaceAddAction(refIds);
-        _logger.LogAction(action);
+        _logger.LogAction(action, "REFEDIT");
 
         // 更新当前ID集合
         _workSet.Add(refIds);
@@ -228,8 +294,9 @@ public class LongTransaction : IDisposable
             {
                 // 创建在位编辑添加动作
                 var action = new InPlaceAddAction(selectedIds);
-                _logger.LogAction(action);
+                _logger.LogAction(action, "REFSET_ADD");
             }
+            return;
         }
         else if (IsRemoveOperation(lastPrompt))
         {
@@ -241,9 +308,15 @@ public class LongTransaction : IDisposable
             {
                 // 创建在位编辑移除动作
                 var action = new InPlaceRemoveAction(selectedIds);
-                _logger.LogAction(action);
+                _logger.LogAction(action, "REFSET_REMOVE");
             }
+            return;
         }
+
+        if (lastPrompt.Contains("已在工作集") || lastPrompt.Contains("不在工作集中"))
+            return;
+
+        throw new System.Exception("不是添加或删除: " + lastPrompt);
     }
 
     /// <summary>
@@ -283,8 +356,10 @@ public class LongTransaction : IDisposable
             // 释放托管资源
             _document.CommandEnded -= OnCommandEnded;
             _document.CommandWillStart -= OnCommandWillStart;
+
+            _document.Database.ObjectAppended -= OnObjectAppended;
+            _document.Database.ObjectModified -= OnObjectModified;
+            _document.Database.ObjectErased -= OnObjectErased;
         }
     }
-
-
 }
