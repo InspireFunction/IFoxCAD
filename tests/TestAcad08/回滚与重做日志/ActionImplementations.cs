@@ -1,4 +1,5 @@
-﻿using System.Reflection;
+﻿using IFoxCAD.Cad;
+using System.Reflection;
 using static IFoxCAD.Cad.PostCmd;
 
 namespace JoinBoxAcad;
@@ -396,6 +397,54 @@ public class InPlaceRemoveAction : BaseAction
         throw new InvalidOperationException("在位编辑移除动作不能合并");
 }
 
+
+/// <summary>
+/// 在位编辑清空动作
+/// </summary>
+public class InPlaceCreateAction : BaseAction
+{
+    public ObjectId[] ObjectIds { get; }
+    public override ActionType Type => ActionType.InPlaceClear;
+    public override string Description => $"保存在位编辑工作集的清理功能";
+
+    public InPlaceCreateAction(IEnumerable<ObjectId> objectIds) // 这里传入了编辑块
+    {
+        ObjectIds = objectIds.ToArray();
+    }
+
+    public override void Execute()
+    {
+        // 清空工作集
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc != null)
+        {
+            doc.Editor?.SetImpliedSelection(ObjectIds);
+            var logger = EnhancedUndoRedoManager.GetLogger(doc);
+            logger?.AsyncCmdsPush("REFEDIT");
+            logger?.AsyncCmdsPush("REDO"); // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
+            doc.SendStringToExecute("REFEDIT\n", true, false, false);
+            doc.SendStringToExecute("REDO 1\n", true, false, false);
+        }
+    }
+
+    public override IAction GetInverseAction()
+    {
+        // TODO 没完成
+        Env.Printl($"[DEBUG] 这里写什么好呢? ");
+        return null!;
+    }
+
+    public override IAction Clone()
+    {
+        return new InPlaceClearAction(ObjectIds);
+    }
+
+    public override bool CanMergeWith(IAction otherAction) => false;
+
+    public override IAction MergeWith(IAction otherAction) =>
+        throw new InvalidOperationException("在位编辑清空动作不能合并");
+}
+
 /// <summary>
 /// 在位编辑清空动作
 /// </summary>
@@ -412,14 +461,18 @@ public class InPlaceClearAction : BaseAction
 
     public override void Execute()
     {
-        // 清空工作集
-        //var doc = Acap.DocumentManager.MdiActiveDocument;
-        //if (doc != null)
-        //{
-        //    // 获取 LongTransaction 实例并清空工作集
-        //    LongTransaction.WorkSetClear(doc);
-        //    Env.Printl($"[DEBUG] 执行清空在位编辑工作集操作，对象数: {ObjectIds.Length}");
-        //}
+        // 在位编辑-保存在位-撤回,就会触发这里
+        // 工作集恢复
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc != null)
+        {
+            doc.Editor?.SetImpliedSelection(ObjectIds);
+            var logger = EnhancedUndoRedoManager.GetLogger(doc);
+            logger?.AsyncCmdsPush("REFEDIT");
+            logger?.AsyncCmdsPush("UNDO"); // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
+            doc?.SendStringToExecute($"REFEDIT\n", true, false, false);
+            doc?.SendStringToExecute($"UNDO\n", true, false, false);
+        }
     }
 
     public override IAction GetInverseAction()
@@ -435,21 +488,10 @@ public class InPlaceClearAction : BaseAction
             return null!;
         var logger = EnhancedUndoRedoManager.GetLogger(doc);
         logger?.AsyncCmdsPush("REFEDIT");
-
         // 设置选择集
         doc.Editor?.SetImpliedSelection(ObjectIds);
-
-        // TODO #260127a 这里有面板啊...那还不如直接原生U,然后恢复我们的 _workSet?
         // 1. 发送在位编辑命令
         doc.SendStringToExecute("REFEDIT\n", true, false, false);
-
-        // 2. 恢复 在位编辑清空动作 到 workSet,
-        // 这里可以直接通过事件重新计算就好了啊
-
-        // 获取 LongTransaction 实例并恢复工作集
-        //var longTransaction = LongTransaction._map[doc];
-        //longTransaction._workSet.Clear();
-        //longTransaction._workSet.Add(ObjectIds);
 
         Env.Printl($"[DEBUG] 执行恢复在位编辑工作集操作，对象数: {ObjectIds.Length}");
         return null!;
@@ -465,4 +507,3 @@ public class InPlaceClearAction : BaseAction
     public override IAction MergeWith(IAction otherAction) =>
         throw new InvalidOperationException("在位编辑清空动作不能合并");
 }
-

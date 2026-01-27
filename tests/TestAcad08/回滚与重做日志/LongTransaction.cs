@@ -124,10 +124,12 @@ public class LongTransaction : IDisposable
         var entity = e.DBObject as Entity;
         if (entity is null)
             return;
+        // 保存命令触发之后需要跳过,否则会剔除全部数据
+        if (_REFCLOSE)
+            return;
         if (_refeditRun)
-        {
             _workSet.Remove(entity.ObjectId);
-        }
+
     }
 
     private void OnObjectModified(object sender, ObjectEventArgs e)
@@ -140,10 +142,12 @@ public class LongTransaction : IDisposable
         var entity = e.DBObject as Entity;
         if (entity is null)
             return;
+
+        // 保存命令触发之后需要跳过,否则会剔除全部数据
+        if (_REFCLOSE)
+            return;
         if (_refeditRun)
-        {
             _workSet.Add(entity.ObjectId);
-        }
     }
 
     #region 事件处理
@@ -173,8 +177,15 @@ public class LongTransaction : IDisposable
                     _workSet.Add(prompt2.Value.GetObjectIds());
             }
             break;
+            case "REFCLOSE":
+            {
+                _REFCLOSE = true;
+            }
+            break;
         }
     }
+
+    bool _REFCLOSE = false;
 
     private void OnCommandEnded(object sender, CommandEventArgs e)
     {
@@ -184,7 +195,7 @@ public class LongTransaction : IDisposable
         if (_logger.IsExecutingUndoRedo)
         {
             // #260126a 使用了异步命令这里需要清理
-            HandleAsyncCommandCleanup(e);
+            HandleAsyncCommandCleanup(e.GlobalCommandName); // todo 撤回时候发送了 refclose _d
             return;
         }
 
@@ -210,6 +221,7 @@ public class LongTransaction : IDisposable
                     _logger.LogAction(action, "REFCLOSE");
                     _workSet.Clear();
                 }
+                _REFCLOSE = false;
             }
             break;
         }
@@ -218,12 +230,12 @@ public class LongTransaction : IDisposable
     /// <summary>
     /// 处理异步命令清理
     /// </summary>
-    private bool HandleAsyncCommandCleanup(CommandEventArgs e)
+    private bool HandleAsyncCommandCleanup(string cmd)
     {
         if (!_logger.IsExecutingUndoRedo)
             throw new("不是回滚/重做期间");
 
-        if (!_logger.AsyncCmdsPop(e.GlobalCommandName))
+        if (!_logger.AsyncCmdsPop(cmd))
             return false;
 
         // 全部移除就恢复
@@ -259,7 +271,7 @@ public class LongTransaction : IDisposable
             return;
 
         // 创建在位编辑添加动作
-        var action = new InPlaceAddAction(refIds);
+        var action = new InPlaceCreateAction(_refBlock);
         _logger.LogAction(action, "REFEDIT");
 
         // 更新当前ID集合
@@ -321,7 +333,7 @@ public class LongTransaction : IDisposable
         if (lastPrompt.Contains("已在工作集") || lastPrompt.Contains("不在工作集中"))
             return;
 
-        throw new System.Exception("不是添加或删除: " + lastPrompt);
+        //throw new System.Exception("不是添加或删除: " + lastPrompt);
     }
 
     /// <summary>

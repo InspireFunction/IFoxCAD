@@ -1,6 +1,3 @@
-using System;
-using System.Windows.Controls;
-
 namespace JoinBoxAcad;
 
 /// <summary>
@@ -84,7 +81,7 @@ public class EnhancedActionLogger : IDisposable
         if (context.Changes.Count > 0)
         {
             var action = new EnhancedCommandAction(context);
-            LogAction(action);
+            LogAction(action, context.CommandName);
             DebugEx.Printl($"[DEBUG] <<<<结束录制 {cmd} 命令期间的动作, 变更数: {context.Changes.Count}");
         }
     }
@@ -153,14 +150,6 @@ public class EnhancedActionLogger : IDisposable
     }
 
     /// <summary>
-    /// 记录动作
-    /// </summary>
-    public void LogAction(IAction action)
-    {
-        LogAction(action, "无命令");
-    }
-
-    /// <summary>
     /// 记录动作（带命令上下文）
     /// </summary>
     /// <param name="action">动作</param>
@@ -206,17 +195,16 @@ public class EnhancedActionLogger : IDisposable
                     }
                 }
             }
+            return;
         }
-        else
-        {
-            // 使用指定的命令上下文
-            var node = _dag.AddAction(action, commandContext);
 
-            // 如果是实体动作，记录到实体动作映射中
-            if (action is EntityAction entityAction)
-            {
-                RecordEntityAction(entityAction.DBObjectId, node);
-            }
+        // 使用指定的命令上下文
+        var node2 = _dag.AddAction(action, commandContext);
+
+        // 如果是实体动作，记录到实体动作映射中
+        if (action is EntityAction entityAction2)
+        {
+            RecordEntityAction(entityAction2.DBObjectId, node2);
         }
     }
 
@@ -270,36 +258,28 @@ public class EnhancedActionLogger : IDisposable
                 // 打印回滚节点的命令
                 Env.Printl($"开始撤销节点: {currentNode.CommandContext}，包含 {currentNode.Actions.Count} 个动作");
 
-
-                // 如果有逆命令,不需要处理数据了,回滚到不是x之后,执行逆命令
-                var ccx = currentNode.CommandContext;
-                var inverseCommand = CommandInverseMap.GetInverseCommand(ccx);
-                if (!string.IsNullOrEmpty(inverseCommand) && _doc is not null)
+                // 在位编辑-保存在位-撤回,就会触发这里
+                // TODO 要恢复 workset 啊
+                if (currentNode.CommandContext == "REFCLOSE" && !_doMap.ContainsKey(currentNode))
                 {
-                    Env.Printl($"[DEBUG] 检测到命令 {ccx} 有逆命令: {inverseCommand}，回滚到不是该命令上下文的节点...");
-                    // 直到不是ccx
-                    while (commandsUndone < count && !IsAtRoot && _dag.Current.CommandContext == ccx)
+                    var last = currentNode.Actions.LastOrDefault();
+                    if (last is InPlaceClearAction inPlace)
                     {
-                        var nodeToUndo = _dag.Current;
-                        _dag.Current = nodeToUndo.Parent;
-                        Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
-                        commandsUndone++;
+                        _doMap[currentNode] = inPlace;
+                        inPlace.Execute();
+                        return;
                     }
-
-                    // TODO 下面两行如果加入,会跳过事件执行.
-                    // 那么确实是回滚到 refedit 了,但是重做会遇到 refedit 逆命令就是 close,执行不对.要改重做.
-                    // 如果不加入,就会是新分支,这也是蛋疼.
-                    var logger = EnhancedUndoRedoManager.GetLogger(_doc);
-                    logger?.AsyncCmdsPush(inverseCommand);
-                    _doc?.SendStringToExecute($"{inverseCommand}\n", true, false, false);
-                    return;
                 }
+                var set = _doMap.Values.ToHashSet();
 
                 // 回退当前节点的所有动作，按逆序执行
                 var reversedActions = currentNode.Actions.ToList();
                 reversedActions.Reverse();
                 foreach (var action in reversedActions)
                 {
+                    if (set.OfType<IAction>().Contains(action))
+                        continue;
+
                     Env.Printl($"  撤销动作: {action.Description}");
                     var inverseAction = action.GetInverseAction();
                     if (inverseAction is not null)
@@ -372,10 +352,13 @@ public class EnhancedActionLogger : IDisposable
             {
                 _isExecutingUndoRedo = false;
                 StartCommandContext("无命令");
+                _doMap.Clear();
             }
         }
     }
 
+
+    Dictionary<VersionNode, IAction> _doMap = [];
 
 
     /// <summary>
@@ -407,14 +390,31 @@ public class EnhancedActionLogger : IDisposable
 
                 Env.Printl($"开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
 
-                // TODO 如果可以先发送异步命令,再重做参数呢
-                // nextNode.CommandContext = "REFEDIT"
 
+                // TODO 260128a 进入在位编辑器状态,发送异步命令,最后重做参数.
+                // 虽然触发了面板,但是逻辑是成功的(可以用钩子点击面板)
+                // 1,虽然回来到编辑器状态了,但是再次REDO它会再进入死循环,命令上下文毕竟没有改变过.
+                // 因此发送前登记一个节点编号,然后再发送.
+                if (nextNode.CommandContext == "REFEDIT" && !_doMap.ContainsKey(nextNode))
+                {
+                    var last = nextNode.Actions.LastOrDefault();
+                    if (last is InPlaceCreateAction inPlace)
+                    {
+                        _doMap[nextNode] = inPlace;
+                        inPlace.Execute();
+                        return;
+                    }
+                }
+                var set = _doMap.Values.ToHashSet();
 
 
                 // 执行该节点的所有动作
                 foreach (var action in nextNode.Actions)
                 {
+                    // 这个是 260128a 用来作为重做先进入块编辑器,这里就不重复处理这个动作了.
+                    if (set.OfType<IAction>().Contains(action))
+                        continue;
+
                     Env.Printl($"  重做动作: {action.Description}");
                     action.Execute();
                     executed++;
@@ -463,6 +463,7 @@ public class EnhancedActionLogger : IDisposable
             {
                 _isExecutingUndoRedo = false;
                 StartCommandContext("无命令");
+                _doMap.Clear();
             }
         }
     }

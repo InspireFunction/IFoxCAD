@@ -55,26 +55,11 @@ public class EnhancedUndoRedoManager
     }
 
     /// <summary>
-    /// 执行重做操作
-    /// </summary>
-    public static void Redo(Document doc)
-    {
-        if (_loggers.TryGetValue(doc, out var logger))
-        {
-            logger.Redo();
-        }
-        else
-        {
-            Env.Printl("文档未启用增强撤销重做功能");
-        }
-    }
-
-    /// <summary>
     /// 执行多次重做操作
     /// </summary>
     /// <param name="doc">文档</param>
     /// <param name="count">重做次数</param>
-    public static void Redo(Document doc, int count)
+    public static void Redo(Document doc, int count = 1)
     {
         if (_loggers.TryGetValue(doc, out var logger))
         {
