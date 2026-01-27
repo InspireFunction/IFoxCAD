@@ -402,31 +402,15 @@ public class EnhancedActionLogger : IDisposable
             while (commandsRedone < count && _dag.Current.Children.Count > 0)
             {
                 // TODO 切换到时间最新的子节点
+                // 重做是用历史的上下文,不用逆命令
                 var nextNode = _dag.Current.Children[0];
 
                 Env.Printl($"开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
 
-                // 如果有逆命令,不需要处理数据了,执行逆命令
-                var ccx = nextNode.CommandContext;
-                var inverseCommand = CommandInverseMap.GetInverseCommand(ccx);
-                if (!string.IsNullOrEmpty(inverseCommand) && _doc is not null)
-                {
-                    Env.Printl($"[DEBUG] 检测到命令 {ccx} 有逆命令: {inverseCommand}，执行逆命令...");
-                    // 执行逆命令
-                    //var logger = EnhancedUndoRedoManager.GetLogger(_doc);
-                    //logger?.AsyncCmdsPush(inverseCommand);
-                    _doc?.SendStringToExecute($"{inverseCommand}\n", true, false, false);
+                // TODO 如果可以先发送异步命令,再重做参数呢
+                // nextNode.CommandContext = "REFEDIT"
 
-                    // 移动到该命令上下文的所有节点
-                    //while (commandsRedone < count && _dag.Current.Children.Count > 0 && _dag.Current.Children[0].CommandContext == ccx)
-                    //{
-                    //    var nodeToRedo = _dag.Current.Children[0];
-                    //    _dag.Current = nodeToRedo;
-                    //    Env.Printl($"重做完成，当前节点GUID: {_dag.Current.Id}\n");
-                    //    commandsRedone++;
-                    //}
-                    return;
-                }
+
 
                 // 执行该节点的所有动作
                 foreach (var action in nextNode.Actions)

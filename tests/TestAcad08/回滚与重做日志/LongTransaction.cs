@@ -76,7 +76,6 @@ public class LongTransaction : IDisposable
     {
         if (doc == null)
             throw new ArgumentNullException("文档不存在");
-
         _map[doc]._workSet.Clear();
     }
 
@@ -123,9 +122,12 @@ public class LongTransaction : IDisposable
     private void OnObjectErased(object sender, ObjectErasedEventArgs e)
     {
         var entity = e.DBObject as Entity;
-        if (entity == null)
+        if (entity is null)
             return;
-        _workSet.Remove(entity.ObjectId);
+        if (_refeditRun)
+        {
+            _workSet.Remove(entity.ObjectId);
+        }
     }
 
     private void OnObjectModified(object sender, ObjectEventArgs e)
@@ -136,9 +138,12 @@ public class LongTransaction : IDisposable
     private void OnObjectAppended(object sender, ObjectEventArgs e)
     {
         var entity = e.DBObject as Entity;
-        if (entity == null)
+        if (entity is null)
             return;
-        _workSet.Add(entity.ObjectId);
+        if (_refeditRun)
+        {
+            _workSet.Add(entity.ObjectId);
+        }
     }
 
     #region 事件处理
