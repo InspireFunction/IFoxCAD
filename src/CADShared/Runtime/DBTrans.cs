@@ -192,7 +192,8 @@ public sealed class DBTrans : IDisposable
         if (docLock)
             DocumentLockManager.LockDocument(doc);
 
-        return new DBTrans(doc, commit, openCloseTrans);
+        _dbDocMap[doc.Database] = doc;
+        return new DBTrans(doc.Database, commit, openCloseTrans);
     }
 
     /// <summary>
@@ -205,18 +206,11 @@ public sealed class DBTrans : IDisposable
     public static DBTrans Create(Database db, bool commit = true, bool openCloseTrans = false)
     {
         CheckDatabaseError(db);
-        var tr = new DBTrans(db, commit, openCloseTrans);
-        return tr;
+        return new DBTrans(db, commit, openCloseTrans);
     }
 
     // 构造函数不许报错,否则会导致触发dispose
-    DBTrans(Document doc, bool commit = true, bool openCloseTrans = false) : this(doc.Database, commit, openCloseTrans)
-    {
-        _dbDocMap[doc.Database] = doc;
-    }
-
-    // 构造函数不许报错,否则会导致触发dispose
-    DBTrans(Database db, bool commit = true, bool openCloseTrans = false)
+    private DBTrans(Database db, bool commit = true, bool openCloseTrans = false)
     {
         _database = db;
         var tm = _database.TransactionManager;
