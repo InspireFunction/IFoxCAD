@@ -331,7 +331,7 @@ public sealed class DBTrans : IDisposable
         }
         // 此处创建的数据库是肯定获取不到文档的.
         db ??= OpenFileForBackend(file, fileOpenMode, password);
-        return new DBTrans(db, commit, openCloseTrans: openCloseTrans);
+        return DBTrans.Create(db, commit, openCloseTrans: openCloseTrans);
     }
 
     /// <summary>
@@ -377,7 +377,7 @@ public sealed class DBTrans : IDisposable
         // 非当前文档要激活切换,此时必然是跨文档,也要加文档锁.
         // 因此需要统一命令加上Session并且加文档锁.
         // 否则 Editor?.Redraw() tm.QueueForGraphicsFlush() 将报错提示文档锁
-        return new DBTrans(doc, commit, true);
+        return DBTrans.Create(doc, commit, true);
     }
 
 
