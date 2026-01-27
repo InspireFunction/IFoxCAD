@@ -85,6 +85,10 @@ public class LoggerInitializer
 
                 var doc = Application.DocumentManager.MdiActiveDocument;
                 EnhancedUndoRedoManager.Undo(doc);
+
+                // 消除计数释放
+                var logger = EnhancedUndoRedoManager.GetLogger(doc);
+                logger?.AsyncCmdsPop("UNDO"); // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
             }
             break;
             case "MREDO":
@@ -113,6 +117,10 @@ public class LoggerInitializer
                 var input = prompt.StringResult.Trim().ToUpper();
                 // 处理命令行参数
                 ProcessRedoInput(doc, ed, input);
+
+                // 消除计数释放
+                var logger = EnhancedUndoRedoManager.GetLogger(doc);
+                logger?.AsyncCmdsPop("REDO"); // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
             }
             break;
         }
