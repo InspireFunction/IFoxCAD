@@ -88,7 +88,7 @@ public class DataRollbackAction : BaseAction
         try
         {
             using var tr = DBTrans.Create(change.EntityId.Database);
-            var entity = tr.GetObject(change.EntityId, OpenMode.ForWrite, true, true);
+            using var entity = tr.GetObject(change.EntityId, OpenMode.ForWrite, true, true);
 
             if (entity == null)
             {

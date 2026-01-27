@@ -270,34 +270,47 @@ public class EnhancedActionLogger : IDisposable
                 // 打印回滚节点的命令
                 Env.Printl($"开始撤销节点: {currentNode.CommandContext}，包含 {currentNode.Actions.Count} 个动作");
 
-                // 如果有逆命令,直接执行,不需要处理数据了.
-                var inverseCommand = CommandInverseMap.GetInverseCommand(currentNode.CommandContext);
-                if (!string.IsNullOrEmpty(inverseCommand))
+
+                // 如果有逆命令,不需要处理数据了,回滚到不是x之后,执行逆命令
+                var ccx = currentNode.CommandContext;
+                var inverseCommand = CommandInverseMap.GetInverseCommand(ccx);
+                if (!string.IsNullOrEmpty(inverseCommand) && _doc is not null)
                 {
-                    // TODO 组块,在位编辑,撤回,撤回...仍然有错误
+                    Env.Printl($"[DEBUG] 检测到命令 {ccx} 有逆命令: {inverseCommand}，回滚到不是该命令上下文的节点...");
+                    // 直到不是ccx
+                    while (commandsUndone < count && !IsAtRoot && _dag.Current.CommandContext == ccx)
+                    {
+                        var nodeToUndo = _dag.Current;
+                        _dag.Current = nodeToUndo.Parent;
+                        Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
+                        commandsUndone++;
+                    }
+
+                    // TODO 下面两行如果加入,会跳过事件执行.
+                    // 那么确实是回滚到 refedit 了,但是重做会遇到 refedit 逆命令就是 close,执行不对.要改重做.
+                    // 如果不加入,就会是新分支,这也是蛋疼.
                     var logger = EnhancedUndoRedoManager.GetLogger(_doc);
                     logger?.AsyncCmdsPush(inverseCommand);
                     _doc?.SendStringToExecute($"{inverseCommand}\n", true, false, false);
+                    return;
                 }
-                else
+
+                // 回退当前节点的所有动作，按逆序执行
+                var reversedActions = currentNode.Actions.ToList();
+                reversedActions.Reverse();
+                foreach (var action in reversedActions)
                 {
-                    // 回退当前节点的所有动作，按逆序执行
-                    var reversedActions = currentNode.Actions.ToList();
-                    reversedActions.Reverse();
-                    foreach (var action in reversedActions)
+                    Env.Printl($"  撤销动作: {action.Description}");
+                    var inverseAction = action.GetInverseAction();
+                    if (inverseAction is not null)
                     {
-                        Env.Printl($"  撤销动作: {action.Description}");
-                        var inverseAction = action.GetInverseAction();
-                        if (inverseAction is not null)
-                        {
-                            Env.Printl($"  使用逆向动作: {inverseAction.Description}");
-                            inverseAction.Execute();
-                            executed++;
-                        }
-                        else
-                        {
-                            Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
-                        }
+                        Env.Printl($"  使用逆向动作: {inverseAction.Description}");
+                        inverseAction.Execute();
+                        executed++;
+                    }
+                    else
+                    {
+                        Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
                     }
                 }
 
@@ -384,12 +397,36 @@ public class EnhancedActionLogger : IDisposable
         try
         {
             int executed = 0;
-            for (int i = 0; i < count && _dag.Current.Children.Count > 0; i++)
+            int commandsRedone = 0;
+
+            while (commandsRedone < count && _dag.Current.Children.Count > 0)
             {
-                // 切换到第一个子节点
+                // TODO 切换到时间最新的子节点
                 var nextNode = _dag.Current.Children[0];
 
-                Env.Printl($"\n开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
+                Env.Printl($"开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
+
+                // 如果有逆命令,不需要处理数据了,执行逆命令
+                var ccx = nextNode.CommandContext;
+                var inverseCommand = CommandInverseMap.GetInverseCommand(ccx);
+                if (!string.IsNullOrEmpty(inverseCommand) && _doc is not null)
+                {
+                    Env.Printl($"[DEBUG] 检测到命令 {ccx} 有逆命令: {inverseCommand}，执行逆命令...");
+                    // 执行逆命令
+                    //var logger = EnhancedUndoRedoManager.GetLogger(_doc);
+                    //logger?.AsyncCmdsPush(inverseCommand);
+                    _doc?.SendStringToExecute($"{inverseCommand}\n", true, false, false);
+
+                    // 移动到该命令上下文的所有节点
+                    //while (commandsRedone < count && _dag.Current.Children.Count > 0 && _dag.Current.Children[0].CommandContext == ccx)
+                    //{
+                    //    var nodeToRedo = _dag.Current.Children[0];
+                    //    _dag.Current = nodeToRedo;
+                    //    Env.Printl($"重做完成，当前节点GUID: {_dag.Current.Id}\n");
+                    //    commandsRedone++;
+                    //}
+                    return;
+                }
 
                 // 执行该节点的所有动作
                 foreach (var action in nextNode.Actions)
@@ -401,6 +438,29 @@ public class EnhancedActionLogger : IDisposable
 
                 _dag.Current = nextNode;
                 Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
+                commandsRedone++;
+
+                // 如果当前节点不是"无命令"，则检查是否有连续的"无命令"节点需要一并重做
+                if (nextNode.CommandContext != "无命令")
+                {
+                    while (commandsRedone < count && _dag.Current.Children.Count > 0 && _dag.Current.Children[0].CommandContext == "无命令")
+                    {
+                        var noCommandNode = _dag.Current.Children[0];
+                        Env.Printl($"开始重做节点: {noCommandNode.CommandContext}，包含 {noCommandNode.Actions.Count} 个动作");
+
+                        // 执行无命令节点的所有动作
+                        foreach (var action in noCommandNode.Actions)
+                        {
+                            Env.Printl($"  重做动作: {action.Description}");
+                            action.Execute();
+                            executed++;
+                        }
+
+                        _dag.Current = noCommandNode;
+                        Env.Printl($"重做完成，当前节点GUID: {noCommandNode.Id}");
+                        commandsRedone++;
+                    }
+                }
             }
 
             if (executed > 0)
@@ -434,6 +494,8 @@ public class EnhancedActionLogger : IDisposable
             return;
         }
 
+        EndCommandContext("无命令");
+
         _isExecutingUndoRedo = true;
 
         try
@@ -445,6 +507,27 @@ public class EnhancedActionLogger : IDisposable
                 var nextNode = _dag.Current.Children[0];
 
                 Env.Printl($"\n开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
+
+                // 如果有逆命令,不需要处理数据了,执行逆命令
+                var ccx = nextNode.CommandContext;
+                var inverseCommand = CommandInverseMap.GetInverseCommand(ccx);
+                if (!string.IsNullOrEmpty(inverseCommand) && _doc is not null)
+                {
+                    Env.Printl($"[DEBUG] 检测到命令 {ccx} 有逆命令: {inverseCommand}，执行逆命令...");
+                    // 执行逆命令
+                    var logger = EnhancedUndoRedoManager.GetLogger(_doc);
+                    logger?.AsyncCmdsPush(inverseCommand);
+                    _doc?.SendStringToExecute($"{inverseCommand}\n", true, false, false);
+
+                    // 移动到该命令上下文的所有节点
+                    while (_dag.Current.Children.Count > 0 && _dag.Current.Children[0].CommandContext == ccx)
+                    {
+                        var nodeToRedo = _dag.Current.Children[0];
+                        _dag.Current = nodeToRedo;
+                        Env.Printl($"重做完成，当前节点GUID: {_dag.Current.Id}\n");
+                    }
+                    return;
+                }
 
                 // 执行该节点的所有动作
                 foreach (var action in nextNode.Actions)
@@ -468,7 +551,12 @@ public class EnhancedActionLogger : IDisposable
         }
         finally
         {
-            _isExecutingUndoRedo = false;
+            // #260126a 使用了异步命令这里就不清理了,在命令结束后事件清理
+            if (AsyncCmds.Count == 0)
+            {
+                _isExecutingUndoRedo = false;
+                StartCommandContext("无命令");
+            }
         }
     }
 

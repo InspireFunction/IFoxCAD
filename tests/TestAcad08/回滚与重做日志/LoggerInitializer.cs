@@ -134,13 +134,6 @@ public class LoggerInitializer
         Env.Printl("CAD日志系统已停止");
     }
 
-    //[CommandMethod(nameof(MyUndo))]
-    //public void MyUndo()
-    //{
-    //    var doc = Application.DocumentManager.MdiActiveDocument;
-    //    EnhancedUndoRedoManager.Undo(doc);
-    //}
-
 
     // 处理重做输入的辅助方法
     private void ProcessRedoInput(Document doc, Editor ed, string input)
