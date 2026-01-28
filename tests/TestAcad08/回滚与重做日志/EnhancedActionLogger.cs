@@ -1,3 +1,6 @@
+using System;
+using System.Windows.Controls;
+
 namespace JoinBoxAcad;
 
 /// <summary>
@@ -260,26 +263,29 @@ public class EnhancedActionLogger : IDisposable
 
                 // 在位编辑-保存在位-撤回,就会触发这里
                 // TODO 要恢复 workset
-                if (currentNode.CommandContext == "REFCLOSE" && !_doMap.ContainsKey(currentNode))
+                if (currentNode.CommandContext == "REFCLOSE")
                 {
                     var last = currentNode.Actions.LastOrDefault();
                     if (last is InPlaceSaveAction inPlace)
                     {
-                        _doMap[currentNode] = inPlace;
+                        Env.Printl($"[DEBUG] 处理 REFCLOSE 撤销: 节点ID={currentNode.Id.Substring(0, 8)}..., 动作数={currentNode.Actions.Count}");
                         inPlace.Execute();
+                        // 切换到父节点
+                        _dag.Current = currentNode.Parent;
+                        Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
+                        // 增加命令撤销计数
+                        commandsUndone++;
+                        Env.Printl($"[DEBUG] 完成 REFCLOSE 撤销处理，当前节点: {_dag.Current.CommandContext}");
                         return;
                     }
                 }
-                var set = _doMap.Values.ToHashSet();
+
 
                 // 回退当前节点的所有动作，按逆序执行
                 var reversedActions = currentNode.Actions.ToList();
                 reversedActions.Reverse();
                 foreach (var action in reversedActions)
                 {
-                    if (set.OfType<IAction>().Contains(action))
-                        continue;
-
                     Env.Printl($"  撤销动作: {action.Description}");
                     var inverseAction = action.GetInverseAction();
                     if (inverseAction is not null)
@@ -321,13 +327,9 @@ public class EnhancedActionLogger : IDisposable
             {
                 _isExecutingUndoRedo = false;
                 StartCommandContext("无命令");
-                _doMap.Clear();
             }
         }
     }
-
-
-    Dictionary<VersionNode, IAction> _doMap = [];
 
 
     /// <summary>
@@ -364,26 +366,56 @@ public class EnhancedActionLogger : IDisposable
                 // 虽然触发了面板,但是逻辑是成功的(可以用钩子点击面板)
                 // 1,虽然回来到编辑器状态了,但是再次REDO它会再进入死循环,命令上下文毕竟没有改变过.
                 // 因此发送前登记一个节点编号,然后再发送.
-                if (nextNode.CommandContext == "REFEDIT" && !_doMap.ContainsKey(nextNode))
+                if (nextNode.CommandContext == "REFEDIT")
                 {
                     var last = nextNode.Actions.LastOrDefault();
                     if (last is InPlaceCreateAction inPlace)
                     {
-                        _doMap[nextNode] = inPlace;
+                        Env.Printl($"[DEBUG] 处理 REFEDIT 重做: 节点ID={nextNode.Id.Substring(0, 8)}..., 动作数={nextNode.Actions.Count}");
                         inPlace.Execute();
+                        // 更新当前节点到下一个节点
+                        _dag.Current = nextNode;
+                        Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
+                        // 增加命令重做计数
+                        commandsRedone++;
+                        Env.Printl($"[DEBUG] 完成 REFEDIT 重做处理，当前节点: {_dag.Current.CommandContext}");
                         return;
                     }
                 }
-                var set = _doMap.Values.ToHashSet();
 
+                if (nextNode.CommandContext == "REFCLOSE")
+                {
+                    var last = nextNode.Actions.LastOrDefault();
+                    if (last is InPlaceSaveAction action)
+                    {
+                        Env.Printl($"[DEBUG] 处理 REFCLOSE 重做: 节点ID={nextNode.Id.Substring(0, 8)}..., 动作数={nextNode.Actions.Count}");
+
+                        var inverseAction = action.GetInverseAction();
+                        if (inverseAction is not null)
+                        {
+                            Env.Printl($"  使用逆向动作: {inverseAction.Description}");
+                            inverseAction.Execute();
+                            executed++;
+                        }
+                        else
+                        {
+                            Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
+                        }
+
+                        // 更新当前节点到下一个节点
+                        _dag.Current = nextNode;
+                        Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
+                        // 增加命令重做计数
+                        commandsRedone++;
+                        Env.Printl($"[DEBUG] 完成 REFCLOSE 重做处理，当前节点: {_dag.Current.CommandContext}");
+                        return;
+
+                    }
+                }
 
                 // 执行该节点的所有动作
                 foreach (var action in nextNode.Actions)
                 {
-                    // 这个是 260128a 用来作为重做先进入块编辑器,这里就不重复处理这个动作了.
-                    if (set.OfType<IAction>().Contains(action))
-                        continue;
-
                     Env.Printl($"  重做动作: {action.Description}");
                     action.Execute();
                     executed++;
@@ -413,7 +445,6 @@ public class EnhancedActionLogger : IDisposable
             {
                 _isExecutingUndoRedo = false;
                 StartCommandContext("无命令");
-                _doMap.Clear();
             }
         }
     }

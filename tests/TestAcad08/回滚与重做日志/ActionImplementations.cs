@@ -315,11 +315,7 @@ public class InPlaceAddAction : BaseAction
             // 发送异步命令需要添加进容器,外部 IsExecutingUndoRedo 就不会设置
             var logger = EnhancedUndoRedoManager.GetLogger(doc);
             logger?.AsyncCmdsPush("REFSET");
-
-            var ed = doc.Editor;
-            // 设置新的选择集
-            ed.SetImpliedSelection(ObjectIds);
-            // 发送异步命令,添加
+            doc.Editor?.SetImpliedSelection(ObjectIds);
             doc.SendStringToExecute("REFSET\nA\n", true, false, false);
         }
         Env.Printl($"[DEBUG] 执行在位编辑添加操作，对象数: {ObjectIds.Length}");
@@ -366,11 +362,7 @@ public class InPlaceRemoveAction : BaseAction
             // 发送异步命令需要添加进容器,外部 IsExecutingUndoRedo 就不会设置
             var logger = EnhancedUndoRedoManager.GetLogger(doc);
             logger?.AsyncCmdsPush("REFSET");
-
-            var ed = doc.Editor;
-            // 设置新的选择集
-            ed.SetImpliedSelection(ObjectIds);
-            // 发送异步命令,移除
+            doc.Editor?.SetImpliedSelection(ObjectIds);
             doc.SendStringToExecute("REFSET\nR\n", true, false, false);
         }
         Env.Printl($"[DEBUG] 执行在位编辑移除操作，对象数: {ObjectIds.Length}");
@@ -416,9 +408,7 @@ public class InPlaceCreateAction : BaseAction
             doc.Editor?.SetImpliedSelection(ObjectIds);
             var logger = EnhancedUndoRedoManager.GetLogger(doc);
             logger?.AsyncCmdsPush("REFEDIT");
-            logger?.AsyncCmdsPush("REDO"); // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
             doc.SendStringToExecute("REFEDIT\n", true, false, false);
-            doc.SendStringToExecute("REDO 1\n", true, false, false);
         }
     }
 
@@ -470,7 +460,6 @@ public class InPlaceCreateEndAction : BaseAction
         }
     }
 
-    // 这里是重做
     public override IAction GetInverseAction()
     {
         return new InPlaceCreateAction(ObjectIds);
@@ -488,8 +477,6 @@ public class InPlaceCreateEndAction : BaseAction
 }
 
 
-
-
 /// <summary>
 /// 在位编辑保存
 /// </summary>
@@ -504,8 +491,7 @@ public class InPlaceSaveAction : BaseAction
         ObjectIds = objectIds.ToArray();
     }
 
-    // TODO 这还是有问题,会多了一个图元
-    // 在位编辑-保存在位-撤回,就会触发这里
+    // 在位编辑-保存在位-撤回
     public override void Execute()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
@@ -514,9 +500,7 @@ public class InPlaceSaveAction : BaseAction
             doc.Editor?.SetImpliedSelection(ObjectIds);
             var logger = EnhancedUndoRedoManager.GetLogger(doc);
             logger?.AsyncCmdsPush("REFEDIT");
-            logger?.AsyncCmdsPush("UNDO"); // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
             doc?.SendStringToExecute($"REFEDIT\n", true, false, false);
-            doc?.SendStringToExecute($"UNDO\n", true, false, false);
         }
     }
 
@@ -549,25 +533,17 @@ public class InPlaceSaveEndAction : BaseAction
         ObjectIds = objectIds.ToArray();
     }
 
+    // 在位编辑-保存在位-撤回-重做
     public override void Execute()
     {
-        // 在为编辑的逆向动作设计非常复杂:
-        // 1,先通过DAG向前找到在位编辑命令,如果不是就一直递归找,肯定有的,因为它是回滚.
-        // 2,这个命令备份选择集的ids,设置ids到选择集.
-        // 3,发送在位编辑命令,打开编辑器状态.
-        // 4,恢复 在位编辑清空动作 到 workSet.
-
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (doc == null)
-            return;
-        var logger = EnhancedUndoRedoManager.GetLogger(doc);
-        logger?.AsyncCmdsPush("REFEDIT");
-        // 设置选择集
-        doc.Editor?.SetImpliedSelection(ObjectIds);
-        // 1. 发送在位编辑命令
-        doc.SendStringToExecute("REFEDIT\n", true, false, false);
-
-        Env.Printl($"[DEBUG] 执行恢复在位编辑工作集操作，对象数: {ObjectIds.Length}");
+        if (doc != null)
+        {
+            doc.Editor?.SetImpliedSelection(ObjectIds);
+            var logger = EnhancedUndoRedoManager.GetLogger(doc);
+            logger?.AsyncCmdsPush("REFCLOSE");
+            doc.SendStringToExecute("REFCLOSE _S\n", true, false, false);
+        }
     }
 
     public override IAction GetInverseAction()

@@ -93,6 +93,22 @@ public class LongTransaction : IDisposable
     {
         return _map[doc]._refedit_run;
     }
+
+
+    [CommandMethod(nameof(ww))]
+    public static void ww()
+    {
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        var c = _map[doc]._workSet.Count;
+        Env.Printl($"长事务数量: {c}");
+        if (c == 0)
+        {
+            return;
+        }
+        var lst = _map[doc]._workSet.Select(a => a.ToString() + ", ").ToArray();
+        Env.Printl($"{string.Join(",", lst)}");
+    }
+
     #endregion
 
 
@@ -186,6 +202,8 @@ public class LongTransaction : IDisposable
 
     bool _refClose_start = false;
 
+
+
     private void OnCommandEnded(object sender, CommandEventArgs e)
     {
         DebugEx.Printl($"OnCommandEnded - {DateTime.Now}");
@@ -198,24 +216,22 @@ public class LongTransaction : IDisposable
             return;
         }
 
-        var cmdup = e.GlobalCommandName.ToUpper();
-        switch (cmdup)
+        var cmd = e.GlobalCommandName.ToUpper();
+        switch (cmd)
         {
             case "REFEDIT":
             _refedit_run = true;
             HandleRefEdit();
             break;
             case "REFSET":
-            HandleRefSet(true);
+            HandleRefSet(cmd, true);
             break;
             case "REFCLOSE":
             {
                 _refedit_run = false;
-                // 发生回滚的时候呢?清理的就没了啊 
-                // 因此我们需要把 refclose 命令时候 把workset作为动作,这样实现回滚才有数据恢复
+                // 发生回滚时候是通过命令-事件,重新构造 _workSet
                 if (_workSet.Count > 0)
                 {
-                    // 创建在位编辑清空动作
                     var action = new InPlaceSaveAction(_refBlock);
                     _logger.LogAction(action, "REFCLOSE");
                     _workSet.Clear();
@@ -243,7 +259,7 @@ public class LongTransaction : IDisposable
 
         // "减去"-触发了撤回事件-执行了"添加"-工作集添加回来.
         // 同理,"添加"也需要从工作集"减去"
-        HandleRefSet(false);
+        HandleRefSet(cmd, false);
 
         return true;
     }
@@ -280,7 +296,7 @@ public class LongTransaction : IDisposable
     /// <summary>
     /// 处理 REFSET 命令
     /// </summary>
-    private void HandleRefSet(bool addLog)
+    private void HandleRefSet(string cmd, bool addLog)
     {
         // 命令历史的最后一行是:添加/删除
         var lastPrompt = Env.GetVar("lastprompt")?.ToString();
@@ -291,13 +307,14 @@ public class LongTransaction : IDisposable
         if (prompt.Status != PromptStatus.OK)
             return;
         var selectedIds = prompt.Value.GetObjectIds();
-        HandleRefSetOperation(lastPrompt, selectedIds, addLog);
+        HandleRefSetOperation(cmd, lastPrompt, selectedIds, addLog);
+
     }
 
     /// <summary>
     /// 处理 REFSET 的具体操作（添加/删除）
     /// </summary>
-    private void HandleRefSetOperation(string lastPrompt, ObjectId[] selectedIds, bool addLog)
+    private void HandleRefSetOperation(string cmd, string lastPrompt, ObjectId[] selectedIds, bool addLog)
     {
         // 因为无法遍历到在位编辑的块内图元,只能进行布尔运算
         if (IsAddOperation(lastPrompt))
@@ -329,10 +346,10 @@ public class LongTransaction : IDisposable
             return;
         }
 
-        if (lastPrompt.Contains("已在工作集") || lastPrompt.Contains("不在工作集中"))
-            return;
-
-        //throw new System.Exception("不是添加或删除: " + lastPrompt);
+        //if (cmd == "REFSET" && (lastPrompt.Contains("已在工作集") || lastPrompt.Contains("不在工作集中")))
+        //    return;
+        if (cmd == "REFCLOSE")
+            _workSet.Clear();
     }
 
     /// <summary>
