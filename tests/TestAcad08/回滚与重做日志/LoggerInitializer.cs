@@ -8,7 +8,7 @@ public class LoggerInitializer
     [IFoxInitialize]
     public void StartLogging(Document doc)
     {
-        // 禁用原生撤回/重做
+        // 禁用原生撤销/重做
         Acap.DocumentManager.DocumentCreated += DocumentManager_DocumentCreated;
         Acap.DocumentManager.DocumentToBeDestroyed += DocumentManager_DocumentToBeDestroyed;
         Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
@@ -64,7 +64,7 @@ public class LoggerInitializer
     }
 
     /// <summary>
-    /// 否决原生的撤回命令
+    /// 否决原生的撤销命令
     /// </summary>
     /// <param name="sender"></param>
     /// <param name="e"></param>
@@ -78,7 +78,7 @@ public class LoggerInitializer
             case "U":
             case "UNDO":
             {
-                // 屏蔽原生撤回,否则导致不知道官方撤回点.
+                // 屏蔽原生撤销,否则导致不知道官方撤销点.
                 e.Veto();
                 //e.Document?.SendStringToExecute(nameof(MyUndo) + "\n", false, false, false);
                 //SendCommand(nameof(MyUndo) + " ", RunCmdFlag.AcedCommand);
@@ -87,8 +87,9 @@ public class LoggerInitializer
                 EnhancedUndoRedoManager.Undo(doc);
 
                 // 消除计数释放
+                // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
                 var logger = EnhancedUndoRedoManager.GetLogger(doc);
-                logger?.AsyncCmdsPop("UNDO"); // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
+                logger?.AsyncCmdsPop("UNDO");
             }
             break;
             case "MREDO":
@@ -119,8 +120,9 @@ public class LoggerInitializer
                 ProcessRedoInput(doc, ed, input);
 
                 // 消除计数释放
+                // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
                 var logger = EnhancedUndoRedoManager.GetLogger(doc);
-                logger?.AsyncCmdsPop("REDO"); // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
+                logger?.AsyncCmdsPop("REDO");
             }
             break;
         }
@@ -134,7 +136,7 @@ public class LoggerInitializer
         // 清理当前文档的增强日志器
         EnhancedUndoRedoManager.DisableEnhancedUndoRedo(doc);
 
-        // 启用原生撤回
+        // 启用原生撤销
         Acap.DocumentManager.DocumentLockModeChanged -= DocumentManager_DocumentLockModeChanged;
         Acap.DocumentManager.DocumentCreated -= DocumentManager_DocumentCreated;
         Acap.DocumentManager.DocumentToBeDestroyed -= DocumentManager_DocumentToBeDestroyed;

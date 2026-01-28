@@ -89,7 +89,7 @@ public class EnhancedDatabaseMonitor : IDisposable
     /// <summary>
     /// 创建实体快照
     /// </summary>
-    private EntitySnapshot CreateEntitySnapshot(DBObject entity)
+    private EntitySnapshot CreateSnapshot(DBObject entity)
     {
         var snapshot = new EntitySnapshot(entity.ObjectId);
         MemberHelper.GetMemberInHierarchy(entity, snapshot, entity.GetType());
@@ -110,7 +110,7 @@ public class EnhancedDatabaseMonitor : IDisposable
         _pendingChanges.Add(change);
 
         // 创建实体快照用于后续比较
-        var snapshot = CreateEntitySnapshot(entity);
+        var snapshot = CreateSnapshot(entity);
         _entitySnapshots[entity.ObjectId] = snapshot;
 
         DebugEx.Printl($"[DEBUG] 记录添加操作: {entity.ObjectId}, 类型: {entity.GetType().Name}");
@@ -129,14 +129,14 @@ public class EnhancedDatabaseMonitor : IDisposable
         // 获取或创建实体快照
         if (!_entitySnapshots.TryGetValue(entity.ObjectId, out var oldSnapshot))
         {
-            oldSnapshot = CreateEntitySnapshot(entity);
+            oldSnapshot = CreateSnapshot(entity);
             _entitySnapshots[entity.ObjectId] = oldSnapshot;
         }
 
-        // TODO 为什么这里没有记录 颜色的字段呢? 难道cad是远程字段?也就是属性=>cpp/cli字段?
+        // 为什么这里没有记录 颜色的字段呢? 难道cad是远程字段?也就是属性=>cpp/cli字段?
         // 如果真的是这样,那么我们就不能只反射字段了,但是属性改起来可能会异常...
         // 创建新的快照进行比较
-        var newSnapshot = CreateEntitySnapshot(entity);
+        var newSnapshot = CreateSnapshot(entity);
         var fieldChanges = CompareSnapshots(oldSnapshot, newSnapshot);
 
         if (fieldChanges.Count > 0)

@@ -35,7 +35,7 @@ public enum BrightEntity : int
     /// </summary>
     VisibleFalse = 64,
     /// <summary>
-    /// 平移更新,可以令ctrl+z撤回时候保证刷新
+    /// 平移更新,可以令ctrl+z撤销时候保证刷新
     /// </summary>
     MoveZero = 128,
 }
@@ -169,7 +169,7 @@ public static class RedrawEx
         // 删除块内图元的时候需要刷新块,
         // 用 RecordGraphicsModified 显示是没有问题,
         // 但是 ctrl+z 撤销会有显示问题,
-        // 所以平移0可以在撤回数据库的时候刷新指定图元
+        // 所以平移0可以在撤销数据库的时候刷新指定图元
         if ((bright & BrightEntity.MoveZero) == BrightEntity.MoveZero)
             ent.Move(Point3d.Origin, Point3d.Origin);
     }

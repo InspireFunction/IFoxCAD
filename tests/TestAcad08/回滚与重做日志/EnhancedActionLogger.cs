@@ -261,7 +261,7 @@ public class EnhancedActionLogger : IDisposable
                 // 打印回滚节点的命令
                 Env.Printl($"开始撤销节点: {currentNode.CommandContext}，包含 {currentNode.Actions.Count} 个动作");
 
-                // 在位编辑-保存在位-撤回,就会触发这里
+                // 在位编辑-保存在位-撤销,就会触发这里
                 // TODO 要恢复 workset
                 if (currentNode.CommandContext == "REFCLOSE")
                 {

@@ -179,7 +179,7 @@ public class LongTransaction : IDisposable
         {
             case "REFEDIT":
             {
-                // TODO #260127a 为了保存时候撤回,这里要备份选择集
+                // TODO #260127a 为了保存时候撤销,这里要备份选择集
                 var prompt = _document.Editor.SelectImplied();// 预选
                 if (prompt.Status == PromptStatus.OK)
                     _refBlock = prompt.Value.GetObjectIds();
@@ -212,7 +212,8 @@ public class LongTransaction : IDisposable
         if (_logger.IsExecutingUndoRedo)
         {
             // #260126a 使用了异步命令这里需要清理
-            HandleAsyncCommandCleanup(e.GlobalCommandName); // todo 撤回时候发送了 refclose _d
+            // 撤销时候不能发送 "refclose _d" 带参数模式,只能有命令.
+            HandleAsyncCommandCleanup(e.GlobalCommandName);
             return;
         }
 
@@ -257,7 +258,7 @@ public class LongTransaction : IDisposable
         if (_logger.AsyncCmdsCount == 0)
             _logger.IsExecutingUndoRedo = false;
 
-        // "减去"-触发了撤回事件-执行了"添加"-工作集添加回来.
+        // "减去"-触发了撤销事件-执行了"添加"-工作集添加回来.
         // 同理,"添加"也需要从工作集"减去"
         HandleRefSet(cmd, false);
 
@@ -308,12 +309,16 @@ public class LongTransaction : IDisposable
             return;
         var selectedIds = prompt.Value.GetObjectIds();
         HandleRefSetOperation(cmd, lastPrompt, selectedIds, addLog);
-
     }
+
 
     /// <summary>
     /// 处理 REFSET 的具体操作（添加/删除）
     /// </summary>
+    /// <param name="cmd"></param>
+    /// <param name="lastPrompt"></param>
+    /// <param name="selectedIds"></param>
+    /// <param name="addLog">撤销/重做不执行记录动作否则污染历史</param>
     private void HandleRefSetOperation(string cmd, string lastPrompt, ObjectId[] selectedIds, bool addLog)
     {
         // 因为无法遍历到在位编辑的块内图元,只能进行布尔运算

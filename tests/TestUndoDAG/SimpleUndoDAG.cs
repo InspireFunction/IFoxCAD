@@ -319,7 +319,7 @@ namespace TestUndoDAG
             }
         }
 
-        // 执行撤回
+        // 执行撤销
         public void Undo()
         {
             lock (_lock)

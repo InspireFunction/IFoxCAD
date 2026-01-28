@@ -91,8 +91,25 @@ public class ActionDAG
             // 检查当前动作是否是实体动作
             if (action is EntityAction newEntityAction && Current.LastAction is EntityAction lastEntityAction)
             {
-                // 如果动作链条末尾是相同图元id，就加入
-                return newEntityAction.DBObjectId == lastEntityAction.DBObjectId;
+                // 基本条件：必须是同一图元ID
+                if (newEntityAction.DBObjectId == lastEntityAction.DBObjectId)
+                {
+                    // 检查是否都是修改动作
+                    if (newEntityAction is ModifyEntityAction newModify && lastEntityAction is ModifyEntityAction lastModify)
+                    {
+                        // 对于修改动作，只有在修改相同字段集合的情况下才合并
+                        // 这允许连续修改同一属性（如多次修改颜色）被合并
+                        // 但不同属性的修改（如颜色和线型）不会被合并
+                        var newFields = new HashSet<string>(newModify.FieldChanges.Keys);
+                        var lastFields = new HashSet<string>(lastModify.FieldChanges.Keys);
+                        
+                        // 如果两个动作修改的字段完全相同，则可以合并
+                        return newFields.SetEquals(lastFields);
+                    }
+                    // 对于非修改动作，仍然按照原来的逻辑判断
+                    return true;
+                }
+                return false;
             }
         }
 

@@ -187,7 +187,7 @@ public class ModifyEntityAction : EntityAction
     public override void Execute()
     {
         using var tr = DBTrans.Create(DBObjectId.Database);
-        var entity = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
+        using var entity = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
         if (entity != null)
         {
             ApplyFields(entity, FieldChanges, true);
@@ -413,7 +413,7 @@ public class InPlaceCreateAction : BaseAction
     }
 
     /// <summary>
-    /// 开始在位编辑-撤回
+    /// 开始在位编辑-撤销
     /// </summary>
     /// <returns></returns>
     public override IAction GetInverseAction()
@@ -434,14 +434,14 @@ public class InPlaceCreateAction : BaseAction
 
 
 /// <summary>
-/// 在位编辑开始的撤回
+/// 在位编辑开始的撤销
 /// </summary>
 /// <returns></returns>
 public class InPlaceCreateEndAction : BaseAction
 {
     public ObjectId[] ObjectIds { get; }
     public override ActionType Type => ActionType.InPlaceCreateEnd;
-    public override string Description => $"在位编辑开始的撤回";
+    public override string Description => $"在位编辑开始的撤销";
 
     public InPlaceCreateEndAction(IEnumerable<ObjectId> objectIds) // 这里传入了编辑块
     {
@@ -473,7 +473,7 @@ public class InPlaceCreateEndAction : BaseAction
     public override bool CanMergeWith(IAction otherAction) => false;
 
     public override IAction MergeWith(IAction otherAction) =>
-        throw new InvalidOperationException("在位编辑开始的撤回_动作不能合并");
+        throw new InvalidOperationException("在位编辑开始的撤销_动作不能合并");
 }
 
 
@@ -491,7 +491,7 @@ public class InPlaceSaveAction : BaseAction
         ObjectIds = objectIds.ToArray();
     }
 
-    // 在位编辑-保存在位-撤回
+    // 在位编辑-保存在位-撤销
     public override void Execute()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
@@ -533,7 +533,7 @@ public class InPlaceSaveEndAction : BaseAction
         ObjectIds = objectIds.ToArray();
     }
 
-    // 在位编辑-保存在位-撤回-重做
+    // 在位编辑-保存在位-撤销-重做
     public override void Execute()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;

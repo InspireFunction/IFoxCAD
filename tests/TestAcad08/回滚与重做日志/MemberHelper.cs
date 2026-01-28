@@ -104,7 +104,7 @@ public static class MemberHelper
     /// <summary>
     /// 递归查找成员（字段或属性），包括父类
     /// </summary>
-    public static MemberInfo FindMemberInHierarchy(Type type, string memberName, bool isField)
+    public static MemberInfo? FindMemberInHierarchy(Type type, string memberName, bool isField)
     {
         var currentType = type;
         while (currentType != null && currentType != typeof(object))
@@ -196,7 +196,6 @@ public static class MemberHelper
                     }
                     catch (InvalidOperationException ex) when (ex.Message.Contains("Must be transaction resident"))
                     {
-                        // 忽略需要事务的属性，这些属性在事务上下文中才能访问
                         continue;
                     }
                 }
