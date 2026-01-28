@@ -259,11 +259,11 @@ public class EnhancedActionLogger : IDisposable
                 Env.Printl($"开始撤销节点: {currentNode.CommandContext}，包含 {currentNode.Actions.Count} 个动作");
 
                 // 在位编辑-保存在位-撤回,就会触发这里
-                // TODO 要恢复 workset 啊
+                // TODO 要恢复 workset
                 if (currentNode.CommandContext == "REFCLOSE" && !_doMap.ContainsKey(currentNode))
                 {
                     var last = currentNode.Actions.LastOrDefault();
-                    if (last is InPlaceClearAction inPlace)
+                    if (last is InPlaceSaveAction inPlace)
                     {
                         _doMap[currentNode] = inPlace;
                         inPlace.Execute();
@@ -301,39 +301,8 @@ public class EnhancedActionLogger : IDisposable
                 // 增加命令撤销计数
                 commandsUndone++;
 
-                // 如果当前节点不是"无命令"，则认为已经撤销了一个完整的命令
-                if (currentNode.CommandContext != "无命令")
-                {
-                    // 检查是否还有连续的"无命令"节点需要一并撤销
-                    while (!IsAtRoot && _dag.Current.CommandContext == "无命令")
-                    {
-                        var noCommandNode = _dag.Current;
-                        Env.Printl($"开始撤销节点: {noCommandNode.CommandContext}，包含 {noCommandNode.Actions.Count} 个动作");
-
-                        // 回退无命令节点的所有动作
-                        var reversedNoCommandActions = noCommandNode.Actions.ToList();
-                        reversedNoCommandActions.Reverse();
-                        foreach (var action in reversedNoCommandActions)
-                        {
-                            Env.Printl($"  撤销动作: {action.Description}");
-                            var inverseAction = action.GetInverseAction();
-                            if (inverseAction is not null)
-                            {
-                                Env.Printl($"  使用逆向动作: {inverseAction.Description}");
-                                inverseAction.Execute();
-                                executed++;
-                            }
-                            else
-                            {
-                                Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
-                            }
-                        }
-
-                        // 切换到父节点
-                        _dag.Current = noCommandNode.Parent;
-                        Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
-                    }
-                }
+                // 移除自动撤销后续"无命令"节点的逻辑，让撤销操作只撤销一个节点
+                // 这样用户执行一次撤销操作只会撤销一个节点，符合预期行为
             }
 
             if (executed > 0)
@@ -424,27 +393,8 @@ public class EnhancedActionLogger : IDisposable
                 Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
                 commandsRedone++;
 
-                // 如果当前节点不是"无命令"，则检查是否有连续的"无命令"节点需要一并重做
-                if (nextNode.CommandContext != "无命令")
-                {
-                    while (commandsRedone < count && _dag.Current.Children.Count > 0 && _dag.Current.Children[0].CommandContext == "无命令")
-                    {
-                        var noCommandNode = _dag.Current.Children[0];
-                        Env.Printl($"开始重做节点: {noCommandNode.CommandContext}，包含 {noCommandNode.Actions.Count} 个动作");
-
-                        // 执行无命令节点的所有动作
-                        foreach (var action in noCommandNode.Actions)
-                        {
-                            Env.Printl($"  重做动作: {action.Description}");
-                            action.Execute();
-                            executed++;
-                        }
-
-                        _dag.Current = noCommandNode;
-                        Env.Printl($"重做完成，当前节点GUID: {noCommandNode.Id}");
-                        commandsRedone++;
-                    }
-                }
+                // 移除自动重做后续"无命令"节点的逻辑，让重做操作只重做一个节点
+                // 这样用户执行一次重做操作只会重做一个节点，符合预期行为
             }
 
             if (executed > 0)

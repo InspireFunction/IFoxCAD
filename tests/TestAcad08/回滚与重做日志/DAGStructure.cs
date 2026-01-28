@@ -29,7 +29,7 @@ public class ActionDAG
     }
 
     // 添加动作
-    public VersionNode AddAction(IAction action, string commandContext = "无命令")
+    public VersionNode AddAction(IAction action, string commandContext)
     {
         // 检查是否可以添加到当前节点的动作链
         if (CanAddToCurrentNode(action, commandContext))
@@ -73,12 +73,12 @@ public class ActionDAG
                 bool hasCreateAction = Current.Actions.Any(a => a is CreateEntityAction);
                 // 检查新动作是否是创建实体的动作
                 bool isCreateAction = action is CreateEntityAction;
-                
+
                 // 如果当前节点已经包含了创建实体的动作，并且新动作也是创建实体的动作
                 // 那么应该创建新节点，而不是添加到当前节点
                 if (hasCreateAction && isCreateAction)
                     return false;
-                
+
                 // 否则，可以添加到当前节点
                 return true;
             }

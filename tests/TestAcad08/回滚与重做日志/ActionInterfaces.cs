@@ -12,7 +12,10 @@ public enum ActionType
 
     InPlaceAdd,           // 添加到在位编辑
     InPlaceRemove,        // 从在位编辑移除
-    InPlaceClear,         // 清空在位编辑工作集
+    InPlaceCreate,        // 在位编辑起点
+    InPlaceCreateEnd,        // 在位编辑起点
+    InPlaceSave,         // 在位编辑终点
+    InPlaceSaveEnd,         // 在位编辑终点
 }
 
 // 动作接口

@@ -1,8 +1,4 @@
-﻿using IFoxCAD.Cad;
-using System.Reflection;
-using static IFoxCAD.Cad.PostCmd;
-
-namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 基础动作实现
@@ -399,13 +395,13 @@ public class InPlaceRemoveAction : BaseAction
 
 
 /// <summary>
-/// 在位编辑清空动作
+/// 在位编辑动作:开始
 /// </summary>
 public class InPlaceCreateAction : BaseAction
 {
     public ObjectId[] ObjectIds { get; }
-    public override ActionType Type => ActionType.InPlaceClear;
-    public override string Description => $"保存在位编辑工作集的清理功能";
+    public override ActionType Type => ActionType.InPlaceCreate;
+    public override string Description => $"在位编辑开始";
 
     public InPlaceCreateAction(IEnumerable<ObjectId> objectIds) // 这里传入了编辑块
     {
@@ -414,7 +410,6 @@ public class InPlaceCreateAction : BaseAction
 
     public override void Execute()
     {
-        // 清空工作集
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (doc != null)
         {
@@ -427,42 +422,92 @@ public class InPlaceCreateAction : BaseAction
         }
     }
 
+    /// <summary>
+    /// 开始在位编辑-撤回
+    /// </summary>
+    /// <returns></returns>
     public override IAction GetInverseAction()
     {
-        // TODO 没完成
-        Env.Printl($"[DEBUG] 这里写什么好呢? ");
-        return null!;
+        return new InPlaceCreateEndAction(ObjectIds);
     }
 
     public override IAction Clone()
     {
-        return new InPlaceClearAction(ObjectIds);
+        return new InPlaceCreateAction(ObjectIds);
     }
 
     public override bool CanMergeWith(IAction otherAction) => false;
 
     public override IAction MergeWith(IAction otherAction) =>
-        throw new InvalidOperationException("在位编辑清空动作不能合并");
+        throw new InvalidOperationException("在位编辑开始动作不能合并");
 }
 
+
 /// <summary>
-/// 在位编辑清空动作
+/// 在位编辑开始的撤回
 /// </summary>
-public class InPlaceClearAction : BaseAction
+/// <returns></returns>
+public class InPlaceCreateEndAction : BaseAction
 {
     public ObjectId[] ObjectIds { get; }
-    public override ActionType Type => ActionType.InPlaceClear;
-    public override string Description => $"清空在位编辑工作集";
+    public override ActionType Type => ActionType.InPlaceCreateEnd;
+    public override string Description => $"在位编辑开始的撤回";
 
-    public InPlaceClearAction(IEnumerable<ObjectId> objectIds) // 这里传入了编辑块
+    public InPlaceCreateEndAction(IEnumerable<ObjectId> objectIds) // 这里传入了编辑块
     {
         ObjectIds = objectIds.ToArray();
     }
 
     public override void Execute()
     {
-        // 在位编辑-保存在位-撤回,就会触发这里
-        // 工作集恢复
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc != null)
+        {
+            doc.Editor?.SetImpliedSelection(ObjectIds);
+            var logger = EnhancedUndoRedoManager.GetLogger(doc);
+            logger?.AsyncCmdsPush("REFCLOSE");
+            doc?.SendStringToExecute($"REFCLOSE _D\n", true, false, false);
+        }
+    }
+
+    // 这里是重做
+    public override IAction GetInverseAction()
+    {
+        return new InPlaceCreateAction(ObjectIds);
+    }
+
+    public override IAction Clone()
+    {
+        return new InPlaceCreateEndAction(ObjectIds);
+    }
+
+    public override bool CanMergeWith(IAction otherAction) => false;
+
+    public override IAction MergeWith(IAction otherAction) =>
+        throw new InvalidOperationException("在位编辑开始的撤回_动作不能合并");
+}
+
+
+
+
+/// <summary>
+/// 在位编辑保存
+/// </summary>
+public class InPlaceSaveAction : BaseAction
+{
+    public ObjectId[] ObjectIds { get; }
+    public override ActionType Type => ActionType.InPlaceSave;
+    public override string Description => $"在位编辑保存";
+
+    public InPlaceSaveAction(IEnumerable<ObjectId> objectIds) // 这里传入了编辑块
+    {
+        ObjectIds = objectIds.ToArray();
+    }
+
+    // TODO 这还是有问题,会多了一个图元
+    // 在位编辑-保存在位-撤回,就会触发这里
+    public override void Execute()
+    {
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (doc != null)
         {
@@ -477,6 +522,35 @@ public class InPlaceClearAction : BaseAction
 
     public override IAction GetInverseAction()
     {
+        return new InPlaceSaveEndAction(ObjectIds);
+    }
+
+    public override IAction Clone()
+    {
+        return new InPlaceSaveAction(ObjectIds);
+    }
+
+    public override bool CanMergeWith(IAction otherAction) => false;
+
+    public override IAction MergeWith(IAction otherAction) =>
+        throw new InvalidOperationException("在位编辑保存不能合并");
+}
+
+
+
+public class InPlaceSaveEndAction : BaseAction
+{
+    public ObjectId[] ObjectIds { get; }
+    public override ActionType Type => ActionType.InPlaceSaveEnd;
+    public override string Description => $"在位编辑保存的结束";
+
+    public InPlaceSaveEndAction(IEnumerable<ObjectId> objectIds) // 这里传入了编辑块
+    {
+        ObjectIds = objectIds.ToArray();
+    }
+
+    public override void Execute()
+    {
         // 在为编辑的逆向动作设计非常复杂:
         // 1,先通过DAG向前找到在位编辑命令,如果不是就一直递归找,肯定有的,因为它是回滚.
         // 2,这个命令备份选择集的ids,设置ids到选择集.
@@ -485,7 +559,7 @@ public class InPlaceClearAction : BaseAction
 
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (doc == null)
-            return null!;
+            return;
         var logger = EnhancedUndoRedoManager.GetLogger(doc);
         logger?.AsyncCmdsPush("REFEDIT");
         // 设置选择集
@@ -494,16 +568,20 @@ public class InPlaceClearAction : BaseAction
         doc.SendStringToExecute("REFEDIT\n", true, false, false);
 
         Env.Printl($"[DEBUG] 执行恢复在位编辑工作集操作，对象数: {ObjectIds.Length}");
-        return null!;
+    }
+
+    public override IAction GetInverseAction()
+    {
+        return new InPlaceSaveAction(ObjectIds);
     }
 
     public override IAction Clone()
     {
-        return new InPlaceClearAction(ObjectIds);
+        return new InPlaceSaveEndAction(ObjectIds);
     }
 
     public override bool CanMergeWith(IAction otherAction) => false;
 
     public override IAction MergeWith(IAction otherAction) =>
-        throw new InvalidOperationException("在位编辑清空动作不能合并");
+        throw new InvalidOperationException("在位编辑保存结束不能合并");
 }

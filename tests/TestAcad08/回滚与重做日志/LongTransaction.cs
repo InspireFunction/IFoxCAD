@@ -37,7 +37,7 @@ public class LongTransaction : IDisposable
     private bool _IsDisposed;
     private readonly Document _document;
     private readonly EnhancedActionLogger _logger;
-    private bool _refeditRun;
+    private bool _refedit_run;
 
 
     #region 工作集获取
@@ -91,7 +91,7 @@ public class LongTransaction : IDisposable
 
     public static bool RefeditRun(Document doc)
     {
-        return _map[doc]._refeditRun;
+        return _map[doc]._refedit_run;
     }
     #endregion
 
@@ -125,11 +125,10 @@ public class LongTransaction : IDisposable
         if (entity is null)
             return;
         // 保存命令触发之后需要跳过,否则会剔除全部数据
-        if (_REFCLOSE)
+        if (_refClose_start)
             return;
-        if (_refeditRun)
+        if (_refedit_run)
             _workSet.Remove(entity.ObjectId);
-
     }
 
     private void OnObjectModified(object sender, ObjectEventArgs e)
@@ -144,9 +143,9 @@ public class LongTransaction : IDisposable
             return;
 
         // 保存命令触发之后需要跳过,否则会剔除全部数据
-        if (_REFCLOSE)
+        if (_refClose_start)
             return;
-        if (_refeditRun)
+        if (_refedit_run)
             _workSet.Add(entity.ObjectId);
     }
 
@@ -179,13 +178,13 @@ public class LongTransaction : IDisposable
             break;
             case "REFCLOSE":
             {
-                _REFCLOSE = true;
+                _refClose_start = true;
             }
             break;
         }
     }
 
-    bool _REFCLOSE = false;
+    bool _refClose_start = false;
 
     private void OnCommandEnded(object sender, CommandEventArgs e)
     {
@@ -203,7 +202,7 @@ public class LongTransaction : IDisposable
         switch (cmdup)
         {
             case "REFEDIT":
-            _refeditRun = true;
+            _refedit_run = true;
             HandleRefEdit();
             break;
             case "REFSET":
@@ -211,17 +210,17 @@ public class LongTransaction : IDisposable
             break;
             case "REFCLOSE":
             {
-                _refeditRun = false;
+                _refedit_run = false;
                 // 发生回滚的时候呢?清理的就没了啊 
                 // 因此我们需要把 refclose 命令时候 把workset作为动作,这样实现回滚才有数据恢复
                 if (_workSet.Count > 0)
                 {
                     // 创建在位编辑清空动作
-                    var action = new InPlaceClearAction(_refBlock);
+                    var action = new InPlaceSaveAction(_refBlock);
                     _logger.LogAction(action, "REFCLOSE");
                     _workSet.Clear();
                 }
-                _REFCLOSE = false;
+                _refClose_start = false;
             }
             break;
         }
