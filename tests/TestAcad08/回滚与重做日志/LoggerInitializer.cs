@@ -19,8 +19,8 @@ public class LoggerInitializer
 
         Env.Printl($"CAD增强日志系统已启用");
         Env.Printl($"可用命令:");
-        Env.Printl($"  MYUNDO - 增强撤销（优先逆命令，否则数据回滚）");
-        Env.Printl($"  MYREDO - 增强重做");
+        Env.Printl($"  增强撤销_事件拦截官方");
+        Env.Printl($"  增强重做_事件拦截官方");
         Env.Printl($"  SHOWHISTORY - 显示操作历史");
         Env.Printl($"  SHOWENTITYHISTORY - 显示实体历史");
         Env.Printl($"  SHOWCURRENTPOSITION - 显示当前位置");
@@ -28,7 +28,6 @@ public class LoggerInitializer
         Env.Printl($"  ENABLEENHANCEDUNDO - 启用增强撤销重做");
         Env.Printl($"  DISABLEENHANCEDUNDO - 禁用增强撤销重做");
         Env.Printl($"{logger?.GetCurrentStatus()}\n");
-        Env.Printl("提示: 新的增强机制支持智能逆向选择（逆命令优先，数据回滚兜底）\n");
 
         // 这些命令需要排除,避免循环执行
         EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowHistory));
@@ -103,9 +102,8 @@ public class LoggerInitializer
                 var ed = doc.Editor;
 
                 var pko = new PromptKeywordOptions("\n输入动作数目或 ");
-                // 添加可接受的关键字
-                pko.Keywords.Add("a", "a", "全部(A)");  // 全部选项
-                pko.Keywords.Add("l", "l", "上一个(L)");  // 上一个选项
+                pko.Keywords.Add("a", "a", "全部(A)");
+                pko.Keywords.Add("l", "l", "上一个(L)");
                 pko.Keywords.Default = "l";
 
                 // 设置允许用户输入数字

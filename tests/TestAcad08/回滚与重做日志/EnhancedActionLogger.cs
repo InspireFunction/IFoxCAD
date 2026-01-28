@@ -137,8 +137,8 @@ public class EnhancedActionLogger : IDisposable
         "_REDO",       // 命令行重做
 
         // 这些感觉也是需要记录啊
-        //"PASTECLIP",   // 粘贴命令（系统级）
-        //"_PASTECLIP"   // 命令行粘贴
+        // "PASTECLIP",   // 粘贴命令（系统级）
+        // "_PASTECLIP"   // 命令行粘贴
     };
 
 
@@ -262,7 +262,6 @@ public class EnhancedActionLogger : IDisposable
                 Env.Printl($"开始撤销节点: {currentNode.CommandContext}，包含 {currentNode.Actions.Count} 个动作");
 
                 // 在位编辑-保存在位-撤销,就会触发这里
-                // TODO 要恢复 workset
                 if (currentNode.CommandContext == "REFCLOSE")
                 {
                     var last = currentNode.Actions.LastOrDefault();
@@ -280,6 +279,33 @@ public class EnhancedActionLogger : IDisposable
                     }
                 }
 
+
+#if true
+                if (currentNode.CommandContext == "BEDIT")
+                {
+                    var doc = Acap.DocumentManager.MdiActiveDocument;
+                    if (doc != null)
+                    {
+                        var logger = EnhancedUndoRedoManager.GetLogger(doc);
+                        logger?.AsyncCmdsPush("_BCLOSE");
+                        doc.SendStringToExecute("_BCLOSE\n", true, false, false);
+                        return;
+                    }
+                }
+
+                if (currentNode.CommandContext == "BCLOSE")
+                {
+                    var doc = Acap.DocumentManager.MdiActiveDocument;
+                    if (doc != null)
+                    {
+                        // TODO 要选择对象
+                        var logger = EnhancedUndoRedoManager.GetLogger(doc);
+                        logger?.AsyncCmdsPush("_BEDIT");
+                        doc.SendStringToExecute("_BEDIT\n", true, false, false);
+                        return;
+                    }
+                }
+#endif
 
                 // 回退当前节点的所有动作，按逆序执行
                 var reversedActions = currentNode.Actions.ToList();
@@ -306,9 +332,6 @@ public class EnhancedActionLogger : IDisposable
 
                 // 增加命令撤销计数
                 commandsUndone++;
-
-                // 移除自动撤销后续"无命令"节点的逻辑，让撤销操作只撤销一个节点
-                // 这样用户执行一次撤销操作只会撤销一个节点，符合预期行为
             }
 
             if (executed > 0)
@@ -330,7 +353,6 @@ public class EnhancedActionLogger : IDisposable
             }
         }
     }
-
 
     /// <summary>
     /// 执行多次重做
@@ -355,14 +377,16 @@ public class EnhancedActionLogger : IDisposable
 
             while (commandsRedone < count && _dag.Current.Children.Count > 0)
             {
-                // TODO 切换到时间最新的子节点
+                // 切换到时间最新的子节点
                 // 重做是用历史的上下文,不用逆命令
-                var nextNode = _dag.Current.Children[0];
+                var nextNode = _dag.Current.Children
+                    .OrderByDescending(child => GetLatestActionTimestamp(child))
+                    .First();
 
                 Env.Printl($"开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
 
 
-                // TODO 260128a 进入在位编辑器状态,发送异步命令,最后重做参数.
+                // 260128a 进入在位编辑器状态,发送异步命令,最后重做参数.
                 // 虽然触发了面板,但是逻辑是成功的(可以用钩子点击面板)
                 // 1,虽然回来到编辑器状态了,但是再次REDO它会再进入死循环,命令上下文毕竟没有改变过.
                 // 因此发送前登记一个节点编号,然后再发送.
@@ -409,7 +433,6 @@ public class EnhancedActionLogger : IDisposable
                         commandsRedone++;
                         Env.Printl($"[DEBUG] 完成 REFCLOSE 重做处理，当前节点: {_dag.Current.CommandContext}");
                         return;
-
                     }
                 }
 
@@ -424,9 +447,6 @@ public class EnhancedActionLogger : IDisposable
                 _dag.Current = nextNode;
                 Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
                 commandsRedone++;
-
-                // 移除自动重做后续"无命令"节点的逻辑，让重做操作只重做一个节点
-                // 这样用户执行一次重做操作只会重做一个节点，符合预期行为
             }
 
             if (executed > 0)
@@ -449,80 +469,17 @@ public class EnhancedActionLogger : IDisposable
         }
     }
 
-    /// <summary>
-    /// 执行全部重做
-    /// </summary>
     public void RedoAll()
     {
-        if (_dag.Current.Children.Count == 0)
+        // 计算剩余可重做的节点数量
+        var remainingCount = _dag.Current.Children.Count;
+        if (remainingCount > 0)
         {
-            Env.Printl("\n居然没有可重做的操作。\n");
-            return;
+            Redo(remainingCount); // 调用Redo方法执行全部重做
         }
-
-        EndCommandContext("无命令");
-
-        _isExecutingUndoRedo = true;
-
-        try
+        else
         {
-            int executed = 0;
-            while (_dag.Current.Children.Count > 0)
-            {
-                // 切换到第一个子节点
-                var nextNode = _dag.Current.Children[0];
-
-                Env.Printl($"\n开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
-
-                // 如果有逆命令,不需要处理数据了,执行逆命令
-                var ccx = nextNode.CommandContext;
-                var inverseCommand = CommandInverseMap.GetInverseCommand(ccx);
-                if (!string.IsNullOrEmpty(inverseCommand) && _doc is not null)
-                {
-                    Env.Printl($"[DEBUG] 检测到命令 {ccx} 有逆命令: {inverseCommand}，执行逆命令...");
-                    // 执行逆命令
-                    var logger = EnhancedUndoRedoManager.GetLogger(_doc);
-                    logger?.AsyncCmdsPush(inverseCommand);
-                    _doc?.SendStringToExecute($"{inverseCommand}\n", true, false, false);
-
-                    // 移动到该命令上下文的所有节点
-                    while (_dag.Current.Children.Count > 0 && _dag.Current.Children[0].CommandContext == ccx)
-                    {
-                        var nodeToRedo = _dag.Current.Children[0];
-                        _dag.Current = nodeToRedo;
-                        Env.Printl($"重做完成，当前节点GUID: {_dag.Current.Id}\n");
-                    }
-                    return;
-                }
-
-                // 执行该节点的所有动作
-                foreach (var action in nextNode.Actions)
-                {
-                    Env.Printl($"  重做动作: {action.Description}");
-                    action.Execute();
-                    executed++;
-                }
-
-                _dag.Current = nextNode;
-            }
-
-            if (executed > 0)
-            {
-                Env.Printl($"\n已完成全部 {executed} 个操作的重做\n");
-            }
-        }
-        catch (Exception ex)
-        {
-            Env.Printl($"[ERROR] 重做失败: {ex.Message}");
-        }
-        finally
-        {
-            // #260126a 使用了异步命令这里就不清理了,在命令结束后事件清理
-            if (AsyncCmds.Count == 0)
-            {
-                _isExecutingUndoRedo = false;
-                StartCommandContext("无命令");
-            }
+            Env.Printl("\n没有可重做的操作。\n");
         }
     }
 
@@ -689,15 +646,26 @@ public class EnhancedActionLogger : IDisposable
         set => _isExecutingUndoRedo = value;
     }
 
+    /// <summary>
+    /// 获取节点中最新的动作时间戳
+    /// </summary>
+    /// <param name="node">版本节点</param>
+    /// <returns>最新动作的时间戳</returns>
+    private DateTime GetLatestActionTimestamp(VersionNode node)
+    {
+        if (node.Actions == null || node.Actions.Count == 0)
+            return DateTime.MinValue;
+
+        return node.Actions.Max(action => action is BaseAction baseAction ? baseAction.Timestamp : DateTime.MinValue);
+    }
+
 
     #region 异步命令计数器
     /// <summary>
     /// 异步命令计数器
     /// </summary>
     Dictionary<string, int> AsyncCmds = new(StringComparer.OrdinalIgnoreCase);
-
     public int AsyncCmdsCount => AsyncCmds.Count;
-
 
     /// <summary>
     /// 如果含有就计数+1,否则添加
@@ -739,8 +707,6 @@ public class EnhancedActionLogger : IDisposable
     }
     #endregion
 
-
-
     // 公共 Dispose 方法
     public void Dispose()
     {
@@ -769,4 +735,5 @@ public class EnhancedActionLogger : IDisposable
             _doc.CommandCancelled -= OnCommandCancelled;
         }
     }
+
 }

@@ -102,7 +102,7 @@ public class ActionDAG
                         // 但不同属性的修改（如颜色和线型）不会被合并
                         var newFields = new HashSet<string>(newModify.FieldChanges.Keys);
                         var lastFields = new HashSet<string>(lastModify.FieldChanges.Keys);
-                        
+
                         // 如果两个动作修改的字段完全相同，则可以合并
                         return newFields.SetEquals(lastFields);
                     }
@@ -246,9 +246,7 @@ public class ActionDAG
     {
         nodes.Add(node);
         foreach (var child in node.Children)
-        {
             CollectNodes(child, nodes);
-        }
     }
 
     // 序列化

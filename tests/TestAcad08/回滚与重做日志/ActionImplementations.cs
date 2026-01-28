@@ -110,7 +110,6 @@ public class CreateEntityAction : EntityAction
     /// </summary>
     public override void Execute()
     {
-        // 如果对象被删除,使用Erase(false)恢复它
         using var tr = DBTrans.Create(DBObjectId.Database);
         using var obj = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
         if (obj is not null && obj.IsErased)
@@ -189,9 +188,7 @@ public class ModifyEntityAction : EntityAction
         using var tr = DBTrans.Create(DBObjectId.Database);
         using var entity = tr.GetObject(DBObjectId, OpenMode.ForWrite, true, true);
         if (entity != null)
-        {
             ApplyFields(entity, FieldChanges, true);
-        }
     }
 
     public override IAction GetInverseAction()
@@ -225,7 +222,6 @@ public class ModifyEntityAction : EntityAction
         var otherModify = (ModifyEntityAction)otherAction;
         var mergedChanges = MergeFieldChanges(FieldChanges, otherModify.FieldChanges);
 
-        // TODO 为什么修改颜色之后触发了合并动作
         return new ModifyEntityAction(
             DBObjectId,
             mergedChanges
@@ -288,8 +284,6 @@ public class ModifyEntityAction : EntityAction
         }
     }
 }
-
-
 
 /// <summary>
 /// 在位编辑添加动作
@@ -561,3 +555,5 @@ public class InPlaceSaveEndAction : BaseAction
     public override IAction MergeWith(IAction otherAction) =>
         throw new InvalidOperationException("在位编辑保存结束不能合并");
 }
+
+
