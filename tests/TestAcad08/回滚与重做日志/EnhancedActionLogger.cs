@@ -103,6 +103,9 @@ public class EnhancedActionLogger : IDisposable
         // 取消的命令不记录，只清理上下文
         _dbMonitor.Clear();
         DebugEx.Printl($"[DEBUG] 命令取消: {e.GlobalCommandName}");
+
+        // TODO 为什么 BEDIT 然后撤回会发生 [DEBUG] 命令取消: BEDIT
+        // 难道不是进入undo才对吗?
     }
 
     /// <summary>
@@ -279,11 +282,19 @@ public class EnhancedActionLogger : IDisposable
                     }
                 }
 
-                //if (currentNode.CommandContext == "BEDIT")
-                //{
-                //    // 因为会弹出教程窗口,造成这个都是问题
-                //    Env.Printl($"[DEBUG]");
-                //}
+                // TODO BEDIT 这里很有趣耶
+                // 1,BEDIT(无修改任何)撤回,会发生命令取消事件: [DEBUG] 命令取消: BEDIT
+                // 2,BEDIT(有修改/画了对象)撤回,会发生: UNDO.
+                // 我倒是想让它发生undo啊??怎么修改?有属性?强行加入一次对象?
+                // 弹出教程窗口造成?
+                if (currentNode.CommandContext == "BEDIT")
+                {
+
+                }
+                else
+                {
+
+                }
 
 
                 if (currentNode.CommandContext == "BCLOSE")

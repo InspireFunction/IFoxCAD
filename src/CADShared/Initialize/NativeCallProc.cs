@@ -3,7 +3,9 @@
 namespace IFoxCAD.Basal;
 
 using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Windows.Forms;
 
 
@@ -29,11 +31,13 @@ public class AcadWindowProc : NativeWindow, IDisposable
     private const int WM_ENTERIDLE = 0x0121;
     #endregion
 
+
     // 原窗口过程地址
     private IntPtr _oldWndProc = IntPtr.Zero;
 
     // 关键修复：保持对委托的引用，防止被垃圾回收
     private WndProcDelegate? _wndProcDelegate;
+    private readonly object _eventLock = new object();
 
     /// <summary>
     /// 空闲事件委托
@@ -130,7 +134,12 @@ public class AcadWindowProc : NativeWindow, IDisposable
             // 检测空闲消息
             if (msg == WM_ENTERIDLE || msg == WM_NULL)
             {
-                OnIdle?.Invoke(this, EventArgs.Empty);
+                Action<object, EventArgs>? tempHandler = null;
+                lock (_eventLock)
+                {
+                    tempHandler = OnIdle;
+                }
+                tempHandler?.Invoke(this, EventArgs.Empty);
             }
 
             // 调用基类窗口过程
@@ -159,7 +168,12 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     public void DoIdle()
     {
-        OnIdle?.Invoke(this, EventArgs.Empty);
+        Action<object, EventArgs>? tempHandler = null;
+        lock (_eventLock)
+        {
+            tempHandler = OnIdle;
+        }
+        tempHandler?.Invoke(this, EventArgs.Empty);
     }
 
     #region IDisposable 实现
@@ -189,6 +203,7 @@ public class AcadWindowProc : NativeWindow, IDisposable
     protected virtual void Dispose(bool disposing)
     {
         if (_disposed) return;
+        _disposed = true;
 
         // 卸载窗口钩子
         UnhookWindowProc();
@@ -198,8 +213,6 @@ public class AcadWindowProc : NativeWindow, IDisposable
         {
             ReleaseHandle();
         }
-
-        _disposed = true;
     }
     #endregion
 }
@@ -209,14 +222,58 @@ public class AcadWindowProc : NativeWindow, IDisposable
 /// </summary>
 public static class AcadIdleManager
 {
+    #region Win32 API补充
+    /// <summary>
+    /// 是窗口
+    /// </summary>
+    /// <param name="hWnd"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    static extern bool IsWindow(IntPtr hWnd);
+
+    [DllImport("user32.dll")]
+    static extern IntPtr GetForegroundWindow();
+
+    [DllImport("user32.dll")]
+    static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
+    #endregion
+
+    /// <summary>
+    /// 检查是否有模态窗口正在活动
+    /// </summary>
+    /// <returns></returns>
+    private static bool IsModalWindowActive()
+    {
+        IntPtr foregroundWindow = GetForegroundWindow();
+        if (foregroundWindow == IntPtr.Zero || foregroundWindow == MainWindowHandle)
+        {
+            // 如果没有前台窗口或前台就是主窗口，则没有模态窗口
+            return false;
+        }
+
+        // 获取前台窗口的进程ID
+        GetWindowThreadProcessId(foregroundWindow, out uint foregroundProcessId);
+        // 获取主窗口的进程ID
+        GetWindowThreadProcessId(MainWindowHandle, out uint mainProcessId);
+
+        // 如果前台窗口与主窗口属于同一进程，且不是主窗口本身，则很可能是模态对话框
+        return foregroundProcessId == mainProcessId && foregroundWindow != MainWindowHandle;
+    }
+
     private static AcadWindowProc? _windowProc;
     private static System.Timers.Timer? _idleTimer;
     private static Control? _dummyControl;
 
+    // 添加锁对象确保线程安全
+    private static readonly object _lock = new object();
+
     // 保存原始事件处理程序和对应的lambda表达式之间的映射关系
 #if ac2008
-    private static readonly Dictionary<EventHandler, Action<object, EventArgs>> _eventHandlers = new Dictionary<EventHandler, Action<object, EventArgs>>();
+    private static readonly Dictionary<EventHandler, Action<object, EventArgs>> _eventHandlers = new();
+    private static readonly object _handlersLock = new object();
 #endif
+
 
     /// <summary>
     /// 空闲事件间隔（毫秒），默认100ms
@@ -238,10 +295,13 @@ public static class AcadIdleManager
 #if ac2008
             if (_windowProc != null && value != null)
             {
-                // 创建lambda表达式并保存映射关系
-                Action<object, EventArgs> handler = (s, e) => value?.Invoke(s, e);
-                _eventHandlers[value] = handler;
-                _windowProc.OnIdle += handler;
+                lock (_handlersLock)
+                {
+                    // 创建lambda表达式并保存映射关系
+                    Action<object, EventArgs> handler = (s, e) => value?.Invoke(s, e);
+                    _eventHandlers[value] = handler;
+                    _windowProc.OnIdle += handler;
+                }
             }
 #else
             Acap.Idle += value;
@@ -250,11 +310,17 @@ public static class AcadIdleManager
         remove
         {
 #if ac2008
-            if (_windowProc != null && value != null && _eventHandlers.TryGetValue(value, out Action<object, EventArgs>? handler))
+            if (_windowProc != null && value != null)
             {
-                // 从映射中获取对应的lambda表达式并移除
-                _windowProc.OnIdle -= handler;
-                _eventHandlers.Remove(value);
+                lock (_handlersLock)
+                {
+                    // 从映射中获取对应的lambda表达式并移除
+                    if (_eventHandlers.TryGetValue(value, out var handler))
+                    {
+                        _windowProc.OnIdle -= handler;
+                        _eventHandlers.Remove(value);
+                    }
+                }
             }
 #else
             Acap.Idle -= value;
@@ -278,37 +344,51 @@ public static class AcadIdleManager
 #if ac2008
         if (_windowProc != null) return;
 
-        try
+        lock (_lock)
         {
-            MainWindowHandle = Acap.MainWindow.Handle;
+            if (_windowProc != null) return;
 
-            // 创建窗口过程拦截器
-            _windowProc = new AcadWindowProc(MainWindowHandle);
+            try
+            {
+                MainWindowHandle = Acap.MainWindow.Handle;
 
-            // 创建虚拟控件用于线程同步
-            _dummyControl = new Control();
-            _dummyControl.CreateControl();
+                // 创建窗口过程拦截器
+                _windowProc = new AcadWindowProc(MainWindowHandle);
 
-            // 启动定时器模拟空闲事件
-            _idleTimer = new System.Timers.Timer(IdleInterval);
-            _idleTimer.Elapsed += (s, e) => {
-                if (_dummyControl != null && _dummyControl.InvokeRequired)
-                {
-                    _dummyControl.BeginInvoke(new Action(() => {
-                        _windowProc?.DoIdle();
-                    }));
-                }
-                else
-                {
-                    _windowProc?.DoIdle();
-                }
-            };
-            _idleTimer.Start();
-        }
-        catch (Exception ex)
-        {
-            // 记录错误
-            System.Diagnostics.Debug.WriteLine($"AcadIdleManager初始化失败: {ex.Message}");
+                // 创建虚拟控件用于线程同步
+                _dummyControl = new Control();
+                _dummyControl.CreateControl();
+
+                // 启动定时器模拟空闲事件
+                _idleTimer = new System.Timers.Timer(IdleInterval);
+                _idleTimer.Elapsed += (s, e) => {
+                    if (_dummyControl != null && _dummyControl.InvokeRequired)
+                    {
+                        // 检查主窗口句柄是否仍然有效，确保仍在AutoCAD环境中
+                        // 并且检查当前没有模态窗口阻塞
+                        if (MainWindowHandle != IntPtr.Zero && IsWindow(MainWindowHandle) && !IsModalWindowActive())
+                        {
+                            _dummyControl.BeginInvoke(new Action(() => {
+                                _windowProc?.DoIdle();
+                            }));
+                        }
+                    }
+                    else
+                    {
+                        // 在主线程上也需要检查主窗口有效性
+                        if (MainWindowHandle != IntPtr.Zero && IsWindow(MainWindowHandle) && !IsModalWindowActive())
+                        {
+                            _windowProc?.DoIdle();
+                        }
+                    }
+                };
+                _idleTimer.Start();
+            }
+            catch (Exception ex)
+            {
+                // 记录错误
+                System.Diagnostics.Debug.WriteLine($"AcadIdleManager初始化失败: {ex.Message}");
+            }
         }
 #endif
     }
@@ -319,32 +399,39 @@ public static class AcadIdleManager
     public static void Shutdown()
     {
 #if ac2008
-        if (_idleTimer != null)
+        lock (_lock)
         {
-            _idleTimer.Stop();
-            _idleTimer.Dispose();
-            _idleTimer = null;
-        }
-
-        if (_dummyControl != null)
-        {
-            if (_dummyControl.InvokeRequired)
+            if (_idleTimer != null)
             {
-                _dummyControl.Invoke(new Action(() => {
+                _idleTimer.Stop();
+                _idleTimer.Dispose();
+                _idleTimer = null;
+            }
+
+            if (_dummyControl != null)
+            {
+                if (_dummyControl.InvokeRequired)
+                {
+                    // 检查主窗口句柄是否仍然有效，确保仍在AutoCAD环境中
+                    if (MainWindowHandle != IntPtr.Zero && IsWindow(MainWindowHandle))
+                    {
+                        _dummyControl.Invoke(new Action(() => {
+                            _dummyControl.Dispose();
+                        }));
+                    }
+                }
+                else
+                {
                     _dummyControl.Dispose();
-                }));
+                }
+                _dummyControl = null;
             }
-            else
-            {
-                _dummyControl.Dispose();
-            }
-            _dummyControl = null;
-        }
 
-        if (_windowProc != null)
-        {
-            _windowProc.Dispose();
-            _windowProc = null;
+            if (_windowProc != null)
+            {
+                _windowProc.Dispose();
+                _windowProc = null;
+            }
         }
 #endif
     }
