@@ -169,6 +169,7 @@ public class LongTransaction : IDisposable
 
     // 在位编辑击中的块
     ObjectId[] _refBlock = [];
+    bool _refClose_start = false;
 
     private void OnCommandWillStart(object sender, CommandEventArgs e)
     {
@@ -178,8 +179,9 @@ public class LongTransaction : IDisposable
         switch (cmdup)
         {
             case "REFEDIT":
+            case "BEDIT":
             {
-                // TODO #260127a 为了保存时候撤销,这里要备份选择集
+                // #260127a 为了保存时候撤销,这里要备份选择集
                 var prompt = _document.Editor.SelectImplied();// 预选
                 if (prompt.Status == PromptStatus.OK)
                     _refBlock = prompt.Value.GetObjectIds();
@@ -193,14 +195,13 @@ public class LongTransaction : IDisposable
             }
             break;
             case "REFCLOSE":
+            case "BCLOSE":
             {
                 _refClose_start = true;
             }
             break;
         }
     }
-
-    bool _refClose_start = false;
 
 
 
@@ -222,14 +223,36 @@ public class LongTransaction : IDisposable
         {
             case "REFEDIT":
             _refedit_run = true;
-            HandleRefEdit();
+            {
+                // 命令后,扫描全图获取,多出来的就是在位编辑块内的
+                var prompt = _document.Editor.SelectAll(Filter);
+                if (prompt.Status != PromptStatus.OK)
+                    return;
+
+                // 通过交换,不储存全局的,省点内存
+                var all = new HashSet<ObjectId>(_workSet);
+                _workSet.Clear();
+                var refIds = prompt.Value.GetObjectIds()
+                    .AsParallel()
+                    .Where(id => !all.Contains(id))
+                    .ToList();
+
+                if (refIds.Count == 0)
+                    return;
+
+                // 创建在位编辑添加动作
+                var action = new InPlaceCreateAction(_refBlock);
+                _logger.LogAction(action, "REFEDIT");
+
+                // 更新当前ID集合
+                _workSet.Add(refIds);
+            }
             break;
             case "REFSET":
             HandleRefSet(cmd, true);
             break;
             case "REFCLOSE":
             {
-                _refedit_run = false;
                 // 发生回滚时候是通过命令-事件,重新构造 _workSet
                 if (_workSet.Count > 0)
                 {
@@ -237,6 +260,25 @@ public class LongTransaction : IDisposable
                     _logger.LogAction(action, "REFCLOSE");
                     _workSet.Clear();
                 }
+                _refedit_run = false;
+                _refClose_start = false;
+            }
+            break;
+
+            case "BEDIT":
+            {
+                _refedit_run = true;
+
+                // 创建块编辑添加动作
+                var action = new BlockEditCreateAction(_refBlock);
+                _logger.LogAction(action, "BEDIT");
+            }
+            break;
+            case "BCLOSE":
+            {
+                var action = new InBlockEditSaveAction(_refBlock);
+                _logger.LogAction(action, "BCLOSE");
+                _refedit_run = false;
                 _refClose_start = false;
             }
             break;
@@ -265,34 +307,7 @@ public class LongTransaction : IDisposable
         return true;
     }
 
-    /// <summary>
-    /// 处理 REFEDIT 命令
-    /// </summary>
-    private void HandleRefEdit()
-    {
-        // 命令后,扫描全图获取,多出来的就是在位编辑块内的
-        var prompt = _document.Editor.SelectAll(Filter);
-        if (prompt.Status != PromptStatus.OK)
-            return;
 
-        // 通过交换,不储存全局的,省点内存
-        var all = new HashSet<ObjectId>(_workSet);
-        _workSet.Clear();
-        var refIds = prompt.Value.GetObjectIds()
-            .AsParallel()
-            .Where(id => !all.Contains(id))
-            .ToList();
-
-        if (refIds.Count == 0)
-            return;
-
-        // 创建在位编辑添加动作
-        var action = new InPlaceCreateAction(_refBlock);
-        _logger.LogAction(action, "REFEDIT");
-
-        // 更新当前ID集合
-        _workSet.Add(refIds);
-    }
 
     /// <summary>
     /// 处理 REFSET 命令

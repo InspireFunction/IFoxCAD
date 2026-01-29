@@ -279,33 +279,31 @@ public class EnhancedActionLogger : IDisposable
                     }
                 }
 
+                //if (currentNode.CommandContext == "BEDIT")
+                //{
+                //    // 因为会弹出教程窗口,造成这个都是问题
+                //    Env.Printl($"[DEBUG]");
+                //}
 
-#if true
-                if (currentNode.CommandContext == "BEDIT")
-                {
-                    var doc = Acap.DocumentManager.MdiActiveDocument;
-                    if (doc != null)
-                    {
-                        var logger = EnhancedUndoRedoManager.GetLogger(doc);
-                        logger?.AsyncCmdsPush("_BCLOSE");
-                        doc.SendStringToExecute("_BCLOSE\n", true, false, false);
-                        return;
-                    }
-                }
 
                 if (currentNode.CommandContext == "BCLOSE")
                 {
-                    var doc = Acap.DocumentManager.MdiActiveDocument;
-                    if (doc != null)
+                    var last = currentNode.Actions.LastOrDefault();
+                    if (last is InBlockEditSaveAction inPlace)
                     {
-                        // TODO 要选择对象
-                        var logger = EnhancedUndoRedoManager.GetLogger(doc);
-                        logger?.AsyncCmdsPush("_BEDIT");
-                        doc.SendStringToExecute("_BEDIT\n", true, false, false);
+                        Env.Printl($"[DEBUG] 处理 BCLOSE 撤销: 节点ID={currentNode.Id.Substring(0, 8)}..., 动作数={currentNode.Actions.Count}");
+                        inPlace.Execute();
+                        // 切换到父节点
+                        _dag.Current = currentNode.Parent;
+                        Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
+                        // 增加命令撤销计数
+                        commandsUndone++;
+                        Env.Printl($"[DEBUG] 完成 BCLOSE 撤销处理，当前节点: {_dag.Current.CommandContext}");
                         return;
                     }
                 }
-#endif
+
+
 
                 // 回退当前节点的所有动作，按逆序执行
                 var reversedActions = currentNode.Actions.ToList();
@@ -342,6 +340,7 @@ public class EnhancedActionLogger : IDisposable
         catch (Exception ex)
         {
             Env.Printl($"[ERROR] 撤销失败: {ex.Message}");
+            Debugger.Break();
         }
         finally
         {
@@ -432,6 +431,52 @@ public class EnhancedActionLogger : IDisposable
                         // 增加命令重做计数
                         commandsRedone++;
                         Env.Printl($"[DEBUG] 完成 REFCLOSE 重做处理，当前节点: {_dag.Current.CommandContext}");
+                        return;
+                    }
+                }
+
+                if (nextNode.CommandContext == "BEDIT")
+                {
+                    var last = nextNode.Actions.LastOrDefault();
+                    if (last is BlockEditCreateAction inPlace)
+                    {
+                        Env.Printl($"[DEBUG] 处理 BEDIT 重做: 节点ID={nextNode.Id.Substring(0, 8)}..., 动作数={nextNode.Actions.Count}");
+                        inPlace.Execute();
+                        // 更新当前节点到下一个节点
+                        _dag.Current = nextNode;
+                        Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
+                        // 增加命令重做计数
+                        commandsRedone++;
+                        Env.Printl($"[DEBUG] 完成 BEDIT 重做处理，当前节点: {_dag.Current.CommandContext}");
+                        return;
+                    }
+                }
+
+                if (nextNode.CommandContext == "BCLOSE")
+                {
+                    var last = nextNode.Actions.LastOrDefault();
+                    if (last is InBlockEditSaveAction action)
+                    {
+                        Env.Printl($"[DEBUG] 处理 BCLOSE 重做: 节点ID={nextNode.Id.Substring(0, 8)}..., 动作数={nextNode.Actions.Count}");
+
+                        var inverseAction = action.GetInverseAction();
+                        if (inverseAction is not null)
+                        {
+                            Env.Printl($"  使用逆向动作: {inverseAction.Description}");
+                            inverseAction.Execute();
+                            executed++;
+                        }
+                        else
+                        {
+                            Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
+                        }
+
+                        // 更新当前节点到下一个节点
+                        _dag.Current = nextNode;
+                        Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
+                        // 增加命令重做计数
+                        commandsRedone++;
+                        Env.Printl($"[DEBUG] 完成 BCLOSE 重做处理，当前节点: {_dag.Current.CommandContext}");
                         return;
                     }
                 }

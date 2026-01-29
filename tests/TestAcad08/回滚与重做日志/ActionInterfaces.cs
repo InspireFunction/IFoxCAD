@@ -16,6 +16,9 @@ public enum ActionType
     InPlaceCreateEnd,        // 在位编辑起点
     InPlaceSave,         // 在位编辑终点
     InPlaceSaveEnd,         // 在位编辑终点
+    
+    BlockEditCreate,        // 块编辑开始
+    BlockEditCreateEnd,     // 块编辑开始的撤销
 }
 
 // 动作接口

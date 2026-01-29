@@ -557,3 +557,178 @@ public class InPlaceSaveEndAction : BaseAction
 }
 
 
+/// <summary>
+/// 块编辑保存动作
+/// </summary>
+public class InBlockEditSaveAction : BaseAction
+{
+    public ObjectId[] ObjectIds { get; }
+    public override ActionType Type => ActionType.InPlaceSave;
+    public override string Description => "块编辑保存";
+
+    public InBlockEditSaveAction(IEnumerable<ObjectId> objectIds)
+    {
+        ObjectIds = objectIds.ToArray();
+    }
+
+    // 块编辑-保存块-撤销
+    public override void Execute()
+    {
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc != null)
+        {
+            doc.Editor?.SetImpliedSelection(ObjectIds);
+            var logger = EnhancedUndoRedoManager.GetLogger(doc);
+            logger?.AsyncCmdsPush("BEDIT");
+            doc?.SendStringToExecute($"BEDIT\n", true, false, false);
+        }
+    }
+
+    public override IAction GetInverseAction()
+    {
+        return new InBlockEditSaveEndAction(ObjectIds);
+    }
+
+    public override IAction Clone()
+    {
+        return new InBlockEditSaveAction(ObjectIds);
+    }
+
+    public override bool CanMergeWith(IAction otherAction) => false;
+
+    public override IAction MergeWith(IAction otherAction) =>
+        throw new InvalidOperationException("块编辑保存动作不能合并");
+}
+
+
+public class InBlockEditSaveEndAction : BaseAction
+{
+    public ObjectId[] ObjectIds { get; }
+    public override ActionType Type => ActionType.InPlaceSaveEnd;
+    public override string Description => "块编辑保存的结束";
+
+    public InBlockEditSaveEndAction(IEnumerable<ObjectId> objectIds)
+    {
+        ObjectIds = objectIds.ToArray();
+    }
+
+    // 块编辑-保存块-撤销-重做
+    public override void Execute()
+    {
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc != null)
+        {
+            doc.Editor?.SetImpliedSelection(ObjectIds);
+            var logger = EnhancedUndoRedoManager.GetLogger(doc);
+            logger?.AsyncCmdsPush("BCLOSE");
+            doc.SendStringToExecute("BCLOSE _S\n", true, false, false);
+        }
+    }
+
+    public override IAction GetInverseAction()
+    {
+        return new InBlockEditSaveAction(ObjectIds);
+    }
+
+    public override IAction Clone()
+    {
+        return new InBlockEditSaveEndAction(ObjectIds);
+    }
+
+    public override bool CanMergeWith(IAction otherAction) => false;
+
+    public override IAction MergeWith(IAction otherAction) =>
+        throw new InvalidOperationException("块编辑保存结束不能合并");
+}
+
+
+/// <summary>
+/// 块编辑动作:开始
+/// </summary>
+public class BlockEditCreateAction : BaseAction
+{
+    public ObjectId[] ObjectIds { get; }
+    public override ActionType Type => ActionType.BlockEditCreate;
+    public override string Description => "块编辑开始";
+
+    public BlockEditCreateAction(IEnumerable<ObjectId> objectIds) // 这里传入了编辑块
+    {
+        ObjectIds = objectIds.ToArray();
+    }
+
+    public override void Execute()
+    {
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc != null)
+        {
+            doc.Editor?.SetImpliedSelection(ObjectIds);
+            var logger = EnhancedUndoRedoManager.GetLogger(doc);
+            logger?.AsyncCmdsPush("BEDIT");
+            doc.SendStringToExecute("BEDIT\n", true, false, false);
+        }
+    }
+
+    /// <summary>
+    /// 开始块编辑-撤销
+    /// </summary>
+    /// <returns></returns>
+    public override IAction GetInverseAction()
+    {
+        return new BlockEditCreateEndAction(ObjectIds);
+    }
+
+    public override IAction Clone()
+    {
+        return new BlockEditCreateAction(ObjectIds);
+    }
+
+    public override bool CanMergeWith(IAction otherAction) => false;
+
+    public override IAction MergeWith(IAction otherAction) =>
+        throw new InvalidOperationException("块编辑开始动作不能合并");
+}
+
+
+/// <summary>
+/// 块编辑开始的撤销
+/// </summary>
+/// <returns></returns>
+public class BlockEditCreateEndAction : BaseAction
+{
+    public ObjectId[] ObjectIds { get; }
+    public override ActionType Type => ActionType.BlockEditCreateEnd;
+    public override string Description => "块编辑开始的撤销";
+
+    public BlockEditCreateEndAction(IEnumerable<ObjectId> objectIds) // 这里传入了编辑块
+    {
+        ObjectIds = objectIds.ToArray();
+    }
+
+    public override void Execute()
+    {
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (doc != null)
+        {
+            var logger = EnhancedUndoRedoManager.GetLogger(doc);
+            logger?.AsyncCmdsPush("BCLOSE");
+            doc?.SendStringToExecute($"BCLOSE\n", true, false, false);
+        }
+    }
+
+    public override IAction GetInverseAction()
+    {
+        return new BlockEditCreateAction(ObjectIds);
+    }
+
+    public override IAction Clone()
+    {
+        return new BlockEditCreateEndAction(ObjectIds);
+    }
+
+    public override bool CanMergeWith(IAction otherAction) => false;
+
+    public override IAction MergeWith(IAction otherAction) =>
+        throw new InvalidOperationException("块编辑开始的撤销_动作不能合并");
+}
+
+
