@@ -51,7 +51,7 @@ public abstract class BaseAction : IAction
 
         try
         {
-            Env.Printl($"Action Deserialize Input Json Length: {json?.Length}, Content Preview: {(json?.Length > 100 ? json.Substring(0, 100) : json)}");
+            Env.Printl($"Action Deserialize Input Json Length: {json.Length}, Content Preview: {(json.Length > 100 ? json.Substring(0, 100) : json)}");
             var s = MyJson.DeserializeObject<BaseAction>(json);
             Env.Printl($"Action Deserialize Success: {(s != null ? s.GetType().Name : "null")}");
             if (s is null)

@@ -362,7 +362,7 @@ public class VersionNode
     /// <summary>
     /// 哈希
     /// </summary>
-    public string Hash { get; private set; }
+    public string Hash { get; private set; } = string.Empty;
     /// <summary>
     /// 节点的命令上下文
     /// </summary>

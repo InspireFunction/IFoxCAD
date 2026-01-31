@@ -32,9 +32,23 @@ public class EnhancedCommandAction : BaseAction
     /// </summary>
     public override IAction GetInverseAction()
     {
-        // 由于实体动作已经作为独立节点添加，这里不需要返回任何逆向动作
+        // 由于实体动作已经作为独立节点添加，返回一个空动作
         // 每个实体动作都会有自己的逆向动作
-        return null;
+        return new EmptyAction();
+    }
+
+    /// <summary>
+    /// 空动作类，用于表示无逆向动作的情况
+    /// </summary>
+    private class EmptyAction : BaseAction
+    {
+        public override ActionType Type => ActionType.OtherOperation;
+        public override string Description => "空动作";
+        public override void Execute() { }
+        public override IAction GetInverseAction() => this;
+        public override IAction Clone() => this;
+        public override bool CanMergeWith(IAction otherAction) => false;
+        public override IAction MergeWith(IAction otherAction) => this;
     }
 
     public override IAction Clone()

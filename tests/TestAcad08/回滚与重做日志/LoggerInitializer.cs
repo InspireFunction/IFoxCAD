@@ -5,38 +5,39 @@
 /// </summary>
 public class LoggerInitializer
 {
-    [IFoxInitialize]
-    public void StartLogging(Document doc)
-    {
-        // 禁用原生撤销/重做
-        Acap.DocumentManager.DocumentCreated += DocumentManager_DocumentCreated;
-        Acap.DocumentManager.DocumentToBeDestroyed += DocumentManager_DocumentToBeDestroyed;
-        Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
+    // 这个东西bug还是太多了
+    //[IFoxInitialize]
+    //public void StartLogging(Document doc)
+    //{
+    //    // 禁用原生撤销/重做
+    //    Acap.DocumentManager.DocumentCreated += DocumentManager_DocumentCreated;
+    //    Acap.DocumentManager.DocumentToBeDestroyed += DocumentManager_DocumentToBeDestroyed;
+    //    Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
 
-        // 使用增强撤销重做管理器初始化当前文档
-        EnhancedUndoRedoManager.EnableEnhancedUndoRedo(doc);
-        var logger = EnhancedUndoRedoManager.GetLogger(doc);
+    //    // 使用增强撤销重做管理器初始化当前文档
+    //    EnhancedUndoRedoManager.EnableEnhancedUndoRedo(doc);
+    //    var logger = EnhancedUndoRedoManager.GetLogger(doc);
 
-        Env.Printl($"CAD增强日志系统已启用");
-        Env.Printl($"可用命令:");
-        Env.Printl($"  增强撤销_事件拦截官方");
-        Env.Printl($"  增强重做_事件拦截官方");
-        Env.Printl($"  SHOWHISTORY - 显示操作历史");
-        Env.Printl($"  SHOWENTITYHISTORY - 显示实体历史");
-        Env.Printl($"  SHOWCURRENTPOSITION - 显示当前位置");
-        Env.Printl($"  SHOWDAGSTRUCTURE - 显示DAG结构");
-        Env.Printl($"  ENABLEENHANCEDUNDO - 启用增强撤销重做");
-        Env.Printl($"  DISABLEENHANCEDUNDO - 禁用增强撤销重做");
-        Env.Printl($"{logger?.GetCurrentStatus()}\n");
+    //    Env.Printl($"CAD增强日志系统已启用");
+    //    Env.Printl($"可用命令:");
+    //    Env.Printl($"  增强撤销_事件拦截官方");
+    //    Env.Printl($"  增强重做_事件拦截官方");
+    //    Env.Printl($"  SHOWHISTORY - 显示操作历史");
+    //    Env.Printl($"  SHOWENTITYHISTORY - 显示实体历史");
+    //    Env.Printl($"  SHOWCURRENTPOSITION - 显示当前位置");
+    //    Env.Printl($"  SHOWDAGSTRUCTURE - 显示DAG结构");
+    //    Env.Printl($"  ENABLEENHANCEDUNDO - 启用增强撤销重做");
+    //    Env.Printl($"  DISABLEENHANCEDUNDO - 禁用增强撤销重做");
+    //    Env.Printl($"{logger?.GetCurrentStatus()}\n");
 
-        // 这些命令需要排除,避免循环执行
-        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowHistory));
-        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowEntityHistory));
-        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowCurrentPosition));
-        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowDAGStructure));
-        EnhancedActionLogger.ExcludedCommands.Add(nameof(StartLogging));
-        EnhancedActionLogger.ExcludedCommands.Add(nameof(StopLogging));
-    }
+    //    // 这些命令需要排除,避免循环执行
+    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowHistory));
+    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowEntityHistory));
+    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowCurrentPosition));
+    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowDAGStructure));
+    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(StartLogging));
+    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(StopLogging));
+    //}
 
     /// <summary>
     /// 文档创建事件

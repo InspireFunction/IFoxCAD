@@ -1,4 +1,4 @@
-﻿#if NET35
+#if NET35
 // Licensed to the .NET Foundation under one or more agreements.
 // The .NET Foundation licenses this file to you under the MIT license.
 // See the LICENSE file in the project root for more information.
@@ -6,12 +6,12 @@
 namespace System.Runtime.CompilerServices;
 
 // 编译提示多个程序集中定义,屏蔽不了,但是不影响编译
-// #pragma warning disable CS1685 // 类型与导入类型冲突
+#pragma warning disable CS1685 // 类型与导入类型冲突
 /// <summary>
 /// 提供运行时助手方法
 /// </summary>
 public static class RuntimeHelpers
-// #pragma warning restore CS1685 // 类型与导入类型冲突
+#pragma warning restore CS1685 // 类型与导入类型冲突
 {
     /// <summary>
     /// Slices the specified array using the specified range.
