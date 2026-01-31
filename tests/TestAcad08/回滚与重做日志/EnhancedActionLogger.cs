@@ -734,11 +734,13 @@ public class EnhancedActionLogger : IDisposable
         {
             counter++;
             AsyncCmds[cmd] = counter;
+            Env.Printl($"AsyncCmdsPush添加了 {cmd}");
             return counter;
         }
         else
         {
             AsyncCmds[cmd] = 1;
+            Env.Printl($"AsyncCmdsPush=1 {cmd}");
             return 1;
         }
     }
@@ -754,9 +756,15 @@ public class EnhancedActionLogger : IDisposable
         {
             counter--;
             if (counter == 0)
+            {
                 AsyncCmds.Remove(cmd);
+                Env.Printl($"AsyncCmdsPop移除了 {cmd}");
+            }
             else
+            {
                 AsyncCmds[cmd] = counter;
+                Env.Printl($"AsyncCmdsPop减一 {cmd}");
+            }
             return true;
         }
         return false;

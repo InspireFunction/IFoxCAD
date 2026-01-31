@@ -1,4 +1,4 @@
-﻿namespace JoinBoxAcad;
+﻿﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 基础动作实现
@@ -450,7 +450,7 @@ public class InPlaceCreateEndAction : BaseAction
             doc.Editor?.SetImpliedSelection(ObjectIds);
             var logger = EnhancedUndoRedoManager.GetLogger(doc);
             logger?.AsyncCmdsPush("REFCLOSE");
-            doc?.SendStringToExecute($"REFCLOSE _D\n", true, false, false);
+            doc?.SendStringToExecute($"_.REFCLOSE _D\n", true, false, false);
         }
     }
 
@@ -536,7 +536,7 @@ public class InPlaceSaveEndAction : BaseAction
             doc.Editor?.SetImpliedSelection(ObjectIds);
             var logger = EnhancedUndoRedoManager.GetLogger(doc);
             logger?.AsyncCmdsPush("REFCLOSE");
-            doc.SendStringToExecute("REFCLOSE _S\n", true, false, false);
+            doc.SendStringToExecute("_.REFCLOSE _S\n", true, false, false);
         }
     }
 
@@ -621,7 +621,7 @@ public class InBlockEditSaveEndAction : BaseAction
             doc.Editor?.SetImpliedSelection(ObjectIds);
             var logger = EnhancedUndoRedoManager.GetLogger(doc);
             logger?.AsyncCmdsPush("BCLOSE");
-            doc.SendStringToExecute("BCLOSE _S\n", true, false, false);
+            doc.SendStringToExecute("_.BCLOSE _S\n", true, false, false);
         }
     }
 

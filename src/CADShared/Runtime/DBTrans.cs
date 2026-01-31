@@ -120,7 +120,8 @@ public sealed class DBTrans : IDisposable
     private static readonly Dictionary<Database, Stack<DBTrans>> _dBTrans = [];
 
     /// <summary>
-    /// map[数据库,文档]
+    /// map[数据库,文档]<br/>
+    /// 保存加入事务栈的文档,不会保存全部文档.
     /// </summary>
     private readonly static Dictionary<Database, Document> _dbDocMap = [];
     #endregion
@@ -187,8 +188,8 @@ public sealed class DBTrans : IDisposable
     {
         doc ??= Acaop.DocumentManager.MdiActiveDocument;
         CheckDatabaseError(doc.Database);
-        // 如果文档已经锁定,重复加锁会导致死锁,界面卡死,此处报错.
-        // 都用IFoxCAD才能避免多次锁,除非把它做成共享内存.
+        // 如果文档已经锁定,重复加锁会导致死锁,界面卡死,此处实现优雅的报错.
+        // 那么开发时候都用IFoxCAD才能避免多次锁,除非把它做成共享内存.
         if (docLock)
             DocumentLockManager.LockDocument(doc);
 
@@ -989,13 +990,14 @@ public sealed class DBTrans : IDisposable
                     _dBTrans.Remove(_database);
             }
 
-            // 释放通过直接读取文件而创建的数据库
+            // 释放通过后台读取文件而创建的数据库,此处需要避免前台持有.
+            // 前台通过构造函数的db进入的,会发生绕过登记doc的操作,所以这里需要遍历一次dm.
             // 1,并非通过文档加入的.
             if (Document is null)
             {
-                // 中望 / Acad2014 找不到会报错,2024则不会
+                // 中望/Acad2014,找不到会报错,2024则不会
                 // Acaop.DocumentManager.GetDocument(database)
-                // 使用遍历查找
+
                 Document? doc = null;
                 foreach (Document item in Acaop.DocumentManager)
                 {
@@ -1005,6 +1007,7 @@ public sealed class DBTrans : IDisposable
                         break;
                     }
                 }
+
                 // 2,前台不持有就可以释放
                 if (doc is null)
                     _database.Dispose();

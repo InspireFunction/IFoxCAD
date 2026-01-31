@@ -55,7 +55,8 @@ public static class IFoxUtils
             var doc = Acap.DocumentManager.GetDocument(db);
             if (doc is null)
                 continue; // 获取不到文档说明是后台开图，后台开图就不用刷新了
-            using var dl = doc.LockDocument();
+
+            using var dl = DocumentLockManager.LockDocument(doc);
             using var tr = DBTrans.Create(db);
             var layerIdSet = group.ToHashSet();
             foreach (var ltr in layerIdSet.Select(id => tr.GetObject(id, OpenMode.ForWrite))
@@ -162,5 +163,5 @@ public static class IFoxUtils
     {
         return new Transparency(Convert.ToByte(Math.Floor((100 - value) * 2.55)));
     }
-} 
+}
 #endif

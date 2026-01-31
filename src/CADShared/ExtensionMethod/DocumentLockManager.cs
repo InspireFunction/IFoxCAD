@@ -1,4 +1,4 @@
-﻿using System.Windows.Controls;
+﻿namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 文档锁管理器，用于管理文档的锁定和解锁。
@@ -91,22 +91,21 @@ public static class DocumentLockManager
     /// <summary>
     /// 添加文档锁
     /// </summary>
-    public static void LockDocument(Document doc)
+    public static DocumentLockPlus LockDocument(Document doc)
     {
 #if !NET35
         // 这是高版本才有的,但是我实现了死锁检测耶,直接屏蔽算了.
         // 如果文档未锁定，则尝试锁定文档，否则不创建锁实例。
         if (doc.LockMode(false) != DocumentLockMode.NotLocked)
-        {
             throw new Exception($"该文档已经锁定,重复加锁导致死锁,请修改逻辑: {doc.Name}");
-        }
 #endif
 
         if (_docAndLockMap.TryGetValue(doc.Database, out var dlock))
-        {
             throw new Exception($"该文档已经锁定,重复加锁导致死锁,请修改逻辑: {dlock.Document.Name}");
-        }
-        _docAndLockMap[doc.Database] = (doc, doc.LockDocument());
+
+        var docker = doc.LockDocument();
+        _docAndLockMap[doc.Database] = (doc, docker);
+        return new DocumentLockPlus(doc);
     }
 
     /// <summary>
