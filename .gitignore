@@ -4,6 +4,11 @@
 ##
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
+
+# AI
+.qoder/
+.trae/
+
 # User-specific files
 # 用户特定文件
 *.rsuser
