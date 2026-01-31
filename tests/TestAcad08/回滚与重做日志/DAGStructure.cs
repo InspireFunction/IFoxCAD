@@ -1,4 +1,4 @@
-namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 using System.Security.Cryptography;
 

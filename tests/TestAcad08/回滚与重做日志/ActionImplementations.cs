@@ -1,4 +1,4 @@
-﻿﻿namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 基础动作实现
