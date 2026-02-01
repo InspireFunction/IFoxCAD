@@ -292,7 +292,7 @@ public class ActionDAG
                 var actionsSerialized = new List<string>();
                 foreach (var action in node.Actions)
                 {
-                    if (action is BaseAction baseAction)
+                    if (action is ActionBase baseAction)
                     {
                         actionsSerialized.Add(baseAction.Serialize());
                     }
@@ -325,7 +325,7 @@ public class ActionDAG
 }
 
 // 根动作（虚拟）
-public class RootAction : BaseAction
+public class RootAction : ActionBase
 {
     public override ActionType Type => ActionType.OtherOperation;
     public override string Description => "系统初始状态 (根节点)";

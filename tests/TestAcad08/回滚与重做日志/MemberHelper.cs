@@ -1,7 +1,4 @@
-﻿using System.Reflection;
-using Autodesk.AutoCAD.DatabaseServices;
-
-namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 成员（字段和属性）操作辅助类

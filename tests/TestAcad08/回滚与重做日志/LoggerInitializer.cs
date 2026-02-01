@@ -6,38 +6,38 @@
 public class LoggerInitializer
 {
     // 这个东西bug还是太多了
-    //[IFoxInitialize]
-    //public void StartLogging(Document doc)
-    //{
-    //    // 禁用原生撤销/重做
-    //    Acap.DocumentManager.DocumentCreated += DocumentManager_DocumentCreated;
-    //    Acap.DocumentManager.DocumentToBeDestroyed += DocumentManager_DocumentToBeDestroyed;
-    //    Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
+    [IFoxInitialize]
+    public void StartLogging(Document doc)
+    {
+        // 禁用原生撤销/重做
+        Acap.DocumentManager.DocumentCreated += DocumentManager_DocumentCreated;
+        Acap.DocumentManager.DocumentToBeDestroyed += DocumentManager_DocumentToBeDestroyed;
+        Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
 
-    //    // 使用增强撤销重做管理器初始化当前文档
-    //    EnhancedUndoRedoManager.EnableEnhancedUndoRedo(doc);
-    //    var logger = EnhancedUndoRedoManager.GetLogger(doc);
+        // 使用增强撤销重做管理器初始化当前文档
+        EnhancedUndoRedoManager.EnableEnhancedUndoRedo(doc);
+        var logger = EnhancedUndoRedoManager.GetLogger(doc);
 
-    //    Env.Printl($"CAD增强日志系统已启用");
-    //    Env.Printl($"可用命令:");
-    //    Env.Printl($"  增强撤销_事件拦截官方");
-    //    Env.Printl($"  增强重做_事件拦截官方");
-    //    Env.Printl($"  SHOWHISTORY - 显示操作历史");
-    //    Env.Printl($"  SHOWENTITYHISTORY - 显示实体历史");
-    //    Env.Printl($"  SHOWCURRENTPOSITION - 显示当前位置");
-    //    Env.Printl($"  SHOWDAGSTRUCTURE - 显示DAG结构");
-    //    Env.Printl($"  ENABLEENHANCEDUNDO - 启用增强撤销重做");
-    //    Env.Printl($"  DISABLEENHANCEDUNDO - 禁用增强撤销重做");
-    //    Env.Printl($"{logger?.GetCurrentStatus()}\n");
+        Env.Printl($"CAD增强日志系统已启用");
+        Env.Printl($"可用命令:");
+        Env.Printl($"  增强撤销_事件拦截官方");
+        Env.Printl($"  增强重做_事件拦截官方");
+        Env.Printl($"  SHOWHISTORY - 显示操作历史");
+        Env.Printl($"  SHOWENTITYHISTORY - 显示实体历史");
+        Env.Printl($"  SHOWCURRENTPOSITION - 显示当前位置");
+        Env.Printl($"  SHOWDAGSTRUCTURE - 显示DAG结构");
+        Env.Printl($"  ENABLEENHANCEDUNDO - 启用增强撤销重做");
+        Env.Printl($"  DISABLEENHANCEDUNDO - 禁用增强撤销重做");
+        Env.Printl($"{logger?.GetCurrentStatus()}\n");
 
-    //    // 这些命令需要排除,避免循环执行
-    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowHistory));
-    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowEntityHistory));
-    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowCurrentPosition));
-    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowDAGStructure));
-    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(StartLogging));
-    //    EnhancedActionLogger.ExcludedCommands.Add(nameof(StopLogging));
-    //}
+        // 这些命令需要排除,避免循环执行
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowHistory));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowEntityHistory));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowCurrentPosition));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(ShowDAGStructure));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(StartLogging));
+        EnhancedActionLogger.ExcludedCommands.Add(nameof(StopLogging));
+    }
 
     /// <summary>
     /// 文档创建事件
@@ -47,9 +47,8 @@ public class LoggerInitializer
     private void DocumentManager_DocumentCreated(object sender, DocumentCollectionEventArgs e)
     {
         var doc = e.Document;
-        // 使用增强撤销重做管理器初始化当前文档
         EnhancedUndoRedoManager.EnableEnhancedUndoRedo(doc);
-        var logger = EnhancedUndoRedoManager.GetLogger(doc);
+        //var logger = EnhancedUndoRedoManager.GetLogger(doc);
     }
 
     /// <summary>
@@ -79,15 +78,13 @@ public class LoggerInitializer
             case "UNDO":
             {
                 // 屏蔽原生撤销,否则导致不知道官方撤销点.
+                // 但是为了屏蔽原生需要执行各种对应的操作
                 e.Veto();
-                //e.Document?.SendStringToExecute(nameof(MyUndo) + "\n", false, false, false);
-                //SendCommand(nameof(MyUndo) + " ", RunCmdFlag.AcedCommand);
 
-                var doc = Application.DocumentManager.MdiActiveDocument;
+                var doc = Acap.DocumentManager.MdiActiveDocument;
                 EnhancedUndoRedoManager.Undo(doc);
 
-                // 消除计数释放
-                // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
+                // 这里不在命令事件消除计数,而是在这个事件上
                 var logger = EnhancedUndoRedoManager.GetLogger(doc);
                 logger?.AsyncCmdsPop("UNDO");
             }
@@ -97,6 +94,7 @@ public class LoggerInitializer
             {
                 // 屏蔽原生重做
                 e.Veto();
+
                 // 模仿 _mredo 输入动作数目或 [全部(A)/上一个(L)]:
                 // 直接执行方法,这样可以处理命令行参数,而不是发送命令
                 var doc = e.Document;
@@ -115,13 +113,39 @@ public class LoggerInitializer
                 if (prompt.Status != PromptStatus.OK)
                     return;
                 var input = prompt.StringResult.Trim().ToUpper();
-                // 处理命令行参数
                 ProcessRedoInput(doc, ed, input);
 
-                // 消除计数释放
-                // 这里不命令事件消除计数,而是在事件上,因为它比较特殊
+                // 这里不在命令事件消除计数,而是在这个事件上
                 var logger = EnhancedUndoRedoManager.GetLogger(doc);
                 logger?.AsyncCmdsPop("REDO");
+            }
+            break;
+            case "REFEDIT":
+
+            break;
+            case "REFCLOSE":
+            {
+                // TODO 这里怎么发送到原生的底层实现呢?
+#if true2
+                e.Veto();
+
+                var doc = e.Document;
+                var ed = doc.Editor;
+
+                var pko = new PromptKeywordOptions("\n输入选项 ");
+                pko.Keywords.Add("S", "S", "保存参照修改(S)");
+                pko.Keywords.Add("D", "D", "放弃参照修改(D)");
+                pko.Keywords.Default = "S";
+
+                // 设置允许用户输入数字
+                pko.AllowNone = true;
+                pko.AllowArbitraryInput = true;
+
+                var prompt = ed.GetKeywords(pko);
+                if (prompt.Status != PromptStatus.OK)
+                    return;
+                var input = prompt.StringResult.Trim().ToUpper();
+#endif
             }
             break;
         }

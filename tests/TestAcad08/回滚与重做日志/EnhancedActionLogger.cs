@@ -1,7 +1,4 @@
-﻿using System;
-using System.Windows.Controls;
-
-namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 增强的动作日志记录器
@@ -79,12 +76,40 @@ public class EnhancedActionLogger : IDisposable
         var context = _dbMonitor.EndCommandContext();
         if (context is null)
             return;
-        //Env.Printl($"[DEBUG] 结束录制命令期间 无变化");
+        //Env.Printl("$[DEBUG] 结束录制命令期间 无变化");
 
         if (context.Changes.Count > 0)
         {
-            var action = new EnhancedCommandAction(context);
-            LogAction(action, context.CommandName);
+            // 直接处理数据库变更，而不是创建 EnhancedCommandAction
+            foreach (var change in context.Changes)
+            {
+                IAction? entityAction = null;
+                switch (change.Type)
+                {
+                    case ActionType.DatabaseAdd:
+                    entityAction = new CreateEntityAction(change.EntityId);
+                    break;
+                    case ActionType.DatabaseDelete:
+                    entityAction = new DeleteEntityAction(change.EntityId);
+                    break;
+                    case ActionType.DatabaseModify:
+                    if (change.FieldChanges.Count > 0)
+                        entityAction = new ModifyEntityAction(change.EntityId, change.FieldChanges);
+                    break;
+                }
+
+                if (entityAction != null)
+                {
+                    // 添加到DAG，传递命令上下文
+                    var node = _dag.AddAction(entityAction, context.CommandName);
+                    // 记录实体动作映射
+                    if (entityAction is EntityAction ea)
+                    {
+                        RecordEntityAction(ea.DBObjectId, node);
+                    }
+                }
+            }
+
             DebugEx.Printl($"[DEBUG] <<<<结束录制 {cmd} 命令期间的动作, 变更数: {context.Changes.Count}");
         }
     }
@@ -166,44 +191,6 @@ public class EnhancedActionLogger : IDisposable
         if (_isExecutingUndoRedo)
             return;
 
-        // 如果是EnhancedCommandAction，将每个数据库变更作为独立动作添加
-        if (action is EnhancedCommandAction commandAction)
-        {
-            // 使用动作自身的命令上下文，而不是从dbMonitor获取
-            // 因为此时dbMonitor的上下文可能已经被清除（在命令结束时）
-            string actionCommandContext = commandAction.Context.CommandName;
-
-            // 将数据库变更转换为独立动作
-            foreach (var change in commandAction.Context.Changes)
-            {
-                IAction? entityAction = null;
-                switch (change.Type)
-                {
-                    case ActionType.DatabaseAdd:
-                    entityAction = new CreateEntityAction(change.EntityId);
-                    break;
-                    case ActionType.DatabaseDelete:
-                    entityAction = new DeleteEntityAction(change.EntityId);
-                    break;
-                    case ActionType.DatabaseModify:
-                    if (change.FieldChanges.Count > 0)
-                        entityAction = new ModifyEntityAction(change.EntityId, change.FieldChanges);
-                    break;
-                }
-                if (entityAction != null)
-                {
-                    // 添加到DAG，传递命令上下文
-                    var node = _dag.AddAction(entityAction, actionCommandContext);
-                    // 记录实体动作映射
-                    if (entityAction is EntityAction ea)
-                    {
-                        RecordEntityAction(ea.DBObjectId, node);
-                    }
-                }
-            }
-            return;
-        }
-
         // 使用指定的命令上下文
         var node2 = _dag.AddAction(action, commandContext);
 
@@ -220,7 +207,7 @@ public class EnhancedActionLogger : IDisposable
     private void RecordEntityAction(ObjectId entityId, VersionNode node)
     {
         if (!_entityActionMap.ContainsKey(entityId))
-            _entityActionMap[entityId] = new List<VersionNode>();
+            _entityActionMap[entityId] = [];
 
         _entityActionMap[entityId].Add(node);
     }
@@ -264,24 +251,6 @@ public class EnhancedActionLogger : IDisposable
                 // 打印回滚节点的命令
                 Env.Printl($"开始撤销节点: {currentNode.CommandContext}，包含 {currentNode.Actions.Count} 个动作");
 
-                // 在位编辑-保存在位-撤销,就会触发这里
-                if (currentNode.CommandContext == "REFCLOSE")
-                {
-                    var last = currentNode.Actions.LastOrDefault();
-                    if (last is InPlaceSaveAction inPlace)
-                    {
-                        Env.Printl($"[DEBUG] 处理 REFCLOSE 撤销: 节点ID={currentNode.Id.Substring(0, 8)}..., 动作数={currentNode.Actions.Count}");
-                        inPlace.Execute();
-                        // 切换到父节点
-                        _dag.Current = currentNode.Parent;
-                        Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
-                        // 增加命令撤销计数
-                        commandsUndone++;
-                        Env.Printl($"[DEBUG] 完成 REFCLOSE 撤销处理，当前节点: {_dag.Current.CommandContext}");
-                        return;
-                    }
-                }
-
                 // TODO BEDIT 这里很有趣耶
                 // 1,BEDIT(无修改任何)撤回,会发生命令取消事件: [DEBUG] 命令取消: BEDIT
                 // 2,BEDIT(有修改/画了对象)撤回,会发生: UNDO.
@@ -291,30 +260,6 @@ public class EnhancedActionLogger : IDisposable
                 {
 
                 }
-                else
-                {
-
-                }
-
-
-                if (currentNode.CommandContext == "BCLOSE")
-                {
-                    var last = currentNode.Actions.LastOrDefault();
-                    if (last is InBlockEditSaveAction inPlace)
-                    {
-                        Env.Printl($"[DEBUG] 处理 BCLOSE 撤销: 节点ID={currentNode.Id.Substring(0, 8)}..., 动作数={currentNode.Actions.Count}");
-                        inPlace.Execute();
-                        // 切换到父节点
-                        _dag.Current = currentNode.Parent;
-                        Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
-                        // 增加命令撤销计数
-                        commandsUndone++;
-                        Env.Printl($"[DEBUG] 完成 BCLOSE 撤销处理，当前节点: {_dag.Current.CommandContext}");
-                        return;
-                    }
-                }
-
-
 
                 // 回退当前节点的所有动作，按逆序执行
                 var reversedActions = currentNode.Actions.ToList();
@@ -322,17 +267,7 @@ public class EnhancedActionLogger : IDisposable
                 foreach (var action in reversedActions)
                 {
                     Env.Printl($"  撤销动作: {action.Description}");
-                    var inverseAction = action.GetInverseAction();
-                    if (inverseAction is not null)
-                    {
-                        Env.Printl($"  使用逆向动作: {inverseAction.Description}");
-                        inverseAction.Execute();
-                        executed++;
-                    }
-                    else
-                    {
-                        Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
-                    }
+                    action.GetInverseAction().Execute();
                 }
 
                 // 切换到父节点
@@ -394,103 +329,6 @@ public class EnhancedActionLogger : IDisposable
                     .First();
 
                 Env.Printl($"开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
-
-
-                // 260128a 进入在位编辑器状态,发送异步命令,最后重做参数.
-                // 虽然触发了面板,但是逻辑是成功的(可以用钩子点击面板)
-                // 1,虽然回来到编辑器状态了,但是再次REDO它会再进入死循环,命令上下文毕竟没有改变过.
-                // 因此发送前登记一个节点编号,然后再发送.
-                if (nextNode.CommandContext == "REFEDIT")
-                {
-                    var last = nextNode.Actions.LastOrDefault();
-                    if (last is InPlaceCreateAction inPlace)
-                    {
-                        Env.Printl($"[DEBUG] 处理 REFEDIT 重做: 节点ID={nextNode.Id.Substring(0, 8)}..., 动作数={nextNode.Actions.Count}");
-                        inPlace.Execute();
-                        // 更新当前节点到下一个节点
-                        _dag.Current = nextNode;
-                        Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
-                        // 增加命令重做计数
-                        commandsRedone++;
-                        Env.Printl($"[DEBUG] 完成 REFEDIT 重做处理，当前节点: {_dag.Current.CommandContext}");
-                        return;
-                    }
-                }
-
-                if (nextNode.CommandContext == "REFCLOSE")
-                {
-                    var last = nextNode.Actions.LastOrDefault();
-                    if (last is InPlaceSaveAction action)
-                    {
-                        Env.Printl($"[DEBUG] 处理 REFCLOSE 重做: 节点ID={nextNode.Id.Substring(0, 8)}..., 动作数={nextNode.Actions.Count}");
-
-                        var inverseAction = action.GetInverseAction();
-                        if (inverseAction is not null)
-                        {
-                            Env.Printl($"  使用逆向动作: {inverseAction.Description}");
-                            inverseAction.Execute();
-                            executed++;
-                        }
-                        else
-                        {
-                            Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
-                        }
-
-                        // 更新当前节点到下一个节点
-                        _dag.Current = nextNode;
-                        Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
-                        // 增加命令重做计数
-                        commandsRedone++;
-                        Env.Printl($"[DEBUG] 完成 REFCLOSE 重做处理，当前节点: {_dag.Current.CommandContext}");
-                        return;
-                    }
-                }
-
-                if (nextNode.CommandContext == "BEDIT")
-                {
-                    var last = nextNode.Actions.LastOrDefault();
-                    if (last is BlockEditCreateAction inPlace)
-                    {
-                        Env.Printl($"[DEBUG] 处理 BEDIT 重做: 节点ID={nextNode.Id.Substring(0, 8)}..., 动作数={nextNode.Actions.Count}");
-                        inPlace.Execute();
-                        // 更新当前节点到下一个节点
-                        _dag.Current = nextNode;
-                        Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
-                        // 增加命令重做计数
-                        commandsRedone++;
-                        Env.Printl($"[DEBUG] 完成 BEDIT 重做处理，当前节点: {_dag.Current.CommandContext}");
-                        return;
-                    }
-                }
-
-                if (nextNode.CommandContext == "BCLOSE")
-                {
-                    var last = nextNode.Actions.LastOrDefault();
-                    if (last is InBlockEditSaveAction action)
-                    {
-                        Env.Printl($"[DEBUG] 处理 BCLOSE 重做: 节点ID={nextNode.Id.Substring(0, 8)}..., 动作数={nextNode.Actions.Count}");
-
-                        var inverseAction = action.GetInverseAction();
-                        if (inverseAction is not null)
-                        {
-                            Env.Printl($"  使用逆向动作: {inverseAction.Description}");
-                            inverseAction.Execute();
-                            executed++;
-                        }
-                        else
-                        {
-                            Env.Printl($"  [WARNING] 无法获取逆向动作: {action.Description}");
-                        }
-
-                        // 更新当前节点到下一个节点
-                        _dag.Current = nextNode;
-                        Env.Printl($"重做完成，当前节点GUID: {nextNode.Id}");
-                        // 增加命令重做计数
-                        commandsRedone++;
-                        Env.Printl($"[DEBUG] 完成 BCLOSE 重做处理，当前节点: {_dag.Current.CommandContext}");
-                        return;
-                    }
-                }
 
                 // 执行该节点的所有动作
                 foreach (var action in nextNode.Actions)
@@ -568,10 +406,10 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     public List<string> GetHistory()
     {
-        return _dag.History.Select(n =>
+        return [.. _dag.History.Select(n =>
             n.Actions.Count > 0 ?
             $"{n.CommandContext} - {n.Actions.Count}个动作" :
-            n.CommandContext).ToList();
+            n.CommandContext)];
     }
 
     /// <summary>
@@ -712,7 +550,7 @@ public class EnhancedActionLogger : IDisposable
         if (node.Actions == null || node.Actions.Count == 0)
             return DateTime.MinValue;
 
-        return node.Actions.Max(action => action is BaseAction baseAction ? baseAction.Timestamp : DateTime.MinValue);
+        return node.Actions.Max(action => action is ActionBase baseAction ? baseAction.Timestamp : DateTime.MinValue);
     }
 
 

@@ -1,8 +1,4 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
-using System.Windows.Controls;
-
-namespace JoinBoxAcad;
-
+﻿namespace JoinBoxAcad;
 
 public static class DocumentEx
 {
@@ -241,7 +237,7 @@ public class LongTransaction : IDisposable
                     return;
 
                 // 创建在位编辑添加动作
-                var action = new InPlaceCreateAction(_refBlock);
+                var action = new CommandAction(ActionType.RefEdit, _refBlock);
                 _logger.LogAction(action, "REFEDIT");
 
                 // 更新当前ID集合
@@ -256,7 +252,7 @@ public class LongTransaction : IDisposable
                 // 发生回滚时候是通过命令-事件,重新构造 _workSet
                 if (_workSet.Count > 0)
                 {
-                    var action = new InPlaceSaveAction(_refBlock);
+                    var action = new CommandAction(ActionType.RefClose, _refBlock);
                     _logger.LogAction(action, "REFCLOSE");
                     _workSet.Clear();
                 }
@@ -270,13 +266,13 @@ public class LongTransaction : IDisposable
                 _refedit_run = true;
 
                 // 创建块编辑添加动作
-                var action = new BlockEditCreateAction(_refBlock);
+                var action = new CommandAction(ActionType.BlockEdit, _refBlock);
                 _logger.LogAction(action, "BEDIT");
             }
             break;
             case "BCLOSE":
             {
-                var action = new InBlockEditSaveAction(_refBlock);
+                var action = new CommandAction(ActionType.BlockEditClose, _refBlock);
                 _logger.LogAction(action, "BCLOSE");
                 _refedit_run = false;
                 _refClose_start = false;
@@ -346,7 +342,7 @@ public class LongTransaction : IDisposable
             if (addLog)
             {
                 // 创建在位编辑添加动作
-                var action = new InPlaceAddAction(selectedIds);
+                var action = new CommandAction(ActionType.RefSetAdd, selectedIds);
                 _logger.LogAction(action, "REFSET_ADD");
             }
             return;
@@ -360,7 +356,7 @@ public class LongTransaction : IDisposable
             if (addLog)
             {
                 // 创建在位编辑移除动作
-                var action = new InPlaceRemoveAction(selectedIds);
+                var action = new CommandAction(ActionType.RefSetRemove, selectedIds);
                 _logger.LogAction(action, "REFSET_REMOVE");
             }
             return;

@@ -30,5 +30,4 @@
             <Link>拦截输入法\%(RecursiveDir)%(FileName)%(Extension)</Link>
         </Compile>
     </ItemGroup>
-
 </Project>

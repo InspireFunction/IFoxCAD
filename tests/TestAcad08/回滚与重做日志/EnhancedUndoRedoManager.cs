@@ -1,4 +1,4 @@
-﻿﻿namespace JoinBoxAcad;
+﻿namespace JoinBoxAcad;
 
 /// <summary>
 /// 增强撤销重做管理器 - 统一的管理器，消除重复存储
@@ -6,7 +6,7 @@
 public class EnhancedUndoRedoManager
 {
     // 统一使用这一个字典，消除 DocumentLoggers 的重复存储
-    private static Dictionary<Document, EnhancedActionLogger> _loggers = new();
+    private static Dictionary<Document, EnhancedActionLogger> _loggers = [];
 
     /// <summary>
     /// 为文档启用增强的撤销重做功能
