@@ -276,7 +276,20 @@ public class EnhancedActionLogger : IDisposable
                     foreach (var action in reversedActions)
                     {
                         Env.Printl($"  撤销动作: {action.Description}");
-                        action.GetInverseAction().Execute();
+
+                        try
+                        {
+                            action.GetInverseAction().Execute();
+                        }
+                        catch (Exception ex)
+                        {
+                            Env.Printl($"[ERROR] 撤销失败: {ex.Message}");
+                            Env.Printl($"[ERROR] 命令: {currentNode.CommandContext}");
+                            Env.Printl($"[ERROR] 描述: {action.Description}");
+                            Env.Printl($"[ERROR] 计数: {commandsUndone}");
+                            Debugger.Break();
+                            throw;
+                        }
                     }
                 }
 

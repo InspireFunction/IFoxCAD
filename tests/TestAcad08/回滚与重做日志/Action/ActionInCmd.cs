@@ -43,9 +43,9 @@ public class CommandAction : ActionBase
             case ActionType.RefEdit:
             // 在位编辑开始
             doc.Editor?.SetImpliedSelection(ObjectIds);
-            logger?.AsyncCmdsPush("REFEDIT");
-            //Env.Editor.RunLisp("(command \"_.refedit\" \"y\")"); // 未知命令Y,怎么重做时候可以一步到位啊??
-            Env.Editor.RunLisp("(command \"_.refedit\")");
+            logger?.AsyncCmdsPush("-REFEDIT");
+            //Env.Editor.RunLisp("(command \"_.refedit\")"); // 这个会弹窗
+            Env.Editor.RunLisp("(command \"-refedit\" \"o\" \"a\" \"n\")");
             break;
             case ActionType.RefEditUndo:
             logger?.AsyncCmdsPush("REFCLOSE");
@@ -58,8 +58,8 @@ public class CommandAction : ActionBase
             break;
             case ActionType.RefCloseUndo:
             doc.Editor?.SetImpliedSelection(ObjectIds);
-            logger?.AsyncCmdsPush("REFEDIT");
-            Env.Editor.RunLisp("(command \"_.refedit\")");
+            logger?.AsyncCmdsPush("-REFEDIT");
+            Env.Editor.RunLisp("(command \"-refedit\" \"o\" \"a\" \"n\")");
             break;
 
             case ActionType.BlockEdit:
@@ -86,7 +86,7 @@ public class CommandAction : ActionBase
     }
 
 
-    public static HashSet<string> RevCmdMap = ["BEDIT", "BCLOSE", "REFEDIT", "REFCLOSE"];
+    public static HashSet<string> RevCmdMap = ["BEDIT", "BCLOSE", "REFEDIT", "REFCLOSE", "BLOCK"];
 
 
     public override IAction GetInverseAction()
