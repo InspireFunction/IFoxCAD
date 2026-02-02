@@ -44,9 +44,10 @@ public class CommandAction : ActionBase
             // 在位编辑开始
             doc.Editor?.SetImpliedSelection(ObjectIds);
             logger?.AsyncCmdsPush("REFEDIT");
+            //Env.Editor.RunLisp("(command \"_.refedit\" \"y\")"); // 未知命令Y,怎么重做时候可以一步到位啊??
             Env.Editor.RunLisp("(command \"_.refedit\")");
             break;
-            case ActionType.RefEditEnd:
+            case ActionType.RefEditUndo:
             logger?.AsyncCmdsPush("REFCLOSE");
             Env.Editor.RunLisp("(command \"_.refclose\" \"d\")");
             break;
@@ -55,7 +56,7 @@ public class CommandAction : ActionBase
             logger?.AsyncCmdsPush("REFCLOSE");
             Env.Editor.RunLisp("(command \"_.refclose\" \"s\")");
             break;
-            case ActionType.RefCloseEnd:
+            case ActionType.RefCloseUndo:
             doc.Editor?.SetImpliedSelection(ObjectIds);
             logger?.AsyncCmdsPush("REFEDIT");
             Env.Editor.RunLisp("(command \"_.refedit\")");
@@ -67,7 +68,7 @@ public class CommandAction : ActionBase
             logger?.AsyncCmdsPush("BEDIT");
             Env.Editor.RunLisp("(command \"_.bedit\")");
             break;
-            case ActionType.BlockEditEnd:
+            case ActionType.BlockEditUndo:
             logger?.AsyncCmdsPush("BCLOSE");
             Env.Editor.RunLisp("(command \"_.bclose\" \"_s\")");
             break;
@@ -77,12 +78,16 @@ public class CommandAction : ActionBase
             logger?.AsyncCmdsPush("BCLOSE");
             Env.Editor.RunLisp("(command \"_.bclose\" \"_s\")");
             break;
-            case ActionType.BlockEditCloseEnd:
+            case ActionType.BlockEditCloseUndo:
             logger?.AsyncCmdsPush("BEDIT");
             Env.Editor.RunLisp("(command \"_.bedit\")");
             break;
         }
     }
+
+
+    public static HashSet<string> RevCmdMap = ["BEDIT", "BCLOSE", "REFEDIT", "REFCLOSE"];
+
 
     public override IAction GetInverseAction()
     {
@@ -105,16 +110,16 @@ public class CommandAction : ActionBase
     {
         return cmdActionType switch
         {
-            ActionType.RefSetAdd => $"添加到在位编辑: {ObjectIds?.Length} 个对象",
-            ActionType.RefSetRemove => $"从在位编辑块: {ObjectIds?.Length} 个对象",
+            ActionType.RefSetAdd => $"在位编辑(添加): {ObjectIds?.Length} 个对象",
+            ActionType.RefSetRemove => $"在位编辑块(移除): {ObjectIds?.Length} 个对象",
             ActionType.RefEdit => "在位编辑开始",
-            ActionType.RefEditEnd => "在位编辑开始的撤销",
+            ActionType.RefEditUndo => "在位编辑开始的撤销",
             ActionType.RefClose => "在位编辑保存",
-            ActionType.RefCloseEnd => "在位编辑保存的结束",
+            ActionType.RefCloseUndo => "在位编辑保存的撤销",
             ActionType.BlockEdit => "块编辑开始",
-            ActionType.BlockEditEnd => "块编辑开始的撤销",
+            ActionType.BlockEditUndo => "块编辑开始的撤销",
             ActionType.BlockEditClose => "块编辑保存",
-            ActionType.BlockEditCloseEnd => "块编辑保存的结束",
+            ActionType.BlockEditCloseUndo => "块编辑保存的撤销",
             _ => "未知命令动作"
         };
     }
@@ -125,14 +130,14 @@ public class CommandAction : ActionBase
         {
             ActionType.RefSetAdd => ActionType.RefSetRemove,
             ActionType.RefSetRemove => ActionType.RefSetAdd,
-            ActionType.RefEdit => ActionType.RefEditEnd,
-            ActionType.RefEditEnd => ActionType.RefEdit,
-            ActionType.RefClose => ActionType.RefCloseEnd,
-            ActionType.RefCloseEnd => ActionType.RefClose,
-            ActionType.BlockEdit => ActionType.BlockEditEnd,
-            ActionType.BlockEditEnd => ActionType.BlockEdit,
-            ActionType.BlockEditClose => ActionType.BlockEditCloseEnd,
-            ActionType.BlockEditCloseEnd => ActionType.BlockEditClose,
+            ActionType.RefEdit => ActionType.RefEditUndo,
+            ActionType.RefEditUndo => ActionType.RefEdit,
+            ActionType.RefClose => ActionType.RefCloseUndo,
+            ActionType.RefCloseUndo => ActionType.RefClose,
+            ActionType.BlockEdit => ActionType.BlockEditUndo,
+            ActionType.BlockEditUndo => ActionType.BlockEdit,
+            ActionType.BlockEditClose => ActionType.BlockEditCloseUndo,
+            ActionType.BlockEditCloseUndo => ActionType.BlockEditClose,
             _ => cmdActionType
         };
     }

@@ -12,14 +12,14 @@ public enum ActionType
     RefSetAdd,           // 添加到在位编辑
     RefSetRemove,        // 从在位编辑移除
     RefEdit,              // 在位编辑起点
-    RefEditEnd,         // 在位编辑起点
+    RefEditUndo,         // 在位编辑起点
     RefClose,             // 在位编辑终点
-    RefCloseEnd,         // 在位编辑终点
+    RefCloseUndo,         // 在位编辑终点
 
     BlockEdit,              // 块编辑开始
-    BlockEditEnd,         // 块编辑开始的撤销
+    BlockEditUndo,         // 块编辑开始的撤销
     BlockEditClose,         // 块编辑保存
-    BlockEditCloseEnd      // 块编辑保存结束
+    BlockEditCloseUndo      // 块编辑保存结束
 }
 
 // 动作接口
@@ -42,7 +42,7 @@ public interface IAction
     /// </summary>
     DateTime Timestamp { get; }
     /// <summary>
-    /// 正向动作
+    /// 执行
     /// </summary>
     void Execute();
     /// <summary>

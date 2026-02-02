@@ -98,9 +98,7 @@ public class LongTransaction : IDisposable
         var c = _map[doc]._workSet.Count;
         Env.Printl($"长事务数量: {c}");
         if (c == 0)
-        {
             return;
-        }
         var lst = _map[doc]._workSet.Select(a => a.ToString() + ", ").ToArray();
         Env.Printl($"{string.Join(",", lst)}");
     }
@@ -133,8 +131,7 @@ public class LongTransaction : IDisposable
 
     private void OnObjectErased(object sender, ObjectErasedEventArgs e)
     {
-        var entity = e.DBObject as Entity;
-        if (entity is null)
+        if (e.DBObject is not Entity entity)
             return;
         // 保存命令触发之后需要跳过,否则会剔除全部数据
         if (_refClose_start)
@@ -150,8 +147,7 @@ public class LongTransaction : IDisposable
 
     private void OnObjectAppended(object sender, ObjectEventArgs e)
     {
-        var entity = e.DBObject as Entity;
-        if (entity is null)
+        if (e.DBObject is not Entity entity)
             return;
 
         // 保存命令触发之后需要跳过,否则会剔除全部数据
@@ -167,6 +163,11 @@ public class LongTransaction : IDisposable
     ObjectId[] _refBlock = [];
     bool _refClose_start = false;
 
+    /// <summary>
+    /// 命令前
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void OnCommandWillStart(object sender, CommandEventArgs e)
     {
         DebugEx.Printl($"OnCommandWillStart - {DateTime.Now}");
@@ -200,7 +201,11 @@ public class LongTransaction : IDisposable
     }
 
 
-
+    /// <summary>
+    /// 命令后
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void OnCommandEnded(object sender, CommandEventArgs e)
     {
         DebugEx.Printl($"OnCommandEnded - {DateTime.Now}");
@@ -210,6 +215,7 @@ public class LongTransaction : IDisposable
         {
             // #260126a 使用了异步命令这里需要清理
             // 撤销时候不能发送 "refclose _d" 带参数模式,只能有命令.
+            // TODO 我其实需要加入关键字,再判断路径实现重做的命令步骤,怎么做呢?
             HandleAsyncCommandCleanup(e.GlobalCommandName);
             return;
         }

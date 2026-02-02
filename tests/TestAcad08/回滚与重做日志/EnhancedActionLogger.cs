@@ -1,7 +1,9 @@
-﻿namespace JoinBoxAcad;
+﻿using System;
+
+namespace JoinBoxAcad;
 
 /// <summary>
-/// 增强的动作日志记录器
+/// 动作日志记录器
 /// </summary>
 public class EnhancedActionLogger : IDisposable
 {
@@ -222,6 +224,9 @@ public class EnhancedActionLogger : IDisposable
         return [];
     }
 
+
+
+
     /// <summary>
     /// 执行撤销
     /// </summary>
@@ -256,24 +261,28 @@ public class EnhancedActionLogger : IDisposable
                 // 2,BEDIT(有修改/画了对象)撤回,会发生: UNDO.
                 // 我倒是想让它发生undo啊??怎么修改?有属性?强行加入一次对象?
                 // 弹出教程窗口造成?
-                if (currentNode.CommandContext == "BEDIT")
-                {
 
-                }
-
-                // 回退当前节点的所有动作，按逆序执行
-                var reversedActions = currentNode.Actions.ToList();
-                reversedActions.Reverse();
-                foreach (var action in reversedActions)
+                if (CommandAction.RevCmdMap.Contains(currentNode.CommandContext))
                 {
-                    Env.Printl($"  撤销动作: {action.Description}");
+                    // 这些命令特殊,不需要回滚数据,只需要逆命令
+                    var action = currentNode.Actions.LastOrDefault();
                     action.GetInverseAction().Execute();
+                }
+                else
+                {
+                    // 回退当前节点(一个命令)的所有动作(一个组)，按逆序执行
+                    var reversedActions = currentNode.Actions.ToList();
+                    reversedActions.Reverse();
+                    foreach (var action in reversedActions)
+                    {
+                        Env.Printl($"  撤销动作: {action.Description}");
+                        action.GetInverseAction().Execute();
+                    }
                 }
 
                 // 切换到父节点
                 _dag.Current = currentNode.Parent;
                 Env.Printl($"撤销完成，当前节点GUID: {_dag.Current.Id}\n");
-
                 // 增加命令撤销计数
                 commandsUndone++;
             }
@@ -331,11 +340,21 @@ public class EnhancedActionLogger : IDisposable
                 Env.Printl($"开始重做节点: {nextNode.CommandContext}，包含 {nextNode.Actions.Count} 个动作");
 
                 // 执行该节点的所有动作
-                foreach (var action in nextNode.Actions)
+                if (CommandAction.RevCmdMap.Contains(nextNode.CommandContext))
                 {
-                    Env.Printl($"  重做动作: {action.Description}");
+                    // 这些命令特殊,不需要重做数据,只需要第一个命令
+                    var action = nextNode.Actions.LastOrDefault();
                     action.Execute();
-                    executed++;
+                }
+                else
+                {
+                    // 回退当前节点(一个命令)的所有动作(一个组)，按逆序执行
+                    foreach (var action in nextNode.Actions)
+                    {
+                        Env.Printl($"  重做动作: {action.Description}");
+                        action.Execute();
+                        executed++;
+                    }
                 }
 
                 _dag.Current = nextNode;

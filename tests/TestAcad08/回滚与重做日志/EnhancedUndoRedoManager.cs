@@ -5,7 +5,7 @@
 /// </summary>
 public class EnhancedUndoRedoManager
 {
-    // 统一使用这一个字典，消除 DocumentLoggers 的重复存储
+    // 文档,动作日志记录器
     private static Dictionary<Document, EnhancedActionLogger> _loggers = [];
 
     /// <summary>
