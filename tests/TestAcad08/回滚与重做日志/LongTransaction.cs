@@ -256,6 +256,7 @@ public class LongTransaction : IDisposable
             case "REFCLOSE":
             {
                 // 发生回滚时候是通过命令-事件,重新构造 _workSet
+                Env.Printl($"[LONG-TRANS] REFCLOSE command ended, WorkSet count: {_workSet.Count}");
                 if (_workSet.Count > 0)
                 {
                     var action = new CommandAction(ActionType.RefClose, _refBlock);

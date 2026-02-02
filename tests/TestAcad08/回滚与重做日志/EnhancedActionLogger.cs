@@ -34,13 +34,13 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     private void OnCommandWillStart(object? sender, CommandEventArgs e)
     {
-        DebugEx.Printl($"OnCommandWillStart - {DateTime.Now}");
+        DebugEx.Printl($"OnCommandWillStart - {DateTime.Now} : {e.GlobalCommandName}");
         if (_isExecutingUndoRedo)
             return;
         if (ShouldExcludeCommand(e.GlobalCommandName))
             return;
 
-        EndCommandContext("无命令");
+        EndCommandContext("<无命令>");
         StartCommandContext(e.GlobalCommandName);
     }
 
@@ -49,13 +49,14 @@ public class EnhancedActionLogger : IDisposable
     /// </summary>
     private void OnCommandEnded(object? sender, CommandEventArgs e)
     {
-        DebugEx.Printl($"OnCommandEnded - {DateTime.Now}");
+        DebugEx.Printl($"OnCommandEnded - {DateTime.Now} : #{e.GlobalCommandName}");
+        Env.Printl($"[CMD-EVENT] OnCommandEnded: {e.GlobalCommandName}, IsExecutingUndoRedo={_isExecutingUndoRedo}");
         if (_isExecutingUndoRedo)
             return;
         if (ShouldExcludeCommand(e.GlobalCommandName))
             return;
         EndCommandContext(e.GlobalCommandName);
-        StartCommandContext("无命令");
+        StartCommandContext("<无命令>");
     }
 
     /// <summary>
@@ -82,6 +83,7 @@ public class EnhancedActionLogger : IDisposable
 
         if (context.Changes.Count > 0)
         {
+            Env.Printl($"[END-CONTEXT] EndCommandContext processing {context.Changes.Count} changes for command: {cmd}");
             // 直接处理数据库变更，而不是创建 EnhancedCommandAction
             foreach (var change in context.Changes)
             {
@@ -102,6 +104,7 @@ public class EnhancedActionLogger : IDisposable
 
                 if (entityAction != null)
                 {
+                    Env.Printl($"[END-CONTEXT] Processing change: {change.Type}, EntityId: {change.EntityId}, Command: {context.CommandName}");
                     // 添加到DAG，传递命令上下文
                     var node = _dag.AddAction(entityAction, context.CommandName);
                     // 记录实体动作映射
@@ -113,6 +116,10 @@ public class EnhancedActionLogger : IDisposable
             }
 
             DebugEx.Printl($"[DEBUG] <<<<结束录制 {cmd} 命令期间的动作, 变更数: {context.Changes.Count}");
+        }
+        else
+        {
+            Env.Printl($"[END-CONTEXT] EndCommandContext: no changes for command: {cmd}");
         }
     }
 
@@ -193,6 +200,8 @@ public class EnhancedActionLogger : IDisposable
         if (_isExecutingUndoRedo)
             return;
 
+        Env.Printl($"[LOG-ACTION] LogAction called: CommandContext={commandContext}, Action={action.Description}, IsExecutingUndoRedo={_isExecutingUndoRedo}");
+
         // 使用指定的命令上下文
         var node2 = _dag.AddAction(action, commandContext);
 
@@ -239,7 +248,7 @@ public class EnhancedActionLogger : IDisposable
         }
 
         // 这里要先结束 无命令 修改
-        EndCommandContext("无命令");
+        EndCommandContext("<无命令>");
 
         _isExecutingUndoRedo = true;
 
@@ -270,6 +279,9 @@ public class EnhancedActionLogger : IDisposable
                 }
                 else
                 {
+                    // TODO 组块-编辑-再画一个圆-保存,回滚-回滚(这里应该是圆,但是修改无效...)
+                    // 因为再次进入的时候不是同一个块内图元!!!这我要咋整?
+
                     // 回退当前节点(一个命令)的所有动作(一个组)，按逆序执行
                     var reversedActions = currentNode.Actions.ToList();
                     reversedActions.Reverse();
@@ -316,7 +328,7 @@ public class EnhancedActionLogger : IDisposable
             if (AsyncCmds.Count == 0)
             {
                 _isExecutingUndoRedo = false;
-                StartCommandContext("无命令");
+                StartCommandContext("<无命令>");
             }
         }
     }
@@ -333,7 +345,7 @@ public class EnhancedActionLogger : IDisposable
             return;
         }
 
-        EndCommandContext("无命令");
+        EndCommandContext("<无命令>");
 
         _isExecutingUndoRedo = true;
 
@@ -390,7 +402,7 @@ public class EnhancedActionLogger : IDisposable
             if (AsyncCmds.Count == 0)
             {
                 _isExecutingUndoRedo = false;
-                StartCommandContext("无命令");
+                StartCommandContext("<无命令>");
             }
         }
     }

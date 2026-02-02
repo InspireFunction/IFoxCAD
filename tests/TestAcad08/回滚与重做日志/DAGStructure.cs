@@ -31,6 +31,8 @@ public class ActionDAG
     // 添加动作
     public VersionNode AddAction(IAction action, string commandContext)
     {
+        Env.Printl($"[DEBUG-ADD] AddAction called: CommandContext={commandContext}, Action={action.Description}, CurrentNodeContext={Current.CommandContext}, CurrentNodeActionCount={Current.Actions.Count}");
+
         // 检查是否可以添加到当前节点的动作链
         if (CanAddToCurrentNode(action, commandContext))
         {
@@ -39,7 +41,7 @@ public class ActionDAG
             Current.CommandContext = commandContext;
             Current.CalculateHash();
             // 打印日志：加入到现有节点
-            Env.Printl($"[DEBUG] 动作加入到现有节点: 节点ID={Current.Id.Substring(0, 8)}..., 命令上下文={Current.CommandContext}, 动作描述={action.Description}, 动作链长度={Current.Actions.Count}");
+            Env.Printl($"[DEBUG] 动作加入到现有节点: 命令上下文={Current.CommandContext}, 动作描述={action.Description}, 动作链长度={Current.Actions.Count}, 节点ID={Current.Id.Substring(0, 8)}...");
             return Current;
         }
 
@@ -49,7 +51,7 @@ public class ActionDAG
         Current.Children.Add(node);
         Current = node;
         // 打印日志：创建新节点
-        Env.Printl($"[DEBUG] 动作创建新节点: 节点ID={node.Id.Substring(0, 8)}..., 命令上下文={node.CommandContext}, 动作描述={action.Description}");
+        Env.Printl($"[DEBUG] 动作创建新节点: 命令上下文={node.CommandContext}, 动作描述={action.Description}, 节点ID={node.Id.Substring(0, 8)}...");
         return node;
     }
 
@@ -62,8 +64,14 @@ public class ActionDAG
 
         // 情况1：当前节点是<有命令>，只有当动作是同一命令的后续修改时才加入
         // 例如：CIRCLE命令中先创建圆，再修改圆的属性
-        if (commandContext != "无命令")
+        if (commandContext != "<无命令>")
         {
+            // 特殊处理某些复合命令，如REFCLOSE，让其所有相关操作都在同一节点中
+            if (IsCompositeCommand(commandContext) && Current.CommandContext == commandContext)
+            {
+                return true;
+            }
+
             // 检查当前节点的命令上下文是否与新动作的命令上下文相同
             // 但更重要的是，检查当前节点是否已经包含了创建实体的动作
             // 如果已经包含了创建实体的动作，就不应该再添加新的创建实体动作
@@ -86,7 +94,7 @@ public class ActionDAG
         }
 
         // 情况2：当前节点是<无命令>，检查动作链条末尾是否是相同图元id
-        if (commandContext == "无命令" && Current.LastAction != null)
+        if (commandContext == "<无命令>" && Current.LastAction != null)
         {
             // 检查当前动作是否是实体动作
             if (action is EntityAction newEntityAction && Current.LastAction is EntityAction lastEntityAction)
@@ -115,6 +123,15 @@ public class ActionDAG
 
         // 其他情况不能加入
         return false;
+    }
+
+    // 这里没有组块,因为可能是两次组块
+    public static HashSet<string> RevCmdMap = ["BEDIT", "BCLOSE", "REFEDIT", "REFCLOSE"];
+
+    // 判断是否为复合命令，这些命令的所有操作都应该聚合到一个节点
+    private bool IsCompositeCommand(string commandContext)
+    {
+        return RevCmdMap.Contains(commandContext);
     }
 
     // 添加分支
@@ -337,6 +354,7 @@ public class RootAction : ActionBase
 }
 
 // 版本节点
+[DebuggerDisplay("CommandContext = {CommandContext}, Id = {Id}")]
 public class VersionNode
 {
     /// <summary>
@@ -366,7 +384,7 @@ public class VersionNode
     /// <summary>
     /// 节点的命令上下文
     /// </summary>
-    public string CommandContext { get; set; } = "无命令";
+    public string CommandContext { get; set; } = "<无命令>";
 
     // 快捷属性：获取第一个动作的描述
     public IAction FirstAction => Actions.FirstOrDefault();
