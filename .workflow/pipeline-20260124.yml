@@ -31,7 +31,7 @@ stages:
           - dotnet restore
           - '# 构建项目'
           - dotnet build IFoxCAD.slnx -c Release /p:EnableWindowsTargeting=true
-          - dotnet pack IFoxCAD.slnx -c Release --no-build -o ./packages /p:EnableWindowsTargeting=true
+          
           - '# 返回根目录推送包'
           - dotnet nuget push ./packages/*.nupkg --api-key ${NUGET_AUTH_TOKEN} --source https://api.nuget.org/v3/index.json --skip-duplicate
         strategy: {}
