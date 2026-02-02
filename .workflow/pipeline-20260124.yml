@@ -6,7 +6,7 @@ triggers:
   push:
     branches:
       precise:
-        - main
+        - v0.9
     paths:
       precise:
         - src/Directory.Build.props
@@ -23,7 +23,7 @@ stages:
       - step: build@dotnet
         name: build_dotnet
         displayName: .NET Core 构建
-        dotnetVersion: '8.0'
+        dotnetVersion: '10.0'
         commands:
           - '# 显示当前目录和文件结构'
           - pwd && ls -la
