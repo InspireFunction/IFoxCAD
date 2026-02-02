@@ -30,8 +30,8 @@ stages:
           - '# 恢复依赖'
           - dotnet restore
           - '# 构建项目'
-          - dotnet build -c Release
-          - dotnet pack -c Release --no-build -o ./packages
+          - dotnet build IFoxCAD.slnx -c Release 
+          - dotnet pack IFoxCAD.slnx -c Release --no-build -o ./packages
           - '# 返回根目录推送包'
           - dotnet nuget push ./packages/*.nupkg --api-key ${NUGET_AUTH_TOKEN} --source https://api.nuget.org/v3/index.json --skip-duplicate
         strategy: {}
