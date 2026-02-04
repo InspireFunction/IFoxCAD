@@ -13,10 +13,11 @@
   <Folder Name="/tests/">
     <Project Path="tests/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />
     <Project Path="tests/IFoxCAD.WPF/IFoxCAD.WPF.csproj" />
+    <Project Path="tests/PEInfoTest/PEInfoTest.csproj" />
     <Project Path="tests/TestAcad08/TestAcad08.csproj" />
     <Project Path="tests/TestAcad09plus/TestAcad09plus.csproj" />
     <Project Path="tests/TestConsole/TestConsole.csproj" />
     <Project Path="tests/TestShared/TestShared.shproj" />
-    <Project Path="tests/TestUndoDAG/ConsoleTestUndoDAG.csproj" />
+    <Project Path="tests/TestVolatileNET35/TestVolatileNET35.csproj" />
   </Folder>
 </Solution>

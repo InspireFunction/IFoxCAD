@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net35</TargetFramework>
+        <LangVersion>7.3</LangVersion>
+        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <Compile Include="..\..\src\CADShared\Basal\CLS\Volatile.cs" Link="Volatile.cs" />
+    </ItemGroup>
+
+</Project>

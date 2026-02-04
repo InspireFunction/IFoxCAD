@@ -113,4 +113,37 @@ public class Cmd
             }
         }
     }
+
+    [IFoxInitialize(Sequence.EndDocs)]
+    public void Terminate(Document doc)
+    {
+        try
+        {
+            // 卸载空闲事件
+            AcadIdleManager.OnIdle -= AcadIdleManager_OnIdle;
+
+            // 停止文件监控
+            if (_settingsWatcher != null)
+            {
+                _settingsWatcher.EnableRaisingEvents = false;
+                _settingsWatcher.Dispose();
+                _settingsWatcher = null;
+            }
+
+            // 移除文档反应器
+            DocReactor.RemoveReactor();
+
+            // 卸载钩子
+            IMEControl.UnIMEHook();
+
+            // 移除状态栏面板
+            StatusBar.IMERemovePane();
+
+            Env.Printl("※拦截输入法控制※ 已安全卸载");
+        }
+        catch (Exception ex)
+        {
+            Env.Printl("※拦截输入法控制※ 卸载时出错: " + ex.Message);
+        }
+    }
 }

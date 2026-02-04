@@ -37,7 +37,7 @@ namespace System.Collections
         /// <returns>一个整数，指示当前对象是否小于、等于或大于指定对象。</returns>
         int CompareTo(object? other, IComparer comparer);
     }
-    
+
     /// <summary>
     /// 定义用于结构相等比较的方法。
     /// </summary>
@@ -50,7 +50,7 @@ namespace System.Collections
         /// <param name="comparer">用于比较的比较器。</param>
         /// <returns>如果当前对象等于指定对象，则返回true；否则返回false。</returns>
         bool Equals(object? other, IEqualityComparer comparer);
-        
+
         /// <summary>
         /// 获取当前对象的哈希码，使用指定的比较器。
         /// </summary>

@@ -429,7 +429,7 @@ public class Copyclip
             /// 克隆进块表记录
             /// 动态块粘贴之后,用ctrl+z导致动态块特性无法恢复,
             /// 是因为它: <see cref="DuplicateRecordCloning.Replace"/>
-            using IdMapping map = new();
+            using IdMapping map = [];
             using ObjectIdCollection idc = new(fileEntityIds.ToArray());
             tr.Task(() => {
                 tr.Database.WblockCloneObjects(

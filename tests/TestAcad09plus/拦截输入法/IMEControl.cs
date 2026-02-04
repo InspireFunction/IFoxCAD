@@ -1,4 +1,4 @@
-﻿namespace Gstar_IMEFilter;
+namespace Gstar_IMEFilter;
 
 using System.Diagnostics;
 using System.Linq;
@@ -63,56 +63,71 @@ public class IMEControl
     // 命令结束反应器
     static void Doc_CommandEnded(object sender, CommandEventArgs e)
     {
-        /*
-         * 英文状态 IsStop
-         * 英文状态和被程序切换 IsStop && IsExceptional
-         * 中文状态 IsBreak
-         * 中文状态和被程序切换 IsBreak && IsExceptional
-         * 保持不变 IsCancel
-         * 钩子不走任何 !Run 状态
-         */
-        // 如果程序切换了,就恢复原本的
-        // 当前是英文状态被切换到中文(当前),{然后用户切换了英文,此时应该保证是用户},而不是发送切换(会这样变成中文)
-        if (Settings.AutoEn2Cn.Contains(e.GlobalCommandName))
+        try
         {
-            if (_sendKeyState.IsStop && _sendKeyState.IsExceptional)
+            /*
+             * 英文状态 IsStop
+             * 英文状态和被程序切换 IsStop && IsExceptional
+             * 中文状态 IsBreak
+             * 中文状态和被程序切换 IsBreak && IsExceptional
+             * 保持不变 IsCancel
+             * 钩子不走任何 !Run 状态
+             */
+            // 如果程序切换了,就恢复原本的
+            // 当前是英文状态被切换到中文(当前),{然后用户切换了英文,此时应该保证是用户},而不是发送切换(会这样变成中文)
+            if (Settings.AutoEn2Cn.Contains(e.GlobalCommandName))
             {
-                if (IsOpenIEM())
+                if (_sendKeyState.IsStop && _sendKeyState.IsExceptional)
                 {
-                    SendKey();
-                    DebugEx.Printl("恢复}", false);
+                    if (IsOpenIEM())
+                    {
+                        SendKey();
+                        DebugEx.Printl("恢复}", false);
+                    }
+                    else
+                    {
+                        DebugEx.Printl("不恢复}");
+                    }
                 }
-                else
-                {
-                    DebugEx.Printl("不恢复}");
-                }
+                _sendKeyState.Reset();
             }
-            _sendKeyState.Reset();
+            if (Settings.AutoCn2En.Contains(e.GlobalCommandName))
+            {
+                if (_sendKeyState.IsBreak && _sendKeyState.IsExceptional)
+                {
+                    if (!IsOpenIEM())
+                    {
+                        SendKey();
+                        DebugEx.Printl("恢复}");
+                    }
+                    else
+                    {
+                        DebugEx.Printl("不恢复}");
+                    }
+                }
+                _sendKeyState.Reset();
+            }
         }
-        if (Settings.AutoCn2En.Contains(e.GlobalCommandName))
+        catch (Exception ex)
         {
-            if (_sendKeyState.IsBreak && _sendKeyState.IsExceptional)
-            {
-                if (!IsOpenIEM())
-                {
-                    SendKey();
-                    DebugEx.Printl("恢复}");
-                }
-                else
-                {
-                    DebugEx.Printl("不恢复}");
-                }
-            }
+            DebugEx.Printl($"Doc_CommandEnded 异常: {ex.Message}");
             _sendKeyState.Reset();
         }
     }
     // 命令开始反应器
     static void Doc_CommandWillStart(object sender, CommandEventArgs e)
     {
-        if (Settings.AutoCn2En.Contains(e.GlobalCommandName))
+        try
         {
-            IMESwitch_AutoCn2En();
-            return;
+            if (Settings.AutoCn2En.Contains(e.GlobalCommandName))
+            {
+                IMESwitch_AutoCn2En();
+                return;
+            }
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"Doc_CommandWillStart 异常: {ex.Message}");
         }
     }
 
@@ -123,10 +138,23 @@ public class IMEControl
     /// <returns></returns>
     static bool IsOpenIEM()
     {
-        var focusW = WindowsAPI.GetForegroundWindow();
-        var context = WindowsAPI.ImmGetContext(focusW);
-        WindowsAPI.ImmGetConversionStatus(context, out int mode/*输入模式*/, out _);
-        return WindowsAPI.ImmGetOpenStatus(context);
+        try
+        {
+            var focusW = WindowsAPI.GetForegroundWindow();
+            if (focusW == IntPtr.Zero || !WindowsAPI.IsWindow(focusW))
+                return false;
+
+            var context = WindowsAPI.ImmGetContext(focusW);
+            if (context == IntPtr.Zero)
+                return false;
+
+            WindowsAPI.ImmGetConversionStatus(context, out int mode/*输入模式*/, out _);
+            return WindowsAPI.ImmGetOpenStatus(context);
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     /// <summary>
@@ -241,55 +269,77 @@ public class IMEControl
     /// </summary>
     internal static void SetIMEHook()
     {
-        UnIMEHook();
-        if (_nextHookProc != IntPtr.Zero)
-            return;
-
-        if (Settings.IMEHookStyle == IMEHookStyle.Process)
+        try
         {
-            DebugEx.Printl($"切换到进程钩子控制:{DateTime.Now}");
-            _hookProc = (nCode, wParam, lParam) => {
-                if (nCode >= 0)
-                {
-                    // 高版本cad基本上不能用进程钩子:
-                    // 搜狗输入法如果连续按着,那么此时拦截失效
-                    var lp = lParam.ToInt64();
-                    if ((lp > 0) && ((lp & 0xC0000001) == 1))//按下某个键
+            UnIMEHook();
+            if (_nextHookProc != IntPtr.Zero)
+                return;
+
+            if (Settings.IMEHookStyle == IMEHookStyle.Process)
+            {
+                DebugEx.Printl($"切换到进程钩子控制:{DateTime.Now}");
+                _hookProc = (nCode, wParam, lParam) => {
+                    try
                     {
-                        // 如果是ctrl就跳过
-                        if (Control.ModifierKeys == Keys.None || Control.ModifierKeys == Keys.Shift)
+                        if (nCode >= 0)
                         {
-                            DebugEx.Printl($"进程钩子按了这个{Control.ModifierKeys}^{DateTime.Now}");
-                            if (IMEHook(nCode, wParam, lParam))
+                            // 高版本cad基本上不能用进程钩子:
+                            // 搜狗输入法如果连续按着,那么此时拦截失效
+                            var lp = lParam.ToInt64();
+                            if ((lp > 0) && ((lp & 0xC0000001) == 1))//按下某个键
                             {
-                                DebugEx.Printl($"进程钩子拦截成功^{DateTime.Now}");
-                                return (IntPtr)1;
+                                // 如果是ctrl就跳过
+                                if (Control.ModifierKeys == Keys.None || Control.ModifierKeys == Keys.Shift)
+                                {
+                                    DebugEx.Printl($"进程钩子按了这个{Control.ModifierKeys}^{DateTime.Now}");
+                                    if (IMEHook(nCode, wParam, lParam))
+                                    {
+                                        DebugEx.Printl($"进程钩子拦截成功^{DateTime.Now}");
+                                        return (IntPtr)1;
+                                    }
+                                }
                             }
                         }
                     }
-                }
-                return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
-            };
-            _nextHookProc = WindowsAPI.SetWindowsHookEx(
-                HookType.WH_KEYBOARD, _hookProc, IntPtr.Zero, WindowsAPI.GetCurrentThreadId());
-        }
-        else if (Settings.IMEHookStyle == IMEHookStyle.Global)
-        {
-            DebugEx.Printl($"切换到全局钩子控制:{DateTime.Now}");
-            var moduleHandle = WindowsAPI.GetModuleHandle(_process.MainModule.ModuleName);
-            _hookProc = (nCode, wParam, lParam) => {
-                if (nCode >= 0)
-                {
-                    if (!MK1(wParam) && Mk2(nCode, wParam, lParam))
-                        return (IntPtr)1;
-                }
-                return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
-            };
-            _nextHookProc = WindowsAPI.SetWindowsHookEx(
-                HookType.WH_KEYBOARD_LL, _hookProc, moduleHandle, 0);
-        }
+                    catch
+                    {
+                        // 吞掉异常，防止崩溃
+                    }
+                    return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
+                };
+                _nextHookProc = WindowsAPI.SetWindowsHookEx(
+                    HookType.WH_KEYBOARD, _hookProc, IntPtr.Zero, WindowsAPI.GetCurrentThreadId());
+            }
+            else if (Settings.IMEHookStyle == IMEHookStyle.Global)
+            {
+                DebugEx.Printl($"切换到全局钩子控制:{DateTime.Now}");
+                var moduleHandle = WindowsAPI.GetModuleHandle(_process.MainModule.ModuleName);
+                _hookProc = (nCode, wParam, lParam) => {
+                    try
+                    {
+                        if (nCode >= 0)
+                        {
+                            if (!MK1(wParam) && Mk2(nCode, wParam, lParam))
+                                return (IntPtr)1;
+                        }
+                    }
+                    catch
+                    {
+                        // 吞掉异常，防止崩溃
+                    }
+                    return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
+                };
+                _nextHookProc = WindowsAPI.SetWindowsHookEx(
+                    HookType.WH_KEYBOARD_LL, _hookProc, moduleHandle, 0);
+            }
 
-        _TangentTextEditHook = new();
+            _TangentTextEditHook = new();
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"SetIMEHook 异常: {ex.Message}");
+            UnIMEHook();
+        }
     }
 
     /// <summary>
@@ -304,27 +354,34 @@ public class IMEControl
     /// <returns></returns>
     static bool ExceptCmds_AutoEn2Cn_Task()
     {
-        var dm = Acap.DocumentManager;
-        if (dm.Count == 0)
-            return false;
-        var doc = dm.MdiActiveDocument;
-        if (doc == null)
-            return false;
-        if (!WindowsAPI.IsWindowEnabled(Acap.MainWindow.Handle))
-            return false;
-
-        // 豁免命令进行中输入会触发,实现在豁免命令中允许输入法
-        string input = doc.CommandInProgress;
-        Match match = CMDReg.Match(input);
-        if (match.Success)
-            input = input.Substring(checked(match.Index + 3), checked(match.Length - 4));
-
-        if (Settings.AutoEn2Cn.Contains(input.ToUpper()))
+        try
         {
-            IMESwitch_AutoEn2Cn();
+            var dm = Acap.DocumentManager;
+            if (dm == null || dm.Count == 0)
+                return false;
+            var doc = dm.MdiActiveDocument;
+            if (doc == null || doc.IsDisposed)
+                return false;
+            if (!WindowsAPI.IsWindowEnabled(Acap.MainWindow.Handle))
+                return false;
+
+            // 豁免命令进行中输入会触发,实现在豁免命令中允许输入法
+            string input = doc.CommandInProgress;
+            Match match = CMDReg.Match(input);
+            if (match.Success)
+                input = input.Substring(checked(match.Index + 3), checked(match.Length - 4));
+
+            if (Settings.AutoEn2Cn.Contains(input.ToUpper()))
+            {
+                IMESwitch_AutoEn2Cn();
+                return false;
+            }
+            return true;
+        }
+        catch
+        {
             return false;
         }
-        return true;
     }
 
     /// <summary>
@@ -336,103 +393,125 @@ public class IMEControl
     /// <returns>false不终止回调,true终止回调</returns>
     public static bool IMEHook(int nCode, int wParam, IntPtr lParam)
     {
-        if (_sendKeyState.IsExceptional)
-            return false;
-
-        // 键盘按键值
-        if ((65 <= wParam && wParam <= 90/*a~z*/) ||
-            (48 <= wParam && wParam <= 57/*数字键*/) ||
-            (96 <= wParam && wParam <= 105/*小数字键盘数字*/) ||
-             wParam == 27/*esc*/ ||
-             wParam == 32/*空格*/ ||
-             wParam == 13/*回车,大小回车都是它*/ ||
-             wParam == 186/*;*/ ||
-             wParam == 187/*=*/ ||
-             wParam == 188/*,*/ ||
-             wParam == 189/*-*/ ||
-             wParam == 190/*.*/ ||
-             wParam == 191/*?*/ ||
-             wParam == 192/*`~*/ ||
-             wParam == 219/*[*/ ||
-             wParam == 220/*\*/ ||
-             wParam == 221/*]*/ ||
-             wParam == 222/*'*/ ||
-             wParam == 223 ||
-             wParam == 110/*小数字键盘.*/)
+        try
         {
-            //Debugx.Printl(wParam);
-
-            // 先判断键入的数字更快,再判断豁免命令
-            if (!ExceptCmds_AutoEn2Cn_Task())
+            if (_sendKeyState.IsExceptional)
                 return false;
 
-            var focus = WindowsAPI.GetFocus();
-            WindowsAPI.GetClassName(focus, _lpClassName, checked(_lpClassName.Capacity + 1));
-            string left = _lpClassName.ToString().ToLower();
-            if (left.StartsWith("afx"))// 在08输入的都从这里进入
+            // 键盘按键值
+            if ((65 <= wParam && wParam <= 90/*a~z*/) ||
+                (48 <= wParam && wParam <= 57/*数字键*/) ||
+                (96 <= wParam && wParam <= 105/*小数字键盘数字*/) ||
+                 wParam == 27/*esc*/ ||
+                 wParam == 32/*空格*/ ||
+                 wParam == 13/*回车,大小回车都是它*/ ||
+                 wParam == 186/*;*/ ||
+                 wParam == 187/*=*/ ||
+                 wParam == 188/*,*/ ||
+                 wParam == 189/*-*/ ||
+                 wParam == 190/*.*/ ||
+                 wParam == 191/*?*/ ||
+                 wParam == 192/*`~*/ ||
+                 wParam == 219/*[*/ ||
+                 wParam == 220/*\*/ ||
+                 wParam == 221/*]*/ ||
+                 wParam == 222/*'*/ ||
+                 wParam == 223 ||
+                 wParam == 110/*小数字键盘.*/)
             {
+                //Debugx.Printl(wParam);
+
+                // 先判断键入的数字更快,再判断豁免命令
+                if (!ExceptCmds_AutoEn2Cn_Task())
+                    return false;
+
+                var focus = WindowsAPI.GetFocus();
+                if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
+                    return false;
+
+                WindowsAPI.GetClassName(focus, _lpClassName, checked(_lpClassName.Capacity + 1));
+                string left = _lpClassName.ToString().ToLower();
+                if (left.StartsWith("afx"))// 在08输入的都从这里进入
                 {
-                    var focusW = WindowsAPI.GetForegroundWindow();
-                    WindowsAPI.GetClassName(focusW, _lpClassName, checked(_lpClassName.Capacity + 1));
-                    left = _lpClassName.ToString().ToLower();
-                    // cad08启动时候会滚动某些信息,此时鼠标狂点入到vs代码编辑器中,然后等一段时间cad完成,vs就会无法输入了.
-                    // 会被拦截到了这个"afx"处理,所有的输入都跑cad了,需要加入如下代码进行处理:
-                    // 狂点鼠标进入vs是 hwndwrapper
-                    // 狂点鼠标进入qq是 txguifoundation
-                    // Debugx.Printl($"afx...{left}...{DateTime.Now}");
-                    if (!left.StartsWith("afx"))
                     {
-                        DebugEx.Printl($"afx...拦截...{DateTime.Now}");
+                        var focusW = WindowsAPI.GetForegroundWindow();
+                        if (focusW == IntPtr.Zero || !WindowsAPI.IsWindow(focusW))
+                            return false;
+
+                        WindowsAPI.GetClassName(focusW, _lpClassName, checked(_lpClassName.Capacity + 1));
+                        left = _lpClassName.ToString().ToLower();
+                        // cad08启动时候会滚动某些信息,此时鼠标狂点入到vs代码编辑器中,然后等一段时间cad完成,vs就会无法输入了.
+                        // 会被拦截到了这个"afx"处理,所有的输入都跑cad了,需要加入如下代码进行处理:
+                        // 狂点鼠标进入vs是 hwndwrapper
+                        // 狂点鼠标进入qq是 txguifoundation
+                        // Debugx.Printl($"afx...{left}...{DateTime.Now}");
+                        if (!left.StartsWith("afx"))
+                        {
+                            DebugEx.Printl($"afx...拦截...{DateTime.Now}");
+                            return false;
+                        }
+                    }
+                    WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x10001));
+                    return true;
+                }
+
+                if (left.StartsWith("hwndwrapper"))//cad21会进入
+                {
+                    DebugEx.Printl($"hwndwrapper::{DateTime.Now}");
+
+                    var parent = WindowsAPI.GetParent(focus);
+                    if (parent == IntPtr.Zero)
                         return false;
+                    StringBuilder lpString = new(byte.MaxValue);
+                    WindowsAPI.GetWindowText(parent, lpString, checked(lpString.Capacity + 1));
+                    if (lpString.ToString().ToLower() != "cli palette")//"CLI Palette".ToLower()
+                    {
+                        WindowsAPI.GetClassName(parent, _lpClassName, checked(_lpClassName.Capacity + 1));
+                        if (!_lpClassName.ToString().ToLower().StartsWith("afxmdiframe"))
+                            return false;
+                    }
+                    WindowsAPI.PostMessage(focus, WM_KEYUP, new IntPtr(wParam), new IntPtr(0x10001));
+                    return true;
+                }
+
+                if (left.StartsWith("edit"))
+                {
+                    DebugEx.Printl($"edit::{DateTime.Now}");
+
+                    var parent = WindowsAPI.GetParent(focus);
+                    if (parent == IntPtr.Zero)
+                        return false;
+
+                    WindowsAPI.GetClassName(parent, _lpClassName, checked(_lpClassName.Capacity + 1));
+
+                    var dm = Acap.DocumentManager;
+                    if (dm == null || dm.Count == 0)
+                        return false;
+
+                    var doc = dm.MdiActiveDocument;
+                    if (doc == null || doc.IsDisposed)
+                        return false;
+
+                    if (_lpClassName.ToString().ToLower().StartsWith("afx") &&
+                        WindowsAPI.GetParent(parent) != doc.Window.Handle)
+                    {
+                        WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x390001/*3735553*/));
+                        return true;
                     }
                 }
-                WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x10001));
-                return true;
-            }
 
-            if (left.StartsWith("hwndwrapper"))//cad21会进入
-            {
-                DebugEx.Printl($"hwndwrapper::{DateTime.Now}");
-
-                var parent = WindowsAPI.GetParent(focus);
-                if (parent == IntPtr.Zero)
-                    return false;
-                StringBuilder lpString = new(byte.MaxValue);
-                WindowsAPI.GetWindowText(parent, lpString, checked(lpString.Capacity + 1));
-                if (lpString.ToString().ToLower() != "cli palette")//"CLI Palette".ToLower()
+                if (left == "cicerouiwndframe")
                 {
-                    WindowsAPI.GetClassName(parent, _lpClassName, checked(_lpClassName.Capacity + 1));
-                    if (!_lpClassName.ToString().ToLower().StartsWith("afxmdiframe"))
-                        return false;
-                }
-                WindowsAPI.PostMessage(focus, WM_KEYUP, new IntPtr(wParam), new IntPtr(0x10001));
-                return true;
-            }
-
-            if (left.StartsWith("edit"))
-            {
-                DebugEx.Printl($"edit::{DateTime.Now}");
-
-                var parent = WindowsAPI.GetParent(focus);
-                WindowsAPI.GetClassName(parent, _lpClassName, checked(_lpClassName.Capacity + 1));
-
-                var dm = Acap.DocumentManager;
-                var doc = dm.MdiActiveDocument;
-                if (_lpClassName.ToString().ToLower().StartsWith("afx") &&
-                    WindowsAPI.GetParent(parent) != doc.Window.Handle)
-                {
-                    WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x390001/*3735553*/));
+                    DebugEx.Printl($"cicerouiwndframe::{DateTime.Now}");
                     return true;
                 }
             }
-
-            if (left == "cicerouiwndframe")
-            {
-                DebugEx.Printl($"cicerouiwndframe::{DateTime.Now}");
-                return true;
-            }
+            return false;
         }
-        return false;
+        catch
+        {
+            return false;
+        }
     }
 
     static bool MK1(int wParam)
@@ -446,36 +525,46 @@ public class IMEControl
 
     static bool Mk2(int nCode, int wParam, IntPtr lParam)
     {
-        IntPtr focus;
-        if (Marshal.SizeOf(typeof(IntPtr)) == 4)
-            focus = WindowsAPI.GetFocus();
-        else
-            focus = WindowsAPI.GetForegroundWindow();
-
-        WindowsAPI.GetWindowThreadProcessId(focus, out uint lpdwProcessId);
-        if (lpdwProcessId != _process.Id)
-            return false;
-
-        WindowsAPI.KeyboardHookStruct? key = null;
-        if (Control.ModifierKeys == Keys.None)
+        try
         {
-            key = WindowsAPI.KeyboardHookStruct.Create(lParam);
-            if (WindowsAPI.GetKeyState(162) < 0 ||
-                WindowsAPI.GetKeyState(163) < 0 ||
-                WindowsAPI.GetKeyState(17) < 0 ||
-                WindowsAPI.GetKeyState(262144/*alt键*/) < 0)
+            IntPtr focus;
+            if (Marshal.SizeOf(typeof(IntPtr)) == 4)
+                focus = WindowsAPI.GetFocus();
+            else
+                focus = WindowsAPI.GetForegroundWindow();
+
+            if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
                 return false;
 
-            if (IMEHook(nCode, key.Value.VkCode, IntPtr.Zero))
-                return true;
+            WindowsAPI.GetWindowThreadProcessId(focus, out uint lpdwProcessId);
+            if (lpdwProcessId != _process.Id)
+                return false;
+
+            WindowsAPI.KeyboardHookStruct? key = null;
+            if (Control.ModifierKeys == Keys.None)
+            {
+                key = WindowsAPI.KeyboardHookStruct.Create(lParam);
+                if (WindowsAPI.GetKeyState(162) < 0 ||
+                    WindowsAPI.GetKeyState(163) < 0 ||
+                    WindowsAPI.GetKeyState(17) < 0 ||
+                    WindowsAPI.GetKeyState(262144/*alt键*/) < 0)
+                    return false;
+
+                if (IMEHook(nCode, key.Value.VkCode, IntPtr.Zero))
+                    return true;
+            }
+            else if (Control.ModifierKeys == Keys.Shift)
+            {
+                key ??= WindowsAPI.KeyboardHookStruct.Create(lParam);
+                if (IMEHook(nCode, key.Value.VkCode, IntPtr.Zero))
+                    return true;
+            }
+            return false;
         }
-        else if (Control.ModifierKeys == Keys.Shift)
+        catch
         {
-            key ??= WindowsAPI.KeyboardHookStruct.Create(lParam);
-            if (IMEHook(nCode, key.Value.VkCode, IntPtr.Zero))
-                return true;
+            return false;
         }
-        return false;
     }
 
     /// <summary>

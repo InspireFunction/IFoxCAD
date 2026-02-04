@@ -109,6 +109,15 @@ public static class PInvokeCad
         };
         return res;
     }
+
+    /// <summary>
+    /// 刷新指定图层
+    /// </summary>
+    /// <param name="arrayPtr">ObjectId数组指针</param>
+    /// <param name="mode">模式参数</param>
+    [DllImport("acad.exe", CallingConvention = CallingConvention.Cdecl,
+        EntryPoint = "?acedRegenLayers@@YGXABV?$AcArray@VAcDbObjectId@@V?$AcArrayMemCopyReallocator@VAcDbObjectId@@@@@@H@Z")]
+    public static extern void AcedRegenLayers(IntPtr arrayPtr, int mode);
 #endif
 }
 

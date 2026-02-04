@@ -4,44 +4,85 @@ public class DocReactor
 {
     internal static void IntialReactor()
     {
-        var dm = Acap.DocumentManager;
-        // 现有文档
-        foreach (Document doc in dm)
-            doc.CommandWillStart += CommandWillStart;
-        // 文档创建事件
-        dm.DocumentCreated += DocumentCreated;
+        try
+        {
+            var dm = Acap.DocumentManager;
+            // 现有文档
+            foreach (Document doc in dm)
+            {
+                if (doc != null && !doc.IsDisposed)
+                    doc.CommandWillStart += CommandWillStart;
+            }
+            // 文档创建事件
+            dm.DocumentCreated += DocumentCreated;
+        }
+        catch (Exception ex)
+        {
+            Env.Printl("※拦截输入法控制※ 初始化反应器时出错: " + ex.Message);
+        }
     }
 
     internal static void RemoveReactor()
     {
-        var dm = Acap.DocumentManager;
-        // 现有文档
-        foreach (Document doc in dm)
-            doc.CommandWillStart -= CommandWillStart;
-        // 文档创建事件
-        dm.DocumentCreated -= DocumentCreated;
+        try
+        {
+            var dm = Acap.DocumentManager;
+            // 现有文档
+            foreach (Document doc in dm)
+            {
+                if (doc != null && !doc.IsDisposed)
+                    doc.CommandWillStart -= CommandWillStart;
+            }
+            // 文档创建事件
+            dm.DocumentCreated -= DocumentCreated;
+        }
+        catch (Exception ex)
+        {
+            Env.Printl("※拦截输入法控制※ 移除反应器时出错: " + ex.Message);
+        }
     }
 
     static void DocumentCreated(object sender, DocumentCollectionEventArgs e)
     {
-        e.Document.CommandWillStart += CommandWillStart;
+        try
+        {
+            if (e.Document != null && !e.Document.IsDisposed)
+                e.Document.CommandWillStart += CommandWillStart;
+        }
+        catch (Exception ex)
+        {
+            Env.Printl("※拦截输入法控制※ 文档创建事件处理出错: " + ex.Message);
+        }
     }
 
     static void CommandWillStart(object sender, CommandEventArgs e)
     {
-#if ac2008
-        if (Settings.IMEInputSwitch == IMESwitchMode.Disable)
-            return; 
-#else
-        if (Settings.IMEInputSwitch == IMESwitchMode.Disable ||
-          ((Document)sender).Editor.IsQuiescentForTransparentCommand)
-            return;
-#endif
-        var gName = e.GlobalCommandName;
-        if (gName == "-HATCHEDIT" || gName == "UNDO")
-            return;
+        try
+        {
+            if (sender is not Document doc)
+                return;
 
-        // 此函数将焦点设置为视图：
-        Autodesk.AutoCAD.Internal.Utils.SetFocusToDwgView();
+            if (doc.IsDisposed)
+                return;
+
+#if ac2008
+            if (Settings.IMEInputSwitch == IMESwitchMode.Disable)
+                return;
+#else
+            if (Settings.IMEInputSwitch == IMESwitchMode.Disable ||
+              doc.Editor.IsQuiescentForTransparentCommand)
+                return;
+#endif
+            var gName = e.GlobalCommandName;
+            if (gName == "-HATCHEDIT" || gName == "UNDO")
+                return;
+
+            // 此函数将焦点设置为视图：
+            Autodesk.AutoCAD.Internal.Utils.SetFocusToDwgView();
+        }
+        catch (Exception ex)
+        {
+            Env.Printl("※拦截输入法控制※ 命令开始事件处理出错: " + ex.Message);
+        }
     }
 }

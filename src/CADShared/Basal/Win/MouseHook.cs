@@ -141,105 +141,112 @@ public class MouseHook
     /// <returns>false不终止回调,true终止回调</returns>
     bool HookTask(int nCode, int wParam, IntPtr lParam)
     {
-        if (MouseDown is null
-         && MouseUp is null
-         && MouseMove is null
-         && MouseWheel is null
-         && Click is null
-         && DoubleClick is null)
-            return false;
-
-        _button = MouseButtons.None;
-        _clickCount = 0;
-        _down = false;
-        _up = false;
-        _ck = false;
-
-        switch ((WM)wParam)
+        try
         {
-            case WM.WM_LBUTTONDOWN:
-            _button = MouseButtons.Left;
-            _clickCount = 1;
-            _down = true;
-            _ck = true;
-            break;
-            case WM.WM_LBUTTONUP:
-            _button = MouseButtons.Left;
-            _clickCount = 1;
-            _up = true;
-            break;
-            case WM.WM_LBUTTONDBLCLK:
-            _button = MouseButtons.Left;
-            _clickCount = 2;
-            _ck = true;
-            break;
-            case WM.WM_RBUTTONDOWN:
-            _button = MouseButtons.Right;
-            _clickCount = 1;
-            _down = true;
-            _ck = true;
-            break;
-            case WM.WM_RBUTTONUP:
-            _button = MouseButtons.Right;
-            _clickCount = 1;
-            _up = true;
-            break;
-            case WM.WM_RBUTTONDBLCLK:
-            _button = MouseButtons.Right;
-            _clickCount = 2;
-            _ck = true;
-            break;
-            case WM.WM_MBUTTONDOWN:
-            _button = MouseButtons.Middle;
-            _clickCount = 1;
-            _ck = true;
-            break;
-            case WM.WM_MOUSEWHEEL:
-            // 滚轮
-            break;
-            case WM.WM_MOUSEMOVE:
-            // 移动
-            // 假设想要限制鼠标在屏幕中的移动区域能够在此处设置
-            // 后期须要考虑实际的x y的容差
-            // if (!Screen.PrimaryScreen.Bounds.Contains(e.X, e.Y))
-            //     // return 1;
-            // if (button == MouseButtons.Left)
-            // {
-            //     GetCursorPos(out POINT pt);
-            //     // 防止频繁获取导致出错
-            //     if (pt0ld.Leng(pt) > 20)
-            //         pt0ld = pt;
-            // }
-            break;
-        }
+            if (MouseDown is null
+             && MouseUp is null
+             && MouseMove is null
+             && MouseWheel is null
+             && Click is null
+             && DoubleClick is null)
+                return false;
 
-        // 从回调函数中得到鼠标的信息
-        var mouseMsg = MouseHookStruct.Create(lParam);
-        MouseEventArgs e = new(_button, _clickCount, mouseMsg.Point.X, mouseMsg.Point.Y, 0);
-        if (_down)
-            MouseDown?.Invoke(this, e);
-        if (_up)
-            MouseUp?.Invoke(this, e);
-        if (_ck)
-            Click?.Invoke(this, e);
-        if (_clickCount == 2)
-        {
-            // 如果不用时间控制,那么双击会执行两次
-            if (_watch.Elapsed.TotalMilliseconds > GetDoubleClickTime())
+            _button = MouseButtons.None;
+            _clickCount = 0;
+            _down = false;
+            _up = false;
+            _ck = false;
+
+            switch ((WM)wParam)
             {
-                DoubleClick?.Invoke(this, e);
-                _watch.Reset();
-                _watch.Start();
+                case WM.WM_LBUTTONDOWN:
+                _button = MouseButtons.Left;
+                _clickCount = 1;
+                _down = true;
+                _ck = true;
+                break;
+                case WM.WM_LBUTTONUP:
+                _button = MouseButtons.Left;
+                _clickCount = 1;
+                _up = true;
+                break;
+                case WM.WM_LBUTTONDBLCLK:
+                _button = MouseButtons.Left;
+                _clickCount = 2;
+                _ck = true;
+                break;
+                case WM.WM_RBUTTONDOWN:
+                _button = MouseButtons.Right;
+                _clickCount = 1;
+                _down = true;
+                _ck = true;
+                break;
+                case WM.WM_RBUTTONUP:
+                _button = MouseButtons.Right;
+                _clickCount = 1;
+                _up = true;
+                break;
+                case WM.WM_RBUTTONDBLCLK:
+                _button = MouseButtons.Right;
+                _clickCount = 2;
+                _ck = true;
+                break;
+                case WM.WM_MBUTTONDOWN:
+                _button = MouseButtons.Middle;
+                _clickCount = 1;
+                _ck = true;
+                break;
+                case WM.WM_MOUSEWHEEL:
+                // 滚轮
+                break;
+                case WM.WM_MOUSEMOVE:
+                // 移动
+                // 假设想要限制鼠标在屏幕中的移动区域能够在此处设置
+                // 后期须要考虑实际的x y的容差
+                // if (!Screen.PrimaryScreen.Bounds.Contains(e.X, e.Y))
+                //     // return 1;
+                // if (button == MouseButtons.Left)
+                // {
+                //     GetCursorPos(out POINT pt);
+                //     // 防止频繁获取导致出错
+                //     if (pt0ld.Leng(pt) > 20)
+                //         pt0ld = pt;
+                // }
+                break;
             }
+
+            // 从回调函数中得到鼠标的信息
+            var mouseMsg = MouseHookStruct.Create(lParam);
+            MouseEventArgs e = new(_button, _clickCount, mouseMsg.Point.X, mouseMsg.Point.Y, 0);
+            if (_down)
+                MouseDown?.Invoke(this, e);
+            if (_up)
+                MouseUp?.Invoke(this, e);
+            if (_ck)
+                Click?.Invoke(this, e);
+            if (_clickCount == 2)
+            {
+                // 如果不用时间控制,那么双击会执行两次
+                if (_watch.Elapsed.TotalMilliseconds > GetDoubleClickTime())
+                {
+                    DoubleClick?.Invoke(this, e);
+                    _watch.Reset();
+                    _watch.Start();
+                }
+            }
+            MouseMove?.Invoke(this, e);
+            MouseWheel?.Invoke(this, e);
+
+            // 屏蔽此输入
+            if (_isHookBreak)
+                return true;
+
+            return false;
         }
-        MouseMove?.Invoke(this, e);
-        MouseWheel?.Invoke(this, e);
-
-        // 屏蔽此输入
-        if (_isHookBreak)
-            return true;
-
-        return false;
+        catch
+        {
+            return false;
+        }
     }
 
 

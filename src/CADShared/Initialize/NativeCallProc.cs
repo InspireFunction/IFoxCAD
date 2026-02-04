@@ -222,45 +222,6 @@ public class AcadWindowProc : NativeWindow, IDisposable
 /// </summary>
 public static class AcadIdleManager
 {
-    #region Win32 API补充
-    /// <summary>
-    /// 是窗口
-    /// </summary>
-    /// <param name="hWnd"></param>
-    /// <returns></returns>
-    [DllImport("user32.dll", SetLastError = true)]
-    [return: MarshalAs(UnmanagedType.Bool)]
-    static extern bool IsWindow(IntPtr hWnd);
-
-    [DllImport("user32.dll")]
-    static extern IntPtr GetForegroundWindow();
-
-    [DllImport("user32.dll")]
-    static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
-    #endregion
-
-    /// <summary>
-    /// 检查是否有模态窗口正在活动
-    /// </summary>
-    /// <returns></returns>
-    private static bool IsModalWindowActive()
-    {
-        IntPtr foregroundWindow = GetForegroundWindow();
-        if (foregroundWindow == IntPtr.Zero || foregroundWindow == MainWindowHandle)
-        {
-            // 如果没有前台窗口或前台就是主窗口，则没有模态窗口
-            return false;
-        }
-
-        // 获取前台窗口的进程ID
-        GetWindowThreadProcessId(foregroundWindow, out uint foregroundProcessId);
-        // 获取主窗口的进程ID
-        GetWindowThreadProcessId(MainWindowHandle, out uint mainProcessId);
-
-        // 如果前台窗口与主窗口属于同一进程，且不是主窗口本身，则很可能是模态对话框
-        return foregroundProcessId == mainProcessId && foregroundWindow != MainWindowHandle;
-    }
-
     private static AcadWindowProc? _windowProc;
     private static System.Timers.Timer? _idleTimer;
     private static Control? _dummyControl;
@@ -273,7 +234,6 @@ public static class AcadIdleManager
     private static readonly Dictionary<EventHandler, Action<object, EventArgs>> _eventHandlers = new();
     private static readonly object _handlersLock = new object();
 #endif
-
 
     /// <summary>
     /// 空闲事件间隔（毫秒），默认100ms
@@ -328,13 +288,10 @@ public static class AcadIdleManager
         }
     }
 
-
     static AcadIdleManager()
     {
         Initialize();
     }
-
-
 
     /// <summary>
     /// 初始化2008版本的空闲管理器
@@ -351,6 +308,10 @@ public static class AcadIdleManager
             try
             {
                 MainWindowHandle = Acap.MainWindow.Handle;
+                if (MainWindowHandle == IntPtr.Zero)
+                {
+                    return;
+                }
 
                 // 创建窗口过程拦截器
                 _windowProc = new AcadWindowProc(MainWindowHandle);
@@ -366,7 +327,7 @@ public static class AcadIdleManager
                     {
                         // 检查主窗口句柄是否仍然有效，确保仍在AutoCAD环境中
                         // 并且检查当前没有模态窗口阻塞
-                        if (MainWindowHandle != IntPtr.Zero && IsWindow(MainWindowHandle) && !IsModalWindowActive())
+                        if (MainWindowHandle != IntPtr.Zero && WindowsAPI.IsWindow(MainWindowHandle) && !WindowsAPI.IsModalWindowActive(MainWindowHandle))
                         {
                             _dummyControl.BeginInvoke(new Action(() => {
                                 _windowProc?.DoIdle();
@@ -376,7 +337,7 @@ public static class AcadIdleManager
                     else
                     {
                         // 在主线程上也需要检查主窗口有效性
-                        if (MainWindowHandle != IntPtr.Zero && IsWindow(MainWindowHandle) && !IsModalWindowActive())
+                        if (MainWindowHandle != IntPtr.Zero && WindowsAPI.IsWindow(MainWindowHandle) && !WindowsAPI.IsModalWindowActive(MainWindowHandle))
                         {
                             _windowProc?.DoIdle();
                         }
@@ -413,7 +374,7 @@ public static class AcadIdleManager
                 if (_dummyControl.InvokeRequired)
                 {
                     // 检查主窗口句柄是否仍然有效，确保仍在AutoCAD环境中
-                    if (MainWindowHandle != IntPtr.Zero && IsWindow(MainWindowHandle))
+                    if (MainWindowHandle != IntPtr.Zero && WindowsAPI.IsWindow(MainWindowHandle))
                     {
                         _dummyControl.Invoke(new Action(() => {
                             _dummyControl.Dispose();
@@ -436,6 +397,5 @@ public static class AcadIdleManager
 #endif
     }
 }
-
 
 #line default

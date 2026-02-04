@@ -612,7 +612,7 @@ public static class Env
     public static T Print<T>(this T obj)
     {
         // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-        Document?.Editor.WriteMessage(obj is null ? "null\n" : $"{obj}\n");
+        Document?.Editor?.WriteMessage(obj is null ? "null\n" : $"{obj}\n");
         return obj;
     }
 
@@ -623,7 +623,7 @@ public static class Env
     public static void Printl(object message)
     {
         // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-        Document?.Editor.WriteMessage($"{Environment.NewLine}{message}\n");
+        Document?.Editor?.WriteMessage($"{Environment.NewLine}{message}\n");
     }
 
     /// <summary>

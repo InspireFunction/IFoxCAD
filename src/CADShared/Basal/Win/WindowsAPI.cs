@@ -202,6 +202,41 @@ public partial class WindowsAPI
         return bytes;
     }
 
+
+    /// <summary>
+    /// 是窗口
+    /// </summary>
+    /// <param name="hWnd"></param>
+    /// <returns></returns>
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    public static extern bool IsWindow(IntPtr hWnd);
+
+    /// <summary>
+    /// 检查是否有模态窗口正在活动
+    /// </summary>
+    /// <returns></returns>
+    public static bool IsModalWindowActive(IntPtr MainWindowHandle)
+    {
+        IntPtr foregroundWindow = GetForegroundWindow();
+        if (foregroundWindow == IntPtr.Zero || foregroundWindow == MainWindowHandle)
+        {
+            // 如果没有前台窗口或前台就是主窗口，则没有模态窗口
+            return false;
+        }
+
+        // 获取前台窗口的进程ID
+        GetWindowThreadProcessId(foregroundWindow, out uint foregroundProcessId);
+        // 获取主窗口的进程ID
+        GetWindowThreadProcessId(MainWindowHandle, out uint mainProcessId);
+
+        // 如果前台窗口与主窗口属于同一进程，且不是主窗口本身，则很可能是模态对话框
+        return foregroundProcessId == mainProcessId && foregroundWindow != MainWindowHandle;
+    }
+
+
+
+
 #if true20221030
     /// <summary>
     /// 结构体转指针

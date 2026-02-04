@@ -1,4 +1,4 @@
-﻿#pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
+#pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
 namespace IFoxCAD.Cad;
 
 using System;
@@ -7,34 +7,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.IO;
 using System.Text;
-
-
-/*  来源 https://blog.csdn.net/zgke/article/details/2955560 我在他基础上面增加了X64的处理
- *  调用例子
-    static void Main(string[] args)
-    {
-        var path = @"C:\Program Files\Autodesk\AutoCAD 2021\acad.exe";
-        // path = @"G:\AutoCAD 2008\acad.exe";
-
-        var pe = new JoinBox.BasalCurrency.PeInfo(path);
-
-        // 输出所有的函数名
-        var sb = new StringBuilder();
-        foreach (var item in pe.ExportDirectory.NameList)
-        {
-            sb.Append(Environment.NewLine);
-            var str = System.Text.Encoding.Default.GetString(item as byte[]);
-            sb.Append(str);
-        }
-        Debugx.Printl(sb.ToString());
-
-        // 原作者的封装
-        var ss = pe.GetPETable();
-        foreach (var item in ss.Tables)
-        {
-        }
-    }
-*/
 
 /// <summary>
 /// 微软软件结构PE信息
@@ -1432,7 +1404,7 @@ public class OptionalHeader
 /// </summary>
 public class OptionalDirAttrib
 {
-    public ArrayList DirByte = new();
+    public List<DirAttrib> DirByte = new();
     public class DirAttrib
     {
         public byte[] DirRva = new byte[4];   // 地址
@@ -1447,7 +1419,7 @@ public class OptionalDirAttrib
 /// </summary>
 public class SectionTable
 {
-    public ArrayList Section = new();
+    public List<SectionData> Section = new();
     public class SectionData
     {
         public byte[] SectName = new byte[8];             // 名字
@@ -1483,9 +1455,9 @@ public class ExportDirectory
     public byte[] AddressOfNames = new byte[4];        // 一个RVA,指向输出函数名的指针的数组
     public byte[] AddressOfNameOrdinals = new byte[4]; // 一个RVA,指向输出函数名对应的序号的数组
 
-    public ArrayList AddressOfFunctionsList = new();
-    public ArrayList AddressOfNamesList = new();
-    public ArrayList AddressOfNameOrdinalsList = new();
+    public List<byte[]> AddressOfFunctionsList = new();
+    public List<byte[]> AddressOfNamesList = new();
+    public List<byte[]> AddressOfNameOrdinalsList = new();
     /// <summary>
     /// 函数指针名称集合
     /// </summary>
@@ -1511,7 +1483,7 @@ public class ExportDirectory
 /// </summary>
 public class ImportDirectory
 {
-    public ArrayList ImportList = new();
+    public List<ImportDate> ImportList = new();
 
     public class ImportDate
     {
@@ -1522,7 +1494,7 @@ public class ImportDirectory
         public byte[] FirstThunk = new byte[4]; // 一个RVA,这个RVA指向一个DWORD数组,这个数组可以叫输入地址表.如果bind了的话,这个数组的每个元素,就是一个输入函数的入口地址.
 
         public byte[]? DLLName;  // DLL名称
-        public ArrayList DLLFunctionList = new();
+        public List<FunctionList> DLLFunctionList = new();
         public class FunctionList
         {
             public byte[] OriginalFirst = new byte[4];
@@ -1546,14 +1518,14 @@ public class ResourceDirectory
     public byte[] NumberOfNamedEntries = new byte[2];
     public byte[] NumberOfIdEntries = new byte[2];
     public byte[]? Name;
-    public ArrayList EntryList = new();
+    public List<DirectoryEntry> EntryList = new();
 
     public class DirectoryEntry
     {
         public byte[] Name = new byte[4];
         public byte[] Id = new byte[4];
-        public ArrayList DataEntryList = new();
-        public ArrayList NodeDirectoryList = new();
+        public List<DataEntry> DataEntryList = new();
+        public List<ResourceDirectory> NodeDirectoryList = new();
 
         public class DataEntry
         {

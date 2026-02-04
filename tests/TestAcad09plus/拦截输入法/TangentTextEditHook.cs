@@ -1,4 +1,4 @@
-﻿namespace Gstar_IMEFilter;
+namespace Gstar_IMEFilter;
 
 /// <summary>
 /// 天正单行文字编辑框钩子 by 小叶|Moy QQ:838840554
@@ -75,15 +75,22 @@ internal class TangentTextEditHook : IDisposable
     /// <returns></returns>
     private bool IsTangentTextEdit(IntPtr hWnd)
     {
-        if (hWnd == IntPtr.Zero)
+        try
+        {
+            if (hWnd == IntPtr.Zero)
+                return false;
+            // 获取目标句柄的窗体类名
+            StringBuilder className = new StringBuilder(256);
+            GetClassName(hWnd, className, className.Capacity);
+            // 判断是不是天正单行文字编辑框窗体类名
+            if (className.ToString() != "Edit") return false;
+            // 判断是不是Acap.MainWindow的子窗体
+            return GetParent(hWnd) == Acap.MainWindow.Handle;
+        }
+        catch
+        {
             return false;
-        // 获取目标句柄的窗体类名
-        StringBuilder className = new StringBuilder(256);
-        GetClassName(hWnd, className, className.Capacity);
-        // 判断是不是天正单行文字编辑框窗体类名
-        if (className.ToString() != "Edit") return false;
-        // 判断是不是Acap.MainWindow的子窗体
-        return GetParent(hWnd) == Acap.MainWindow.Handle;
+        }
     }
 
 
@@ -93,21 +100,28 @@ internal class TangentTextEditHook : IDisposable
     private void WinEventProc(IntPtr hWinEventHook, uint eventType,
         IntPtr hwnd, int idObject, int idChild, uint idEventThread, uint dwmsEventTime)
     {
-        // 天正单行文字编辑框:窗体创建
-        if (eventType == EVENT_OBJECT_CREATE && IsTangentTextEdit(hwnd))
+        try
         {
-            if (_currentEditHwnd is not null)// 窗体show时会触发两次EVENT_OBJECT_CREATE消息
-                return;
-            _currentEditHwnd = hwnd;
-            Created?.Invoke(hwnd);
-        }
+            // 天正单行文字编辑框:窗体创建
+            if (eventType == EVENT_OBJECT_CREATE && IsTangentTextEdit(hwnd))
+            {
+                if (_currentEditHwnd is not null)// 窗体show时会触发两次EVENT_OBJECT_CREATE消息
+                    return;
+                _currentEditHwnd = hwnd;
+                Created?.Invoke(hwnd);
+            }
 
-        // 天正单行文字编辑框:窗体销毁
-        // 窗体销毁后GetClassName返回空,所以不要进行IsTangentTextEdit判断,用缓存的_currentEditHwnd判断
-        if (eventType == EVENT_OBJECT_DESTROY && hwnd == _currentEditHwnd)
+            // 天正单行文字编辑框:窗体销毁
+            // 窗体销毁后GetClassName返回空,所以不要进行IsTangentTextEdit判断,用缓存的_currentEditHwnd判断
+            if (eventType == EVENT_OBJECT_DESTROY && hwnd == _currentEditHwnd)
+            {
+                _currentEditHwnd = null;
+                Destroyed?.Invoke(hwnd);
+            }
+        }
+        catch
         {
-            _currentEditHwnd = null;
-            Destroyed?.Invoke(hwnd);
+            // 吞掉异常，防止崩溃
         }
     }
 
