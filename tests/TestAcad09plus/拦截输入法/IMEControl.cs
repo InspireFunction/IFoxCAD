@@ -314,6 +314,13 @@ public class IMEControl
             {
                 DebugEx.Printl($"切换到全局钩子控制:{DateTime.Now}");
                 var moduleHandle = WindowsAPI.GetModuleHandle(_process.MainModule.ModuleName);
+                if (moduleHandle == IntPtr.Zero)
+                {
+                    DebugEx.Printl("全局钩子: 获取模块句柄失败，回退到进程钩子");
+                    Settings.IMEHookStyle = IMEHookStyle.Process;
+                    SetIMEHook();
+                    return;
+                }
                 _hookProc = (nCode, wParam, lParam) => {
                     try
                     {
@@ -323,14 +330,21 @@ public class IMEControl
                                 return (IntPtr)1;
                         }
                     }
-                    catch
+                    catch (Exception ex)
                     {
-                        // 吞掉异常，防止崩溃
+                        DebugEx.Printl($"全局钩子回调异常: {ex.Message}");
                     }
                     return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
                 };
                 _nextHookProc = WindowsAPI.SetWindowsHookEx(
                     HookType.WH_KEYBOARD_LL, _hookProc, moduleHandle, 0);
+                if (_nextHookProc == IntPtr.Zero)
+                {
+                    DebugEx.Printl("全局钩子: 设置钩子失败，回退到进程钩子");
+                    Settings.IMEHookStyle = IMEHookStyle.Process;
+                    SetIMEHook();
+                    return;
+                }
             }
 
             _TangentTextEditHook = new();
@@ -561,8 +575,9 @@ public class IMEControl
             }
             return false;
         }
-        catch
+        catch (Exception ex)
         {
+            DebugEx.Printl($"Mk2异常: {ex.Message}");
             return false;
         }
     }

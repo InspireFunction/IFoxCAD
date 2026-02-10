@@ -27,6 +27,7 @@ public class Cmd
         }
         IMEControl.SetIMEHook();
         StatusBar.IMEAddPane();
+
         AcadIdleManager.OnIdle += AcadIdleManager_OnIdle;
     }
 

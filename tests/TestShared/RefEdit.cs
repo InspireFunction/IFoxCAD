@@ -1,5 +1,6 @@
 ﻿using Autodesk.AutoCAD.DatabaseServices;
 using IFoxCAD.Cad;
+using System.Collections.Generic;
 
 namespace Test;
 
@@ -33,45 +34,18 @@ public class RefEditCmd
     [IFoxInitialize]
     public void Init(Document doc)
     {
-        Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
         doc.Database.ObjectAppended += Database_ObjectAppended;
         doc.Database.ObjectErased += Database_ObjectErased;
 
-        doc.ImpliedSelectionChanged += Doc_ImpliedSelectionChanged;
+        // Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
+        doc.CommandWillStart += OnCommandWillStart;
+        doc.CommandEnded += OnCommandEnded;
+        doc.CommandCancelled += Doc_CommandCancelled;
 
         _workcmd.Add(nameof(REFSET_ADD));
         _workcmd.Add(nameof(REFSET_REMOVE));
-    }
-
-    // 防止选择集事件的死循环
-    static bool _ssFlag = false;
-
-    // 选择集事件
-    private void Doc_ImpliedSelectionChanged(object sender, EventArgs e)
-    {
-        //if (_ssFlag)
-        //{
-        //    _ssFlag = false;
-        //    return;
-        //}
-
-        //var prompt = Env.Editor.SelectImplied();
-        //if (prompt.Status != PromptStatus.OK)
-        //    return;
-
-        //var ids = prompt.Value.GetObjectIds();
-        //if (ids.Length == 0)
-        //    return;
-
-        //var doc = Acap.DocumentManager.MdiActiveDocument;
-        //if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
-        //{
-        //    var list = ids.Where(xInfo.Workset.Contains).ToArray();
-        //    if (list.Length == 0)
-        //        return;
-        //    _ssFlag = true;
-        //    Env.Editor.SetImpliedSelection(list);
-        //}
+        _workcmd.Add(nameof(RefClose));
+        _workcmd.Add(nameof(RefEdit));
     }
 
     private void Database_ObjectErased(object sender, ObjectErasedEventArgs e)
@@ -102,52 +76,141 @@ public class RefEditCmd
         }
     }
 
+    // 图元,原有图层
+    Dictionary<ObjectId, ObjectId> entLayerMap = new();
+    HashSet<ObjectId> layerSets = new();
+
+    // 命令取消
+    private void Doc_CommandCancelled(object sender, CommandEventArgs e)
+    {
+        var cmd = e.GlobalCommandName;
+        NewMethod(cmd);
+    }
+
+    // 命令结束
+    private void OnCommandEnded(object sender, CommandEventArgs e)
+    {
+        var cmd = e.GlobalCommandName;
+        NewMethod(cmd);
+    }
+
+    private bool NewMethod(string cmd)
+    {
+        if (_workcmd.Contains(cmd))
+            return false;
+
+        // 含有就表示正在 在位编辑 过程中
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+            return false;
+
+        // 解锁
+        using var tr = DBTrans.Create();
+        tr.LayerTable.ForEach((layer, state) => {
+            if (layerSets.Contains(layer.ObjectId))
+                layer.IsLocked = false;
+        }, OpenMode.ForWrite);
+
+        // 还原原本图层
+        foreach (var id in xInfo.Workset)
+        {
+            using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+            if (entLayerMap.TryGetValue(id, out var layerId))
+                ent.LayerId = layerId;
+        }
+
+        layerSets.Clear();
+        entLayerMap.Clear();
+        return true;
+    }
+
+
+    // 命令开始
+    private void OnCommandWillStart(object sender, CommandEventArgs e)
+    {
+        var cmd = e.GlobalCommandName;
+        if (cmd.StartsWith("GRIP_")) // 操作图元夹点的时候会出现两个命令.
+            return;
+
+        if (_workcmd.Contains(cmd))
+            return;
+
+        // 含有就表示正在 在位编辑 过程中
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+            return;
+
+        // 这种方式无法处理 先move再选择
+        //var prompt = Env.Editor.SelectImplied();
+        //if (prompt.Status == PromptStatus.OK)
+        //{
+        //    // 获取工作集部分,然后才能执行官方命令/其他Lisp命令
+        //    // 重设选择集
+        //    var list = prompt.Value.GetObjectIds().Where(xInfo.Workset.Contains).ToArray();
+        //    Env.Editor.SetImpliedSelection(list);
+        //}
+
+        // 先move再选择,依然会选择到workset以外的,
+        // 先锁定全部图层,把workset的图元放入一个不锁的图层,
+        // 然后再处理
+        if (layerSets.Count > 0) // 防止重入
+            return;
+
+        using var tr = DBTrans.Create();
+
+        // 锁定全部
+        tr.LayerTable.ForEach((layer, state) => {
+            if ("Edit-0" == layer.Name)
+                return;
+            if (!layer.IsLocked)
+            {
+                layer.IsLocked = true;
+                layerSets.Add(layer.ObjectId);
+            }
+        }, OpenMode.ForWrite);
+
+        // 这是一个没有锁定的图层
+        var eLayer = tr.LayerTable.Add("Edit-0");
+        foreach (var id in xInfo.Workset)
+        {
+            using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+            entLayerMap[id] = ent.LayerId;
+            ent.LayerId = eLayer;
+        }
+    }
+
+
     // 文档锁事件(否决命令执行)
     private void DocumentManager_DocumentLockModeChanged(object sender, DocumentLockModeChangedEventArgs e)
     {
         // 跳过噪音
         if (e.GlobalCommandName == "" || e.GlobalCommandName == "#")
             return;
-
-        if (_workcmd.Contains(e.GlobalCommandName))
-            return;
-
-        // TODO 先move再选择,无法跳过...选择集事件,也无法跳过
-        // 难道是先锁定全部图层,把workset的改为一个不锁的图层?
-        // 貌似还真的可以....
-
-        // 含有就表示正在 在位编辑 过程中
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
-        {
-            var prompt = Env.Editor.SelectImplied();
-            if (prompt.Status != PromptStatus.OK)
-                return;
-            // 获取工作集部分,然后才能执行官方命令/其他Lisp命令
-            // 重设选择集
-            var list = prompt.Value.GetObjectIds().Where(xInfo.Workset.Contains).ToArray();
-            Env.Editor.SetImpliedSelection(list);
-        }
     }
+
+
 
 
     [CommandMethod(nameof(REFSET_ADD), CommandFlags.UsePickSet | CommandFlags.Redraw)]
     public void REFSET_ADD()
     {
-        var prompt = Env.Editor.SelectImplied();
-        if (prompt.Status != PromptStatus.OK)
+        var psr = Env.Editor.SelectImplied();// 预选
+        if (psr.Status != PromptStatus.OK)
+            psr = Env.Editor.GetSelection();// 手选
+        if (psr.Status != PromptStatus.OK)
             return;
+        var idArray = psr.Value.GetObjectIds();
 
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (!RefEditInfo.Map.TryGetValue(doc, out var xinfo))
             return;
         // 即使重复加入也没有关系,因为是HashSet
-        xinfo.Workset.Add(prompt.Value.GetObjectIds());
+        xinfo.Workset.Add(idArray);
 
         // 刷新一次
         // 因为添加时候是解锁状态,只需要平移就等于刷新
         using var tr = DBTrans.Create();
-        foreach (var id in prompt.Value.GetObjectIds())
+        foreach (var id in idArray)
         {
             using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
             ent.Move(Point3d.Origin, Point3d.Origin);
@@ -161,17 +224,19 @@ public class RefEditCmd
     [CommandMethod(nameof(REFSET_REMOVE), CommandFlags.UsePickSet | CommandFlags.Redraw)]
     public void REFSET_REMOVE()
     {
-        var prompt = Env.Editor.SelectImplied();
-        if (prompt.Status != PromptStatus.OK)
+        var psr = Env.Editor.SelectImplied();// 预选
+        if (psr.Status != PromptStatus.OK)
+            psr = Env.Editor.GetSelection();// 手选
+        if (psr.Status != PromptStatus.OK)
             return;
+        var idArray = psr.Value.GetObjectIds();
 
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
             return;
 
         // 即使重复移除也没有关系,因为是HashSet
-        xInfo.Workset.Remove(prompt.Value.GetObjectIds());
-
+        xInfo.Workset.Remove(idArray);
 
         // 淡显
         // 锁定全部,再把workset给亮回来
@@ -179,23 +244,25 @@ public class RefEditCmd
 
         using (var tr = DBTrans.Create())
         {
+            RegenLayers(tr, xInfo);
+        }
+    }
+
+    private static void RegenLayers(DBTrans tr, RefEditInfo? xInfo = null)
+    {
+        if (xInfo is not null)
+        {
             foreach (var id in xInfo.Workset)
             {
                 using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
                 ent.Move(Point3d.Origin, Point3d.Origin);
             }
-
-            RegenLayers(tr);
         }
-    }
-
-    private static void RegenLayers(DBTrans tr)
-    {
         var eLayer = tr.LayerTable.Add("Edit-0");
         var lays = new List<ObjectId>
-            {
-                eLayer
-            };
+        {
+            eLayer
+        };
         IFoxUtils.RegenLayers(lays);
     }
 
@@ -242,22 +309,40 @@ public class RefEditCmd
 
         // TODO 4,此处没有考虑undo的时候怎么恢复?
 
+        // 删除 Edit-0
+        var eLayer = tr.LayerTable.Add("Edit-0");
+        using var ll = (LayerTableRecord)tr.GetObject(eLayer, OpenMode.ForWrite, true, true);
+        ll.Erase(true);
     }
 
     // 模拟,实现一个自己的在位编辑器(长事务)
     [CommandMethod(nameof(RefEdit), CommandFlags.UsePickSet | CommandFlags.Redraw)]
     public void RefEdit()
     {
+        ObjectId ooid = ObjectId.Null;
+        var psr = Env.Editor.SelectImplied();// 预选
+        if (psr.Status != PromptStatus.OK)
+        {
+            // 让用户只能选择块参照
+            var pm = new PromptEntityOptions("\n 选择块参照");
+            pm.SetRejectMessage("\n 只能选择块参照!");
+            pm.AddAllowedClass(typeof(BlockReference), true);
+            var per = Env.Editor.GetEntity(pm);
+            if (per.Status != PromptStatus.OK)
+                return;
+            ooid = per.ObjectId;
+        }
+        else
+        {
+            var idArray = psr.Value.GetObjectIds();
+            if (idArray.Length == 1)
+            {
+                ooid = idArray[0];
+            }
+        }
+
+
         var doc = Acap.DocumentManager.MdiActiveDocument;
-
-        // 让用户只能选择块参照
-        var pm = new PromptEntityOptions("\n 选择块参照");
-        pm.SetRejectMessage("\n 只能选择块参照!");
-        pm.AddAllowedClass(typeof(BlockReference), true);
-        var per = Env.Editor.GetEntity(pm);
-        if (per.Status != PromptStatus.OK)
-            return;
-
         if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
         {
             Env.Print("不能重复使用: 在位编辑器");
@@ -275,7 +360,7 @@ public class RefEditCmd
         using (var tr = DBTrans.Create())
         {
             // 1,删除这个块
-            using var bent = (Entity)tr.GetObject(per.ObjectId, OpenMode.ForWrite, true, true);
+            using var bent = (Entity)tr.GetObject(ooid, OpenMode.ForWrite, true, true);
             if (bent is not BlockReference brf)
                 return;
             brf.Erase(true);

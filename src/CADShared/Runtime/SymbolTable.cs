@@ -67,8 +67,25 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         get
         {
+#if ac2008
+            // 由于acad08会获取到已经释放的对象,因此此处遍历一次
+            foreach (var item in CurrentSymbolTable)
+            {
+                var record = (TRecord)DTrans.GetObject(item, OpenMode.ForWrite, true, true);
+                if (record.IsDisposed || record.UnmanagedObject == IntPtr.Zero)
+                {
+                    throw new Exception("读取了已经释放的对象 record.IsDisposed");
+                    //continue;
+                }
+                if (record.Name == key)
+                    return item;
+            }
+#else
             if (Has(key))
+            {
                 return CurrentSymbolTable[key];
+            }
+#endif
             // 新建时候靠这个判断是否存在,所以不能抛异常
             return ObjectId.Null;
         }
