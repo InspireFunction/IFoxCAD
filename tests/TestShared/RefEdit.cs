@@ -1,33 +1,199 @@
-﻿namespace Test;
+﻿using IFoxCAD.Cad;
 
+namespace Test;
 
 // 此处的淡显已经成功.
-// 三个数据库事件,新增/删除/修改,如果发生 _workset 包含就执行,否则跳过处理.
-// 问题是为什么这些数据库已经准备入库了,无法vote()处理啊.
-// 官方是怎么做的呢?
+// 三个数据库事件,新增/删除/修改,无法vote()处理.
+// 我们只能够在命令前触发,然后重设选择集,{命令完成之后,又恢复全部图元的选择...没实现,貌似不需要}
+
+public class RefEditInfo
+{
+    public static Dictionary<Document, RefEditInfo> Map = [];
+
+    public Document Document { get; set; }
+    public ObjectId BlockReferenceId { get; set; }
+    public HashSet<ObjectId> Workset { get; set; } = [];
+    public HashSet<ObjectId> LockedLayers { get; set; } = [];
+    public ObjectId CurrentSpaceId { get; internal set; }
+
+    public RefEditInfo(Document document, ObjectId currentSpaceId)
+    {
+        Document = document;
+        CurrentSpaceId = currentSpaceId;
+        Map.Add(document, this);
+    }
+}
 
 public class RefEditCmd
 {
     // 收集所有图层ID
-    HashSet<ObjectId> _lockedLayers = [];
-    public static HashSet<ObjectId> _workset = [];
+    public static HashSet<string> _workcmd = new(StringComparer.OrdinalIgnoreCase);
 
-    // refedit
+    [IFoxInitialize]
+    public void Init(Document doc)
+    {
+        Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
+        doc.Database.ObjectAppended += Database_ObjectAppended;
+        doc.Database.ObjectErased += Database_ObjectErased; ;
+
+        _workcmd.Add(nameof(REFSET_ADD));
+        _workcmd.Add(nameof(REFSET_REMOVE));
+    }
+
+    private void Database_ObjectErased(object sender, ObjectErasedEventArgs e)
+    {
+        if (e.DBObject is not Entity)
+            return;
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (RefEditInfo.Map.TryGetValue(doc, out var xinfo))
+        {
+            // 即使重复加入也没有关系,因为是HashSet
+            xinfo.Workset.Remove(e.DBObject.ObjectId);
+        }
+    }
+
+    private void Database_ObjectAppended(object sender, ObjectEventArgs e)
+    {
+        if (e.DBObject is not Entity ent)
+            return;
+
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (RefEditInfo.Map.TryGetValue(doc, out var xinfo))
+        {
+            // TODO 在位编辑要获取相同空间的,不能够跨空间,而且必须要是图元
+            if (xinfo.CurrentSpaceId != ent.Database.CurrentSpaceId)
+                return;
+            // 即使重复加入也没有关系,因为是HashSet
+            xinfo.Workset.Add(ent.ObjectId);
+        }
+    }
+
+    // 文档锁事件(否决命令执行)
+    private void DocumentManager_DocumentLockModeChanged(object sender, DocumentLockModeChangedEventArgs e)
+    {
+        // 跳过噪音
+        if (e.GlobalCommandName == "" || e.GlobalCommandName == "#")
+            return;
+
+        if (_workcmd.Contains(e.GlobalCommandName))
+            return;
+
+        // 含有就表示正在 在位编辑 过程中
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        {
+            var prompt = Env.Editor.SelectImplied();
+            if (prompt.Status != PromptStatus.OK)
+                return;
+            // 获取工作集部分,然后才能执行官方命令/其他Lisp命令
+            // 重设选择集
+            var list = prompt.Value.GetObjectIds().Where(xInfo.Workset.Contains).ToArray();
+            Env.Editor.SetImpliedSelection(list);
+        }
+    }
+
+
+    [CommandMethod(nameof(REFSET_ADD), CommandFlags.UsePickSet | CommandFlags.Redraw)]
+    public void REFSET_ADD()
+    {
+        var prompt = Env.Editor.SelectImplied();
+        if (prompt.Status != PromptStatus.OK)
+            return;
+
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (RefEditInfo.Map.TryGetValue(doc, out var xinfo))
+        {
+            // 即使重复加入也没有关系,因为是HashSet
+            xinfo.Workset.Add(prompt.Value.GetObjectIds());
+        }
+    }
+
+
+    [CommandMethod(nameof(REFSET_REMOVE), CommandFlags.UsePickSet | CommandFlags.Redraw)]
+    public void REFSET_REMOVE()
+    {
+        var prompt = Env.Editor.SelectImplied();
+        if (prompt.Status != PromptStatus.OK)
+            return;
+
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        {
+            // 即使重复移除也没有关系,因为是HashSet
+            xInfo.Workset.Remove(prompt.Value.GetObjectIds());
+        }
+    }
+
+    [CommandMethod(nameof(RefClose), CommandFlags.Redraw)]
+    public void RefClose()
+    {
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+            return;
+
+        // 1,移除原本btr内的图元,是一个块表记录容器,把 workset 设置进去
+        using var tr = DBTrans.Create();
+
+        using var brf = (BlockReference)tr.GetObject(xInfo.BlockReferenceId, OpenMode.ForWrite, true, true);
+        using var btr = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord, OpenMode.ForWrite, true, true);
+        var move = Point3d.Origin;
+        var moveTo = brf.Position;
+        // 移除块表记录中的所有图元
+        foreach (ObjectId id in btr)
+        {
+            using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+            ent.Erase(true);
+        }
+
+        // 将工作集中的图元添加回块表记录
+        foreach (var id in xInfo.Workset)
+        {
+            using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+
+            var ent2 = ent.CloneEx();
+            ent2.Move(moveTo, move);
+            btr.AppendEntity(ent2);
+            tr.AddNewlyCreatedDBObject(ent2, true);
+
+            ent.Erase(true);
+        }
+        brf.Erase(false);
+
+        // 2,恢复图层锁定的显示
+        IFoxUtils.RegenLayers(xInfo.LockedLayers);
+
+        // 3,清空
+        RefEditInfo.Map.Remove(doc);
+
+        // TODO 4,此处没有考虑undo的时候怎么恢复?
+
+    }
+
     // 模拟,实现一个自己的在位编辑器(长事务)
     [CommandMethod(nameof(RefEdit), CommandFlags.Redraw)]
     public void RefEdit()
     {
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+
         // 让用户只能选择块参照
-        var ed = Application.DocumentManager.MdiActiveDocument.Editor;
         var pm = new PromptEntityOptions("\n 选择块参照");
         pm.SetRejectMessage("\n 只能选择块参照!");
         pm.AddAllowedClass(typeof(BlockReference), true);
-        var per = ed.GetEntity(pm);
+        var per = Env.Editor.GetEntity(pm);
         if (per.Status != PromptStatus.OK)
             return;
 
+        if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        {
+            Env.Print("不能重复使用: 在位编辑器");
+            return;
+        }
+
+
         using (var tr = DBTrans.Create())
         {
+            xInfo = new RefEditInfo(doc, tr.Database.CurrentSpaceId);
+
             // 2,锁定图层,刷新图层状态,让锁定的图层的图元是暗显.
             // 3,解锁全部图层,不刷新,使得全部图元是暗显.
             // 锁定图层
@@ -35,16 +201,16 @@ public class RefEditCmd
                 if (!layer.IsLocked)
                 {
                     layer.IsLocked = true;
-                    _lockedLayers.Add(layer.ObjectId);
+                    xInfo.LockedLayers.Add(layer.ObjectId);
                 }
             }, OpenMode.ForWrite);
 
             // 刷新画面的图层暗显
-            IFoxUtils.RegenLayers(_lockedLayers);
+            IFoxUtils.RegenLayers(xInfo.LockedLayers);
 
             // 解锁图层
             tr.LayerTable.ForEach((layer, state) => {
-                if (_lockedLayers.Contains(layer.ObjectId))
+                if (xInfo.LockedLayers.Contains(layer.ObjectId))
                     layer.IsLocked = false;
             }, OpenMode.ForWrite);
         }
@@ -64,6 +230,9 @@ public class RefEditCmd
             using var btr = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord, OpenMode.ForWrite, true, true);
             using ObjectIdCollection ids = [.. btr];
 
+            // 记录用于保存在位编辑器的工作集
+            xInfo.BlockReferenceId = brf.ObjectId;
+
             // 深度克隆,然后平移到当前目标点位置
             var move = Point3d.Origin;
             var moveTo = brf.Position;
@@ -75,7 +244,7 @@ public class RefEditCmd
                 using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
                 //ent.LayerId = eLayer;
                 ent.Move(move, moveTo);
-                _workset.Add(id);
+                xInfo.Workset.Add(id);
             });
 
             // 我的想法是只刷新这些图元,但是发现同一个事务会触发刷新全部图层,所以要多事务.
