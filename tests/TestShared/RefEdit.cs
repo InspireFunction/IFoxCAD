@@ -37,7 +37,6 @@ public class RefEditCmd
         doc.Database.ObjectAppended += Database_ObjectAppended;
         doc.Database.ObjectErased += Database_ObjectErased;
 
-        // Acap.DocumentManager.DocumentLockModeChanged += DocumentManager_DocumentLockModeChanged;
         doc.CommandWillStart += OnCommandWillStart;
         doc.CommandEnded += OnCommandEnded;
         doc.CommandCancelled += Doc_CommandCancelled;
@@ -68,7 +67,7 @@ public class RefEditCmd
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
         {
-            // TODO 在位编辑要获取相同空间的,不能够跨空间,而且必须要是图元
+            // 在位编辑要获取相同空间的,不能够跨空间,而且必须要是图元
             if (xInfo.CurrentSpaceId != ent.Database.CurrentSpaceId)
                 return;
             // 即使重复加入也没有关系,因为是HashSet
@@ -77,24 +76,24 @@ public class RefEditCmd
     }
 
     // 图元,原有图层
-    Dictionary<ObjectId, ObjectId> entLayerMap = new();
-    HashSet<ObjectId> layerSets = new();
+    Dictionary<ObjectId, ObjectId> entLayerMap = [];
+    HashSet<ObjectId> layerSets = [];
 
     // 命令取消
     private void Doc_CommandCancelled(object sender, CommandEventArgs e)
     {
         var cmd = e.GlobalCommandName;
-        NewMethod(cmd);
+        CommandEndedOrCancel(cmd);
     }
 
     // 命令结束
     private void OnCommandEnded(object sender, CommandEventArgs e)
     {
         var cmd = e.GlobalCommandName;
-        NewMethod(cmd);
+        CommandEndedOrCancel(cmd);
     }
 
-    private bool NewMethod(string cmd)
+    private bool CommandEndedOrCancel(string cmd)
     {
         if (_workcmd.Contains(cmd))
             return false;
@@ -123,7 +122,6 @@ public class RefEditCmd
         entLayerMap.Clear();
         return true;
     }
-
 
     // 命令开始
     private void OnCommandWillStart(object sender, CommandEventArgs e)
@@ -180,17 +178,6 @@ public class RefEditCmd
     }
 
 
-    // 文档锁事件(否决命令执行)
-    private void DocumentManager_DocumentLockModeChanged(object sender, DocumentLockModeChangedEventArgs e)
-    {
-        // 跳过噪音
-        if (e.GlobalCommandName == "" || e.GlobalCommandName == "#")
-            return;
-    }
-
-
-
-
     [CommandMethod(nameof(REFSET_ADD), CommandFlags.UsePickSet | CommandFlags.Redraw)]
     public void REFSET_ADD()
     {
@@ -240,7 +227,10 @@ public class RefEditCmd
 
         // 淡显
         // 锁定全部,再把workset给亮回来
-        LockAndUnLock(xInfo);
+        using (var tr = DBTrans.Create())
+        {
+            Fade(tr, xInfo);
+        }
 
         using (var tr = DBTrans.Create())
         {
@@ -252,12 +242,16 @@ public class RefEditCmd
     {
         if (xInfo is not null)
         {
+            // 此时已经解锁全部图层,但是没有使用 IFoxUtils.RegenLayers 刷新,
+            // 然后我们使用平移图元就会亮显这一部分的图元.
             foreach (var id in xInfo.Workset)
             {
                 using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
                 ent.Move(Point3d.Origin, Point3d.Origin);
             }
         }
+        // 刷新这个图层,
+        // 即使这个图层没有任何图元,也会触发刷新修改过的图元而不是整个图层
         var eLayer = tr.LayerTable.Add("Edit-0");
         var lays = new List<ObjectId>
         {
@@ -271,7 +265,10 @@ public class RefEditCmd
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        {
+            Env.Print("当前没有使用:在位编辑器");
             return;
+        }
 
         // 1,移除原本btr内的图元,是一个块表记录容器,把 workset 设置进去
         using var tr = DBTrans.Create();
@@ -299,6 +296,7 @@ public class RefEditCmd
 
             ent.Erase(true);
         }
+        // 恢复原有的块参照
         brf.Erase(false);
 
         // 2,恢复图层锁定的显示
@@ -319,43 +317,48 @@ public class RefEditCmd
     [CommandMethod(nameof(RefEdit), CommandFlags.UsePickSet | CommandFlags.Redraw)]
     public void RefEdit()
     {
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        {
+            Env.Print("不能重复使用:在位编辑器");
+            return;
+        }
+
         ObjectId ooid = ObjectId.Null;
         var psr = Env.Editor.SelectImplied();// 预选
-        if (psr.Status != PromptStatus.OK)
+        if (psr.Status == PromptStatus.OK)
+        {
+            var idArray = psr.Value.GetObjectIds();
+            if (idArray.Length == 1)
+            {
+                using var tr = DBTrans.Create();
+                using var bent = (Entity)tr.GetObject(idArray[0], OpenMode.ForWrite, true, true);
+                if (bent is BlockReference)
+                    ooid = idArray[0];
+            }
+        }
+
+        if (ooid == ObjectId.Null)
         {
             // 让用户只能选择块参照
-            var pm = new PromptEntityOptions("\n 选择块参照");
-            pm.SetRejectMessage("\n 只能选择块参照!");
+            var pm = new PromptEntityOptions("\n在位编辑器:选择块参照");
+            pm.SetRejectMessage("\n只能选择块参照!");
             pm.AddAllowedClass(typeof(BlockReference), true);
             var per = Env.Editor.GetEntity(pm);
             if (per.Status != PromptStatus.OK)
                 return;
             ooid = per.ObjectId;
         }
-        else
-        {
-            var idArray = psr.Value.GetObjectIds();
-            if (idArray.Length == 1)
-            {
-                ooid = idArray[0];
-            }
-        }
-
-
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
-        {
-            Env.Print("不能重复使用: 在位编辑器");
-            return;
-        }
 
         xInfo = new RefEditInfo(doc, doc.Database.CurrentSpaceId);
 
 
-        // 2,锁定图层,刷新图层状态,让锁定的图层的图元是暗显.
-        // 3,解锁全部图层,不刷新,使得全部图元是暗显.
-        // 锁定图层
-        LockAndUnLock(xInfo);
+
+        // 淡显图元
+        using (var tr = DBTrans.Create())
+        {
+            Fade(tr, xInfo);
+        }
 
         using (var tr = DBTrans.Create())
         {
@@ -392,27 +395,32 @@ public class RefEditCmd
         }
     }
 
-    private static void LockAndUnLock(RefEditInfo xInfo)
+    /// <summary>
+    /// 淡显全部图元
+    /// </summary>
+    /// <param name="tr"></param>
+    /// <param name="xInfo"></param>
+    private static void Fade(DBTrans tr, RefEditInfo xInfo)
     {
-        using (var tr = DBTrans.Create())
-        {
-            tr.LayerTable.ForEach((layer, state) => {
-                if (!layer.IsLocked)
-                {
-                    layer.IsLocked = true;
-                    xInfo.LockedLayers.Add(layer.ObjectId);
-                }
-            }, OpenMode.ForWrite);
+        // 1,锁定图层
+        // 2,刷新图层状态,让锁定的图层的图元是暗显.
+        // 3,解锁全部图层,不刷新
+        tr.LayerTable.ForEach((layer, state) => {
+            if (!layer.IsLocked)
+            {
+                layer.IsLocked = true;
+                xInfo.LockedLayers.Add(layer.ObjectId);
+            }
+        }, OpenMode.ForWrite);
 
-            // 刷新画面的图层暗显
-            IFoxUtils.RegenLayers(xInfo.LockedLayers);
+        // 刷新画面的图层暗显
+        IFoxUtils.RegenLayers(xInfo.LockedLayers);
 
-            // 解锁图层
-            tr.LayerTable.ForEach((layer, state) => {
-                if (xInfo.LockedLayers.Contains(layer.ObjectId))
-                    layer.IsLocked = false;
-            }, OpenMode.ForWrite);
-        }
+        // 解锁图层
+        tr.LayerTable.ForEach((layer, state) => {
+            if (xInfo.LockedLayers.Contains(layer.ObjectId))
+                layer.IsLocked = false;
+        }, OpenMode.ForWrite);
     }
 }
 
