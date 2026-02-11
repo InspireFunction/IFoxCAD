@@ -6,8 +6,8 @@ namespace Test;
 
 // 此处的淡显已经成功.
 // 三个数据库事件,新增/删除/修改,无法vote()处理.
-// 我们只能够在命令前触发,然后重设选择集,{命令完成之后,又恢复全部图元的选择...没实现,貌似不需要}
-
+// 由于move触发之后再选择,可以选择到workset之外的对象,
+// 我们只能够在命令触发前事件锁定图层,这样就选择不了,命令结束之后解锁.
 
 public class RefLayerInfo
 {
@@ -33,7 +33,7 @@ public class RefEditInfo
     public ObjectId CurrentSpaceId { get; internal set; }
 
     // 备份,map[图元,(原有图层id,原有图层名,备份的新id)]
-    public Dictionary<ObjectId, RefLayerInfo> ActionEntityLayer = [];
+    public Dictionary<ObjectId, RefLayerInfo> ActionEntityLayerMap = [];
     public Dictionary<ObjectId, bool> ActionLayerLockMap = [];
 
     public RefEditInfo(Document document, ObjectId currentSpaceId)
@@ -47,7 +47,7 @@ public class RefEditInfo
 public class RefEditCmd
 {
     // 本工程命令要作为例外
-    public static HashSet<string> _workcmd = new(StringComparer.OrdinalIgnoreCase);
+    static HashSet<string> _workCmd = new(StringComparer.OrdinalIgnoreCase);
     const string RefLayerPrefix = "$RefEdit$";
     const string RefEdit0 = "RefEdit-0";
 
@@ -61,10 +61,10 @@ public class RefEditCmd
         doc.CommandEnded += OnCommandEnded;
         doc.CommandCancelled += Doc_CommandCancelled;
 
-        _workcmd.Add(nameof(REFSET_ADD));
-        _workcmd.Add(nameof(REFSET_REMOVE));
-        _workcmd.Add(nameof(RefClose));
-        _workcmd.Add(nameof(RefEdit));
+        _workCmd.Add(nameof(REFSET_ADD));
+        _workCmd.Add(nameof(REFSET_REMOVE));
+        _workCmd.Add(nameof(RefClose));
+        _workCmd.Add(nameof(RefEdit));
     }
 
     private void Database_ObjectErased(object sender, ObjectErasedEventArgs e)
@@ -110,7 +110,7 @@ public class RefEditCmd
 
     private bool CommandEndedOrCancelled(string cmd)
     {
-        if (_workcmd.Contains(cmd))
+        if (_workCmd.Contains(cmd))
             return false;
 
         // 含有就表示正在 在位编辑 过程中
@@ -126,7 +126,7 @@ public class RefEditCmd
                 using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
                 if (ent.IsDisposed)
                     continue;
-                if (xInfo.ActionEntityLayer.TryGetValue(id, out var layer))
+                if (xInfo.ActionEntityLayerMap.TryGetValue(id, out var layer))
                     ent.LayerId = layer.OldLayerId;
             }
 
@@ -137,16 +137,14 @@ public class RefEditCmd
                     // 解锁-还原-是否锁定(通过备份)
                     layer.IsLocked = false;
                     if (layer.Name.StartsWith(RefLayerPrefix))
-                    {
-                        layer.Name = layer.Name.Substring(RefLayerPrefix.Length); // 去掉 "$EDIT-$"
-                    }
+                        layer.Name = layer.Name[RefLayerPrefix.Length..];
                     if (layerIsLocker)
                         layer.IsLocked = layerIsLocker;
                 }
             }, OpenMode.ForWrite);
 
             // 删除我们用来备份的图层
-            foreach (var item in xInfo.ActionEntityLayer.Values)
+            foreach (var item in xInfo.ActionEntityLayerMap.Values)
             {
                 if (item.LayerName == "0")
                     continue;
@@ -180,18 +178,20 @@ public class RefEditCmd
         }
 
         xInfo.ActionLayerLockMap.Clear();
-        xInfo.ActionEntityLayer.Clear();
+        xInfo.ActionEntityLayerMap.Clear();
         return true;
     }
 
     // 命令开始
+    // 感觉每个命令都需要处理一次,实在有点太过分耶...
+    // 是不是应该做一些批量处理的操作?例如是sendCommand或者Lisp期间就不执行?
     private void OnCommandWillStart(object sender, CommandEventArgs e)
     {
         var cmd = e.GlobalCommandName;
         if (cmd.StartsWith("GRIP_")) // 操作图元夹点的时候会出现两个命令.
             return;
 
-        if (_workcmd.Contains(cmd))
+        if (_workCmd.Contains(cmd))
             return;
 
         // 含有就表示正在 在位编辑 过程中
@@ -230,7 +230,7 @@ public class RefEditCmd
             using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
             if (ent.IsDisposed)
                 continue;
-            xInfo.ActionEntityLayer[id] = new(ent.Layer, ent.LayerId);
+            xInfo.ActionEntityLayerMap[id] = new(ent.Layer, ent.LayerId);
         }
 
         // 由于0号图层名称不能修改,否则报错..要把0号图层图元移动到其他图层.
@@ -266,7 +266,7 @@ public class RefEditCmd
         }, OpenMode.ForWrite);
 
         // 创建新图层,无锁的,再设置给ent,来保证workset内的图元是无锁的.
-        foreach (var item in xInfo.ActionEntityLayer.Values)
+        foreach (var item in xInfo.ActionEntityLayerMap.Values)
         {
             var newly = tr.LayerTable.Add(item.LayerName);
             item.NewlyLayerId = newly;
@@ -276,7 +276,7 @@ public class RefEditCmd
             using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
             if (ent.IsDisposed)
                 continue;
-            ent.Layer = xInfo.ActionEntityLayer[id].LayerName;
+            ent.Layer = xInfo.ActionEntityLayerMap[id].LayerName;
         }
     }
 
