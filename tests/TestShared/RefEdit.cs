@@ -127,7 +127,13 @@ public class RefEditCmd
                 if (ent.IsDisposed)
                     continue;
                 if (xInfo.ActionEntityLayerMap.TryGetValue(id, out var layer))
-                    ent.LayerId = layer.OldLayerId;
+                {
+                    // 图元图层是我的新图层才可以还原,否则就是用户设置过其它图层.
+                    // 但是用户设置其它图层,岂不是用id才能设置?
+                    // 毕竟其它非workset内的layerName已经被我改名并锁定了,所以图层名没有了啊.
+                    if (ent.LayerId == layer.NewlyLayerId && ent.LayerId != layer.OldLayerId)
+                        ent.LayerId = layer.OldLayerId;
+                }
             }
 
             // 解锁原本图层并还原图层名
@@ -164,7 +170,7 @@ public class RefEditCmd
                 if (ent.LayerId == eLayer)
                     ent.Layer = "0";
             }
-            eLayer.Erase();
+            //eLayer.Erase(); // 刷新也用到了,所以不需要删除,refclose才删除
         }
 
         // 重新淡显全部-再亮显workset
