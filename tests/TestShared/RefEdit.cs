@@ -8,6 +8,20 @@ namespace Test;
 // 三个数据库事件,新增/删除/修改,无法vote()处理.
 // 我们只能够在命令前触发,然后重设选择集,{命令完成之后,又恢复全部图元的选择...没实现,貌似不需要}
 
+
+public class RefLayerInfo
+{
+    public string LayerName;
+    public ObjectId OldLayerId;
+    public ObjectId NewlyLayerId;
+
+    public RefLayerInfo(string layerName, ObjectId oldLayerId)
+    {
+        LayerName = layerName;
+        OldLayerId = oldLayerId;
+    }
+}
+
 public class RefEditInfo
 {
     public static Dictionary<Document, RefEditInfo> Map = [];
@@ -17,6 +31,10 @@ public class RefEditInfo
     public HashSet<ObjectId> Workset { get; set; } = [];
     public HashSet<ObjectId> LockedLayers { get; set; } = [];
     public ObjectId CurrentSpaceId { get; internal set; }
+
+    // 备份,map[图元,(原有图层id,原有图层名,备份的新id)]
+    public Dictionary<ObjectId, RefLayerInfo> ActionEntityLayer = [];
+    public Dictionary<ObjectId, bool> ActionLayerLockMap = [];
 
     public RefEditInfo(Document document, ObjectId currentSpaceId)
     {
@@ -28,10 +46,10 @@ public class RefEditInfo
 
 public class RefEditCmd
 {
-    // 收集所有图层ID
+    // 本工程命令要作为例外
     public static HashSet<string> _workcmd = new(StringComparer.OrdinalIgnoreCase);
-
-    const string RefEdit0 = "Edit-0";
+    const string RefLayerPrefix = "$RefEdit$";
+    const string RefEdit0 = "RefEdit-0";
 
     [IFoxInitialize]
     public void Init(Document doc)
@@ -54,48 +72,43 @@ public class RefEditCmd
         if (e.DBObject is not Entity)
             return;
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
-        {
-            // 即使重复加入也没有关系,因为是HashSet
-            xInfo.Workset.Remove(e.DBObject.ObjectId);
-        }
+        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+            return;
+        // 即使重复移除也没有关系,因为是HashSet
+        xInfo.Workset.Remove(e.DBObject.ObjectId);
     }
 
     private void Database_ObjectAppended(object sender, ObjectEventArgs e)
     {
         if (e.DBObject is not Entity ent)
             return;
-
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
-        {
-            // 在位编辑要获取相同空间的,不能够跨空间,而且必须要是图元
-            if (xInfo.CurrentSpaceId != ent.Database.CurrentSpaceId)
-                return;
-            // 即使重复加入也没有关系,因为是HashSet
-            xInfo.Workset.Add(ent.ObjectId);
-        }
+        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+            return;
+        // workset不能够跨空间,而且必须要是图元
+        if (xInfo.CurrentSpaceId != ent.BlockId)
+            return;
+        // 即使重复加入也没有关系,因为是HashSet
+        xInfo.Workset.Add(ent.ObjectId);
     }
 
-    // 图元,原有图层
-    Dictionary<ObjectId, ObjectId> entLayerMap = [];
-    HashSet<ObjectId> layerSets = [];
+
 
     // 命令取消
     private void Doc_CommandCancelled(object sender, CommandEventArgs e)
     {
         var cmd = e.GlobalCommandName;
-        CommandEndedOrCancel(cmd);
+        CommandEndedOrCancelled(cmd);
     }
 
     // 命令结束
     private void OnCommandEnded(object sender, CommandEventArgs e)
     {
         var cmd = e.GlobalCommandName;
-        CommandEndedOrCancel(cmd);
+        CommandEndedOrCancelled(cmd);
     }
 
-    private bool CommandEndedOrCancel(string cmd)
+    private bool CommandEndedOrCancelled(string cmd)
     {
         if (_workcmd.Contains(cmd))
             return false;
@@ -105,23 +118,69 @@ public class RefEditCmd
         if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
             return false;
 
-        // 解锁
-        using var tr = DBTrans.Create();
-        tr.LayerTable.ForEach((layer, state) => {
-            if (layerSets.Contains(layer.ObjectId))
-                layer.IsLocked = false;
-        }, OpenMode.ForWrite);
-
-        // 还原原本图层
-        foreach (var id in xInfo.Workset)
+        using (var tr = DBTrans.Create())
         {
-            using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
-            if (entLayerMap.TryGetValue(id, out var layerId))
-                ent.LayerId = layerId;
+            // 还原ent原本图层
+            foreach (var id in xInfo.Workset)
+            {
+                using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+                if (ent.IsDisposed)
+                    continue;
+                if (xInfo.ActionEntityLayer.TryGetValue(id, out var layer))
+                    ent.LayerId = layer.OldLayerId;
+            }
+
+            // 解锁原本图层并还原图层名
+            tr.LayerTable.ForEach((layer, state) => {
+                if (xInfo.ActionLayerLockMap.TryGetValue(layer.ObjectId, out var layerIsLocker))
+                {
+                    // 解锁-还原-是否锁定(通过备份)
+                    layer.IsLocked = false;
+                    if (layer.Name.StartsWith(RefLayerPrefix))
+                    {
+                        layer.Name = layer.Name.Substring(RefLayerPrefix.Length); // 去掉 "$EDIT-$"
+                    }
+                    if (layerIsLocker)
+                        layer.IsLocked = layerIsLocker;
+                }
+            }, OpenMode.ForWrite);
+
+            // 删除我们用来备份的图层
+            foreach (var item in xInfo.ActionEntityLayer.Values)
+            {
+                if (item.LayerName == "0")
+                    continue;
+                item.NewlyLayerId.Erase();
+            }
+
+            // 这里会触发0图层的全部内容
+            // 由于0号图层名称不能修改,否则报错..把Edit-0还原为0号图层.
+            var eLayer = tr.LayerTable.Add(RefEdit0);
+            foreach (var entId in tr.CurrentSpace)
+            {
+                if (!entId.IsOk())
+                    continue;
+                using var ent = (Entity)tr.GetObject(entId, OpenMode.ForWrite, true, true);
+                if (ent.IsDisposed)
+                    continue;
+                if (ent.LayerId == eLayer)
+                    ent.Layer = "0";
+            }
+            eLayer.Erase();
         }
 
-        layerSets.Clear();
-        entLayerMap.Clear();
+        // 重新淡显全部-再亮显workset
+        using (var tr = DBTrans.Create())
+        {
+            Fade(tr, xInfo);
+        }
+        using (var tr = DBTrans.Create())
+        {
+            RegenLayers(tr, xInfo);
+        }
+
+        xInfo.ActionLayerLockMap.Clear();
+        xInfo.ActionEntityLayer.Clear();
         return true;
     }
 
@@ -153,29 +212,71 @@ public class RefEditCmd
         // 先move再选择,依然会选择到workset以外的,
         // 先锁定全部图层,把workset的图元放入一个不锁的图层,
         // 然后再处理
-        if (layerSets.Count > 0) // 防止重入
+        if (xInfo.ActionLayerLockMap.Count > 0) // 防止重入
             return;
 
         using var tr = DBTrans.Create();
 
-        // 锁定全部
-        tr.LayerTable.ForEach((layer, state) => {
-            if (RefEdit0 == layer.Name)
-                return;
-            if (!layer.IsLocked)
-            {
-                layer.IsLocked = true;
-                layerSets.Add(layer.ObjectId);
-            }
-        }, OpenMode.ForWrite);
+        /*
+         * 用锁定图层来处理官方命令,
+         * 需要剔除 workset 以外的操作.
+         * 1,锁定的图层全部改一个名再锁定: "{RefLayerPrefix}原有名" 之后还原
+         * 2,workset 内的就原有图层名,因为用户命令可能需要判断图层名称,并且不是锁定的
+         * 所以代码变得非常复杂
+         */
 
-        // 这是一个没有锁定的图层
-        var eLayer = tr.LayerTable.Add(RefEdit0);
         foreach (var id in xInfo.Workset)
         {
             using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
-            entLayerMap[id] = ent.LayerId;
+            if (ent.IsDisposed)
+                continue;
+            xInfo.ActionEntityLayer[id] = new(ent.Layer, ent.LayerId);
+        }
+
+        // 由于0号图层名称不能修改,否则报错..要把0号图层图元移动到其他图层.
+        var eLayer = tr.LayerTable.Add(RefEdit0);
+        foreach (var entId in tr.CurrentSpace)
+        {
+            if (!entId.IsOk())
+                continue;
+            using var ent = (Entity)tr.GetObject(entId, OpenMode.ForWrite, true, true);
+            if (ent.IsDisposed)
+                continue;
             ent.LayerId = eLayer;
+        }
+
+        // 无论锁不锁都需要改名
+        // 锁定全部,并且改名
+        tr.LayerTable.ForEach((layer, state) => {
+            // 例外,由于0号图层名称不能修改
+            if ("0" == layer.Name)
+            {
+                layer.IsLocked = false;
+                return;
+            }
+
+            // 解锁-改名-记录-锁定
+            bool islockBak = layer.IsLocked;
+            if (layer.IsLocked)
+                layer.IsLocked = false;
+            layer.Name = $"{RefLayerPrefix}{layer.Name}";
+            xInfo.ActionLayerLockMap.Add(layer.ObjectId, islockBak);
+            layer.IsLocked = true;
+
+        }, OpenMode.ForWrite);
+
+        // 创建新图层,无锁的,再设置给ent,来保证workset内的图元是无锁的.
+        foreach (var item in xInfo.ActionEntityLayer.Values)
+        {
+            var newly = tr.LayerTable.Add(item.LayerName);
+            item.NewlyLayerId = newly;
+        }
+        foreach (var id in xInfo.Workset)
+        {
+            using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+            if (ent.IsDisposed)
+                continue;
+            ent.Layer = xInfo.ActionEntityLayer[id].LayerName;
         }
     }
 
@@ -202,6 +303,8 @@ public class RefEditCmd
         foreach (var id in idArray)
         {
             using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+            if (ent.IsDisposed)
+                continue;
             ent.Move(Point3d.Origin, Point3d.Origin);
         }
 
@@ -240,6 +343,11 @@ public class RefEditCmd
         }
     }
 
+    /// <summary>
+    /// 局部刷新图元
+    /// </summary>
+    /// <param name="tr"></param>
+    /// <param name="xInfo"></param>
     private static void RegenLayers(DBTrans tr, RefEditInfo? xInfo = null)
     {
         if (xInfo is not null)
@@ -272,6 +380,10 @@ public class RefEditCmd
             return;
         }
 
+        // TODO 放弃长事务的修改
+
+        // 保存长事务的修改
+
         // 1,移除原本btr内的图元,是一个块表记录容器,把 workset 设置进去
         using var tr = DBTrans.Create();
 
@@ -283,6 +395,8 @@ public class RefEditCmd
         foreach (ObjectId id in btr)
         {
             using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+            if (ent.IsDisposed)
+                continue;
             ent.Erase(true);
         }
 
@@ -290,6 +404,8 @@ public class RefEditCmd
         foreach (var id in xInfo.Workset)
         {
             using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+            if (ent.IsDisposed)
+                continue;
 
             var ent2 = ent.CloneEx();
             ent2.Move(moveTo, move);
@@ -309,7 +425,7 @@ public class RefEditCmd
 
         // TODO 4,此处没有考虑undo的时候怎么恢复?
 
-        // 删除图层
+        // 删除我们用来备份的图层
         var eLayer = tr.LayerTable.Add(RefEdit0);
         using var ll = (LayerTableRecord)tr.GetObject(eLayer, OpenMode.ForWrite, true, true);
         ll.Erase(true);
@@ -354,8 +470,6 @@ public class RefEditCmd
 
         xInfo = new RefEditInfo(doc, doc.Database.CurrentSpaceId);
 
-
-
         // 淡显图元
         using (var tr = DBTrans.Create())
         {
@@ -364,13 +478,14 @@ public class RefEditCmd
 
         using (var tr = DBTrans.Create())
         {
-            // 1,删除这个块
+            // 1,删除这个块参照
             using var bent = (Entity)tr.GetObject(ooid, OpenMode.ForWrite, true, true);
             if (bent is not BlockReference brf)
                 return;
             brf.Erase(true);
 
-            // 4,块表记录提取块内图元出来,此时它就是亮显的,因为此时没有锁定图层.
+            // 2,提取块内图元出来
+            // 此时没有锁定图层,再平移之后(触发修改),它就是亮显的.
             using var btr = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord, OpenMode.ForWrite, true, true);
             using ObjectIdCollection ids = [.. btr];
 
@@ -385,14 +500,12 @@ public class RefEditCmd
             map.GetValues().ForEach(id => {
                 if (!id.IsOk())
                     return;
-                using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+                var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
                 ent.Move(move, moveTo);
                 xInfo.Workset.Add(id);
             });
 
-            // 这里必须要刷新一个图层,然后使得这些克隆出来的对象是亮显的.
-            // 即使这个图层没有发挥任何作用.
-            // 我的想法是只刷新这些图元,但是发现同一个事务会触发刷新全部图层,所以要多事务.
+            // 触发图元,要平行事务.
             RegenLayers(tr);
         }
     }

@@ -99,7 +99,7 @@ public static class ObjectIdEx
     {
         if (!id.IsOk())
             return;
-        var dbo = id.GetObject(OpenMode.ForWrite);
+        var dbo = id.GetObject(OpenMode.ForWrite, true, true);
         dbo.Erase();
     }
 }
