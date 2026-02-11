@@ -31,6 +31,8 @@ public class RefEditCmd
     // 收集所有图层ID
     public static HashSet<string> _workcmd = new(StringComparer.OrdinalIgnoreCase);
 
+    const string RefEdit0 = "Edit-0";
+
     [IFoxInitialize]
     public void Init(Document doc)
     {
@@ -158,7 +160,7 @@ public class RefEditCmd
 
         // 锁定全部
         tr.LayerTable.ForEach((layer, state) => {
-            if ("Edit-0" == layer.Name)
+            if (RefEdit0 == layer.Name)
                 return;
             if (!layer.IsLocked)
             {
@@ -168,7 +170,7 @@ public class RefEditCmd
         }, OpenMode.ForWrite);
 
         // 这是一个没有锁定的图层
-        var eLayer = tr.LayerTable.Add("Edit-0");
+        var eLayer = tr.LayerTable.Add(RefEdit0);
         foreach (var id in xInfo.Workset)
         {
             using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
@@ -252,7 +254,7 @@ public class RefEditCmd
         }
         // 刷新这个图层,
         // 即使这个图层没有任何图元,也会触发刷新修改过的图元而不是整个图层
-        var eLayer = tr.LayerTable.Add("Edit-0");
+        var eLayer = tr.LayerTable.Add(RefEdit0);
         var lays = new List<ObjectId>
         {
             eLayer
@@ -307,8 +309,8 @@ public class RefEditCmd
 
         // TODO 4,此处没有考虑undo的时候怎么恢复?
 
-        // 删除 Edit-0
-        var eLayer = tr.LayerTable.Add("Edit-0");
+        // 删除图层
+        var eLayer = tr.LayerTable.Add(RefEdit0);
         using var ll = (LayerTableRecord)tr.GetObject(eLayer, OpenMode.ForWrite, true, true);
         ll.Erase(true);
     }
