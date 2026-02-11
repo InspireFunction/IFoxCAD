@@ -108,15 +108,15 @@ public class RefEditCmd
         CommandEndedOrCancelled(cmd);
     }
 
-    private bool CommandEndedOrCancelled(string cmd)
+    private void CommandEndedOrCancelled(string cmd)
     {
         if (_workCmd.Contains(cmd))
-            return false;
+            return;
 
         // 含有就表示正在 在位编辑 过程中
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
-            return false;
+            return;
 
         using (var tr = DBTrans.Create())
         {
@@ -179,7 +179,6 @@ public class RefEditCmd
 
         xInfo.ActionLayerLockMap.Clear();
         xInfo.ActionEntityLayerMap.Clear();
-        return true;
     }
 
     // 命令开始
@@ -233,7 +232,7 @@ public class RefEditCmd
             xInfo.ActionEntityLayerMap[id] = new(ent.Layer, ent.LayerId);
         }
 
-        // 由于0号图层名称不能修改,否则报错..要把0号图层图元移动到其他图层.
+        // 由于0号图层名称不能修改,否则报错..要把0号图层图元移动到 RefEdit0 图层.
         var eLayer = tr.LayerTable.Add(RefEdit0);
         foreach (var entId in tr.CurrentSpace)
         {
@@ -242,13 +241,14 @@ public class RefEditCmd
             using var ent = (Entity)tr.GetObject(entId, OpenMode.ForWrite, true, true);
             if (ent.IsDisposed)
                 continue;
-            ent.LayerId = eLayer;
+            if (ent.Layer == "0")
+                ent.LayerId = eLayer;
         }
 
         // 无论锁不锁都需要改名
         // 锁定全部,并且改名
         tr.LayerTable.ForEach((layer, state) => {
-            // 例外,由于0号图层名称不能修改
+            // 例外,由于0号图层名称不能修改,但是上面已经移动到 RefEdit0 图层.
             if ("0" == layer.Name)
             {
                 layer.IsLocked = false;
