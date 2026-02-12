@@ -328,7 +328,7 @@ public class RefEditCmd
         var pko = new PromptKeywordOptions("\n输入选项 ");
         pko.Keywords.Add("S", "S", "保存参照修改(S)");
         pko.Keywords.Add("D", "D", "放弃参照修改(D)");
-        pko.Keywords.Default = "D";
+        pko.Keywords.Default = "S";
 
         var result = Env.Editor.GetKeywords(pko);
         if (result.Status != PromptStatus.OK)
@@ -343,20 +343,12 @@ public class RefEditCmd
 
         if (result.StringResult == "D")
         {
-            foreach (var id in xInfo.Workset)
-            {
-                using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
-                if (ent.IsDisposed)
-                    continue;
-                ent.Erase(true);
-            }
+            Env.Printl("放弃参照修改");
         }
         else if (result.StringResult == "S")
         {
             // 1,移除原本btr内的图元,是一个块表记录容器,把 workset 设置进去
             using var btr = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord, OpenMode.ForWrite, true, true);
-
-            // 移除块表记录中的所有图元
             foreach (ObjectId id in btr)
             {
                 using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
@@ -368,22 +360,25 @@ public class RefEditCmd
             // 深度克隆 
             using ObjectIdCollection ids = [.. xInfo.Workset];
             using IdMapping map = [];
+            var inv = brf.BlockTransform.Inverse();
             btr.DeepCloneEx(ids, map);
             map.GetValues().ForEach(id => {
                 if (!id.IsOk())
                     return;
                 var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
-                ent.TransformBy(brf.BlockTransform.Inverse());
+                ent.TransformBy(inv);
             });
 
-            // 删除临时图元
-            foreach (var id in xInfo.Workset)
-            {
-                using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
-                if (ent.IsDisposed)
-                    continue;
-                ent.Erase(true);
-            }
+            Env.Printl("保存参照修改");
+        }
+
+        // 删除临时图元
+        foreach (var id in xInfo.Workset)
+        {
+            using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+            if (ent.IsDisposed)
+                continue;
+            ent.Erase(true);
         }
 
         // 恢复原有的块参照
