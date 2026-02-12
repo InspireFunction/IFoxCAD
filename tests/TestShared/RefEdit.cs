@@ -47,7 +47,7 @@ public class RefEditCmd
         doc.CommandEnded += OnCommandEnded;
         doc.CommandCancelled += Doc_CommandCancelled;
 
-        _workCmd.Add(nameof(REFSET));
+        _workCmd.Add(nameof(RefSet));
         _workCmd.Add(nameof(RefClose));
         _workCmd.Add(nameof(RefEdit));
     }
@@ -203,42 +203,50 @@ public class RefEditCmd
     }
 
 
-    [CommandMethod(nameof(REFSET), CommandFlags.UsePickSet | CommandFlags.Redraw)]
-    public void REFSET()
+    [CommandMethod(nameof(RefSet), CommandFlags.UsePickSet | CommandFlags.Redraw)]
+    public void RefSet()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
             return;
-        Env.Printl("在参照编辑工作集和宿主图形之间传输对象...");
+        Env.Printl("\n在参照编辑工作集和宿主图形之间传输对象...");
 
-        bool isAdd = true;
+
+        // 输入选项 [添加(A)/删除(R)] <添加>: *取消*
+        var pko = new PromptKeywordOptions("\n输入选项 ");
+        pko.Keywords.Add("A", "A", "添加(A)");
+        pko.Keywords.Add("R", "R", "删除(R)");
+        pko.Keywords.Default = "A";
+
+        var result = Env.Editor.GetKeywords(pko);
+        if (result.Status != PromptStatus.OK)
+        {
+            Env.Print("*取消*");
+            return;
+        }
+
         var psr = Env.Editor.SelectImplied();// 预选
         if (psr.Status != PromptStatus.OK)
         {
-            // 定义选择集选项
+            // 选择集有官方自带默认关键字,如果想要键入一样的关键字,需要键盘Hook
             var pso = new PromptSelectionOptions
             {
-                MessageForAdding = "\n输入选项 ",
-                AllowDuplicates = false,
+                MessageForAdding = "\n 选择对象:",
+                RejectObjectsFromNonCurrentSpace = true, // 不允许跨空间选择
+                RejectObjectsOnLockedLayers = true, // 不选择锁定图层对象
+                AllowDuplicates = true, // 不允许重复选择
             };
-            var map = new Dictionary<string, Action<object, SelectionTextInputEventArgs>>() {
-                { "A,添加", (s,e)=> {
-                    isAdd = true;
-                }},
-                { "R,删除",  (s,e)=> {
-                    isAdd = false;
-                }},
-            };
-            pso.SsgetAddKeys(map, "A");
             psr = Env.Editor.GetSelection(pso);// 手选
-        }
-        if (psr.Status != PromptStatus.OK)
-        {
-            Env.Printl("*取消*");
-            return;
+            if (psr.Status != PromptStatus.OK)
+            {
+                Env.Printl("*取消*");
+                return;
+            }
         }
         var idArray = psr.Value.GetObjectIds();
 
+        bool isAdd = true;
+        isAdd = result.StringResult == "A";
         if (isAdd)
         {
             xInfo.Workset.Add(idArray);
@@ -253,9 +261,6 @@ public class RefEditCmd
                     continue;
                 ent.Move(Point3d.Origin, Point3d.Origin);
             }
-
-            // 清空选择集
-            Env.Editor.SetImpliedSelection([]);
         }
         else
         {
@@ -273,6 +278,9 @@ public class RefEditCmd
                 RegenLayers(tr, xInfo);
             }
         }
+
+        // 清空选择集
+        Env.Editor.SetImpliedSelection([]);
     }
 
 
@@ -347,6 +355,7 @@ public class RefEditCmd
         {
             // 1,移除原本btr内的图元,是一个块表记录容器,把 workset 设置进去
             using var btr = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord, OpenMode.ForWrite, true, true);
+
             // 移除块表记录中的所有图元
             foreach (ObjectId id in btr)
             {
@@ -356,18 +365,23 @@ public class RefEditCmd
                 ent.Erase(true);
             }
 
-            // 将工作集中的图元添加回块表记录
+            // 深度克隆 
+            using ObjectIdCollection ids = [.. xInfo.Workset];
+            using IdMapping map = [];
+            btr.DeepCloneEx(ids, map);
+            map.GetValues().ForEach(id => {
+                if (!id.IsOk())
+                    return;
+                var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+                ent.TransformBy(brf.BlockTransform.Inverse());
+            });
+
+            // 删除临时图元
             foreach (var id in xInfo.Workset)
             {
                 using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
                 if (ent.IsDisposed)
                     continue;
-
-                var ent2 = ent.CloneEx();
-                ent2.TransformBy(brf.BlockTransform.Inverse());
-                btr.AppendEntity(ent2);
-                tr.AddNewlyCreatedDBObject(ent2, true);
-
                 ent.Erase(true);
             }
         }
@@ -383,11 +397,12 @@ public class RefEditCmd
 
         // TODO 4,此处没有考虑undo的时候怎么恢复?
 
-        // 删除我们用来备份的图层
+        // 删除用来临时锁定的图层
         var eLayer = tr.LayerTable.Add(RefEdit0);
         using var ll = (LayerTableRecord)tr.GetObject(eLayer, OpenMode.ForWrite, true, true);
         ll.Erase(true);
     }
+
 
     // 模拟,实现一个自己的在位编辑器(长事务)
     [CommandMethod(nameof(RefEdit), CommandFlags.UsePickSet | CommandFlags.Redraw)]
@@ -399,7 +414,7 @@ public class RefEditCmd
             Env.Print("不能重复使用:在位编辑器");
             return;
         }
-        Env.Print("\n用 REFCLOSE 或“参照编辑”工具栏来结束参照编辑任务。");
+        Env.Print($"\n用 {nameof(RefClose)} 或“参照编辑”工具栏来结束参照编辑任务。");
 
         ObjectId ooid = ObjectId.Null;
         var psr = Env.Editor.SelectImplied();// 预选
@@ -446,12 +461,9 @@ public class RefEditCmd
             // 2,提取块内图元出来
             // 此时没有锁定图层,再平移之后(触发修改),它就是亮显的.
             using var btr = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord, OpenMode.ForWrite, true, true);
-            using ObjectIdCollection ids = [.. btr];
-
-            // 记录用于保存在位编辑器的工作集
             xInfo.BlockReferenceId = brf.ObjectId;
-
-            // 深度克隆,然后平移到当前目标点位置
+            // 深度克隆
+            using ObjectIdCollection ids = [.. btr];
             using IdMapping map = [];
             tr.CurrentSpace.DeepCloneEx(ids, map);
             map.GetValues().ForEach(id => {
@@ -462,7 +474,7 @@ public class RefEditCmd
                 xInfo.Workset.Add(id);
             });
 
-            // 触发图元,要平行事务.
+            // 3,触发图元,要平行事务.
             RegenLayers(tr);
         }
     }
@@ -585,4 +597,3 @@ public class RefEditCmd
 //    }
 //}
 //#endif
-

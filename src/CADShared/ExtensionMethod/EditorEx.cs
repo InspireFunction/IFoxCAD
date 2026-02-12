@@ -142,8 +142,9 @@ public static class EditorEx
      *  ssPsr = ed.GetSelection(pso, filter);
      */
 
+
     /// <summary>
-    ///  添加选择集关键字和回调
+    /// 添加选择集关键字和回调
     /// </summary>
     /// <param name="pso">选择集配置</param>
     /// <param name="acMap">关键字,回调委托</param>
@@ -196,7 +197,7 @@ public static class EditorEx
         }
 
         // key,描述
-        Dictionary<string, string> description = new Dictionary<string, string>();
+        Dictionary<string, string> description = [];
 
         // 第三阶段：添加到 pso.Keywords
         foreach (var pair in finalMap)
@@ -225,7 +226,7 @@ public static class EditorEx
         }
 
         // 设置默认,获取默认的描述
-        // 输入选项 [添加(A)/删除(R)] <添加>: *取消*
+        // 输入选项 [添加(A)/删除(R)] <添加>:
         var defaultStr = "";
         if (defaultKey is not null)
         {
@@ -234,12 +235,30 @@ public static class EditorEx
         }
 
         // 显示关键字,加上用户预设的
-        pso.MessageForAdding = pso.MessageForAdding + pso.Keywords.GetDisplayString(true) + " " + defaultStr;
+        var ss = pso.MessageForAdding;
+        pso.MessageForAdding = ss
+            + pso.Keywords.GetDisplayString(true)
+            + " "
+            + defaultStr;
 
         // 设置回调事件
         pso.KeywordInput += (s, e) => {
             if (acMap.TryGetValue(e.Input, out var action))
             {
+                // 替换描述为什么没有生效?可能是因为已经写入缓冲区,就不再接受.
+                var defaultStr = "";
+                defaultKey = e.Input;
+                if (defaultKey is not null)
+                {
+                    pso.Keywords.Default = defaultKey;
+                    defaultStr = "<" + description[defaultKey] + ">";
+                }
+
+                pso.MessageForAdding = ss
+                 + pso.Keywords.GetDisplayString(true)
+                 + " "
+                 + defaultStr;
+
                 action.Invoke(s, e);
             }
         };
