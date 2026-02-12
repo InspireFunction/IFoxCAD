@@ -146,79 +146,119 @@ public static class EditorEx
     ///  添加选择集关键字和回调
     /// </summary>
     /// <param name="pso">选择集配置</param>
-    /// <param name="dicActions">关键字,回调委托</param>
+    /// <param name="acMap">关键字,回调委托</param>
+    /// <param name="defaultKey">关键字,默认key</param>
     /// <returns></returns>
     public static void SsgetAddKeys(this PromptSelectionOptions pso,
-        Dictionary<string, Action> dicActions)
+        Dictionary<string, Action<object, SelectionTextInputEventArgs>> acMap,
+        string? defaultKey = null)
     {
-        Dictionary<string, Action> tmp = new();
-        // 后缀名的|号切割,移除掉,组合成新的加入tmp
-        for (var i = dicActions.Count - 1; i >= 0; i--)
+        if (pso == null) throw new ArgumentNullException(nameof(pso));
+        if (acMap == null) throw new ArgumentNullException(nameof(acMap));
+        if (acMap.Count == 0) return;
+
+        // 创建处理后的新字典，避免在遍历时修改
+        var processedMap = new Dictionary<string, Action<object, SelectionTextInputEventArgs>>();
+
+        // 第一阶段：处理 | 分隔的关键词
+        foreach (var pair in acMap)
         {
-            var pair = dicActions.ElementAt(i);
-            var key = pair.Key;
-            var keySp = key.Split('|');
-            if (keySp.Length < 2)
+            var keys = pair.Key.Split('|');
+
+            // 如果没有 | 分隔符，直接添加到处理字典
+            if (keys.Length < 2)
+            {
+                AddOrCombineAction(processedMap, pair.Key, pair.Value);
                 continue;
-
-            foreach (var item in keySp)
-            {
-                // 防止多个后缀通过|符越过词典约束同名
-                // 后缀(key)含有,而且Action(value)不同,就把Action(value)累加到后面.
-                if (dicActions.TryGetValue(item, out var value))
-                {
-                    if (dicActions[item] != dicActions[key])
-                        dicActions[item] += dicActions[key];
-                }
-                else if (value != null) tmp.Add(item, value);
             }
-            dicActions.Remove(key);
-        }
 
-        foreach (var item in tmp)
-            dicActions.Add(item.Key, item.Value);
-
-        // 去除关键字重复的,把重复的执行动作移动到前面
-        for (var i = 0; i < dicActions.Count; i++)
-        {
-            var pair1 = dicActions.ElementAt(i);
-            var key1 = pair1.Key;
-
-            for (var j = dicActions.Count - 1; j > i; j--)
+            // 处理每个 | 分隔的关键词
+            foreach (var singleKey in keys)
             {
-                var pair2 = dicActions.ElementAt(j);
-                var key2 = pair2.Key;
-
-                if (key1.Split(',')[0] == key2.Split(',')[0])
-                {
-                    if (dicActions[key1] != dicActions[key2])
-                        dicActions[key1] += dicActions[key2];
-                    dicActions.Remove(key2);
-                }
+                AddOrCombineAction(processedMap, singleKey, pair.Value);
             }
         }
 
-        foreach (var item in dicActions)
+        // 第二阶段：处理 , 分隔的关键词并合并相同前缀
+        var finalMap = new Dictionary<string, Action<object, SelectionTextInputEventArgs>>();
+        foreach (var pair in processedMap)
         {
-            var keySplitS = item.Key.Split([",", "|"], StringSplitOptions.RemoveEmptyEntries);
-            for (var i = 0; i < keySplitS.Length; i += 2)
-                pso.Keywords.Add(keySplitS[i], keySplitS[i],
-                                 keySplitS[i + 1] + "(" + keySplitS[i] + ")");
+            var prefix = pair.Key.Split(',')[0];
+            if (finalMap.TryGetValue(prefix, out var existingAction))
+            {
+                // 合并委托
+                finalMap[prefix] = existingAction + pair.Value;
+            }
+            else
+            {
+                finalMap[prefix] = pair.Value;
+            }
         }
 
-        // 回调的时候我想用Dict的O(1)索引,
-        // 但是此函数内进行new Dictionary() 在函数栈释放的时候,它被释放掉了.
-        // 因此 dicActions 参数的生命周期
-        tmp = new(dicActions);
-        dicActions.Clear();
-        foreach (var item in tmp)
-            dicActions.Add(item.Key.Split(',')[0], item.Value);
+        // key,描述
+        Dictionary<string, string> description = new Dictionary<string, string>();
 
-        var keyWords = pso.Keywords;
-        // 从选择集命令中显示关键字
-        pso.MessageForAdding = keyWords.GetDisplayString(true);
-        // 关键字回调事件 ssget关键字
-        pso.KeywordInput += (_, e) => { dicActions[e.Input].Invoke(); };
+        // 第三阶段：添加到 pso.Keywords
+        foreach (var pair in finalMap)
+        {
+            // 由于我们只保留了前缀，这里需要从原始数据中查找完整格式
+            // 或者修改逻辑以保留完整的关键词格式
+            var fullKey = processedMap.Keys
+                .FirstOrDefault(k => k.StartsWith(pair.Key + ","));
+
+            if (!string.IsNullOrEmpty(fullKey))
+            {
+                var keyParts = fullKey.Split([",", "|"], StringSplitOptions.RemoveEmptyEntries);
+                if (keyParts.Length >= 2)
+                {
+                    pso.Keywords.Add(keyParts[0], keyParts[0], keyParts[1] + "(" + keyParts[0] + ")");
+                    description[keyParts[0]] = keyParts[1];
+                }
+            }
+        }
+
+        // 第四阶段：更新回调字典
+        acMap.Clear();
+        foreach (var pair in finalMap)
+        {
+            acMap[pair.Key] = pair.Value;
+        }
+
+        // 设置默认,获取默认的描述
+        // 输入选项 [添加(A)/删除(R)] <添加>: *取消*
+        var defaultStr = "";
+        if (defaultKey is not null)
+        {
+            pso.Keywords.Default = defaultKey;
+            defaultStr = "<" + description[defaultKey] + ">";
+        }
+
+        // 显示关键字,加上用户预设的
+        pso.MessageForAdding = pso.MessageForAdding + pso.Keywords.GetDisplayString(true) + " " + defaultStr;
+
+        // 设置回调事件
+        pso.KeywordInput += (s, e) => {
+            if (acMap.TryGetValue(e.Input, out var action))
+            {
+                action.Invoke(s, e);
+            }
+        };
+    }
+
+    // 辅助方法：添加或合并 Action
+    private static void AddOrCombineAction(
+        Dictionary<string, Action<object, SelectionTextInputEventArgs>> dictionary,
+        string key,
+         Action<object, SelectionTextInputEventArgs> action)
+    {
+        if (dictionary.TryGetValue(key, out var existingAction))
+        {
+            dictionary[key] = existingAction + action;
+        }
+        else
+        {
+            dictionary[key] = action;
+        }
     }
 
     // #region 即时选择样板
