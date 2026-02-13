@@ -332,6 +332,11 @@ public class RefEditCmd
             return;
         Env.Printl("\n在参照编辑工作集和宿主图形之间传输对象...");
 
+        if (!xInfo.IsRun)
+        {
+            Env.Print("当前没有使用:在位编辑器");
+            return;
+        }
 
         // 输入选项 [添加(A)/删除(R)] <添加>: *取消*
         var pko = new PromptKeywordOptions("\n输入选项 ");
