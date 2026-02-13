@@ -144,6 +144,10 @@ public sealed class DBTrans : IDisposable
     /// </summary>
     private TransStatus _transStatus = new();
 
+    /// <summary>
+    /// 是否开启无撤回事务
+    /// </summary>
+    private bool _openCloseTrans = false;
     #endregion
 
     #region 公开属性
@@ -215,14 +219,25 @@ public sealed class DBTrans : IDisposable
     {
         _database = db;
         var tm = _database.TransactionManager;
+
+        _openCloseTrans = openCloseTrans;
+        if (_openCloseTrans)
+        {
 #if !NET35
-        if (openCloseTrans)
-            _transaction = tm.StartOpenCloseTransaction();
-        else
-            _transaction = tm.StartTransaction();
+            _transaction = tm.StartOpenCloseTransaction(); 
 #else
-        _transaction = tm.StartTransaction();
+            // 打开不撤销标记
+            db.DisableUndoRecording(true);
+
+            // 正常打开原本的事务
+            _transaction = tm.StartTransaction();
 #endif
+        }
+        else
+        {
+            _transaction = tm.StartTransaction();
+        }
+
         if (commit) _transStatus.Commit();
         if (!_dBTrans.TryGetValue(_database, out var trStack))
         {
@@ -969,7 +984,10 @@ public sealed class DBTrans : IDisposable
                     // 防止事务回滚造成的视图回滚
                     using var vtr = Editor?.GetCurrentView();
                     _transaction.Abort();
-                    if (vtr is not null) Editor?.SetCurrentView(vtr);
+                    if (vtr is not null)
+                    {
+                        Editor?.SetCurrentView(vtr);
+                    }
                 }
 
                 // 表记录释放
@@ -978,8 +996,15 @@ public sealed class DBTrans : IDisposable
                     if (pair.Value.IsAlive)
                         ((DBObject)pair.Value.Target).Dispose();
                 }
+
                 _objectCache.Clear();
                 _transaction.Dispose();
+
+                // 关闭不撤销标记
+                if (_openCloseTrans)
+                {
+                    Database.DisableUndoRecording(false);
+                }
             }
 
             // 将当前事务弹栈

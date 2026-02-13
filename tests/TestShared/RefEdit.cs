@@ -1,8 +1,4 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
-using Autodesk.AutoCAD.EditorInput;
-using IFoxCAD.Cad;
-using System.Collections.Generic;
-
+﻿using IFoxCAD.Cad;
 namespace Test;
 
 // 此处的淡显已经成功.
@@ -24,7 +20,8 @@ public class RefEditInfo : IDisposable
     public HashSet<ObjectId> RefsetAddIds { get; internal set; } = [];
     public HashSet<ObjectId> RefsetRemoveIds { get; internal set; } = [];
 
-    // 备份,map[图元id,原有图层id]
+    // 命令事件前锁定图层用,不需要加入历史
+    // map[图元id,原有图层id]
     public Dictionary<ObjectId, ObjectId> ActionEntityLayerMap = [];
 
     // 历史快照链表
@@ -96,7 +93,6 @@ public class RefEditInfo : IDisposable
             LockedLayers = [.. LockedLayers],
             BlockReferenceId = BlockReferenceId,
             CurrentSpaceId = CurrentSpaceId,
-            ActionEntityLayerMap = new(ActionEntityLayerMap)
         };
         return clone;
     }
@@ -210,15 +206,11 @@ public class RefEditCmd
     {
         if (_workCmd.Contains(cmd))
             return;
-
-        // 含有就表示正在 在位编辑 过程中
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
-
         if (!xInfo.IsRun)
             return;
-
         ChangeLayer(false, xInfo);
     }
 
@@ -234,13 +226,13 @@ public class RefEditCmd
 
         if (_workCmd.Contains(cmd))
             return;
-
-        // 含有就表示正在 在位编辑 过程中
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
+        if (!xInfo.IsRun)
+            return;
 
-        // 这种方式无法处理 先move再选择
+        // 重设选择集这种方式无法处理 先move再选择,因此需要锁定图层
         //var prompt = Env.Editor.SelectImplied();
         //if (prompt.Status == PromptStatus.OK)
         //{
@@ -250,12 +242,8 @@ public class RefEditCmd
         //    Env.Editor.SetImpliedSelection(list);
         //}
 
-        if (!xInfo.IsRun)
-            return;
-
         if (xInfo.ActionEntityLayerMap.Count > 0) // 防止重入
             return;
-
         ChangeLayer(true, xInfo);
     }
 
@@ -313,11 +301,11 @@ public class RefEditCmd
 
         // 重新淡显全部-再亮显workset
         HashSet<ObjectId> lockedLayers = [];
-        using (var tr = DBTrans.Create())
+        using (var tr = DBTrans.Create(openCloseTrans: true)) // 使用无撤事务
         {
             Fade(tr, xInfo, lockedLayers);
         }
-        using (var tr = DBTrans.Create())
+        using (var tr = DBTrans.Create(openCloseTrans: true)) // 使用无撤事务
         {
             RegenLayers(tr, xInfo);
         }
@@ -357,7 +345,7 @@ public class RefEditCmd
             // 选择集有官方自带默认关键字,如果想要键入一样的关键字,需要键盘Hook
             var pso = new PromptSelectionOptions
             {
-                MessageForAdding = "\n 选择对象:",
+                MessageForAdding = "\n选择对象: ",
                 RejectObjectsFromNonCurrentSpace = true, // 不允许跨空间选择
                 RejectObjectsOnLockedLayers = true, // 不选择锁定图层对象
                 AllowDuplicates = true, // 不允许重复选择
@@ -384,7 +372,7 @@ public class RefEditCmd
 
             // 刷新一次
             // 因为添加时候是解锁状态,只需要平移就等于刷新
-            using var tr = DBTrans.Create();
+            using var tr = DBTrans.Create(openCloseTrans: true);
             foreach (var id in sets)
             {
                 using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
@@ -407,11 +395,11 @@ public class RefEditCmd
 
             // 淡显
             // 锁定全部,再把workset给亮回来
-            using (var tr = DBTrans.Create())
+            using (var tr = DBTrans.Create(openCloseTrans: true))
             {
                 Fade(tr, xInfo, xInfo.LockedLayers);
             }
-            using (var tr = DBTrans.Create())
+            using (var tr = DBTrans.Create(openCloseTrans: true))
             {
                 RegenLayers(tr, xInfo);
             }
@@ -598,7 +586,7 @@ public class RefEditCmd
             var idArray = psr.Value.GetObjectIds();
             if (idArray.Length == 1)
             {
-                using var tr = DBTrans.Create();
+                using var tr = DBTrans.Create(openCloseTrans: true);
                 using var bent = (Entity)tr.GetObject(idArray[0], OpenMode.ForWrite, true, true);
                 if (bent is BlockReference)
                     ooid = idArray[0];
@@ -617,11 +605,16 @@ public class RefEditCmd
             ooid = per.ObjectId;
         }
 
-        xInfo.CurrentSpaceId = doc.Database.CurrentSpaceId;
+        // 前台应该用这个啊,为什么这个是错误的呢?难道是它的块表记录?先不管了
+        //var layoutId = LayoutManager.Current.GetLayoutId(LayoutManager.Current.CurrentLayout);
+
+        // 这个确实是对的
+        var a = doc.Database.CurrentSpaceId;
+        xInfo.CurrentSpaceId = a;
         xInfo.IsRun = true;
 
         // 淡显图元
-        using (var tr = DBTrans.Create())
+        using (var tr = DBTrans.Create(openCloseTrans: true))
         {
             Fade(tr, xInfo, xInfo.LockedLayers);
         }
