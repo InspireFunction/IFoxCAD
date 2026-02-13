@@ -608,7 +608,7 @@ public static class Env
     /// <summary>
     /// 获取当前配置文件的保存版本
     /// </summary>
-    /// <returns></returns>
+    /// <returns>版本枚举</returns>
     public static DwgVersion GetDefaultDwgVersion()
     {
         var ffs = GetEnv("DefaultFormatForSave");
@@ -638,8 +638,8 @@ public static class Env
     /// <summary>
     /// 是否为dxf版本号
     /// </summary>
-    /// <param name="dwgVersion"></param>
-    /// <returns></returns>
+    /// <param name="dwgVersion">文件版本</param>
+    /// <returns>是则返回<c>true</c></returns>
     public static bool IsDxfVersion(this DwgVersion dwgVersion)
     {
         var result = (int)dwgVersion switch
