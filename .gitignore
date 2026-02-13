@@ -409,7 +409,4 @@ healthchecksdb
 #ifoxcad
 **/Properties/launchSettings.json
 
-# Ignore ReSharper files
-*.sln.DotSettings
-*.csproj.DotSettings
-resharper/
+
