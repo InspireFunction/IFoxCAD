@@ -10,35 +10,133 @@ namespace Test;
 // 由于move触发之后再选择,可以选择到workset之外的对象,
 // 我们只能够在命令触发前事件锁定图层,这样就选择不了,命令结束之后解锁.
 
-public class RefEditInfo
+public class RefEditInfo : IDisposable
 {
-    public static Dictionary<Document, RefEditInfo> Map = [];
+    public static readonly Dictionary<Document, RefEditInfo> Map = [];
 
-    public Document Document { get; set; }
+    public Document Document { get; }
+    public bool IsRun { get; set; } = false;
     public ObjectId BlockReferenceId { get; set; }
-    public HashSet<ObjectId> Workset { get; set; } = [];
-    public HashSet<ObjectId> LockedLayers { get; set; } = [];
-    public ObjectId CurrentSpaceId { get; internal set; }
+    public ObjectId CurrentSpaceId { get; set; }
+
+    public HashSet<ObjectId> Workset { get; private set; } = [];
+    public HashSet<ObjectId> LockedLayers { get; private set; } = [];
+    public HashSet<ObjectId> RefsetAddIds { get; internal set; } = [];
+    public HashSet<ObjectId> RefsetRemoveIds { get; internal set; } = [];
 
     // 备份,map[图元id,原有图层id]
     public Dictionary<ObjectId, ObjectId> ActionEntityLayerMap = [];
 
-    public RefEditInfo(Document document, ObjectId currentSpaceId)
+    // 历史快照链表
+    public static readonly LinkedList<RefEditInfo> HistorySnapshots = new();
+
+    // 标记是否已释放
+    private bool _disposed = false;
+
+    ~RefEditInfo()
+    {
+        Dispose(false);
+    }
+
+    /// <summary>
+    /// 释放资源
+    /// </summary>
+    public void Dispose()
+    {
+        Dispose(true);
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// 释放资源的实际实现
+    /// </summary>
+    /// <param name="disposing">是否由用户代码调用</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        if (_disposed)
+            return;
+        _disposed = true;
+
+        if (disposing)
+        {
+            Map.Remove(Document);
+        }
+        // 清理非托管资源
+    }
+
+
+    RefEditInfo(Document document)
     {
         Document = document;
-        CurrentSpaceId = currentSpaceId;
-        Map.Add(document, this);
+    }
+
+    public static RefEditInfo Create(Document document)
+    {
+        var info = new RefEditInfo(document);
+        Map.Add(document, info);
+        return info;
+    }
+
+    public static bool Destroy(Document document)
+    {
+        return Map.Remove(document);
+    }
+
+    /// <summary>
+    /// 克隆当前对象，创建深拷贝
+    /// </summary>
+    /// <returns>当前对象的深拷贝</returns>
+    public RefEditInfo Clone()
+    {
+        var clone = new RefEditInfo(Document)
+        {
+            RefsetAddIds = [.. RefsetAddIds],
+            RefsetRemoveIds = [.. RefsetRemoveIds],
+            Workset = [.. Workset],
+            LockedLayers = [.. LockedLayers],
+            BlockReferenceId = BlockReferenceId,
+            CurrentSpaceId = CurrentSpaceId,
+            ActionEntityLayerMap = new(ActionEntityLayerMap)
+        };
+        return clone;
+    }
+
+    /// <summary>
+    /// 重新初始化,需要把原本的储存到一个链表中
+    /// </summary>
+    internal void AsSaved()
+    {
+        // 克隆当前对象并添加到链表头部
+        var clone = Clone();
+        HistorySnapshots.AddFirst(clone);
+
+        // 清空当前状态
+        RefsetAddIds.Clear();
+        RefsetRemoveIds.Clear();
+        Workset.Clear();
+        LockedLayers.Clear();
+        BlockReferenceId = ObjectId.Null;
+        CurrentSpaceId = ObjectId.Null;
+        ActionEntityLayerMap.Clear();
     }
 }
 
 public class RefEditCmd
 {
     // 本工程命令要作为例外
-    static HashSet<string> _workCmd = new(StringComparer.OrdinalIgnoreCase);
+    static readonly HashSet<string> _workCmd = new(StringComparer.OrdinalIgnoreCase);
     const string RefEdit0 = "RefEdit-0";
 
     [IFoxInitialize]
-    public void Init(Document doc)
+    public static void Init(Document _)
+    {
+        _workCmd.Add(nameof(RefSet));
+        _workCmd.Add(nameof(RefClose));
+        _workCmd.Add(nameof(RefEdit));
+    }
+
+    [IFoxInitialize(Sequence.StartDocs)]
+    public void StartDocs(Document doc)
     {
         doc.Database.ObjectAppended += Database_ObjectAppended;
         doc.Database.ObjectErased += Database_ObjectErased;
@@ -47,17 +145,31 @@ public class RefEditCmd
         doc.CommandEnded += OnCommandEnded;
         doc.CommandCancelled += Doc_CommandCancelled;
 
-        _workCmd.Add(nameof(RefSet));
-        _workCmd.Add(nameof(RefClose));
-        _workCmd.Add(nameof(RefEdit));
+        RefEditInfo.Create(doc);
     }
+
+    [IFoxInitialize(Sequence.EndDocs)]
+    public void EndDocs(Document doc)
+    {
+        doc.Database.ObjectAppended -= Database_ObjectAppended;
+        doc.Database.ObjectErased -= Database_ObjectErased;
+
+        doc.CommandWillStart -= OnCommandWillStart;
+        doc.CommandEnded -= OnCommandEnded;
+        doc.CommandCancelled -= Doc_CommandCancelled;
+
+        RefEditInfo.Destroy(doc);
+    }
+
 
     private void Database_ObjectErased(object sender, ObjectErasedEventArgs e)
     {
         if (e.DBObject is not Entity)
             return;
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        if (!TryGetRefEditInfo(doc, out var xInfo))
+            return;
+        if (!xInfo.IsRun)
             return;
         // 即使重复移除也没有关系,因为是HashSet
         xInfo.Workset.Remove(e.DBObject.ObjectId);
@@ -68,16 +180,17 @@ public class RefEditCmd
         if (e.DBObject is not Entity ent)
             return;
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
+        if (!xInfo.IsRun)
+            return;
+
         // workset不能够跨空间,而且必须要是图元
         if (xInfo.CurrentSpaceId != ent.BlockId)
             return;
         // 即使重复加入也没有关系,因为是HashSet
         xInfo.Workset.Add(ent.ObjectId);
     }
-
-
 
     // 命令取消
     private void Doc_CommandCancelled(object sender, CommandEventArgs e)
@@ -100,15 +213,19 @@ public class RefEditCmd
 
         // 含有就表示正在 在位编辑 过程中
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        if (!TryGetRefEditInfo(doc, out var xInfo))
+            return;
+
+        if (!xInfo.IsRun)
             return;
 
         ChangeLayer(false, xInfo);
     }
 
     // 命令开始
-    // 感觉每个命令都需要处理一次,实在有点太过分耶...
-    // TODO 是不是应该做一些批量处理的操作?例如是sendCommand或者Lisp期间就不执行?
+    // TODO 感觉每个命令都需要处理一次,实在有点太过分耶.
+    // 是不是应该做一些批量处理的操作?
+    // 例如是sendCommand或者Lisp期间就不执行?
     private void OnCommandWillStart(object sender, CommandEventArgs e)
     {
         var cmd = e.GlobalCommandName;
@@ -120,7 +237,7 @@ public class RefEditCmd
 
         // 含有就表示正在 在位编辑 过程中
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
 
         // 这种方式无法处理 先move再选择
@@ -132,6 +249,9 @@ public class RefEditCmd
         //    var list = prompt.Value.GetObjectIds().Where(xInfo.Workset.Contains).ToArray();
         //    Env.Editor.SetImpliedSelection(list);
         //}
+
+        if (!xInfo.IsRun)
+            return;
 
         if (xInfo.ActionEntityLayerMap.Count > 0) // 防止重入
             return;
@@ -192,9 +312,10 @@ public class RefEditCmd
         }
 
         // 重新淡显全部-再亮显workset
+        HashSet<ObjectId> lockedLayers = [];
         using (var tr = DBTrans.Create())
         {
-            Fade(tr, xInfo);
+            Fade(tr, xInfo, lockedLayers);
         }
         using (var tr = DBTrans.Create())
         {
@@ -207,7 +328,7 @@ public class RefEditCmd
     public void RefSet()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
         Env.Printl("\n在参照编辑工作集和宿主图形之间传输对象...");
 
@@ -244,17 +365,22 @@ public class RefEditCmd
             }
         }
         var idArray = psr.Value.GetObjectIds();
-
-        bool isAdd = true;
-        isAdd = result.StringResult == "A";
-        if (isAdd)
+        if (result.StringResult == "A")
         {
-            xInfo.Workset.Add(idArray);
+            var sets = new HashSet<ObjectId>();
+            foreach (var item in idArray)
+            {
+                if (xInfo.Workset.Add(item))
+                    sets.Add(item);
+            }
+
+            // 成功的部分放入
+            xInfo.RefsetAddIds.Add(sets);
 
             // 刷新一次
             // 因为添加时候是解锁状态,只需要平移就等于刷新
             using var tr = DBTrans.Create();
-            foreach (var id in idArray)
+            foreach (var id in sets)
             {
                 using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
                 if (ent.IsDisposed)
@@ -264,15 +390,22 @@ public class RefEditCmd
         }
         else
         {
-            xInfo.Workset.Remove(idArray);
+            var sets = new HashSet<ObjectId>();
+            foreach (var item in idArray)
+            {
+                if (xInfo.Workset.Remove(item))
+                    sets.Add(item);
+            }
+
+            // 成功的部分放入
+            xInfo.RefsetRemoveIds.Add(sets);
 
             // 淡显
             // 锁定全部,再把workset给亮回来
             using (var tr = DBTrans.Create())
             {
-                Fade(tr, xInfo);
+                Fade(tr, xInfo, xInfo.LockedLayers);
             }
-
             using (var tr = DBTrans.Create())
             {
                 RegenLayers(tr, xInfo);
@@ -290,7 +423,7 @@ public class RefEditCmd
     /// </summary>
     /// <param name="tr"></param>
     /// <param name="xInfo"></param>
-    private static void RegenLayers(DBTrans tr, RefEditInfo? xInfo = null)
+    private static void RegenLayers(DBTrans tr, RefEditInfo? xInfo = null, bool refreshRefEdit0 = true)
     {
         if (xInfo is not null)
         {
@@ -302,13 +435,13 @@ public class RefEditCmd
                 ent.Move(Point3d.Origin, Point3d.Origin);
             }
         }
+
         // 刷新这个图层,
         // 即使这个图层没有任何图元,也会触发刷新修改过的图元而不是整个图层
-        var eLayer = tr.LayerTable.Add(RefEdit0);
-        var lays = new List<ObjectId>
-        {
-            eLayer
-        };
+        if (!refreshRefEdit0)
+            return;
+        var refLayerId = tr.LayerTable.Add(RefEdit0);
+        var lays = new List<ObjectId> { refLayerId };
         IFoxUtils.RegenLayers(lays);
     }
 
@@ -316,7 +449,10 @@ public class RefEditCmd
     public void RefClose()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (!RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        if (!TryGetRefEditInfo(doc, out var xInfo))
+            return;
+
+        if (!xInfo.IsRun)
         {
             Env.Print("当前没有使用:在位编辑器");
             return;
@@ -343,11 +479,45 @@ public class RefEditCmd
 
         if (result.StringResult == "D")
         {
+            // 放弃修改时候
+            // 通过 refset 移除出去的图元要删掉啊
+            foreach (var id in xInfo.RefsetRemoveIds)
+            {
+                using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+                if (ent.IsDisposed)
+                    continue;
+                ent.Erase(true);
+            }
+
+            // 通过 refset 添加进来的图元要恢复啊
+            foreach (var id in xInfo.RefsetAddIds)
+            {
+                using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+                if (ent.IsDisposed)
+                    continue;
+                ent.Erase(false);
+
+                // 这里不要剔除任何容器内容,否则造成 快照 记录错误.
+                // xInfo.Workset.Remove(id);
+            }
+
+            // 删除临时图元
+            foreach (var id in xInfo.Workset)
+            {
+                // 只能这里跳过
+                if (xInfo.RefsetAddIds.Contains(id))
+                    continue;
+                using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+                if (ent.IsDisposed)
+                    continue;
+                ent.Erase(true);
+            }
+
             Env.Printl("放弃参照修改");
         }
         else if (result.StringResult == "S")
         {
-            // 1,移除原本btr内的图元,是一个块表记录容器,把 workset 设置进去
+            // 移除原本块表记录内的图元
             using var btr = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord, OpenMode.ForWrite, true, true);
             foreach (ObjectId id in btr)
             {
@@ -357,7 +527,7 @@ public class RefEditCmd
                 ent.Erase(true);
             }
 
-            // 深度克隆 
+            // 深度克隆到块表记录
             using ObjectIdCollection ids = [.. xInfo.Workset];
             using IdMapping map = [];
             var inv = brf.BlockTransform.Inverse();
@@ -369,33 +539,34 @@ public class RefEditCmd
                 ent.TransformBy(inv);
             });
 
-            Env.Printl("保存参照修改");
-        }
+            // 删除临时图元
+            foreach (var id in xInfo.Workset)
+            {
+                using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
+                if (ent.IsDisposed)
+                    continue;
+                ent.Erase(true);
+            }
 
-        // 删除临时图元
-        foreach (var id in xInfo.Workset)
-        {
-            using var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
-            if (ent.IsDisposed)
-                continue;
-            ent.Erase(true);
+            Env.Printl("保存参照修改");
         }
 
         // 恢复原有的块参照
         brf.Erase(false);
 
-        // 2,恢复图层锁定的显示
+        // 恢复图层锁定的显示
         IFoxUtils.RegenLayers(xInfo.LockedLayers);
 
-        // 3,清空
-        RefEditInfo.Map.Remove(doc);
-
-        // TODO 4,此处没有考虑undo的时候怎么恢复?
-
         // 删除用来临时锁定的图层
-        var eLayer = tr.LayerTable.Add(RefEdit0);
-        using var ll = (LayerTableRecord)tr.GetObject(eLayer, OpenMode.ForWrite, true, true);
-        ll.Erase(true);
+        var refLayerId = tr.LayerTable.Add(RefEdit0);
+        using var refLayer = (LayerTableRecord)tr.GetObject(refLayerId, OpenMode.ForWrite, true, true);
+        refLayer.Erase(true);
+
+        // 储存快照,并清空目前的.
+        // TODO undo 怎么恢复?
+        xInfo.AsSaved();
+
+        xInfo.IsRun = false;
     }
 
 
@@ -404,11 +575,15 @@ public class RefEditCmd
     public void RefEdit()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (RefEditInfo.Map.TryGetValue(doc, out var xInfo))
+        if (!TryGetRefEditInfo(doc, out var xInfo))
+            return;
+
+        if (xInfo.IsRun)
         {
             Env.Print("不能重复使用:在位编辑器");
             return;
         }
+
         Env.Print($"\n用 {nameof(RefClose)} 或“参照编辑”工具栏来结束参照编辑任务。");
 
         ObjectId ooid = ObjectId.Null;
@@ -437,12 +612,13 @@ public class RefEditCmd
             ooid = per.ObjectId;
         }
 
-        xInfo = new RefEditInfo(doc, doc.Database.CurrentSpaceId);
+        xInfo.CurrentSpaceId = doc.Database.CurrentSpaceId;
+        xInfo.IsRun = true;
 
         // 淡显图元
         using (var tr = DBTrans.Create())
         {
-            Fade(tr, xInfo);
+            Fade(tr, xInfo, xInfo.LockedLayers);
         }
 
         using (var tr = DBTrans.Create())
@@ -474,12 +650,22 @@ public class RefEditCmd
         }
     }
 
+    private static bool TryGetRefEditInfo(Document doc, out RefEditInfo xInfo)
+    {
+        if (!RefEditInfo.Map.TryGetValue(doc, out xInfo))
+        {
+            Env.Print("没有初始化此文档的在位编辑器");
+            return false;
+        }
+        return true;
+    }
+
     /// <summary>
     /// 淡显全部图元
     /// </summary>
     /// <param name="tr"></param>
     /// <param name="xInfo"></param>
-    private static void Fade(DBTrans tr, RefEditInfo xInfo)
+    private static void Fade(DBTrans tr, RefEditInfo xInfo, HashSet<ObjectId> lockedLayers)
     {
         // 1,锁定图层
         // 2,刷新图层状态,让锁定的图层的图元是暗显.
@@ -488,107 +674,17 @@ public class RefEditCmd
             if (!layer.IsLocked)
             {
                 layer.IsLocked = true;
-                xInfo.LockedLayers.Add(layer.ObjectId);
+                lockedLayers.Add(layer.ObjectId);
             }
         }, OpenMode.ForWrite);
 
         // 刷新画面的图层暗显
-        IFoxUtils.RegenLayers(xInfo.LockedLayers);
+        IFoxUtils.RegenLayers(lockedLayers);
 
         // 解锁图层
         tr.LayerTable.ForEach((layer, state) => {
-            if (xInfo.LockedLayers.Contains(layer.ObjectId))
+            if (lockedLayers.Contains(layer.ObjectId))
                 layer.IsLocked = false;
         }, OpenMode.ForWrite);
     }
 }
-
-
-
-
-
-//// kean在位编辑器
-//// https://keanw.com/2015/09/launching-autocads-refedit-command-with-an-entity-selected-using-net.html?sharetype=link
-
-//#if !NET35
-//namespace Test;
-
-//public static class Extensions
-//{
-//    ///<summary>
-//    /// Get the child entity of the first xref in the nested selection.
-//    ///</summary>
-//    ///<returns>ObjectId of the top-level object from the outer xref.</returns>
-//    public static ObjectId GetFirstXrefChild(this PromptNestedEntityResult res)
-//    {
-//        var retId = ObjectId.Null;
-//        var selId = res.ObjectId;
-//        var conts = res.GetContainers();
-//        var db = selId.Database;
-//        // Use an open-close transaction as we're in a utility function
-//        using (var tr = db.TransactionManager.StartOpenCloseTransaction())
-//        {
-//            // Work backwards through the containers, looking for an xref
-//            for (int i = conts.Length - 1; i >= 0; i--)
-//            {
-//                var br = tr.GetObject(conts[i], OpenMode.ForRead) as BlockReference;
-//                if (br != null)
-//                {
-//                    var btr =
-//                      (BlockTableRecord)tr.GetObject(
-//                        br.BlockTableRecord, OpenMode.ForRead
-//                      );
-//                    // If we have an xref, we'll return the next container or the
-//                    // selected entity in the case we're at the innermost container
-//                    if (btr.IsFromExternalReference)
-//                    {
-//                        retId = i > 0 ? conts[i - 1] : selId;
-//                        break;
-//                    }
-//                }
-//            }
-//            tr.Commit();
-//        }
-//        return retId;
-//    }
-//}
-
-//public class Commands
-//{
-//    [CommandMethod("RS", CommandFlags.Redraw)]
-//    public void RefeditSelected()
-//    {
-//        var doc = Application.DocumentManager.MdiActiveDocument;
-//        if (doc == null) return;
-//        var db = doc.Database;
-//        var ed = doc.Editor;
-//        // Select an entity within an xref
-//        var pner = ed.GetNestedEntity("\nSelect entity on xref");
-//        if (pner.Status != PromptStatus.OK)
-//            return;
-//        // Get the ID of the entity that we want to select in the xref
-//        // (this is the first entity contained by an xref)
-//        var selId = pner.GetFirstXrefChild();
-//        // Only proceed if something is containing it
-//        if (selId != ObjectId.Null)
-//        {
-//            // Define our event handler
-//            LongTransactionEventHandler func = (s, e) => {
-//                // Get the deepclone translation mapping from the long transaction
-//                var map = e.Transaction.ActiveIdMap;
-//                // If there's a mapping from our selected object...
-//                if (map.Contains(selId))
-//                {
-//                    // ... add it to the pickfirst selection set
-//                    ed.SetImpliedSelection(new ObjectId[] { map[selId].Value });
-//                    ed.WriteMessage("\nSelected one entity.");
-//                }
-//            };
-//            // Attach our handler, call REFEDIT and then detach it
-//            Application.LongTransactionManager.CheckedOut += func;
-//            ed.Command("_.-REFEDIT", pner.PickedPoint, "_O", "_A", "_N");
-//            Application.LongTransactionManager.CheckedOut -= func;
-//        }
-//    }
-//}
-//#endif
