@@ -1,11 +1,9 @@
-namespace Test;
+﻿namespace Test;
 
 
-public class TestConvexHull
-{
+public class TestConvexHull {
     [CommandMethod(nameof(Test_ConvexHull))]
-    public void Test_ConvexHull()
-    {
+    public void Test_ConvexHull() {
         // using DBTrans tr = new();
         // List<Point3d> pts = [];
         // var flag = true;

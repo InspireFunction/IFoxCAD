@@ -1,4 +1,4 @@
-using ArgumentNullException = System.ArgumentNullException;
+﻿using ArgumentNullException = System.ArgumentNullException;
 // ReSharper disable MemberCanBePrivate.Global
 
 namespace IFoxCAD.Cad;

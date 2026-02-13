@@ -1,4 +1,4 @@
-// ReSharper disable ForCanBeConvertedToForeach
+﻿// ReSharper disable ForCanBeConvertedToForeach
 
 #if !NET8_0_OR_GREATER
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
