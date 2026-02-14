@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
+<Project Sdk="Microsoft.NET.Sdk.WindowsDesktop">
     <PropertyGroup>
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
@@ -8,6 +8,10 @@
         <UseWindowsForms>true</UseWindowsForms>
         <PlatformTarget>x86</PlatformTarget>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+
+        <!-- 禁用资源生成，避免.NET Core MSBuild的ResGen错误 -->
+        <GenerateResourceNeverGenerateTypeMetadata>true</GenerateResourceNeverGenerateTypeMetadata>
+        <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
