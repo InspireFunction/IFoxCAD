@@ -1,9 +1,4 @@
 using ConcurrentCollections;
-using IFoxCAD.Cad;
-using System.Diagnostics;
-using System.IO;
-using System.Reflection;
-using System.Text;
 using System.Threading;
 
 namespace Gstar_IMEFilter;
@@ -106,8 +101,8 @@ public class Settings
             var settings = MyJson.DeserializeObject<SettingsData>(json);
             if (settings != null)
             {
-                _AutoEn2Cn = settings.AutoEn2Cn;
-                _AutoCn2En = settings.AutoCn2En;
+                _AutoEn2Cn = new ConcurrentSet<string>(settings.AutoEn2Cn);
+                _AutoCn2En = new ConcurrentSet<string>(settings.AutoCn2En);
                 _IMEHookStyle = settings.IMEHookStyle;
                 _IMEInputSwitch = settings.IMEInputSwitch;
             }
@@ -127,8 +122,8 @@ public class Settings
         {
             var settings = new SettingsData
             {
-                AutoEn2Cn = Settings.AutoEn2Cn,
-                AutoCn2En = Settings.AutoCn2En,
+                AutoEn2Cn = Settings.AutoEn2Cn.ToList(),
+                AutoCn2En = Settings.AutoCn2En.ToList(),
                 IMEHookStyle = Settings.IMEHookStyle,
                 IMEInputSwitch = Settings.IMEInputSwitch,
             };
@@ -159,8 +154,8 @@ public class Settings
 /// </summary>
 public class SettingsData
 {
-    public ConcurrentSet<string> AutoEn2Cn { get; set; } = [];
-    public ConcurrentSet<string> AutoCn2En { get; set; } = [];
+    public List<string> AutoEn2Cn { get; set; } = [];
+    public List<string> AutoCn2En { get; set; } = [];
     public IMEHookStyle IMEHookStyle { get; set; } = IMEHookStyle.Global;
     public IMESwitchMode IMEInputSwitch { get; set; } = IMESwitchMode.Shift;
 }

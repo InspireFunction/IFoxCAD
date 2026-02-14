@@ -1,8 +1,4 @@
-﻿using System.Diagnostics;
-using System.Drawing.Drawing2D;
-using System.IO;
-
-namespace Gstar_IMEFilter;
+﻿namespace Gstar_IMEFilter;
 
 public class Cmd
 {

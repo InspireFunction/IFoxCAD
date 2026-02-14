@@ -1,5 +1,4 @@
-﻿using System.Windows;
-using System.Windows.Interop;
+﻿using System.Windows.Interop;
 
 namespace Gstar_IMEFilter;
 

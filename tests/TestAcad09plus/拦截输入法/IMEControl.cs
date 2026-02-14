@@ -22,28 +22,27 @@ public class IMEControl
     static IntPtr _nextHookProc;
     static Process _process;
 
-    // 优化内存,减少消息循环时候,频繁创建此类
-    static StringBuilder _lpClassName = new(byte.MaxValue);
-
     static IMEControl()
     {
         _nextHookProc = IntPtr.Zero;
         _process = Process.GetCurrentProcess();
         WindowsAPI.CheckLowLevelHooksTimeout();
 
-        // 命令反应器
-        var dm = Acap.DocumentManager;
-        if (dm.Count != 0)
-            foreach (Document doc in dm)
-            {
-                doc.CommandWillStart += Doc_CommandWillStart;
-                doc.CommandEnded += Doc_CommandEnded;
-            }
+        AcadIdleManager.OnIdleOnce(() => {
+            // 命令反应器
+            var dm = Acap.DocumentManager;
+            if (dm.Count != 0)
+                foreach (Document doc in dm)
+                {
+                    doc.CommandWillStart += Doc_CommandWillStart;
+                    doc.CommandEnded += Doc_CommandEnded;
+                }
 
-        // 卸载钩子
-        Acap.QuitWillStart += (s, e) => {
-            IMEControl.UnIMEHook();
-        };
+            // 卸载钩子
+            Acap.QuitWillStart += (s, e) => {
+                IMEControl.UnIMEHook();
+            };
+        });
     }
 
 
@@ -304,6 +303,7 @@ public class IMEControl
                     catch
                     {
                         // 吞掉异常，防止崩溃
+                        Debugger.Break();
                     }
                     return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
                 };
@@ -332,15 +332,18 @@ public class IMEControl
                     }
                     catch (Exception ex)
                     {
+                        Debugger.Break();
                         DebugEx.Printl($"全局钩子回调异常: {ex.Message}");
                     }
                     return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
                 };
+
                 _nextHookProc = WindowsAPI.SetWindowsHookEx(
                     HookType.WH_KEYBOARD_LL, _hookProc, moduleHandle, 0);
                 if (_nextHookProc == IntPtr.Zero)
                 {
                     DebugEx.Printl("全局钩子: 设置钩子失败，回退到进程钩子");
+                    Debugger.Break();
                     Settings.IMEHookStyle = IMEHookStyle.Process;
                     SetIMEHook();
                     return;
@@ -351,6 +354,7 @@ public class IMEControl
         }
         catch (Exception ex)
         {
+            Debugger.Break();
             DebugEx.Printl($"SetIMEHook 异常: {ex.Message}");
             UnIMEHook();
         }
@@ -370,13 +374,19 @@ public class IMEControl
     {
         try
         {
+            // 重复校验
+            var focus = WindowsAPI.GetFocus();
+            if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
+                return false;
+
+            if (!WindowsAPI.IsWindowEnabled(Acap.MainWindow.Handle))
+                return false;
+
             var dm = Acap.DocumentManager;
             if (dm == null || dm.Count == 0)
                 return false;
             var doc = dm.MdiActiveDocument;
             if (doc == null || doc.IsDisposed)
-                return false;
-            if (!WindowsAPI.IsWindowEnabled(Acap.MainWindow.Handle))
                 return false;
 
             // 豁免命令进行中输入会触发,实现在豁免命令中允许输入法
@@ -394,6 +404,7 @@ public class IMEControl
         }
         catch
         {
+            Debugger.Break();
             return false;
         }
     }
@@ -435,16 +446,22 @@ public class IMEControl
             {
                 //Debugx.Printl(wParam);
 
-                // 先判断键入的数字更快,再判断豁免命令
+                // 必须先焦点
+                IntPtr focus;
+                if (Marshal.SizeOf(typeof(IntPtr)) == 4)
+                    focus = WindowsAPI.GetFocus();
+                else
+                    focus = WindowsAPI.GetForegroundWindow();
+               if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
+                    return false;
+
+                // 判断键入的数字更快,再判断豁免命令
                 if (!ExceptCmds_AutoEn2Cn_Task())
                     return false;
 
-                var focus = WindowsAPI.GetFocus();
-                if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
-                    return false;
-
-                WindowsAPI.GetClassName(focus, _lpClassName, checked(_lpClassName.Capacity + 1));
-                string left = _lpClassName.ToString().ToLower();
+                StringBuilder lpClassName = new(byte.MaxValue);
+                WindowsAPI.GetClassName(focus, lpClassName, checked(lpClassName.Capacity + 1));
+                string left = lpClassName.ToString().ToLower();
                 if (left.StartsWith("afx"))// 在08输入的都从这里进入
                 {
                     {
@@ -452,8 +469,9 @@ public class IMEControl
                         if (focusW == IntPtr.Zero || !WindowsAPI.IsWindow(focusW))
                             return false;
 
-                        WindowsAPI.GetClassName(focusW, _lpClassName, checked(_lpClassName.Capacity + 1));
-                        left = _lpClassName.ToString().ToLower();
+                        StringBuilder lpClassName2 = new(byte.MaxValue);
+                        WindowsAPI.GetClassName(focusW, lpClassName2, checked(lpClassName2.Capacity + 1));
+                        left = lpClassName2.ToString().ToLower();
                         // cad08启动时候会滚动某些信息,此时鼠标狂点入到vs代码编辑器中,然后等一段时间cad完成,vs就会无法输入了.
                         // 会被拦截到了这个"afx"处理,所有的输入都跑cad了,需要加入如下代码进行处理:
                         // 狂点鼠标进入vs是 hwndwrapper
@@ -480,8 +498,9 @@ public class IMEControl
                     WindowsAPI.GetWindowText(parent, lpString, checked(lpString.Capacity + 1));
                     if (lpString.ToString().ToLower() != "cli palette")//"CLI Palette".ToLower()
                     {
-                        WindowsAPI.GetClassName(parent, _lpClassName, checked(_lpClassName.Capacity + 1));
-                        if (!_lpClassName.ToString().ToLower().StartsWith("afxmdiframe"))
+                        StringBuilder lpClassName3 = new(byte.MaxValue);
+                        WindowsAPI.GetClassName(parent, lpClassName3, checked(lpClassName3.Capacity + 1));
+                        if (!lpClassName3.ToString().ToLower().StartsWith("afxmdiframe"))
                             return false;
                     }
                     WindowsAPI.PostMessage(focus, WM_KEYUP, new IntPtr(wParam), new IntPtr(0x10001));
@@ -496,7 +515,8 @@ public class IMEControl
                     if (parent == IntPtr.Zero)
                         return false;
 
-                    WindowsAPI.GetClassName(parent, _lpClassName, checked(_lpClassName.Capacity + 1));
+                    StringBuilder lpClassName4 = new(byte.MaxValue);
+                    WindowsAPI.GetClassName(parent, lpClassName4, checked(lpClassName4.Capacity + 1));
 
                     var dm = Acap.DocumentManager;
                     if (dm == null || dm.Count == 0)
@@ -506,7 +526,7 @@ public class IMEControl
                     if (doc == null || doc.IsDisposed)
                         return false;
 
-                    if (_lpClassName.ToString().ToLower().StartsWith("afx") &&
+                    if (lpClassName4.ToString().ToLower().StartsWith("afx") &&
                         WindowsAPI.GetParent(parent) != doc.Window.Handle)
                     {
                         WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x390001/*3735553*/));
@@ -524,6 +544,7 @@ public class IMEControl
         }
         catch
         {
+            Debugger.Break();
             return false;
         }
     }
@@ -587,13 +608,19 @@ public class IMEControl
     /// </summary>
     internal static void UnIMEHook()
     {
-        if (_nextHookProc != IntPtr.Zero)
+        try
         {
-            WindowsAPI.UnhookWindowsHookEx(_nextHookProc);
-            _nextHookProc = IntPtr.Zero;
+            if (_nextHookProc != IntPtr.Zero)
+            {
+                WindowsAPI.UnhookWindowsHookEx(_nextHookProc);
+                _nextHookProc = IntPtr.Zero;
 
-            _TangentTextEditHook?.Dispose();
-            _TangentTextEditHook = null;
+                _TangentTextEditHook?.Dispose();
+                _TangentTextEditHook = null;
+            }
+        }
+        catch (Exception)
+        {
         }
     }
 }

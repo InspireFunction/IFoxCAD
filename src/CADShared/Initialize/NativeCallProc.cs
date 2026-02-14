@@ -9,8 +9,6 @@ using System.Threading;
 using System.Windows.Forms;
 
 
-#line hidden
-
 /// <summary>
 /// AutoCAD窗口消息拦截器 - 支持自定义空闲事件
 /// </summary>
@@ -60,11 +58,13 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// <param name="hWnd">窗口句柄</param>
     public AcadWindowProc(IntPtr hWnd)
     {
+#line hidden
         if (hWnd == IntPtr.Zero)
             throw new ArgumentException("无效的窗口句柄");
 
         this.AssignHandle(hWnd);
         HookWindowProc();
+#line default
     }
 
     /// <summary>
@@ -72,6 +72,7 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     private void HookWindowProc()
     {
+#line hidden
         if (IsHooked || Handle == IntPtr.Zero)
             return;
 
@@ -87,6 +88,7 @@ public class AcadWindowProc : NativeWindow, IDisposable
             Marshal.GetFunctionPointerForDelegate(_wndProcDelegate));
 
         IsHooked = true;
+#line default
     }
 
     /// <summary>
@@ -94,6 +96,7 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     private void UnhookWindowProc()
     {
+#line hidden
         if (!IsHooked || Handle == IntPtr.Zero || _oldWndProc == IntPtr.Zero)
             return;
 
@@ -109,6 +112,7 @@ public class AcadWindowProc : NativeWindow, IDisposable
 
         _oldWndProc = IntPtr.Zero;
         IsHooked = false;
+#line default
     }
 
     // 窗口过程委托声明
@@ -120,6 +124,7 @@ public class AcadWindowProc : NativeWindow, IDisposable
     [System.Diagnostics.DebuggerStepThrough]
     private IntPtr WindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
+#line hidden
         try
         {
             var message = Message.Create(hWnd, (int)msg, wParam, lParam);
@@ -134,12 +139,17 @@ public class AcadWindowProc : NativeWindow, IDisposable
             // 检测空闲消息
             if (msg == WM_ENTERIDLE || msg == WM_NULL)
             {
-                Action<object, EventArgs>? tempHandler = null;
-                lock (_eventLock)
+                // 检查编辑器是否处于空闲状态(可以发送透明命令)
+                var doc = Acap.DocumentManager?.MdiActiveDocument;
+                if (doc?.Editor?.IsQuiescent == true)
                 {
-                    tempHandler = OnIdle;
+                    Action<object, EventArgs>? tempHandler = null;
+                    lock (_eventLock)
+                    {
+                        tempHandler = OnIdle;
+                    }
+                    tempHandler?.Invoke(this, EventArgs.Empty);
                 }
-                tempHandler?.Invoke(this, EventArgs.Empty);
             }
 
             // 调用基类窗口过程
@@ -158,9 +168,11 @@ public class AcadWindowProc : NativeWindow, IDisposable
         }
         catch (Exception e)
         {
+            Debugger.Break();
             DebugEx.Printl(e);
             throw;
         }
+#line default
     }
 
     /// <summary>
@@ -168,12 +180,19 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     public void DoIdle()
     {
-        Action<object, EventArgs>? tempHandler = null;
-        lock (_eventLock)
+#line hidden
+        // 检查编辑器是否处于空闲状态(可以发送透明命令)
+        var doc = Acap.DocumentManager?.MdiActiveDocument;
+        if (doc?.Editor?.IsQuiescent == true)
         {
-            tempHandler = OnIdle;
+            Action<object, EventArgs>? tempHandler = null;
+            lock (_eventLock)
+            {
+                tempHandler = OnIdle;
+            }
+            tempHandler?.Invoke(this, EventArgs.Empty);
         }
-        tempHandler?.Invoke(this, EventArgs.Empty);
+#line default
     }
 
     #region IDisposable 实现
@@ -184,8 +203,10 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     public void Dispose()
     {
+#line hidden
         Dispose(true);
         GC.SuppressFinalize(this);
+#line default
     }
 
     /// <summary>
@@ -193,7 +214,9 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     ~AcadWindowProc()
     {
+#line hidden
         Dispose(false);
+#line default
     }
 
     /// <summary>
@@ -202,6 +225,7 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// <param name="disposing">是否由Dispose调用</param>
     protected virtual void Dispose(bool disposing)
     {
+#line hidden
         if (_disposed) return;
         _disposed = true;
 
@@ -213,6 +237,7 @@ public class AcadWindowProc : NativeWindow, IDisposable
         {
             ReleaseHandle();
         }
+#line default
     }
     #endregion
 }
@@ -396,6 +421,66 @@ public static class AcadIdleManager
         }
 #endif
     }
-}
 
-#line default
+    /// <summary>
+    /// 添加仅执行一次的空闲事件处理程序
+    /// 在下一个空闲事件触发时执行指定操作，然后自动取消订阅
+    /// </summary>
+    /// <param name="action">要执行的操作</param>
+    public static void OnIdleOnce(Action action)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+#if ac2008
+        // 使用局部变量来保存事件处理程序，以便在lambda中引用自身进行取消订阅
+        EventHandler? handler = null;
+        handler = (s, e) => {
+            // 立即取消订阅，确保只执行一次
+            OnIdle -= handler;
+            // 执行用户操作
+            action();
+        };
+        OnIdle += handler;
+#else
+        // 高版本使用 Application.Idle 事件
+        EventHandler? handler = null;
+        handler = (s, e) => {
+            Acap.Idle -= handler;
+            action();
+        };
+        Acap.Idle += handler;
+#endif
+    }
+
+    /// <summary>
+    /// 添加仅执行一次的空闲事件处理程序（带发送者和事件参数）
+    /// 在下一个空闲事件触发时执行指定操作，然后自动取消订阅
+    /// </summary>
+    /// <param name="handler">要执行的事件处理程序</param>
+    public static void OnIdleOnce(EventHandler handler)
+    {
+        if (handler == null)
+            throw new ArgumentNullException(nameof(handler));
+
+#if ac2008
+        // 使用局部变量来保存包装后的事件处理程序
+        EventHandler? wrapper = null;
+        wrapper = (s, e) => {
+            // 立即取消订阅，确保只执行一次
+            OnIdle -= wrapper;
+            // 执行用户处理程序
+            handler(s, e);
+        };
+        OnIdle += wrapper;
+#else
+        // 高版本使用 Application.Idle 事件
+        EventHandler? wrapper = null;
+        wrapper = (s, e) => {
+            Acap.Idle -= wrapper;
+            handler(s, e);
+        };
+        Acap.Idle += wrapper;
+#endif
+    }
+}
