@@ -1,6 +1,7 @@
 ﻿namespace IFoxCAD.Cad;
 
 using ConcurrentCollections;
+using IFoxCAD.Com;
 using System.Diagnostics;
 using System.IO;
 using Exception = System.Exception;
@@ -223,14 +224,13 @@ public sealed class DBTrans : IDisposable
         _openCloseTrans = openCloseTrans;
         if (_openCloseTrans)
         {
-#if !NET35
-            _transaction = tm.StartOpenCloseTransaction(); 
-#else
+#if NET35
             // 打开不撤销标记
-            db.DisableUndoRecording(true);
-
-            // 正常打开原本的事务
+            _database.DisableUndoRecording(true);
+            // 正常事务
             _transaction = tm.StartTransaction();
+#else
+            _transaction = tm.StartOpenCloseTransaction(); 
 #endif
         }
         else
@@ -247,23 +247,44 @@ public sealed class DBTrans : IDisposable
         trStack.Push(this);
     }
 
-#if !NET35
-    // 嵌套此事务是可以替换句柄的
+    // 1,嵌套此事务是可以替换句柄
     // https://www.cnblogs.com/JJBox/p/12489648.html
+    // 2,拦截undo命令的时候,如果需要修改数据库,那么此事务可以不污染历史,使得redo依然是原本流程.
     /// <summary>
     /// 无撤事务
     /// <para>此处提交事务,外层可以进行回滚</para>
     /// </summary>
     /// <param name="action">无撤事务</param>
     /// <param name="commit">是否提交</param>
-    public void StartTransaction(Action<OpenCloseTransaction> action, bool commit = true)
+    public void StartOpenCloseTransaction(Action<Transaction> action, bool commit = true)
     {
         if (action is null) throw new ArgumentNullException(nameof(action));
-        using var tr = _database.TransactionManager.StartOpenCloseTransaction();
-        action.Invoke(tr);
-        if (commit) tr.Commit();
-    }
+        var tm = _database.TransactionManager;
+#if NET35
+        // 打开不撤销标记
+        _database.DisableUndoRecording(true);
+
+        // 正常打开原本的事务
+        var tr = tm.StartTransaction();
+#else
+        var tr = tm.StartOpenCloseTransaction(); 
 #endif
+        try
+        {
+            action.Invoke(tr);
+        }
+        catch (Exception)
+        {
+            throw;
+        }
+        finally
+        {
+            if (commit) tr.Commit();
+#if NET35
+            _database.DisableUndoRecording(false);
+#endif
+        }
+    }
 
     /*
     0x01,
@@ -999,12 +1020,13 @@ public sealed class DBTrans : IDisposable
 
                 _objectCache.Clear();
                 _transaction.Dispose();
-
+#if NET35
                 // 关闭不撤销标记
                 if (_openCloseTrans)
                 {
-                    Database.DisableUndoRecording(false);
+                    _database.DisableUndoRecording(false);
                 }
+#endif
             }
 
             // 将当前事务弹栈
