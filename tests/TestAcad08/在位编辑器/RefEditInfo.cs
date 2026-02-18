@@ -1,4 +1,6 @@
-﻿namespace Test;
+﻿using IFoxCAD.Cad;
+
+namespace Test;
 
 public class RefEditInfo
 {

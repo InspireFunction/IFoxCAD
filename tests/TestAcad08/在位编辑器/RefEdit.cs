@@ -251,9 +251,11 @@ public class RefEditCmd
                 //}
 
                 // 直接使用不行
-                // xInfo.RefreshDisplay(); 
+                //xInfo.RefreshDisplay();
                 // 发送命令也不行
                 // doc.SendStringToExecute(nameof(RefreshDisplay) + "\n", false, false, false);
+
+
 
 
                 // 1,锁定图层
@@ -267,11 +269,11 @@ public class RefEditCmd
                 // 打开图层表进行写操作
                 // 锁定图层
                 ObjectId layerTableId = db.LayerTableId;
-                using (LayerTable layerTable = (LayerTable)layerTableId.Open(OpenMode.ForWrite, true, true))
+                using (var layerTable = (LayerTable)layerTableId.Open(OpenMode.ForWrite, true, true))
                 {
                     foreach (ObjectId layerId in layerTable)
                     {
-                        using LayerTableRecord layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
+                        using var layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
                         if (!layer.IsLocked)
                         {
                             layer.IsLocked = true;
@@ -280,13 +282,46 @@ public class RefEditCmd
                     }
                 }
 
+#if false
+
+                // 方案一
+                // 一旦使用这个就无法redo了... 
+
                 // 刷新画面的图层暗显
-                // IFoxUtils.RegenLayers(lockedLayers); // 一旦使用这个就无法redo了...
+                IFoxUtils.RegenLayers(lockedLayers); 
+#endif
+
+#if false
+                // 方案二
+                const string str = "LayLockFadectl";
+                var value = int.Parse(Acap.GetSystemVariable(str).ToString());
+                Acap.SetSystemVariable(str, (value * -1).ToString()); // 这里致命错误
+
+                // 改为遍历当前空间全部图元,无法触发显示更新...妈耶....
+                using (var msps = (BlockTableRecord)db.CurrentSpaceId.Open(OpenMode.ForWrite, true, true))
+                {
+                    foreach (var id in msps)
+                    {
+                        if (!id.IsOk())
+                            continue;
+                        using var ent = (Entity)id.Open(OpenMode.ForWrite, true, true);
+                        if (ent.IsDisposed)
+                            continue;
+                        ent.Draw();
+                        ent.RecordGraphicsModified(true);
+                    }
+                }
+
+                // acad2014及以上要加,立即处理队列上面的消息
+                System.Windows.Forms.Application.DoEvents();
+
+                Acap.SetSystemVariable(str, (value * -1).ToString()); 
+#endif
 
                 // 解锁图层
                 foreach (ObjectId layerId in lockedLayers)
                 {
-                    using LayerTableRecord layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
+                    using var layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
                     layer.IsLocked = false;
                 }
 
