@@ -106,9 +106,10 @@ public class RefEditInfo
 
     public static RefEditInfo Create(Document document)
     {
-        using var xdocLock = document.LockDocument();
+        // 不要在打开文件就修改数据库,要在第一次运行refedit命令时才修改数据库
+        //using var xdocLock = document.LockDocument();
         var info = new RefEditInfo(document);
-        info.HistoryInit();
+        //info.HistoryInit();
         RefeditMap.Add(document, info);
         return info;
     }

@@ -21,7 +21,7 @@ public static class IFoxUtils
             return;
 
         using var ids = new ObjectIdCollection(layerIdList);
-        PInvokeCad.AcedRegenLayers(ids.UnmanagedObject, 1);
+        PInvokeCad.AcedRegenLayers(ids.UnmanagedObject, 0);
         return;
 #else
 

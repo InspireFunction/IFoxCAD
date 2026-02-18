@@ -1,8 +1,9 @@
-﻿using IFoxCAD.Cad;
+﻿using Autodesk.AutoCAD.DatabaseServices;
+using IFoxCAD.Cad;
+using System.Collections;
 using System.Data;
 using System.Windows;
 using System.Windows.Controls;
-using System.Collections;
 using System.Windows.Forms;
 
 namespace Test;
@@ -245,15 +246,51 @@ public class RefEditCmd
                 // 在位编辑器期间-画圆-撤回-重做,就无法重做了.
                 // 会导致它无法redo,那我要怎么刷新呢?
                 // TODO 任何事务都会导致的,也就是undo的时候一旦使用了事务,就切断了历史.
-                //using (var tr = DBTrans.Create())
+                //using (var tr = DBTrans.Create(openCloseTrans: true))
                 //{
-
                 //}
 
                 // 直接使用不行
                 // xInfo.RefreshDisplay(); 
                 // 发送命令也不行
                 // doc.SendStringToExecute(nameof(RefreshDisplay) + "\n", false, false, false);
+
+
+                // 1,锁定图层
+                // 2,刷新图层状态,让锁定的图层的图元是暗显.
+                // 3,解锁全部图层,不刷新
+                HashSet<ObjectId> lockedLayers = [];
+
+                Database db = xInfo.Document.Database;
+                db.DisableUndoRecording(true);
+
+                // 打开图层表进行写操作
+                // 锁定图层
+                ObjectId layerTableId = db.LayerTableId;
+                using (LayerTable layerTable = (LayerTable)layerTableId.Open(OpenMode.ForWrite, true, true))
+                {
+                    foreach (ObjectId layerId in layerTable)
+                    {
+                        using LayerTableRecord layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
+                        if (!layer.IsLocked)
+                        {
+                            layer.IsLocked = true;
+                            lockedLayers.Add(layer.ObjectId);
+                        }
+                    }
+                }
+
+                // 刷新画面的图层暗显
+                // IFoxUtils.RegenLayers(lockedLayers); // 一旦使用这个就无法redo了...
+
+                // 解锁图层
+                foreach (ObjectId layerId in lockedLayers)
+                {
+                    using LayerTableRecord layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
+                    layer.IsLocked = false;
+                }
+
+                db.DisableUndoRecording(false);
             }
             return;
         }

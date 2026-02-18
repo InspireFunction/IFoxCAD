@@ -225,6 +225,7 @@ public sealed class DBTrans : IDisposable
         if (_openCloseTrans)
         {
 #if NET35
+            // TODO 这方法貌似仍然是可撤的...
             // 打开不撤销标记
             _database.DisableUndoRecording(true);
             // 正常事务
