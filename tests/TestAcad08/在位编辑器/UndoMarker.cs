@@ -54,7 +54,10 @@ public class UndoMarker
 
     public static int UndoMarkNodRead(DBDictionary markerDict)
     {
-        var arr = markerDict.XData.AsArray();
+        var arr = markerDict.XData?.AsArray();
+        if (arr is null)
+            return -1;
+
         int index = -1;
         if (arr.Length >= 2 &&
             arr[0].TypeCode == 1001 &&
