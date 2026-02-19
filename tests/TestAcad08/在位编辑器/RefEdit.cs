@@ -1,12 +1,4 @@
-﻿using Autodesk.AutoCAD.DatabaseServices;
-using IFoxCAD.Cad;
-using System.Collections;
-using System.Data;
-using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Forms;
-
-namespace Test;
+﻿namespace Test;
 
 // 此处的淡显已经成功.
 // 三个数据库事件,新增/删除/修改,无法vote()处理.
@@ -39,13 +31,6 @@ public class RefEditCmd
         doc.CommandCancelled += Doc_CommandCancelled;
 
         RefEditInfo.Create(doc);
-    }
-
-
-    [IFoxInitialize(Sequence.EndDestroyed)]
-    public void EndDestroyed(string docFilename)
-    {
-        Env.Printl(docFilename);
     }
 
     [IFoxInitialize(Sequence.EndDocs)]
@@ -200,9 +185,10 @@ public class RefEditCmd
                 xInfo.SetCurrentNode(targetNode);
                 if (!xInfo.ProState.IsRun)
                 {
-                    Debugger.Break();
+                    // 回滚到refedit了
+                    // Debugger.Break();
                 }
-                // 刷新在命令后事件中处理,但是导致redo问题
+                // 刷新在命令后事件中处理,但是导致redo问题,无解.
             }
             return;
         }
@@ -835,6 +821,37 @@ public class RefEditCmd
         // 保存初始workset到字典
         xInfo.HistoryWrite(nameof(RefEdit));
     }
+
+
+    // 清理在位编辑器的历史回滚标记
+    [CommandMethod(nameof(RefClear))]
+    public void RefClear()
+    {
+        var doc = Acap.DocumentManager.MdiActiveDocument;
+        if (!TryGetRefEditInfo(doc, out var xInfo))
+            return;
+
+        if (xInfo.ProState.IsRun)
+        {
+            Env.Print("在位编辑器运行中,不允许清理字典的历史");
+            return;
+        }
+
+        // 1,清理回滚标记字典,删除字典也是会记录到官方的undo的,只要不重置指针就好了
+        UndoMarker.Clear(doc);
+
+        // 2,发送保存命令
+        //doc.SendStringToExecute("_QSAVE ", false, false, false);
+        //if (File.Exists(doc.Name))
+        //{
+        //    doc.CloseAndSave(document.Name);
+        //}
+
+        // 3,破坏undo,使得用户无法撤回.
+
+        Env.Print("历史记录已清除");
+    }
+
 
     [CommandMethod(nameof(RefEditDebug))]
     public void RefEditDebug()

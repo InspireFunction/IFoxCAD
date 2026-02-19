@@ -105,36 +105,57 @@ public class Actuator : IEquatable<Actuator>, IComparable<Actuator>
             TypeCache.Invoke(_methodInfo, args);
             return this;
         }
-        //catch (System.Exception e)
         catch (System.Exception e)
         {
-            //var paramTypes = _methodInfo.GetParameters()
-            //    .Select(p => p.ParameterType.Name)
-            //    .ToArray();
-            //Debug.WriteLine("Actuator.Run出错: " + e.Message + Environment.NewLine +
-            //$"出错位置: {_methodInfo.ReflectedType?.FullName}.{_methodInfo.Name}" + Environment.NewLine +
-            //$"方法类型: {_methodInfo.GetType().Name}" + Environment.NewLine +
-            //$"参数类型: ({string.Join(", ", paramTypes)})" + Environment.NewLine +
-            //$"传入参数: ({string.Join(", ", args.Select(a => a?.GetType().Name ?? "null").ToArray())})");
-            //Debugger.Break();
-            //return this;
-            if (e.Message == "没有为该对象定义无参数的构造函数。")
-            {
-                Debug.WriteLine("════════════════════════════════════════════════");
-                Debug.WriteLine(e);
-                Debug.WriteLine("════════════════════════════════════════════════");
-                return this;
-            }
-
             var methodName = _methodInfo.Name;
             var className = _methodInfo.ReflectedType?.FullName ?? _methodInfo.DeclaringType?.FullName ?? "UnknownClass";
             var parameters = _methodInfo.GetParameters();
 
+            // 检查参数数量和类型是否都正确
+            bool isParamCountMatch = parameters.Length == args?.Length;
+            bool isParamTypeMatch = true;
+            if (isParamCountMatch && args != null)
+            {
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    var paramType = parameters[i].ParameterType;
+                    var argValue = args[i];
+
+                    // 如果参数值不为null，检查类型是否兼容
+                    if (argValue != null)
+                    {
+                        var argType = argValue.GetType();
+                        // 检查参数类型是否兼容（允许派生类型）
+                        if (!paramType.IsAssignableFrom(argType))
+                        {
+                            isParamTypeMatch = false;
+                            break;
+                        }
+                    }
+                    // 如果参数值是null，检查参数类型是否允许null（值类型不允许null，除非是可空类型）
+                    else if (paramType.IsValueType && Nullable.GetUnderlyingType(paramType) == null)
+                    {
+                        isParamTypeMatch = false;
+                        break;
+                    }
+                }
+            }
+
+            // 如果参数数量和类型都正确，则抛出原生错误
+            if (isParamCountMatch && isParamTypeMatch)
+            {
+                Debug.WriteLine("════════════════════════════════════════════════");
+                Debug.WriteLine(e);
+                Debug.WriteLine("════════════════════════════════════════════════");
+                Debugger.Break();
+                return this;
+            }
+
             // 构建正确调用字符串
-            var correctCall = $"{className}.{methodName}({string.Join(", ", args.Select(a => a?.ToString() ?? "null").ToArray())})";
+            var correctCall = $"{className}.{methodName}({string.Join(", ", [.. args.Select(a => a?.ToString() ?? "null")])})";
 
             // 构建错误调用字符串
-            var paramString = string.Join(", ", parameters.Select(p => p.Name).ToArray());
+            var paramString = string.Join(", ", [.. parameters.Select(p => p.Name)]);
             var errorCall = parameters.Length == 0
                 ? $"{className}.{methodName}()"
                 : $"{className}.{methodName}({paramString})";
@@ -165,8 +186,6 @@ public class Actuator : IEquatable<Actuator>, IComparable<Actuator>
 
             Debugger.Break();
             return this;
-
-
         }
     }
 }

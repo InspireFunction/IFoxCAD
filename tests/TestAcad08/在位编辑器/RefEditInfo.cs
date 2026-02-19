@@ -125,14 +125,7 @@ public class RefEditInfo
             RefeditMap.Remove(document);
         }
 
-        // TODO 感觉意外太多了?
-        //// 清理回滚标记字典
-        //UndoMarker.Clear(document);
-        //// 保存数据库,但是此时还没释放.
-        //if (File.Exists(document.Name))
-        //{
-        //    document.CloseAndSave(document.Name);
-        //}
+        // 此处不清理回滚标记,因为保存存在意外,添加一个refclear命令
     }
 
     /// <summary>

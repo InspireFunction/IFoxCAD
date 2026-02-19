@@ -1,4 +1,4 @@
-﻿﻿using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -30,8 +30,10 @@ public class UndoMarker
         if (!regAppTable.Has(MainNameUndo))
         {
             regAppTable.UpgradeOpen();
-            var regAppRecord = new RegAppTableRecord();
-            regAppRecord.Name = MainNameUndo;
+            RegAppTableRecord regAppRecord = new()
+            {
+                Name = MainNameUndo
+            };
             regAppTable.Add(regAppRecord);
             tr.AddNewlyCreatedDBObject(regAppRecord, true);
         }
@@ -70,12 +72,14 @@ public class UndoMarker
 
         // 可撤事务,字典套字典存储索引值
         // undo 时会触发 ObjectUnappended 事件，我们就能捕获到
-        var indexDict = new DBDictionary();
-        // XData需要以1001开头的扩展数据，注册应用名
-        indexDict.XData = new ResultBuffer(
-            new TypedValue(1001, MainNameUndo),
-            new TypedValue((int)DxfCode.ExtendedDataInteger32, newIndex)
-        );
+        DBDictionary indexDict = new()
+        {
+            // XData需要以1001开头的扩展数据，注册应用名
+            XData = new ResultBuffer(
+                new TypedValue(1001, MainNameUndo),
+                new TypedValue((int)DxfCode.ExtendedDataInteger32, newIndex)
+            )
+        };
 
         worksetDictObj.SetAt($"Index_{newIndex}", indexDict);
         tr.AddNewlyCreatedDBObject(indexDict, true);
@@ -118,6 +122,7 @@ public class UndoMarker
     {
         if (_undoMarkNod == ObjectId.Null)
             return;
+
         var db = doc.Database;
         using var tr = DBTrans.Create();
         var nod = (DBDictionary)tr.GetObject(db.NamedObjectsDictionaryId, OpenMode.ForWrite, true, true);
@@ -139,7 +144,7 @@ public class UndoMarker
             nod.Remove(MainNameUndo);
         }
 
-        // 重置静态字段
-        _undoMarkNod = ObjectId.Null;
+        // 只要设置下面的,剔除之后仍然保留回滚.
+        //_undoMarkNod = ObjectId.Null;
     }
 }
