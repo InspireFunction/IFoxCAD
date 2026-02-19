@@ -1,9 +1,13 @@
 ﻿namespace Test;
 
 /*
+ * 这里可以把 Xrecord 像json一样实现一条语句就序列化,
+ * 只需要属性上面添加XrecordPropertyAttribute特性
+ * 
  * 把历史写入主字典,
  * 但是遇到对象删除事件不能开无撤事务,所以纯内存记录历史更好.
  * 因此放弃本文件.
+ * 
  */
 
 

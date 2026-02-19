@@ -1,7 +1,4 @@
-﻿using IFoxCAD.Cad;
-using System.Windows.Controls;
-
-namespace Test;
+﻿namespace Test;
 
 public class RefEditInfo
 {

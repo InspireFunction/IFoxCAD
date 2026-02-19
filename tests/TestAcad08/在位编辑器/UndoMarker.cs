@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace Test;
+﻿namespace Test;
 
 public class UndoMarker
 {
@@ -144,7 +139,8 @@ public class UndoMarker
             nod.Remove(MainNameUndo);
         }
 
-        // 只要设置下面的,剔除之后仍然保留回滚.
-        //_undoMarkNod = ObjectId.Null;
+        // 只要不设置指针清空,剔除之后仍然保留回滚.
+        // 因为删除数据库也会记录在官方自带的undoLog中.
+        // _undoMarkNod = ObjectId.Null;
     }
 }
