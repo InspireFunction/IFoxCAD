@@ -18,10 +18,15 @@ public enum Sequence : int
     StartLast = 1 << 1, // 进程开启,后台最后
     StartOnce = 1 << 2, // 文档首次开启,单例(特性默认/打印信息/发送命令/必然拥有前台文档)
     StartDocs = 1 << 3, // 文档每次开启
-    EndDocs = 1 << 4, // 文档每次关闭
-    EndOnce = 1 << 5, // 文档最后关闭,不是单例
-    EndFirst = 1 << 6, // 进程关闭,最先,此时已经没有前台
-    EndLast = 1 << 7 // 进程关闭,最后
+
+    EndDocs = 1 << 4, // 文档每次将要关闭
+    EndOnce = 1 << 5, // 文档最后一个将要关闭,不是单例
+
+    EndDestroyed = 1 << 6, // 文档每次已经关闭
+    EndDestroyedOnce = 1 << 7, // 文档最后一个已经关闭,不是单例
+
+    ProcessFirst = 1 << 8, // 进程关闭,最先,此时已经没有前台
+    ProcessLast = 1 << 9 // 进程关闭,最后
 }
 
 // 初始化接口,仿IExtensionApplication
@@ -278,7 +283,8 @@ public class AutoClass
             // x02,通过netload命令加载,虽然有订阅文档事件,
             // 它会在下次创建文档(ctrl+n)触发,此时必然有doc.Editor需要直接触发.
             dm.DocumentCreated += DmCreated;
-            dm.DocumentToBeDestroyed += DmDestroyed;
+            dm.DocumentToBeDestroyed += DmToBeDestroyed;
+            dm.DocumentDestroyed += DmDestroyed;
             AcadIdleManager.OnIdle += OnIdle;
         }
         catch (System.Exception e)
@@ -287,6 +293,7 @@ public class AutoClass
             Env.Printl("AutoClass.Initialize出错::" + e.Message);
         }
     }
+
 
     // 空闲事件判断
     void OnIdle(object sender, EventArgs e)
@@ -320,8 +327,30 @@ public class AutoClass
         }
     }
 
-    // 文档关闭(多次执行)
-    void DmDestroyed(object sender, DocumentCollectionEventArgs e)
+    // 文档已经关闭(多次执行)
+    // 传递的是文件名,不是文档
+    private void DmDestroyed(object sender, DocumentDestroyedEventArgs e)
+    {
+        try
+        {
+            var fileName = e.FileName;
+            var docArgs = new object[] { fileName };
+            _actuatorMap[Sequence.EndDestroyed].ForEach(ac => ac.Run(docArgs));
+            // 最后关闭的文档,它不是单例,因为重复多次.
+            if (Acap.DocumentManager.Count == 1)
+            {
+                _actuatorMap[Sequence.EndDestroyedOnce].ForEach(ac => ac.Run(docArgs));
+            }
+        }
+        catch (System.Exception ex)
+        {
+            Debugger.Break();
+            Debug.WriteLine($"{nameof(AutoClass.DmToBeDestroyed)}出错::" + ex.Message);
+        }
+    }
+
+    // 文档将要关闭(多次执行)
+    void DmToBeDestroyed(object sender, DocumentCollectionEventArgs e)
     {
         try
         {
@@ -337,7 +366,7 @@ public class AutoClass
         catch (System.Exception ex)
         {
             Debugger.Break();
-            Debug.WriteLine("AutoClass.DmDestroyed出错::" + ex.Message);
+            Debug.WriteLine($"{nameof(AutoClass.DmToBeDestroyed)}出错::" + ex.Message);
         }
     }
 
@@ -352,12 +381,12 @@ public class AutoClass
             {
                 // 这里从不进入
                 dm.DocumentCreated -= DmCreated;
-                dm.DocumentToBeDestroyed -= DmDestroyed;
+                dm.DocumentToBeDestroyed -= DmToBeDestroyed;
             }
 
             // 执行任务
-            _actuatorMap[Sequence.EndFirst].ForEach(ac => ac.Run());
-            _actuatorMap[Sequence.EndLast].ForEach(ac => ac.Run());
+            _actuatorMap[Sequence.ProcessFirst].ForEach(ac => ac.Run());
+            _actuatorMap[Sequence.ProcessLast].ForEach(ac => ac.Run());
 
             // 释放缓存,类析构会在此之后.
             TypeCache.Clear();
@@ -549,9 +578,9 @@ public class AutoClass
         }
 
         // 如果派生类写的是End需要映射回Start.
-        if (sq == Sequence.EndFirst)
+        if (sq == Sequence.ProcessFirst)
             sq = Sequence.StartFirst;
-        else if (sq == Sequence.EndLast)
+        else if (sq == Sequence.ProcessLast)
             sq = Sequence.StartLast;
         else if (sq == Sequence.EndDocs)
             sq = Sequence.StartDocs;
@@ -560,9 +589,9 @@ public class AutoClass
 
         Sequence sq2;
         if (sq == Sequence.StartFirst)
-            sq2 = Sequence.EndFirst;
+            sq2 = Sequence.ProcessFirst;
         else if (sq == Sequence.StartLast)
-            sq2 = Sequence.EndLast;
+            sq2 = Sequence.ProcessLast;
         else if (sq == Sequence.StartDocs)
             sq2 = Sequence.EndDocs;
         else if (sq == Sequence.StartOnce)

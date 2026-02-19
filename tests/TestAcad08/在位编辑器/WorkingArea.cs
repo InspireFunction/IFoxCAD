@@ -8,7 +8,7 @@ public class WorkingArea
     /// <summary>
     /// 是否正在运行
     /// </summary>
-    public bool IsRun { get; set; } = false;
+    public ProState ProState { get; set; } = new ProState();
 
     /// <summary>
     /// 块参照ID
@@ -55,7 +55,7 @@ public class WorkingArea
         return new HistoryNode(
             index,
             commandName,
-            IsRun,
+            ProState.Clone(),
             BlockReferenceId,
             CurrentSpaceId,
             new ImmutableHashSet<ObjectId>(Workset),
@@ -71,7 +71,7 @@ public class WorkingArea
     public void RestoreFrom(HistoryNode node)
     {
         CommandName = node.CommandName;
-        IsRun = node.IsRun;
+        ProState = node.ProState;
         BlockReferenceId = node.BlockReferenceId;
         CurrentSpaceId = node.CurrentSpaceId;
         Workset = node.Workset.ToMutable();
@@ -85,7 +85,7 @@ public class WorkingArea
     /// </summary>
     public void Clear()
     {
-        IsRun = false;
+        ProState.None();
         BlockReferenceId = ObjectId.Null;
         CurrentSpaceId = ObjectId.Null;
         Workset.Clear();

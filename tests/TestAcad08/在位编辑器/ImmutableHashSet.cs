@@ -30,7 +30,7 @@ public class ImmutableHashSet<T> : IEnumerable<T>
     /// <summary>
     /// 创建可变的副本
     /// </summary>
-    public HashSet<T> ToMutable() => new(_set);
+    public HashSet<T> ToMutable() => [.. _set];
 
     /// <summary>
     /// 添加元素，返回新的不可变集合

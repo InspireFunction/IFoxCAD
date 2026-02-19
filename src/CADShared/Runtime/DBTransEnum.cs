@@ -59,23 +59,23 @@ public enum Echo
 }
 
 #if NET35
-public static class EnumExtensions
-{
-    /// <summary>
-    /// 检查枚举是否包含指定的标志
-    /// .NET 3.5 兼容版本
-    /// </summary>
-    public static bool HasFlag<T>(this T value, T flag) where T : struct, IConvertible
-    {
-        if (!typeof(T).IsEnum)
-        {
-            throw new ArgumentException("T 必须是枚举类型");
-        }
+//public static class EnumExtensions
+//{
+//    /// <summary>
+//    /// 检查枚举是否包含指定的标志
+//    /// .NET 3.5 兼容版本
+//    /// </summary>
+//    public static bool HasFlag<T>(this T value, T flag) where T : struct, IConvertible
+//    {
+//        if (!typeof(T).IsEnum)
+//        {
+//            throw new ArgumentException("T 必须是枚举类型");
+//        }
 
-        long longValue = value.ToInt64(null);
-        long longFlag = flag.ToInt64(null);
+//        long longValue = value.ToInt64(null);
+//        long longFlag = flag.ToInt64(null);
 
-        return (longValue & longFlag) == longFlag;
-    }
-}
+//        return (longValue & longFlag) == longFlag;
+//    }
+//}
 #endif

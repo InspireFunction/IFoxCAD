@@ -1,4 +1,5 @@
 ﻿using IFoxCAD.Cad;
+using System.Windows.Controls;
 
 namespace Test;
 
@@ -68,7 +69,7 @@ public class RefEditInfo
         Env.Print("========== RefEdit 历史链调试信息 (reflog 风格) ==========");
         Env.Print("");
         Env.Print("【工作区 - 当前可编辑状态】");
-        Env.Print($"  IsRun: {WorkingArea.IsRun}");
+        Env.Print($"  ProState: {WorkingArea.ProState}");
         Env.Print($"  BlockReferenceId: {WorkingArea.BlockReferenceId}");
         Env.Print($"  CurrentSpaceId: {WorkingArea.CurrentSpaceId}");
         Env.Print($"  Workset: {WorkingArea.Workset.Count} 个对象");
@@ -93,7 +94,7 @@ public class RefEditInfo
                 string marker = (_currentNode != null && _currentNode.Value == node) ? " <-- 当前指针" : "";
                 string cmdName = string.IsNullOrEmpty(node.CommandName) ? "" : $" [{node.CommandName}]";
                 Env.Print($"  索引[{node.Index}]{cmdName}{marker}");
-                Env.Print($"    IsRun: {node.IsRun}, Workset: {node.Workset.Count}, RefsetAdd: {node.RefsetAddIds.Count}, RefsetRemove: {node.RefsetRemoveIds.Count}");
+                Env.Print($"    ProState: {node.ProState}, Workset: {node.Workset.Count}, RefsetAdd: {node.RefsetAddIds.Count}, RefsetRemove: {node.RefsetRemoveIds.Count}");
             }
         }
 
@@ -123,6 +124,15 @@ public class RefEditInfo
             info.ClearHistory();
             RefeditMap.Remove(document);
         }
+
+        // TODO 感觉意外太多了?
+        //// 清理回滚标记字典
+        //UndoMarker.Clear(document);
+        //// 保存数据库,但是此时还没释放.
+        //if (File.Exists(document.Name))
+        //{
+        //    document.CloseAndSave(document.Name);
+        //}
     }
 
     /// <summary>
@@ -140,7 +150,7 @@ public class RefEditInfo
     /// 写入历史 - 将当前工作区状态保存为不可变快照（线性 reflog 风格）
     /// </summary>
     /// <param name="commandName">触发历史记录的命令名称</param>
-    public void HistoryWrite(string commandName = "")
+    public void HistoryWrite(string commandName = "", Transaction? tr = null)
     {
         // 线性历史记录：不删除分支历史，索引持续自增
         // 使用全局索引计数器，确保每次写入都有唯一的递增索引
@@ -152,7 +162,7 @@ public class RefEditInfo
         // 添加到历史表
         _currentNode = _historyList.AddLast(snapshot);
 
-        UndoMarker.UndoMarkNodWrite(newIndex);
+        UndoMarker.UndoMarkNodWrite(newIndex, tr);
     }
 
 
@@ -213,10 +223,10 @@ public class RefEditInfo
 
     #region 便捷属性 - 直接访问工作区
 
-    public bool IsRun
+    public ProState ProState
     {
-        get => WorkingArea.IsRun;
-        set => WorkingArea.IsRun = value;
+        get => WorkingArea.ProState;
+        set => WorkingArea.ProState = value;
     }
 
     public ObjectId BlockReferenceId
@@ -294,11 +304,11 @@ public class RefEditInfo
     /// <summary>
     /// 刷新显示
     /// </summary>
-    public void RefreshDisplay()
+    public void RefreshDisplay(HashSet<ObjectId>? lockedLayers = null)
     {
         using (var tr = DBTrans.Create(openCloseTrans: true))
         {
-            HashSet<ObjectId> lockedLayers = [];
+            lockedLayers ??= [];
             Fade(tr, lockedLayers);
         }
         using (var tr = DBTrans.Create(openCloseTrans: true))

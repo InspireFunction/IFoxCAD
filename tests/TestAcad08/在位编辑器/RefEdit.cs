@@ -15,6 +15,12 @@ namespace Test;
 
 // Git风格的历史记录方案：工作区 + 不可变历史表
 
+// 写undo容易,redo难.不知道什么时候污染了历史,造成redo是0.
+// RefEdit-undo-redo 此时重做无法实现...
+// OK了,是命令后事件刷新启动了一个大范围的无撤事务导致的.
+// 为什么现在在位编辑器内画圆-undo-之后无法redo?
+// 发现是命令后事件,因为undo时候使用了刷新图层函数导致的,无解...
+
 public class RefEditCmd
 {
     // 本工程命令要作为例外
@@ -35,6 +41,13 @@ public class RefEditCmd
         RefEditInfo.Create(doc);
     }
 
+
+    [IFoxInitialize(Sequence.EndDestroyed)]
+    public void EndDestroyed(string docFilename)
+    {
+        Env.Printl(docFilename);
+    }
+
     [IFoxInitialize(Sequence.EndDocs)]
     public void EndDocs(Document doc)
     {
@@ -47,10 +60,15 @@ public class RefEditCmd
         doc.CommandEnded -= OnCommandEnded;
         doc.CommandCancelled -= Doc_CommandCancelled;
 
+        // 关闭图纸时候要清理历史字典.
         RefEditInfo.Destroy(doc);
     }
 
-
+    /// <summary>
+    /// 对象删除事件
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void Database_ObjectErased(object sender, ObjectErasedEventArgs e)
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
@@ -59,29 +77,30 @@ public class RefEditCmd
 
         if (e.DBObject is not Entity)
             return;
-        if (!xInfo.IsRun)
+
+        // 删除对象 和 refclose都会触发这里,
+        // refclose 特殊处理,不能开事务记录撤回点的.
+        // 因此这里需要直接跳过
+        if (!xInfo.ProState.IsRun)
             return;
 
-        // undo是不会进入这里的,而是 Database_ObjectUnappended 上面
+        // undo 是不会进入这里的,而是 Database_ObjectUnappended 上面
         // 在位编辑器期间,工作区移除对象,并写入历史,制作回滚点.
         if (e.Erased)
         {
+            var tr = e.DBObject.Database.TransactionManager.TopTransaction;
             if (xInfo.Workset.Remove(e.DBObject.ObjectId))
             {
-                xInfo.HistoryWrite("Database_ObjectErased");
+                xInfo.HistoryWrite("Database_ObjectErased", tr);
             }
         }
     }
 
-    //[CommandMethod(nameof(Refedit_ObjectErased), CommandFlags.NoHistory)]
-    //public void Refedit_ObjectErased()
-    //{
-    //    var doc = Acap.DocumentManager.MdiActiveDocument;
-    //    if (!TryGetRefEditInfo(doc, out var xInfo))
-    //        return;
-    //    xInfo.HistoryWrite(nameof(Refedit_ObjectErased), true);
-    //}
-
+    /// <summary>
+    /// 对象添加事件
+    /// </summary>
+    /// <param name="sender"></param>
+    /// <param name="e"></param>
     private void Database_ObjectAppended(object sender, ObjectEventArgs e)
     {
         if (e.DBObject is not Entity ent)
@@ -89,7 +108,7 @@ public class RefEditCmd
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
-        if (!xInfo.IsRun)
+        if (!xInfo.ProState.IsRun)
             return;
 
         // workset不能够跨空间,而且必须要是图元
@@ -108,15 +127,6 @@ public class RefEditCmd
             xInfo.HistoryWrite("Refedit_ObjectAppended");
         }
     }
-
-    //[CommandMethod(nameof(Refedit_ObjectAppended), CommandFlags.NoHistory)]
-    //public void Refedit_ObjectAppended()
-    //{
-    //    var doc = Acap.DocumentManager.MdiActiveDocument;
-    //    if (!TryGetRefEditInfo(doc, out var xInfo))
-    //        return;
-    //    xInfo.HistoryWrite(nameof(Refedit_ObjectAppended));
-    //}
 
     /// <summary>
     /// Redo重做时触发 - 从UndoMarker恢复历史索引
@@ -145,7 +155,6 @@ public class RefEditCmd
         }
 
         // 2,再触发这个
-        // 这里是undo删除的对象,因此它的id被改变了,所以无法通过id来判断.
         if (e.DBObject is Entity ent)
         {
             // 可能是添加/删除
@@ -172,7 +181,7 @@ public class RefEditCmd
             return;
 
         // 不能判断IsRun,因为refclose回滚需要
-        DebugEx.Printl($"e.DBObject is {e.DBObject.GetType().Name}");
+        // DebugEx.Printl($"e.DBObject is {e.DBObject.GetType().Name}");
 
         // 1,有对象顺序,先触发这个
         // 用可撤事务来追踪官方的撤回索引位置
@@ -189,13 +198,16 @@ public class RefEditCmd
             if (targetNode != null)
             {
                 xInfo.SetCurrentNode(targetNode);
+                if (!xInfo.ProState.IsRun)
+                {
+                    Debugger.Break();
+                }
                 // 刷新在命令后事件中处理,但是导致redo问题
             }
             return;
         }
 
         // 2,再触发这个
-        // 这里是undo删除的对象,因此它的id被改变了,所以无法通过id来判断.
         if (e.DBObject is Entity ent)
         {
             // 可能是添加/删除
@@ -236,109 +248,123 @@ public class RefEditCmd
         if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
 
-
         if (cmd == "U" || cmd == "MREDO")
         {
             // 如果回滚到在位编辑器外,此时workset是没有图元的,锁图层就会全灰了,
             // 因此此时什么也不干就行了.
-            if (xInfo.IsRun)
+            if (xInfo.ProState.IsRun)
             {
-                // 在位编辑器期间-画圆-撤回-重做,就无法重做了.
-                // 会导致它无法redo,那我要怎么刷新呢?
-                // TODO 任何事务都会导致的,也就是undo的时候一旦使用了事务,就切断了历史.
+#if true
+                // 动作: 在位编辑器期间-画圆-undo撤回-redo重做,
+                // 刷新会导致无法redo重做了.
+
+                // 使用事务也会中断历史.
                 //using (var tr = DBTrans.Create(openCloseTrans: true))
                 //{
                 //}
 
-                // 直接使用不行
-                //xInfo.RefreshDisplay();
-                // 发送命令也不行
+                // 方案一:无撤标记+事务.
+                // xInfo.RefreshDisplay();
+
+                // 方案二:发送命令.
                 // doc.SendStringToExecute(nameof(RefreshDisplay) + "\n", false, false, false);
 
-
-
-
-                // 1,锁定图层
-                // 2,刷新图层状态,让锁定的图层的图元是暗显.
-                // 3,解锁全部图层,不刷新
-                HashSet<ObjectId> lockedLayers = [];
-
-                Database db = xInfo.Document.Database;
-                db.DisableUndoRecording(true);
-
-                // 打开图层表进行写操作
-                // 锁定图层
-                ObjectId layerTableId = db.LayerTableId;
-                using (var layerTable = (LayerTable)layerTableId.Open(OpenMode.ForWrite, true, true))
-                {
-                    foreach (ObjectId layerId in layerTable)
-                    {
-                        using var layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
-                        if (!layer.IsLocked)
-                        {
-                            layer.IsLocked = true;
-                            lockedLayers.Add(layer.ObjectId);
-                        }
-                    }
-                }
-
-#if false
-
-                // 方案一
-                // 一旦使用这个就无法redo了... 
-
-                // 刷新画面的图层暗显
-                IFoxUtils.RegenLayers(lockedLayers); 
+                // 方案三:无撤标记+Open/Close对象.
+                // RefreshDisplay2(xInfo);
 #endif
-
-#if false
-                // 方案二
-                const string str = "LayLockFadectl";
-                var value = int.Parse(Acap.GetSystemVariable(str).ToString());
-                Acap.SetSystemVariable(str, (value * -1).ToString()); // 这里致命错误
-
-                // 改为遍历当前空间全部图元,无法触发显示更新...妈耶....
-                using (var msps = (BlockTableRecord)db.CurrentSpaceId.Open(OpenMode.ForWrite, true, true))
-                {
-                    foreach (var id in msps)
-                    {
-                        if (!id.IsOk())
-                            continue;
-                        using var ent = (Entity)id.Open(OpenMode.ForWrite, true, true);
-                        if (ent.IsDisposed)
-                            continue;
-                        ent.Draw();
-                        ent.RecordGraphicsModified(true);
-                    }
-                }
-
-                // acad2014及以上要加,立即处理队列上面的消息
-                System.Windows.Forms.Application.DoEvents();
-
-                Acap.SetSystemVariable(str, (value * -1).ToString()); 
-#endif
-
-                // 解锁图层
-                foreach (ObjectId layerId in lockedLayers)
-                {
-                    using var layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
-                    layer.IsLocked = false;
-                }
-
-                db.DisableUndoRecording(false);
             }
             return;
         }
 
-
         if (_workCmd.Contains(cmd))
             return;
-        if (!xInfo.IsRun)
+        if (!xInfo.ProState.IsRun)
             return;
 
         // 在位编辑器期间运行官方命令,所做的操作.
         SetEntityLayerBak(false, xInfo);
     }
+
+
+    /// <summary>
+    /// 无撤方式刷新
+    /// </summary>
+    /// <param name="xInfo"></param>
+    void RefreshDisplay2(RefEditInfo xInfo)
+    {
+        // 1,锁定图层
+        // 2,刷新图层状态,让锁定的图层的图元是暗显.
+        // 3,解锁全部图层,不刷新
+        HashSet<ObjectId> lockedLayers = [];
+
+        Database db = xInfo.Document.Database;
+        db.DisableUndoRecording(true);
+        try
+        {
+            // 打开图层表进行写操作
+            // 锁定图层
+            ObjectId layerTableId = db.LayerTableId;
+            using (var layerTable = (LayerTable)layerTableId.Open(OpenMode.ForWrite, true, true))
+            {
+                foreach (ObjectId layerId in layerTable)
+                {
+                    using var layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
+                    if (!layer.IsLocked)
+                    {
+                        layer.IsLocked = true;
+                        lockedLayers.Add(layer.ObjectId);
+                    }
+                }
+            }
+
+#if false
+            // 方案三a
+            // 一旦使用这个就无法redo了... 
+
+            // 刷新画面的图层暗显
+            IFoxUtils.RegenLayers(lockedLayers); 
+#endif
+
+#if false
+            // 方案三b
+            const string str = "LayLockFadectl";
+            var value = int.Parse(Acap.GetSystemVariable(str).ToString());
+            Acap.SetSystemVariable(str, (value * -1).ToString()); // 这里致命错误
+
+            // 改为遍历当前空间全部图元,无法触发显示更新...妈耶....
+            using (var msps = (BlockTableRecord)db.CurrentSpaceId.Open(OpenMode.ForWrite, true, true))
+            {
+                foreach (var id in msps)
+                {
+                    if (!id.IsOk())
+                        continue;
+                    using var ent = (Entity)id.Open(OpenMode.ForWrite, true, true);
+                    if (ent.IsDisposed)
+                        continue;
+                    ent.Draw();
+                    ent.RecordGraphicsModified(true);
+                }
+            }
+
+            // acad2014及以上要加,立即处理队列上面的消息
+            System.Windows.Forms.Application.DoEvents();
+
+            Acap.SetSystemVariable(str, (value * -1).ToString()); 
+#endif
+
+            // 解锁图层
+            foreach (ObjectId layerId in lockedLayers)
+            {
+                using var layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
+                layer.IsLocked = false;
+            }
+        }
+        finally
+        {
+            db.DisableUndoRecording(false);
+        }
+    }
+
 
     // 无历史命令刷新显示
     // 还是会导致无法redo
@@ -371,7 +397,7 @@ public class RefEditCmd
 
         if (_workCmd.Contains(cmd))
             return;
-        if (!xInfo.IsRun)
+        if (!xInfo.ProState.IsRun)
             return;
 
         SetEntityLayerBak(true, xInfo);
@@ -474,7 +500,7 @@ public class RefEditCmd
             return;
         Env.Printl("\n在参照编辑工作集和宿主图形之间传输对象...");
 
-        if (!xInfo.IsRun)
+        if (!xInfo.ProState.IsRun)
         {
             Env.Print("当前没有使用:在位编辑器");
             return;
@@ -524,7 +550,7 @@ public class RefEditCmd
             // 成功的部分放入
             xInfo.RefsetAddIds.Add(sets);
 
-            // 保存到字典
+            // 保存历史
             xInfo.HistoryWrite(nameof(RefSet) + "_Add");
 
             // 刷新一次
@@ -550,7 +576,7 @@ public class RefEditCmd
             // 成功的部分放入
             xInfo.RefsetRemoveIds.Add(sets);
 
-            // 保存到字典
+            // 保存历史
             xInfo.HistoryWrite(nameof(RefSet) + "_Remove");
 
             // 淡显
@@ -569,7 +595,7 @@ public class RefEditCmd
         if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
 
-        if (!xInfo.IsRun)
+        if (!xInfo.ProState.IsRun)
         {
             Env.Print("当前没有使用:在位编辑器");
             return;
@@ -649,7 +675,7 @@ public class RefEditCmd
                     ent.Erase(true);
                 }
 
-                // 过滤掉已删除的图元，只保留有效的 ObjectId
+                // 过滤掉已删除的图元,只保留有效的 ObjectId
                 var validIds = new ObjectIdCollection();
                 foreach (var id in xInfo.Workset)
                 {
@@ -678,15 +704,11 @@ public class RefEditCmd
                     ent.TransformBy(inv);
                 });
 
-                // 保存历史(防止workset删除时候移除,此处记录)
+                // 保存历史(防止workset删除时候,触发数据库事件移除)
                 xInfo.HistoryWrite(nameof(RefClose) + "_Before_Save");
 
                 // RefEdit-画圆-撤回 为什么内部撤回了一次,会导致保存时候丢失全部图元呢?
-                // 原因: 撤销操作使图元从数据库中删除,造成id是重置的,而workset记录的是删除后的id?
-                // 不对啊,我还只是撤回了一个删除的圆啊,理论上只会导致一个id被更改.
-                // 所以保存时候要剔除这些删除的id,否则异常
-                // --删除临时图元,会联动事件移除workset的
-                // 需要过滤已删除的图元，因为撤销后 Workset 可能包含已删除的对象
+                // 原因是没有把画圆添加到历史,在添加数据库上面加上了.
                 foreach (var id in xInfo.Workset)
                 {
                     if (id.IsNull || id.IsEffectivelyErased)
@@ -703,7 +725,7 @@ public class RefEditCmd
             // 恢复原有的块参照
             brf.Erase(false);
 
-            // 恢复图层锁定的显示
+            // 恢复 refedit 命令 的淡显
             IFoxUtils.RegenLayers(xInfo.LockedLayers);
 
             // 删除用来临时锁定的图层
@@ -711,13 +733,19 @@ public class RefEditCmd
             using var refLayer = (LayerTableRecord)tr.GetObject(refLayerId, OpenMode.ForWrite, true, true);
             refLayer.Erase(true);
 
-            a = xInfo.Workset.Count; // 3 
+            a = xInfo.Workset.Count; // 3
+
+            // 提交事务之后会触发删除事件,但是此处特殊,删除事件不能开事务否则会错误.
+            xInfo.ProState.Stop();
         }
 
         a = xInfo.Workset.Count; // 这里变成0了,因为这里删除对象事件导致的
 
-        xInfo.Clear();
-        xInfo.IsRun = false;
+        // 再打开,才可以记录历史
+        //xInfo.ProState.Start();
+
+        xInfo.Clear(); // 这里把标志初始化了.
+        xInfo.ProState.Stop();
 
         // 再次保存历史
         xInfo.HistoryWrite(nameof(RefClose) + "_After");
@@ -731,7 +759,7 @@ public class RefEditCmd
         if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
 
-        if (xInfo.IsRun)
+        if (xInfo.ProState.IsRun)
         {
             Env.Print("不能重复使用:在位编辑器");
             return;
@@ -772,7 +800,8 @@ public class RefEditCmd
         // 这个空间id确实是对的
         var spaceId = doc.Database.CurrentSpaceId;
         xInfo.CurrentSpaceId = spaceId;
-        xInfo.IsRun = true;
+
+        xInfo.ProState.Start();
 
         // 1,修改数据库
         using (var tr = DBTrans.Create())
@@ -795,12 +824,13 @@ public class RefEditCmd
                     return;
                 var ent = (Entity)tr.GetObject(id, OpenMode.ForWrite, true, true);
                 ent.TransformBy(brf.BlockTransform);
+
                 xInfo.Workset.Add(id);
             });
         }
 
         // 2,淡显
-        xInfo.RefreshDisplay();
+        xInfo.RefreshDisplay(xInfo.LockedLayers);
 
         // 保存初始workset到字典
         xInfo.HistoryWrite(nameof(RefEdit));
@@ -816,11 +846,3 @@ public class RefEditCmd
     }
 #endif
 }
-
-
-// 写undo容易,redo难.不知道什么时候污染了历史,造成redo是0.
-
-// 现在redo都是有问题的.
-// RefEdit-undo-redo 此时重做无法实现...OK了,是命令后事件刷新启动了一个大范围的无撤事务导致的.
-
-// TODO 为什么现在在位编辑器内画圆-undo-之后无法redo?
