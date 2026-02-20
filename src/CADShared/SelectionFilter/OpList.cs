@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
 /// <summary>
 /// 逻辑操作符的列表抽象类

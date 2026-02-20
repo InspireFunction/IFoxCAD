@@ -1,4 +1,4 @@
-﻿namespace Test;
+namespace Test;
 
 /*
  * 这里可以把 Xrecord 像json一样实现一条语句就序列化,

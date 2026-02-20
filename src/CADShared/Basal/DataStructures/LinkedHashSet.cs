@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 /// <summary>
 /// 表示一个保持插入顺序的哈希集合。

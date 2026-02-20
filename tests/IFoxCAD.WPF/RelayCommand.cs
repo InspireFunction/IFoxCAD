@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.WPF;
+namespace IFoxCAD.WPF;
 
 using Microsoft.Xaml.Behaviors;
 

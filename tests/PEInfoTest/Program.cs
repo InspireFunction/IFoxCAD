@@ -1,4 +1,4 @@
-﻿using IFoxCAD.Cad;
+using IFoxCAD.Cad;
 using System;
 using System.Diagnostics;
 using System.Runtime.InteropServices;

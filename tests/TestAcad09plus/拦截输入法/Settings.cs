@@ -1,4 +1,4 @@
-﻿using ConcurrentCollections;
+using ConcurrentCollections;
 using System.Threading;
 
 namespace Gstar_IMEFilter;

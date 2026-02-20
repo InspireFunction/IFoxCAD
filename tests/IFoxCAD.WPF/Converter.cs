@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.WPF;
+namespace IFoxCAD.WPF;
 
 /// <summary>
 /// 字符串到整数的转换器

@@ -1,4 +1,4 @@
-﻿#if NET45_OR_GREATER
+#if NET45_OR_GREATER
 namespace TestAcad2025;
 
 public static class TestBubbleWindow

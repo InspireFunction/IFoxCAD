@@ -1,4 +1,4 @@
-﻿#if NET35
+#if NET35
 #pragma warning disable IDE0059 // 不需要赋值
 #pragma warning disable CS8600 // 将 null 字面量或可能为 null 的值转换为非 null 类型。
 

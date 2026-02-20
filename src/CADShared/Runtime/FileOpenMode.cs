@@ -1,4 +1,4 @@
-﻿#if ac2008
+#if ac2008
 namespace Autodesk.AutoCAD.DatabaseServices
 {
     /// <summary>

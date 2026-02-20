@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.WPF;
+namespace IFoxCAD.WPF;
 public class EnumSelection<T> : INotifyPropertyChanged where T : struct, IComparable, IFormattable, IConvertible
 {
     private T value; // stored value of the Enum

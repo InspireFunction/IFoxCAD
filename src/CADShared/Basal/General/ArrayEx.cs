@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 /*
  * 由于linq的函数大部分带有状态机,而cad是一个单机程序,

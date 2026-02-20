@@ -1,4 +1,4 @@
-﻿namespace Test;
+namespace Test;
 
 // 被注入的函数将不能使用断点,
 // 因此用户要充分了解才能使用

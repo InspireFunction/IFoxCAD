@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 /*
 // 测试例子,同时验证两个计时器

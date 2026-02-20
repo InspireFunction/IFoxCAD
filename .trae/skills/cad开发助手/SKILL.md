@@ -124,8 +124,7 @@ catch (Autodesk.AutoCAD.Runtime.Exception ex)
 3. **生成代码**
    - 按照CAD规范编写代码
    - 添加详细的XML文档注释
-   - 使用UTF8BOM编码保存
-
+   
 4. **编译验证**
    - 编译并导出新的函数表
    - 如有编译错误，参考 `skills/编译问题助手`

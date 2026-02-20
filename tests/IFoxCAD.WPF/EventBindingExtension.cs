@@ -1,4 +1,4 @@
-﻿using IFoxCAD.Cad;
+using IFoxCAD.Cad;
 
 namespace IFoxCAD.WPF;
 

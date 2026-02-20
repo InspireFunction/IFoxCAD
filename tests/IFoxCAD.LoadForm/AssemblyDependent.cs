@@ -1,4 +1,4 @@
-﻿#define HarmonyPatch
+#define HarmonyPatch
 #define HarmonyPatch_1
 //#define HarmonyPatch_2
 

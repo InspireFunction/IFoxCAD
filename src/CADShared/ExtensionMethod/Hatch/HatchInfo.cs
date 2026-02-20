@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 
 /*
  *  添加的第一个边界必须是外边界,即用于定义图案填充最外面的边界。

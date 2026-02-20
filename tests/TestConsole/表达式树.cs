@@ -1,4 +1,4 @@
-﻿namespace TestConsole;
+namespace TestConsole;
 
 using System;
 using System.Collections.Generic;

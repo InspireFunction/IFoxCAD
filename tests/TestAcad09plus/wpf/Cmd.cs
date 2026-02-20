@@ -1,4 +1,4 @@
-﻿namespace Test.wpf;
+namespace Test.wpf;
 
 public class Cmd
 {

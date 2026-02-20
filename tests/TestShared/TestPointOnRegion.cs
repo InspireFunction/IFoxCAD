@@ -1,4 +1,4 @@
-﻿namespace TestAcad2025;
+namespace TestAcad2025;
 
 public static class TestPointOnRegion
 {

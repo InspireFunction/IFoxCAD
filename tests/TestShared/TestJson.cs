@@ -1,4 +1,4 @@
-﻿namespace TestShared;
+namespace TestShared;
 
 public class TestJson
 {

@@ -1,4 +1,4 @@
-﻿
+
 namespace TestShared;
 
 public class TestText

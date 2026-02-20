@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.WPF;
+namespace IFoxCAD.WPF;
 
 /// <summary>
 /// 依赖属性扩展类

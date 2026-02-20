@@ -1,4 +1,4 @@
-﻿#if NET40_OR_GREATER
+#if NET40_OR_GREATER
 namespace TestShared;
 
 public class TestExtents

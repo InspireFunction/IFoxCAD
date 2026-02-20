@@ -1,4 +1,4 @@
-﻿using ArgumentNullException = System.ArgumentNullException;
+using ArgumentNullException = System.ArgumentNullException;
 
 namespace IFoxCAD.Cad;
 

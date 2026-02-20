@@ -1,4 +1,4 @@
-﻿//namespace TestConsole;
+//namespace TestConsole;
 
 //public static class Helper
 //{

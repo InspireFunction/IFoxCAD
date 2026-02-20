@@ -1,4 +1,4 @@
-﻿namespace Test;
+namespace Test;
 
 /// <summary>
 /// 只读包装器，提供不可变集合接口

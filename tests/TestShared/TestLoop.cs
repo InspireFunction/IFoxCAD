@@ -1,4 +1,4 @@
-﻿namespace Test;
+namespace Test;
 public class TestLoop
 {
     [CommandMethod(nameof(Test_LoopList))]

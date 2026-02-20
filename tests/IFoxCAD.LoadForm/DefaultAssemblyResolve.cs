@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.LoadEx;
+namespace IFoxCAD.LoadEx;
 
 using System.Diagnostics;
 

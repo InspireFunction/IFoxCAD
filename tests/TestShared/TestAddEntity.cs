@@ -1,4 +1,4 @@
-﻿namespace Test;
+namespace Test;
 
 public partial class Test
 {

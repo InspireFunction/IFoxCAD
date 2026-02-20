@@ -1,4 +1,4 @@
-﻿namespace Test;
+namespace Test;
 
 /// <summary>
 /// 在位编辑器信息管理类 - 管理文档的在位编辑器状态、历史记录和UI显示

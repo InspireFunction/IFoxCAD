@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 /// <summary>
 /// 发送命令
 /// </summary>

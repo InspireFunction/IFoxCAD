@@ -1,4 +1,4 @@
-﻿#if !gcad
+#if !gcad
 #if !NET35
 #if acad
 using Autodesk.AutoCAD.BoundaryRepresentation;

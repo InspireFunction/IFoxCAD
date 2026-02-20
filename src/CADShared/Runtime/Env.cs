@@ -1,4 +1,3 @@
-﻿
 // ReSharper disable StringLiteralTypo
 namespace IFoxCAD.Cad;
 

@@ -1,4 +1,4 @@
-﻿#if test
+#if test
 namespace Test;
 
 public class NetLoad

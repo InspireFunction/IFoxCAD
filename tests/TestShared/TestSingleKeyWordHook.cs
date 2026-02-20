@@ -1,4 +1,4 @@
-﻿#if NET40_OR_GREATER && !gcad
+#if NET40_OR_GREATER && !gcad
 namespace TestShared;
 
 public static class TestSingleKeyWordHook

@@ -1,4 +1,4 @@
-﻿// #define error_demo
+// #define error_demo
 
 namespace IFoxCAD.Cad;
 

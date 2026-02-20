@@ -1,4 +1,4 @@
-﻿global using ZwSoft.ZwCAD.ApplicationServices;
+global using ZwSoft.ZwCAD.ApplicationServices;
 global using ZwSoft.ZwCAD.DatabaseServices;
 global using ZwSoft.ZwCAD.EditorInput;
 global using ZwSoft.ZwCAD.Geometry;

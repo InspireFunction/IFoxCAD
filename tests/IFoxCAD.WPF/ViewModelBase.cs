@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.WPF;
+namespace IFoxCAD.WPF;
 
 /// <summary>
 /// ViewModel基类

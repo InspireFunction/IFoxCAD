@@ -1,4 +1,4 @@
-﻿using IFoxCAD.Basal;
+using IFoxCAD.Basal;
 using System;
 using System.Diagnostics;
 

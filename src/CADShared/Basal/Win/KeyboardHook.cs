@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Basal;
+namespace IFoxCAD.Basal;
 
 using System.Diagnostics;
 using System.Runtime.InteropServices;

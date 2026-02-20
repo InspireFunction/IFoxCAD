@@ -1,4 +1,4 @@
-﻿#define lack_test
+#define lack_test
 
 namespace IFoxCAD.Cad;
 

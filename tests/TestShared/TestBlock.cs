@@ -1,4 +1,4 @@
-﻿
+
 namespace Test;
 
 public class TestBlock

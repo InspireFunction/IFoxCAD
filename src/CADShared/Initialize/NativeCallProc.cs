@@ -1,4 +1,4 @@
-﻿#pragma warning disable CS0169
+#pragma warning disable CS0169
 
 namespace IFoxCAD.Basal;
 

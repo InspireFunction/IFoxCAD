@@ -1,4 +1,4 @@
-﻿#if acad
+#if acad
 namespace IFoxCAD.Cad;
 #pragma warning disable CS1591 // 缺少XML注释
 #pragma warning disable CS1572 // XML注释中有不存在的参数

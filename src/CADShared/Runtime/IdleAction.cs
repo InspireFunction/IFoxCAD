@@ -1,4 +1,4 @@
-﻿#if !NET35
+#if !NET35
 using Cursor = System.Windows.Forms.Cursor;
 
 namespace IFoxCAD.Cad;
