@@ -3,9 +3,6 @@
 /// <summary>
 /// 历史记录节点 - 不可变类型，存储某一时刻的完整状态快照
 /// </summary>
-/// <remarks>
-/// 创建历史节点
-/// </remarks>
 public class HistoryNode(
     int index,
     string commandName,

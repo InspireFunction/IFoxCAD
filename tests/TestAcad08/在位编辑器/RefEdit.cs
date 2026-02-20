@@ -248,7 +248,7 @@ public class RefEditCmd
             // 因此此时什么也不干就行了.
             if (xInfo.CtrlState.IsRun)
             {
-#if true
+#if DEBUG
                 // 动作: 在位编辑器期间-画圆-undo撤回-redo重做,
                 // 刷新会导致无法redo重做了.
 
@@ -258,12 +258,12 @@ public class RefEditCmd
                 //}
 
                 // 方案一:无撤标记+事务.
-                // xInfo.RefreshDisplay();
+                xInfo.RefreshDisplay();
 
                 // 方案二:发送命令.
                 // doc.SendStringToExecute(nameof(RefreshDisplay) + "\n", false, false, false);
 
-                // 方案三:无撤标记+Open/Close对象.
+                // 方案三:无撤标记+Open/Close对象.这里少了刷新workset哦
                 // RefreshDisplay2(xInfo);
 #endif
             }
@@ -313,12 +313,12 @@ public class RefEditCmd
             }
 #pragma warning restore CS0618 // 类型或成员已过时
 
-#if false
+#if true
             // 方案三a
             // 一旦使用这个就无法redo了... 
 
             // 刷新画面的图层暗显
-            IFoxUtils.RegenLayers(lockedLayers); 
+            IFoxUtils.RegenLayers(lockedLayers);
 #endif
 
 #if false
@@ -487,7 +487,7 @@ public class RefEditCmd
         _workCmd.Add(nameof(RefSet));
         _workCmd.Add(nameof(RefClose));
         _workCmd.Add(nameof(RefEdit));
-        _workCmd.Add(nameof(RefEditDebug));
+        _workCmd.Add(nameof(Refd));
     }
 
     [CommandMethod(nameof(RefSet), CommandFlags.UsePickSet | CommandFlags.Redraw)]
@@ -538,6 +538,9 @@ public class RefEditCmd
         var idArray = psr.Value.GetObjectIds();
         if (result.StringResult == "A")
         {
+            // 在添加操作前先记录回滚点，保存当前状态
+            xInfo.HistoryWrite(nameof(RefSet) + "_Add_Before");
+
             var sets = new HashSet<ObjectId>();
             foreach (var item in idArray)
             {
@@ -548,7 +551,7 @@ public class RefEditCmd
             // 成功的部分放入
             xInfo.RefsetAddIds.Add(sets);
 
-            // 保存历史
+            // 再次保存历史
             xInfo.HistoryWrite(nameof(RefSet) + "_Add");
 
             // 刷新一次
@@ -564,6 +567,9 @@ public class RefEditCmd
         }
         else
         {
+            // 在删除操作前先记录回滚点，保存当前状态
+            xInfo.HistoryWrite(nameof(RefSet) + "_Remove_Before");
+
             var sets = new HashSet<ObjectId>();
             foreach (var item in idArray)
             {
@@ -574,7 +580,7 @@ public class RefEditCmd
             // 成功的部分放入
             xInfo.RefsetRemoveIds.Add(sets);
 
-            // 保存历史
+            // 再次保存历史
             xInfo.HistoryWrite(nameof(RefSet) + "_Remove");
 
             // 淡显
@@ -864,8 +870,8 @@ public class RefEditCmd
     }
 
 
-    [CommandMethod(nameof(RefEditDebug))]
-    public void RefEditDebug()
+    [CommandMethod(nameof(Refd), CommandFlags.NoHistory)]
+    public void Refd()
     {
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (!TryGetRefEditInfo(doc, out var xInfo))
