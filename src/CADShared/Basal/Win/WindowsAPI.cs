@@ -11,6 +11,67 @@ namespace IFoxCAD.Basal;
 /// </summary>
 public partial class WindowsAPI
 {
+    #region 错误处理辅助方法
+
+    /// <summary>
+    /// 检查Win32 API调用是否成功，如果失败则记录错误信息
+    /// </summary>
+    /// <param name="functionName">调用的函数名称</param>
+    /// <param name="result">API调用结果（句柄或指针）</param>
+    /// <returns>是否成功（result不为IntPtr.Zero）</returns>
+    public static bool CheckWin32Error(string functionName, IntPtr result)
+    {
+        if (result != IntPtr.Zero)
+            return true;
+
+        uint errorCode = GetLastError();
+        if (errorCode != 0)
+        {
+            DebugEx.Printl($"[Win32错误] {functionName} 失败，错误码: {errorCode} (0x{errorCode:X8})");
+        }
+        return false;
+    }
+
+    /// <summary>
+    /// 检查Win32 API调用是否成功，如果失败则记录错误信息
+    /// </summary>
+    /// <param name="functionName">调用的函数名称</param>
+    /// <param name="result">API调用结果（布尔值）</param>
+    /// <returns>API调用结果</returns>
+    public static bool CheckWin32Error(string functionName, bool result)
+    {
+        if (!result)
+        {
+            uint errorCode = GetLastError();
+            if (errorCode != 0)
+            {
+                DebugEx.Printl($"[Win32错误] {functionName} 失败，错误码: {errorCode} (0x{errorCode:X8})");
+            }
+        }
+        return result;
+    }
+
+    /// <summary>
+    /// 检查Win32 API调用是否成功，如果失败则记录错误信息
+    /// </summary>
+    /// <param name="functionName">调用的函数名称</param>
+    /// <param name="result">API调用结果（32位整数）</param>
+    /// <returns>是否成功（result不为0）</returns>
+    public static bool CheckWin32Error(string functionName, int result)
+    {
+        if (result != 0)
+            return true;
+
+        uint errorCode = GetLastError();
+        if (errorCode != 0)
+        {
+            DebugEx.Printl($"[Win32错误] {functionName} 失败，错误码: {errorCode} (0x{errorCode:X8})");
+        }
+        return false;
+    }
+
+    #endregion
+
     #region kernel32
     // https://blog.csdn.net/haelang/article/details/45147121
     /// <summary>
@@ -34,8 +95,20 @@ public partial class WindowsAPI
     /// </summary>
     /// <param name="ModuleName">模块名称</param>
     /// <returns>模块句柄</returns>
-    [DllImport("kernel32.dll")]
+    [DllImport("kernel32.dll", SetLastError = true)]
     public static extern IntPtr GetModuleHandle(string ModuleName);
+
+    /// <summary>
+    /// 获取模块句柄（带错误检查）
+    /// </summary>
+    /// <param name="moduleName">模块名称</param>
+    /// <returns>模块句柄，失败返回IntPtr.Zero</returns>
+    public static IntPtr GetModuleHandleSafe(string moduleName)
+    {
+        var result = GetModuleHandle(moduleName);
+        CheckWin32Error(nameof(GetModuleHandle), result);
+        return result;
+    }
 
     /// <summary>
     /// 获取当前线程ID
@@ -373,8 +446,22 @@ public partial class WindowsAPI
     /// 获取当前窗口
     /// </summary>
     /// <returns>当前窗口标识符</returns>
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetForegroundWindow();
+
+    /// <summary>
+    /// 获取当前前台窗口（带错误检查）
+    /// </summary>
+    /// <returns>前台窗口句柄，失败返回IntPtr.Zero</returns>
+    public static IntPtr GetForegroundWindowSafe()
+    {
+        var result = GetForegroundWindow();
+        if (result == IntPtr.Zero)
+        {
+            CheckWin32Error(nameof(GetForegroundWindow), result);
+        }
+        return result;
+    }
     /// <summary>
     /// 将一个消息的组成部分合成一个消息并放入对应线程消息队列的方法
     /// </summary>
@@ -383,8 +470,26 @@ public partial class WindowsAPI
     /// <param name="wparam"></param>
     /// <param name="lparam"></param>
     /// <returns></returns>
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", SetLastError = true)]
     public static extern bool PostMessage(IntPtr hhwnd, int msg, IntPtr wparam, IntPtr lparam);
+
+    /// <summary>
+    /// 发送消息到指定窗口（带错误检查）
+    /// </summary>
+    /// <param name="hWnd">窗口句柄</param>
+    /// <param name="msg">消息类型</param>
+    /// <param name="wParam">消息参数</param>
+    /// <param name="lParam">消息参数</param>
+    /// <returns>是否成功</returns>
+    public static bool PostMessageSafe(IntPtr hWnd, int msg, IntPtr wParam, IntPtr lParam)
+    {
+        var result = PostMessage(hWnd, msg, wParam, lParam);
+        if (!result)
+        {
+            CheckWin32Error(nameof(PostMessage), result);
+        }
+        return result;
+    }
     /// <summary>
     /// 发送击键
     /// </summary>
@@ -408,8 +513,30 @@ public partial class WindowsAPI
     /// <param name="text">窗口文字</param>
     /// <param name="nMaxCount">文字长度</param>
     /// <returns></returns>
-    [DllImport("User32.dll", CharSet = CharSet.Auto)]
+    [DllImport("User32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern int GetWindowText(IntPtr hWnd, StringBuilder text, int nMaxCount);
+
+    /// <summary>
+    /// 获取窗口标题（带错误检查）
+    /// </summary>
+    /// <param name="hWnd">窗口句柄</param>
+    /// <param name="text">接收标题的StringBuilder</param>
+    /// <param name="nMaxCount">最大字符数</param>
+    /// <returns>是否成功</returns>
+    public static bool GetWindowTextSafe(IntPtr hWnd, StringBuilder text, int nMaxCount)
+    {
+        var result = GetWindowText(hWnd, text, nMaxCount);
+        if (result == 0)
+        {
+            uint errorCode = GetLastError();
+            if (errorCode != 0)
+            {
+                DebugEx.Printl($"[Win32错误] GetWindowText 失败，错误码: {errorCode} (0x{errorCode:X8})");
+            }
+            return false;
+        }
+        return true;
+    }
 
     // [DllImport("user32.dll", CharSet = CharSet.Unicode, SetLastError = true)]
     // internal static extern int GetWindowText(IntPtr hWnd, StringBuilder lpString, int nMaxCount);
@@ -440,6 +567,24 @@ public partial class WindowsAPI
     /// <returns></returns>
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     public static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
+
+    /// <summary>
+    /// 获取窗口类名（带错误检查）
+    /// </summary>
+    /// <param name="hWnd">窗口句柄</param>
+    /// <param name="lpClassName">接收类名的StringBuilder</param>
+    /// <param name="nMaxCount">最大字符数</param>
+    /// <returns>是否成功</returns>
+    public static bool GetClassNameSafe(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount)
+    {
+        var result = GetClassName(hWnd, lpClassName, nMaxCount);
+        if (result == 0)
+        {
+            CheckWin32Error(nameof(GetClassName), result);
+            return false;
+        }
+        return true;
+    }
 
     /// <summary>
     /// 获取窗口
@@ -545,6 +690,20 @@ public partial class WindowsAPI
     public static extern IntPtr GetFocus();
 
     /// <summary>
+    /// 获取当前焦点窗口（带错误检查）
+    /// </summary>
+    /// <returns>焦点窗口句柄，失败返回IntPtr.Zero</returns>
+    public static IntPtr GetFocusSafe()
+    {
+        var result = GetFocus();
+        if (result == IntPtr.Zero)
+        {
+            CheckWin32Error(nameof(GetFocus), result);
+        }
+        return result;
+    }
+
+    /// <summary>
     /// 发送消息
     /// </summary>
     /// <summary>
@@ -565,6 +724,26 @@ public partial class WindowsAPI
     /// <returns>父窗口句柄</returns>
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetParent(IntPtr hWnd);
+
+    /// <summary>
+    /// 获取父窗口（带错误检查）
+    /// </summary>
+    /// <param name="hWnd">窗口句柄</param>
+    /// <returns>父窗口句柄，失败返回IntPtr.Zero</returns>
+    public static IntPtr GetParentSafe(IntPtr hWnd)
+    {
+        var result = GetParent(hWnd);
+        // GetParent返回NULL表示没有父窗口或出错，需要通过GetLastError区分
+        if (result == IntPtr.Zero)
+        {
+            uint errorCode = GetLastError();
+            if (errorCode != 0)
+            {
+                DebugEx.Printl($"[Win32错误] GetParent 失败，错误码: {errorCode} (0x{errorCode:X8})");
+            }
+        }
+        return result;
+    }
 
     /// <summary>
     /// 将虚拟键码转换为ASCII字符

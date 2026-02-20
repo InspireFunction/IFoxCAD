@@ -28,7 +28,7 @@ public class Settings
     }
 
     // 这里更新容器期间会多线程访问
-    internal static ConcurrentSet<string> _AutoEn2Cn = ["MTEXT", "DDEDIT", "MTEDIT", "TEXT", "DTEXT", "TEXTEDIT", "EATTEDIT", "TABLEDIT", "MLEADER", "MLEADERCONTENTEDIT", "QLEADER", "-BLOCK", "-GROUP", "GROUP", "GROUPEDIT", "ATTIPEDIT"];
+    internal static ConcurrentSet<string> _AutoEn2Cn = ["MTEXT", "DDEDIT", "MTEDIT", "TEXT", "DTEXT", "TEXTEDIT", "EATTEDIT", "TABLEDIT", "MLEADER", "MLEADERCONTENTEDIT", "QLEADER", "-GROUP", "GROUP", "GROUPEDIT", "ATTIPEDIT"];
 
     /// <summary>
     /// 豁免命令组: 默认和配置的
@@ -45,7 +45,7 @@ public class Settings
         }
     }
 
-    internal static ConcurrentSet<string> _AutoCn2En = ["BLOCK", "GROUP"];
+    internal static ConcurrentSet<string> _AutoCn2En = ["BLOCK", "-BLOCK", "GROUP"];
     /// <summary>
     /// 豁免命令组: 自动切换为英文输入法
     /// </summary>

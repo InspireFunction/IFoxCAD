@@ -735,7 +735,7 @@ public class RefEditCmd
             // 此处有删除对象,提交事务之后会触发删除事件,
             // 但是此处引起的删除对象事件不能开事务否则会错误,不能记录历史.
             // 设置一个标记让删除对象事件跳过.
-            xInfo.CtrlState.Break();
+            xInfo.CtrlState.Continue();
         }
 
         a = xInfo.Workset.Count; // 这里变成0了,因为这里删除对象事件导致的
@@ -799,7 +799,7 @@ public class RefEditCmd
 
         // 这个空间id确实是对的
         var spaceId = doc.Database.CurrentSpaceId;
-        xInfo.CurrentSpaceId = spaceId;
+        xInfo.SetCurrentSpaceId(spaceId);
 
         xInfo.CtrlState.Start();
 
@@ -815,7 +815,7 @@ public class RefEditCmd
             // 深度克隆提取块内图元出来
             // 此时没有锁定图层,再平移之后(触发修改),它就是亮显的.
             using var btr = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord, OpenMode.ForWrite, true, true);
-            xInfo.BlockReferenceId = brf.ObjectId;
+            xInfo.SetBlockReferenceId(brf.ObjectId);
             using ObjectIdCollection ids = [.. btr];
             using IdMapping map = [];
             tr.CurrentSpace.DeepCloneEx(ids, map);

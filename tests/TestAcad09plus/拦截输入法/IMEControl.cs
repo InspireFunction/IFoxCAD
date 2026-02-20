@@ -37,6 +37,7 @@ public class IMEControl
                 {
                     doc.CommandWillStart += Doc_CommandWillStart;
                     doc.CommandEnded += Doc_CommandEnded;
+                    doc.CommandCancelled += Doc_CommandCancelled; ;
                 }
 
             // 卸载钩子
@@ -60,8 +61,20 @@ public class IMEControl
     /// </summary>
     static CtrlState _sendKeyState = new();
 
+
+    // 取消命令
+    static void Doc_CommandCancelled(object sender, CommandEventArgs e)
+    {
+        Doc_CommandEndedOrCancel(sender, e);
+    }
+
     // 命令结束反应器
     static void Doc_CommandEnded(object sender, CommandEventArgs e)
+    {
+        Doc_CommandEndedOrCancel(sender, e);
+    }
+
+    static void Doc_CommandEndedOrCancel(object sender, CommandEventArgs e)
     {
         try
         {
@@ -71,7 +84,7 @@ public class IMEControl
              * 中文状态 IsBreak
              * 中文状态和被程序切换 IsBreak && IsExceptional
              * 保持不变 IsCancel
-             * 钩子不走任何 !Run 状态
+             * 钩子不走任何 !_sendKeyState.Run 状态
              */
             // 如果程序切换了,就恢复原本的
             // 当前是英文状态被切换到中文(当前),{然后用户切换了英文,此时应该保证是用户},而不是发送切换(会这样变成中文)
@@ -81,7 +94,7 @@ public class IMEControl
                 {
                     if (IsOpenIEM())
                     {
-                        SendKey();
+                        SendKey("");
                         DebugEx.Printl("恢复}", false);
                     }
                     else
@@ -97,7 +110,7 @@ public class IMEControl
                 {
                     if (!IsOpenIEM())
                     {
-                        SendKey();
+                        SendKey("");
                         DebugEx.Printl("恢复}");
                     }
                     else
@@ -117,11 +130,17 @@ public class IMEControl
     // 命令开始反应器
     static void Doc_CommandWillStart(object sender, CommandEventArgs e)
     {
+        DebugEx.Printl("Doc_CommandWillStart: " + e.GlobalCommandName);
         try
         {
             if (Settings.AutoCn2En.Contains(e.GlobalCommandName))
             {
                 IMESwitch_AutoCn2En();
+                return;
+            }
+            else if (Settings.AutoEn2Cn.Contains(e.GlobalCommandName))
+            {
+                IMESwitch_AutoEn2Cn();
                 return;
             }
         }
@@ -140,19 +159,29 @@ public class IMEControl
     {
         try
         {
-            var focusW = WindowsAPI.GetForegroundWindow();
+            var focusW = WindowsAPI.GetForegroundWindowSafe();
             if (focusW == IntPtr.Zero || !WindowsAPI.IsWindow(focusW))
                 return false;
 
             var context = WindowsAPI.ImmGetContext(focusW);
             if (context == IntPtr.Zero)
+            {
+                DebugEx.Printl($"[IsOpenIEM] ImmGetContext 返回空指针");
                 return false;
+            }
 
-            WindowsAPI.ImmGetConversionStatus(context, out int mode/*输入模式*/, out _);
-            return WindowsAPI.ImmGetOpenStatus(context);
+            bool statusResult = WindowsAPI.ImmGetConversionStatus(context, out int mode/*输入模式*/, out _);
+            if (!statusResult)
+            {
+                DebugEx.Printl($"[IsOpenIEM] ImmGetConversionStatus 调用失败");
+            }
+
+            bool openStatus = WindowsAPI.ImmGetOpenStatus(context);
+            return openStatus;
         }
-        catch
+        catch (Exception ex)
         {
+            DebugEx.Printl($"[IsOpenIEM] 异常: {ex.Message}");
             return false;
         }
     }
@@ -164,13 +193,14 @@ public class IMEControl
     {
         if (Settings.IMEInputSwitch == IMESwitchMode.NotSwitch)
             return;
+
         // 切换只能发生在第一次,第2.+次需要不执行
         if (!IsOpenIEM())
         {
             DebugEx.Printl("现在是英文状态,切换前{");
             _sendKeyState.Stop();
-            _sendKeyState.Exceptional();
-            SendKey();
+            _sendKeyState.Exceptional(true);
+            SendKey("中文");
         }
         else
         {
@@ -199,14 +229,14 @@ public class IMEControl
         {
             DebugEx.Printl("现在是中文状态,切换前{");
             _sendKeyState.Break();
-            _sendKeyState.Exceptional();
-            SendKey();
+            _sendKeyState.Exceptional(true);
+            SendKey("英文");
         }
     }
 
-    static void SendKey()
+    static void SendKey(string msg)
     {
-        DebugEx.Printl("触发了切换输入法", false);
+        DebugEx.Printl($"触发了切换输入法 {msg}", false);
         switch (Settings.IMEInputSwitch)
         {
             case IMESwitchMode.Shift:
@@ -314,7 +344,7 @@ public class IMEControl
             else if (Settings.IMEHookStyle == IMEHookStyle.Global)
             {
                 DebugEx.Printl($"切换到全局钩子控制:{DateTime.Now}");
-                var moduleHandle = WindowsAPI.GetModuleHandle(_process.MainModule.ModuleName);
+                var moduleHandle = WindowsAPI.GetModuleHandleSafe(_process.MainModule.ModuleName);
                 if (moduleHandle == IntPtr.Zero)
                 {
                     DebugEx.Printl("全局钩子: 获取模块句柄失败，回退到进程钩子");
@@ -376,12 +406,18 @@ public class IMEControl
         try
         {
             // 重复校验
-            var focus = WindowsAPI.GetFocus();
+            var focus = WindowsAPI.GetFocusSafe();
             if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
+            {
+                DebugEx.Printl("[ExceptCmds_AutoEn2Cn_Task] 获取焦点窗口失败或窗口无效");
                 return false;
+            }
 
             if (!WindowsAPI.IsWindowEnabled(Acap.MainWindow.Handle))
+            {
+                DebugEx.Printl("[ExceptCmds_AutoEn2Cn_Task] 主窗口未启用");
                 return false;
+            }
 
             var dm = Acap.DocumentManager;
             if (dm == null || dm.Count == 0)
@@ -450,28 +486,42 @@ public class IMEControl
                 // 必须先焦点
                 IntPtr focus;
                 if (Marshal.SizeOf(typeof(IntPtr)) == 4)
-                    focus = WindowsAPI.GetFocus();
+                    focus = WindowsAPI.GetFocusSafe();
                 else
-                    focus = WindowsAPI.GetForegroundWindow();
+                    focus = WindowsAPI.GetForegroundWindowSafe();
                 if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
+                {
+                    DebugEx.Printl("[IMEHook] 获取焦点窗口失败或窗口无效");
                     return false;
+                }
 
                 // 判断键入的数字更快,再判断豁免命令
                 if (!ExceptCmds_AutoEn2Cn_Task())
                     return false;
 
                 StringBuilder lpClassName = new(byte.MaxValue);
-                WindowsAPI.GetClassName(focus, lpClassName, checked(lpClassName.Capacity + 1));
+                if (!WindowsAPI.GetClassNameSafe(focus, lpClassName, checked(lpClassName.Capacity + 1)))
+                {
+                    DebugEx.Printl("[IMEHook] GetClassNameSafe 失败");
+                    return false;
+                }
                 string left = lpClassName.ToString().ToLower();
                 if (left.StartsWith("afx"))// 在08输入的都从这里进入
                 {
                     {
-                        var focusW = WindowsAPI.GetForegroundWindow();
+                        var focusW = WindowsAPI.GetForegroundWindowSafe();
                         if (focusW == IntPtr.Zero || !WindowsAPI.IsWindow(focusW))
+                        {
+                            DebugEx.Printl("[IMEHook] 获取前台窗口失败或窗口无效");
                             return false;
+                        }
 
                         StringBuilder lpClassName2 = new(byte.MaxValue);
-                        WindowsAPI.GetClassName(focusW, lpClassName2, checked(lpClassName2.Capacity + 1));
+                        if (!WindowsAPI.GetClassNameSafe(focusW, lpClassName2, checked(lpClassName2.Capacity + 1)))
+                        {
+                            DebugEx.Printl("[IMEHook] GetClassNameSafe(前台窗口) 失败");
+                            return false;
+                        }
                         left = lpClassName2.ToString().ToLower();
                         // cad08启动时候会滚动某些信息,此时鼠标狂点入到vs代码编辑器中,然后等一段时间cad完成,vs就会无法输入了.
                         // 会被拦截到了这个"afx"处理,所有的输入都跑cad了,需要加入如下代码进行处理:
@@ -484,7 +534,10 @@ public class IMEControl
                             return false;
                         }
                     }
-                    WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x10001));
+                    if (!WindowsAPI.PostMessageSafe(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x10001)))
+                    {
+                        DebugEx.Printl("[IMEHook] PostMessageSafe(WM_KEYDOWN) 失败");
+                    }
                     return true;
                 }
 
@@ -492,19 +545,33 @@ public class IMEControl
                 {
                     DebugEx.Printl($"hwndwrapper::{DateTime.Now}");
 
-                    var parent = WindowsAPI.GetParent(focus);
+                    var parent = WindowsAPI.GetParentSafe(focus);
                     if (parent == IntPtr.Zero)
+                    {
+                        DebugEx.Printl("[IMEHook] GetParentSafe 返回空指针");
                         return false;
+                    }
                     StringBuilder lpString = new(byte.MaxValue);
-                    WindowsAPI.GetWindowText(parent, lpString, checked(lpString.Capacity + 1));
+                    if (!WindowsAPI.GetWindowTextSafe(parent, lpString, checked(lpString.Capacity + 1)))
+                    {
+                        DebugEx.Printl("[IMEHook] GetWindowTextSafe 失败");
+                        return false;
+                    }
                     if (lpString.ToString().ToLower() != "cli palette")//"CLI Palette".ToLower()
                     {
                         StringBuilder lpClassName3 = new(byte.MaxValue);
-                        WindowsAPI.GetClassName(parent, lpClassName3, checked(lpClassName3.Capacity + 1));
+                        if (!WindowsAPI.GetClassNameSafe(parent, lpClassName3, checked(lpClassName3.Capacity + 1)))
+                        {
+                            DebugEx.Printl("[IMEHook] GetClassNameSafe(父窗口) 失败");
+                            return false;
+                        }
                         if (!lpClassName3.ToString().ToLower().StartsWith("afxmdiframe"))
                             return false;
                     }
-                    WindowsAPI.PostMessage(focus, WM_KEYUP, new IntPtr(wParam), new IntPtr(0x10001));
+                    if (!WindowsAPI.PostMessageSafe(focus, WM_KEYUP, new IntPtr(wParam), new IntPtr(0x10001)))
+                    {
+                        DebugEx.Printl("[IMEHook] PostMessageSafe(WM_KEYUP) 失败");
+                    }
                     return true;
                 }
 
@@ -512,12 +579,19 @@ public class IMEControl
                 {
                     DebugEx.Printl($"edit::{DateTime.Now}");
 
-                    var parent = WindowsAPI.GetParent(focus);
+                    var parent = WindowsAPI.GetParentSafe(focus);
                     if (parent == IntPtr.Zero)
+                    {
+                        DebugEx.Printl("[IMEHook] GetParentSafe(edit) 返回空指针");
                         return false;
+                    }
 
                     StringBuilder lpClassName4 = new(byte.MaxValue);
-                    WindowsAPI.GetClassName(parent, lpClassName4, checked(lpClassName4.Capacity + 1));
+                    if (!WindowsAPI.GetClassNameSafe(parent, lpClassName4, checked(lpClassName4.Capacity + 1)))
+                    {
+                        DebugEx.Printl("[IMEHook] GetClassNameSafe(edit父窗口) 失败");
+                        return false;
+                    }
 
                     var dm = Acap.DocumentManager;
                     if (dm == null || dm.Count == 0)
@@ -528,9 +602,12 @@ public class IMEControl
                         return false;
 
                     if (lpClassName4.ToString().ToLower().StartsWith("afx") &&
-                        WindowsAPI.GetParent(parent) != doc.Window.Handle)
+                        WindowsAPI.GetParentSafe(parent) != doc.Window.Handle)
                     {
-                        WindowsAPI.PostMessage(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x390001/*3735553*/));
+                        if (!WindowsAPI.PostMessageSafe(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x390001/*3735553*/)))
+                        {
+                            DebugEx.Printl("[IMEHook] PostMessageSafe(edit WM_KEYDOWN) 失败");
+                        }
                         return true;
                     }
                 }
@@ -565,12 +642,15 @@ public class IMEControl
         {
             IntPtr focus;
             if (Marshal.SizeOf(typeof(IntPtr)) == 4)
-                focus = WindowsAPI.GetFocus();
+                focus = WindowsAPI.GetFocusSafe();
             else
-                focus = WindowsAPI.GetForegroundWindow();
+                focus = WindowsAPI.GetForegroundWindowSafe();
 
             if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
+            {
+                DebugEx.Printl("[Mk2] 获取焦点窗口失败或窗口无效");
                 return false;
+            }
 
             WindowsAPI.GetWindowThreadProcessId(focus, out uint lpdwProcessId);
             if (lpdwProcessId != _process.Id)
@@ -599,7 +679,7 @@ public class IMEControl
         }
         catch (Exception ex)
         {
-            DebugEx.Printl($"Mk2异常: {ex.Message}");
+            DebugEx.Printl($"[Mk2] 异常: {ex.Message}");
             return false;
         }
     }
@@ -624,5 +704,6 @@ public class IMEControl
         {
         }
     }
+
 }
 #line default

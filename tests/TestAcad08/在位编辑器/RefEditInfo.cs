@@ -368,19 +368,26 @@ public class RefEditInfo : IDisposable
     public CtrlState CtrlState
     {
         get => WorkingArea.CtrlState;
-        set => WorkingArea.CtrlState = value;
     }
 
     public ObjectId BlockReferenceId
     {
         get => WorkingArea.BlockReferenceId;
-        set => WorkingArea.BlockReferenceId = value;
+    }
+
+    public void SetBlockReferenceId(ObjectId id)
+    {
+        WorkingArea.BlockReferenceId = id;
     }
 
     public ObjectId CurrentSpaceId
     {
         get => WorkingArea.CurrentSpaceId;
-        set => WorkingArea.CurrentSpaceId = value;
+    }
+
+    public void SetCurrentSpaceId(ObjectId id)
+    {
+        WorkingArea.CurrentSpaceId = id;
     }
 
     public HashSet<ObjectId> Workset => WorkingArea.Workset;
@@ -390,7 +397,6 @@ public class RefEditInfo : IDisposable
     public string CommandName
     {
         get => WorkingArea.CommandName;
-        set => WorkingArea.CommandName = value;
     }
 
     #endregion
