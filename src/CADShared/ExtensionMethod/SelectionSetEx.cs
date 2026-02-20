@@ -128,7 +128,7 @@ public static class SelectionSetEx
     /// <exception cref="ArgumentNullException"></exception>
     [System.Diagnostics.DebuggerStepThrough]
     public static void ForEach<T>(this SelectionSet ss,
-                                 Action<T?, LoopState> action,
+                                 Action<T?, CtrlState> action,
                                  OpenMode openMode = OpenMode.ForRead,
                                  DBTrans? trans = null,
                                  bool openErased = false,
@@ -139,7 +139,7 @@ public static class SelectionSetEx
 
         trans ??= DBTrans.Top;
 
-        LoopState state = new();
+        CtrlState state = new();
         var ents = ss.GetEntities<T>(openMode, trans, openErased, openLockedLayer);
         foreach (var ent in ents)
         {

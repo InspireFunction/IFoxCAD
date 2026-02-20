@@ -104,9 +104,9 @@ public class XDataList : TypedValueList
     /// </summary>
     /// <param name="appName"></param>
     /// <param name="action"></param>
-    private void RangeTask(string appName, Action<TypedValue, LoopState, int> action)
+    private void RangeTask(string appName, Action<TypedValue, CtrlState, int> action)
     {
-        LoopState state = new();
+        CtrlState state = new();
         // 在名称和名称之间找
         var appNameIndex = -1;
         for (var i = 0; i < Count; i++)

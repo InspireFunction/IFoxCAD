@@ -370,7 +370,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="checkIdOk">检查id是否删除,默认true</param>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
-    public void ForEach(Action<TRecord, LoopState> task,
+    public void ForEach(Action<TRecord, CtrlState> task,
                         OpenMode openMode = OpenMode.ForRead,
                         bool checkIdOk = true,
                         bool openErased = false,
@@ -390,7 +390,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <param name="openErased">是否打开已删除对象,默认为不打开</param>
     /// <param name="openLockedLayer">是否打开锁定图层对象,默认为不打开</param>
     [System.Diagnostics.DebuggerStepThrough]
-    public void ForEach(Action<TRecord, LoopState, int> task,
+    public void ForEach(Action<TRecord, CtrlState, int> task,
                         OpenMode openMode = OpenMode.ForRead,
                         bool checkIdOk = true,
                         bool openErased = false,
@@ -399,7 +399,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
         if (task == null)
             throw new ArgumentNullException(nameof(task));
 
-        LoopState state = new();/*这种方式比Action改Func更友好*/
+        CtrlState state = new();/*这种方式比Action改Func更友好*/
         int i = 0;
         foreach (var id in this)
         {

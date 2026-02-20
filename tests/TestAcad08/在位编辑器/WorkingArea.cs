@@ -8,7 +8,7 @@ public class WorkingArea
     /// <summary>
     /// 是否正在运行
     /// </summary>
-    public ProState ProState { get; set; } = new ProState();
+    public CtrlState CtrlState { get; set; } = new CtrlState();
 
     /// <summary>
     /// 块参照ID
@@ -55,7 +55,7 @@ public class WorkingArea
         return new HistoryNode(
             index,
             commandName,
-            ProState.Clone(),
+            CtrlState.Clone(),
             BlockReferenceId,
             CurrentSpaceId,
             new ImmutableHashSet<ObjectId>(Workset),
@@ -71,7 +71,7 @@ public class WorkingArea
     public void RestoreFrom(HistoryNode node)
     {
         CommandName = node.CommandName;
-        ProState = node.ProState;
+        CtrlState = node.CtrlState;
         BlockReferenceId = node.BlockReferenceId;
         CurrentSpaceId = node.CurrentSpaceId;
         Workset = node.Workset.ToMutable();
@@ -81,11 +81,11 @@ public class WorkingArea
     }
 
     /// <summary>
-    /// 清理工作区
+    /// 重置
     /// </summary>
-    public void Clear()
+    public void Reset()
     {
-        ProState.None();
+        CtrlState.Reset();
         BlockReferenceId = ObjectId.Null;
         CurrentSpaceId = ObjectId.Null;
         Workset.Clear();

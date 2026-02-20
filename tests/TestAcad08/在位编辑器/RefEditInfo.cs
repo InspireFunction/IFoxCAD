@@ -66,7 +66,7 @@ public class RefEditInfo
         Env.Print("========== RefEdit 历史链调试信息 (reflog 风格) ==========");
         Env.Print("");
         Env.Print("【工作区 - 当前可编辑状态】");
-        Env.Print($"  ProState: {WorkingArea.ProState}");
+        Env.Print($"  CtrlState: {WorkingArea.CtrlState}");
         Env.Print($"  BlockReferenceId: {WorkingArea.BlockReferenceId}");
         Env.Print($"  CurrentSpaceId: {WorkingArea.CurrentSpaceId}");
         Env.Print($"  Workset: {WorkingArea.Workset.Count} 个对象");
@@ -91,7 +91,7 @@ public class RefEditInfo
                 string marker = (_currentNode != null && _currentNode.Value == node) ? " <-- 当前指针" : "";
                 string cmdName = string.IsNullOrEmpty(node.CommandName) ? "" : $" [{node.CommandName}]";
                 Env.Print($"  索引[{node.Index}]{cmdName}{marker}");
-                Env.Print($"    ProState: {node.ProState}, Workset: {node.Workset.Count}, RefsetAdd: {node.RefsetAddIds.Count}, RefsetRemove: {node.RefsetRemoveIds.Count}");
+                Env.Print($"    CtrlState: {node.CtrlState}, Workset: {node.Workset.Count}, RefsetAdd: {node.RefsetAddIds.Count}, RefsetRemove: {node.RefsetRemoveIds.Count}");
             }
         }
 
@@ -133,7 +133,7 @@ public class RefEditInfo
         _historyList.Clear();
         _currentNode = null;
         _globalIndex = 0;
-        WorkingArea.Clear();
+        WorkingArea.Reset();
     }
 
     /// <summary>
@@ -205,18 +205,18 @@ public class RefEditInfo
     /// <summary>
     /// 清理工作区（用于RefClose等场景）
     /// </summary>
-    public void Clear()
+    public void Reset()
     {
-        WorkingArea.Clear();
+        WorkingArea.Reset();
         EntityLayerBak.Clear();
     }
 
     #region 便捷属性 - 直接访问工作区
 
-    public ProState ProState
+    public CtrlState CtrlState
     {
-        get => WorkingArea.ProState;
-        set => WorkingArea.ProState = value;
+        get => WorkingArea.CtrlState;
+        set => WorkingArea.CtrlState = value;
     }
 
     public ObjectId BlockReferenceId

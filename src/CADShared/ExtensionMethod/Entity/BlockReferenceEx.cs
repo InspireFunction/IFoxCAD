@@ -282,7 +282,7 @@ public static class BlockReferenceEx
     /// <param name="action"></param>
     /// <exception cref="System.ArgumentNullException"></exception>
     [DebuggerStepThrough]
-    public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState> action)
+    public static void ForEach(this BlockReference brf, Action<ObjectId, CtrlState> action)
     {
         ArgumentNullException.ThrowIfNull(action);
         var tr = DBTrans.GetTopTransaction(brf.Database);
@@ -303,7 +303,7 @@ public static class BlockReferenceEx
     /// <param name="action"></param>
     /// <exception cref="System.ArgumentNullException"></exception>
     [DebuggerStepThrough]
-    public static void ForEach(this BlockReference brf, Action<ObjectId, LoopState, int> action)
+    public static void ForEach(this BlockReference brf, Action<ObjectId, CtrlState, int> action)
     {
         ArgumentNullException.ThrowIfNull(action);
         var tr = DBTrans.GetTopTransaction(brf.Database);

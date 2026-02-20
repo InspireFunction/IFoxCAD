@@ -5,6 +5,24 @@
 /// </summary>
 public static class EnumEx
 {
+    /// <summary>
+    /// 检查枚举是否包含指定的标志
+    /// .NET 3.5 兼容版本
+    /// </summary>
+    public static bool HasFlag<T>(this T value, T flag) where T : struct, IConvertible
+    {
+        if (!typeof(T).IsEnum)
+        {
+            throw new ArgumentException("T 必须是枚举类型");
+        }
+
+        long longValue = value.ToInt64(null);
+        long longFlag = flag.ToInt64(null);
+
+        return (longValue & longFlag) == longFlag;
+    }
+
+
     // (类型完整名,描述组合)
     private static readonly MemoryCache<string, HashSet<string>> _cache = new(TimeSpan.FromMilliseconds(2000));
 
@@ -70,10 +88,12 @@ public static class EnumEx
     /// <summary>
     /// 打印枚举的特性<see cref="DescriptionAttribute"/>注释内容
     /// </summary>
-    public static string? PrintNote(this Enum e, bool noDescToString = true)
+    public static string PrintNote(this Enum e, bool noDescToString = true)
     {
         var hash = GetAttribute<DescriptionAttribute>(e, noDescToString);
-        return hash == null ? null : string.Join("|", [.. hash]);
+        if (hash == null)
+            return string.Empty;
+        return string.Join("|", [.. hash]);
     }
 
     /// <summary>

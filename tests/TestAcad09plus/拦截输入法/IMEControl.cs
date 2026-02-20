@@ -57,7 +57,7 @@ public class IMEControl
     /// 命令中依然能够切换到英文输入,<br/>
     /// 命令结束时候从 命令结束反应器 恢复拦截<br/>
     /// </summary>
-    static LoopState _sendKeyState = new();
+    static CtrlState _sendKeyState = new();
 
     // 命令结束反应器
     static void Doc_CommandEnded(object sender, CommandEventArgs e)
@@ -452,7 +452,7 @@ public class IMEControl
                     focus = WindowsAPI.GetFocus();
                 else
                     focus = WindowsAPI.GetForegroundWindow();
-               if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
+                if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
                     return false;
 
                 // 判断键入的数字更快,再判断豁免命令

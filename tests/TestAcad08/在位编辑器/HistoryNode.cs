@@ -9,7 +9,7 @@ namespace Test;
 public class HistoryNode(
     int index,
     string commandName,
-    ProState proState,
+    CtrlState CtrlState,
     ObjectId blockReferenceId,
     ObjectId currentSpaceId,
     ImmutableHashSet<ObjectId> workset,
@@ -30,7 +30,7 @@ public class HistoryNode(
     /// <summary>
     /// 是否正在运行
     /// </summary>
-    public ProState ProState { get; private set; } = proState;
+    public CtrlState CtrlState { get; private set; } = CtrlState;
 
     /// <summary>
     /// 块参照ID

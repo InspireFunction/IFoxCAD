@@ -492,10 +492,10 @@ public static class SymbolTableRecordEx
     /// </summary>
     /// <param name="record">记录</param>
     /// <param name="task">要执行的委托</param>
-    public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, LoopState> task)
+    public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, CtrlState> task)
           where TRecord : SymbolTableRecord, IEnumerable
     {
-        LoopState state = new();/*这种方式比Action改Func更友好*/
+        CtrlState state = new();/*这种方式比Action改Func更友好*/
         foreach (ObjectId id in record)
         {
             task.Invoke(id, state);
@@ -510,14 +510,14 @@ public static class SymbolTableRecordEx
     /// <param name="record">记录</param>
     /// <param name="task">要执行的委托</param>
     [System.Diagnostics.DebuggerStepThrough]
-    public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, LoopState, int> task)
+    public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, CtrlState, int> task)
         where TRecord : SymbolTableRecord, IEnumerable
     {
         if (task == null)
             throw new ArgumentNullException(nameof(task));
 
         int i = 0;
-        LoopState state = new();/*这种方式比Action改Func更友好*/
+        CtrlState state = new();/*这种方式比Action改Func更友好*/
         foreach (ObjectId id in record)
         {
             task.Invoke(id, state, i);

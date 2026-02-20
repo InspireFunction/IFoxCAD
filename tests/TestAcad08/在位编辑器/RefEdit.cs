@@ -63,20 +63,28 @@ public class RefEditCmd
         if (e.DBObject is not Entity)
             return;
 
-        // 删除对象 和 refclose都会触发这里,
-        // refclose 特殊处理,不能开事务记录撤回点的.
-        // 因此这里需要直接跳过
-        if (!xInfo.ProState.IsRun)
+        // 删除对象 和 refclose 都会触发这里,
+        // refclose 需要特殊处理,开事务报错,因此此时是 CtrlState.IsStop
+        if (!xInfo.CtrlState.IsRun)
             return;
 
-        // undo 是不会进入这里的,而是 Database_ObjectUnappended 上面
         // 在位编辑器期间,工作区移除对象,并写入历史,制作回滚点.
         if (e.Erased)
         {
-            var tr = e.DBObject.Database.TransactionManager.TopTransaction;
             if (xInfo.Workset.Remove(e.DBObject.ObjectId))
             {
+                var tr = e.DBObject.Database.TransactionManager.TopTransaction;
                 xInfo.HistoryWrite("Database_ObjectErased", tr);
+            }
+        }
+        else
+        {
+            // 在位编辑-画圆-删除圆-撤回.
+            // 需要把这个圆添加回去
+            if (xInfo.Workset.Add(e.DBObject.ObjectId))
+            {
+                var tr = e.DBObject.Database.TransactionManager.TopTransaction;
+                xInfo.HistoryWrite("Database_ObjectErased_undo", tr);
             }
         }
     }
@@ -93,7 +101,7 @@ public class RefEditCmd
         var doc = Acap.DocumentManager.MdiActiveDocument;
         if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
-        if (!xInfo.ProState.IsRun)
+        if (!xInfo.CtrlState.IsRun)
             return;
 
         // workset不能够跨空间,而且必须要是图元
@@ -183,7 +191,7 @@ public class RefEditCmd
             if (targetNode != null)
             {
                 xInfo.SetCurrentNode(targetNode);
-                if (!xInfo.ProState.IsRun)
+                if (!xInfo.CtrlState.IsRun)
                 {
                     // 回滚到refedit了
                     // Debugger.Break();
@@ -238,7 +246,7 @@ public class RefEditCmd
         {
             // 如果回滚到在位编辑器外,此时workset是没有图元的,锁图层就会全灰了,
             // 因此此时什么也不干就行了.
-            if (xInfo.ProState.IsRun)
+            if (xInfo.CtrlState.IsRun)
             {
 #if true
                 // 动作: 在位编辑器期间-画圆-undo撤回-redo重做,
@@ -264,7 +272,7 @@ public class RefEditCmd
 
         if (_workCmd.Contains(cmd))
             return;
-        if (!xInfo.ProState.IsRun)
+        if (!xInfo.CtrlState.IsRun)
             return;
 
         // 在位编辑器期间运行官方命令,所做的操作.
@@ -290,6 +298,7 @@ public class RefEditCmd
             // 打开图层表进行写操作
             // 锁定图层
             ObjectId layerTableId = db.LayerTableId;
+#pragma warning disable CS0618 // 类型或成员已过时
             using (var layerTable = (LayerTable)layerTableId.Open(OpenMode.ForWrite, true, true))
             {
                 foreach (ObjectId layerId in layerTable)
@@ -302,6 +311,7 @@ public class RefEditCmd
                     }
                 }
             }
+#pragma warning restore CS0618 // 类型或成员已过时
 
 #if false
             // 方案三a
@@ -341,7 +351,9 @@ public class RefEditCmd
             // 解锁图层
             foreach (ObjectId layerId in lockedLayers)
             {
+#pragma warning disable CS0618 // 类型或成员已过时
                 using var layer = (LayerTableRecord)layerId.Open(OpenMode.ForWrite, true, true);
+#pragma warning restore CS0618 // 类型或成员已过时
                 layer.IsLocked = false;
             }
         }
@@ -383,7 +395,7 @@ public class RefEditCmd
 
         if (_workCmd.Contains(cmd))
             return;
-        if (!xInfo.ProState.IsRun)
+        if (!xInfo.CtrlState.IsRun)
             return;
 
         SetEntityLayerBak(true, xInfo);
@@ -486,7 +498,7 @@ public class RefEditCmd
             return;
         Env.Printl("\n在参照编辑工作集和宿主图形之间传输对象...");
 
-        if (!xInfo.ProState.IsRun)
+        if (!xInfo.CtrlState.IsRun)
         {
             Env.Print("当前没有使用:在位编辑器");
             return;
@@ -581,7 +593,7 @@ public class RefEditCmd
         if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
 
-        if (!xInfo.ProState.IsRun)
+        if (!xInfo.CtrlState.IsRun)
         {
             Env.Print("当前没有使用:在位编辑器");
             return;
@@ -667,16 +679,9 @@ public class RefEditCmd
                 {
                     if (id.IsNull || id.IsEffectivelyErased)
                         continue;
-                    try
-                    {
-                        var obj = tr.GetObject(id, OpenMode.ForRead, false, true);
-                        if (obj != null && !obj.IsDisposed && !obj.IsErased)
-                            validIds.Add(id);
-                    }
-                    catch
-                    {
-                        // 无效的 ObjectId，跳过
-                    }
+                    var obj = tr.GetObject(id, OpenMode.ForRead, false, true);
+                    if (obj != null && !obj.IsDisposed && !obj.IsErased)
+                        validIds.Add(id);
                 }
 
                 // 深度克隆到块表记录
@@ -721,17 +726,17 @@ public class RefEditCmd
 
             a = xInfo.Workset.Count; // 3
 
-            // 提交事务之后会触发删除事件,但是此处特殊,删除事件不能开事务否则会错误.
-            xInfo.ProState.Stop();
+            // 此处有删除对象,提交事务之后会触发删除事件,
+            // 但是此处引起的删除对象事件不能开事务否则会错误,不能记录历史.
+            // 设置一个标记让删除对象事件跳过.
+            xInfo.CtrlState.Break();
         }
 
         a = xInfo.Workset.Count; // 这里变成0了,因为这里删除对象事件导致的
 
-        // 再打开,才可以记录历史
-        //xInfo.ProState.Start();
-
-        xInfo.Clear(); // 这里把标志初始化了.
-        xInfo.ProState.Stop();
+        // 这里会把标志初始化了,需要再次设置成停止.
+        xInfo.Reset();
+        xInfo.CtrlState.Stop();
 
         // 再次保存历史
         xInfo.HistoryWrite(nameof(RefClose) + "_After");
@@ -745,7 +750,7 @@ public class RefEditCmd
         if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
 
-        if (xInfo.ProState.IsRun)
+        if (xInfo.CtrlState.IsRun)
         {
             Env.Print("不能重复使用:在位编辑器");
             return;
@@ -787,7 +792,7 @@ public class RefEditCmd
         var spaceId = doc.Database.CurrentSpaceId;
         xInfo.CurrentSpaceId = spaceId;
 
-        xInfo.ProState.Start();
+        xInfo.CtrlState.Start();
 
         // 1,修改数据库
         using (var tr = DBTrans.Create())
@@ -831,7 +836,7 @@ public class RefEditCmd
         if (!TryGetRefEditInfo(doc, out var xInfo))
             return;
 
-        if (xInfo.ProState.IsRun)
+        if (xInfo.CtrlState.IsRun)
         {
             Env.Print("在位编辑器运行中,不允许清理字典的历史");
             return;
