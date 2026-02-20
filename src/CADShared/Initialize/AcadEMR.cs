@@ -1,4 +1,4 @@
-﻿#if true 
+#if true 
 #if acad
 namespace IFoxCAD.Cad;
 
@@ -57,59 +57,77 @@ internal class AcadEMR
     /// <param name="echoes">打印出错信息</param>
     public static void Remove(bool echoes = false)
     {
-        var dllName = Env.GetAcapVersionDll();
-        var moduleHandle = GetModuleHandle(dllName);
-        if (moduleHandle == IntPtr.Zero)
+        try
+        {
+            var dllName = Env.GetAcapVersionDll();
+            var moduleHandle = GetModuleHandle(dllName);
+            if (moduleHandle == IntPtr.Zero)
+            {
+                if (echoes)
+                    Env.Printl(typeof(AcadEMR).FullName + "." + nameof(Remove) + "找不到模块：" + dllName);
+                return;
+            }
+
+            var funcName = Encoding.Unicode.GetString([63]);
+            if (IntPtr.Size == 4)
+                funcName += "isEMR@AcDbDatabase@@QBE_NXZ";
+            else
+                funcName += "isEMR@AcDbDatabase@@QEBA_NXZ";
+
+            var funcAddress = GetProcAddress(moduleHandle, funcName);
+            if (funcAddress == IntPtr.Zero)
+            {
+                if (echoes)
+                    Env.Printl("无法找指定函数：" + funcName);
+                return;
+            }
+
+            var ptr = IntPtr.Size == 4
+                ? new IntPtr(funcAddress.ToInt32() + 3)
+                : new IntPtr(funcAddress.ToInt64() + 4);
+
+            if (!CheckFunc(ref ptr, 51, 2)) // 08 通过此处
+                if (echoes)
+                    Env.Printl("无法验证函数体：0x33");
+            var destPtr = ptr;
+
+            if (!CheckFunc(ref ptr, 57, 6)) // 08 无法通过此处,所以只是打印提示
+                if (echoes)
+                    Env.Printl("无法验证函数体：0x39");
+            if (!CheckFunc(ref ptr, 15, 2)) // 08 无法通过此处,所以只是打印提示
+                if (echoes)
+                    Env.Printl("无法验证函数体：0x0F");
+
+            uint flag = default;
+            // ReSharper disable once IdentifierTypo
+            uint tccc = default;
+
+            IntPtr ip100 = new(100);
+            if (!VirtualProtect(destPtr, ip100, 64, ref flag)) // 修改内存权限
+            {
+                if (echoes)
+                    Env.Printl("内存模式修改失败!");
+                return;
+            }
+
+            Marshal.WriteByte(destPtr, 137);
+            VirtualProtect(destPtr, ip100, flag, ref tccc); // 恢复内存权限
+        }
+        catch (BadImageFormatException ex)
         {
             if (echoes)
-                Env.Printl(typeof(AcadEMR).FullName + "." + nameof(Remove) + "找不到模块：" + dllName);
-            return;
+                Env.Printl($"[AcadEMR.Remove] BadImageFormatException: {ex.Message}");
         }
-
-        var funcName = Encoding.Unicode.GetString([63]);
-        if (IntPtr.Size == 4)
-            funcName += "isEMR@AcDbDatabase@@QBE_NXZ";
-        else
-            funcName += "isEMR@AcDbDatabase@@QEBA_NXZ";
-
-        var funcAddress = GetProcAddress(moduleHandle, funcName);
-        if (funcAddress == IntPtr.Zero)
+        catch (AccessViolationException ex)
         {
             if (echoes)
-                Env.Printl("无法找指定函数：" + funcName);
-            return;
+                Env.Printl($"[AcadEMR.Remove] AccessViolationException: {ex.Message}");
         }
-
-        var ptr = IntPtr.Size == 4
-            ? new IntPtr(funcAddress.ToInt32() + 3)
-            : new IntPtr(funcAddress.ToInt64() + 4);
-
-        if (!CheckFunc(ref ptr, 51, 2)) // 08 通过此处
-            if (echoes)
-                Env.Printl("无法验证函数体：0x33");
-        var destPtr = ptr;
-
-        if (!CheckFunc(ref ptr, 57, 6)) // 08 无法通过此处,所以只是打印提示
-            if (echoes)
-                Env.Printl("无法验证函数体：0x39");
-        if (!CheckFunc(ref ptr, 15, 2)) // 08 无法通过此处,所以只是打印提示
-            if (echoes)
-                Env.Printl("无法验证函数体：0x0F");
-
-        uint flag = default;
-        // ReSharper disable once IdentifierTypo
-        uint tccc = default;
-
-        IntPtr ip100 = new(100);
-        if (!VirtualProtect(destPtr, ip100, 64, ref flag)) // 修改内存权限
+        catch (Exception ex)
         {
             if (echoes)
-                Env.Printl("内存模式修改失败!");
-            return;
+                Env.Printl($"[AcadEMR.Remove] 异常: {ex.Message}");
         }
-
-        Marshal.WriteByte(destPtr, 137);
-        VirtualProtect(destPtr, ip100, flag, ref tccc); // 恢复内存权限
     }
 
     /// <summary>
@@ -121,29 +139,42 @@ internal class AcadEMR
     /// <returns></returns>
     static bool CheckFunc(ref IntPtr address, byte val, int len)
     {
-        if (address.ToInt64() > 0)
+        try
         {
-            if (Marshal.ReadByte(address) == 233)
+            if (address.ToInt64() > 0)
             {
-                if (IntPtr.Size == 4)
+                if (Marshal.ReadByte(address) == 233)
                 {
-                    var pass = Marshal.ReadInt32(new IntPtr(address.ToInt32() + 1));
-                    address = new IntPtr(address.ToInt32() + pass + 5);
+                    if (IntPtr.Size == 4)
+                    {
+                        var pass = Marshal.ReadInt32(new IntPtr(address.ToInt32() + 1));
+                        address = new IntPtr(address.ToInt32() + pass + 5);
+                    }
+                    else
+                    {
+                        var pass = Marshal.ReadInt64(new IntPtr(address.ToInt64() + 1));
+                        address = new IntPtr(address.ToInt64() + pass + 5);
+                    }
                 }
-                else
-                {
-                    var pass = Marshal.ReadInt64(new IntPtr(address.ToInt64() + 1));
-                    address = new IntPtr(address.ToInt64() + pass + 5);
-                }
-            }
 
-            if (address.ToInt64() > 0 && Marshal.ReadByte(address) == val)
-            {
-                address = IntPtr.Size == 4
-                    ? new IntPtr(address.ToInt32() + len)
-                    : new IntPtr(address.ToInt64() + len);
-                return true;
+                if (address.ToInt64() > 0 && Marshal.ReadByte(address) == val)
+                {
+                    address = IntPtr.Size == 4
+                        ? new IntPtr(address.ToInt32() + len)
+                        : new IntPtr(address.ToInt64() + len);
+                    return true;
+                }
             }
+        }
+        catch (AccessViolationException)
+        {
+            // 内存访问冲突，返回false
+            return false;
+        }
+        catch (Exception)
+        {
+            // 其他异常，返回false
+            return false;
         }
 
         return false;

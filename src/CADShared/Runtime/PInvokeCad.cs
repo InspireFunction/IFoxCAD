@@ -1,4 +1,4 @@
-﻿// ReSharper disable InconsistentNaming
+// ReSharper disable InconsistentNaming
 
 namespace IFoxCAD.Cad;
 
@@ -91,23 +91,46 @@ public static class PInvokeCad
         EntryPoint = "?acdbGetAdsName@@YA?AW4ErrorStatus@Acad@@AEAY01_JVAcDbObjectId@@@Z")]
     private static extern int AcdbGetAdsName19(ref ads_name adsName, ObjectId objectId);
     /// <summary>
-    /// GetAdsName
+    /// GetAdsName - 带异常保护包装
     /// </summary>
     public static int GetAdsName(ref ads_name adsName, ObjectId id)
     {
-        var major = Acaop.Version.Major;
-        var res = major switch
+        try
         {
-            25 => AcdbGetAdsName25(ref adsName, id),
-            24 => AcdbGetAdsName24(ref adsName, id),
-            23 => AcdbGetAdsName23(ref adsName, id),
-            22 => AcdbGetAdsName22(ref adsName, id),
-            21 => AcdbGetAdsName21(ref adsName, id),
-            20 => AcdbGetAdsName20(ref adsName, id),
-            19 => AcdbGetAdsName19(ref adsName, id),
-            _ => 1,
-        };
-        return res;
+            var major = Acaop.Version.Major;
+            var res = major switch
+            {
+                25 => AcdbGetAdsName25(ref adsName, id),
+                24 => AcdbGetAdsName24(ref adsName, id),
+                23 => AcdbGetAdsName23(ref adsName, id),
+                22 => AcdbGetAdsName22(ref adsName, id),
+                21 => AcdbGetAdsName21(ref adsName, id),
+                20 => AcdbGetAdsName20(ref adsName, id),
+                19 => AcdbGetAdsName19(ref adsName, id),
+                _ => 1,
+            };
+            return res;
+        }
+        catch (BadImageFormatException ex)
+        {
+            DebugEx.Printl($"[PInvokeCad.GetAdsName] BadImageFormatException: {ex.Message}");
+            return 1;
+        }
+        catch (DllNotFoundException ex)
+        {
+            DebugEx.Printl($"[PInvokeCad.GetAdsName] DllNotFoundException: {ex.Message}");
+            return 1;
+        }
+        catch (EntryPointNotFoundException ex)
+        {
+            DebugEx.Printl($"[PInvokeCad.GetAdsName] EntryPointNotFoundException: {ex.Message}");
+            return 1;
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[PInvokeCad.GetAdsName] 异常: {ex.Message}");
+            return 1;
+        }
     }
 
     /// <summary>

@@ -1,5 +1,6 @@
 namespace Gstar_IMEFilter;
 
+using IFoxCAD.Basal;
 using System.Diagnostics;
 using System.Linq;
 using System.Windows.Controls;
@@ -305,9 +306,9 @@ public class IMEControl
                         // 吞掉异常，防止崩溃
                         Debugger.Break();
                     }
-                    return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
+                    return WindowsAPI.CallNextHookExSafe(_nextHookProc, nCode, wParam, lParam);
                 };
-                _nextHookProc = WindowsAPI.SetWindowsHookEx(
+                _nextHookProc = WindowsAPI.SetWindowsHookExSafe(
                     HookType.WH_KEYBOARD, _hookProc, IntPtr.Zero, WindowsAPI.GetCurrentThreadId());
             }
             else if (Settings.IMEHookStyle == IMEHookStyle.Global)
@@ -335,10 +336,10 @@ public class IMEControl
                         Debugger.Break();
                         DebugEx.Printl($"全局钩子回调异常: {ex.Message}");
                     }
-                    return WindowsAPI.CallNextHookEx(_nextHookProc, nCode, wParam, lParam);
+                    return WindowsAPI.CallNextHookExSafe(_nextHookProc, nCode, wParam, lParam);
                 };
 
-                _nextHookProc = WindowsAPI.SetWindowsHookEx(
+                _nextHookProc = WindowsAPI.SetWindowsHookExSafe(
                     HookType.WH_KEYBOARD_LL, _hookProc, moduleHandle, 0);
                 if (_nextHookProc == IntPtr.Zero)
                 {
@@ -612,7 +613,7 @@ public class IMEControl
         {
             if (_nextHookProc != IntPtr.Zero)
             {
-                WindowsAPI.UnhookWindowsHookEx(_nextHookProc);
+                WindowsAPI.UnhookWindowsHookExSafe(_nextHookProc);
                 _nextHookProc = IntPtr.Zero;
 
                 _TangentTextEditHook?.Dispose();

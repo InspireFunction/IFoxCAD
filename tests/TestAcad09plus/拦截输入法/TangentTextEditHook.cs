@@ -1,5 +1,7 @@
 namespace Gstar_IMEFilter;
 
+using System.Runtime.InteropServices;
+
 /// <summary>
 /// 天正单行文字编辑框钩子 by 小叶|Moy QQ:838840554
 /// </summary>
@@ -7,17 +9,18 @@ internal class TangentTextEditHook : IDisposable
 {
     #region Windows Api
     // 钩子:钩进程的窗体创建事件.
-    [DllImport("user32.dll")]
+    // 使用StdCall调用约定以确保x86/x64兼容性
+    [DllImport("user32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
     private static extern IntPtr SetWinEventHook(uint eventMin, uint eventMax, IntPtr hmodWinEventProc,
         WinEventDelegate lpfnWinEventProc, uint idProcess, uint idThread, uint dwFlags);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
     private static extern bool UnhookWinEvent(IntPtr hWinEventHook);
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
     private static extern int GetClassName(IntPtr hWnd, StringBuilder lpClassName, int nMaxCount);
 
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr GetParent(IntPtr hWnd);
 
     [DllImport("user32.dll", CharSet = CharSet.Auto, SetLastError = true)]
@@ -30,12 +33,13 @@ internal class TangentTextEditHook : IDisposable
 
     #endregion
 
-    // 委托定义
+    // 委托定义 - 使用StdCall调用约定以确保x86/x64兼容性
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private delegate void WinEventDelegate(IntPtr hWinEventHook, uint eventType,
         IntPtr hwnd, int idObject, int idChild, uint idEventThread, uint dwmsEventTime);
 
     private IntPtr _hookHandle;
-    private WinEventDelegate _eventDelegate;
+    private WinEventDelegate? _eventDelegate;
 
     /// <summary>
     /// 事件:天正单行文字编辑框 - 窗体创建后
@@ -52,18 +56,44 @@ internal class TangentTextEditHook : IDisposable
     /// </summary>
     internal TangentTextEditHook()
     {
-        uint processId = 0;
-        GetWindowThreadProcessId(Acap.MainWindow.Handle, out processId);
-        _eventDelegate = new WinEventDelegate(WinEventProc);
-        _hookHandle = SetWinEventHook(
-        EVENT_OBJECT_CREATE,
-        EVENT_OBJECT_DESTROY,
-        IntPtr.Zero,
-        _eventDelegate,
-        processId,  // 只监控cad线程
-        0,  // 不指定进程
-        WINEVENT_OUTOFCONTEXT
-    );
+        try
+        {
+            uint processId = 0;
+            GetWindowThreadProcessId(Acap.MainWindow.Handle, out processId);
+            // 创建委托并保持引用，防止GC回收
+            _eventDelegate = new WinEventDelegate(WinEventProc);
+            _hookHandle = SetWinEventHook(
+                EVENT_OBJECT_CREATE,
+                EVENT_OBJECT_DESTROY,
+                IntPtr.Zero,
+                _eventDelegate,
+                processId,  // 只监控cad线程
+                0,  // 不指定进程
+                WINEVENT_OUTOFCONTEXT
+            );
+
+            if (_hookHandle == IntPtr.Zero)
+            {
+                DebugEx.Printl("[TangentTextEditHook] 钩子安装失败");
+                _eventDelegate = null;
+            }
+            else
+            {
+                DebugEx.Printl($"[TangentTextEditHook] 钩子安装成功，句柄: {_hookHandle}");
+            }
+        }
+        catch (BadImageFormatException ex)
+        {
+            DebugEx.Printl($"[TangentTextEditHook] BadImageFormatException: {ex.Message}");
+            _hookHandle = IntPtr.Zero;
+            _eventDelegate = null;
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[TangentTextEditHook] 初始化异常: {ex.Message}");
+            _hookHandle = IntPtr.Zero;
+            _eventDelegate = null;
+        }
     }
 
     /// <summary>
@@ -119,9 +149,13 @@ internal class TangentTextEditHook : IDisposable
                 Destroyed?.Invoke(hwnd);
             }
         }
-        catch
+        catch (BadImageFormatException ex)
         {
-            // 吞掉异常，防止崩溃
+            DebugEx.Printl($"[TangentTextEditHook.WinEventProc] BadImageFormatException: {ex.Message}");
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[TangentTextEditHook.WinEventProc] 异常: {ex.Message}");
         }
     }
 
@@ -132,8 +166,23 @@ internal class TangentTextEditHook : IDisposable
     {
         if (_hookHandle != IntPtr.Zero)
         {
-            UnhookWinEvent(_hookHandle);
-            _hookHandle = IntPtr.Zero;
+            try
+            {
+                UnhookWinEvent(_hookHandle);
+            }
+            catch (BadImageFormatException ex)
+            {
+                DebugEx.Printl($"[TangentTextEditHook.UnHook] BadImageFormatException: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                DebugEx.Printl($"[TangentTextEditHook.UnHook] 异常: {ex.Message}");
+            }
+            finally
+            {
+                _hookHandle = IntPtr.Zero;
+                _eventDelegate = null;
+            }
         }
     }
 

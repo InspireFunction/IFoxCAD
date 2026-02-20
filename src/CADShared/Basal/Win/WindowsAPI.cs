@@ -609,43 +609,141 @@ public partial class WindowsAPI
     /// <returns>是否启用</returns>
     [DllImport("user32.dll")]
     public static extern bool IsWindowEnabled(IntPtr hWnd);
+
+    /// <summary>
+    /// 获取系统双击时间
+    /// </summary>
+    /// <returns>双击时间（毫秒）</returns>
+    [DllImport("user32.dll")]
+    public static extern int GetDoubleClickTime();
     #endregion
 
     #region 键盘钩子
     /// <summary>
-    /// Windows API回调委托
+    /// Windows API回调委托 - 使用StdCall调用约定以确保x86/x64兼容性
     /// </summary>
     /// <param name="nCode">钩子代码</param>
     /// <param name="wParam">消息参数</param>
     /// <param name="lParam">消息参数</param>
     /// <returns>回调结果</returns>
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     public delegate IntPtr CallBack(int nCode, int wParam, IntPtr lParam);
+
     /// <summary>
-    /// 设置Windows钩子
+    /// 设置Windows钩子 - 带异常保护包装
     /// </summary>
     /// <param name="idHook">钩子类型</param>
     /// <param name="lpfn">回调函数</param>
     /// <param name="hmod">模块句柄</param>
     /// <param name="dwThreadId">线程ID</param>
     /// <returns>钩子句柄</returns>
-    [DllImport("user32.dll")]
-    public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBack lpfn, IntPtr hmod, int dwThreadId);
+    public static IntPtr SetWindowsHookExSafe(HookType idHook, CallBack lpfn, IntPtr hmod, int dwThreadId)
+    {
+        try
+        {
+            return SetWindowsHookExInternal(idHook, lpfn, hmod, dwThreadId);
+        }
+        catch (BadImageFormatException ex)
+        {
+            DebugEx.Printl($"[SetWindowsHookExSafe] BadImageFormatException: {ex.Message}");
+            return IntPtr.Zero;
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[SetWindowsHookExSafe] 异常: {ex.Message}");
+            return IntPtr.Zero;
+        }
+    }
+
     /// <summary>
-    /// 卸载Windows钩子
+    /// 设置Windows钩子 - 内部实现
+    /// </summary>
+    [DllImport("user32.dll", EntryPoint = "SetWindowsHookExA", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+    private static extern IntPtr SetWindowsHookExInternal(HookType idHook, CallBack lpfn, IntPtr hmod, int dwThreadId);
+
+    /// <summary>
+    /// 卸载Windows钩子 - 带异常保护包装
     /// </summary>
     /// <param name="hHook">钩子句柄</param>
     /// <returns>卸载是否成功</returns>
-    [DllImport("user32.dll")]
-    public static extern IntPtr UnhookWindowsHookEx(IntPtr hHook);
+    public static bool UnhookWindowsHookExSafe(IntPtr hHook)
+    {
+        if (hHook == IntPtr.Zero)
+            return false;
+        try
+        {
+            return UnhookWindowsHookExInternal(hHook) != IntPtr.Zero;
+        }
+        catch (BadImageFormatException ex)
+        {
+            DebugEx.Printl($"[UnhookWindowsHookExSafe] BadImageFormatException: {ex.Message}");
+            return false;
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[UnhookWindowsHookExSafe] 异常: {ex.Message}");
+            return false;
+        }
+    }
+
     /// <summary>
-    /// 调用下一个钩子
+    /// 卸载Windows钩子 - 内部实现
+    /// </summary>
+    [DllImport("user32.dll", EntryPoint = "UnhookWindowsHookEx", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+    private static extern IntPtr UnhookWindowsHookExInternal(IntPtr hHook);
+
+    /// <summary>
+    /// 调用下一个钩子 - 带异常保护包装
     /// </summary>
     /// <param name="hHook">钩子句柄</param>
     /// <param name="ncode">钩子代码</param>
     /// <param name="wParam">消息参数</param>
     /// <param name="lParam">消息参数</param>
     /// <returns>钩子处理结果</returns>
-    [DllImport("user32.dll")]
+    public static IntPtr CallNextHookExSafe(IntPtr hHook, int ncode, int wParam, IntPtr lParam)
+    {
+        try
+        {
+            return CallNextHookExInternal(hHook, ncode, wParam, lParam);
+        }
+        catch (BadImageFormatException ex)
+        {
+            DebugEx.Printl($"[CallNextHookExSafe] BadImageFormatException: {ex.Message}");
+            return IntPtr.Zero;
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[CallNextHookExSafe] 异常: {ex.Message}");
+            return IntPtr.Zero;
+        }
+    }
+
+    /// <summary>
+    /// 调用下一个钩子 - 内部实现
+    /// </summary>
+    [DllImport("user32.dll", EntryPoint = "CallNextHookEx", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+    private static extern IntPtr CallNextHookExInternal(IntPtr hHook, int ncode, int wParam, IntPtr lParam);
+
+    // 保留原始方法以保持兼容性，但标记为已过时
+    /// <summary>
+    /// 设置Windows钩子（原始方法，建议使用SetWindowsHookExSafe）
+    /// </summary>
+    [Obsolete("请使用 SetWindowsHookExSafe 以获得更好的异常保护", false)]
+    [DllImport("user32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+    public static extern IntPtr SetWindowsHookEx(HookType idHook, CallBack lpfn, IntPtr hmod, int dwThreadId);
+
+    /// <summary>
+    /// 卸载Windows钩子（原始方法，建议使用UnhookWindowsHookExSafe）
+    /// </summary>
+    [Obsolete("请使用 UnhookWindowsHookExSafe 以获得更好的异常保护", false)]
+    [DllImport("user32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
+    public static extern IntPtr UnhookWindowsHookEx(IntPtr hHook);
+
+    /// <summary>
+    /// 调用下一个钩子（原始方法，建议使用CallNextHookExSafe）
+    /// </summary>
+    [Obsolete("请使用 CallNextHookExSafe 以获得更好的异常保护", false)]
+    [DllImport("user32.dll", CallingConvention = CallingConvention.StdCall, SetLastError = true)]
     public static extern IntPtr CallNextHookEx(IntPtr hHook, int ncode, int wParam, IntPtr lParam);
     /// <summary>
     /// Hook键盘数据结构

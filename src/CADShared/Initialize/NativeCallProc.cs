@@ -1,28 +1,39 @@
-﻿#pragma warning disable CS0169
+#pragma warning disable CS0169
 
 namespace IFoxCAD.Basal;
 
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
-using System.Threading;
 using System.Windows.Forms;
+#if NET40_OR_GREATER
+using System.Runtime.ExceptionServices;
+using System.Security;
+#endif
 
 
 /// <summary>
-/// AutoCAD窗口消息拦截器 - 支持自定义空闲事件
+/// AutoCAD窗口消息拦截器 - 支持自定义空闲事件,子类化
 /// </summary>
 public class AcadWindowProc : NativeWindow, IDisposable
 {
     #region Win32 API
-    [DllImport("user32.dll")]
+    [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr CallWindowProc(IntPtr lpPrevWndFunc, IntPtr hWnd, uint Msg, IntPtr wParam, IntPtr lParam);
 
-    [DllImport("user32.dll")]
+    // 32位和64位使用不同的API
+#if x64
+    [DllImport("user32.dll", SetLastError = true, EntryPoint = "SetWindowLongPtr")]
+    private static extern IntPtr SetWindowLong(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
+
+    [DllImport("user32.dll", SetLastError = true, EntryPoint = "GetWindowLongPtr")]
+    private static extern IntPtr GetWindowLong(IntPtr hWnd, int nIndex);
+#else
+    [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr SetWindowLong(IntPtr hWnd, int nIndex, IntPtr dwNewLong);
 
     [DllImport("user32.dll", SetLastError = true)]
     private static extern IntPtr GetWindowLong(IntPtr hWnd, int nIndex);
+#endif
 
     private const int GWL_WNDPROC = -4;
     private const int WM_NULL = 0x0000;
@@ -58,13 +69,20 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// <param name="hWnd">窗口句柄</param>
     public AcadWindowProc(IntPtr hWnd)
     {
-#line hidden
+        InitializeWindowProc(hWnd);
+    }
+
+    /// <summary>
+    /// 初始化窗口过程
+    /// </summary>
+    [DebuggerHidden]
+    private void InitializeWindowProc(IntPtr hWnd)
+    {
         if (hWnd == IntPtr.Zero)
             throw new ArgumentException("无效的窗口句柄");
 
         this.AssignHandle(hWnd);
         HookWindowProc();
-#line default
     }
 
     /// <summary>
@@ -72,23 +90,75 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     private void HookWindowProc()
     {
-#line hidden
+        HookWindowProcCore();
+    }
+
+    /// <summary>
+    /// 安装消息钩子核心逻辑
+    /// </summary>
+    [DebuggerHidden]
+    private void HookWindowProcCore()
+    {
         if (IsHooked || Handle == IntPtr.Zero)
             return;
 
-        // 保存原窗口过程
-        _oldWndProc = GetWindowLong(Handle, GWL_WNDPROC);
+        try
+        {
+            // 保存原窗口过程
+            _oldWndProc = GetWindowLong(Handle, GWL_WNDPROC);
 
-        // 创建委托并保持引用
-        _wndProcDelegate = new WndProcDelegate(WindowProc);
+            // 验证原窗口过程是否有效
+            if (_oldWndProc == IntPtr.Zero)
+            {
+                DebugEx.Printl("[HookWindowProc] 错误: 无法获取原窗口过程");
+                return;
+            }
 
-        // 设置新的窗口过程
-        SetWindowLong(Handle,
-            GWL_WNDPROC,
-            Marshal.GetFunctionPointerForDelegate(_wndProcDelegate));
+            // 创建委托并保持引用 - 使用StdCall调用约定
+            _wndProcDelegate = new WndProcDelegate(WindowProc);
 
-        IsHooked = true;
-#line default
+            // 获取委托的函数指针
+            IntPtr procPtr = Marshal.GetFunctionPointerForDelegate(_wndProcDelegate);
+            if (procPtr == IntPtr.Zero)
+            {
+                DebugEx.Printl("[HookWindowProc] 错误: 无法获取委托的函数指针");
+                _wndProcDelegate = null;
+                _oldWndProc = IntPtr.Zero;
+                return;
+            }
+
+            // 设置新的窗口过程
+            IntPtr result = SetWindowLong(Handle, GWL_WNDPROC, procPtr);
+            if (result == IntPtr.Zero)
+            {
+                int error = Marshal.GetLastWin32Error();
+                DebugEx.Printl($"[HookWindowProc] 错误: SetWindowLong 失败，错误码: {error}");
+                _wndProcDelegate = null;
+                _oldWndProc = IntPtr.Zero;
+                return;
+            }
+
+            IsHooked = true;
+            DebugEx.Printl($"[HookWindowProc] 消息钩子安装成功，窗口句柄: {Handle}");
+        }
+        catch (BadImageFormatException ex)
+        {
+            // 这是错误调用了x86/x64版本的闪退拦截
+            DebugEx.Printl($"[HookWindowProc] BadImageFormatException: {ex.Message}");
+            DebugEx.Printl($"[HookWindowProc] 调用栈: {ex.StackTrace}");
+            _wndProcDelegate = null;
+            _oldWndProc = IntPtr.Zero;
+            IsHooked = false;
+        }
+        catch (Exception ex)
+        {
+            // 全局异常拦截，防止钩子安装失败导致 Acad 崩溃
+            DebugEx.Printl($"[HookWindowProc] 异常: {ex.Message}");
+            DebugEx.Printl($"[HookWindowProc] 调用栈: {ex.StackTrace}");
+            _wndProcDelegate = null;
+            _oldWndProc = IntPtr.Zero;
+            IsHooked = false;
+        }
     }
 
     /// <summary>
@@ -96,35 +166,84 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     private void UnhookWindowProc()
     {
-#line hidden
+        UnhookWindowProcCore();
+    }
+
+    /// <summary>
+    /// 卸载消息钩子核心逻辑
+    /// </summary>
+    [DebuggerHidden]
+    private void UnhookWindowProcCore()
+    {
         if (!IsHooked || Handle == IntPtr.Zero || _oldWndProc == IntPtr.Zero)
             return;
 
-        // 恢复原窗口过程
-        SetWindowLong(Handle, GWL_WNDPROC, _oldWndProc);
-
-        // 释放委托引用
-        if (_wndProcDelegate != null)
+        try
         {
-            // 注意：不能手动释放委托，但可以清空引用
-            _wndProcDelegate = null;
+            // 恢复原窗口过程
+            SetWindowLong(Handle, GWL_WNDPROC, _oldWndProc);
+            DebugEx.Printl($"[UnhookWindowProc] 消息钩子已卸载，窗口句柄: {Handle}");
         }
+        catch (BadImageFormatException ex)
+        {
+            DebugEx.Printl($"[UnhookWindowProc] BadImageFormatException: {ex.Message}");
+            DebugEx.Printl($"[UnhookWindowProc] 调用栈: {ex.StackTrace}");
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[UnhookWindowProc] 异常: {ex.Message}");
+        }
+        finally
+        {
+            // 释放委托引用
+            if (_wndProcDelegate != null)
+            {
+                // 注意：不能手动释放委托，但可以清空引用
+                _wndProcDelegate = null;
+            }
 
-        _oldWndProc = IntPtr.Zero;
-        IsHooked = false;
-#line default
+            _oldWndProc = IntPtr.Zero;
+            IsHooked = false;
+        }
     }
 
-    // 窗口过程委托声明
+    // 窗口过程委托声明 - 使用StdCall调用约定以确保x86兼容性
+    [UnmanagedFunctionPointer(CallingConvention.StdCall)]
     private delegate IntPtr WndProcDelegate(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam);
 
     /// <summary>
     /// 自定义窗口过程
     /// </summary>
     [System.Diagnostics.DebuggerStepThrough]
+#if NET40_OR_GREATER
+    [HandleProcessCorruptedStateExceptions]
+    [SecurityCritical]
+#endif
     private IntPtr WindowProc(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
     {
-#line hidden
+        return WindowProcCore(hWnd, msg, wParam, lParam);
+    }
+
+    /// <summary>
+    /// 窗口过程核心逻辑
+    /// </summary>
+    [DebuggerHidden]
+    private IntPtr WindowProcCore(IntPtr hWnd, uint msg, IntPtr wParam, IntPtr lParam)
+    {
+        // 首先验证句柄有效性
+        if (hWnd == IntPtr.Zero)
+        {
+            DebugEx.Printl("[WindowProc] 错误: 窗口句柄为空");
+            return IntPtr.Zero;
+        }
+
+        // 验证原窗口过程是否有效
+        if (_oldWndProc == IntPtr.Zero)
+        {
+            DebugEx.Printl("[WindowProc] 错误: 原窗口过程为空");
+            return IntPtr.Zero;
+        }
+
         try
         {
             var message = Message.Create(hWnd, (int)msg, wParam, lParam);
@@ -133,22 +252,53 @@ public class AcadWindowProc : NativeWindow, IDisposable
             bool callBase = true;
             if (MessageFilter != null)
             {
-                callBase = MessageFilter.Invoke(message);
+                try
+                {
+                    callBase = MessageFilter.Invoke(message);
+                }
+                catch (BadImageFormatException ex)
+                {
+                    DebugEx.Printl($"[WindowProc] MessageFilter 中发生 BadImageFormatException: {ex.Message}");
+                    DebugEx.Printl($"[WindowProc] MessageFilter 调用栈: {ex.StackTrace}");
+                    // 继续调用原窗口过程，不中断消息流
+                    callBase = true;
+                }
+                catch (AccessViolationException ex)
+                {
+                    DebugEx.Printl($"[WindowProc] MessageFilter 中发生 AccessViolationException: {ex.Message}");
+                    callBase = true;
+                }
             }
 
             // 检测空闲消息
             if (msg == WM_ENTERIDLE || msg == WM_NULL)
             {
-                // 检查编辑器是否处于空闲状态(可以发送透明命令)
-                var doc = Acap.DocumentManager?.MdiActiveDocument;
-                if (doc?.Editor?.IsQuiescent == true)
+                try
                 {
-                    Action<object, EventArgs>? tempHandler = null;
-                    lock (_eventLock)
+                    // 检查编辑器是否处于空闲状态(可以发送透明命令)
+                    var doc = Acap.DocumentManager?.MdiActiveDocument;
+                    if (doc?.Editor?.IsQuiescent == true)
                     {
-                        tempHandler = OnIdle;
+                        Action<object, EventArgs>? tempHandler = null;
+                        lock (_eventLock)
+                        {
+                            tempHandler = OnIdle;
+                        }
+                        tempHandler?.Invoke(this, EventArgs.Empty);
                     }
-                    tempHandler?.Invoke(this, EventArgs.Empty);
+                }
+                catch (BadImageFormatException ex)
+                {
+                    DebugEx.Printl($"[WindowProc] OnIdle 事件中发生 BadImageFormatException: {ex.Message}");
+                    DebugEx.Printl($"[WindowProc] OnIdle 调用栈: {ex.StackTrace}");
+                }
+                catch (AccessViolationException ex)
+                {
+                    DebugEx.Printl($"[WindowProc] OnIdle 事件中发生 AccessViolationException: {ex.Message}");
+                }
+                catch (Exception ex)
+                {
+                    DebugEx.Printl($"[WindowProc] OnIdle 事件中发生异常: {ex.Message}");
                 }
             }
 
@@ -166,13 +316,88 @@ public class AcadWindowProc : NativeWindow, IDisposable
             }
             return message.Result;
         }
+        catch (BadImageFormatException ex)
+        {
+            // BadImageFormatException 通常表示 P/Invoke 调用约定不匹配或架构问题
+            DebugEx.Printl($"[WindowProc] 捕获到 BadImageFormatException: {ex.Message}");
+            DebugEx.Printl($"[WindowProc] 调用栈: {ex.StackTrace}");
+            if (ex.InnerException != null)
+            {
+                DebugEx.Printl($"[WindowProc] 内部异常: {ex.InnerException.Message}");
+                DebugEx.Printl($"[WindowProc] 内部异常调用栈: {ex.InnerException.StackTrace}");
+            }
+
+            // 尝试调用原窗口过程，让系统继续处理消息
+            try
+            {
+                if (_oldWndProc != IntPtr.Zero)
+                {
+                    return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+                }
+            }
+            catch
+            {
+                // 如果原窗口过程也失败，返回默认处理
+            }
+            return IntPtr.Zero;
+        }
+        catch (AccessViolationException ex)
+        {
+            // 访问冲突异常 - 通常是内存损坏或无效指针
+            DebugEx.Printl($"[WindowProc] 捕获到 AccessViolationException: {ex.Message}");
+
+            // 尝试调用原窗口过程
+            try
+            {
+                if (_oldWndProc != IntPtr.Zero)
+                {
+                    return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+                }
+            }
+            catch
+            {
+                // 忽略二次异常
+            }
+            return IntPtr.Zero;
+        }
+        catch (SEHException ex)
+        {
+            // 结构化异常处理异常
+            DebugEx.Printl($"[WindowProc] 捕获到 SEHException: {ex.Message}");
+
+            try
+            {
+                if (_oldWndProc != IntPtr.Zero)
+                {
+                    return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+                }
+            }
+            catch
+            {
+                // 忽略二次异常
+            }
+            return IntPtr.Zero;
+        }
         catch (Exception e)
         {
-            Debugger.Break();
-            DebugEx.Printl(e);
-            throw;
+            DebugEx.Printl($"[WindowProc] 未处理的异常: {e.Message}");
+            DebugEx.Printl($"  异常类型: {e.GetType().FullName}");
+            DebugEx.Printl($"  堆栈跟踪: {e.StackTrace}");
+
+            // 尝试调用原窗口过程
+            try
+            {
+                if (_oldWndProc != IntPtr.Zero)
+                {
+                    return CallWindowProc(_oldWndProc, hWnd, msg, wParam, lParam);
+                }
+            }
+            catch
+            {
+                // 忽略二次异常
+            }
+            return IntPtr.Zero;
         }
-#line default
     }
 
     /// <summary>
@@ -180,7 +405,15 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     public void DoIdle()
     {
-#line hidden
+        DoIdleCore();
+    }
+
+    /// <summary>
+    /// 手动触发空闲事件核心逻辑
+    /// </summary>
+    [DebuggerHidden]
+    private void DoIdleCore()
+    {
         // 检查编辑器是否处于空闲状态(可以发送透明命令)
         var doc = Acap.DocumentManager?.MdiActiveDocument;
         if (doc?.Editor?.IsQuiescent == true)
@@ -192,7 +425,6 @@ public class AcadWindowProc : NativeWindow, IDisposable
             }
             tempHandler?.Invoke(this, EventArgs.Empty);
         }
-#line default
     }
 
     #region IDisposable 实现
@@ -203,10 +435,8 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     public void Dispose()
     {
-#line hidden
-        Dispose(true);
+        DisposeCore(true);
         GC.SuppressFinalize(this);
-#line default
     }
 
     /// <summary>
@@ -214,18 +444,16 @@ public class AcadWindowProc : NativeWindow, IDisposable
     /// </summary>
     ~AcadWindowProc()
     {
-#line hidden
-        Dispose(false);
-#line default
+        DisposeCore(false);
     }
 
     /// <summary>
-    /// 释放托管和非托管资源
+    /// 释放托管和非托管资源核心逻辑
     /// </summary>
     /// <param name="disposing">是否由Dispose调用</param>
-    protected virtual void Dispose(bool disposing)
+    [DebuggerHidden]
+    private void DisposeCore(bool disposing)
     {
-#line hidden
         if (_disposed) return;
         _disposed = true;
 
@@ -237,7 +465,15 @@ public class AcadWindowProc : NativeWindow, IDisposable
         {
             ReleaseHandle();
         }
-#line default
+    }
+
+    /// <summary>
+    /// 释放托管和非托管资源
+    /// </summary>
+    /// <param name="disposing">是否由Dispose调用</param>
+    protected virtual void Dispose(bool disposing)
+    {
+        DisposeCore(disposing);
     }
     #endregion
 }

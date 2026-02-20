@@ -1,4 +1,6 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
+
+using IFoxCAD.Basal;
 
 using System;
 using System.Diagnostics;
@@ -62,12 +64,6 @@ public class MouseHook
     public readonly Process Process;
 
 
-    /// <summary>
-    /// 获取系统双击时间
-    /// </summary>
-    /// <returns>双击时间（毫秒）</returns>
-    [DllImport("user32.dll", EntryPoint = "GetDoubleClickTime")]
-    public extern static int GetDoubleClickTime();
     static readonly Stopwatch _watch = new();
 
     /// <summary>
@@ -86,8 +82,22 @@ public class MouseHook
     {
         if (_NextHookProc != IntPtr.Zero)
         {
-            WindowsAPI.UnhookWindowsHookEx(_NextHookProc);
-            _NextHookProc = IntPtr.Zero;
+            try
+            {
+                WindowsAPI.UnhookWindowsHookExSafe(_NextHookProc);
+            }
+            catch (BadImageFormatException ex)
+            {
+                DebugEx.Printl($"[MouseHook.UnHook] BadImageFormatException: {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                DebugEx.Printl($"[MouseHook.UnHook] 异常: {ex.Message}");
+            }
+            finally
+            {
+                _NextHookProc = IntPtr.Zero;
+            }
         }
     }
 
@@ -101,26 +111,79 @@ public class MouseHook
         if (_NextHookProc != IntPtr.Zero)
             return;
 
-        if (processHook)
+        try
         {
-            HookProc = (nCode, wParam, lParam) => {
-                if (nCode >= 0 && HookTask(nCode, wParam, lParam))
-                    return (IntPtr)1;
-                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
-            };
-            _NextHookProc = WindowsAPI.SetWindowsHookEx(HookType.WH_MOUSE, HookProc,
-                                                        IntPtr.Zero, WindowsAPI.GetCurrentThreadId());
+            if (processHook)
+            {
+                // 创建委托并保持引用，防止GC回收
+                HookProc = (nCode, wParam, lParam) => {
+                    try
+                    {
+                        if (nCode >= 0 && HookTask(nCode, wParam, lParam))
+                            return (IntPtr)1;
+                        return WindowsAPI.CallNextHookExSafe(_NextHookProc, nCode, wParam, lParam);
+                    }
+                    catch (BadImageFormatException ex)
+                    {
+                        DebugEx.Printl($"[MouseHook.HookProc] BadImageFormatException: {ex.Message}");
+                        return WindowsAPI.CallNextHookExSafe(_NextHookProc, nCode, wParam, lParam);
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugEx.Printl($"[MouseHook.HookProc] 异常: {ex.Message}");
+                        return WindowsAPI.CallNextHookExSafe(_NextHookProc, nCode, wParam, lParam);
+                    }
+                };
+                _NextHookProc = WindowsAPI.SetWindowsHookExSafe(HookType.WH_MOUSE, HookProc!,
+                                                            IntPtr.Zero, WindowsAPI.GetCurrentThreadId());
+            }
+            else
+            {
+                var moduleHandle = WindowsAPI.GetModuleHandle(Process.MainModule?.ModuleName ?? Process.ProcessName);
+                // 创建委托并保持引用，防止GC回收
+                HookProc = (nCode, wParam, lParam) => {
+                    try
+                    {
+                        if (nCode >= 0 && HookTask(nCode, wParam, lParam))
+                            return (IntPtr)1;
+                        return WindowsAPI.CallNextHookExSafe(_NextHookProc, nCode, wParam, lParam);
+                    }
+                    catch (BadImageFormatException ex)
+                    {
+                        DebugEx.Printl($"[MouseHook.HookProc] BadImageFormatException: {ex.Message}");
+                        return WindowsAPI.CallNextHookExSafe(_NextHookProc, nCode, wParam, lParam);
+                    }
+                    catch (Exception ex)
+                    {
+                        DebugEx.Printl($"[MouseHook.HookProc] 异常: {ex.Message}");
+                        return WindowsAPI.CallNextHookExSafe(_NextHookProc, nCode, wParam, lParam);
+                    }
+                };
+                _NextHookProc = WindowsAPI.SetWindowsHookExSafe(HookType.WH_MOUSE_LL, HookProc!,
+                                                            moduleHandle, 0);
+            }
+
+            if (_NextHookProc == IntPtr.Zero)
+            {
+                DebugEx.Printl("[MouseHook.SetHook] 钩子安装失败");
+                HookProc = null;
+            }
+            else
+            {
+                DebugEx.Printl($"[MouseHook.SetHook] 钩子安装成功，类型: {(processHook ? "进程钩子" : "全局钩子")}");
+            }
         }
-        else
+        catch (BadImageFormatException ex)
         {
-            var moduleHandle = WindowsAPI.GetModuleHandle(Process.MainModule.ModuleName);
-            HookProc = (nCode, wParam, lParam) => {
-                if (nCode >= 0 && HookTask(nCode, wParam, lParam))
-                    return (IntPtr)1;
-                return WindowsAPI.CallNextHookEx(_NextHookProc, nCode, wParam, lParam);
-            };
-            _NextHookProc = WindowsAPI.SetWindowsHookEx(HookType.WH_MOUSE_LL, HookProc,
-                                                        moduleHandle, 0);
+            DebugEx.Printl($"[MouseHook.SetHook] BadImageFormatException: {ex.Message}");
+            HookProc = null;
+            _NextHookProc = IntPtr.Zero;
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[MouseHook.SetHook] 异常: {ex.Message}");
+            HookProc = null;
+            _NextHookProc = IntPtr.Zero;
         }
     }
 
@@ -227,7 +290,7 @@ public class MouseHook
             if (_clickCount == 2)
             {
                 // 如果不用时间控制,那么双击会执行两次
-                if (_watch.Elapsed.TotalMilliseconds > GetDoubleClickTime())
+                if (_watch.Elapsed.TotalMilliseconds > WindowsAPI.GetDoubleClickTime())
                 {
                     DoubleClick?.Invoke(this, e);
                     _watch.Reset();

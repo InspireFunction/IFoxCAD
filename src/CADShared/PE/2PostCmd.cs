@@ -1,4 +1,4 @@
-﻿namespace IFoxCAD.Cad;
+namespace IFoxCAD.Cad;
 /// <summary>
 /// 发送命令
 /// </summary>
@@ -28,24 +28,37 @@ public class PostCmd
     /// </summary>
     static PromptStatus AcedCmd(ResultBuffer args)
     {
-        if (Acaop.DocumentManager.IsApplicationContext)
-            return 0;
-        if (acedCmd is null)
+        try
         {
-            var str = nameof(acedCmd);
-            if (Acaop.Version.Major >= 20)// 2015.+
-                str += "S";
+            if (Acaop.DocumentManager.IsApplicationContext)
+                return 0;
+            if (acedCmd is null)
+            {
+                var str = nameof(acedCmd);
+                if (Acaop.Version.Major >= 20)// 2015.+
+                    str += "S";
 
-            acedCmd = AcadPeInfo.GetDelegate<DelegateAcedCmd>(
-                            str, AcadPeEnum.ExeAndCore);
+                acedCmd = AcadPeInfo.GetDelegate<DelegateAcedCmd>(
+                                str, AcadPeEnum.ExeAndCore);
+            }
+            if (acedCmd is null)
+                return 0;
+
+            var result = (PromptStatus)acedCmd.Invoke(args.UnmanagedObject);
+            if (result != PromptStatus.OK)
+                throw new ArgumentException("发送命令出错,是否vs权限不足?");
+            return result;
         }
-        if (acedCmd is null)
-            return 0;
-
-        var result = (PromptStatus)acedCmd.Invoke(args.UnmanagedObject);
-        if (result != PromptStatus.OK)
-            throw new ArgumentException("发送命令出错,是否vs权限不足?");
-        return result;
+        catch (BadImageFormatException ex)
+        {
+            DebugEx.Printl($"[PostCmd.AcedCmd] BadImageFormatException: {ex.Message}");
+            return PromptStatus.Error;
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[PostCmd.AcedCmd] 异常: {ex.Message}");
+            return PromptStatus.Error;
+        }
     }
 
     /*
@@ -59,11 +72,24 @@ public class PostCmd
     /// </summary>
     static PromptStatus AcedCommand(IntPtr args)
     {
-        acedCommand ??= AcadPeInfo.GetDelegate<DelegateAcedCommand>(
-                            nameof(acedCommand), AcadPeEnum.ExeAndCore);
-        if (acedCommand is null)
+        try
+        {
+            acedCommand ??= AcadPeInfo.GetDelegate<DelegateAcedCommand>(
+                                nameof(acedCommand), AcadPeEnum.ExeAndCore);
+            if (acedCommand is null)
+                return PromptStatus.Error;
+            return (PromptStatus)acedCommand.Invoke(args);// 调用方法
+        }
+        catch (BadImageFormatException ex)
+        {
+            DebugEx.Printl($"[PostCmd.AcedCommand] BadImageFormatException: {ex.Message}");
             return PromptStatus.Error;
-        return (PromptStatus)acedCommand.Invoke(args);// 调用方法
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[PostCmd.AcedCommand] 异常: {ex.Message}");
+            return PromptStatus.Error;
+        }
     }
 
     /*
@@ -79,14 +105,27 @@ public class PostCmd
     /// </summary>
     static PromptStatus AcedPostCommand(string args)
     {
-        acedPostCommand ??= AcadPeInfo.GetDelegate<DelegateAcedPostCommand>(
-                                nameof(acedPostCommand), AcadPeEnum.ExeAndCore);
+        try
+        {
+            acedPostCommand ??= AcadPeInfo.GetDelegate<DelegateAcedPostCommand>(
+                                    nameof(acedPostCommand), AcadPeEnum.ExeAndCore);
 
-        // 不然到CAD之后会乱码
-        var bytes = Encoding.Unicode.GetBytes(args);
-        if (acedPostCommand is null)
+            // 不然到CAD之后会乱码
+            var bytes = Encoding.Unicode.GetBytes(args);
+            if (acedPostCommand is null)
+                return PromptStatus.Error;
+            return (PromptStatus)acedPostCommand.Invoke(bytes);// 调用方法
+        }
+        catch (BadImageFormatException ex)
+        {
+            DebugEx.Printl($"[PostCmd.AcedPostCommand] BadImageFormatException: {ex.Message}");
             return PromptStatus.Error;
-        return (PromptStatus)acedPostCommand.Invoke(bytes);// 调用方法
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[PostCmd.AcedPostCommand] 异常: {ex.Message}");
+            return PromptStatus.Error;
+        }
     }
 
     delegate int DelegateAcedInvoke(byte[] parameter);
@@ -96,15 +135,28 @@ public class PostCmd
     /// </summary>
     static PromptStatus AcedInvoke(string args)
     {
-        acedInvoke ??= AcadPeInfo.GetDelegate<DelegateAcedInvoke>(
-                            nameof(acedInvoke), AcadPeEnum.ExeAndCore);
+        try
+        {
+            acedInvoke ??= AcadPeInfo.GetDelegate<DelegateAcedInvoke>(
+                                nameof(acedInvoke), AcadPeEnum.ExeAndCore);
 
-        // 不然到CAD之后会乱码
-        var bytes = Encoding.Unicode.GetBytes(args);
+            // 不然到CAD之后会乱码
+            var bytes = Encoding.Unicode.GetBytes(args);
 
-        if (acedInvoke is null)
+            if (acedInvoke is null)
+                return PromptStatus.Error;
+            return (PromptStatus)acedInvoke.Invoke(bytes);// 调用方法
+        }
+        catch (BadImageFormatException ex)
+        {
+            DebugEx.Printl($"[PostCmd.AcedInvoke] BadImageFormatException: {ex.Message}");
             return PromptStatus.Error;
-        return (PromptStatus)acedInvoke.Invoke(bytes);// 调用方法
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[PostCmd.AcedInvoke] 异常: {ex.Message}");
+            return PromptStatus.Error;
+        }
     }
 
     /// <summary>
