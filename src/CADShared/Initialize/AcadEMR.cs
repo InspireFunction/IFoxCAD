@@ -1,4 +1,4 @@
-#if true 
+﻿#if true 
 #if acad
 namespace IFoxCAD.Cad;
 

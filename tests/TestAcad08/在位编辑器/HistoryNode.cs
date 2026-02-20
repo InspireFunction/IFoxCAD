@@ -1,4 +1,4 @@
-namespace Test;
+﻿namespace Test;
 
 /// <summary>
 /// 历史记录节点 - 不可变类型，存储某一时刻的完整状态快照

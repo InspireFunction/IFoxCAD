@@ -12,6 +12,9 @@
         <!-- 禁用资源生成，避免.NET Core MSBuild的ResGen错误 -->
         <GenerateResourceNeverGenerateTypeMetadata>true</GenerateResourceNeverGenerateTypeMetadata>
         <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>
+
+        <!-- RuntimeHelpers 的重复警告 -->
+        <NoWarn>CS1685</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">

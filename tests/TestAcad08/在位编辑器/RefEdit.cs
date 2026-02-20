@@ -1,4 +1,4 @@
-﻿namespace Test;
+namespace Test;
 
 // 此处的淡显已经成功.
 // 三个数据库事件,新增/删除/修改,无法vote()处理.
@@ -740,6 +740,9 @@ public class RefEditCmd
 
         // 再次保存历史
         xInfo.HistoryWrite(nameof(RefClose) + "_After");
+
+        // 恢复窗口标题
+        xInfo.RestoreWindowTitle();
     }
 
     // 模拟,实现一个自己的在位编辑器(长事务)
@@ -825,6 +828,9 @@ public class RefEditCmd
 
         // 保存初始workset到字典
         xInfo.HistoryWrite(nameof(RefEdit));
+
+        // 3,修改窗口标题为在位编辑器运行中状态
+        xInfo.SetRefEditWindowTitle(doc);
     }
 
 

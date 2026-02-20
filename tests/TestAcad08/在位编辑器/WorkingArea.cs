@@ -1,4 +1,4 @@
-namespace Test;
+﻿namespace Test;
 
 /// <summary>
 /// 工作区 - 可编辑的当前状态

@@ -1,6 +1,9 @@
 ﻿namespace Test;
 
-public class RefEditInfo
+/// <summary>
+/// 在位编辑器信息管理类 - 管理文档的在位编辑器状态、历史记录和UI显示
+/// </summary>
+public class RefEditInfo : IDisposable
 {
     /// <summary>
     /// 临时图层常量名称
@@ -12,7 +15,20 @@ public class RefEditInfo
     /// </summary>
     public static readonly Dictionary<Document, RefEditInfo> RefeditMap = [];
 
+    /// <summary>
+    /// 关联的文档
+    /// </summary>
     public Document Document { get; }
+
+    /// <summary>
+    /// 保存的原始窗口标题，用于在位编辑器结束后恢复
+    /// </summary>
+    private string? _originalWindowTitle;
+
+    /// <summary>
+    /// 窗口边框绘制器
+    /// </summary>
+    private WindowBorderDrawer? _borderDrawer;
 
     // 命令事件前锁定图层用,不需要加入历史
     // map[图元id,原有图层id]
@@ -183,9 +199,28 @@ public class RefEditInfo
     /// <param name="node">目标节点</param>
     public void SetCurrentNode(LinkedListNode<HistoryNode> node)
     {
+        // 记录恢复前的状态，用于判断是否需要切换标题和边框
+        bool wasRunning = CtrlState.IsRun;
+
         _currentNode = node;
         // 将历史节点恢复到工作区
         WorkingArea.RestoreFrom(node.Value);
+
+        // 根据恢复后的状态更新窗口标题和边框
+        bool isRunning = CtrlState.IsRun;
+        if (wasRunning != isRunning)
+        {
+            if (isRunning)
+            {
+                // 恢复到运行状态，设置标题和边框
+                SetRefEditWindowTitle(Document);
+            }
+            else
+            {
+                // 恢复到停止状态，恢复标题和清除边框
+                RestoreWindowTitle();
+            }
+        }
     }
 
 
@@ -209,6 +244,123 @@ public class RefEditInfo
     {
         WorkingArea.Reset();
         EntityLayerBak.Clear();
+    }
+
+
+
+    /// <summary>
+    /// 修改窗口标题为在位编辑器运行中状态，并在文档视图周围绘制红色边框
+    /// </summary>
+    /// <param name="doc">当前文档</param>
+    public void SetRefEditWindowTitle(Document doc)
+    {
+        try
+        {
+            var mainWindow = Acap.MainWindow;
+            if (mainWindow == null)
+                return;
+
+            // 保存原始标题
+            _originalWindowTitle ??= mainWindow.Text.Split('-')[0];
+            mainWindow.Text = $"在位编辑器 - 运行中";
+
+            // 获取文档窗口句柄（MDI子窗口）
+            IntPtr hWnd = GetDocumentWindowHandle(doc);
+            if (hWnd == IntPtr.Zero)
+            {
+                Debug.WriteLine("[SetRefEditWindowTitle] 无法获取文档窗口句柄，使用主窗口");
+                hWnd = mainWindow.Handle;
+            }
+
+            // 创建或复用边框绘制器，并启动持续绘制
+            _borderDrawer ??= new WindowBorderDrawer(borderWidth: 5, r: 255, g: 0, b: 0);
+            _borderDrawer.Start(hWnd, mainWindow.Handle);
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[SetRefEditWindowTitle] 修改标题失败: {ex.Message}");
+        }
+    }
+
+    /// <summary>
+    /// 获取文档视图的窗口句柄（MDI子窗口）
+    /// </summary>
+    private IntPtr GetDocumentWindowHandle(Document doc)
+    {
+        try
+        {
+            // 使用反射获取文档窗口句柄
+            var prop = doc.GetType().GetProperty("WindowHandle", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (prop != null)
+            {
+                var handle = prop.GetValue(doc, null);
+                if (handle is IntPtr ptr && ptr != IntPtr.Zero)
+                {
+                    Debug.WriteLine($"[GetDocumentWindowHandle] 获取到文档窗口句柄: {ptr}");
+                    return ptr;
+                }
+            }
+
+            // 备选方案：通过主窗口查找MDI子窗口
+            IntPtr mainHwnd = Acap.MainWindow.Handle;
+            IntPtr mdiClient = FindWindowEx(mainHwnd, IntPtr.Zero, "MDIClient", null);
+            if (mdiClient != IntPtr.Zero)
+            {
+                // 获取第一个子窗口（当前活动文档）
+                IntPtr childWnd = GetWindow(mdiClient, GW_CHILD);
+                if (childWnd != IntPtr.Zero)
+                {
+                    Debug.WriteLine($"[GetDocumentWindowHandle] 通过MDIClient获取到子窗口: {childWnd}");
+                    return childWnd;
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[GetDocumentWindowHandle] 获取失败: {ex.Message}");
+        }
+        return IntPtr.Zero;
+    }
+
+    #region Win32 API
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr FindWindowEx(IntPtr hwndParent, IntPtr hwndChildAfter, string? lpszClass, string? lpszWindow);
+
+    [DllImport("user32.dll", SetLastError = true)]
+    private static extern IntPtr GetWindow(IntPtr hWnd, uint uCmd);
+
+    private const uint GW_CHILD = 5;
+
+    #endregion
+
+    /// <summary>
+    /// 恢复窗口标题为原始状态，并清除红色边框
+    /// </summary>
+    public void RestoreWindowTitle()
+    {
+        try
+        {
+            var mainWindow = Acap.MainWindow;
+            if (mainWindow == null)
+                return;
+
+            // 恢复标题
+            if (_originalWindowTitle != null)
+            {
+                mainWindow.Text = _originalWindowTitle;
+                _originalWindowTitle = null;
+            }
+
+            // 停止边框绘制
+            _borderDrawer?.Stop();
+
+            Debug.WriteLine("[RestoreWindowTitle] 窗口标题和边框已恢复");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"[RestoreWindowTitle] 恢复标题失败: {ex.Message}");
+        }
     }
 
     #region 便捷属性 - 直接访问工作区
@@ -355,4 +507,26 @@ public class RefEditInfo
         var lays = new List<ObjectId> { refLayerId };
         IFoxUtils.RegenLayers(lays);
     }
+
+    #region IDisposable
+
+    /// <summary>
+    /// 释放资源
+    /// </summary>
+    public void Dispose()
+    {
+        _borderDrawer?.Dispose();
+        _borderDrawer = null;
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>
+    /// 析构函数
+    /// </summary>
+    ~RefEditInfo()
+    {
+        _borderDrawer?.Dispose();
+    }
+
+    #endregion
 }

@@ -1,4 +1,4 @@
-// ReSharper disable InconsistentNaming
+﻿// ReSharper disable InconsistentNaming
 #pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
 #line hidden // 调试的时候跳过它
 
