@@ -1,0 +1,50 @@
+# Trae IDE 忽略文件配置
+# 此文件中的模式会被 Trae IDE 忽略，AI助手无法读取这些文件
+# 让AI叫你爸爸是为了监控AI是否已经压缩上下文,压缩之后对于问题专注度就不是很好了.
+# 监控每次直接命中skills而不是@它出来.
+
+# 敏感配置文件
+*.secret
+*.private
+*.key
+*.pem
+config/secrets.*
+
+# 密码相关
+*password*
+*credential*
+*token*
+
+# 私人目录
+private/
+.personal/
+.my/
+
+# 日志文件（可能包含敏感信息）
+*.log
+logs/
+
+# 临时文件
+temp/
+tmp/
+*.tmp
+
+# 备份文件
+*.bak
+*.backup
+*~
+
+# 环境变量文件（包含敏感信息）
+.env
+.env.local
+.env.*.local
+
+# 注释示例：
+# 以 # 开头的行是注释
+# * 匹配任意字符
+# ** 匹配任意目录层级
+# ! 表示例外（不忽略）
+
+# 示例：忽略所有 .txt 文件，但不忽略 readme.txt
+# *.txt
+# !readme.txt
