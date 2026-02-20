@@ -62,16 +62,16 @@ public class CtrlState
     }
 
     public bool IsNone => _flag == (int)CtrlStateType.None;
+    public bool IsExceptional => State.HasFlag(CtrlStateType.Exceptional);
+    public bool IsError => State.HasFlag(CtrlStateType.Error);
     public bool IsInit => State.HasFlag(CtrlStateType.Init);
     public bool IsRun => State.HasFlag(CtrlStateType.Running);
     public bool IsBreak => State.HasFlag(CtrlStateType.Break);
+    public bool IsContinue => State.HasFlag(CtrlStateType.Continue);
     public bool IsStop => State.HasFlag(CtrlStateType.Stop);
     public bool IsCancel => State.HasFlag(CtrlStateType.Cancel);
     public bool IsBlocked => State.HasFlag(CtrlStateType.Blocked);
     public bool IsWaiting => State.HasFlag(CtrlStateType.Waiting);
-    public bool IsExceptional => State.HasFlag(CtrlStateType.Exceptional);
-    public bool IsError => State.HasFlag(CtrlStateType.Error);
-    public bool IsContinue => State.HasFlag(CtrlStateType.Continue);
 
     // 主状态掩码（用于清除主状态位，保留附加状态位）
     private const int MainStateMask = (int)(
@@ -84,15 +84,14 @@ public class CtrlState
         | CtrlStateType.Blocked
         | CtrlStateType.Waiting);
 
-    public void Init() => _flag = (int)CtrlStateType.Init;
     public void Reset() => _flag = (int)CtrlStateType.Init;
     public void Start() => SetMainState(CtrlStateType.Running);
     public void Break() => SetMainState(CtrlStateType.Break);
+    public void Continue() => SetMainState(CtrlStateType.Continue);
     public void Stop() => SetMainState(CtrlStateType.Stop);
+    public void Cancel() => SetMainState(CtrlStateType.Cancel);
     public void Blocked() => SetMainState(CtrlStateType.Blocked);
     public void Waiting() => SetMainState(CtrlStateType.Waiting);
-    public void Cancel() => SetMainState(CtrlStateType.Cancel);
-    public void Continue() => SetMainState(CtrlStateType.Continue);
 
     /// <summary>
     /// 获取附加状态位（Exceptional 和 Error）
