@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
     
     <PropertyGroup>
         <TargetFrameworks>NET48</TargetFrameworks>
@@ -25,10 +25,6 @@
     <PropertyGroup>
         <DefineConstants>$(Configuration);zcad;z2025</DefineConstants>
     </PropertyGroup>
-
-    <ItemGroup>
-      <Compile Include="..\CADShared\Initialize\AutoReflection1.cs" />
-    </ItemGroup>
 
     <ItemGroup>
         <None Include="..\..\LICENSE">
