@@ -73,6 +73,7 @@ public class CtrlState
     public bool IsBlocked => State.HasFlag(CtrlStateType.Blocked);
     public bool IsWaiting => State.HasFlag(CtrlStateType.Waiting);
 
+    #region 主状态
     // 主状态掩码（用于清除主状态位，保留附加状态位）
     private const int MainStateMask = (int)(
         CtrlStateType.Init
@@ -106,7 +107,9 @@ public class CtrlState
         var attached = GetAttachedStates();
         _flag = (int)mainState | attached;
     }
+    #endregion
 
+    #region 附加
     /// <summary>
     /// 设置或取消异常状态
     /// </summary>
@@ -142,6 +145,7 @@ public class CtrlState
                 _flag &= ~(int)CtrlStateType.Error;
         }
     }
+    #endregion
 
     /// <summary>
     /// 创建当前状态的克隆

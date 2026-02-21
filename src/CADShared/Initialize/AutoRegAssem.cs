@@ -18,7 +18,7 @@ public abstract class AutoRegAssem : IExtensionApplication
 {
     #region 字段
 
-    private readonly AutoClass? _autoRef;
+    private readonly AutoReflection? _autoRef;
 
     #endregion
 
@@ -85,7 +85,7 @@ public abstract class AutoRegAssem : IExtensionApplication
             (autoRegConfig & AutoRegConfig.ReflectionAttribute) != AutoRegConfig.ReflectionAttribute)
             return;
 
-        _autoRef = new AutoClass(info.Name, autoRegConfig);
+        _autoRef = new AutoReflection(info.Name, autoRegConfig);
 
     }
 

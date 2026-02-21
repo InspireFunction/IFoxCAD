@@ -242,7 +242,7 @@ public static class TypeCache
 }
 #endregion
 
-public class AutoClass
+public class AutoReflection
 {
     // 只反射本dll的程序集
     private readonly bool _constraint = true;
@@ -252,7 +252,7 @@ public class AutoClass
 
     private string _assName;
     private AutoRegConfig _autoRegConfig;
-    public AutoClass(string name, AutoRegConfig autoRegConfig)
+    public AutoReflection(string name, AutoRegConfig autoRegConfig)
     {
         _assName = name;
         _autoRegConfig = autoRegConfig;
@@ -342,7 +342,7 @@ public class AutoClass
         catch (System.Exception ex)
         {
             Debugger.Break();
-            Debug.WriteLine($"{nameof(AutoClass.DmCreated)} 出错::{ex.Message}");
+            Debug.WriteLine($"{nameof(AutoReflection.DmCreated)} 出错::{ex.Message}");
         }
     }
 
@@ -364,7 +364,7 @@ public class AutoClass
         catch (System.Exception ex)
         {
             Debugger.Break();
-            Debug.WriteLine($"{nameof(AutoClass.DmToBeDestroyed)}出错::" + ex.Message);
+            Debug.WriteLine($"{nameof(AutoReflection.DmToBeDestroyed)}出错::" + ex.Message);
         }
     }
 
@@ -385,7 +385,7 @@ public class AutoClass
         catch (System.Exception ex)
         {
             Debugger.Break();
-            Debug.WriteLine($"{nameof(AutoClass.DmToBeDestroyed)}出错::" + ex.Message);
+            Debug.WriteLine($"{nameof(AutoReflection.DmToBeDestroyed)}出错::" + ex.Message);
         }
     }
 

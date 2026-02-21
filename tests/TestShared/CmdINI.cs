@@ -29,7 +29,7 @@ public class AutoRegAssemEx : AutoRegAssem
     {
 #if Debug
         // 此处用来反射本程序集,检查是否存在重复命令
-        AutoReflection.DebugCheckCmdRecurrence();
+        CheckFactory.DebugCheckCmdRecurrence();
 #endif
         Env.Printl($"{nameof(AutoRegAssemEx)}构造函数,开始自动执行\r\n");
     }

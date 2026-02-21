@@ -1,53 +1,67 @@
-//#if NET45_OR_GREATER
-//namespace IFoxCAD.Cad;
+#pragma warning disable CS1591 // 缺少XML注释
+#pragma warning disable CS1572 // XML注释中有不存在的参数
+#pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
 
-///// <summary>
-///// 命令检查类
-///// </summary>
-//public static class CheckFactory
-//{
-//    /*
-//     * 平时command命令的globalName如果重复，加载时会报错
-//     * 但是并不会告诉你是哪里错了，通常需要花大量时间来查找
-//     * 将此函数添加在IExtensionApplication.Initialize()函数开头
-//     * 虽然还会报错，但是至少能知道哪个类下哪个方法导致的报错
-//     * 聊胜于无吧
-//     * 2023-05-16 by DYH
-//     */
+namespace IFoxCAD.Cad;
 
-//    /// <summary>
-//    /// 检查Command命令重复
-//    /// </summary>
-//    public static void CheckDuplicateCommand(Assembly? assembly = null)
-//    {
-//        var dic = new Dictionary<string, List<string>>();
-//        assembly ??= Assembly.GetCallingAssembly();
-//        // 反射所有的公共类型
-//        var typeArray = assembly.GetExportedTypes();
-//        foreach (var type in typeArray)
-//        {
-//            if (!type.IsPublic)
-//                continue;
-//            foreach (var method in type.GetMethods())
-//            {
-//                if (!method.IsPublic)
-//                    continue;
-//                if (method.GetCustomAttribute<CommandMethodAttribute>() is not { } att)
-//                    continue;
-//                if (!dic.ContainsKey(att.GlobalName))
-//                {
-//                    dic.Add(att.GlobalName, []);
-//                }
+public class CheckFactory
+{
+    /// <summary>
+    /// 检查当前程序域重复出现命令,
+    /// 当出现重复时候将引起断点
+    /// </summary>
+    public static void DebugCheckCmdRecurrence()
+    {
+        HashSet<string> keys = [];
 
-//                dic[att.GlobalName].Add(type.Name + "." + method.Name);
-//            }
-//        }
+        // 本dll中存在冲突命令,此时cad自动接口可以运行,但是加载命令之后会报错,因此利用断点告诉程序员
+        var types = AutoReflection.AppDomainGetTypes(Assembly.GetCallingAssembly().GetName().Name);
+        foreach (var type in types)
+        {
+            var mets = type.GetMethods();
+            for (int ii = 0; ii < mets.Length; ii++)
+            {
+                var method = mets[ii];
+                var attr = method.GetCustomAttributes(true);
+                for (int jj = 0; jj < attr.Length; jj++)
+                    if (attr[jj] is CommandMethodAttribute att)
+                    {
+                        if (keys.Contains(att.GlobalName))
+                            Debugger.Break();
+                        keys.Add(att.GlobalName);
+                    }
+            }
+        }
 
-//        var strings = dic.Where(o => o.Value.Count() > 1)
-//            .Select(o => o.Key + "命令重复，在类" + string.Join("和", o.Value) + "中");
-//        var str = string.Join(Environment.NewLine, strings);
-//        if (!string.IsNullOrEmpty(str))
-//            System.Windows.Forms.MessageBox.Show(str, @"错误：重复命令！");
-//    }
-//}
-//#endif
+        // 其他dll中存在冲突命令,此时会覆盖命令,友好的提示程序员
+        keys.Clear();
+        HashSet<string> msgMod = [];
+        foreach (var type in types)
+        {
+            var mets = type.GetMethods();
+            for (int ii = 0; ii < mets.Length; ii++)
+            {
+                var method = mets[ii];
+                var attr = method.GetCustomAttributes(true);
+                for (int jj = 0; jj < attr.Length; jj++)
+                    if (attr[jj] is CommandMethodAttribute att)
+                    {
+                        if (keys.Contains(att.GlobalName))
+                            msgMod.Add(att.GlobalName);
+                        keys.Add(att.GlobalName);
+                    }
+            }
+        }
+
+        var sb = new StringBuilder();
+        foreach (string key in msgMod)
+            sb.AppendLine(key);
+        if (sb.Length != 0)
+        {
+            Env.Printl("当前cad环境加载的多个DLL中存在重复命令将被覆盖:");
+            Env.Printl("{");
+            Env.Printl(sb.ToString());
+            Env.Printl("}");
+        }
+    }
+}
