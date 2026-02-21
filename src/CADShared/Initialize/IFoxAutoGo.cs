@@ -232,7 +232,7 @@ public static class TypeCache
             if (!_instanceCache.TryGetValue(fullName, out instance))
             {
                 var type = methodInfo.ReflectedType.Assembly.GetType(fullName);
-                instance = Activator.CreateInstance(type);
+                instance = MethodInfoHelper.CreateInstanceWithDefaults(type);
                 _instanceCache.TryAdd(fullName, instance);
             }
             _cache1.TryAdd(methodInfo, instance);

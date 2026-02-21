@@ -42,7 +42,7 @@ internal static class MethodInfoHelper
                 if (type == null)
                     return null;
 
-                instance = Activator.CreateInstance(type);
+                instance = CreateInstanceWithDefaults(type);
             }
             if (instance != null)
             {
@@ -80,6 +80,17 @@ internal static class MethodInfoHelper
     /// <returns>默认值</returns>
     private static object? GetDefaultParameterValue(ParameterInfo paramInfo)
     {
+        // 优先从参数定义中读取默认值(如: void Func(int x = 10))
+        // .NET 3.5使用Attributes判断,4.5+使用HasDefaultValue属性
+#if NET8_0_OR_GREATER || NET45_OR_GREATER
+        if (paramInfo.HasDefaultValue)
+            return paramInfo.DefaultValue;
+#else
+        // .NET 3.5中通过检查ParameterAttributes.HasDefault判断
+        if ((paramInfo.Attributes & ParameterAttributes.HasDefault) == ParameterAttributes.HasDefault)
+            return paramInfo.DefaultValue;
+#endif
+
         var paramType = paramInfo.ParameterType;
 
         // 处理可空类型
@@ -93,5 +104,54 @@ internal static class MethodInfoHelper
 
         // 引用类型,返回null
         return null;
+    }
+
+    /// <summary>
+    /// 使用带默认参数的构造函数创建实例
+    /// </summary>
+    /// <param name="type">要创建的类型</param>
+    /// <returns>创建的实例</returns>
+    public static object CreateInstanceWithDefaults(Type type)
+    {
+        // 优先获取无参构造函数
+        var ctor = type.GetConstructor(Type.EmptyTypes);
+        if (ctor != null)
+            return Activator.CreateInstance(type);
+
+        // 如果没有无参构造函数,查找参数都有默认值的构造函数
+        var constructors = type.GetConstructors();
+        foreach (var constructor in constructors)
+        {
+            var parameters = constructor.GetParameters();
+            // 检查所有参数是否都有默认值
+            bool allHaveDefaults = true;
+            foreach (var param in parameters)
+            {
+#if NET8_0_OR_GREATER || NET45_OR_GREATER
+                if (!param.HasDefaultValue)
+#else
+                if ((param.Attributes & ParameterAttributes.HasDefault) != ParameterAttributes.HasDefault)
+#endif
+                {
+                    allHaveDefaults = false;
+                    break;
+                }
+            }
+
+            if (allHaveDefaults)
+            {
+                // 构造默认参数数组
+                var args = new object?[parameters.Length];
+                for (int i = 0; i < parameters.Length; i++)
+                {
+                    args[i] = GetDefaultParameterValue(parameters[i]);
+                }
+                return constructor.Invoke(args);
+            }
+        }
+
+        // 如果找不到合适的构造函数,抛出异常
+        throw new InvalidOperationException(
+            $"类型 {type.FullName} 没有无参构造函数或所有参数都有默认值的构造函数");
     }
 }
