@@ -1,4 +1,4 @@
-﻿---
+---
 name: cad开发助手
 description: 针对AutoCAD二次开发场景的专项助手,提供API函数表查询,代码生成规范,编译导出XML函数表等工作流程支持.
 ---
@@ -19,17 +19,17 @@ CAD开发助手是针对AutoCAD二次开发(基于IFoxCAD框架)的专项工具,
 ### 函数表文件位置
 这是上一次编译导出的函数名表,包含了项目中可用的API函数信息.
 ```
-{项目文件夹}/.trae/skills/cad开发助手/IFoxCAD.Acad08.xml
+#.trae\skills\cad开发助手\IFoxCAD.Acad08.xml
 ```
 
 或者在工程的输入文件夹中查找,例如:
 
 ```
-{项目文件夹}/tests/TestAcad08/bin/Debug/net35/IFoxCAD.Acad08.xml
+{项目文件夹}\tests\TestAcad08\bin\Debug\net35\IFoxCAD.Acad08.xml
 ```
 
 ```
-{项目文件夹}/tests/TestAcad08/Release/Debug/net35/IFoxCAD.Acad08.xml
+{项目文件夹}\tests\TestAcad08\Release\Debug\net35\IFoxCAD.Acad08.xml
 ```
 
 注:不同版本/年份
@@ -48,7 +48,7 @@ CAD开发助手是针对AutoCAD二次开发(基于IFoxCAD框架)的专项工具,
 
 如果需要使用DllImport导入未公开的AutoCAD API,请参考专项技能:
 
-**[dllimport助手](../dllimport助手/SKILL.md)**
+**[dllimport助手](..\dllimport助手\SKILL.md)**
 
 包含内容:
 - 查询未公开的API接口列表
@@ -63,7 +63,7 @@ CAD开发助手是针对AutoCAD二次开发(基于IFoxCAD框架)的专项工具,
 **编译命令示例:**
 
 ```bash
-csc /doc:.trae/api-documentation.xml YourCode.cs
+csc /doc:.trae\api-documentation.xml YourCode.cs
 ```
 
 ### 导出配置(小小不执行,是提示爸爸,不要直接修改爸爸的文件)
@@ -127,7 +127,7 @@ catch (Autodesk.AutoCAD.Runtime.Exception ex)
    
 4. **编译验证**
    - 编译并导出新的函数表
-   - 如有编译错误,参考 `skills/编译问题助手`
+   - 如有编译错误,参考 `skills\编译问题助手`
 
 ## 适用场景
 

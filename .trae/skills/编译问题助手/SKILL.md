@@ -1,5 +1,6 @@
-﻿---
-trigger: 当爸爸遇到.NET项目编译失败,需要排查编译错误,或者需要快速验证代码修改是否可编译时
+---
+name: 编译问题助手
+description: 针对.NET项目编译失败场景的快速排查工具,核心通过指定参数的dotnet build命令,跳过依赖还原和依赖检查,聚焦目标测试项目本身的编译问题,快速定位代码级别的编译错误.
 ---
 
 # 编译问题助手
@@ -19,7 +20,7 @@ trigger: 当爸爸遇到.NET项目编译失败,需要排查编译错误,或者�
 当遇到项目无法编译时,使用MSBuild命令:
 
 ```bash
-msbuild tests/TestAcad08/TestAcad08.csproj /p:Configuration=Debug
+msbuild tests\TestAcad08\TestAcad08.csproj /p:Configuration=Debug
 ```
 
 **参数说明**:
@@ -29,7 +30,7 @@ msbuild tests/TestAcad08/TestAcad08.csproj /p:Configuration=Debug
 ### 方案2:使用dotnet build(适用于.NET Core/.NET 5+项目)
 
 ```bash
-dotnet build --no-restore --no-dependencies tests/TestAcad08
+dotnet build --no-restore --no-dependencies tests\TestAcad08
 ```
 
 **参数说明**:
@@ -54,7 +55,7 @@ dotnet build --no-restore --no-dependencies tests/TestAcad08
 ## 示例
 ### 输入
 ```bash
-dotnet build --no-restore --no-dependencies tests/TestAcad08
+dotnet build --no-restore --no-dependencies tests\TestAcad08
 ```
 
 ### 输出
@@ -128,7 +129,7 @@ warning CS1030: #warning: ...
 
 1. **导出XML函数表**(如果是主工程):
    - 确保`.csproj`中设置了`<GenerateDocumentationFile>true</GenerateDocumentationFile>`
-   - 将生成的XML文件复制到`.trae/skills/cad开发助手/`目录
+   - 将生成的XML文件复制到`#.trae\skills\cad开发助手\`
 
 2. **运行测试命令**:
    - 在AutoCAD中加载编译好的DLL
