@@ -1,12 +1,12 @@
 ---
-name: cad开发助手
-description: 针对AutoCAD二次开发场景的专项助手,提供API函数表查询,代码生成规范,编译导出XML函数表等工作流程支持.
+name: cad开发技能
+description: 针对AutoCAD二次开发场景的专项技能,提供API函数表查询,代码生成规范,编译导出XML函数表等工作流程支持.
 ---
 
-# CAD开发助手
+# CAD开发技能
 
 ## 技能描述
-CAD开发助手是针对AutoCAD二次开发(基于IFoxCAD框架)的专项工具,提供API函数查询,代码生成指导,函数表管理等功能,帮助开发者高效编写符合规范的CAD插件代码.
+CAD开发技能是针对AutoCAD二次开发(基于IFoxCAD框架)的专项工具,提供API函数查询,代码生成指导,函数表管理等功能,帮助开发者高效编写符合规范的CAD插件代码.
 
 ## 功能
 - 查询和利用现有项目内的API函数表管理
@@ -19,7 +19,7 @@ CAD开发助手是针对AutoCAD二次开发(基于IFoxCAD框架)的专项工具,
 ### 函数表文件位置
 这是上一次编译导出的函数名表,包含了项目中可用的API函数信息.
 ```
-#.trae\skills\cad开发助手\IFoxCAD.Acad08.xml
+#.trae\skills\cad开发技能\IFoxCAD.Acad08.xml
 ```
 
 或者在工程的输入文件夹中查找,例如:
@@ -48,7 +48,7 @@ CAD开发助手是针对AutoCAD二次开发(基于IFoxCAD框架)的专项工具,
 
 如果需要使用DllImport导入未公开的AutoCAD API,请参考专项技能:
 
-**[dllimport助手](..\dllimport助手\SKILL.md)**
+**[dllimport技能](..\dllimport技能\SKILL.md)**
 
 包含内容:
 - 查询未公开的API接口列表
@@ -127,7 +127,7 @@ catch (Autodesk.AutoCAD.Runtime.Exception ex)
    
 4. **编译验证**
    - 编译并导出新的函数表
-   - 如有编译错误,参考 `skills\编译问题助手`
+   - 如有编译错误,参考 `skills\编译问题技能`
 
 ## 适用场景
 

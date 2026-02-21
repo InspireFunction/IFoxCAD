@@ -440,13 +440,12 @@ public class AutoReflection
 
 #if parallel
             System.Diagnostics.Trace.WriteLine("这是一条Trace消息,此时是并行");
-            var assemblies = AppDomain.CurrentDomain.GetAssemblies()
-                .AsParallel()
-                .WithDegreeOfParallelism(Environment.ProcessorCount)
-                .Where(ass => !ass.IsDynamic())
-                .Where(ass => !ass.GetName().Name.Contains(str2))
-                .Where(ass => Path.GetFileNameWithoutExtension(ass.Location) != str1);
-
+            var allAssemblies = AppDomain.CurrentDomain.GetAssemblies();
+            var assemblies = allAssemblies.AsParallel()
+                    .WithDegreeOfParallelism(Environment.ProcessorCount)
+                    .Where(ass => !ass.IsDynamic())
+                    .Where(ass => !ass.GetName().Name.Contains(str2))
+                    .Where(ass => Path.GetFileNameWithoutExtension(ass.Location) != str1);
             // 约束在此dll中反射.
             if (dllNameWithoutExtension is not null)
             {

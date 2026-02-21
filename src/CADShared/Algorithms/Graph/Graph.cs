@@ -300,23 +300,24 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     public string ToReadable()
     {
         int i = 1;
-        string output = string.Empty;
+        var output = new System.Text.StringBuilder();
         foreach (var node in vertices)
         {
-            var adjacents = string.Empty;
+            var adjacents = new System.Text.StringBuilder();
 
-            output = string.Format("{1}\r\n{0}-{2}: [", i, output, node.Key.Data.ToString());
+            if (i > 1) output.AppendLine();
+            output.Append($"{i}-{node.Key.Data}: [");
 
             foreach (var adjacentNode in node.Value)
-                adjacents = string.Format("{0}{1},", adjacents, adjacentNode.Data.ToString());
+            {
+                if (adjacents.Length > 0) adjacents.Append(',');
+                adjacents.Append(adjacentNode.Data);
+            }
 
-            if (adjacents.Length > 0)
-                adjacents = adjacents.TrimEnd(new char[] { ',', ' ' });
-
-            output = string.Format("{0}{1}]", output, adjacents);
+            output.Append(adjacents).Append(']');
             i++;
         }
-        return output;
+        return output.ToString();
     }
     #endregion
 }

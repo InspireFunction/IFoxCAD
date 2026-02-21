@@ -87,11 +87,10 @@ public class FileLogger : LogBase
     public override void WriteLog(string? message)
     {
         // 把异常信息输出到文件
-        var sw = new StreamWriter(LogHelper.LogAddress, true/*当天日志文件存在就追加,否则就创建*/);
+        using var sw = new StreamWriter(LogHelper.LogAddress, true/*当天日志文件存在就追加,否则就创建*/);
         sw.Write(message);
         sw.Flush();
         sw.Close();
-        sw.Dispose();
     }
 }
 

@@ -1,12 +1,12 @@
 ---
-name: dllimport助手
+name: dllimport技能
 description: 针对AutoCAD二次开发中需要调用未公开API(通过DllImport导入acad.exe等非托管DLL)的专项工具,提供版本管理,接口查询和代码生成规范,确保不同AutoCAD版本的兼容性.
 ---
 
-# DllImport助手
+# DllImport技能
 
 ## 技能描述
-DllImport助手是针对AutoCAD二次开发中需要调用未公开API(通过DllImport导入acad.exe等非托管DLL)的专项工具,提供版本管理,接口查询和代码生成规范,确保不同AutoCAD版本的兼容性.
+DllImport技能是针对AutoCAD二次开发中需要调用未公开API(通过DllImport导入acad.exe等非托管DLL)的专项工具,提供版本管理,接口查询和代码生成规范,确保不同AutoCAD版本的兼容性.
 
 ## 功能
 - 管理不同AutoCAD版本的DllImport声明
@@ -20,7 +20,7 @@ DllImport助手是针对AutoCAD二次开发中需要调用未公开API(通过Dll
 
 **当前项目中的接口文件**:
 ```
-{项目文件夹}#.trae\skills\dllimport助手\acad08的exe接口.txt
+{项目文件夹}#.trae\skills\dllimport技能\acad08的exe接口.txt
 ```
 
 **不同版本对应文件**:
@@ -104,7 +104,7 @@ acad_IFoxCAD_35\tests\PEInfoTest
 
 3. **获取接口列表**
    - 将导出的接口保存到对应版本的txt文件
-   - 更新 `#.trae\skills\dllimport助手\` 下的接口文档
+   - 更新 `#.trae\skills\dllimport技能\` 下的接口文档
 
 ## 工作流程
 
@@ -206,7 +206,7 @@ ObjectId
 
 ## 相关文件
 
-- 接口列表:`#.trae\skills\dllimport助手\acad{年份}的exe接口.txt`
+- 接口列表:`#.trae\skills\dllimport技能\acad{年份}的exe接口.txt`
 - PEInfo工具:`\tests\PEInfoTest\`
-- 参考技能:`#.trae\skills\cad开发助手\SKILL.md`
+- 参考技能:`#.trae\skills\cad开发技能\SKILL.md`
 

@@ -1,12 +1,12 @@
 ---
-name: 编译问题助手
+name: 编译问题技能
 description: 针对.NET项目编译失败场景的快速排查工具,核心通过指定参数的dotnet build命令,跳过依赖还原和依赖检查,聚焦目标测试项目本身的编译问题,快速定位代码级别的编译错误.
 ---
 
-# 编译问题助手
+# 编译问题技能
 
 ## 技能描述
-编译问题助手是针对 .NET 项目编译失败场景的快速排查工具,核心通过指定参数的 `dotnet build` 命令,跳过依赖还原和依赖检查,聚焦目标测试项目本身的编译问题,快速定位代码级别的编译错误.
+编译问题技能是针对 .NET 项目编译失败场景的快速排查工具,核心通过指定参数的 `dotnet build` 命令,跳过依赖还原和依赖检查,聚焦目标测试项目本身的编译问题,快速定位代码级别的编译错误.
 
 ## 功能
 - 快速排查 .NET 项目编译失败问题
@@ -123,13 +123,36 @@ warning CS1030: #warning: ...
 - 检查`.csproj`中的`<DefineConstants>`配置
 - 确保使用了正确的年份符号(如`acad08`)
 
+### 错误5:ResGen.exe不支持(.NET Core MSBuild)
+**错误信息**:
+```
+error ResGen.exe not supported on .NET Core MSBuild
+[IFoxCAD.LoadEx.csproj::TargetFramework=NET35]
+```
+
+**受影响项目**:
+- IFoxCAD.Acad08.csproj
+- 注意:dotnet build无法编译包含NET35的.NET Framework项目
+
+### 错误6:找不到.NET Framework引用程序集
+**错误信息**:
+```
+error MSB3644: 找不到 .NETFramework,Version=v4.0 的引用程序集
+```
+
+**受影响项目**: 所有TargetFrameworks包含NET40的项目
+
+**解决方案**:
+- 安装对应版本的 .NET Framework Developer Pack
+- 或者从TargetFrameworks中移除该框架版本
+
 ## 编译成功后的操作
 
 编译成功后,建议执行以下操作:
 
 1. **导出XML函数表**(如果是主工程):
    - 确保`.csproj`中设置了`<GenerateDocumentationFile>true</GenerateDocumentationFile>`
-   - 将生成的XML文件复制到`#.trae\skills\cad开发助手\`
+   - 将生成的XML文件复制到`#.trae\skills\cad开发技能\`
 
 2. **运行测试命令**:
    - 在AutoCAD中加载编译好的DLL
