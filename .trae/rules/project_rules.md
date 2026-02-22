@@ -32,6 +32,9 @@ trigger: always_on
 使用powershell脚本替换字符串,并且保存时候需要用原本的编码,例如UTF8无BOM.
 参考`#.trae\rules\replace.ps1`
 
+-- 红蓝对抗
+你必须读取 `#.trae\rules\工作流程.md` 中的红蓝对抗流程章节.
+
 # 3. git要求
 1. 不要使用带对话框的git命令,使用简短的中文提交.
 2. 不要使用 `git diff`它非常慢.
