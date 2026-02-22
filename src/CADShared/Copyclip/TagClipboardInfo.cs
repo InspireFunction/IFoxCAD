@@ -449,6 +449,14 @@ public partial class ClipTool
             var clipKeyFormat = RegisterClipboardFormat(clipKey);//ClipboardEnv.CadVer
             var clipTypeData = GetClipboardData(clipKeyFormat);
 
+            // 检查剪贴板数据指针
+            if (clipTypeData == IntPtr.Zero)
+            {
+                DebugEx.Printl($"[GetClipboard] 错误: 剪贴板数据为空，格式: {clipKey}");
+                locked = false;
+                return;
+            }
+
             // 剪贴板的数据拷贝进去结构体中,会依照数据长度进行拷贝
             locked = WindowsAPI.GlobalLockTask(clipTypeData, ptr => {
                 // 非托管内存块->托管对象
@@ -494,15 +502,21 @@ public static class ClipEx
 
                 _formats.Add(cf);
                 IntPtr clipTypeData = ClipTool.GetClipboardData(cf);
-                var locked = WindowsAPI.GlobalLockTask(clipTypeData, prt => {
-                    uint size = WindowsAPI.GlobalSize(clipTypeData);
-                    if (size > 0)
-                    {
-                        var buffer = new byte[size];
-                        Marshal.Copy(prt, buffer, 0, buffer.Length);// 将剪贴板数据保存到自定义字节数组
-                        _bytes.Add(buffer);
-                    }
-                });
+                if (clipTypeData != IntPtr.Zero)
+                {
+                    var locked = WindowsAPI.GlobalLockTask(clipTypeData, prt => {
+                        if (prt != IntPtr.Zero)
+                        {
+                            uint size = WindowsAPI.GlobalSize(clipTypeData);
+                            if (size > 0)
+                            {
+                                var buffer = new byte[size];
+                                Marshal.Copy(prt, buffer, 0, buffer.Length);// 将剪贴板数据保存到自定义字节数组
+                                _bytes.Add(buffer);
+                            }
+                        }
+                    });
+                }
             }
         });
         if (result)

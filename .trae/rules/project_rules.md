@@ -8,8 +8,8 @@ trigger: always_on
 智能体:孩子们
 
 你是妈妈,你需要维护:
-1,任务表`#.trae\rules_tasks_{任务名}.md` (妈妈用:任务分配和宏观管理)
-2,状态登记表,用文件`#.trae\rules_status.md`记录孩子的状态. (妈妈用:记录孩子状态)
+1,任务表`.trae\rules_tasks_{任务名}.md` (妈妈用:任务分配和宏观管理)
+2,状态登记表,用文件`.trae\rules_status.md`记录孩子的状态. (妈妈用:记录孩子状态)
 3,git管理.
 4,当前任务名:
 5,当前任务简介(20个字内):
@@ -30,10 +30,13 @@ trigger: always_on
 
 -- 替换文件的字符串(非写代码需求)
 使用powershell脚本替换字符串,并且保存时候需要用原本的编码,例如UTF8无BOM.
-参考`#.trae\rules\replace.ps1`
+参考`.trae\rules\replace.ps1`
 
--- 红蓝对抗
-你必须读取 `#.trae\rules\工作流程.md` 中的红蓝对抗流程章节.
+-- 红蓝对抗/工作验收
+你必须读取 `.trae\rules\工作流程.md` 中的章节.
+
+-- 大型任务工作流程
+请参考 `.trae\rules\大型任务工作流程.md` 中的章节.
 
 # 3. git要求
 1. 不要使用带对话框的git命令,使用简短的中文提交.

@@ -127,6 +127,23 @@ public partial class WindowsAPI
     public static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
 
     /// <summary>
+    /// 安全获取要引入的函数,将符号名或标识号转换为DLL内部地址
+    /// </summary>
+    /// <param name="hModule">exe/dll句柄</param>
+    /// <param name="procName">接口名</param>
+    /// <returns>函数地址，失败返回IntPtr.Zero</returns>
+    public static IntPtr GetProcAddressSafe(IntPtr hModule, string procName)
+    {
+        if (hModule == IntPtr.Zero)
+        {
+            return IntPtr.Zero;
+        }
+        IntPtr result = GetProcAddress(hModule, procName);
+        CheckWin32Error(nameof(GetProcAddress), result);
+        return result;
+    }
+
+    /// <summary>
     /// 锁定内存
     /// </summary>
     /// <param name="hMem">内存句柄</param>
@@ -162,6 +179,20 @@ public partial class WindowsAPI
     /// <returns></returns>
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern IntPtr GlobalFree(IntPtr hMem);
+
+    /// <summary>
+    /// 安全释放堆内存
+    /// </summary>
+    /// <param name="hMem">由<see cref="GlobalAlloc"/>产生的句柄</param>
+    /// <returns>如果释放成功,返回IntPtr.Zero</returns>
+    public static IntPtr GlobalFreeSafe(IntPtr hMem)
+    {
+        if (hMem == IntPtr.Zero)
+        {
+            return IntPtr.Zero;
+        }
+        return GlobalFree(hMem);
+    }
 #endif
     /// <summary>
     /// 获取内存块大小
@@ -170,6 +201,20 @@ public partial class WindowsAPI
     /// <returns></returns>
     [DllImport("kernel32.dll", SetLastError = true)]
     public static extern uint GlobalSize(IntPtr hMem);
+
+    /// <summary>
+    /// 安全获取内存块大小
+    /// </summary>
+    /// <param name="hMem"></param>
+    /// <returns>内存大小，单位为字节，失败返回0</returns>
+    public static uint GlobalSizeSafe(IntPtr hMem)
+    {
+        if (hMem == IntPtr.Zero)
+        {
+            return 0;
+        }
+        return GlobalSize(hMem);
+    }
 
     /// <summary>
     /// 锁定和释放内存
@@ -216,16 +261,23 @@ public partial class WindowsAPI
         // 安全写法效率太低了
         // 分配结构体大小的内存空间
         IntPtr structPtr = Marshal.AllocHGlobal(typeSize);
+        if (structPtr == IntPtr.Zero)
+            return default;
 
-        // 将byte数组拷到分配好的内存空间
-        Marshal.Copy(bytes, 0, structPtr, typeSize);
-        // 将内存空间转换为目标结构体;
-        // 转类型的时候会拷贝一次,看它们地址验证 &result != &structPtr
-        var result = (T)Marshal.PtrToStructure(structPtr, structType);
-
-        // 释放内存空间
-        Marshal.FreeHGlobal(structPtr);
-        return result;
+        try
+        {
+            // 将byte数组拷到分配好的内存空间
+            Marshal.Copy(bytes, 0, structPtr, typeSize);
+            // 将内存空间转换为目标结构体;
+            // 转类型的时候会拷贝一次,看它们地址验证 &result != &structPtr
+            var result = (T)Marshal.PtrToStructure(structPtr, structType);
+            return result;
+        }
+        finally
+        {
+            // 释放内存空间
+            Marshal.FreeHGlobal(structPtr);
+        }
     }
 
     /// <summary>
@@ -236,6 +288,12 @@ public partial class WindowsAPI
     [MethodImpl]
     public static T? BytesToStruct<T>(byte[] bytes)
     {
+        if (bytes == null || bytes.Length == 0)
+        {
+            DebugEx.Printl("[BytesToStruct] 错误: 输入数组为空");
+            return default;
+        }
+        
         T? result = default;
         unsafe
         {
@@ -260,6 +318,12 @@ public partial class WindowsAPI
     {
         // 得到结构体的大小
         var typeSize = Marshal.SizeOf(structObj);
+        if (typeSize == 0)
+        {
+            DebugEx.Printl("[StructToBytes] 错误: 结构体大小为0");
+            return new byte[0];
+        }
+        
         // 从内存空间拷到byte数组
         var bytes = new byte[typeSize];
         unsafe

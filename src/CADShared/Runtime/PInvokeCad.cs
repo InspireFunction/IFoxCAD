@@ -15,10 +15,51 @@ public static class PInvokeCad
     public static extern IntPtr ZcdbEntGet(AdsName adsName);
 
     /// <summary>
+    /// 安全的EntGet
+    /// </summary>
+    /// <param name="adsName">实体名称</param>
+    /// <returns>实体数据指针，失败返回IntPtr.Zero</returns>
+    public static IntPtr ZcdbEntGetSafe(AdsName adsName)
+    {
+        try
+        {
+            IntPtr result = ZcdbEntGet(adsName);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[PInvokeCad.ZcdbEntGetSafe] 异常: {ex.Message}");
+            return IntPtr.Zero;
+        }
+    }
+
+    /// <summary>
     /// EntGet
     /// </summary>
     [DllImport("zwcad.exe", CallingConvention = CallingConvention.Cdecl, EntryPoint = "zcdbEntMod")]
     public static extern int ZcdbEntMod(IntPtr intPtr);
+
+    /// <summary>
+    /// 安全的EntMod
+    /// </summary>
+    /// <param name="intPtr">实体数据指针</param>
+    /// <returns>错误状态码，成功返回0</returns>
+    public static int ZcdbEntModSafe(IntPtr intPtr)
+    {
+        if (intPtr == IntPtr.Zero)
+        {
+            return 1;
+        }
+        try
+        {
+            return ZcdbEntMod(intPtr);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[PInvokeCad.ZcdbEntModSafe] 异常: {ex.Message}");
+            return 1;
+        }
+    }
 
     /// <summary>
     /// GetZdsName
@@ -50,6 +91,25 @@ public static class PInvokeCad
     public static extern IntPtr AcdbEntGet(ref ads_name adsName);
 
     /// <summary>
+    /// 安全的EntGet
+    /// </summary>
+    /// <param name="adsName">实体名称</param>
+    /// <returns>实体数据指针，失败返回IntPtr.Zero</returns>
+    public static IntPtr AcdbEntGetSafe(ref ads_name adsName)
+    {
+        try
+        {
+            IntPtr result = AcdbEntGet(ref adsName);
+            return result;
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[PInvokeCad.AcdbEntGetSafe] 异常: {ex.Message}");
+            return IntPtr.Zero;
+        }
+    }
+
+    /// <summary>
     /// EntUpd
     /// </summary>
     [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl,
@@ -62,6 +122,28 @@ public static class PInvokeCad
     [DllImport("accore.dll", CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "acdbEntMod")]
     public static extern int AcdbEntMod(IntPtr intPtr);
+
+    /// <summary>
+    /// 安全的EntMod
+    /// </summary>
+    /// <param name="intPtr">实体数据指针</param>
+    /// <returns>错误状态码，成功返回0</returns>
+    public static int AcdbEntModSafe(IntPtr intPtr)
+    {
+        if (intPtr == IntPtr.Zero)
+        {
+            return 1;
+        }
+        try
+        {
+            return AcdbEntMod(intPtr);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[PInvokeCad.AcdbEntModSafe] 异常: {ex.Message}");
+            return 1;
+        }
+    }
 
     [DllImport("acdb25.dll", CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "?acdbGetAdsName@@YA?AW4ErrorStatus@Acad@@AEAY01_JVAcDbObjectId@@@Z")]
@@ -141,6 +223,27 @@ public static class PInvokeCad
     [DllImport("acad.exe", CallingConvention = CallingConvention.Cdecl,
         EntryPoint = "?acedRegenLayers@@YGXABV?$AcArray@VAcDbObjectId@@V?$AcArrayMemCopyReallocator@VAcDbObjectId@@@@@@H@Z")]
     public static extern void AcedRegenLayers(IntPtr arrayPtr, int mode);
+
+    /// <summary>
+    /// 安全的刷新指定图层
+    /// </summary>
+    /// <param name="arrayPtr">ObjectId数组指针</param>
+    /// <param name="mode">模式参数</param>
+    public static void AcedRegenLayersSafe(IntPtr arrayPtr, int mode)
+    {
+        if (arrayPtr == IntPtr.Zero)
+        {
+            return;
+        }
+        try
+        {
+            AcedRegenLayers(arrayPtr, mode);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[PInvokeCad.AcedRegenLayersSafe] 异常: {ex.Message}");
+        }
+    }
 #endif
 }
 

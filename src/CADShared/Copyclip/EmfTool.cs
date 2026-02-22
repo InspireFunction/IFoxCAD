@@ -124,6 +124,13 @@ public struct PlaceableMetaHeader
         if (sWMF.IsActivity)
             iOffset = Marshal.SizeOf(typeof(PlaceableMetaHeader));
 
+        // 边界检查
+        if (fileByte == null || iOffset >= fileByte.Length)
+        {
+            DebugEx.Printl("[Wmf2Emf] 错误: 文件数据为空或偏移越界");
+            return IntPtr.Zero;
+        }
+
         unsafe
         {
             // 安全指针方法
@@ -270,12 +277,22 @@ public struct EnhMetaHeader
             throw new ArgumentException(nameof(len));
 
         IntPtr header = Marshal.AllocHGlobal((int)len);
-        EmfTool.GetEnhMetaFileHeader(emf, len, header);//这里是切割获取内部的bytes,存放在header
+        if (header == IntPtr.Zero)
+            throw new ArgumentException(nameof(header));
+            
+        try
+        {
+            uint resultLen = EmfTool.GetEnhMetaFileHeader(emf, len, header);//这里是切割获取内部的bytes,存放在header
+            if (resultLen == 0)
+                throw new ArgumentException("GetEnhMetaFileHeader failed");
 
-        var result = (EnhMetaHeader)Marshal.PtrToStructure(header, typeof(EnhMetaHeader));
-
-        Marshal.FreeHGlobal(header);
-        return result;
+            var result = (EnhMetaHeader)Marshal.PtrToStructure(header, typeof(EnhMetaHeader));
+            return result;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(header);
+        }
     }
 }
 
@@ -293,6 +310,9 @@ public static class EmfTool
     {
         // 保存emf文件
         // https://blog.csdn.net/tigertianx/article/details/7098490
+        if (clipTypeData == IntPtr.Zero)
+            return;
+            
         var len = EmfTool.GetEnhMetaFileBits(clipTypeData, 0, null!);
         if (len != 0)
         {
@@ -325,6 +345,9 @@ public static class EmfTool
     [System.CodeDom.Compiler.GeneratedCode("InteropSignatureToolkit", "0.9 Beta1")]//初始化时指定生成代码的工具的名称和版本
     public static string? GetEnhMetaFileDescriptionEx(IntPtr clipTypeData)
     {
+        if (clipTypeData == IntPtr.Zero)
+            return null;
+            
         var len = GetEnhMetaFileDescription(clipTypeData, 0, null!);
         if (len != 0)
         {
@@ -503,20 +526,166 @@ public static class EmfTool
     [DllImport("gdi32.dll")]
     static extern int GetDeviceCaps(IntPtr hDC, DeviceCap nIndex);
 
+    /// <summary>
+    /// 安全获取设备能力
+    /// </summary>
+    /// <param name="hDC">设备上下文句柄</param>
+    /// <param name="nIndex">设备能力索引</param>
+    /// <returns>设备能力值，失败返回0</returns>
+    public static int GetDeviceCapsSafe(IntPtr hDC, DeviceCap nIndex)
+    {
+        if (hDC == IntPtr.Zero)
+        {
+            return 0;
+        }
+        try
+        {
+            return GetDeviceCaps(hDC, nIndex);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.GetDeviceCapsSafe] 异常: {ex.Message}");
+            return 0;
+        }
+    }
+
     [DllImport("gdi32.dll")]
     static extern int SetMapMode(IntPtr hDC, MappingModes fnMapMode);
+
+    /// <summary>
+    /// 安全设置映射模式
+    /// </summary>
+    /// <param name="hDC">设备上下文句柄</param>
+    /// <param name="fnMapMode">映射模式</param>
+    /// <returns>之前的映射模式，失败返回0</returns>
+    public static int SetMapModeSafe(IntPtr hDC, MappingModes fnMapMode)
+    {
+        if (hDC == IntPtr.Zero)
+        {
+            return 0;
+        }
+        try
+        {
+            return SetMapMode(hDC, fnMapMode);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.SetMapModeSafe] 异常: {ex.Message}");
+            return 0;
+        }
+    }
 
     [DllImport("gdi32.dll")]
     static extern bool SetViewportOrgEx(IntPtr hDC, int x, int y, Point[] prevPoint);
 
+    /// <summary>
+    /// 安全设置视口原点
+    /// </summary>
+    /// <param name="hDC">设备上下文句柄</param>
+    /// <param name="x">X坐标</param>
+    /// <param name="y">Y坐标</param>
+    /// <param name="prevPoint">之前的原点</param>
+    /// <returns>是否成功</returns>
+    public static bool SetViewportOrgExSafe(IntPtr hDC, int x, int y, Point[] prevPoint)
+    {
+        if (hDC == IntPtr.Zero)
+        {
+            return false;
+        }
+        try
+        {
+            return SetViewportOrgEx(hDC, x, y, prevPoint);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.SetViewportOrgExSafe] 异常: {ex.Message}");
+            return false;
+        }
+    }
+
     [DllImport("gdi32.dll")]
     static extern bool SetWindowOrgEx(IntPtr hDC, int x, int y, Point[] prevPoint);
+
+    /// <summary>
+    /// 安全设置窗口原点
+    /// </summary>
+    /// <param name="hDC">设备上下文句柄</param>
+    /// <param name="x">X坐标</param>
+    /// <param name="y">Y坐标</param>
+    /// <param name="prevPoint">之前的原点</param>
+    /// <returns>是否成功</returns>
+    public static bool SetWindowOrgExSafe(IntPtr hDC, int x, int y, Point[] prevPoint)
+    {
+        if (hDC == IntPtr.Zero)
+        {
+            return false;
+        }
+        try
+        {
+            return SetWindowOrgEx(hDC, x, y, prevPoint);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.SetWindowOrgExSafe] 异常: {ex.Message}");
+            return false;
+        }
+    }
 
     [DllImport("gdi32.dll")]
     static extern bool SetViewportExtEx(IntPtr hDC, int nExtentX, int nExtentY, Size[] prevSize);
 
+    /// <summary>
+    /// 安全设置视口范围
+    /// </summary>
+    /// <param name="hDC">设备上下文句柄</param>
+    /// <param name="nExtentX">X范围</param>
+    /// <param name="nExtentY">Y范围</param>
+    /// <param name="prevSize">之前的范围</param>
+    /// <returns>是否成功</returns>
+    public static bool SetViewportExtExSafe(IntPtr hDC, int nExtentX, int nExtentY, Size[] prevSize)
+    {
+        if (hDC == IntPtr.Zero)
+        {
+            return false;
+        }
+        try
+        {
+            return SetViewportExtEx(hDC, nExtentX, nExtentY, prevSize);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.SetViewportExtExSafe] 异常: {ex.Message}");
+            return false;
+        }
+    }
+
     [DllImport("gdi32.dll")]
     static extern bool SetWindowExtEx(IntPtr hDC, int nExtentX, int nExtentY, Size[] prevSize);
+
+    /// <summary>
+    /// 安全设置窗口范围
+    /// </summary>
+    /// <param name="hDC">设备上下文句柄</param>
+    /// <param name="nExtentX">X范围</param>
+    /// <param name="nExtentY">Y范围</param>
+    /// <param name="prevSize">之前的范围</param>
+    /// <returns>是否成功</returns>
+    public static bool SetWindowExtExSafe(IntPtr hDC, int nExtentX, int nExtentY, Size[] prevSize)
+    {
+        if (hDC == IntPtr.Zero)
+        {
+            return false;
+        }
+        try
+        {
+            return SetWindowExtEx(hDC, nExtentX, nExtentY, prevSize);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.SetWindowExtExSafe] 异常: {ex.Message}");
+            return false;
+        }
+    }
 
     [DllImport("Gdi32.dll")]
     public static extern int CreatePen(int nPenStyle, int nWidth, int nColor);
@@ -527,20 +696,142 @@ public static class EmfTool
     [DllImport("Gdi32.dll")]
     public static extern int SelectObject(IntPtr hDC, int hGdiObject);
 
+    /// <summary>
+    /// 安全选择对象
+    /// </summary>
+    /// <param name="hDC">设备上下文句柄</param>
+    /// <param name="hGdiObject">GDI对象句柄</param>
+    /// <returns>之前选择的对象句柄，失败返回0</returns>
+    public static int SelectObjectSafe(IntPtr hDC, int hGdiObject)
+    {
+        if (hDC == IntPtr.Zero)
+        {
+            return 0;
+        }
+        try
+        {
+            return SelectObject(hDC, hGdiObject);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.SelectObjectSafe] 异常: {ex.Message}");
+            return 0;
+        }
+    }
+
     [DllImport("Gdi32.dll")]
     public static extern int DeleteObject(int hBitmap);
 
     [DllImport("Gdi32.dll")]
     public static extern int MoveToEx(IntPtr hDC, int x, int y, int nPreviousPoint);
 
+    /// <summary>
+    /// 安全移动到指定点
+    /// </summary>
+    /// <param name="hDC">设备上下文句柄</param>
+    /// <param name="x">X坐标</param>
+    /// <param name="y">Y坐标</param>
+    /// <param name="nPreviousPoint">之前的点</param>
+    /// <returns>是否成功</returns>
+    public static int MoveToExSafe(IntPtr hDC, int x, int y, int nPreviousPoint)
+    {
+        if (hDC == IntPtr.Zero)
+        {
+            return 0;
+        }
+        try
+        {
+            return MoveToEx(hDC, x, y, nPreviousPoint);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.MoveToExSafe] 异常: {ex.Message}");
+            return 0;
+        }
+    }
+
     [DllImport("Gdi32.dll")]
     public static extern int LineTo(IntPtr hDC, int x, int y);
+
+    /// <summary>
+    /// 安全绘制直线
+    /// </summary>
+    /// <param name="hDC">设备上下文句柄</param>
+    /// <param name="x">X坐标</param>
+    /// <param name="y">Y坐标</param>
+    /// <returns>是否成功</returns>
+    public static int LineToSafe(IntPtr hDC, int x, int y)
+    {
+        if (hDC == IntPtr.Zero)
+        {
+            return 0;
+        }
+        try
+        {
+            return LineTo(hDC, x, y);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.LineToSafe] 异常: {ex.Message}");
+            return 0;
+        }
+    }
 
     [DllImport("Gdi32.dll")]
     public static extern int Rectangle(IntPtr hDC, int nLeft, int nTop, int nRight, int nBottom);
 
+    /// <summary>
+    /// 安全绘制矩形
+    /// </summary>
+    /// <param name="hDC">设备上下文句柄</param>
+    /// <param name="nLeft">左边界</param>
+    /// <param name="nTop">上边界</param>
+    /// <param name="nRight">右边界</param>
+    /// <param name="nBottom">下边界</param>
+    /// <returns>是否成功</returns>
+    public static int RectangleSafe(IntPtr hDC, int nLeft, int nTop, int nRight, int nBottom)
+    {
+        if (hDC == IntPtr.Zero)
+        {
+            return 0;
+        }
+        try
+        {
+            return Rectangle(hDC, nLeft, nTop, nRight, nBottom);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.RectangleSafe] 异常: {ex.Message}");
+            return 0;
+        }
+    }
+
     [DllImport("Gdi32.dll")]
     public static extern bool DPtoLP(IntPtr hdc, [In, Out] Point[] lpPoints, int nCount);
+
+    /// <summary>
+    /// 安全的设备坐标转逻辑坐标
+    /// </summary>
+    /// <param name="hdc">设备上下文句柄</param>
+    /// <param name="lpPoints">点数组</param>
+    /// <param name="nCount">点数量</param>
+    /// <returns>是否成功</returns>
+    public static bool DPtoLPSafe(IntPtr hdc, [In, Out] Point[] lpPoints, int nCount)
+    {
+        if (hdc == IntPtr.Zero || lpPoints == null || lpPoints.Length == 0)
+        {
+            return false;
+        }
+        try
+        {
+            return DPtoLP(hdc, lpPoints, nCount);
+        }
+        catch (Exception ex)
+        {
+            DebugEx.Printl($"[EmfTool.DPtoLPSafe] 异常: {ex.Message}");
+            return false;
+        }
+    }
 
 
     /// <summary>
@@ -780,8 +1071,11 @@ public static class EmfTool
     {
         //MetafileHeader metafileHeader = file.GetMetafileHeader(); //这句话可要可不要
         IntPtr h = file.GetHenhmetafile();
-        CopyEnhMetaFile(h, emfName);
-        DeleteEnhMetaFile(h);
+        if (h != IntPtr.Zero)
+        {
+            CopyEnhMetaFile(h, emfName);
+            DeleteEnhMetaFile(h);
+        }
     }
 
     /// <summary>
@@ -829,6 +1123,9 @@ public static class EmfTool
             throw new ArgumentNullException(nameof(task));
 
         IntPtr hemf = SetEnhMetaFileBits((uint)data.Length, data);
+        if (hemf == IntPtr.Zero)
+            return;
+            
         using var mf = new Metafile(hemf, true);
         if (task.Invoke(mf)) // 对图像进行操作,就不能进行删除句柄
             DeleteEnhMetaFile(hemf);

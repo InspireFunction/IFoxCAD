@@ -241,7 +241,15 @@ public class AcadPeInfo
             .ThenBy(str => str.MethodName.Length)
             .ToList();
 
-        func = Marshal.GetDelegateForFunctionPointer(Methods.First().GetProcAddress(), typeof(TDelegate)) as TDelegate;
+        var firstMethod = Methods.First();
+        var procAddress = firstMethod.GetProcAddress();
+        if (procAddress == IntPtr.Zero)
+        {
+            DebugEx.Printl($"[GetDelegate] 错误: 函数指针为空，方法名: {firstMethod.MethodName}");
+            return null;
+        }
+        
+        func = Marshal.GetDelegateForFunctionPointer(procAddress, typeof(TDelegate)) as TDelegate;
         return func;
     }
     #endregion
@@ -299,7 +307,11 @@ public class PeFunction
     /// </summary>
     public IntPtr GetProcAddress()
     {
-        return WindowsAPI.GetProcAddress(ModuleIntPtr, MethodName);
+        if (ModuleIntPtr == IntPtr.Zero)
+            return IntPtr.Zero;
+        
+        var procAddress = WindowsAPI.GetProcAddress(ModuleIntPtr, MethodName);
+        return procAddress;
     }
 
     /// <summary>
