@@ -43,12 +43,21 @@ public class StatusBar
         Acap.StatusBar.Update();
     }
 
+    // 如果用 Terminate() 的时候析构,
+    // 此时界面已经完成回收了.最重要的是,它没有IsDisposed标记给我判断.
     public static void IMERemovePane()
     {
-        if (_pane is null)
+        if (_pane is null || _pane.IsDisposed)
             return;
 
-        // cad08需要用这样的方式才能保证移除后更新界面
+        // 进程关闭前释放,不能判断 Panes 这种界面类了.
+        if (Acap.DocumentManager.Count == 0)
+        {
+            _pane = null;
+            return;
+        }
+
+        // acad08需要用这样的方式才能保证移除后更新界面
         var panes = Acap.StatusBar.Panes;
         for (int i = panes.Count() - 1; i >= 0; i--)
             if (panes[i] == _pane)

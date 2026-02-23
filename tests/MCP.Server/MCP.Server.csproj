@@ -10,10 +10,6 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Compile Include="..\TestAcad08\MCP调用\JsonRpcProtocol.cs" Link="src\JsonRpcProtocol.cs" />
-    </ItemGroup>
-
-    <ItemGroup>
         <PackageReference Include="System.IO.Pipes" Version="4.3.0" />
     </ItemGroup>
 

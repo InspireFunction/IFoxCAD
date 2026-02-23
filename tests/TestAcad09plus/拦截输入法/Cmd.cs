@@ -111,8 +111,8 @@ public class Cmd
         }
     }
 
-    [IFoxInitialize(Sequence.EndDocs)]
-    public void Terminate(Document doc)
+    [IFoxInitialize(Sequence.ProcessLast)]
+    public void Terminate()
     {
         try
         {
@@ -127,14 +127,20 @@ public class Cmd
                 _settingsWatcher = null;
             }
 
-            // 移除文档反应器
-            DocReactor.RemoveReactor();
+            // Sequence.ProcessLast 是进程关闭前回收,
+            // 不能处理任何关于面板的类,它们已经释放,但是没有标记.
+            // 万一你需要改为其他释放层级呢?
+            var dm = Acap.DocumentManager;
+            if (dm.Count != 0)
+            {
+                // 移除文档反应器
+                DocReactor.RemoveReactor();
+                // 移除状态栏面板
+                StatusBar.IMERemovePane();
+            }
 
             // 卸载钩子
             IMEControl.UnIMEHook();
-
-            // 移除状态栏面板
-            StatusBar.IMERemovePane();
 
             Env.Printl("※拦截输入法控制※ 已安全卸载");
         }

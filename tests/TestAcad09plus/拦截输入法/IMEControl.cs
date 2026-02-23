@@ -406,7 +406,12 @@ public class IMEControl
         try
         {
             // 重复校验
-            var focus = WindowsAPI.GetFocusSafe();
+            IntPtr focus;
+            if (Marshal.SizeOf(typeof(IntPtr)) == 4)
+                focus = WindowsAPI.GetFocusSafe(); // acad08_32位_这里会获取0,拥有键盘输入焦点的窗口
+            else
+                focus = WindowsAPI.GetForegroundWindowSafe();
+
             if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
             {
                 DebugEx.Printl("[ExceptCmds_AutoEn2Cn_Task] 获取焦点窗口失败或窗口无效");
@@ -489,6 +494,7 @@ public class IMEControl
                     focus = WindowsAPI.GetFocusSafe();
                 else
                     focus = WindowsAPI.GetForegroundWindowSafe();
+
                 if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
                 {
                     DebugEx.Printl("[IMEHook] 获取焦点窗口失败或窗口无效");
@@ -642,7 +648,7 @@ public class IMEControl
         {
             IntPtr focus;
             if (Marshal.SizeOf(typeof(IntPtr)) == 4)
-                focus = WindowsAPI.GetFocusSafe();
+                focus = WindowsAPI.GetFocusSafe(); // acad08_32位_这里会获取0,拥有键盘输入焦点的窗口
             else
                 focus = WindowsAPI.GetForegroundWindowSafe();
 

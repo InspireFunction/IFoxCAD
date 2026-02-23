@@ -293,7 +293,7 @@ public partial class WindowsAPI
             DebugEx.Printl("[BytesToStruct] 错误: 输入数组为空");
             return default;
         }
-        
+
         T? result = default;
         unsafe
         {
@@ -323,7 +323,7 @@ public partial class WindowsAPI
             DebugEx.Printl("[StructToBytes] 错误: 结构体大小为0");
             return new byte[0];
         }
-        
+
         // 从内存空间拷到byte数组
         var bytes = new byte[typeSize];
         unsafe
@@ -515,6 +515,7 @@ public partial class WindowsAPI
 
     /// <summary>
     /// 获取当前前台窗口（带错误检查）
+    /// 没有键盘焦点(比如弹出了模态对话框),它依然返回主窗口句柄.
     /// </summary>
     /// <returns>前台窗口句柄，失败返回IntPtr.Zero</returns>
     public static IntPtr GetForegroundWindowSafe()
@@ -755,6 +756,7 @@ public partial class WindowsAPI
 
     /// <summary>
     /// 获取当前焦点窗口（带错误检查）
+    /// 拥有键盘输入焦点的窗口
     /// </summary>
     /// <returns>焦点窗口句柄，失败返回IntPtr.Zero</returns>
     public static IntPtr GetFocusSafe()

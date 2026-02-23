@@ -20,6 +20,12 @@ namespace MCP.Server
         private readonly SuccessCaseLogger _successLogger;
         private bool _isRunning;
 
+        // 从 CAD 获取的 serverInfo，用于 initialize 响应
+        private Dictionary<string, object>? _cadServerInfo;
+
+        // 从 CAD 获取的 tools 列表，用于 tools/list 响应
+        private List<object>? _cadTools;
+
         public McpServer(NamedPipeClient pipeClient, Config config)
         {
             _pipeClient = pipeClient;
@@ -49,6 +55,10 @@ namespace MCP.Server
             Console.Error.WriteLine("[信息] 等待 MCP 请求...");
             Console.Error.WriteLine();
 
+            // 启动时从 CAD 获取 serverInfo 和 tools
+            await FetchCadServerInfoAsync(ct);
+            await FetchCadToolsAsync(ct);
+
             // 启动看门狗
             _ = _watchdog.StartAsync(ct);
 
@@ -58,7 +68,11 @@ namespace MCP.Server
                 try
                 {
                     var line = await Console.In.ReadLineAsync(ct);
-                    if (line == null) break;
+                    if (line == null)
+                    {
+                        Console.Error.WriteLine("[信息] CAD 已离线 (输入流关闭)");
+                        break;
+                    }
 
                     if (string.IsNullOrWhiteSpace(line)) continue;
 
@@ -71,8 +85,8 @@ namespace MCP.Server
                 }
                 catch (Exception ex)
                 {
-                    var errorResponse = CreateMcpErrorResponse(null, -32603, $"Internal error: {ex.Message}");
-                    Console.Out.WriteLine(errorResponse);
+                    Console.Error.WriteLine($"[信息] CAD 已离线: {ex.Message}");
+                    break;
                 }
             }
         }
@@ -133,10 +147,99 @@ namespace MCP.Server
         }
 
         /// <summary>
+        /// 从 CAD 获取 serverInfo
+        /// </summary>
+        private async Task FetchCadServerInfoAsync(CancellationToken ct)
+        {
+            try
+            {
+                var request = new Dictionary<string, object>
+                {
+                    ["id"] = 1,
+                    ["type"] = "Mcp_cad_get_info",
+                    ["payload"] = new Dictionary<string, object>()
+                };
+                var requestJson = IFoxCAD.Cad.MyJson.SerializeObject(request, new IFoxCAD.Cad.MyJsonSettings
+                {
+                    Formatting = IFoxCAD.Cad.Formatting.None,
+                    PreserveReferencesHandling = IFoxCAD.Cad.PreserveReferencesHandling.None,
+                    ReferenceLoopHandling = IFoxCAD.Cad.ReferenceLoopHandling.Serialize
+                });
+
+                Console.Error.WriteLine("[信息] 正在从 CAD 获取 serverInfo...");
+                var response = await _pipeClient.SendRequestAsync(requestJson, 10000);
+                if (!string.IsNullOrEmpty(response))
+                {
+                    var responseObj = MyJson.DeserializeObject<Dictionary<string, object>>(response);
+                    if (responseObj != null && responseObj.TryGetValue("result", out var resultObj) && resultObj is Dictionary<string, object> result)
+                    {
+                        if (result.TryGetValue("serverInfo", out var serverInfoObj) && serverInfoObj is Dictionary<string, object> serverInfo)
+                        {
+                            _cadServerInfo = serverInfo;
+                            Console.Error.WriteLine($"[信息] 已从 CAD 获取 serverInfo: name={serverInfo.GetValueOrDefault("name")}, version={serverInfo.GetValueOrDefault("version")}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[警告] 获取 CAD serverInfo 失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 从 CAD 获取 tools 列表
+        /// </summary>
+        private async Task FetchCadToolsAsync(CancellationToken ct)
+        {
+            try
+            {
+                var request = new Dictionary<string, object>
+                {
+                    ["id"] = 2,
+                    ["type"] = "Mcp_cad_get_tools",
+                    ["payload"] = new Dictionary<string, object>()
+                };
+                var requestJson = IFoxCAD.Cad.MyJson.SerializeObject(request, new IFoxCAD.Cad.MyJsonSettings
+                {
+                    Formatting = IFoxCAD.Cad.Formatting.None,
+                    PreserveReferencesHandling = IFoxCAD.Cad.PreserveReferencesHandling.None,
+                    ReferenceLoopHandling = IFoxCAD.Cad.ReferenceLoopHandling.Serialize
+                });
+
+                Console.Error.WriteLine("[信息] 正在从 CAD 获取 tools 列表...");
+                var response = await _pipeClient.SendRequestAsync(requestJson, 10000);
+                if (!string.IsNullOrEmpty(response))
+                {
+                    var responseObj = MyJson.DeserializeObject<Dictionary<string, object>>(response);
+                    if (responseObj != null && responseObj.TryGetValue("result", out var resultObj) && resultObj is Dictionary<string, object> result)
+                    {
+                        if (result.TryGetValue("tools", out var toolsObj) && toolsObj is List<object> tools)
+                        {
+                            _cadTools = tools;
+                            Console.Error.WriteLine($"[信息] 已从 CAD 获取 {tools.Count} 个 tools");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[警告] 获取 CAD tools 失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
         /// 处理initialize请求
         /// </summary>
         private string HandleInitialize(object? requestId)
         {
+            // 使用从 CAD 获取的 serverInfo，如果没有则使用默认值
+            var serverInfo = _cadServerInfo ?? new Dictionary<string, object>
+            {
+                ["name"] = "mcp-cad-server",
+                ["version"] = "1.0.0"
+            };
+
             var result = new Dictionary<string, object>
             {
                 ["protocolVersion"] = "2024-11-05",
@@ -144,11 +247,7 @@ namespace MCP.Server
                 {
                     ["tools"] = new Dictionary<string, object> { ["listChanged"] = true }
                 },
-                ["serverInfo"] = new Dictionary<string, object>
-                {
-                    ["name"] = "mcp-cad-server",
-                    ["version"] = "1.0.0"
-                }
+                ["serverInfo"] = serverInfo
             };
 
             var responseJson = CreateMcpSuccessResponse(requestId, result);
@@ -158,257 +257,16 @@ namespace MCP.Server
 
         /// <summary>
         /// 处理tools/list请求
+        /// 使用从 CAD 获取的 tools 列表
         /// </summary>
         private string HandleToolsList(object? requestId)
         {
-            var tools = new List<object>
-            {
-                new Dictionary<string, object>
-                {
-                    ["name"] = "get_cad_info",
-                    ["description"] = "获取CAD进程信息，包括PID、版本、年份等",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>(),
-                        ["required"] = new List<object>()
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "send_command",
-                    ["description"] = "发送命令到CAD执行。注意：如果命令有-前缀版本，请优先使用-前缀版本以避免交互式提示",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>
-                        {
-                            ["command"] = new Dictionary<string, object>
-                            {
-                                ["type"] = "string",
-                                ["description"] = "CAD命令，例如 '-circle 0,0,0 500'"
-                            },
-                            ["timeout"] = new Dictionary<string, object>
-                            {
-                                ["type"] = "integer",
-                                ["description"] = "超时时间（秒），默认30秒",
-                                ["default"] = 30
-                            }
-                        },
-                        ["required"] = new List<object> { "command" }
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "get_history",
-                    ["description"] = "获取CAD命令执行历史",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>
-                        {
-                            ["doc_name"] = new Dictionary<string, object>
-                            {
-                                ["type"] = "string",
-                                ["description"] = "文档名称（可选，默认当前文档）"
-                            }
-                        },
-                        ["required"] = new List<object>()
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "switch_document",
-                    ["description"] = "切换到指定的CAD文档",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>
-                        {
-                            ["doc_name"] = new Dictionary<string, object>
-                            {
-                                ["type"] = "string",
-                                ["description"] = "目标文档名称"
-                            }
-                        },
-                        ["required"] = new List<object> { "doc_name" }
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "update_pgp",
-                    ["description"] = "重新加载PGP命令定义",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>(),
-                        ["required"] = new List<object>()
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "get_command_status",
-                    ["description"] = "获取当前命令执行状态",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>(),
-                        ["required"] = new List<object>()
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "draw_line",
-                    ["description"] = "在CAD中画直线",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>
-                        {
-                            ["x1"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "起点X坐标" },
-                            ["y1"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "起点Y坐标" },
-                            ["z1"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "起点Z坐标", ["default"] = 0 },
-                            ["x2"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "终点X坐标" },
-                            ["y2"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "终点Y坐标" },
-                            ["z2"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "终点Z坐标", ["default"] = 0 }
-                        },
-                        ["required"] = new List<object> { "x1", "y1", "x2", "y2" }
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "draw_circle",
-                    ["description"] = "在CAD中画圆",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>
-                        {
-                            ["x"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "圆心X坐标" },
-                            ["y"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "圆心Y坐标" },
-                            ["z"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "圆心Z坐标", ["default"] = 0 },
-                            ["radius"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "圆的半径" }
-                        },
-                        ["required"] = new List<object> { "x", "y", "radius" }
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "draw_arc",
-                    ["description"] = "在CAD中画圆弧",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>
-                        {
-                            ["x"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "圆心X坐标" },
-                            ["y"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "圆心Y坐标" },
-                            ["z"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "圆心Z坐标", ["default"] = 0 },
-                            ["radius"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "圆弧半径" },
-                            ["start_angle"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "起始角度（度）" },
-                            ["end_angle"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "终止角度（度）" }
-                        },
-                        ["required"] = new List<object> { "x", "y", "radius", "start_angle", "end_angle" }
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "draw_rectangle",
-                    ["description"] = "在CAD中画矩形",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>
-                        {
-                            ["x1"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "角点1 X坐标" },
-                            ["y1"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "角点1 Y坐标" },
-                            ["x2"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "角点2 X坐标" },
-                            ["y2"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "角点2 Y坐标" },
-                            ["z"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "Z坐标", ["default"] = 0 }
-                        },
-                        ["required"] = new List<object> { "x1", "y1", "x2", "y2" }
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "draw_polyline",
-                    ["description"] = "在CAD中画多段线",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>
-                        {
-                            ["points"] = new Dictionary<string, object>
-                            {
-                                ["type"] = "array",
-                                ["description"] = "顶点坐标数组，格式: [[x,y,z], [x,y,z], ...]",
-                                ["items"] = new Dictionary<string, object>
-                                {
-                                    ["type"] = "array",
-                                    ["items"] = new Dictionary<string, object> { ["type"] = "number" }
-                                }
-                            },
-                            ["close"] = new Dictionary<string, object> { ["type"] = "boolean", ["description"] = "是否闭合多段线", ["default"] = false }
-                        },
-                        ["required"] = new List<object> { "points" }
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "draw_text",
-                    ["description"] = "在CAD中创建单行文字",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>
-                        {
-                            ["text"] = new Dictionary<string, object> { ["type"] = "string", ["description"] = "文字内容" },
-                            ["x"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "插入点X坐标" },
-                            ["y"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "插入点Y坐标" },
-                            ["z"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "插入点Z坐标", ["default"] = 0 },
-                            ["height"] = new Dictionary<string, object> { ["type"] = "number", ["description"] = "文字高度", ["default"] = 2.5 }
-                        },
-                        ["required"] = new List<object> { "text", "x", "y" }
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "zoom_extents",
-                    ["description"] = "缩放视图到图形范围",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>(),
-                        ["required"] = new List<object>()
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "regen",
-                    ["description"] = "重新生成图形",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>(),
-                        ["required"] = new List<object>()
-                    }
-                },
-                new Dictionary<string, object>
-                {
-                    ["name"] = "say_hello_cad",
-                    ["description"] = "在CAD命令行随机打印一句问候语",
-                    ["inputSchema"] = new Dictionary<string, object>
-                    {
-                        ["type"] = "object",
-                        ["properties"] = new Dictionary<string, object>(),
-                        ["required"] = new List<object>()
-                    }
-                }
-            };
+            // 使用从 CAD 获取的 tools，如果没有则返回空列表
+            var tools = _cadTools ?? new List<object>();
 
             var result = new Dictionary<string, object> { ["tools"] = tools };
             var responseJson = CreateMcpSuccessResponse(requestId, result);
-            Console.Error.WriteLine($"[DEBUG] tools/list 返回的响应: {responseJson}");
+            Console.Error.WriteLine($"[DEBUG] tools/list 返回 {tools.Count} 个工具");
             return responseJson;
         }
 
@@ -417,6 +275,16 @@ namespace MCP.Server
         /// </summary>
         private async Task<string> HandleToolsCallAsync(object? requestId, object? parameters)
         {
+            if (requestId is null)
+            {
+                throw new ArgumentNullException(nameof(requestId));
+            }
+
+            if (parameters is null)
+            {
+                throw new ArgumentNullException(nameof(parameters));
+            }
+
             Console.Error.WriteLine($"[DEBUG] 收到tools/call请求: {(parameters != null ? IFoxCAD.Cad.MyJson.SerializeObject(parameters, new IFoxCAD.Cad.MyJsonSettings
             {
                 Formatting = IFoxCAD.Cad.Formatting.None,
