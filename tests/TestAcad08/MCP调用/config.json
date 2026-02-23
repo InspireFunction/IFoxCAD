@@ -1,0 +1,16 @@
+{
+    "cad": {
+        "exe_path": "C:\\Program Files (x86)\\AutoCAD 2008\\acad.exe",
+        "startup_args": "/nologo",
+        "pipe_name": "MCP_CAD_PIPE_{pid}"
+    },
+    "watchdog": {
+        "timeout_stage1": 5000,
+        "timeout_stage2": 5000,
+        "esc_retry_count": 3
+    },
+    "logging": {
+        "level": "info",
+        "success_case_path": "success_cases.json"
+    }
+}

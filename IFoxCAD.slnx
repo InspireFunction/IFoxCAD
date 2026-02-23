@@ -13,6 +13,7 @@
   <Folder Name="/tests/">
     <Project Path="tests/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />
     <Project Path="tests/IFoxCAD.WPF/IFoxCAD.WPF.csproj" />
+    <Project Path="tests/MCP.Server/MCP.Server.csproj" />
     <Project Path="tests/PEInfoTest/PEInfoTest.csproj" />
     <Project Path="tests/TestAcad08/TestAcad08.csproj" />
     <Project Path="tests/TestAcad09plus/TestAcad09plus.csproj" />

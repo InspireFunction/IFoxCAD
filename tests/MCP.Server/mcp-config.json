@@ -1,0 +1,15 @@
+{
+  "mcpServers": {
+    "cad-mcp": {
+      "command": "dotnet",
+      "args": [
+        "run",
+        "--project",
+        "g:\\IFox工程\\acad_IFoxCAD_35\\tests\\MCP.Server\\MCP.Server.csproj"
+      ],
+      "env": {
+        "CAD_PATH": "C:\\Program Files (x86)\\AutoCAD 2008\\acad.exe"
+      }
+    }
+  }
+}

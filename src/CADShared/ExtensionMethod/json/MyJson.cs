@@ -4,6 +4,14 @@
 
 #nullable enable
 
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Text;
 using System.Xml.Linq;
 
 namespace IFoxCAD.Cad;
@@ -908,6 +916,26 @@ public class MyJson
         if (targetType.IsEnum)
             return Enum.Parse(targetType, token.Value?.ToString() ?? "");
 
+        // 特殊处理：Dictionary<string, object>
+        if (targetType == typeof(Dictionary<string, object>) || targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+        {
+            if (token.Type == TokenType.Object && token.Value is Dictionary<string, object>)
+            {
+                return token.Value;
+            }
+            return new Dictionary<string, object>();
+        }
+
+        // 特殊处理：List<object>
+        if (targetType == typeof(List<object>) || targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(List<>))
+        {
+            if (token.Type == TokenType.Array && token.Value is List<object>)
+            {
+                return token.Value;
+            }
+            return new List<object>();
+        }
+
         var converter = _converters.FirstOrDefault(c => c.SupportedTypes.Contains(targetType));
         if (converter != null && token.Type == TokenType.Object)
         {
@@ -1026,6 +1054,8 @@ public class MyJson
             _idToObject[objectId] = obj;
         }
 
+        //Console.Error.WriteLine($"[MyJson] 开始反序列化对象，类型: {type.FullName}, 字段数: {dict.Count}");
+
         foreach (var kvp in dict)
         {
             var field = type.GetField(kvp.Key, BindingFlags.Public | BindingFlags.Instance);
@@ -1033,15 +1063,43 @@ public class MyJson
             {
                 var value = DeserializeToken(new Token { Type = GetTokenType(kvp.Value), Value = kvp.Value }, field.FieldType);
                 field.SetValue(obj, value);
+                //Console.Error.WriteLine($"[MyJson] 设置字段 {kvp.Key} (Field)");
+                continue;
             }
 
             var prop = type.GetProperty(kvp.Key, BindingFlags.Public | BindingFlags.Instance);
             if (prop != null && prop.CanWrite)
             {
                 var value = DeserializeToken(new Token { Type = GetTokenType(kvp.Value), Value = kvp.Value }, prop.PropertyType);
-                try { prop.SetValue(obj, value, null); }
-                catch { }
+                value = ConvertToPropertyType(value, prop.PropertyType);
+                prop.SetValue(obj, value, null);
+                //Console.Error.WriteLine($"[MyJson] 设置属性 {kvp.Key} (Property)");
+                continue;
             }
+
+            // 如果找不到字段或属性，尝试忽略大小写
+            prop = type.GetProperty(kvp.Key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase);
+            if (prop != null && prop.CanWrite)
+            {
+                var value = DeserializeToken(new Token { Type = GetTokenType(kvp.Value), Value = kvp.Value }, prop.PropertyType);
+                value = ConvertToPropertyType(value, prop.PropertyType);
+                prop.SetValue(obj, value, null);
+                //Console.Error.WriteLine($"[MyJson] 设置属性 {kvp.Key} (Property, IgnoreCase)");
+                continue;
+            }
+
+            // 如果还是找不到，尝试包含所有标志
+            prop = type.GetProperty(kvp.Key, BindingFlags.Public | BindingFlags.Instance | BindingFlags.IgnoreCase | BindingFlags.FlattenHierarchy);
+            if (prop != null && prop.CanWrite)
+            {
+                var value = DeserializeToken(new Token { Type = GetTokenType(kvp.Value), Value = kvp.Value }, prop.PropertyType);
+                value = ConvertToPropertyType(value, prop.PropertyType);
+                prop.SetValue(obj, value, null);
+                //Console.Error.WriteLine($"[MyJson] 设置属性 {kvp.Key} (Property, IgnoreCase+FlattenHierarchy)");
+                continue;
+            }
+
+            //Console.Error.WriteLine($"[MyJson] 警告: 找不到字段或属性 {kvp.Key}");
         }
 
         return obj;
@@ -1136,6 +1194,58 @@ public class MyJson
                 return Activator.CreateInstance(targetType);
             return null;
         }
+    }
+
+
+    private object? ConvertToPropertyType(object? value, Type propertyType)
+    {
+        if (value == null)
+            return null;
+
+        if (propertyType.IsAssignableFrom(value.GetType()))
+            return value;
+
+        // 处理 List<object> 转换为具体类型的 List<T> 或集合接口
+        if (value is List<object> listObj && propertyType.IsGenericType)
+        {
+            var genericDef = propertyType.GetGenericTypeDefinition();
+            if (genericDef == typeof(List<>) || genericDef == typeof(IList<>) ||
+                genericDef == typeof(IEnumerable<>) || genericDef == typeof(ICollection<>))
+            {
+                var elementType = propertyType.GetGenericArguments()[0];
+                var targetListType = typeof(List<>).MakeGenericType(elementType);
+                var targetList = Activator.CreateInstance(targetListType);
+                var addMethod = targetListType.GetMethod("Add");
+
+                if (targetList != null && addMethod != null)
+                {
+                    foreach (var item in listObj)
+                    {
+                        var convertedItem = ConvertToType(item, elementType);
+                        if (convertedItem != null || elementType.IsClass || Nullable.GetUnderlyingType(elementType) != null)
+                        {
+                            addMethod.Invoke(targetList, new[] { convertedItem });
+                        }
+                    }
+                }
+                return targetList;
+            }
+        }
+
+        // 处理数组类型转换
+        if (value is List<object> listObj2 && propertyType.IsArray)
+        {
+            var elementType = propertyType.GetElementType()!;
+            var array = Array.CreateInstance(elementType, listObj2.Count);
+            for (int i = 0; i < listObj2.Count; i++)
+            {
+                array.SetValue(ConvertToType(listObj2[i], elementType), i);
+            }
+            return array;
+        }
+
+        // 尝试使用 ConvertToType 进行普通转换
+        return ConvertToType(value, propertyType);
     }
 
 

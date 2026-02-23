@@ -622,7 +622,9 @@ public static class Env
     public static void Printl(object message)
     {
         // ReSharper disable once ConditionalAccessQualifierIsNonNullableAccordingToAPIContract
-        Document?.Editor?.WriteMessage($"{Environment.NewLine}{message}\n");
+        AcadIdleManager.OnIdleOnce(() => {
+            Document?.Editor?.WriteMessage($"{Environment.NewLine}{message}\n");
+        });
     }
 
     /// <summary>
