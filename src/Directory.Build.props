@@ -1,8 +1,8 @@
 <Project>
     <!--版本号和提示-->
     <PropertyGroup>
-        <Version>0.9.8.2-beta4</Version>
-        <PackageReleaseNotes>测试ci</PackageReleaseNotes>
+        <Version>0.9.9</Version>
+        <PackageReleaseNotes>增加浩辰cad的支持</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup>

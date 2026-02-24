@@ -1,11 +1,4 @@
-﻿#if acad
-using ErrorStatus = Autodesk.AutoCAD.Runtime.ErrorStatus;
-#elif zcad
-using ErrorStatus = ZwSoft.ZwCAD.Runtime.ErrorStatus;
-#endif
-
-
-namespace IFoxCAD.Cad.Assoc;
+﻿namespace IFoxCAD.Cad.Assoc;
 
 /// <summary>
 /// 关联动作辅助类

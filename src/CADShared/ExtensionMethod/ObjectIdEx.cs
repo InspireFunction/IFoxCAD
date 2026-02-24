@@ -141,7 +141,7 @@ public static class ObjectIdEx
     /// <returns>下一个实体的id</returns>
     public static ObjectId EntNext(this ObjectId id, bool skipSub = false)
     {
-#if acad
+#if acad || gcad
         return Utils.EntNext(id, skipSub);
 #elif zcad
         if (!id.ObjectClass.IsDerivedFrom(RXClassEx.Get<Entity>()))
