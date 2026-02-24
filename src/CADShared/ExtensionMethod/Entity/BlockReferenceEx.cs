@@ -357,7 +357,9 @@ public static class BlockReferenceEx
     public static BlockVisibilityInfo? GetVisibilityInfo(this BlockReference blockReference)
     {
         var tr = DBTrans.GetTopTransaction(blockReference.Database);
-        var btr = (BlockTableRecord)tr!.GetObject(blockReference.DynamicBlockTableRecord, OpenMode.ForRead);
+        if (tr is null)
+            throw new InvalidOperationException("没有活动事务，无法获取块可见性信息");
+        var btr = (BlockTableRecord)tr.GetObject(blockReference.DynamicBlockTableRecord, OpenMode.ForRead);
         return btr.GetVisibilityInfo();
     }
 

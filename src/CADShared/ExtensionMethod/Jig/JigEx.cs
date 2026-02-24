@@ -269,6 +269,8 @@ public class JigEx : DrawJig, IDisposable
         // jig功能必然是当前前台文档,所以封装内部更好调用
         var dm = Acap.DocumentManager;
         var doc = dm.MdiActiveDocument;
+        if (doc is null)
+            throw new InvalidOperationException("没有活动文档，无法执行拖拽操作");
         var ed = doc.Editor;
         var dr = ed.Drag(this);
 

@@ -16,22 +16,22 @@ public static class Env
     /// <summary>
     /// 当前的数据库
     /// </summary>
-    public static Database Database => HostApplicationServices.WorkingDatabase;
+    public static Database Database => HostApplicationServices.WorkingDatabase?? throw new InvalidOperationException("无法获取当前工作集数据库");
 
     /// <summary>
     /// 当前文档
     /// </summary>
-    public static Document Document => Acaop.DocumentManager.MdiActiveDocument;
+    public static Document? Document => Acaop.DocumentManager.MdiActiveDocument;
 
     /// <summary>
     /// 编辑器对象
     /// </summary>
-    public static Editor Editor => Document.Editor;
+    public static Editor Editor => Document?.Editor ?? throw new InvalidOperationException("没有活动文档，无法获取编辑器");
 
     /// <summary>
     /// 图形管理器
     /// </summary>
-    public static Manager GsManager => Document.GraphicsManager;
+    public static Manager GsManager => Document?.GraphicsManager ?? throw new InvalidOperationException("没有活动文档，无法获取图形管理器");
 
     #endregion Goal
 

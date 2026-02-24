@@ -2,7 +2,7 @@
 
     <PropertyGroup>
         <!--2009也是net35-->
-        <TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
+        <TargetFrameworks>NET40;NET45</TargetFrameworks>
     </PropertyGroup>
 
     <PropertyGroup>

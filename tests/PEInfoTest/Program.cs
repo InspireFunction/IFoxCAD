@@ -39,7 +39,7 @@ class Program
 
         // 原作者的封装
         var ss = pe.GetPETable();
-        foreach (var item in ss.Tables)
+        foreach (var item in ss!.Tables)
         {
         }
     }

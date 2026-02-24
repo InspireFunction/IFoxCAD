@@ -192,6 +192,8 @@ public sealed class DBTrans : IDisposable
         bool docLock = false, bool openCloseTrans = false)
     {
         doc ??= Acaop.DocumentManager.MdiActiveDocument;
+        if (doc is null)
+            throw new InvalidOperationException("没有活动文档，无法创建事务");
         CheckDatabaseError(doc.Database);
         // 如果文档已经锁定,重复加锁会导致死锁,界面卡死,此处实现优雅的报错.
         // 那么开发时候都用IFoxCAD才能避免多次锁,除非把它做成共享内存.

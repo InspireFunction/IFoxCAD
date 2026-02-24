@@ -2,23 +2,24 @@
 
     <PropertyGroup>
         <TargetFrameworks>NET35</TargetFrameworks>
-        <PlatformTarget>x86</PlatformTarget>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+        <PlatformTarget>x86</PlatformTarget>
     </PropertyGroup>
     
     <PropertyGroup>
         <PackageId>IFox.CAD.ACAD</PackageId>
         <Title>IFox.CAD.ACAD</Title>
         <Product>IFox.CAD.ACAD</Product>
+        <NoWarn>CS8012;CS1685</NoWarn>
     </PropertyGroup>
 
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
         <DebugType>full</DebugType>
         <TreatWarningsAsErrors>True</TreatWarningsAsErrors>
     </PropertyGroup>
 
-    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
         <DebugType>none</DebugType>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
         <DocumentationFile>bin\Release\IFoxCAD.AutoCad.xml</DocumentationFile>

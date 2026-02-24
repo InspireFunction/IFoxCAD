@@ -14,7 +14,7 @@
         <EmbeddedResourceUseDependentUponConvention>false</EmbeddedResourceUseDependentUponConvention>
 
         <!-- RuntimeHelpers 的重复警告 -->
-        <NoWarn>CS1685</NoWarn>
+        <NoWarn>CS8012;CS1685</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
