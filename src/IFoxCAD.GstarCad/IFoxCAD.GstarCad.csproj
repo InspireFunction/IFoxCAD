@@ -7,6 +7,7 @@
         <PackageId>IFox.CAD.GCAD</PackageId>
         <Title>IFox.CAD.GCAD</Title>
         <Product>IFox.CAD.GCAD</Product>
+        <IsPackable>false</IsPackable>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

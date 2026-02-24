@@ -1,8 +1,8 @@
 <Project>
     <!--版本号和提示-->
     <PropertyGroup>
-        <Version>0.9.9</Version>
-        <PackageReleaseNotes>增加浩辰cad的支持</PackageReleaseNotes>
+        <Version>0.9.9.1</Version>
+        <PackageReleaseNotes>暂时屏蔽浩辰的打包，保留浩辰的项目</PackageReleaseNotes>
     </PropertyGroup>
 
     <PropertyGroup>
