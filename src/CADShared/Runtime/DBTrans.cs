@@ -194,6 +194,7 @@ public sealed class DBTrans : IDisposable
         doc ??= Acaop.DocumentManager.MdiActiveDocument;
         if (doc is null)
             throw new InvalidOperationException("没有活动文档，无法创建事务");
+        var db = doc.Database;
         CheckDatabaseError(doc.Database);
         // 如果文档已经锁定,重复加锁会导致死锁,界面卡死,此处实现优雅的报错.
         // 那么开发时候都用IFoxCAD才能避免多次锁,除非把它做成共享内存.
@@ -201,7 +202,28 @@ public sealed class DBTrans : IDisposable
             DocumentLockManager.LockDocument(doc);
 
         _dbDocMap[doc.Database] = doc;
-        return new DBTrans(doc.Database, commit, openCloseTrans);
+
+        Transaction trans;
+        if (openCloseTrans)
+        {
+#if NET35
+            // TODO 这方法貌似仍然是可撤的...
+            // 打开不撤销标记
+            db.DisableUndoRecording(true);
+            // 正常事务
+            trans = db.TransactionManager.StartTransaction();
+#else
+            trans = db.TransactionManager.StartOpenCloseTransaction(); 
+#endif
+        }
+        else
+        {
+            // 开事务的位置都有可能存在报错,例如在undo/redo事件中报错,
+            // 此时就必然触发析构,因此我要正确开了事务的,才加入事务栈.
+            trans = db.TransactionManager.StartTransaction();
+        }
+
+        return new DBTrans(doc.Database, trans, commit, openCloseTrans);
     }
 
     /// <summary>
@@ -214,32 +236,35 @@ public sealed class DBTrans : IDisposable
     public static DBTrans Create(Database db, bool commit = true, bool openCloseTrans = false)
     {
         CheckDatabaseError(db);
-        return new DBTrans(db, commit, openCloseTrans);
-    }
-
-    // 构造函数不许报错,否则会导致触发dispose
-    private DBTrans(Database db, bool commit = true, bool openCloseTrans = false)
-    {
-        _database = db;
-        var tm = _database.TransactionManager;
-
-        _openCloseTrans = openCloseTrans;
-        if (_openCloseTrans)
+        Transaction trans;
+        if (openCloseTrans)
         {
 #if NET35
             // TODO 这方法貌似仍然是可撤的...
             // 打开不撤销标记
-            _database.DisableUndoRecording(true);
+            db.DisableUndoRecording(true);
             // 正常事务
-            _transaction = tm.StartTransaction();
+            trans = db.TransactionManager.StartTransaction();
 #else
-            _transaction = tm.StartOpenCloseTransaction(); 
+            trans = db.TransactionManager.StartOpenCloseTransaction(); 
 #endif
         }
         else
         {
-            _transaction = tm.StartTransaction();
+            // 开事务的位置都有可能存在报错,例如在undo/redo事件中报错,
+            // 此时就必然触发析构,因此我要正确开了事务的,才加入事务栈.
+            trans = db.TransactionManager.StartTransaction();
         }
+
+        return new DBTrans(db, trans, commit, openCloseTrans);
+    }
+
+    // 构造函数不许报错,否则会导致触发dispose
+    private DBTrans(Database db, Transaction trans, bool commit = true, bool openCloseTrans = false)
+    {
+        _database = db;
+        _transaction = trans;
+        _openCloseTrans = openCloseTrans;
 
         if (commit) _transStatus.Commit();
         if (!_dBTrans.TryGetValue(_database, out var trStack))
