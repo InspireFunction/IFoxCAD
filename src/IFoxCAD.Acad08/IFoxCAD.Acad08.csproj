@@ -1,5 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-
+<Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
         <TargetFrameworks>NET35</TargetFrameworks>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
@@ -12,7 +11,6 @@
         <Product>IFox.CAD.ACAD</Product>
         <NoWarn>CS8012;CS1685</NoWarn>
     </PropertyGroup>
-
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
         <DebugType>full</DebugType>

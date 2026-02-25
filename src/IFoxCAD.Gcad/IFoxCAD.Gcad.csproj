@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
     <PropertyGroup>
         <TargetFrameworks>NET48</TargetFrameworks>
@@ -9,7 +9,6 @@
         <Title>IFox.CAD.ACAD</Title>
         <Product>IFox.CAD.ACAD</Product>
     </PropertyGroup>
-
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
         <DebugType>none</DebugType>
@@ -33,7 +32,7 @@
         <PackageReference Include="GrxCAD.Net.2022" Version="1.0.0"  ExcludeAssets="runtime" />
         <Reference Include="Microsoft.CSharp" />
     </ItemGroup>
- 
+
 
     <ItemGroup>
         <None Include="..\..\LICENSE">

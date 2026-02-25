@@ -21,4 +21,5 @@
     <Project Path="tests/TestShared/TestShared.shproj" />
     <Project Path="tests/TestVolatileNET35/TestVolatileNET35.csproj" />
   </Folder>
+  <Project Path="GitEncodingChecker/EncodingChecker.csproj" />
 </Solution>

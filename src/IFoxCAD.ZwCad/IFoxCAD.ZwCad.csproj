@@ -1,9 +1,9 @@
 <Project Sdk="Microsoft.NET.Sdk">
-    
+
     <PropertyGroup>
         <TargetFrameworks>NET48</TargetFrameworks>
     </PropertyGroup>
-    
+
     <!--nuget package-->
     <PropertyGroup>
         <PackageId>IFox.CAD.ZCAD</PackageId>

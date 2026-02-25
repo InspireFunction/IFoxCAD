@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <SelfContained>true</SelfContained>
+    <EnablePublishAOT>true</EnablePublishAOT>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <OptimizationPreference>size</OptimizationPreference>
+  </PropertyGroup>
+
+  <!-- 改用cmd处理 -->
+  <!-- <Target Name="CopyToHooks" AfterTargets="Publish">
+    <Copy SourceFiles="$(MSBuildProjectDirectory)/bin/Release/win-x64/publish/EncodingChecker.exe" DestinationFolder="$(MSBuildProjectDirectory)/../.git/hooks" />
+  </Target> -->
+
+</Project>
