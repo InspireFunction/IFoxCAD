@@ -11,6 +11,7 @@
     <Project Path="src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <Project Path="tests/GitEncodingChecker/EncodingChecker.csproj" />
     <Project Path="tests/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />
     <Project Path="tests/IFoxCAD.WPF/IFoxCAD.WPF.csproj" />
     <Project Path="tests/MCP.Server/MCP.Server.csproj" />
@@ -21,5 +22,4 @@
     <Project Path="tests/TestShared/TestShared.shproj" />
     <Project Path="tests/TestVolatileNET35/TestVolatileNET35.csproj" />
   </Folder>
-  <Project Path="GitEncodingChecker/EncodingChecker.csproj" />
 </Solution>
