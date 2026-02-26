@@ -32,6 +32,20 @@ public class MyJson
     private bool _indent;
 
     /// <summary>
+    /// 换行符选项
+    /// </summary>
+    private LineEnding _lineEnding = LineEnding.Default;
+
+    /// <summary>
+    /// 获取或设置换行符选项
+    /// </summary>
+    public LineEnding LineEnding
+    {
+        get => _lineEnding;
+        set => _lineEnding = value;
+    }
+
+    /// <summary>
     /// 对象到ID的映射，用于处理引用
     /// </summary>
     private readonly Dictionary<object, int> _objectReferences = new Dictionary<object, int>();
@@ -107,6 +121,7 @@ public class MyJson
         json.TypeNameHandling = settings.TypeNameHandling;
         json.PreserveReferencesHandling = settings.PreserveReferencesHandling;
         json.ReferenceLoopHandling = settings.ReferenceLoopHandling;
+        json.LineEnding = settings.LineEnding;
         if (settings.Converters != null)
         {
             foreach (var converter in settings.Converters)
@@ -210,6 +225,29 @@ public class MyJson
     private string GetIndentString(int indent)
     {
         return _indent ? new string(' ', indent * 2) : string.Empty; // 使用2个空格缩进，与Newtonsoft.Json保持一致
+    }
+
+    /// <summary>
+    /// 获取换行符字符串
+    /// </summary>
+    /// <returns>换行符字符串</returns>
+    private string GetLineEnding()
+    {
+        return _lineEnding switch
+        {
+            LineEnding.LF => "\n",
+            LineEnding.CRLF => "\r\n",
+            _ => Environment.NewLine // Default
+        };
+    }
+
+    /// <summary>
+    /// 追加换行符到 StringBuilder
+    /// </summary>
+    /// <param name="sb">StringBuilder实例</param>
+    private void AppendLine(StringBuilder sb)
+    {
+        sb.Append(GetLineEnding());
     }
 
     /// <summary>
@@ -365,7 +403,7 @@ public class MyJson
             {
                 if (_indent)
                 {
-                    sb.AppendLine();
+                    AppendLine(sb);
                     int newIndent = indent + 1;
                     for (int i = 0; i < array.Length; i++)
                     {
@@ -375,7 +413,7 @@ public class MyJson
                         {
                             sb.Append(",");
                         }
-                        sb.AppendLine();
+                        AppendLine(sb);
                     }
                     sb.Append(GetIndentString(indent));
                 }
@@ -400,7 +438,7 @@ public class MyJson
             {
                 if (_indent)
                 {
-                    sb.AppendLine();
+                    AppendLine(sb);
                     int newIndent = indent + 1;
                     for (int i = 0; i < array.Length; i++)
                     {
@@ -410,7 +448,7 @@ public class MyJson
                         {
                             sb.Append(",");
                         }
-                        sb.AppendLine();
+                        AppendLine(sb);
                     }
                     sb.Append(GetIndentString(indent));
                 }
@@ -423,6 +461,7 @@ public class MyJson
                     }
                 }
             }
+
             sb.Append("]");
         }
     }
@@ -454,7 +493,7 @@ public class MyJson
             {
                 if (_indent)
                 {
-                    sb.AppendLine();
+                    AppendLine(sb);
                     int newIndent = indent + 1;
                     for (int i = 0; i < items.Count; i++)
                     {
@@ -464,7 +503,7 @@ public class MyJson
                         {
                             sb.Append(",");
                         }
-                        sb.AppendLine();
+                        AppendLine(sb);
                     }
                     sb.Append(GetIndentString(indent));
                 }
@@ -498,7 +537,7 @@ public class MyJson
             {
                 if (_indent)
                 {
-                    sb.AppendLine();
+                    AppendLine(sb);
                     int newIndent = indent + 1;
                     for (int i = 0; i < items.Count; i++)
                     {
@@ -508,7 +547,7 @@ public class MyJson
                         {
                             sb.Append(",");
                         }
-                        sb.AppendLine();
+                        AppendLine(sb);
                     }
                     sb.Append(GetIndentString(indent));
                 }
@@ -539,7 +578,7 @@ public class MyJson
                 if (_indent)
                 {
                     sb.Append(",");
-                    sb.AppendLine();
+                    AppendLine(sb);
                     sb.Append(GetIndentString(indent + 1));
                 }
                 else
@@ -549,7 +588,7 @@ public class MyJson
             }
             else if (_indent)
             {
-                sb.AppendLine();
+                AppendLine(sb);
                 sb.Append(GetIndentString(indent + 1));
             }
             first = false;
@@ -558,7 +597,7 @@ public class MyJson
         }
         if (keys.Count > 0 && _indent)
         {
-            sb.AppendLine();
+            AppendLine(sb);
             sb.Append(GetIndentString(indent));
         }
         sb.Append("}");
@@ -577,7 +616,7 @@ public class MyJson
                 if (_indent)
                 {
                     sb.Append(",");
-                    sb.AppendLine();
+                    AppendLine(sb);
                     sb.Append(GetIndentString(indent + 1));
                 }
                 else
@@ -587,7 +626,7 @@ public class MyJson
             }
             else if (_indent)
             {
-                sb.AppendLine();
+                AppendLine(sb);
                 sb.Append(GetIndentString(indent + 1));
             }
             first = false;
@@ -596,7 +635,7 @@ public class MyJson
         }
         if (keys.Count > 0 && _indent)
         {
-            sb.AppendLine();
+            AppendLine(sb);
             sb.Append(GetIndentString(indent));
         }
         sb.Append("}");
@@ -609,15 +648,15 @@ public class MyJson
         // 首先输出$id标记
         if (_indent)
         {
-            sb.AppendLine();
+            AppendLine(sb);
             int newIndent = indent + 1;
             sb.Append(GetIndentString(newIndent));
             sb.Append($"\"$id\":\"{referenceId}\",");
-            sb.AppendLine();
+            AppendLine(sb);
             sb.Append(GetIndentString(newIndent));
             bool first = true;
             SerializeFields(obj, sb, newIndent, ref first);
-            sb.AppendLine();
+            AppendLine(sb);
             sb.Append(GetIndentString(indent));
         }
         else
@@ -682,16 +721,16 @@ public class MyJson
 
             if (_indent)
             {
-                sb.AppendLine();
+                AppendLine(sb);
                 int newIndent = indent + 1;
                 sb.Append(GetIndentString(newIndent));
                 sb.Append($"\"$id\":\"{newId}\",");
-                sb.AppendLine();
+                AppendLine(sb);
 
                 bool first = true;
                 SerializeFields(obj, sb, newIndent, ref first);
 
-                sb.AppendLine();
+                AppendLine(sb);
                 sb.Append(GetIndentString(indent));
             }
             else
@@ -719,13 +758,13 @@ public class MyJson
         {
             if (_indent)
             {
-                sb.AppendLine();
+                AppendLine(sb);
                 sb.Append(GetIndentString(newIndent2));
                 sb.Append($"\"$type\":\"{obj.GetType().FullName}\",");
-                sb.AppendLine();
+                AppendLine(sb);
                 sb.Append(GetIndentString(newIndent2));
                 SerializeFields(obj, sb, newIndent2, ref first2);
-                sb.AppendLine();
+                AppendLine(sb);
                 sb.Append(GetIndentString(indent));
             }
             else
@@ -738,10 +777,10 @@ public class MyJson
         {
             if (_indent)
             {
-                sb.AppendLine();
+                AppendLine(sb);
                 sb.Append(GetIndentString(newIndent2));
                 SerializeFields(obj, sb, newIndent2, ref first2);
-                sb.AppendLine();
+                AppendLine(sb);
                 sb.Append(GetIndentString(indent));
             }
             else
@@ -773,7 +812,7 @@ public class MyJson
             if (!first && _indent)
             {
                 sb.Append(',');
-                sb.AppendLine();
+                AppendLine(sb);
                 sb.Append(GetIndentString(indent));
             }
             else if (!first && !_indent)
@@ -799,7 +838,7 @@ public class MyJson
             if (!first && _indent)
             {
                 sb.Append(',');
-                sb.AppendLine();
+                AppendLine(sb);
                 sb.Append(GetIndentString(indent));
             }
             else if (!first && !_indent)
@@ -1487,6 +1526,11 @@ public class MyJsonSettings
     public ReferenceLoopHandling ReferenceLoopHandling { get; set; }
 
     /// <summary>
+    /// 换行符选项
+    /// </summary>
+    public LineEnding LineEnding { get; set; } = LineEnding.Default;
+
+    /// <summary>
     /// 转换器列表
     /// </summary>
     public List<MyJsonConverter>? Converters { get; set; }
@@ -1569,6 +1613,27 @@ public enum ReferenceLoopHandling
     /// 序列化循环引用
     /// </summary>
     Serialize = 2
+}
+
+/// <summary>
+/// 换行符选项枚举
+/// </summary>
+public enum LineEnding
+{
+    /// <summary>
+    /// 使用系统默认换行符（Windows: \r\n, Linux/macOS: \n）
+    /// </summary>
+    Default = 0,
+
+    /// <summary>
+    /// 使用 LF (\n)
+    /// </summary>
+    LF = 1,
+
+    /// <summary>
+    /// 使用 CRLF (\r\n)
+    /// </summary>
+    CRLF = 2
 }
 
 /// <summary>

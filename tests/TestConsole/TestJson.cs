@@ -97,5 +97,58 @@ public class TestJson
         var jsonIndented = MyJson.SerializeObject(complexObj, settingsIndented);
         Console.WriteLine("格式化：");
         Console.WriteLine(jsonIndented);
+
+        // 测试4：换行符配置
+        TestLineEnding();
+    }
+
+    static void TestLineEnding()
+    {
+        Console.WriteLine();
+        Console.WriteLine("4. 换行符配置测试：");
+
+        var testObj = new
+        {
+            Name = "测试对象",
+            Items = new[] { "a", "b", "c" },
+            Nested = new { Value = 123 }
+        };
+
+        // 测试 LF
+        var settingsLF = new MyJsonSettings
+        {
+            Formatting = Formatting.Indented,
+            LineEnding = LineEnding.LF
+        };
+        var jsonLF = MyJson.SerializeObject(testObj, settingsLF);
+        Console.WriteLine("LF 换行符：");
+        Console.WriteLine(jsonLF);
+        Console.WriteLine($"包含 \\r\\n: {jsonLF.Contains("\r\n")}");
+        Console.WriteLine($"包含 \\n: {jsonLF.Contains("\n")}");
+        Console.WriteLine();
+
+        // 测试 CRLF
+        var settingsCRLF = new MyJsonSettings
+        {
+            Formatting = Formatting.Indented,
+            LineEnding = LineEnding.CRLF
+        };
+        var jsonCRLF = MyJson.SerializeObject(testObj, settingsCRLF);
+        Console.WriteLine("CRLF 换行符：");
+        Console.WriteLine(jsonCRLF);
+        Console.WriteLine($"包含 \\r\\n: {jsonCRLF.Contains("\r\n")}");
+        Console.WriteLine($"仅包含 \\n: {jsonCRLF.Contains("\n") && !jsonCRLF.Contains("\r\n")}");
+        Console.WriteLine();
+
+        // 测试 Default（系统默认）
+        var settingsDefault = new MyJsonSettings
+        {
+            Formatting = Formatting.Indented,
+            LineEnding = LineEnding.Default
+        };
+        var jsonDefault = MyJson.SerializeObject(testObj, settingsDefault);
+        Console.WriteLine("Default 换行符（系统默认）：");
+        Console.WriteLine(jsonDefault);
+        Console.WriteLine($"当前系统换行符: {Environment.NewLine.Replace("\r", "\\r").Replace("\n", "\\n")}");
     }
 }

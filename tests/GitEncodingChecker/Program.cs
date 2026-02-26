@@ -12,6 +12,8 @@
 // # 安装后可以使用 git 别名
 // git ec        # 等同于 --check
 // git ec-fix    # 等同于 --fix
+// git ecc -m "msg" # 等同于 --convert-commit (自动修复编码并提交,支持自动获取上次提交信息)
+// git ec-commit # 等同于 --commit (跳过检查强制提交)
 // git ec-install
 // git ec-uninstall
 // git ec-clean
@@ -164,8 +166,13 @@ static class Program
         foreach (var kvp in GitCommandMap)
         {
             var aliasName = kvp.Key.TrimStart('-');
-            // install 命令映射到 ec，其他命令映射到 ec-{name}
-            var gitAliasName = kvp.Key == "--install" ? "ec" : $"ec-{aliasName}";
+            // install 命令映射到 ec，convert-commit 映射到 ecc，其他命令映射到 ec-{name}
+            var gitAliasName = kvp.Key switch
+            {
+                "--install" => "ec",
+                "--convert-commit" => "ecc",
+                _ => $"ec-{aliasName}"
+            };
             Console.WriteLine($"  git {gitAliasName,-12} {kvp.Value.Description}");
         }
     }
@@ -208,8 +215,13 @@ static class Program
                 Console.WriteLine($"  (调试: 处理命令 {kvp.Key})");
                 var commandName = kvp.Key;
                 var aliasName = commandName.TrimStart('-');
-                // install 命令映射到 ec，其他命令映射到 ec-{name}
-                var gitAliasName = commandName == "--install" ? "ec" : $"ec-{aliasName}";
+                // install 命令映射到 ec，convert-commit 映射到 ecc，其他命令映射到 ec-{name}
+                var gitAliasName = commandName switch
+                {
+                    "--install" => "ec",
+                    "--convert-commit" => "ecc",
+                    _ => $"ec-{aliasName}"
+                };
 
                 // 构建别名值
                 // Git 别名格式: "!path/to/exe" 或 "!path/to/exe --arg"
@@ -283,8 +295,13 @@ static class Program
             foreach (var kvp in GitCommandMap)
             {
                 var aliasName = kvp.Key.TrimStart('-');
-                // install 命令映射到 ec，其他命令映射到 ec-{name}
-                var gitAliasName = kvp.Key == "--install" ? "ec" : $"ec-{aliasName}";
+                // install 命令映射到 ec，convert-commit 映射到 ecc，其他命令映射到 ec-{name}
+                var gitAliasName = kvp.Key switch
+                {
+                    "--install" => "ec",
+                    "--convert-commit" => "ecc",
+                    _ => $"ec-{aliasName}"
+                };
                 RunGitCommand("config", "--global", "--unset", $"alias.{gitAliasName}");
             }
 
@@ -313,7 +330,12 @@ static class Program
             foreach (var kvp in GitCommandMap)
             {
                 var aliasName = kvp.Key.TrimStart('-');
-                var gitAliasName = kvp.Key == "--install" ? "ec" : $"ec-{aliasName}";
+                var gitAliasName = kvp.Key switch
+                {
+                    "--install" => "ec",
+                    "--convert-commit" => "ecc",
+                    _ => $"ec-{aliasName}"
+                };
 
                 // 使用 RunGitCommandWithOutput 来捕获输出，忽略错误
                 var psi = new ProcessStartInfo
@@ -376,6 +398,137 @@ static class Program
         using var proc = Process.Start(psi);
         proc?.WaitForExit();
         return proc?.ExitCode ?? 0;
+    }
+
+    [GitCommand("--convert-commit", "自动修复编码并提交 (用法: git ecc 或 git ecc -m \"msg\")")]
+    static int EcConvertCommit(string[] args)
+    {
+        // 如果没有提供 -m 参数，尝试获取本次失败的 commit 信息
+        if (args.Length == 0 || !args.Contains("-m"))
+        {
+            var lastCommitMsg = GetLastFailedCommitMessage();
+            if (!string.IsNullOrEmpty(lastCommitMsg))
+            {
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"使用本次的提交信息: \"{lastCommitMsg}\"");
+                Console.ResetColor();
+                Console.WriteLine();
+                args = new[] { "-m", lastCommitMsg };
+            }
+            else
+            {
+                // 无法获取提交信息，提示用户输入
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("无法自动获取提交信息（pre-commit在commit创建前阻止了提交）");
+                Console.ResetColor();
+                Console.WriteLine();
+                Console.Write("请输入提交信息: ");
+
+                try
+                {
+                    var userInput = Console.ReadLine();
+                    if (string.IsNullOrWhiteSpace(userInput))
+                    {
+                        Console.ForegroundColor = ConsoleColor.Red;
+                        Console.WriteLine("错误: 提交信息不能为空");
+                        Console.ResetColor();
+                        return 1;
+                    }
+                    args = new[] { "-m", userInput.Trim() };
+                }
+                catch
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("错误: 无法读取输入");
+                    Console.WriteLine("用法: git ecc -m \"提交信息\"");
+                    Console.ResetColor();
+                    return 1;
+                }
+            }
+        }
+
+        // 第一步：修复编码
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("步骤 1/2: 检查并修复文件编码...");
+        Console.WriteLine("===========================================");
+        Console.ResetColor();
+
+        int fixResult = FixEncoding();
+
+        // 第二步：重新暂存修复后的文件
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("步骤 2/2: 重新暂存文件并提交...");
+        Console.WriteLine("===========================================");
+        Console.ResetColor();
+
+        // 重新暂存所有文件
+        var addPsi = new ProcessStartInfo
+        {
+            FileName = "git",
+            UseShellExecute = false,
+            RedirectStandardOutput = true,
+            RedirectStandardError = true,
+            CreateNoWindow = true
+        };
+        addPsi.ArgumentList.Add("add");
+        addPsi.ArgumentList.Add(".");
+
+        using (var addProc = Process.Start(addPsi))
+        {
+            addProc?.WaitForExit();
+        }
+
+        // 执行提交
+        var commitPsi = new ProcessStartInfo
+        {
+            FileName = "git",
+            UseShellExecute = false
+        };
+
+        commitPsi.ArgumentList.Add("commit");
+        foreach (var arg in args)
+        {
+            commitPsi.ArgumentList.Add(arg);
+        }
+
+        using var commitProc = Process.Start(commitPsi);
+        commitProc?.WaitForExit();
+        return commitProc?.ExitCode ?? 0;
+    }
+
+    /// <summary>
+    /// 获取本次失败的 commit 信息（从 .git/COMMIT_EDITMSG）
+    /// 注意：pre-commit hook 在 commit 创建前阻止提交，所以 .git/COMMIT_EDITMSG 可能不存在
+    /// </summary>
+    static string? GetLastFailedCommitMessage()
+    {
+        try
+        {
+            // 尝试读取 .git/COMMIT_EDITMSG 文件（git commit 失败时有时会保留）
+            var repoRoot = GetRepoRoot();
+            if (!string.IsNullOrEmpty(repoRoot))
+            {
+                var commitEditMsgPath = Path.Combine(repoRoot, ".git", "COMMIT_EDITMSG");
+                if (File.Exists(commitEditMsgPath))
+                {
+                    var content = File.ReadAllText(commitEditMsgPath).Trim();
+                    // 过滤掉注释行和空行
+                    var lines = content.Split('\n')
+                        .Where(line => !line.TrimStart().StartsWith("#") && !string.IsNullOrWhiteSpace(line))
+                        .ToList();
+                    if (lines.Count > 0)
+                    {
+                        return string.Join("\n", lines).Trim();
+                    }
+                }
+            }
+        }
+        catch
+        {
+            // 忽略异常
+        }
+        return null;
     }
 
     [GitCommand("--fix", "修复暂存区文件编码为UTF-8无BOM，行尾根据配置文件")]
@@ -569,6 +722,7 @@ static class Program
 
             Console.WriteLine("修复命令: git ec-fix");
             Console.WriteLine("强制提交: git ec-commit -m \"msg\"");
+            Console.WriteLine("修复编码并提交: git ecc -m \"msg\"");
 
             if (!IsGitAliasInstalled())
             {
@@ -649,8 +803,13 @@ static class Program
             foreach (var kvp in GitCommandMap)
             {
                 var aliasName = kvp.Key.TrimStart('-');
-                // install 命令映射到 ec，其他命令映射到 ec-{name}
-                var gitAliasName = kvp.Key == "--install" ? "ec" : $"ec-{aliasName}";
+                // install 命令映射到 ec，convert-commit 映射到 ecc，其他命令映射到 ec-{name}
+                var gitAliasName = kvp.Key switch
+                {
+                    "--install" => "ec",
+                    "--convert-commit" => "ecc",
+                    _ => $"ec-{aliasName}"
+                };
                 var psi = new ProcessStartInfo
                 {
                     FileName = "git",
