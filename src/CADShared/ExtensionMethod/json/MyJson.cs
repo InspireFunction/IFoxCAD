@@ -411,7 +411,7 @@ public class MyJson
                         SerializeValue(array.GetValue(i), sb, newIndent);
                         if (i < array.Length - 1)
                         {
-                            sb.Append(",");
+                            sb.Append(',');
                         }
                         AppendLine(sb);
                     }
@@ -421,7 +421,7 @@ public class MyJson
                 {
                     for (int i = 0; i < array.Length; i++)
                     {
-                        if (i > 0) sb.Append(",");
+                        if (i > 0) sb.Append(',');
                         SerializeValue(array.GetValue(i), sb, indent);
                     }
                 }
@@ -433,7 +433,7 @@ public class MyJson
         else
         {
             // 普通数组序列化
-            sb.Append("[");
+            sb.Append('[');
             if (array.Length > 0)
             {
                 if (_indent)
@@ -446,7 +446,7 @@ public class MyJson
                         SerializeValue(array.GetValue(i), sb, newIndent);
                         if (i < array.Length - 1)
                         {
-                            sb.Append(",");
+                            sb.Append(',');
                         }
                         AppendLine(sb);
                     }
@@ -456,13 +456,13 @@ public class MyJson
                 {
                     for (int i = 0; i < array.Length; i++)
                     {
-                        if (i > 0) sb.Append(",");
+                        if (i > 0) sb.Append(',');
                         SerializeValue(array.GetValue(i), sb, indent);
                     }
                 }
             }
 
-            sb.Append("]");
+            sb.Append(']');
         }
     }
 
@@ -501,7 +501,7 @@ public class MyJson
                         SerializeValue(items[i], sb, newIndent);
                         if (i < items.Count - 1)
                         {
-                            sb.Append(",");
+                            sb.Append(',');
                         }
                         AppendLine(sb);
                     }
@@ -511,7 +511,7 @@ public class MyJson
                 {
                     foreach (var item in items)
                     {
-                        if (!first) sb.Append(",");
+                        if (!first) sb.Append(',');
                         first = false;
                         SerializeValue(item, sb, indent);
                     }
@@ -524,7 +524,7 @@ public class MyJson
         else
         {
             // 普通集合序列化
-            sb.Append("[");
+            sb.Append('[');
             bool first = true;
 
             var items = new List<object>();
@@ -545,7 +545,7 @@ public class MyJson
                         SerializeValue(items[i], sb, newIndent);
                         if (i < items.Count - 1)
                         {
-                            sb.Append(",");
+                            sb.Append(',');
                         }
                         AppendLine(sb);
                     }
@@ -555,19 +555,19 @@ public class MyJson
                 {
                     foreach (var item in items)
                     {
-                        if (!first) sb.Append(",");
+                        if (!first) sb.Append(',');
                         first = false;
                         SerializeValue(item, sb, indent);
                     }
                 }
             }
-            sb.Append("]");
+            sb.Append(']');
         }
     }
 
     private void SerializeDictionary(IDictionary dict, StringBuilder sb, int indent)
     {
-        sb.Append("{");
+        sb.Append('{');
         var keys = dict.Keys.Cast<object>().ToList();
         bool first = true;
         for (int i = 0; i < keys.Count; i++)
@@ -577,13 +577,14 @@ public class MyJson
             {
                 if (_indent)
                 {
-                    sb.Append(",");
+                    sb.Append(',');
                     AppendLine(sb);
                     sb.Append(GetIndentString(indent + 1));
                 }
                 else
                 {
-                    sb.Append(", ");
+                    sb.Append(',');
+                    sb.Append(' ');
                 }
             }
             else if (_indent)
@@ -600,12 +601,12 @@ public class MyJson
             AppendLine(sb);
             sb.Append(GetIndentString(indent));
         }
-        sb.Append("}");
+        sb.Append('}');
     }
 
     private void SerializeDictionary(IDictionary<string, object> dict, StringBuilder sb, int indent)
     {
-        sb.Append("{");
+        sb.Append('{');
         var keys = dict.Keys.ToList();
         bool first = true;
         for (int i = 0; i < keys.Count; i++)
@@ -615,13 +616,14 @@ public class MyJson
             {
                 if (_indent)
                 {
-                    sb.Append(",");
+                    sb.Append(',');
                     AppendLine(sb);
                     sb.Append(GetIndentString(indent + 1));
                 }
                 else
                 {
-                    sb.Append(", ");
+                    sb.Append(',');
+                    sb.Append(' ');
                 }
             }
             else if (_indent)
@@ -638,36 +640,9 @@ public class MyJson
             AppendLine(sb);
             sb.Append(GetIndentString(indent));
         }
-        sb.Append("}");
+        sb.Append('}');
     }
 
-    private void SerializeObjectWithId(object obj, StringBuilder sb, int indent, int referenceId)
-    {
-        sb.Append("{");
-
-        // 首先输出$id标记
-        if (_indent)
-        {
-            AppendLine(sb);
-            int newIndent = indent + 1;
-            sb.Append(GetIndentString(newIndent));
-            sb.Append($"\"$id\":\"{referenceId}\",");
-            AppendLine(sb);
-            sb.Append(GetIndentString(newIndent));
-            bool first = true;
-            SerializeFields(obj, sb, newIndent, ref first);
-            AppendLine(sb);
-            sb.Append(GetIndentString(indent));
-        }
-        else
-        {
-            sb.Append($"\"$id\":\"{referenceId}\",");
-            bool first = true;
-            SerializeFields(obj, sb, indent, ref first);
-        }
-
-        sb.Append("}");
-    }
 
     /// <summary>
     /// 序列化对象
@@ -717,7 +692,7 @@ public class MyJson
             _objectReferences[obj] = newId;
 
             // 输出$id并继续序列化
-            sb.Append("{");
+            sb.Append('{');
 
             if (_indent)
             {
@@ -741,7 +716,7 @@ public class MyJson
                 SerializeFields(obj, sb, indent, ref first);
             }
 
-            sb.Append("}");
+            sb.Append('}');
 
             // 从已处理对象集合中移除
             _processedObjects.Remove(obj);
@@ -749,7 +724,7 @@ public class MyJson
         }
 
         // 普通对象序列化
-        sb.Append("{");
+        sb.Append('{');
 
         bool first2 = true;
         int newIndent2 = indent + 1;
@@ -788,7 +763,7 @@ public class MyJson
                 SerializeFields(obj, sb, indent, ref first2);
             }
         }
-        sb.Append("}");
+        sb.Append('}');
 
         // 从已处理对象集合中移除
         _processedObjects.Remove(obj);
@@ -1361,7 +1336,7 @@ public class MyJson
                 if (ch == ']')
                     break;
                 if (ch != ',')
-                    throw new Exception("Expected , or ]");
+                    throw new Exception("MyJsonExpected , or ]");
                 SkipWhitespace(reader);
             }
             return new Token { Type = TokenType.Array, Value = list };
@@ -1383,13 +1358,13 @@ public class MyJson
             {
                 SkipWhitespace(reader);
                 if (reader.Peek() != '"')
-                    throw new Exception("Expected string key");
+                    throw new Exception("MyJsonExpected string key");
 
                 var key = ReadString(reader);
                 SkipWhitespace(reader);
 
                 if (reader.Read() != ':')
-                    throw new Exception("Expected :");
+                    throw new Exception("MyJsonExpected :");
 
                 SkipWhitespace(reader);
                 var value = ReadToken(reader);
@@ -1401,7 +1376,7 @@ public class MyJson
                 if (ch == '}')
                     break;
                 if (ch != ',')
-                    throw new Exception("Expected , or }");
+                    throw new Exception("MyJsonExpected , or }");
             }
             return new Token { Type = TokenType.Object, Value = dict };
         }
@@ -1435,7 +1410,7 @@ public class MyJson
             return new Token { Type = TokenType.String, Value = numStr };
         }
 
-        throw new Exception($"Unexpected character: {(char)ch}");
+        throw new Exception($"MyJsonUnexpected character: {(char)ch}");
     }
 
     private void SkipWhitespace(TextReader reader)

@@ -52,6 +52,8 @@ namespace MCP.Server
             Console.Error.WriteLine("[信息] 正在从 CAD 获取工具列表...");
             Console.Error.WriteLine();
 
+            // mcp协议有严格的初始化逻辑,需要同步等待获取工具列表,
+            // 然后它会自动缓存,所以是不允许多次动态更新工具表的,而这个缓存是在trae内部,我们无法修改.
             await FetchAllCadInfoAsync(ct);
 
             Console.Error.WriteLine("[信息] 等待 MCP 请求...");
@@ -312,7 +314,7 @@ namespace MCP.Server
         /// </summary>
         private string HandleToolsList(object? requestId)
         {
-            var tools = _cachedTools ?? new List<object>();
+            var tools = _cachedTools ?? [];
 
             var result = new Dictionary<string, object> { ["tools"] = tools };
             var responseJson = CreateMcpSuccessResponse(requestId, result);
@@ -372,24 +374,6 @@ namespace MCP.Server
 
             string toolName = name;
             object? toolArguments = arguments;
-
-            if (name == "say_hello_cad")
-            {
-                var greetings = new[]
-                {
-                    "你好啊", "今天天气真不错", "欢迎使用CAD", "新年快乐",
-                    "工作顺利", "加油", "天气晴朗", "心情美好",
-                    "一天之计在于晨", "你好啊，朋友"
-                };
-                var random = new Random();
-                var greeting = greetings[random.Next(greetings.Length)];
-
-                toolArguments = new Dictionary<string, object>
-                {
-                    ["text"] = greeting
-                };
-            }
-
             object? payloadObj = null;
             if (toolArguments is Dictionary<string, object> jo)
             {
