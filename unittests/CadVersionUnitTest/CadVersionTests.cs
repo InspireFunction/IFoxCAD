@@ -2,6 +2,7 @@ namespace CadVersionUnitTests;
 
 public class CadVersionTests
 {
+    // cad的版本定点数设计测试
     [Fact]
     public void CadVersion_Properties_SetAndGet_WorkCorrectly()
     {
