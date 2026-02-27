@@ -15,6 +15,7 @@
 
         <!-- RuntimeHelpers 的重复警告 -->
         <NoWarn>CS8012;CS1685</NoWarn>
+        <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">

@@ -930,8 +930,8 @@ public class MyJson
         if (targetType.IsEnum)
             return Enum.Parse(targetType, token.Value?.ToString() ?? "");
 
-        // 特殊处理：Dictionary<string, object>
-        if (targetType == typeof(Dictionary<string, object>) || targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+        // 特殊处理：Dictionary<string, object> - 直接返回
+        if (targetType == typeof(Dictionary<string, object>))
         {
             if (token.Type == TokenType.Object && token.Value is Dictionary<string, object>)
             {
@@ -940,14 +940,66 @@ public class MyJson
             return new Dictionary<string, object>();
         }
 
-        // 特殊处理：List<object>
-        if (targetType == typeof(List<object>) || targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(List<>))
+        // 处理数组类型
+        if (targetType.IsArray)
+        {
+            if (token.Type == TokenType.Array && token.Value is List<object> arrList)
+            {
+                return DeserializeArray(arrList, targetType);
+            }
+            if (token.Type == TokenType.Object && token.Value is Dictionary<string, object> arrDict)
+            {
+                if (arrDict.TryGetValue("$values", out var valuesValue) && valuesValue is List<object> valuesList)
+                {
+                    return DeserializeArray(valuesList, targetType);
+                }
+            }
+            Type elementType = targetType.GetElementType()!;
+            return Array.CreateInstance(elementType, 0);
+        }
+
+        // 处理 Dictionary<TKey, TValue> - 需要类型转换
+        if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(Dictionary<,>))
+        {
+            if (token.Type == TokenType.Object && token.Value is Dictionary<string, object> dictValue)
+            {
+                return DeserializeDictionary(dictValue, targetType);
+            }
+            return Activator.CreateInstance(targetType);
+        }
+
+        // 特殊处理：List<object> - 直接返回
+        if (targetType == typeof(List<object>))
         {
             if (token.Type == TokenType.Array && token.Value is List<object>)
             {
                 return token.Value;
             }
+            if (token.Type == TokenType.Object && token.Value is Dictionary<string, object> listDict)
+            {
+                if (listDict.TryGetValue("$values", out var values) && values is List<object> valuesList)
+                {
+                    return valuesList;
+                }
+            }
             return new List<object>();
+        }
+
+        // 处理 List<T> 等泛型集合 - 需要类型转换
+        if (targetType.IsGenericType && targetType.GetGenericTypeDefinition() == typeof(List<>))
+        {
+            if (token.Type == TokenType.Array && token.Value is List<object>)
+            {
+                return DeserializeArray(token.Value as List<object>, targetType);
+            }
+            if (token.Type == TokenType.Object && token.Value is Dictionary<string, object> genericListDict)
+            {
+                if (genericListDict.TryGetValue("$values", out var genericValues) && genericValues is List<object> genericValuesList)
+                {
+                    return DeserializeArray(genericValuesList, targetType);
+                }
+            }
+            return Activator.CreateInstance(targetType);
         }
 
         var converter = _converters.FirstOrDefault(c => c.SupportedTypes.Contains(targetType));
@@ -1169,6 +1221,49 @@ public class MyJson
         }
 
         return list;
+    }
+
+    /// <summary>
+    /// 反序列化字典
+    /// </summary>
+    /// <param name="dict">源字典</param>
+    /// <param name="type">目标类型</param>
+    /// <returns>反序列化后的字典</returns>
+    private object? DeserializeDictionary(Dictionary<string, object>? dict, Type type)
+    {
+        if (dict == null)
+            return null;
+
+        var genericArgs = type.GetGenericArguments();
+        if (genericArgs.Length != 2)
+            return dict;
+
+        Type keyType = genericArgs[0];
+        Type valueType = genericArgs[1];
+
+        var dictType = typeof(Dictionary<,>).MakeGenericType(keyType, valueType);
+        var result = Activator.CreateInstance(dictType);
+        if (result == null)
+            return null;
+
+        var addMethod = dictType.GetMethod("Add");
+        if (addMethod == null)
+            return result;
+
+        foreach (var kvp in dict)
+        {
+            var key = ConvertToType(kvp.Key, keyType);
+            var valueToken = new Token { Type = GetTokenType(kvp.Value), Value = kvp.Value };
+            var value = DeserializeToken(valueToken, valueType);
+            value = ConvertToType(value, valueType);
+
+            if (key != null || keyType.IsClass)
+            {
+                addMethod.Invoke(result, new[] { key, value });
+            }
+        }
+
+        return result;
     }
 
     private object? ConvertToType(object? value, Type targetType)

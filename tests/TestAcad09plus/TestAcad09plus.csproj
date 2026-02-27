@@ -11,6 +11,7 @@
         <UseWindowsForms>true</UseWindowsForms>
         <PlatformTarget>x64</PlatformTarget>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+        <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">

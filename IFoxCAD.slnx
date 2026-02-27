@@ -15,11 +15,15 @@
     <Project Path="tests/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />
     <Project Path="tests/IFoxCAD.WPF/IFoxCAD.WPF.csproj" />
     <Project Path="tests/MCP.Server/MCP.Server.csproj" />
-    <Project Path="tests/PEInfoTest/PEInfoTest.csproj" />
     <Project Path="tests/TestAcad08/TestAcad08.csproj" />
     <Project Path="tests/TestAcad09plus/TestAcad09plus.csproj" />
-    <Project Path="tests/TestConsole/TestConsole.csproj" />
     <Project Path="tests/TestShared/TestShared.shproj" />
-    <Project Path="tests/TestVolatileNET35/TestVolatileNET35.csproj" />
+  </Folder>
+  <Folder Name="/unittests/">
+    <Project Path="unittests/BasalUnitTest/BasalUnitTest.csproj" />
+    <Project Path="unittests/MyJsonUnitTest/MyJsonUnitTest.csproj" />
+    <Project Path="unittests/NET35VolatileUnitTest/NET35VolatileUnitTest.csproj" />
+    <Project Path="unittests/CadVersionUnitTest/CadVersionUnitTest.csproj" />
+    <Project Path="unittests/PEInfoUnitTest/PEInfoUnitTest.csproj" />
   </Folder>
 </Solution>

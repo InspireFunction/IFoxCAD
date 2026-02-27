@@ -1,4 +1,3 @@
-/// 系统引用
 global using System;
 global using System.Collections;
 global using System.Collections.Generic;
@@ -11,5 +10,9 @@ global using Microsoft.Win32;
 global using System.ComponentModel;
 global using System.Runtime.CompilerServices;
 global using System.Diagnostics;
+global using System.Threading;
 
-global using IFoxCAD.Basal;
+global using IFoxCAD.Cad;
+global using Xunit;
+
+global using Acap = Autodesk.AutoCAD.ApplicationServices.Application;

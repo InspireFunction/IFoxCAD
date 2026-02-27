@@ -3,6 +3,7 @@
     <PropertyGroup>
         <!--2009也是net35-->
         <TargetFrameworks>NET40;NET45</TargetFrameworks>
+        <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
     </PropertyGroup>
 
     <PropertyGroup>

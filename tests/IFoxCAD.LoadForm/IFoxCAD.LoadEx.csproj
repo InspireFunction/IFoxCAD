@@ -8,6 +8,7 @@
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+        <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
     </PropertyGroup>
 
     <ItemGroup>

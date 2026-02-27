@@ -7,6 +7,7 @@
         <TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
+        <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <Version>0.4</Version>

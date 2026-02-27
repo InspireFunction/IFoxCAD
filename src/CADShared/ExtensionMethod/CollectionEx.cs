@@ -3,7 +3,7 @@ namespace IFoxCAD.Cad;
 /// <summary>
 /// 集合扩展类
 /// </summary>
-public static class CollectionEx
+public static partial class CollectionEx
 {
     /// <summary>
     /// 对象id迭代器转换为集合
@@ -88,93 +88,6 @@ public static class CollectionEx
     {
         return ids.Cast<ObjectId>().ToList();
     }
-
-
-    /// <summary>
-    /// 遍历集合,执行委托
-    /// </summary>
-    /// <typeparam name="T">集合值的类型</typeparam>
-    /// <param name="source">集合</param>
-    /// <param name="action">委托</param>
-    [DebuggerStepThrough]
-    public static void ForEach<T>(this IEnumerable<T> source, Action<T> action)
-    {
-        // 这里不要嵌套调用ForEach委托,
-        // 因为这样可以在调用函数上断点直接跑Action内,不会进入此处(除了cad之外);
-        // 而cad很奇怪,只能用预处理方式避免
-        // 嵌套调用ForEach委托:
-        // source.ForEach((a, _, _) => {
-        //     action.Invoke(a);
-        // });
-
-        foreach (var element in source)
-            action.Invoke(element);
-    }
-
-    /// <summary>
-    /// 遍历集合,执行委托
-    /// </summary>
-    /// <typeparam name="T">集合值的类型</typeparam>
-    /// <param name="source">集合</param>
-    /// <param name="action">委托</param>
-    [DebuggerStepThrough]
-    public static void ForEach<T>(this IEnumerable<T> source, Action<int, T> action)
-    {
-        var i = 0;
-        foreach (var element in source)
-        {
-            action.Invoke(i, element);
-            i++;
-        }
-    }
-
-    /// <summary>
-    /// 遍历集合,执行委托(允许循环中断)
-    /// </summary>
-    /// <typeparam name="T">集合值的类型</typeparam>
-    /// <param name="source">集合</param>
-    /// <param name="action">委托</param>
-    [DebuggerStepThrough]
-    public static void ForEach<T>(this IEnumerable<T> source, Action<T, CtrlState> action)
-    {
-        // 这里不要嵌套调用ForEach委托,
-        // 因为这样可以在调用函数上断点直接跑Action内,不会进入此处(除了cad之外);
-        // 而cad很奇怪,只能用预处理方式避免
-        // 嵌套调用ForEach委托:
-        // source.ForEach((a, b, _) => {
-        //     action.Invoke(a, b);
-        // });
-
-        CtrlState state = new();/*这种方式比Action改Func更友好*/
-        foreach (var element in source)
-        {
-            action.Invoke(element, state);
-            if (!state.IsRun)
-                break;
-        }
-    }
-
-    /// <summary>
-    /// 遍历集合,执行委托(允许循环中断,输出索引值)
-    /// </summary>
-    /// <typeparam name="T">集合值的类型</typeparam>
-    /// <param name="source">集合</param>
-    /// <param name="action">委托</param>
-    [DebuggerStepThrough]
-    public static void ForEach<T>(this IEnumerable<T> source, Action<T, CtrlState, int> action)
-    {
-        var i = 0;
-        CtrlState state = new(); /*这种方式比Action改Func更友好*/
-        foreach (var element in source)
-        {
-            action.Invoke(element, state, i);
-            if (!state.IsRun)
-                break;
-            i++;
-        }
-    }
-
-
     #region 关键字集合
 
     /// <summary>

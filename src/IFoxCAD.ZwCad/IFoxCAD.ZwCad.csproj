@@ -2,6 +2,7 @@
 
     <PropertyGroup>
         <TargetFrameworks>NET48</TargetFrameworks>
+        <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
     </PropertyGroup>
 
     <!--nuget package-->
