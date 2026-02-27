@@ -21,7 +21,7 @@ namespace MCP.Server
 
         private Dictionary<string, object>? _cadServerInfo;
 
-        private List<object>? _cachedTools;
+        private Dictionary<string, object> _cachedTools = [];
 
         private Dictionary<string, int> _toolToInstanceMap = new();
 
@@ -29,6 +29,8 @@ namespace MCP.Server
         {
             _connectionManager = connectionManager;
             _successLogger = new SuccessCaseLogger("success_cases.json");
+
+            _connectionManager.OnConnected += OnCadConnected;
         }
 
         /// <summary>
@@ -63,17 +65,38 @@ namespace MCP.Server
             {
                 try
                 {
-                    var line = await Console.In.ReadLineAsync(ct);
-                    if (line == null)
+                    // 使用带超时的读取，定期检查连接状态
+                    using var readCts = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                    readCts.CancelAfter(TimeSpan.FromSeconds(2));
+
+                    try
                     {
-                        Console.Error.WriteLine("[信息] CAD 已离线 (输入流关闭)");
-                        break;
+                        var line = await Console.In.ReadLineAsync(readCts.Token);
+                        if (line == null)
+                        {
+                            Console.Error.WriteLine("[信息] 输入流关闭，退出");
+                            break;
+                        }
+
+                        if (!string.IsNullOrWhiteSpace(line))
+                        {
+                            // 检查是否有可用的CAD连接
+                            if (!HasAnyConnectedCad())
+                            {
+                                Console.Error.WriteLine("[警告] 没有可用的CAD连接，等待重连...");
+                                var errorResponse = CreateMcpErrorResponse(null, -32603, "没有可用的CAD连接，请确保CAD已启动并加载MCP插件");
+                                Console.Out.WriteLine(errorResponse);
+                                continue;
+                            }
+
+                            var response = await ProcessMcpRequestAsync(line);
+                            Console.Out.WriteLine(response);
+                        }
                     }
-
-                    if (string.IsNullOrWhiteSpace(line)) continue;
-
-                    var response = await ProcessMcpRequestAsync(line);
-                    Console.Out.WriteLine(response);
+                    catch (OperationCanceledException) when (!ct.IsCancellationRequested)
+                    {
+                        // 读取超时，继续循环检查连接状态
+                    }
                 }
                 catch (OperationCanceledException)
                 {
@@ -81,8 +104,7 @@ namespace MCP.Server
                 }
                 catch (Exception ex)
                 {
-                    Console.Error.WriteLine($"[信息] CAD 已离线: {ex.Message}");
-                    break;
+                    Console.Error.WriteLine($"[错误] 处理请求异常: {ex.Message}");
                 }
             }
         }
@@ -98,9 +120,6 @@ namespace MCP.Server
                 Console.Error.WriteLine("[警告] 没有可用的CAD连接");
                 return;
             }
-
-            var allTools = new List<object>();
-            var firstConnection = connections.First();
 
             foreach (var connection in connections)
             {
@@ -135,15 +154,68 @@ namespace MCP.Server
                                     enhancedTool["description"] = $"[CAD#{connection.InstanceId}] {descStr}";
                                 }
 
-                                allTools.Add(enhancedTool);
+                                _cachedTools[toolName] = enhancedTool;
                             }
                         }
                     }
                 }
             }
 
-            _cachedTools = allTools;
-            Console.Error.WriteLine($"[信息] 已获取 {allTools.Count} 个工具 (来自 {connections.Count} 个CAD实例)");
+            Console.Error.WriteLine($"[信息] 已获取 {_cachedTools.Count} 个工具 (来自 {connections.Count} 个CAD实例)");
+        }
+
+        /// <summary>
+        /// 当新CAD实例连接时触发
+        /// </summary>
+        private async void OnCadConnected(CadConnectionInfo connection)
+        {
+            try
+            {
+                Console.Error.WriteLine($"[信息] 检测到新CAD实例连接: #{connection.InstanceId} (PID: {connection.ProcessId})");
+                Console.Error.WriteLine($"[信息] 正在重新获取工具列表...");
+
+                var ct = CancellationToken.None;
+                await FetchAllCadInfoAsync(ct);
+
+                Console.Error.WriteLine($"[信息] 工具列表已更新，发送 list_changed 通知...");
+
+                // 发送工具列表变更通知，触发客户端重新获取工具列表
+                // TODO 实际上这个触发不会引发更新: HandleToolsList 返回工具数量 这个才是真正的更新.
+                SendToolsListChangedNotification();
+
+                Console.Error.WriteLine($"[信息] 已通知客户端工具列表变更");
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[错误] 更新工具列表失败: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// 发送工具列表变更通知
+        /// 这会触发MCP客户端重新调用 tools/list 获取最新工具列表
+        /// </summary>
+        private void SendToolsListChangedNotification()
+        {
+            var notification = new Dictionary<string, object>
+            {
+                ["jsonrpc"] = "2.0",
+                ["method"] = "notifications/tools/list_changed"
+            };
+
+            var settings = new MyJsonSettings
+            {
+                Formatting = Formatting.None,
+                PreserveReferencesHandling = PreserveReferencesHandling.None,
+                ReferenceLoopHandling = ReferenceLoopHandling.Serialize
+            };
+
+            var notificationJson = MyJson.SerializeObject(notification, settings);
+
+            // 必须写入 stdout，这是MCP协议通知
+            Console.Out.WriteLine(notificationJson);
+
+            Console.Error.WriteLine($"[DEBUG] 已发送 notifications/tools/list_changed 通知: {notificationJson}");
         }
 
         /// <summary>
@@ -261,7 +333,7 @@ namespace MCP.Server
                 return method switch
                 {
                     "initialize" => HandleInitialize(requestIdRaw),
-                    "notifications/initialized" => CreateMcpSuccessResponse(requestIdRaw, new Dictionary<string, object>()),
+                    "notifications/initialized" => HandleNotificationsInitialized(requestIdRaw),
                     "tools/list" => HandleToolsList(requestIdRaw),
                     "tools/call" => await HandleToolsCallAsync(requestIdRaw, parameters),
                     _ => CreateMcpErrorResponse(requestIdRaw, -32601, $"Method not found: {method}")
@@ -272,6 +344,28 @@ namespace MCP.Server
                 Console.Error.WriteLine($"[DEBUG] 解析异常: {ex.Message}");
                 return CreateMcpErrorResponse(requestIdRaw, -32700, $"Parse error: {ex.Message}");
             }
+        }
+
+        /// <summary>
+        /// 处理 notifications/initialized 请求
+        /// 客户端初始化完成后，发送工具列表变更通知以触发重新获取
+        /// </summary>
+        private string HandleNotificationsInitialized(object? requestId)
+        {
+            Console.Error.WriteLine("[DEBUG] 收到 notifications/initialized，准备发送工具列表变更通知...");
+
+            // 先返回空响应
+            var response = CreateMcpSuccessResponse(requestId, new Dictionary<string, object>());
+
+            // 然后发送工具列表变更通知
+            // 使用 Task.Run 避免阻塞，让响应先发送出去
+            Task.Run(async () => {
+                // 等待一小段时间确保响应已发送
+                await Task.Delay(100);
+                SendToolsListChangedNotification();
+            });
+
+            return response;
         }
 
         /// <summary>
@@ -288,19 +382,27 @@ namespace MCP.Server
             var connections = _connectionManager.GetAllConnections();
             var instanceCount = connections.Count;
 
+            // 生成一个基于当前工具列表的哈希，用于让客户端识别工具列表已变更
+            var toolsHash = GenerateToolsHash();
+
             var result = new Dictionary<string, object>
             {
                 ["protocolVersion"] = "2024-11-05",
                 ["capabilities"] = new Dictionary<string, object>
                 {
-                    ["tools"] = new Dictionary<string, object> { ["listChanged"] = true }
+                    ["tools"] = new Dictionary<string, object>
+                    {
+                        ["listChanged"] = true  // 告诉客户端支持工具列表变更通知
+                    }
                 },
                 ["serverInfo"] = new Dictionary<string, object>
                 {
                     ["name"] = serverInfo.TryGetValue("name", out var n) ? n : "mcp-cad-server",
                     ["version"] = serverInfo.TryGetValue("version", out var v) ? v : "2.0.0"
                 },
-                ["_cadInstances"] = instanceCount
+                ["_cadInstances"] = instanceCount,
+                ["_toolsHash"] = toolsHash,  // 添加工具列表哈希，让客户端能检测变更
+                ["_toolsCount"] = _cachedTools.Count
             };
 
             var responseJson = CreateMcpSuccessResponse(requestId, result);
@@ -309,16 +411,33 @@ namespace MCP.Server
         }
 
         /// <summary>
+        /// 生成工具列表的哈希值，用于客户端检测变更
+        /// </summary>
+        private string GenerateToolsHash()
+        {
+            // 基于工具名称和CAD实例ID生成哈希
+            var toolKeys = string.Join(",", _cachedTools.Keys.OrderBy(k => k));
+            var instanceIds = string.Join(",", _toolToInstanceMap.Values.OrderBy(v => v).Distinct());
+            var hashInput = $"{toolKeys}|{instanceIds}|{_cachedTools.Count}";
+
+            using var sha256 = System.Security.Cryptography.SHA256.Create();
+            var bytes = Encoding.UTF8.GetBytes(hashInput);
+            var hash = sha256.ComputeHash(bytes);
+            return Convert.ToHexString(hash).Substring(0, 16);  // 取前16位
+        }
+
+        /// <summary>
         /// 处理tools/list请求
         /// 返回合并后的工具列表
         /// </summary>
         private string HandleToolsList(object? requestId)
         {
-            var tools = _cachedTools ?? [];
-
+            // TODO 这里才是真正的加入函数表,但是除了初始化,貌似没有机会更新.
+            // 可能是mcp协议的问题?可能是trae的问题?
+            var tools = _cachedTools.Values;
             var result = new Dictionary<string, object> { ["tools"] = tools };
             var responseJson = CreateMcpSuccessResponse(requestId, result);
-            Console.Error.WriteLine($"[DEBUG] tools/list 返回 {tools.Count} 个工具");
+            Console.Error.WriteLine($"[DEBUG] tools/list 返回工具数量:: {tools.Count}");
             return responseJson;
         }
 
@@ -536,10 +655,20 @@ namespace MCP.Server
             return CreateMcpSuccessResponse(requestId, result);
         }
 
+        /// <summary>
+        /// 检查是否还有任何可用的CAD连接
+        /// </summary>
+        private bool HasAnyConnectedCad()
+        {
+            var connections = _connectionManager.GetAllConnections();
+            return connections.Any(c => c.IsConnected);
+        }
+
         public void Dispose()
         {
             _isRunning = false;
             _successLogger?.Dispose();
+            _connectionManager.OnConnected -= OnCadConnected;
         }
     }
 }

@@ -105,6 +105,28 @@ public class CadConnectionManager : IDisposable
     }
 
     /// <summary>
+    /// 启动后台连接检测（持续运行，自动重连）
+    /// </summary>
+    public async Task StartBackgroundDetectionAsync(CancellationToken ct)
+    {
+        Console.Error.WriteLine("[信息] 后台连接检测已启动");
+        
+        while (!ct.IsCancellationRequested)
+        {
+            try
+            {
+                await DetectAndConnectAllAsync(ct);
+            }
+            catch (Exception ex)
+            {
+                Console.Error.WriteLine($"[错误] 后台检测异常: {ex.Message}");
+            }
+
+            await Task.Delay(2000, ct);
+        }
+    }
+
+    /// <summary>
     /// 检测所有CAD进程并尝试连接
     /// </summary>
     public async Task DetectAndConnectAllAsync(CancellationToken ct)
@@ -170,76 +192,93 @@ public class CadConnectionManager : IDisposable
     }
 
     /// <summary>
-    /// 尝试连接指定进程
-    /// </summary>
-    private async Task TryConnectAsync(Process process, CancellationToken ct)
-    {
-        try
+        /// 尝试连接指定进程
+        /// </summary>
+        private async Task TryConnectAsync(Process process, CancellationToken ct)
         {
-            string? exePath = null;
             try
             {
-                exePath = process.MainModule?.FileName;
-            }
-            catch { }
-
-            // 管道名称格式：MCP_CAD_PIPE_{pid}
-            var pipeName = $"MCP_CAD_PIPE_{process.Id}";
-
-            Console.Error.WriteLine($"[信息] 检测到CAD进程: {process.ProcessName} (PID: {process.Id})");
-            Console.Error.WriteLine($"[信息] 尝试连接管道: {pipeName}");
-
-            var pipeClient = new NamedPipeClient(pipeName);
-            bool connected = await pipeClient.ConnectAsync(5, ct);
-
-            if (connected)
-            {
-                var connectionInfo = new CadConnectionInfo
+                string? exePath = null;
+                try
                 {
-                    InstanceId = Interlocked.Increment(ref _nextInstanceId) - 1,
-                    ProcessId = process.Id,
-                    ProcessName = process.ProcessName,
-                    ExePath = exePath,
-                    PipeClient = pipeClient,
-                    ConnectedTime = DateTime.Now
-                };
+                    exePath = process.MainModule?.FileName;
+                }
+                catch { }
 
-                // 创建并启动看门狗
-                var watchdogConfig = new WatchdogConfig
+                // 管道名称格式：MCP_CAD_PIPE_{pid}
+                var pipeName = $"MCP_CAD_PIPE_{process.Id}";
+
+                Console.Error.WriteLine($"[信息] 检测到CAD进程: {process.ProcessName} (PID: {process.Id})");
+                Console.Error.WriteLine($"[信息] 尝试连接管道: {pipeName}");
+
+                // 增加连接重试机制，处理CAD插件加载延迟
+                const int maxRetries = 5;
+                const int retryDelayMs = 2000;
+                
+                for (int i = 0; i < maxRetries; i++)
                 {
-                    TimeoutStage1 = 5000,
-                    TimeoutStage2 = 5000,
-                    EscRetryCount = 3
-                };
+                    if (ct.IsCancellationRequested) break;
+                    
+                    var pipeClient = new NamedPipeClient(pipeName);
+                    bool connected = await pipeClient.ConnectAsync(3, ct);
 
-                //var watchdog = new Watchdog(pipeClient, watchdogConfig, process.Id);
-                //watchdog.OnCadProcessExited += () => {
-                //    Console.Error.WriteLine($"[信息] 看门狗检测到CAD实例 #{connectionInfo.InstanceId} 进程已退出");
-                //    HandleDisconnection(connectionInfo);
-                //};
-                //await watchdog.StartAsync(ct);
-                //connectionInfo.Watchdog = watchdog;
+                    if (connected)
+                    {
+                        var connectionInfo = new CadConnectionInfo
+                        {
+                            InstanceId = Interlocked.Increment(ref _nextInstanceId) - 1,
+                            ProcessId = process.Id,
+                            ProcessName = process.ProcessName,
+                            ExePath = exePath,
+                            PipeClient = pipeClient,
+                            ConnectedTime = DateTime.Now
+                        };
 
-                _connections[process.Id] = connectionInfo;
+                        // 创建并启动看门狗
+                        var watchdogConfig = new WatchdogConfig
+                        {
+                            TimeoutStage1 = 5000,
+                            TimeoutStage2 = 5000,
+                            EscRetryCount = 3
+                        };
 
-                Console.Error.WriteLine($"[信息] CAD实例 #{connectionInfo.InstanceId} 已连接 (PID: {process.Id})");
+                        var watchdog = new Watchdog(pipeClient, watchdogConfig, process.Id);
+                        watchdog.OnCadProcessExited += () => {
+                            Console.Error.WriteLine($"[信息] 看门狗检测到CAD实例 #{connectionInfo.InstanceId} 进程已退出");
+                            HandleDisconnection(connectionInfo);
+                        };
+                        await watchdog.StartAsync(ct);
+                        connectionInfo.Watchdog = watchdog;
 
-                OnConnected?.Invoke(connectionInfo);
+                        _connections[process.Id] = connectionInfo;
 
-                // 启动监控任务
-                _ = MonitorConnectionAsync(connectionInfo, ct);
+                        Console.Error.WriteLine($"[信息] CAD实例 #{connectionInfo.InstanceId} 已连接 (PID: {process.Id})");
+
+                        OnConnected?.Invoke(connectionInfo);
+
+                        // 启动监控任务
+                        _ = MonitorConnectionAsync(connectionInfo, ct);
+                        return;
+                    }
+                    else
+                    {
+                        Console.Error.WriteLine($"[警告] 无法连接到CAD进程 {process.Id}，{i + 1}/{maxRetries}，等待 {retryDelayMs}ms 后重试");
+                        pipeClient.Dispose();
+                        
+                        if (i < maxRetries - 1)
+                        {
+                            await Task.Delay(retryDelayMs, ct);
+                        }
+                    }
+                }
+                
+                Console.Error.WriteLine($"[警告] 多次尝试后仍无法连接到CAD进程 {process.Id}，请确保已加载MCP插件");
             }
-            else
+            catch (Exception ex)
             {
-                Console.Error.WriteLine($"[警告] 无法连接到CAD进程 {process.Id}，请确保已加载MCP插件");
-                pipeClient.Dispose();
+                Console.Error.WriteLine($"[错误] 连接CAD进程 {process.Id} 失败: {ex.Message}");
             }
         }
-        catch (Exception ex)
-        {
-            Console.Error.WriteLine($"[错误] 连接CAD进程 {process.Id} 失败: {ex.Message}");
-        }
-    }
 
     /// <summary>
     /// 监控连接状态

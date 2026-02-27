@@ -6,9 +6,6 @@ using System.Threading.Tasks;
 
 namespace MCP.Server;
 
-/// <summary>
-/// MCP Server 入口程序
-/// </summary>
 class Program
 {
     private static McpServer? _mcpServer;
@@ -18,7 +15,7 @@ class Program
     static async Task Main(string[] args)
     {
         Console.Error.WriteLine("╔════════════════════════════════════════════════════════════╗");
-        Console.Error.WriteLine("║              MCP CAD Server v2.0                           ║");
+        Console.Error.WriteLine("║              MCP CAD Server v2.1                           ║");
         Console.Error.WriteLine("║              AutoCAD MCP 集成服务 (多实例支持)              ║");
         Console.Error.WriteLine("╚════════════════════════════════════════════════════════════╝");
         Console.Error.WriteLine();
@@ -38,7 +35,15 @@ class Program
             Console.Error.WriteLine("[信息] 正在检测 AutoCAD 进程...");
             Console.Error.WriteLine();
 
-            await WaitForCadAndConnectAsync(_cts.Token);
+            // 启动后台连接检测任务（持续运行）
+            var connectionTask = _connectionManager.StartBackgroundDetectionAsync(_cts.Token);
+
+            // 等待至少一个CAD连接
+            await WaitForFirstConnectionAsync(_cts.Token);
+
+            // 启动MCP服务器
+            _mcpServer = new McpServer(_connectionManager);
+            await _mcpServer.StartAsync(_cts.Token);
         }
         catch (OperationCanceledException)
         {
@@ -57,26 +62,18 @@ class Program
         }
     }
 
-    /// <summary>
-    /// 等待CAD进程启动并连接
-    /// </summary>
-    private static async Task WaitForCadAndConnectAsync(CancellationToken ct)
+    private static async Task WaitForFirstConnectionAsync(CancellationToken ct)
     {
         while (!ct.IsCancellationRequested)
         {
-            await _connectionManager!.DetectAndConnectAllAsync(ct);
-
-            var connections = _connectionManager.GetAllConnections();
+            var connections = _connectionManager!.GetAllConnections();
             if (connections.Count > 0)
             {
                 Console.Error.WriteLine($"[信息] 已连接 {connections.Count} 个CAD实例");
-
-                _mcpServer = new McpServer(_connectionManager);
-                await _mcpServer.StartAsync(ct);
-
-                Console.Error.WriteLine("[信息] 连接已断开，等待 CAD 重新启动...");
+                return;
             }
 
+            Console.Error.WriteLine("[信息] 等待CAD连接...");
             await Task.Delay(2000, ct);
         }
     }

@@ -1,5 +1,6 @@
 using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -11,19 +12,23 @@ namespace MCP.Server;
 public class Watchdog : IDisposable
 {
     private readonly NamedPipeClient _pipeClient;
+    private readonly int _processId;
     private readonly WatchdogConfig _config;
     private CancellationTokenSource? _cts;
     private Task? _watchTask;
     private DateTime _lastActivity;
     private WatchdogState _state;
 
-    public Watchdog(NamedPipeClient pipeClient, WatchdogConfig config)
+    public Watchdog(NamedPipeClient pipeClient, WatchdogConfig config, int processId)
     {
         _pipeClient = pipeClient;
         _config = config;
+        _processId = processId;
         _lastActivity = DateTime.Now;
         _state = WatchdogState.Idle;
     }
+
+    public event Action? OnCadProcessExited;
 
     /// <summary>
     /// 启动看门狗
@@ -72,6 +77,13 @@ public class Watchdog : IDisposable
             {
                 await Task.Delay(1000, ct);
 
+                if (!IsProcessRunning())
+                {
+                    Console.Error.WriteLine($"[WARN] CAD process (PID: {_processId}) has exited");
+                    OnCadProcessExited?.Invoke();
+                    break;
+                }
+
                 if (_state != WatchdogState.CommandRunning)
                     continue;
 
@@ -102,6 +114,18 @@ public class Watchdog : IDisposable
             {
                 Console.Error.WriteLine($"[WARN] Watchdog error: {ex.Message}");
             }
+        }
+    }
+
+    private bool IsProcessRunning()
+    {
+        try
+        {
+            return Process.GetProcesses().Any(p => p.Id == _processId);
+        }
+        catch
+        {
+            return false;
         }
     }
 
