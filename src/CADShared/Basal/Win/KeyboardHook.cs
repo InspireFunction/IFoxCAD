@@ -10,20 +10,40 @@ using System.Windows.Forms;
 /// </summary>
 public class KeyboardHook : IDisposable
 {
+    // 事件锁对象，确保线程安全
+    private readonly object _eventLock = new object();
+
+    // 私有委托字段
+    private KeyEventHandler? _keyDown;
+    private KeyEventHandler? _keyUp;
+    private KeyPressEventHandler? _keyPress;
+
     /// <summary>
     /// 键盘按下事件
     /// </summary>
-    public event KeyEventHandler? KeyDown;
+    public event KeyEventHandler? KeyDown
+    {
+        add { lock (_eventLock) _keyDown += value; }
+        remove { lock (_eventLock) _keyDown -= value; }
+    }
 
     /// <summary>
     /// 键盘抬起事件
     /// </summary>
-    public event KeyEventHandler? KeyUp;
+    public event KeyEventHandler? KeyUp
+    {
+        add { lock (_eventLock) _keyUp += value; }
+        remove { lock (_eventLock) _keyUp -= value; }
+    }
 
     /// <summary>
     /// 键盘按下事件（字符级别）
     /// </summary>
-    public event KeyPressEventHandler? KeyPress;
+    public event KeyPressEventHandler? KeyPress
+    {
+        add { lock (_eventLock) _keyPress += value; }
+        remove { lock (_eventLock) _keyPress -= value; }
+    }
 
 
     bool _isHookBreak = false;
@@ -191,7 +211,17 @@ public class KeyboardHook : IDisposable
     {
         try
         {
-            if (KeyDown is null && KeyUp is null && KeyPress is null)
+            // 获取事件处理程序的本地副本（线程安全）
+            KeyEventHandler? keyDownHandler, keyUpHandler;
+            KeyPressEventHandler? keyPressHandler;
+            lock (_eventLock)
+            {
+                keyDownHandler = _keyDown;
+                keyUpHandler = _keyUp;
+                keyPressHandler = _keyPress;
+            }
+
+            if (keyDownHandler is null && keyUpHandler is null && keyPressHandler is null)
                 return false;
 
             // 从回调函数中得到键盘的信息
@@ -212,11 +242,11 @@ public class KeyboardHook : IDisposable
 
             if (isKeyDown)
             {
-                KeyDown?.Invoke(this, keyEventArgs);
+                keyDownHandler?.Invoke(this, keyEventArgs);
             }
             else if (isKeyUp)
             {
-                KeyUp?.Invoke(this, keyEventArgs);
+                keyUpHandler?.Invoke(this, keyEventArgs);
             }
 
             // 屏蔽此输入

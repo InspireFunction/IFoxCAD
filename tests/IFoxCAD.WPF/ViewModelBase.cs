@@ -6,17 +6,32 @@ namespace IFoxCAD.WPF;
 /// <seealso cref="System.ComponentModel.INotifyPropertyChanged" />
 public class ViewModelBase : INotifyPropertyChanged
 {
+    // 事件锁对象，确保线程安全
+    private readonly object _eventLock = new object();
+    private PropertyChangedEventHandler? _propertyChanged;
+
     /// <summary>
     /// 属性值更改事件。
     /// </summary>
-    public event PropertyChangedEventHandler? PropertyChanged;
+    public event PropertyChangedEventHandler? PropertyChanged
+    {
+        add { lock (_eventLock) _propertyChanged += value; }
+        remove { lock (_eventLock) _propertyChanged -= value; }
+    }
+
     /// <summary>
     /// 属性改变时调用
     /// </summary>
     /// <param name="propertyName">属性名</param>
     public void OnPropertyChanged([CallerMemberName] string propertyName = "")
     {
-        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+        // 获取事件处理程序的本地副本（线程安全）
+        PropertyChangedEventHandler? tempHandler;
+        lock (_eventLock)
+        {
+            tempHandler = _propertyChanged;
+        }
+        tempHandler?.Invoke(this, new PropertyChangedEventArgs(propertyName));
     }
     /// <summary>
     /// 设置属性函数，自动通知属性改变事件

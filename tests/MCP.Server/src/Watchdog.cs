@@ -19,6 +19,10 @@ public class Watchdog : IDisposable
     private DateTime _lastActivity;
     private WatchdogState _state;
 
+    // 事件锁对象，确保线程安全
+    private readonly object _eventLock = new object();
+    private Action? _onCadProcessExited;
+
     public Watchdog(NamedPipeClient pipeClient, WatchdogConfig config, int processId)
     {
         _pipeClient = pipeClient;
@@ -28,7 +32,11 @@ public class Watchdog : IDisposable
         _state = WatchdogState.Idle;
     }
 
-    public event Action? OnCadProcessExited;
+    public event Action? OnCadProcessExited
+    {
+        add { lock (_eventLock) _onCadProcessExited += value; }
+        remove { lock (_eventLock) _onCadProcessExited -= value; }
+    }
 
     /// <summary>
     /// 启动看门狗
@@ -80,7 +88,14 @@ public class Watchdog : IDisposable
                 if (!IsProcessRunning())
                 {
                     Console.Error.WriteLine($"[WARN] CAD process (PID: {_processId}) has exited");
-                    OnCadProcessExited?.Invoke();
+
+                    // 获取事件处理程序的本地副本（线程安全）
+                    Action? onCadProcessExitedHandler;
+                    lock (_eventLock)
+                    {
+                        onCadProcessExitedHandler = _onCadProcessExited;
+                    }
+                    onCadProcessExitedHandler?.Invoke();
                     break;
                 }
 

@@ -14,30 +14,70 @@ using System.Windows.Forms;
 /// </summary>
 public class MouseHook
 {
+    // 事件锁对象，确保线程安全
+    private readonly object _eventLock = new object();
+
+    // 私有委托字段
+    private MouseEventHandler? _mouseDown;
+    private MouseEventHandler? _mouseUp;
+    private MouseEventHandler? _mouseMove;
+    private MouseEventHandler? _mouseWheel;
+    private EventHandler? _click;
+    private EventHandler? _doubleClick;
+
     /// <summary>
     /// 鼠标按下事件
     /// </summary>
-    public event MouseEventHandler? MouseDown;
+    public event MouseEventHandler? MouseDown
+    {
+        add { lock (_eventLock) _mouseDown += value; }
+        remove { lock (_eventLock) _mouseDown -= value; }
+    }
+
     /// <summary>
     /// 松开鼠标事件
     /// </summary>
-    public event MouseEventHandler? MouseUp;
+    public event MouseEventHandler? MouseUp
+    {
+        add { lock (_eventLock) _mouseUp += value; }
+        remove { lock (_eventLock) _mouseUp -= value; }
+    }
+
     /// <summary>
     /// 鼠标移动事件
     /// </summary>
-    public event MouseEventHandler? MouseMove;
+    public event MouseEventHandler? MouseMove
+    {
+        add { lock (_eventLock) _mouseMove += value; }
+        remove { lock (_eventLock) _mouseMove -= value; }
+    }
+
     /// <summary>
     /// 鼠标滚轮事件
     /// </summary>
-    public event MouseEventHandler? MouseWheel;
+    public event MouseEventHandler? MouseWheel
+    {
+        add { lock (_eventLock) _mouseWheel += value; }
+        remove { lock (_eventLock) _mouseWheel -= value; }
+    }
+
     /// <summary>
     /// 鼠标单击事件
     /// </summary>
-    public event EventHandler? Click;
+    public event EventHandler? Click
+    {
+        add { lock (_eventLock) _click += value; }
+        remove { lock (_eventLock) _click -= value; }
+    }
+
     /// <summary>
     /// 鼠标双击事件
     /// </summary>
-    public event EventHandler? DoubleClick;
+    public event EventHandler? DoubleClick
+    {
+        add { lock (_eventLock) _doubleClick += value; }
+        remove { lock (_eventLock) _doubleClick -= value; }
+    }
 
 
     bool _isHookBreak = false;
@@ -206,12 +246,25 @@ public class MouseHook
     {
         try
         {
-            if (MouseDown is null
-             && MouseUp is null
-             && MouseMove is null
-             && MouseWheel is null
-             && Click is null
-             && DoubleClick is null)
+            // 获取事件处理程序的本地副本（线程安全）
+            MouseEventHandler? mouseDownHandler, mouseUpHandler, mouseMoveHandler, mouseWheelHandler;
+            EventHandler? clickHandler, doubleClickHandler;
+            lock (_eventLock)
+            {
+                mouseDownHandler = _mouseDown;
+                mouseUpHandler = _mouseUp;
+                mouseMoveHandler = _mouseMove;
+                mouseWheelHandler = _mouseWheel;
+                clickHandler = _click;
+                doubleClickHandler = _doubleClick;
+            }
+
+            if (mouseDownHandler is null
+             && mouseUpHandler is null
+             && mouseMoveHandler is null
+             && mouseWheelHandler is null
+             && clickHandler is null
+             && doubleClickHandler is null)
                 return false;
 
             _button = MouseButtons.None;
@@ -282,23 +335,23 @@ public class MouseHook
             var mouseMsg = MouseHookStruct.Create(lParam);
             MouseEventArgs e = new(_button, _clickCount, mouseMsg.Point.X, mouseMsg.Point.Y, 0);
             if (_down)
-                MouseDown?.Invoke(this, e);
+                mouseDownHandler?.Invoke(this, e);
             if (_up)
-                MouseUp?.Invoke(this, e);
+                mouseUpHandler?.Invoke(this, e);
             if (_ck)
-                Click?.Invoke(this, e);
+                clickHandler?.Invoke(this, e);
             if (_clickCount == 2)
             {
                 // 如果不用时间控制,那么双击会执行两次
                 if (_watch.Elapsed.TotalMilliseconds > WindowsAPI.GetDoubleClickTime())
                 {
-                    DoubleClick?.Invoke(this, e);
+                    doubleClickHandler?.Invoke(this, e);
                     _watch.Reset();
                     _watch.Start();
                 }
             }
-            MouseMove?.Invoke(this, e);
-            MouseWheel?.Invoke(this, e);
+            mouseMoveHandler?.Invoke(this, e);
+            mouseWheelHandler?.Invoke(this, e);
 
             // 屏蔽此输入
             if (_isHookBreak)

@@ -19,10 +19,20 @@ public delegate void WorldDrawEvent(WorldDraw draw);
 public class JigEx : DrawJig, IDisposable
 {
     #region 成员
+    // 事件锁对象，确保线程安全
+    private readonly object _eventLock = new object();
+
+    // 私有委托字段
+    private WorldDrawEvent? _worldDrawEvent;
+
     /// <summary>
     /// 事件:亮显/暗显会被刷新冲刷掉,所以这个事件用于补充非刷新的工作
     /// </summary>
-    event WorldDrawEvent? WorldDrawEvent;
+    event WorldDrawEvent? WorldDrawEvent
+    {
+        add { lock (_eventLock) _worldDrawEvent += value; }
+        remove { lock (_eventLock) _worldDrawEvent -= value; }
+    }
     /// <summary>
     /// 最后的鼠标点,用来确认长度
     /// </summary>
@@ -169,7 +179,15 @@ public class JigEx : DrawJig, IDisposable
     protected override bool WorldDraw(WorldDraw draw)
     {
         _worldDrawFlag = true;
-        WorldDrawEvent?.Invoke(draw);
+
+        // 获取事件处理程序的本地副本（线程安全）
+        WorldDrawEvent? worldDrawHandler;
+        lock (_eventLock)
+        {
+            worldDrawHandler = _worldDrawEvent;
+        }
+        worldDrawHandler?.Invoke(draw);
+
         _drawEntitys.ForEach(ent => {
             draw.RawGeometry.Draw(ent);
         });
