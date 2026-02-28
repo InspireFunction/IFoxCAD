@@ -5,7 +5,7 @@
 ## Get latest from https://github.com/github/gitignore/blob/master/VisualStudio.gitignore
 
 
-# AI
+# AI的文件夹
 # .trae/
 .qoder/
 
@@ -413,4 +413,3 @@ healthchecksdb
 
 #ifoxcad
 **/Properties/launchSettings.json
-#tests/TestConsole/
