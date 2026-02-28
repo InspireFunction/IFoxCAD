@@ -14,7 +14,8 @@ public class CheckFactory
     {
         HashSet<string> keys = [];
 
-        // 本dll中存在冲突命令,此时cad自动接口可以运行,但是加载命令之后会报错,因此利用断点告诉程序员
+        // 本dll中存在冲突命令,
+        // 此时cad自动接口可以运行,但是加载命令之后会报错,因此利用断点告诉程序员
         var types = AutoReflection.AppDomainGetTypes(Assembly.GetCallingAssembly().GetName().Name);
         foreach (var type in types)
         {

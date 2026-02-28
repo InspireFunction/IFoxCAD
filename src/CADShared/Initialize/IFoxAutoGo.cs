@@ -242,21 +242,16 @@ public static class TypeCache
 }
 #endregion
 
-public class AutoReflection
+public class AutoReflection(AutoRegConfig autoRegConfig, string? assName = null)
 {
+    private AutoRegConfig _autoRegConfig = autoRegConfig;
+    private string? _assName = assName;
+
     // 只反射本dll的程序集
-    private readonly bool _constraint = true;
-    private readonly Dictionary<Sequence, List<Actuator>> _actuatorMap = new();
+    private readonly Dictionary<Sequence, List<Actuator>> _actuatorMap = [];
+
     // 加载之后有文档立即执行(单次执行)
     private int _isOnceExecuted = 0;
-
-    private string _assName;
-    private AutoRegConfig _autoRegConfig;
-    public AutoReflection(string name, AutoRegConfig autoRegConfig)
-    {
-        _assName = name;
-        _autoRegConfig = autoRegConfig;
-    }
 
     // 被cad加载时候自动执行
     public void Initialize()
@@ -267,34 +262,31 @@ public class AutoReflection
 
             // 初始化字典
             foreach (Sequence seq in Enum.GetValues(typeof(Sequence)))
-            {
                 _actuatorMap[seq] = [];
-            }
+
 
             // 获取特性下面全部方法
-            var a = GetAttributeFunc();
-            foreach (var ac in a)
+            if (_autoRegConfig.HasFlag(AutoRegConfig.ReflectionAttribute))
             {
-                _actuatorMap[ac.SequenceId].Add(ac);
+                foreach (var ac in GetAttributeFunc())
+                    _actuatorMap[ac.SequenceId].Add(ac);
             }
+
             // 获取接口下面全部方法
-            var b = GetInterfaceFunc();
-            foreach (var ac in b)
+            if (_autoRegConfig.HasFlag(AutoRegConfig.ReflectionInterface))
             {
-                _actuatorMap[ac.SequenceId].Add(ac);
+                foreach (var ac in GetInterfaceFunc())
+                    _actuatorMap[ac.SequenceId].Add(ac);
             }
 
             // 执行任务,此时即使调用doc.Editor输出也是无效的
             var tasks = _actuatorMap[Sequence.StartFirst];
             foreach (var item in tasks)
-            {
                 item.Run();
-            }
+
             tasks = _actuatorMap[Sequence.StartLast];
             foreach (var item in tasks)
-            {
                 item.Run();
-            }
 
             // 为了能够无论何种加载都能doc.Editor输出:
             // x01,通过注册表加载StartFirst/Last,有doc没有doc.Editor,所以不会输出.
@@ -304,29 +296,23 @@ public class AutoReflection
             dm.DocumentCreated += DmCreated;
             dm.DocumentToBeDestroyed += DmToBeDestroyed;
             dm.DocumentDestroyed += DmDestroyed;
-            AcadIdleManager.OnIdle += OnIdle;
+
+            AcadIdleManager.OnIdleOnce(() => {
+                var doc = Acap.DocumentManager.MdiActiveDocument;
+                if (doc is null) return;
+                Env.Printl("IFoxCad 初始化空闲事件");
+                if (Interlocked.CompareExchange(ref _isOnceExecuted, 1, 0) == 0)
+                {
+                    var docArgs = new object[] { doc };
+                    _actuatorMap[Sequence.StartOnce].ForEach(ac => ac.Run(docArgs));
+                    _actuatorMap[Sequence.StartDocs].ForEach(ac => ac.Run(docArgs));
+                }
+            });
         }
         catch (System.Exception e)
         {
             Debugger.Break();
             Env.Printl("AutoClass.Initialize出错::" + e.Message);
-        }
-    }
-
-
-    // 空闲事件判断
-    void OnIdle(object sender, EventArgs e)
-    {
-        var doc = Acap.DocumentManager.MdiActiveDocument;
-        if (doc is null) return;
-        AcadIdleManager.OnIdle -= OnIdle;
-
-        Env.Printl("空闲事件判断");
-        if (Interlocked.CompareExchange(ref _isOnceExecuted, 1, 0) == 0)
-        {
-            var docArgs = new object[] { doc };
-            _actuatorMap[Sequence.StartOnce].ForEach(ac => ac.Run(docArgs));
-            _actuatorMap[Sequence.StartDocs].ForEach(ac => ac.Run(docArgs));
         }
     }
 
@@ -425,7 +411,6 @@ public class AutoReflection
     {
         try
         {
-
             // 01,过滤ass.IsDynamic,因为Acad2021报错:
             // System.NotSupportedException:动态程序集中不支持已调用的成员
             // 02,过滤AcInfoCenterConn.dll,通讯库,因为反射它会依赖其他造成报错:
@@ -436,8 +421,6 @@ public class AutoReflection
 
             const string str1 = "AcInfoCenterConn";
             const string str2 = "Microsoft";
-
-
 #if parallel
             System.Diagnostics.Trace.WriteLine("这是一条Trace消息,此时是并行");
             var allAssemblies = AppDomain.CurrentDomain.GetAssemblies();
@@ -446,11 +429,13 @@ public class AutoReflection
                     .Where(ass => !ass.IsDynamic())
                     .Where(ass => !ass.GetName().Name.Contains(str2))
                     .Where(ass => Path.GetFileNameWithoutExtension(ass.Location) != str1);
-            // 约束在此dll中反射.
+
+            // 只反射这个
             if (dllNameWithoutExtension is not null)
             {
                 assemblies = assemblies.Where(ass => Path.GetFileNameWithoutExtension(ass.Location) == dllNameWithoutExtension);
             }
+
             // 只反射公开
             var types = assemblies.SelectMany(ass => ass.GetExportedTypes());
 #else
@@ -512,17 +497,7 @@ public class AutoReflection
     /// </summary>
     IEnumerable<Actuator> GetInterfaceFunc()
     {
-        // 约束只反射本dll的类
-        string? dll = null;
-        if (_constraint)
-        {
-            //"IFoxCAD.Acad08" 不对,要是: TestAcad08
-            //var ass = Assembly.GetExecutingAssembly();
-            //dll = Path.GetFileNameWithoutExtension(ass.Location); 
-            dll = _assName;
-        }
-
-        var ts = AppDomainGetTypes(dll);
+        var ts = AppDomainGetTypes(_assName);
 
 #if parallel
         System.Diagnostics.Trace.WriteLine("这是一条Trace消息,此时是并行");
@@ -568,7 +543,7 @@ public class AutoReflection
     (Actuator Init, Actuator Term)? CreateActuator2(Type type)
     {
         // 获取接口实现的成员函数,虽然它们只会出现一次,
-        // 但万一别人写了重载呢,要参数数量是0才行.
+        // 但万一别人写了重载呢,要参数数量==0才行.
         var mets = type.GetMethods();
         var im = mets.FirstOrDefault(m => m.Name == _in
             && m.GetParameters().Length == 0
@@ -632,19 +607,7 @@ public class AutoReflection
     /// </summary>
     IEnumerable<Actuator> GetAttributeFunc()
     {
-        // 特性会出现在同一个类中的多个方法,
-        // 特性下的方法要public,否则就被编译器优化掉了.
-        // 约束只反射本dll的类
-        string? dll = null;
-        if (_constraint)
-        {
-            //"IFoxCAD.Acad08" 不对,要是: TestAcad08
-            //var ass = Assembly.GetExecutingAssembly();
-            //dll = Path.GetFileNameWithoutExtension(ass.Location);
-            dll = _assName;
-        }
-
-        var ts = AppDomainGetTypes(dll);
+        var ts = AppDomainGetTypes(_assName);
 
 #if parallel
         System.Diagnostics.Trace.WriteLine("这是一条Trace消息,此时是并行");

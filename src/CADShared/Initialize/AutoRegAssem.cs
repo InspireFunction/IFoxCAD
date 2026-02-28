@@ -18,7 +18,7 @@ public abstract class AutoRegAssem : IExtensionApplication
 {
     #region 字段
 
-    private readonly AutoReflection? _autoRef;
+    private readonly AutoReflection _autoRef;
 
     #endregion
 
@@ -47,10 +47,22 @@ public abstract class AutoRegAssem : IExtensionApplication
 
     #endregion
 
+
     #region 构造函数
 
+    // 程序集为什么变:
+    // 1,直接继承的构造函数,是用户的插件程序集(例如: TestAcad08)
+    // 2,二级继承,此时程序集是: IFoxCAD.Acad08
+    // 例如此处的this,一旦使用this传递,就会发生 当前程序集 转移,
+    // TestAcad08 => IFoxCAD.Acad08
+    //protected AutoRegAssem(AutoRegConfig autoRegConfig)
+    //    : this(autoRegConfig, null)
+    //{
+    //}
+    // 3,Initialize()方法内,运行时是acadexe目录的程序集
+
     /// <summary>
-    /// 注册中心
+    /// 注册中心（推荐使用此重载）
     /// </summary>
     /// <param name="autoRegConfig">配置项目</param>
     protected AutoRegAssem(AutoRegConfig autoRegConfig)
@@ -58,6 +70,7 @@ public abstract class AutoRegAssem : IExtensionApplication
         // 必须注册文档锁,不然无法实现死锁检测
         DocumentLockManager.Init();
 
+        // 必须直接继承,否则此处获取程序集会变.
         var assem = Assembly.GetCallingAssembly();
         var info = new AssemInfo
         {
@@ -72,34 +85,24 @@ public abstract class AutoRegAssem : IExtensionApplication
             if (!AutoReg.SearchForReg(info))
                 AutoReg.RegApp(info);
         }
-
 #if acad
         if (autoRegConfig.HasFlag(AutoRegConfig.RemoveEMR))
             AcadEMR.Remove();
 #endif
-
-        // 实例化了 AutoClass 之后会自动执行 IFoxAutoGo 接口下面的类,
-        // 以及自动执行特性 [IFoxInitialize]
-        // 类库用户不在此处进行其他代码,而是实现特性
-        if ((autoRegConfig & AutoRegConfig.ReflectionInterface) != AutoRegConfig.ReflectionInterface &&
-            (autoRegConfig & AutoRegConfig.ReflectionAttribute) != AutoRegConfig.ReflectionAttribute)
-            return;
-
-        _autoRef = new AutoReflection(info.Name, autoRegConfig);
-
+        _autoRef = new AutoReflection(autoRegConfig, info.Name);
     }
 
     #endregion
 
-    #region RegApp
 
+    #region RegApp
 
     /// <summary>
     /// 开启时候执行
     /// </summary>
     public void Initialize()
     {
-        _autoRef?.Initialize();
+        _autoRef.Initialize();
     }
 
     /// <summary>
@@ -107,16 +110,7 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// </summary>
     public void Terminate()
     {
-        _autoRef?.Terminate();
+        _autoRef.Terminate();
     }
-
-    /// <summary>
-    /// 
-    /// </summary>
-    ~AutoRegAssem()
-    {
-
-    }
-
     #endregion RegApp
 }

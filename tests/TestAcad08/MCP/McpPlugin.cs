@@ -104,6 +104,14 @@ public static class McpPlugin
         {
             _pipeServer?.Dispose();
             _pipeServer = null;
+
+            // 修复说明：清理注册表状态，解决以下问题：
+            // 1. CommandHandler 被置空后，注册表仍持有对旧实例的引用
+            // 2. ToolRegistry 缓存的工具定义与实际不一致
+            // 3. 重新加载插件时旧数据残留导致潜在问题
+            CommandRegistry.Reset();
+            ToolRegistry.Reset();
+
             CommandHandler = null;
             CommandExecutor = null;
             PgpParser = null;

@@ -25,6 +25,7 @@ namespace Test;
 
 public class AutoRegAssemEx : AutoRegAssem
 {
+    // 这里是用户的cad工程
     public AutoRegAssemEx() : base(AutoRegConfig.All)
     {
 #if Debug

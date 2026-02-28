@@ -98,6 +98,32 @@ public static class CommandRegistry
     public static IEnumerable<string> GetCommandNames() => _handlers.Keys;
 
     /// <summary>
+    /// 注销指定命令
+    /// </summary>
+    /// <param name="name">命令名称</param>
+    /// <returns>是否成功注销</returns>
+    public static bool Unregister(string name)
+    {
+        var removed = _handlers.Remove(name);
+        _descriptions.Remove(name);
+        return removed;
+    }
+
+    /// <summary>
+    /// 重置注册表（用于插件卸载或重新加载）
+    /// 修复说明：提供清理机制，解决以下问题：
+    /// 1. McpPlugin.Terminate() 时无法清理注册表状态
+    /// 2. 重新加载插件时旧数据残留
+    /// 3. 与 ToolRegistry.Reset() 配合保持数据一致性
+    /// </summary>
+    public static void Reset()
+    {
+        _isInitialized = false;
+        _handlers.Clear();
+        _descriptions.Clear();
+    }
+
+    /// <summary>
     /// 动态命令处理器包装器
     /// 在调用前验证request.Id的有效性
     /// </summary>

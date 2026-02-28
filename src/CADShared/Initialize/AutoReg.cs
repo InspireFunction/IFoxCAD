@@ -60,7 +60,9 @@ public static class AutoReg
             return false;
         // 20220409 文件名相同,路径不同,需要判断路径
         var subKey = appKey.OpenSubKey(info.Name);
-        return string.Equals(subKey?.GetValue("LOADER")?.ToString(), info.Loader, StringComparison.CurrentCultureIgnoreCase);
+        // 修复说明：使用 OrdinalIgnoreCase 替代 CurrentCultureIgnoreCase
+        // 原因：文件路径比较应基于字符序数而非区域文化规则，避免在不同区域设置下产生不一致结果
+        return string.Equals(subKey?.GetValue("LOADER")?.ToString(), info.Loader, StringComparison.OrdinalIgnoreCase);
     }
 
     /// <summary>
