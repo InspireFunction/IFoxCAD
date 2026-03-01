@@ -146,7 +146,7 @@ public class JigEx : DrawJig, IDisposable
     /// <param name="action"></param>
     public void DatabaseEntityDraw(WorldDrawEvent action)
     {
-        WorldDrawEvent = action;
+        WorldDrawEvent += action;
     }
 
     /* WorldDraw 封装外的操作说明:
