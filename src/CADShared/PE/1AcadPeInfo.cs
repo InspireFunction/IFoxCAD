@@ -248,7 +248,7 @@ public class AcadPeInfo
             DebugEx.Printl($"[GetDelegate] 错误: 函数指针为空，方法名: {firstMethod.MethodName}");
             return null;
         }
-        
+
         func = Marshal.GetDelegateForFunctionPointer(procAddress, typeof(TDelegate)) as TDelegate;
         return func;
     }
@@ -309,7 +309,7 @@ public class PeFunction
     {
         if (ModuleIntPtr == IntPtr.Zero)
             return IntPtr.Zero;
-        
+
         var procAddress = WindowsAPI.GetProcAddress(ModuleIntPtr, MethodName);
         return procAddress;
     }
@@ -335,10 +335,7 @@ public class PeFunction
             throw new GetPeMethodException(1, "找不到模块:" + peModuleFullName + "当前程序没有加载这个东西?");
 
         // 遍历函数接口名单
-        var names = peInfo.ExportDirectory?.FunctionNames();
-        if (names == null)
-            throw new ArgumentException(nameof(names));
-
+        var names = peInfo.ExportDirectory.FunctionNames();
         foreach (var name in names)
         {
             if (name.Contains(findFuncName))// 这里是名称含有,不是容器含有

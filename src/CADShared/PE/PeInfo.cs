@@ -18,20 +18,19 @@ public class PeInfo
     /// 获取是否正常打开文件
     /// </summary>
     public bool OpenFile { get; private set; } = false;
-
-    public DosHeader? DosHeader { get; private set; }
-
+    public DosHeader DosHeader { get; private set; } = new();
     public DosStub? DosStub { get; private set; }
-    public PEHeader? PEHeader { get; private set; }
+    public PEHeader PEHeader { get; private set; } = new();
     public OptionalHeader? OptionalHeader { get; private set; }
-    public OptionalDirAttrib? OptionalDirAttrib { get; private set; }
-    public SectionTable? SectionTable { get; private set; }
+    public OptionalDirAttrib OptionalDirAttrib { get; private set; } = new();
+    public SectionTable SectionTable { get; private set; } = new();
+
     /// <summary>
     /// 函数接口名单
     /// </summary>
-    public ExportDirectory? ExportDirectory { get; private set; }
-    public ImportDirectory? ImportDirectory { get; private set; }
-    public ResourceDirectory? ResourceDirectory { get; private set; }
+    public ExportDirectory ExportDirectory { get; private set; } = new();
+    public ImportDirectory ImportDirectory { get; private set; } = new();
+    public ResourceDirectory ResourceDirectory { get; private set; } = new();
     /// <summary>
     /// PE文件完整路径
     /// </summary>
@@ -42,7 +41,8 @@ public class PeInfo
     /// <summary>
     /// 全部文件数据
     /// </summary>
-    readonly byte[]? _PEFileByte;
+    readonly byte[] _PEFileByte;
+
     /// <summary>
     /// 文件读取的位置
     /// </summary>
@@ -427,7 +427,7 @@ public class PeInfo
         #region 输入表结构
         while (true)
         {
-            var import = new ImportDirectory.ImportDate();
+            var import = new ImportDate();
             Loadbyte(ref import.OriginalFirstThunk);
             Loadbyte(ref import.TimeDateStamp);
             Loadbyte(ref import.ForwarderChain);
@@ -444,7 +444,7 @@ public class PeInfo
         #region 获取输入DLL名称
         for (var z = 0; z != ImportDirectory.ImportList.Count; z++)     // 获取引入DLL名字
         {
-            if (ImportDirectory.ImportList[z] is not ImportDirectory.ImportDate Import)
+            if (ImportDirectory.ImportList[z] is not ImportDate Import)
                 continue;
 
             var ImportDLLName = GetLong(Import.Name) - SizeRva + PointerRva;
@@ -466,14 +466,14 @@ public class PeInfo
         #region 获取引入方法 先获取地址 然后获取名字和头
         for (var z = 0; z != ImportDirectory.ImportList.Count; z++)     // 获取引入方法
         {
-            if (ImportDirectory.ImportList[z] is not ImportDirectory.ImportDate import)
+            if (ImportDirectory.ImportList[z] is not ImportDate import)
                 continue;
 
             var importDLLName = GetLong(import.OriginalFirstThunk) - SizeRva + PointerRva;
             _PEFileIndex = importDLLName;
             while (true)
             {
-                var function = new ImportDirectory.ImportDate.FunctionList();
+                var function = new ImportDate.FunctionList();
                 Loadbyte(ref function.OriginalFirst);
 
                 var loadIndex = GetLong(function.OriginalFirst);
@@ -588,7 +588,7 @@ public class PeInfo
         var NameRVA = GetLong(node.NumberOfNamedEntries);
         for (var i = 0; i != NameRVA; i++)
         {
-            var Entry = new ResourceDirectory.DirectoryEntry();
+            var Entry = new DirectoryEntry();
             Loadbyte(ref Entry.Name);
             Loadbyte(ref Entry.Id);
             var temp = new byte[2];
@@ -621,7 +621,7 @@ public class PeInfo
 
                 _PEFileIndex = GetLong(temp) + PEIndex;
 
-                var dataRVA = new ResourceDirectory.DirectoryEntry.DataEntry();
+                var dataRVA = new DirectoryEntry.DataEntry();
 
                 Loadbyte(ref dataRVA.ResourRVA);
                 Loadbyte(ref dataRVA.ResourSize);
@@ -648,7 +648,7 @@ public class PeInfo
         var Count = GetLong(node.NumberOfIdEntries);
         for (var i = 0; i != Count; i++)
         {
-            var entry = new ResourceDirectory.DirectoryEntry();
+            var entry = new DirectoryEntry();
             Loadbyte(ref entry.Name);
             Loadbyte(ref entry.Id);
             // System.Windows.Forms.MessageBox.Show(GetString(Entry.Name)+"_"+GetString(Entry.Id));
@@ -666,7 +666,7 @@ public class PeInfo
 
                 _PEFileIndex = GetLong(temp) + PEIndex;
 
-                var dataRVA = new ResourceDirectory.DirectoryEntry.DataEntry();
+                var dataRVA = new DirectoryEntry.DataEntry();
                 Loadbyte(ref dataRVA.ResourRVA);
                 Loadbyte(ref dataRVA.ResourSize);
                 Loadbyte(ref dataRVA.ResourTest);
@@ -1152,7 +1152,7 @@ public class PeInfo
 
         for (var i = 0; i != ImportDirectory.ImportList.Count; i++)
         {
-            if (ImportDirectory.ImportList[i] is not ImportDirectory.ImportDate ImportByte)
+            if (ImportDirectory.ImportList[i] is not ImportDate ImportByte)
                 continue;
 
             AddTableRow(returnTable, ImportByte.DLLName, "输入DLL名称", "**********");
@@ -1180,14 +1180,14 @@ public class PeInfo
 
         for (var i = 0; i != ImportDirectory.ImportList.Count; i++)
         {
-            if (ImportDirectory.ImportList[i] is not ImportDirectory.ImportDate ImportByte)
+            if (ImportDirectory.ImportList[i] is not ImportDate ImportByte)
                 continue;
 
             AddTableRow(returnTable, ImportByte.DLLName, "DLL-Name", "**********");
 
             for (var z = 0; z != ImportByte.DLLFunctionList.Count; z++)
             {
-                if (ImportByte.DLLFunctionList[z] is not ImportDirectory.ImportDate.FunctionList Function)
+                if (ImportByte.DLLFunctionList[z] is not ImportDate.FunctionList Function)
                     continue;
 
                 AddTableRow(returnTable, Function.FunctionName, "FunctionName", "");
@@ -1216,7 +1216,7 @@ public class PeInfo
 
         for (var i = 0; i != Node.EntryList.Count; i++)
         {
-            if (Node.EntryList[i] is not ResourceDirectory.DirectoryEntry Entry)
+            if (Node.EntryList[i] is not DirectoryEntry Entry)
                 continue;
 
             var ID = GetLong(Entry.Name);
@@ -1251,11 +1251,11 @@ public class PeInfo
                 };
             }
 
-            myTable.Rows.Add(new string[] { GUID, IDNAME, parentID });
+            myTable.Rows.Add([GUID, IDNAME, parentID]);
 
             for (var z = 0; z != Entry.DataEntryList.Count; z++)
             {
-                if (Entry.DataEntryList[z] is not ResourceDirectory.DirectoryEntry.DataEntry Data)
+                if (Entry.DataEntryList[z] is not DirectoryEntry.DataEntry Data)
                     continue;
 
                 var Text = "Address{" + GetString(Data.ResourRVA) + "} Size{" + GetString(Data.ResourSize) + "} FileBegin{" + Data.FileStarIndex.ToString() + "-" + Data.FileEndIndex.ToString() + "}";
@@ -1274,7 +1274,8 @@ public class PeInfo
     #endregion
 }
 
-#region 类
+
+#region 信息头
 /// <summary>
 /// DOS文件都MS开始
 /// </summary>
@@ -1310,10 +1311,7 @@ public class DosHeader // IMAGE_DOS_HEADER
 public class DosStub
 {
     public byte[] DosStubData;
-    public DosStub(long Size)
-    {
-        DosStubData = new byte[Size];
-    }
+    public DosStub(long Size) => DosStubData = new byte[Size];
     public long FileStarIndex = 0;
     public long FileEndIndex = 0;
 }
@@ -1388,6 +1386,7 @@ public class OptionalHeader
         {
             // X64没有了,但是为了代码保留修改幅度不大,所以置0
             BaseOfData = [];// x64必须置于0
+
             // x64长度增加的
             var ulonglong = 8;
             ImageBase = new byte[ulonglong];          // 数据基址(RVA)
@@ -1455,9 +1454,9 @@ public class ExportDirectory
     public byte[] AddressOfNames = new byte[4];        // 一个RVA,指向输出函数名的指针的数组
     public byte[] AddressOfNameOrdinals = new byte[4]; // 一个RVA,指向输出函数名对应的序号的数组
 
-    public List<byte[]> AddressOfFunctionsList = new();
-    public List<byte[]> AddressOfNamesList = new();
-    public List<byte[]> AddressOfNameOrdinalsList = new();
+    public List<byte[]> AddressOfFunctionsList = [];
+    public List<byte[]> AddressOfNamesList = [];
+    public List<byte[]> AddressOfNameOrdinalsList = [];
     /// <summary>
     /// 函数指针名称集合
     /// </summary>
@@ -1478,32 +1477,52 @@ public class ExportDirectory
 }
 
 
+public class ImportDate
+{
+    public byte[] OriginalFirstThunk = new byte[4]; // 这里实际上保存着一个RVA,这个RVA指向一个DWORD数组,这个数组可以叫做输入查询表.每个数组元素,或者叫一个表项,保存着一个指向函数名的RVA或者保存着一个函数的序号.
+    public byte[] TimeDateStamp = new byte[4];      // 当这个值为0的时候,表明还没有bind.不为0的话,表示已经bind过了.有关bind的内容后面介绍.
+    public byte[] ForwarderChain = new byte[4];
+    public byte[] Name = new byte[4];       // 一个RVA,这个RVA指向一个ascii以空字符结束的字符串,这个字符串就是本结构对应的dll文件的名字.
+    public byte[] FirstThunk = new byte[4]; // 一个RVA,这个RVA指向一个DWORD数组,这个数组可以叫输入地址表.如果bind了的话,这个数组的每个元素,就是一个输入函数的入口地址.
+
+    public byte[]? DLLName;  // DLL名称
+    public List<FunctionList> DLLFunctionList = [];
+    public class FunctionList
+    {
+        public byte[] OriginalFirst = new byte[4];
+        public byte[]? FunctionName;
+        public byte[] FunctionHead = new byte[2];
+    }
+}
+
 /// <summary>
 /// 输入表
 /// </summary>
 public class ImportDirectory
 {
-    public List<ImportDate> ImportList = new();
-
-    public class ImportDate
-    {
-        public byte[] OriginalFirstThunk = new byte[4]; // 这里实际上保存着一个RVA,这个RVA指向一个DWORD数组,这个数组可以叫做输入查询表.每个数组元素,或者叫一个表项,保存着一个指向函数名的RVA或者保存着一个函数的序号.
-        public byte[] TimeDateStamp = new byte[4];      // 当这个值为0的时候,表明还没有bind.不为0的话,表示已经bind过了.有关bind的内容后面介绍.
-        public byte[] ForwarderChain = new byte[4];
-        public byte[] Name = new byte[4];       // 一个RVA,这个RVA指向一个ascii以空字符结束的字符串,这个字符串就是本结构对应的dll文件的名字.
-        public byte[] FirstThunk = new byte[4]; // 一个RVA,这个RVA指向一个DWORD数组,这个数组可以叫输入地址表.如果bind了的话,这个数组的每个元素,就是一个输入函数的入口地址.
-
-        public byte[]? DLLName;  // DLL名称
-        public List<FunctionList> DLLFunctionList = new();
-        public class FunctionList
-        {
-            public byte[] OriginalFirst = new byte[4];
-            public byte[]? FunctionName;
-            public byte[] FunctionHead = new byte[2];
-        }
-    }
+    public List<ImportDate> ImportList = [];
     public long FileStarIndex = 0;
     public long FileEndIndex = 0;
+}
+
+
+public class DirectoryEntry
+{
+    public byte[] Name = new byte[4];
+    public byte[] Id = new byte[4];
+    public List<DataEntry> DataEntryList = [];
+    public List<ResourceDirectory> NodeDirectoryList = [];
+
+    public class DataEntry
+    {
+        public byte[] ResourRVA = new byte[4];
+        public byte[] ResourSize = new byte[4];
+        public byte[] ResourTest = new byte[4];
+        public byte[] ResourWen = new byte[4];
+
+        public long FileStarIndex = 0;
+        public long FileEndIndex = 0;
+    }
 }
 
 /// <summary>
@@ -1518,29 +1537,11 @@ public class ResourceDirectory
     public byte[] NumberOfNamedEntries = new byte[2];
     public byte[] NumberOfIdEntries = new byte[2];
     public byte[]? Name;
-    public List<DirectoryEntry> EntryList = new();
-
-    public class DirectoryEntry
-    {
-        public byte[] Name = new byte[4];
-        public byte[] Id = new byte[4];
-        public List<DataEntry> DataEntryList = new();
-        public List<ResourceDirectory> NodeDirectoryList = new();
-
-        public class DataEntry
-        {
-            public byte[] ResourRVA = new byte[4];
-            public byte[] ResourSize = new byte[4];
-            public byte[] ResourTest = new byte[4];
-            public byte[] ResourWen = new byte[4];
-
-            public long FileStarIndex = 0;
-            public long FileEndIndex = 0;
-        }
-    }
+    public List<DirectoryEntry> EntryList = [];
 
     public long FileStarIndex = 0;
     public long FileEndIndex = 0;
 }
 #endregion
+
 #pragma warning restore CS1591 // 缺少对公共可见类型或成员的 XML 注释

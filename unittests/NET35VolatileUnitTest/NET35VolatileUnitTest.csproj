@@ -3,8 +3,13 @@
     <PropertyGroup>
         <OutputType>Exe</OutputType>
         <TargetFramework>net35</TargetFramework>
-        <LangVersion>7.3</LangVersion>
-        <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>
+
+        <UseWPF>true</UseWPF>
+        <UseWindowsForms>true</UseWindowsForms>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
     </PropertyGroup>
 
