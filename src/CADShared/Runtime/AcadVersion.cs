@@ -80,7 +80,7 @@ public static class VersionTool
     // 1,不用存年号数组,索引+2000就是年号了,
     // 2,官方是Acad2000i,用2001年顶替
     // 3,官方没有Acad2003,但要满足1的规则,全部数组用上年数据补齐03年.
-    // static readonly int[] _years =>[
+    // static readonly int[] Years =>[
     // 2000, 2001, 2002, 2003/*虚拟03年*/,
     // 2004, 2005, 2006, 
     // 2007, 2008, 2009, 
@@ -89,9 +89,9 @@ public static class VersionTool
     // 2018, 2019, 2020, 2021, 2022, 
     // 2023, 2024, 2025];
     // 字段:public static readonly int[] Years;
-    // 构造:Years = _years;
+    // 构造:Years = Years;
     // 异或判断数值是否一致
-    // Debug.Assert((_years.Length ^ DwgVers.Length ^ AcadVers.Length) == AcadVers.Length, "怎么长度不一样了捏?");
+    // Debug.Assert((Years.Length ^ DwgVers.Length ^ AcadVers.Length) == AcadVers.Length, "怎么长度不一样了捏?");
 
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static int IndexToYear(int index)

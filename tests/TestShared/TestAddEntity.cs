@@ -1,4 +1,4 @@
-namespace Test;
+namespace IFoxCad.Cad;
 
 public partial class Test
 {

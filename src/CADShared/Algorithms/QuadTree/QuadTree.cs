@@ -81,31 +81,31 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
              * 替换指针:获取新分裂的节点的父节点,判断它哪个儿子是它,
              * 替换之后可能仍然不包含图元边界,再循环计算.
              */
-            var sq_Left = _rootNode._X;
-            var sq_Botton = _rootNode._Y;
-            var sq_Right = _rootNode._Right;
-            var sq_Top = _rootNode._Top;
-            if (ent._Y >= _rootNode._Y)// 上↑增殖
+            var sq_Left = _rootNode.X;
+            var sq_Botton = _rootNode.Y;
+            var sqRight = _rootNode.Right;
+            var sqTop = _rootNode.Top;
+            if (ent.Y >= _rootNode.Y)// 上↑增殖
             {
-                if (ent._X >= _rootNode._X)
+                if (ent.X >= _rootNode.X)
                 {
                     // 右上↗增殖
-                    sq_Right += _rootNode.Width;
-                    sq_Top += _rootNode.Height;
+                    sqRight += _rootNode.Width;
+                    sqTop += _rootNode.Height;
                 }
                 else
                 {
                     // 左上↖增殖
                     sq_Left -= _rootNode.Width;
-                    sq_Top += _rootNode.Height;
+                    sqTop += _rootNode.Height;
                 }
             }
             else// 在下↓
             {
-                if (ent._X >= _rootNode._X)
+                if (ent.X >= _rootNode.X)
                 {
                     // 右下↘增殖
-                    sq_Right += _rootNode.Width;
+                    sqRight += _rootNode.Width;
                     sq_Botton -= _rootNode.Height;
                 }
                 else
@@ -116,7 +116,7 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
                 }
             }
             // 扩大2次方
-            var rectSquare = new Rect(sq_Left, sq_Botton, sq_Right, sq_Top);
+            var rectSquare = new Rect(sq_Left, sq_Botton, sqRight, sqTop);
 
             // 四叉树的旧根要作为四分之一插入
             // 新根中计算原根
@@ -190,12 +190,12 @@ public class QuadTree<TEntity> where TEntity : QuadEntity
             while (ptge.MoveNext())
             {
                 var ptEnt = ptge.Current;
-                if (ptEnt != null && rect._X <= ptEnt._X && ptEnt._X <= rect._Right)
+                if (ptEnt != null && rect.X <= ptEnt.X && ptEnt.X <= rect.Right)
                 {
-                    if (rect._Y <= ptEnt._Y && ptEnt._Y <= rect.Top)
+                    if (rect.Y <= ptEnt.Y && ptEnt.Y <= rect.Top)
                         results.Add(ptEnt);
                 }
-                else if (ptEnt != null && ptEnt._X > rect._Right)
+                else if (ptEnt != null && ptEnt.X > rect.Right)
                     break;// 超过后面范围就break,因为红黑树已经排序
             }
             break;

@@ -11,10 +11,19 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.Serialization;
 using System.Text;
 using System.Xml.Linq;
 
 namespace IFoxCAD.Cad;
+
+/// <summary>
+/// 指示在序列化时应忽略属性或字段
+/// </summary>
+[AttributeUsage(AttributeTargets.Property | AttributeTargets.Field, AllowMultiple = false)]
+public sealed class JsonIgnoreAttribute : Attribute
+{
+}
 
 /// <summary>
 /// 自定义JSON序列化器，功能类似于Newtonsoft.Json
@@ -191,6 +200,62 @@ public class MyJson
         var sb = new StringBuilder();
         SerializeValue<T>(obj, sb, 0);
         return sb.ToString();
+    }
+
+    /// <summary>
+    /// 创建对象实例 - 支持无参构造函数和没有无参构造函数的类
+    /// </summary>
+    /// <param name="type">要创建的类型</param>
+    /// <returns>创建的对象实例，如果失败则返回null</returns>
+    //private object? CreateInstance(Type type)
+    //{
+    //    try
+    //    {
+    //        // 这种方式会先跑异常,导致我控制台会卡一会.
+    //        // 但是1是List必须要的,不可以直接去2
+    //        // 1,首先尝试使用 Activator.CreateInstance（需要无参构造函数）
+    //        return Activator.CreateInstance(type);
+    //    }
+    //    catch (MissingMethodException)
+    //    {
+    //        try
+    //        {
+    //            // 2,如果没有无参构造函数，使用 FormatterServices 创建未初始化的对象
+    //            return FormatterServices.GetUninitializedObject(type);
+    //        }
+    //        catch
+    //        {
+    //            return null;
+    //        }
+    //    }
+    //}
+
+    private object? CreateInstance(Type type)
+    {
+        // 值类型直接创建（包括结构体）
+        if (type.IsValueType)
+        {
+            return Activator.CreateInstance(type);
+        }
+
+        // 检查是否有无参构造函数
+        var defaultConstructor = type.GetConstructor(Type.EmptyTypes);
+
+        if (defaultConstructor != null)
+        {
+            // 有无参构造函数，直接创建
+            return Activator.CreateInstance(type);
+        }
+
+        // 没有无参构造函数，使用 FormatterServices 创建未初始化对象
+        try
+        {
+            return FormatterServices.GetUninitializedObject(type);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     /// <summary>
@@ -784,6 +849,10 @@ public class MyJson
 
         foreach (var field in fields)
         {
+            // 检查是否有JsonIgnore特性
+            if (field.GetCustomAttributes(typeof(JsonIgnoreAttribute), false).Length > 0)
+                continue;
+
             if (!first && _indent)
             {
                 sb.Append(',');
@@ -809,6 +878,10 @@ public class MyJson
                 // 跳过索引器属性
                 continue;
             }
+
+            // 检查是否有JsonIgnore特性
+            if (prop.GetCustomAttributes(typeof(JsonIgnoreAttribute), false).Length > 0)
+                continue;
 
             if (!first && _indent)
             {
@@ -965,7 +1038,7 @@ public class MyJson
             {
                 return DeserializeDictionary(dictValue, targetType);
             }
-            return Activator.CreateInstance(targetType);
+            return CreateInstance(targetType);
         }
 
         // 特殊处理：List<object> - 直接返回
@@ -999,7 +1072,7 @@ public class MyJson
                     return DeserializeArray(genericValuesList, targetType);
                 }
             }
-            return Activator.CreateInstance(targetType);
+            return CreateInstance(targetType);
         }
 
         var converter = _converters.FirstOrDefault(c => c.SupportedTypes.Contains(targetType));
@@ -1010,6 +1083,8 @@ public class MyJson
 
         if (token.Type == TokenType.Object)
         {
+            // TODO 这样执行为什么有大量的异常
+            // 引发的异常:“System.MissingMethodException”(位于 mscorlib.dll 中)
             return DeserializeObject(token.Value as Dictionary<string, object>, targetType);
         }
 
@@ -1049,7 +1124,7 @@ public class MyJson
                     {
                         Type elementType = genericArgs[0];
                         var listType = typeof(List<>).MakeGenericType(elementType);
-                        var result = Activator.CreateInstance(listType);
+                        var result = CreateInstance(listType);
                         var addMethod = listType.GetMethod("Add");
 
                         if (valuesList != null && result != null && addMethod != null)
@@ -1110,7 +1185,7 @@ public class MyJson
             dict.Remove("$type");
         }
 
-        var obj = Activator.CreateInstance(type);
+        var obj = CreateInstance(type);
         if (obj == null)
             return null;
 
@@ -1128,6 +1203,7 @@ public class MyJson
             if (field != null)
             {
                 var value = DeserializeToken(new Token { Type = GetTokenType(kvp.Value), Value = kvp.Value }, field.FieldType);
+                value = ConvertToType(value, field.FieldType);
                 field.SetValue(obj, value);
                 //Console.Error.WriteLine($"[MyJson] 设置字段 {kvp.Key} (Field)");
                 continue;
@@ -1201,7 +1277,7 @@ public class MyJson
             {
                 elementType = genericArgs[0];
                 var listType = typeof(List<>).MakeGenericType(elementType);
-                var result = Activator.CreateInstance(listType);
+                var result = CreateInstance(listType);
                 if (result == null)
                     return null;
                 var addMethod = listType.GetMethod("Add");
@@ -1242,7 +1318,7 @@ public class MyJson
         Type valueType = genericArgs[1];
 
         var dictType = typeof(Dictionary<,>).MakeGenericType(keyType, valueType);
-        var result = Activator.CreateInstance(dictType);
+        var result = CreateInstance(dictType);
         if (result == null)
             return null;
 
@@ -1273,7 +1349,7 @@ public class MyJson
             if (targetType.IsClass || Nullable.GetUnderlyingType(targetType) != null)
                 return null;
             else
-                return Activator.CreateInstance(targetType); // 值类型的默认值
+                return CreateInstance(targetType); // 值类型的默认值
         }
 
         if (targetType.IsAssignableFrom(value.GetType()))
@@ -1281,17 +1357,38 @@ public class MyJson
 
         try
         {
-            // 处理数字类型转换
-            if (targetType == typeof(byte) && value is int intVal)
-                return Convert.ToByte(intVal);
-            if (targetType == typeof(short) && value is int intVal2)
-                return Convert.ToInt16(intVal2);
-            if (targetType == typeof(ushort) && value is int intVal3)
-                return Convert.ToUInt16(intVal3);
-            if (targetType == typeof(float) && value is double doubleVal1)
-                return Convert.ToSingle(doubleVal1);
-            if (targetType == typeof(decimal) && value is double doubleVal2)
-                return Convert.ToDecimal(doubleVal2);
+            // 处理字符串到数字类型的转换
+            if (value is string strValue)
+            {
+                if (targetType == typeof(byte))
+                    return Convert.ToByte(strValue);
+                if (targetType == typeof(short))
+                    return Convert.ToInt16(strValue);
+                if (targetType == typeof(ushort))
+                    return Convert.ToUInt16(strValue);
+                if (targetType == typeof(int))
+                    return Convert.ToInt32(strValue);
+                if (targetType == typeof(uint))
+                    return Convert.ToUInt32(strValue);
+                if (targetType == typeof(long))
+                    return Convert.ToInt64(strValue);
+                if (targetType == typeof(ulong))
+                    return Convert.ToUInt64(strValue);
+                if (targetType == typeof(float))
+                    return Convert.ToSingle(strValue);
+                if (targetType == typeof(double))
+                    return Convert.ToDouble(strValue);
+                if (targetType == typeof(decimal))
+                    return Convert.ToDecimal(strValue);
+                if (targetType == typeof(bool))
+                    return Convert.ToBoolean(strValue);
+            }
+
+            // 处理数字类型转换 - 使用 Convert 类进行安全转换
+            if (IsNumericType(targetType))
+            {
+                return ConvertToNumericType(value, targetType);
+            }
 
             // 通用转换
             return Convert.ChangeType(value, targetType);
@@ -1300,9 +1397,51 @@ public class MyJson
         {
             // 返回目标类型的默认值
             if (targetType.IsValueType)
-                return Activator.CreateInstance(targetType);
+                return CreateInstance(targetType);
             return null;
         }
+    }
+
+    private static bool IsNumericType(Type type)
+    {
+        return type == typeof(byte) || type == typeof(sbyte) ||
+               type == typeof(short) || type == typeof(ushort) ||
+               type == typeof(int) || type == typeof(uint) ||
+               type == typeof(long) || type == typeof(ulong) ||
+               type == typeof(float) || type == typeof(double) ||
+               type == typeof(decimal);
+    }
+
+    private static object ConvertToNumericType(object value, Type targetType)
+    {
+        // 先转换为 decimal 作为中间类型，避免精度丢失
+        decimal decimalValue;
+        if (value is int i) decimalValue = i;
+        else if (value is long l) decimalValue = l;
+        else if (value is short s) decimalValue = s;
+        else if (value is byte b) decimalValue = b;
+        else if (value is float f) decimalValue = (decimal)f;
+        else if (value is double d) decimalValue = (decimal)d;
+        else if (value is decimal dec) decimalValue = dec;
+        else if (value is ushort us) decimalValue = us;
+        else if (value is uint ui) decimalValue = ui;
+        else if (value is ulong ul) decimalValue = ul;
+        else if (value is sbyte sb) decimalValue = sb;
+        else decimalValue = Convert.ToDecimal(value);
+
+        if (targetType == typeof(byte)) return (byte)decimalValue;
+        if (targetType == typeof(sbyte)) return (sbyte)decimalValue;
+        if (targetType == typeof(short)) return (short)decimalValue;
+        if (targetType == typeof(ushort)) return (ushort)decimalValue;
+        if (targetType == typeof(int)) return (int)decimalValue;
+        if (targetType == typeof(uint)) return (uint)decimalValue;
+        if (targetType == typeof(long)) return (long)decimalValue;
+        if (targetType == typeof(ulong)) return (ulong)decimalValue;
+        if (targetType == typeof(float)) return (float)decimalValue;
+        if (targetType == typeof(double)) return (double)decimalValue;
+        if (targetType == typeof(decimal)) return decimalValue;
+
+        return Convert.ChangeType(decimalValue, targetType);
     }
 
 

@@ -108,10 +108,10 @@ public class QuadTreeNode<TEntity>
     /// <param name="depth">节点深度</param>
     public QuadTreeNode(Rect box, QuadTreeNode<TEntity>? parent, int depth)
     {
-        _X = box._X;
-        _Y = box._Y;
-        _Right = box._Right;
-        _Top = box._Top;
+        X = box.X;
+        Y = box.Y;
+        Right = box.Right;
+        Top = box.Top;
 
         Parent = parent;
         Depth = depth;
@@ -262,10 +262,10 @@ public class QuadTreeNode<TEntity>
         var halfWidth = box.Width / 2.0;
         var halfHeight = box.Height / 2.0;
 
-        var upperRight = new Rect(box._X + halfWidth, box._Y + halfHeight, box._Right, box._Top);
-        var upperLeft = new Rect(box._X, box._Y + halfHeight, box._Right - halfWidth, box._Top);
-        var lowerleft = new Rect(box._X, box._Y, box._Right - halfWidth, box._Top - halfHeight);// 基础
-        var lowerRight = new Rect(box._X + halfWidth, box._Y, box._Right, box._Top - halfHeight);
+        var upperRight = new Rect(box.X + halfWidth, box.Y + halfHeight, box.Right, box.Top);
+        var upperLeft = new Rect(box.X, box.Y + halfHeight, box.Right - halfWidth, box.Top);
+        var lowerleft = new Rect(box.X, box.Y, box.Right - halfWidth, box.Top - halfHeight);// 基础
+        var lowerRight = new Rect(box.X + halfWidth, box.Y, box.Right, box.Top - halfHeight);
 
         // 依照象限顺序输出
         return [upperRight, upperLeft, lowerleft, lowerRight];

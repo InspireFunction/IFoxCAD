@@ -1,4 +1,6 @@
-namespace Test;
+using Test;
+
+namespace IFoxCad.Cad;
 
 /*
  * 这里属于用户调用例子,

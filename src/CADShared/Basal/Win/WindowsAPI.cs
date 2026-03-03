@@ -1102,12 +1102,12 @@ public partial class WindowsAPI
         /// <summary>
         /// 宽度
         /// </summary>
-        public int Width => checked(Right - Left);
+        public int Width => checked(_Right - _Left);
 
         /// <summary>
         /// 高度
         /// </summary>
-        public int Height => checked(Bottom - Top);
+        public int Height => checked(_Bottom - _Top);
 
         /// <summary>
         /// 初始化IntRect结构体

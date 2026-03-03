@@ -368,7 +368,7 @@ internal sealed partial class SR
     internal const string Error_DifferentTypeFieldExists = "Error_DifferentTypeFieldExists";
     internal const string Error_RootActivityTypeInvalid = "Error_RootActivityTypeInvalid";
     internal const string Error_RootActivityTypeInvalid2 = "Error_RootActivityTypeInvalid2";
-    internal const string Error_CannotCompile_No_XClass = "Error_CannotCompile_No_XClass";
+    internal const string Error_CannotCompile_NoXClass = "Error_CannotCompile_NoXClass";
     internal const string Error_TemplateActivityIsNotActivity = "Error_TemplateActivityIsNotActivity";
     internal const string Error_TypeIsNotRootActivity = "Error_TypeIsNotRootActivity";
     internal const string Error_NoTypeProvider = "Error_NoTypeProvider";
@@ -629,14 +629,14 @@ internal sealed partial class SR
     internal const string Bind_ActivityDataSourceRecursionDetected = "Bind_ActivityDataSourceRecursionDetected";
     internal const string Bind_DuplicateDataSourceNames = "Bind_DuplicateDataSourceNames";
     internal const string Error_PathNotSetForXmlDataSource = "Error_PathNotSetForXmlDataSource";
-    internal const string Error_XmlDocumentLoadFailed = "Error_XmlDocumentLoadFailed";
-    internal const string Error_XmlDataSourceInvalidPath = "Error_XmlDataSourceInvalidPath";
-    internal const string Error_XmlDataSourceMultipleNodes = "Error_XmlDataSourceMultipleNodes";
-    internal const string Error_XmlDataSourceInvalidXPath = "Error_XmlDataSourceInvalidXPath";
+    internal const string ErrorXmlDocumentLoadFailed = "ErrorXmlDocumentLoadFailed";
+    internal const string ErrorXmlDataSourceInvalidPath = "ErrorXmlDataSourceInvalidPath";
+    internal const string ErrorXmlDataSourceMultipleNodes = "ErrorXmlDataSourceMultipleNodes";
+    internal const string ErrorXmlDataSourceInvalidXPath = "ErrorXmlDataSourceInvalidXPath";
     internal const string Error_InvalidObjectRefFormat = "Error_InvalidObjectRefFormat";
     internal const string Error_ReadOnlyDataSource = "Error_ReadOnlyDataSource";
     internal const string Error_HandlerReadOnly = "Error_HandlerReadOnly";
-    internal const string Error_XmlDataSourceReadOnly = "Error_XmlDataSourceReadOnly";
+    internal const string ErrorXmlDataSourceReadOnly = "ErrorXmlDataSourceReadOnly";
     internal const string Error_DataSourceNotExist = "Error_DataSourceNotExist";
     internal const string Error_PropertyNoGetter = "Error_PropertyNoGetter";
     internal const string Error_PropertyNoSetter = "Error_PropertyNoSetter";
@@ -812,7 +812,7 @@ internal sealed partial class SR
     internal const string Error_MoreThanOneCompensationDecl = "Error_MoreThanOneCompensationDecl";
     internal const string Error_ParentDoesNotSupportCompensation = "Error_ParentDoesNotSupportCompensation";
     internal const string Error_CantResolveEventHandler = "Error_CantResolveEventHandler";
-    internal const string Error_XSDObjectTypeNotSerializable = "Error_XSDObjectTypeNotSerializable";
+    internal const string ErrorXSDObjectTypeNotSerializable = "ErrorXSDObjectTypeNotSerializable";
     internal const string AEC_InvalidActivity = "AEC_InvalidActivity";
     internal const string GetDynamicActivities_InvalidActivity = "GetDynamicActivities_InvalidActivity";
     internal const string AEC_InvalidNestedActivity = "AEC_InvalidNestedActivity";
@@ -854,7 +854,7 @@ internal sealed partial class SR
     internal const string Error_FaultHandlersActivityDeclNotAllFaultHandlerActivityDecl = "Error_FaultHandlersActivityDeclNotAllFaultHandlerActivityDecl";
     internal const string Error_FaultHandlerActivityWrongOrder = "Error_FaultHandlerActivityWrongOrder";
     internal const string Error_SenderMustBeActivityExecutionContext = "Error_SenderMustBeActivityExecutionContext";
-    internal const string Error_XomlWorkflowHasCode = "Error_XomlWorkflowHasCode";
+    internal const string ErrorXomlWorkflowHasCode = "ErrorXomlWorkflowHasCode";
     internal const string Error_WrongParamForActivityResolveEventArgs = "Error_WrongParamForActivityResolveEventArgs";
     internal const string Error_ValidatorThrewException = "Error_ValidatorThrewException";
     internal const string Error_Missing_CanModifyProperties_True = "Error_Missing_CanModifyProperties_True";

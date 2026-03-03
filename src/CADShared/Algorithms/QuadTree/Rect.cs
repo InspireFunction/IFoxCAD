@@ -1,6 +1,8 @@
 #if !NET8_0_OR_GREATER
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
 #endif
+#pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
+
 namespace IFoxCAD.Cad;
 
 /// <summary>
@@ -75,48 +77,49 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
 #pragma warning restore CA2211 // 非常量字段应当不可见
 
     #region 字段
-    // 这里的成员不要用{get}封装成属性,否则会导致跳转了一次函数,
-    // 10w图元将会从187毫秒变成400毫秒
-    // 不用 protected 否则子类传入Rect对象进来无法用
-    internal double _X;
-    internal double _Y;
-    internal double _Right;
-    internal double _Top;
     #endregion
 
     #region 成员
     /// <summary>
     /// X
     /// </summary>
-    public double X => _X;
+    public double X { get; set; }
     /// <summary>
     /// Y
     /// </summary>
-    public double Y => _Y;
+    public double Y { get; set; }
     /// <summary>
     /// 左
     /// </summary>
-    public double Left => _X;
+    public double Left
+    {
+        get { return X; }
+        set { X = value; }
+    }
     /// <summary>
     /// 下
     /// </summary>
-    public double Bottom => _Y;
+    public double Bottom
+    {
+        get { return Y; }
+        set { Y = value; }
+    }
     /// <summary>
     /// 右
     /// </summary>
-    public double Right => _Right;
+    public double Right { get; set; }
     /// <summary>
     /// 上
     /// </summary>
-    public double Top => _Top;
+    public double Top { get; set; }
     /// <summary>
     /// 宽
     /// </summary>
-    public double Width => _Right - _X;
+    public double Width => Right - X;
     /// <summary>
     /// 高
     /// </summary>
-    public double Height => _Top - _Y;
+    public double Height => Top - Y;
     /// <summary>
     /// 面积
     /// </summary>
@@ -124,7 +127,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     {
         get
         {
-            var ar = (_Right - _X) * (_Top - _Y);
+            var ar = (Right - X) * (Top - Y);
             return ar < 1e-10 ? 0 : ar;
         }
     }
@@ -144,58 +147,58 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <summary>
     /// 左下Min
     /// </summary>
-    public Point2d LeftLower => new(_X, _Y);
+    public Point2d LeftLower => new(X, Y);
 
     /// <summary>
     /// 左中
     /// </summary>
-    public Point2d LeftMidst => new(_X, Midst.Y);
+    public Point2d LeftMidst => new(X, Midst.Y);
 
     /// <summary>
     /// 左上
     /// </summary>
-    public Point2d LeftUpper => new(_X, _Top);
+    public Point2d LeftUpper => new(X, Top);
 
     /// <summary>
     /// 右上Max
     /// </summary>
-    public Point2d RightUpper => new(_Right, _Top);
+    public Point2d RightUpper => new(Right, Top);
 
     /// <summary>
     /// 右中
     /// </summary>
-    public Point2d RightMidst => new(_Right, Midst.Y);
+    public Point2d RightMidst => new(Right, Midst.Y);
 
     /// <summary>
     /// 右下
     /// </summary>
-    public Point2d RightBottom => new(_Right, _Y);
+    public Point2d RightBottom => new(Right, Y);
 
     /// <summary>
     /// 中间
     /// </summary>
-    public Point2d Midst => new(((_Right - _X) * 0.5) + _X, ((_Top - _Y) * 0.5) + _Y);
+    public Point2d Midst => new(((Right - X) * 0.5) + X, ((Top - Y) * 0.5) + Y);
 
     /// <summary>
     /// 中上
     /// </summary>
-    public Point2d MidstUpper => new(Midst.X, _Top);
+    public Point2d MidstUpper => new(Midst.X, Top);
 
     /// <summary>
     /// 中下
     /// </summary>
-    public Point2d MidstBottom => new(Midst.X, _Y);
+    public Point2d MidstBottom => new(Midst.X, Y);
 
     /// <summary>
     /// 是一个点
     /// 水平或垂直直线包围盒是面积是0,所以面积是0不一定是点
     /// </summary>
-    public bool IsPoint => Math.Abs(_X - _Right) < 1e-10 && Math.Abs(_Y - _Top) < 1e-10;
+    public bool IsPoint => Math.Abs(X - Right) < 1e-10 && Math.Abs(Y - Top) < 1e-10;
     #endregion
 
     #region 构造
     /// <summary>
-    /// 
+    /// 矩形类
     /// </summary>
     public Rect()
     {
@@ -210,10 +213,10 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <param name="top">上</param>
     public Rect(double left, double bottom, double right, double top)
     {
-        _X = left;
-        _Y = bottom;
-        _Right = right;
-        _Top = top;
+        X = left;
+        Y = bottom;
+        Right = right;
+        Top = top;
     }
 
     /// <summary>
@@ -226,17 +229,17 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     {
         if (check)
         {
-            _X = Math.Min(p1.X, p3.X);
-            _Y = Math.Min(p1.Y, p3.Y);
-            _Right = Math.Max(p1.X, p3.X);
-            _Top = Math.Max(p1.Y, p3.Y);
+            X = Math.Min(p1.X, p3.X);
+            Y = Math.Min(p1.Y, p3.Y);
+            Right = Math.Max(p1.X, p3.X);
+            Top = Math.Max(p1.Y, p3.Y);
         }
         else
         {
-            _X = p1.X;
-            _Y = p1.Y;
-            _Right = p3.X;
-            _Top = p3.Y;
+            X = p1.X;
+            Y = p1.Y;
+            Right = p3.X;
+            Top = p3.Y;
         }
     }
     #endregion
@@ -299,10 +302,10 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
         if (ReferenceEquals(this, b)) // 同一对象
             return true;
 
-        return Math.Abs(_X - b._X) < tolerance &&
-                Math.Abs(_Right - b._Right) < tolerance &&
-                Math.Abs(_Top - b._Top) < tolerance &&
-                Math.Abs(_Y - b._Y) < tolerance;
+        return Math.Abs(X - b.X) < tolerance &&
+                Math.Abs(Right - b.Right) < tolerance &&
+                Math.Abs(Top - b.Top) < tolerance &&
+                Math.Abs(Y - b.Y) < tolerance;
     }
     /// <summary>
     /// 
@@ -310,7 +313,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <returns></returns>
     public override int GetHashCode()
     {
-        return (((int)_X ^ (int)_Y).GetHashCode() ^ (int)_Right).GetHashCode() ^ (int)_Top;
+        return (((int)X ^ (int)Y).GetHashCode() ^ (int)Right).GetHashCode() ^ (int)Top;
     }
     #endregion
 
@@ -332,8 +335,8 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <returns></returns>
     public bool Contains(double x, double y)
     {
-        return _X <= x && x <= _Right &&
-               _Y <= y && y <= _Top;
+        return X <= x && x <= Right &&
+               Y <= y && y <= Top;
     }
 
     /// <summary>
@@ -343,8 +346,8 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <returns></returns>
     public bool Contains(Rect rect)
     {
-        return _X <= rect._X && rect._Right <= _Right &&
-               _Y <= rect._Y && rect._Top <= _Top;
+        return X <= rect.X && rect.Right <= Right &&
+               Y <= rect.Y && rect.Top <= Top;
     }
 
     /// <summary>
@@ -355,8 +358,8 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     [MethodImpl]
     public bool IntersectsWith(Rect rect)
     {
-        return rect._X <= _Right && _X <= rect._Right &&
-                rect._Top >= _Y && rect._Y <= _Top;
+        return rect.X <= Right && X <= rect.Right &&
+                rect.Top >= Y && rect.Y <= Top;
     }
     #endregion
 
@@ -376,9 +379,9 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     public Point2d[] ToPoints()
     {
         var a = MinPoint;// min
-        Point2d b = new(_Right, _Y);
+        Point2d b = new(Right, Y);
         var c = MaxPoint;// max
-        Point2d d = new(_X, _Top);
+        Point2d d = new(X, Top);
         return [a, b, c, d];
     }
     /// <summary>
@@ -388,9 +391,9 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     public (Point2d boxMin, Point2d boxRigthDown, Point2d boxMax, Point2d boxLeftUp) ToPoints4()
     {
         var a = MinPoint;// min
-        Point2d b = new(_Right, _Y);
+        Point2d b = new(Right, Y);
         var c = MaxPoint;// max
-        Point2d d = new(_X, _Top);
+        Point2d d = new(X, Top);
         return (a, b, c, d);
     }
 
@@ -400,7 +403,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <returns></returns>
     public Rect Expand(double d)
     {
-        return new Rect(_X - d, _Y - d, _Right + d, _Top + d);
+        return new Rect(X - d, Y - d, Right + d, Top + d);
     }
 
     /// <summary>
@@ -409,7 +412,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <param name="ptList"></param>
     /// <param name="tolerance"></param>
     /// <returns></returns>
-    public static bool IsRectAngle(List<Point2d>? ptList, double tolerance = 1e-8)
+    public static bool IsRectAngle(IEnumerable<Point2d> ptList, double tolerance = 1e-8)
     {
         //if (ptList == null)
         //    throw new ArgumentNullException(nameof(ptList));
@@ -464,7 +467,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <summary>
     /// 是否轴向矩形(无角度)
     /// </summary>
-    public static bool IsRect(List<Point2d>? ptList, double tolerance = 1e-10)
+    public static bool IsRect(IEnumerable<Point2d> ptList, double tolerance = 1e-10)
     {
         //if (ptList == null)
         //    throw new ArgumentNullException(nameof(ptList));
@@ -498,32 +501,33 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
         // var zMin = double.MaxValue;
         // var zMax = double.MinValue;
 
-        pts.ForEach(p => {
+        foreach (var p in pts)
+        {
             xMin = Math.Min(p.X, xMin);
             xMax = Math.Max(p.X, xMax);
             yMin = Math.Min(p.Y, yMin);
             yMax = Math.Max(p.Y, yMax);
             // zMin = Math.Min(p.Z, zMin);
             // zMax = Math.Max(p.Z, zMax);
-        });
+        }
         return (new Point2d(xMin, yMin), new Point2d(xMax, yMax));
     }
 
     /// <summary>
     /// 矩形点序逆时针排列,将min点[0],max点是[3](带角度)
     /// </summary>
-    /// <param name="pts"></param>
+    /// <param name="pts1"></param>
     /// <returns></returns>
-    public static bool RectAnglePointOrder(List<Point2d>? pts)
+    public static bool RectAnglePointOrder(IEnumerable<Point2d> pts1)
     {
         //if (pts == null)
         //    throw new ArgumentNullException(nameof(pts));
-        ArgumentNullException.ThrowIfNull(pts);
-        if (!IsRectAngle(pts))
+        ArgumentNullException.ThrowIfNull(pts1);
+        if (!IsRectAngle(pts1))
             return false;
 
         // 获取min和max点(非包围盒)
-        pts = pts.OrderBy(a => a.X).ThenBy(a => a.Y).ToList();
+        var pts = pts1.OrderBy(a => a.X).ThenBy(a => a.Y).ToList();
         var minPt = pts.First();
         var maxPt = pts.Last();
         var link = new LoopList<Point2d>();
@@ -587,12 +591,13 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     public Entity ToPolyLine()
     {
         List<BulgeVertex> bv = [];
-        var pts = ToPoints();
         Polyline pl = new();
         pl.SetDatabaseDefaults();
-        pts.ForEach((vertex, state, index) => {
+        int index = 0;
+        foreach (var vertex in ToPoints())
+        {
             pl.AddVertexAt(index, vertex, 0, 0, 0);
-        });
+        }
         return pl;
     }
 #endif
@@ -613,7 +618,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     {
         // 先排序X:不需要Y排序,因为Y的上下浮动不共X .ThenBy(a => a.Box.Y)
         // 因为先排序就可以有序遍历x区间,超过就break,达到更快
-        box = box.OrderBy(a => a._X).ToList();
+        box = box.OrderBy(a => a.X).ToList();
 
         // 遍历所有图元
         for (var i = 0; i < box.Count; i++)
@@ -629,12 +634,12 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
             {
                 var twoRect = box[j];
                 // x碰撞:矩形2的Left 在 矩形1[Left-Right]闭区间;穿过的话,也必然有自己的Left因此不需要处理
-                if (oneRect._X <= twoRect._X && twoRect._X <= oneRect._Right)
+                if (oneRect.X <= twoRect.X && twoRect.X <= oneRect.Right)
                 {
                     // y碰撞,那就是真的碰撞了
-                    if ((oneRect._Top >= twoRect._Top && twoRect._Top >= oneRect._Y) /*包容上边*/
-                     || (oneRect._Top >= twoRect._Y && twoRect._Y >= oneRect._Y)     /*包容下边*/
-                     || (twoRect._Top >= oneRect._Top && oneRect._Y >= twoRect._Y))  /*穿过*/
+                    if ((oneRect.Top >= twoRect.Top && twoRect.Top >= oneRect.Y) /*包容上边*/
+                     || (oneRect.Top >= twoRect.Y && twoRect.Y >= oneRect.Y)     /*包容下边*/
+                     || (twoRect.Top >= oneRect.Top && oneRect.Y >= twoRect.Y))  /*穿过*/
                     {
                         if (collisionProcessing(oneRect, twoRect))
                             actionlast = false;
@@ -706,13 +711,13 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     /// <returns></returns>
     public string ToString(string? format = null, IFormatProvider? formatProvider = null)
     {
-        return $"({_X.ToString(format, formatProvider)},{_Y.ToString(format, formatProvider)})," +
-               $"({_Right.ToString(format, formatProvider)},{_Top.ToString(format, formatProvider)})";
+        return $"({X.ToString(format, formatProvider)},{Y.ToString(format, formatProvider)})," +
+               $"({Right.ToString(format, formatProvider)},{Top.ToString(format, formatProvider)})";
 
-        // return $"X={_X.ToString(format, formatProvider)}," +
-        //        $"Y={_Y.ToString(format, formatProvider)}," +
-        //        $"Right={_Right.ToString(format, formatProvider)}," +
-        //        $"Top={_Top.ToString(format, formatProvider)}";
+        // return $"X={X.ToString(format, formatProvider)}," +
+        //        $"Y={Y.ToString(format, formatProvider)}," +
+        //        $"Right={Right.ToString(format, formatProvider)}," +
+        //        $"Top={Top.ToString(format, formatProvider)}";
     }
 
     /*为了红黑树,加入这个*/
@@ -725,13 +730,13 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     {
         if (rect == null)
             return -1;
-        if (_X < rect._X)
+        if (X < rect.X)
             return -1;
-        else if (_X > rect._X)
+        else if (X > rect.X)
             return 1;
-        else if (_Y < rect._Y)/*x是一样的*/
+        else if (Y < rect.Y)/*x是一样的*/
             return -1;
-        else if (_Y > rect._Y)
+        else if (Y > rect.Y)
             return 1;
         return 0;/*全部一样*/
     }
@@ -739,3 +744,5 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
 
     #endregion
 }
+
+#pragma warning restore CS1591 // 缺少对公共可见类型或成员的 XML 注释

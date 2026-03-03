@@ -33,8 +33,8 @@ public class XrefFactory : IXrefBindModes
 {
     #region 私有字段
     readonly DBTrans _tr;
-    // <param name="_xrefNames">要处理的参照名称,<see langword="null"/>就处理所有</param>
-    readonly HashSet<string>? _xrefNames;
+    // <param name="XrefNames">要处理的参照名称,<see langword="null"/>就处理所有</param>
+    readonly HashSet<string>? XrefNames;
     #endregion
 
     #region 公开字段
@@ -88,7 +88,7 @@ public class XrefFactory : IXrefBindModes
     public XrefFactory(DBTrans tr, HashSet<string>? xrefNames = null)
     {
         _tr = tr;
-        _xrefNames = xrefNames;
+        XrefNames = xrefNames;
     }
     #endregion
 
@@ -155,7 +155,7 @@ public class XrefFactory : IXrefBindModes
     bool XrefNamesContains(string xNodeName)
     {
         // 为空的时候全部加入 || 有内容时候含有目标
-        return _xrefNames is null || _xrefNames.Contains(xNodeName);
+        return XrefNames is null || XrefNames.Contains(xNodeName);
     }
 
     /// <summary>
@@ -633,11 +633,11 @@ public class XrefPath
         const char slash = '\\';
 
         // 判断向上删除几个
-        var path_xiangduis = relativeName.Split(slash);
+        var pathXiangduis = relativeName.Split(slash);
         int index = 0;
-        for (int i = 0; i < path_xiangduis.Length; i++)
+        for (int i = 0; i < pathXiangduis.Length; i++)
         {
-            if (path_xiangduis[i] != "..")
+            if (pathXiangduis[i] != "..")
                 break;
             index++;
         }
@@ -652,9 +652,9 @@ public class XrefPath
             result.Append(slash);
         }
         // 后段
-        for (int i = 0; i < path_xiangduis.Length; i++)
+        for (int i = 0; i < pathXiangduis.Length; i++)
         {
-            var item = path_xiangduis[i];
+            var item = pathXiangduis[i];
             if (item != "." && item != "..")
             {
                 result.Append(item);

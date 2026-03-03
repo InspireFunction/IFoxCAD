@@ -8,11 +8,11 @@ public enum QuadTreeSelectMode
     /// <summary>
     /// 碰撞到就选中
     /// </summary>
-    IntersectsWith, 
+    IntersectsWith,
     /// <summary>
     /// 全包含才选中
     /// </summary>
-    Contains,     
+    Contains,
 }
 
 /// <summary>
@@ -23,17 +23,17 @@ public enum QuadTreeFindMode
     /// <summary>
     /// 上
     /// </summary>
-    Top    = 1,  
+    Top = 1,
     /// <summary>
     /// 下
     /// </summary>
-    Bottom = 2,  
+    Bottom = 2,
     /// <summary>
     /// 左
     /// </summary>
-    Left   = 4, 
+    Left = 4,
     /// <summary>
     /// 右
     /// </summary>
-    Right  = 8,  
+    Right = 8,
 }

@@ -1,4 +1,4 @@
-namespace Test;
+namespace IFoxCad.Cad;
 
 public class TestGraph
 {

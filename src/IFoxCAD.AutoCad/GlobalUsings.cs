@@ -37,10 +37,6 @@ global using Cad_ErrorStatus = Autodesk.AutoCAD.Runtime.ErrorStatus;
 // ifoxcad.basal 引用
 global using IFoxCAD.Basal;
 
-
-
-
-
 global using Autodesk.AutoCAD.Windows;
 global using Autodesk.AutoCAD.GraphicsSystem;
 global using LineWeight = Autodesk.AutoCAD.DatabaseServices.LineWeight;
@@ -71,7 +67,7 @@ global using Region = Autodesk.AutoCAD.DatabaseServices.Region;
 global using System.Linq.Expressions;
 global using System.Collections.ObjectModel;
 // 系统引用
-global using System.Windows.Input;
+//global using System.Windows.Input;
 global using System.Globalization;
 global using System.Diagnostics;
 

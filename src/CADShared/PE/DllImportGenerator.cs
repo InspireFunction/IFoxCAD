@@ -1,3 +1,6 @@
+#pragma warning disable CS1591 // 缺少对公共可见类型或成员的 XML 注释
+
+
 using System;
 using System.CodeDom.Compiler;
 using System.Collections.Generic;
@@ -331,7 +334,7 @@ public static class DllImportGenerator
         bool isGroupedMode = false)
     {
         string baseName;
-        
+
         if (isGroupedMode && !string.IsNullOrEmpty(csInfo.ClassName))
         {
             baseName = csInfo.Name;
@@ -485,7 +488,7 @@ public static class DllImportGenerator
         string outputPath)
     {
         var result = GenerateDllImportCode(peInfo, namespaceName, className, dllName);
-        
+
         if (!result.Success)
         {
             throw new InvalidOperationException($"生成代码失败: {string.Join(", ", result.Errors.ToArray())}");
@@ -501,7 +504,7 @@ public static class DllImportGenerator
         string dllName)
     {
         var result = GenerateDllImportCode(peInfo, namespaceName, className, dllName);
-        
+
         if (!result.Success)
         {
             return new CompileResult
@@ -521,7 +524,7 @@ public static class DllImportGenerator
         string dllName)
     {
         var result = GenerateGroupedDllImportCode(peInfo, namespaceName, dllName);
-        
+
         if (!result.Success)
         {
             return new CompileResult
@@ -585,3 +588,4 @@ public static class DllImportGenerator
         public CSharpFunctionInfo CsInfo { get; set; } = null!;
     }
 }
+#pragma warning restore CS1591 // 缺少对公共可见类型或成员的 XML 注释

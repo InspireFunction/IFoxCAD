@@ -16,6 +16,9 @@
         <!-- RuntimeHelpers 的重复警告 -->
         <NoWarn>CS8012;CS1685</NoWarn>
         <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+
+        <!-- 调试路径的变量 -->
+        <cad08>C:\Program Files (x86)\AutoCAD 2008\</cad08>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">

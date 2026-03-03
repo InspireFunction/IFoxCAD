@@ -59,8 +59,7 @@ public class DBmodEx
     /// <returns></returns>
     public static long AcdbSetDbmod(IntPtr db, DBmod newValue)
     {
-        acdbSetDbmod ??= AcadPeInfo.GetDelegate<DelegateAcdbSetDbmod>(
-                            nameof(acdbSetDbmod), AcadPeEnum.Acdb);
+        acdbSetDbmod ??= AcadPeInfo.GetDelegate<DelegateAcdbSetDbmod>(nameof(acdbSetDbmod), AcadPeEnum.Acdb);
         if (acdbSetDbmod is null)
             return -1;
         return acdbSetDbmod.Invoke(db, newValue);// 调用方法

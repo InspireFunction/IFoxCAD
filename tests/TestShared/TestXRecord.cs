@@ -1,11 +1,8 @@
 //#define ExtendedDataBinaryChunk
 #define XTextString
 
-using System.Diagnostics;
-using Test;
 using static IFoxCAD.Basal.WindowsAPI;
-
-namespace Test_XRecord;
+namespace IFoxCad.Cad;
 
 public class TestCmd_XRecord
 {

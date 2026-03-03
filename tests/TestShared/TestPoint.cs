@@ -1,4 +1,5 @@
-namespace Test;
+namespace IFoxCad.Cad;
+
 public class TestPoint
 {
 #if false
@@ -47,7 +48,7 @@ public class TestPoint
             new(1, 1,0),
             new(1, 0,0)
         };
-        
+
         foreach (Point3d pt in ptss)
         {
             Env.Printl($"X={pt.X},Y={pt.Y},Z={pt.Z}");
@@ -58,9 +59,9 @@ public class TestPoint
         {
             Env.Printl($"X={pt.X},Y={pt.Y},Z={pt.Z}");
         }
-        
+
     }
-    
+
     /// <summary>
     /// 红黑树排序点集
     /// </summary>

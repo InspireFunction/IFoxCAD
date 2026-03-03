@@ -1470,6 +1470,76 @@ public class MyJsonTests
     }
 
     #endregion
+
+    #region 字符串到数字类型转换测试
+
+    [Fact]
+    public void Deserialize_StringToShort_ConvertsCorrectly()
+    {
+        var json = "{\"命令\": \"sgt\", \"块名称\": \"SD_施工图标准\", \"屏幕点击\": 1, \"颜色\": \"0\", \"图层\": \"0\", \"缩放\": false, \"镜像\": false}";
+
+        var result = MyJson.DeserializeObject<TestObjectWithShort>(json);
+
+        Assert.NotNull(result);
+        Assert.Equal("sgt", result.命令);
+        Assert.Equal("SD_施工图标准", result.块名称);
+        Assert.Equal(1, result.屏幕点击);
+        Assert.Equal((short)0, result.颜色);
+        Assert.Equal("0", result.图层);
+        Assert.False(result.缩放);
+        Assert.False(result.镜像);
+    }
+
+    [Theory]
+    [InlineData("\"0\"", (short)0)]
+    [InlineData("\"1\"", (short)1)]
+    [InlineData("\"40\"", (short)40)]
+    [InlineData("\"256\"", (short)256)]
+    public void Deserialize_StringToVariousShortValues_ConvertsCorrectly(string jsonValue, short expected)
+    {
+        var json = $"{{\"颜色\": {jsonValue}}}";
+
+        var result = MyJson.DeserializeObject<TestObjectWithShort>(json);
+
+        Assert.NotNull(result);
+        Assert.Equal(expected, result.颜色);
+    }
+
+    [Fact]
+    public void Deserialize_StringToByte_ConvertsCorrectly()
+    {
+        var json = "{\"byteVal\": \"255\"}";
+
+        var result = MyJson.DeserializeObject<Dictionary<string, byte>>(json);
+
+        Assert.NotNull(result);
+        Assert.Equal((byte)255, result["byteVal"]);
+    }
+
+    [Fact]
+    public void Deserialize_IntToUint_ConvertsCorrectly()
+    {
+        // JSON 中的数字默认解析为 int，需要能转换为 uint
+        var json = "{\"uintVal\": 42}";
+
+        var result = MyJson.DeserializeObject<Dictionary<string, uint>>(json);
+
+        Assert.NotNull(result);
+        Assert.Equal((uint)42, result["uintVal"]);
+    }
+
+    [Fact]
+    public void Deserialize_IntToLong_ConvertsCorrectly()
+    {
+        var json = "{\"longVal\": 12345}";
+
+        var result = MyJson.DeserializeObject<Dictionary<string, long>>(json);
+
+        Assert.NotNull(result);
+        Assert.Equal(12345L, result["longVal"]);
+    }
+
+    #endregion
 }
 
 public class TestObjectWithHashSet
@@ -1502,4 +1572,18 @@ public class SharedRefContainer
     public SharedRefNode SharedNode { get; set; } = new SharedRefNode();
     public List<SharedRefNode> NodeList { get; set; } = new List<SharedRefNode>();
     public SharedRefNode[] NodeArray { get; set; } = new SharedRefNode[0];
+}
+
+/// <summary>
+/// 测试字符串到数字类型的转换
+/// </summary>
+public class TestObjectWithShort
+{
+    public string? 命令 { get; set; }
+    public string? 块名称 { get; set; }
+    public int 屏幕点击 { get; set; }
+    public short 颜色 { get; set; }
+    public string? 图层 { get; set; }
+    public bool 缩放 { get; set; }
+    public bool 镜像 { get; set; }
 }

@@ -17,9 +17,9 @@ public class QuadEntity : Rect
     /// <param name="box">包围盒</param>
     public QuadEntity(Rect box)
     {
-        _X = box._X;
-        _Y = box._Y;
-        _Top = box._Top;
-        _Right = box._Right;
+        X = box.X;
+        Y = box.Y;
+        Top = box.Top;
+        Right = box.Right;
     }
 }

@@ -812,7 +812,7 @@ public enum VK : int
     /// <summary>
     /// 右箭头键
     /// </summary>
-    VK_RIGHT = 0x27,
+    VKRight = 0x27,
     /// <summary>
     /// 下箭头键
     /// </summary>
@@ -980,15 +980,15 @@ public enum VK : int
     /// <summary>
     /// X 键
     /// </summary>
-    VK_X = 0x58,
+    VKX = 0x58,
     /// <summary>
     /// Y 键
     /// </summary>
-    VK_Y = 0x59,
+    VKY = 0x59,
     /// <summary>
     /// Z 键
     /// </summary>
-    VK_Z = 0x5A,
+    VKZ = 0x5A,
     /// <summary>
     /// 开始键
     /// </summary>
@@ -1312,7 +1312,7 @@ public enum VK : int
     /// <summary>
     /// ZOOM 键
     /// </summary>
-    VK_ZOOM = 0xFB,
+    VKZOOM = 0xFB,
     /// <summary>
     /// NONAME 键
     /// </summary>
@@ -1533,15 +1533,15 @@ public enum WS : uint
     /// <summary>
     /// 窗口总在顶层
     /// </summary>
-    WS_EX_TOPMOST = 0x8,
+    WS_EXTopMOST = 0x8,
     /// <summary>
     /// WS_EX-CLIENTEDGE和WS_EX_WINDOWEDGE的组合
     /// </summary>
     WS_EX_OVERLAPPEDWINDOW = WS_EX_WINDOWEDGE | WS_EX_CLIENTEDGE,
     /// <summary>
-    /// WS_EX_WINDOWEDGE和WS_EX_TOOLWINDOW和WS_EX_TOPMOST的组合
+    /// WS_EX_WINDOWEDGE和WS_EX_TOOLWINDOW和WS_EXTopMOST的组合
     /// </summary>
-    WS_EX_PALETTEWINDOW = WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EX_TOPMOST,
+    WS_EX_PALETTEWINDOW = WS_EX_WINDOWEDGE | WS_EX_TOOLWINDOW | WS_EXTopMOST,
     /// <summary>
     /// 带双边的窗口
     /// </summary>
@@ -1565,7 +1565,7 @@ public enum WS : uint
     /// <summary>
     /// 窗口具有右对齐属性
     /// </summary>
-    WS_EX_RIGHT = 0x1000,
+    WS_EXRight = 0x1000,
     /// <summary>
     /// 窗口文本自右向左显示
     /// </summary>
@@ -1613,7 +1613,7 @@ public enum WS : uint
     /// <summary>
     /// 垂直滚动条在窗口的右边界
     /// </summary>
-    WS_EX_RIGHTSCROLLBAR = 0x0,
+    WS_EXRightSCROLLBAR = 0x0,
     /// <summary>
     /// 接受文件拖曳
     /// </summary>

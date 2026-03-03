@@ -1,4 +1,4 @@
-namespace Test;
+namespace IFoxCad.Cad;
 
 public static class Tools
 {
@@ -56,8 +56,7 @@ public static class Tools
     public static void TestTimes(int count, string message, Action action,
         Timer.TimeEnum timeEnum = Timer.TimeEnum.Millisecond)
     {
-        var time = Timer.RunTime(() =>
-        {
+        var time = Timer.RunTime(() => {
             for (var i = 0; i < count; i++)
                 action.Invoke();
         }, timeEnum);
