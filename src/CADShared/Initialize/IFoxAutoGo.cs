@@ -233,6 +233,8 @@ public static class TypeCache
             {
                 var type = methodInfo.ReflectedType.Assembly.GetType(fullName);
                 instance = MethodInfoHelper.CreateInstanceWithDefaults(type);
+                if (instance is null) return null;
+
                 _instanceCache.TryAdd(fullName, instance);
             }
             _cache1.TryAdd(methodInfo, instance);

@@ -1,4 +1,8 @@
+using System;
+using System.Reflection;
+
 #if !NET8_0_OR_GREATER
+using System.Runtime.Serialization;
 using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
 #endif
 
@@ -80,17 +84,8 @@ internal static class MethodInfoHelper
     /// <returns>默认值</returns>
     private static object? GetDefaultParameterValue(ParameterInfo paramInfo)
     {
-        // 优先从参数定义中读取默认值(如: void Func(int x = 10))
-        // .NET 3.5使用Attributes判断,4.5+使用HasDefaultValue属性
-#if NET8_0_OR_GREATER || NET45_OR_GREATER
-        if (paramInfo.HasDefaultValue)
+        if (paramInfo.Attributes.HasFlag(ParameterAttributes.HasDefault))
             return paramInfo.DefaultValue;
-#else
-        // .NET 3.5中通过检查ParameterAttributes.HasDefault判断
-        if ((paramInfo.Attributes & ParameterAttributes.HasDefault) == ParameterAttributes.HasDefault)
-            return paramInfo.DefaultValue;
-#endif
-
         var paramType = paramInfo.ParameterType;
 
         // 处理可空类型
@@ -111,12 +106,12 @@ internal static class MethodInfoHelper
     /// </summary>
     /// <param name="type">要创建的类型</param>
     /// <returns>创建的实例</returns>
-    public static object CreateInstanceWithDefaults(Type type)
+    public static object? CreateInstanceWithDefaults(Type type)
     {
         // 优先获取无参构造函数
         var ctor = type.GetConstructor(Type.EmptyTypes);
         if (ctor != null)
-            return Activator.CreateInstance(type);
+            return MyJson.CreateInstance(type);
 
         // 如果没有无参构造函数,查找参数都有默认值的构造函数
         var constructors = type.GetConstructors();
@@ -127,11 +122,7 @@ internal static class MethodInfoHelper
             bool allHaveDefaults = true;
             foreach (var param in parameters)
             {
-#if NET8_0_OR_GREATER || NET45_OR_GREATER
-                if (!param.HasDefaultValue)
-#else
-                if ((param.Attributes & ParameterAttributes.HasDefault) != ParameterAttributes.HasDefault)
-#endif
+                if (param.Attributes.HasFlag(ParameterAttributes.HasDefault))
                 {
                     allHaveDefaults = false;
                     break;
@@ -151,7 +142,7 @@ internal static class MethodInfoHelper
         }
 
         // 如果找不到合适的构造函数,抛出异常
-        throw new InvalidOperationException(
-            $"类型 {type.FullName} 没有无参构造函数或所有参数都有默认值的构造函数");
+        throw new InvalidOperationException($"类型 {type.FullName} 没有无参构造函数或所有参数都有默认值的构造函数");
     }
+
 }

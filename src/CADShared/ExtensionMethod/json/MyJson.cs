@@ -202,61 +202,6 @@ public class MyJson
         return sb.ToString();
     }
 
-    /// <summary>
-    /// 创建对象实例 - 支持无参构造函数和没有无参构造函数的类
-    /// </summary>
-    /// <param name="type">要创建的类型</param>
-    /// <returns>创建的对象实例，如果失败则返回null</returns>
-    //private object? CreateInstance(Type type)
-    //{
-    //    try
-    //    {
-    //        // 这种方式会先跑异常,导致我控制台会卡一会.
-    //        // 但是1是List必须要的,不可以直接去2
-    //        // 1,首先尝试使用 Activator.CreateInstance（需要无参构造函数）
-    //        return Activator.CreateInstance(type);
-    //    }
-    //    catch (MissingMethodException)
-    //    {
-    //        try
-    //        {
-    //            // 2,如果没有无参构造函数，使用 FormatterServices 创建未初始化的对象
-    //            return FormatterServices.GetUninitializedObject(type);
-    //        }
-    //        catch
-    //        {
-    //            return null;
-    //        }
-    //    }
-    //}
-
-    private object? CreateInstance(Type type)
-    {
-        // 值类型直接创建（包括结构体）
-        if (type.IsValueType)
-        {
-            return Activator.CreateInstance(type);
-        }
-
-        // 检查是否有无参构造函数
-        var defaultConstructor = type.GetConstructor(Type.EmptyTypes);
-
-        if (defaultConstructor != null)
-        {
-            // 有无参构造函数，直接创建
-            return Activator.CreateInstance(type);
-        }
-
-        // 没有无参构造函数，使用 FormatterServices 创建未初始化对象
-        try
-        {
-            return FormatterServices.GetUninitializedObject(type);
-        }
-        catch
-        {
-            return null;
-        }
-    }
 
     /// <summary>
     /// 判断类型是否应该保留引用
@@ -1151,6 +1096,53 @@ public class MyJson
 
         return token.Value;
     }
+
+
+    #region 创建对象
+    /// <summary>
+    /// 创建对象实例 - 支持无参构造函数和没有无参构造函数的类
+    /// </summary>
+    /// <param name="type">要创建的类型</param>
+    /// <returns>创建的对象实例，如果失败则返回null</returns>
+    public static object? CreateInstance(Type type)
+    {
+        if (type is null)
+        {
+            throw new System.Exception("type");
+        }
+
+        // 值类型直接创建（包括结构体）
+        bool isActivator;
+        if (type.IsValueType)
+        {
+            isActivator = true;
+        }
+        else
+        {
+            // 检查构造函数
+            var defaultConstructor = type.GetConstructor(Type.EmptyTypes);
+            isActivator = defaultConstructor != null;
+        }
+
+        if (isActivator)
+        {
+            // 有参构造函数，直接创建
+            return Activator.CreateInstance(type);
+        }
+        else
+        {
+            // 只写了有参数构造,导致编译器不自动生成无参构造,
+            // 需要创建未初始化对象
+#if NET6_0_OR_GREATER
+            return System.Runtime.CompilerServices.RuntimeHelpers.GetUninitializedObject(type);
+#else
+#pragma warning disable SYSLIB0050 // FormatterServices 在 .NET 6+ 中已过时
+            return FormatterServices.GetUninitializedObject(type);
+#pragma warning restore SYSLIB0050
+#endif
+        }
+    }
+    #endregion
 
     /// <summary>
     /// 反序列化字典为对象

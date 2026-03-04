@@ -1,3 +1,5 @@
+using IFoxCAD.Cad;
+
 namespace IFoxCAD.Com;
 
 /// <summary>
@@ -19,16 +21,16 @@ public static class LateBinding
     /// </summary>
     /// <param name="appName"></param>
     /// <returns></returns>
-    public static object CreateInstance(string appName)
+    public static object? CreateInstance(string appName)
     {
-        return Activator.CreateInstance(Type.GetTypeFromProgID(appName));
+        return MyJson.CreateInstance(Type.GetTypeFromProgID(appName));
     }
     /// <summary>
     /// 获取或创建实例
     /// </summary>
     /// <param name="appName"></param>
     /// <returns></returns>
-    public static object GetOrCreateInstance(string appName)
+    public static object? GetOrCreateInstance(string appName)
     {
         try { return GetInstance(appName); }
         catch { return CreateInstance(appName); }

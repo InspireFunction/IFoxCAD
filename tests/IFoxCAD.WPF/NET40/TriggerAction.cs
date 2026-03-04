@@ -11,9 +11,9 @@ namespace Microsoft.Xaml.Behaviors
     public abstract class TriggerAction : Freezable
     {
         public static readonly DependencyProperty IsEnabledProperty = DependencyProperty.Register(
-            "IsEnabled", 
-            typeof(bool), 
-            typeof(TriggerAction), 
+            "IsEnabled",
+            typeof(bool),
+            typeof(TriggerAction),
             new PropertyMetadata(true));
 
         protected override Freezable CreateInstanceCore()
@@ -51,7 +51,7 @@ namespace Microsoft.Xaml.Behaviors
                 Invoke(element, parameter);
             }
         }
-        
+
         protected virtual void Invoke(T sender, object parameter)
         {
             // Base implementation can be overridden in derived classes
