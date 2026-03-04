@@ -5,12 +5,12 @@ param(
 )
 
 if ([string]::IsNullOrEmpty($AppName)) {
-    Write-Error "AppName parameter is required"
+    Write-Error "[RegisterAcadPlugin]AppName parameter is required"
     exit 1
 }
 
 if ([string]::IsNullOrEmpty($DllPath)) {
-    Write-Error "DllPath parameter is required"
+    Write-Error "[RegisterAcadPlugin]DllPath parameter is required"
     exit 1
 }
 
@@ -30,14 +30,14 @@ if (Test-Path $basePath) {
                 reg add "$regPath" /v MANAGED /t REG_DWORD /d 1 /f | Out-Null
                 reg add "$regPath" /v LOADER /t REG_SZ /d "$DllPath" /f | Out-Null
                 $registered += "$versionName ($localeName)"
-                Write-Host "Registered: $versionName ($localeName)"
+                Write-Host "[RegisterAcadPlugin]Registered: $versionName ($localeName)"
             }
         }
     }
 }
 
 if ($registered.Count -eq 0) {
-    Write-Warning "No AutoCAD versions found"
+    Write-Warning "[RegisterAcadPlugin]No AutoCAD versions found"
 } else {
-    Write-Host "Total registered: $($registered.Count) versions"
+    Write-Host "[RegisterAcadPlugin]Total registered: $($registered.Count) versions"
 }

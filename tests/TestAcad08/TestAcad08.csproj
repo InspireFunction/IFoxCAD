@@ -49,19 +49,22 @@
     <!-- ============================================ -->
     <Target Name="RegisterAcadPlugin" BeforeTargets="Build" Condition="'$(Configuration)'=='Debug'">
         <PropertyGroup>
-            <DllPath>$(OutDir)$(AssemblyName).dll</DllPath>
+            <!-- 将相对路径转换为完整路径 -->
+            <DllPath>$([System.IO.Path]::GetFullPath('$(OutDir)$(AssemblyName).dll'))</DllPath>
             <ScriptPath>$(MSBuildProjectDirectory)\RegisterAcadPlugin.ps1</ScriptPath>
         </PropertyGroup>
 
         <Message Text="正在搜索并注册 AutoCAD 插件..." Importance="high" />
         <Message Text="DLL路径: $(DllPath)" Importance="high" />
+
         <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(ScriptPath)&quot; -AppName &quot;$(AssemblyName)&quot; -DllPath &quot;$(DllPath)&quot;" ConsoleToMSBuild="true">
             <Output TaskParameter="ConsoleOutput" PropertyName="RegOutput" />
         </Exec>
         <Message Text="$(RegOutput)" Importance="high" />
     </Target>
 
-    <Target Name="UnregisterAcadPlugin" AfterTargets="Clean" Condition="'$(Configuration)'=='Debug'">
+    <!-- 清理的时候卸载注册表 -->
+    <Target Name="UnregisterAcadPlugin" AfterTargets="Clean">
         <PropertyGroup>
             <ScriptPath>$(MSBuildProjectDirectory)\UnregisterAcadPlugin.ps1</ScriptPath>
         </PropertyGroup>
@@ -71,5 +74,6 @@
         <Message Text="$(UnregOutput)" Importance="high" />
     </Target>
     <!-- ============================================ -->
+
 
 </Project>
