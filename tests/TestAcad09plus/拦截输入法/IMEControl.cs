@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Windows.Controls;
 using System.Windows.Forms;
+using System.Windows.Interop;
 using Control = System.Windows.Forms.Control;
 
 
@@ -29,16 +30,25 @@ public class IMEControl
         _process = Process.GetCurrentProcess();
         WindowsAPI.CheckLowLevelHooksTimeout();
 
-        AcadIdleManager.OnIdleOnce(() => {
+        AcadIdleManager.OnIdleOnce(ctrlState => {
+            if (!WindowsAPI.IsWindowEnabled(Acap.MainWindow.Handle))
+            {
+                DebugEx.Printl($"[IMEControl] cad主窗口未启用");
+                ctrlState.Continue();
+                return;
+            }
+
             // 命令反应器
             var dm = Acap.DocumentManager;
             if (dm.Count != 0)
+            {
                 foreach (Document doc in dm)
                 {
                     doc.CommandWillStart += Doc_CommandWillStart;
                     doc.CommandEnded += Doc_CommandEnded;
                     doc.CommandCancelled += Doc_CommandCancelled; ;
                 }
+            }
 
             // 卸载钩子
             Acap.QuitWillStart += (s, e) => {
@@ -130,15 +140,16 @@ public class IMEControl
     // 命令开始反应器
     static void Doc_CommandWillStart(object sender, CommandEventArgs e)
     {
-        DebugEx.Printl("Doc_CommandWillStart: " + e.GlobalCommandName);
+        var cmd = e.GlobalCommandName;
+        DebugEx.Printl("Doc_CommandWillStart: " + cmd);
         try
         {
-            if (Settings.AutoCn2En.Contains(e.GlobalCommandName))
+            if (Settings.AutoCn2En.Contains(cmd))
             {
                 IMESwitch_AutoCn2En();
                 return;
             }
-            else if (Settings.AutoEn2Cn.Contains(e.GlobalCommandName))
+            else if (Settings.AutoEn2Cn.Contains(cmd))
             {
                 IMESwitch_AutoEn2Cn();
                 return;
@@ -159,11 +170,14 @@ public class IMEControl
     {
         try
         {
-            var focusW = WindowsAPI.GetForegroundWindowSafe();
-            if (focusW == IntPtr.Zero || !WindowsAPI.IsWindow(focusW))
+            if (!GetWinFocus(nameof(IsOpenIEM)))
                 return false;
 
-            var context = WindowsAPI.ImmGetContext(focusW);
+            // IMM必须是焦点窗口
+            IntPtr hWndFocus = WindowsAPI.GetFocus();
+            if (hWndFocus == IntPtr.Zero || !WindowsAPI.IsWindow(hWndFocus))
+                return false;
+            var context = WindowsAPI.ImmGetContext(hWndFocus);
             if (context == IntPtr.Zero)
             {
                 DebugEx.Printl($"[IsOpenIEM] ImmGetContext 返回空指针");
@@ -405,24 +419,8 @@ public class IMEControl
     {
         try
         {
-            // 重复校验
-            IntPtr focus;
-            if (Marshal.SizeOf(typeof(IntPtr)) == 4)
-                focus = WindowsAPI.GetFocusSafe(); // acad08_32位_这里会获取0,拥有键盘输入焦点的窗口
-            else
-                focus = WindowsAPI.GetForegroundWindowSafe();
-
-            if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
-            {
-                DebugEx.Printl("[ExceptCmds_AutoEn2Cn_Task] 获取焦点窗口失败或窗口无效");
+            if (!GetWinFocus(nameof(ExceptCmds_AutoEn2Cn_Task)))
                 return false;
-            }
-
-            if (!WindowsAPI.IsWindowEnabled(Acap.MainWindow.Handle))
-            {
-                DebugEx.Printl("[ExceptCmds_AutoEn2Cn_Task] 主窗口未启用");
-                return false;
-            }
 
             var dm = Acap.DocumentManager;
             if (dm == null || dm.Count == 0)
@@ -489,20 +487,15 @@ public class IMEControl
                 //Debugx.Printl(wParam);
 
                 // 必须先焦点
-                IntPtr focus;
-                if (Marshal.SizeOf(typeof(IntPtr)) == 4)
-                    focus = WindowsAPI.GetFocusSafe();
-                else
-                    focus = WindowsAPI.GetForegroundWindowSafe();
-
-                if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
-                {
-                    DebugEx.Printl("[IMEHook] 获取焦点窗口失败或窗口无效");
+                if (!GetWinFocus(nameof(IMEHook)))
                     return false;
-                }
 
                 // 判断键入的数字更快,再判断豁免命令
                 if (!ExceptCmds_AutoEn2Cn_Task())
+                    return false;
+
+                IntPtr focus = WindowsAPI.GetFocus();
+                if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
                     return false;
 
                 StringBuilder lpClassName = new(byte.MaxValue);
@@ -511,35 +504,38 @@ public class IMEControl
                     DebugEx.Printl("[IMEHook] GetClassNameSafe 失败");
                     return false;
                 }
+
                 string left = lpClassName.ToString().ToLower();
                 if (left.StartsWith("afx"))// 在08输入的都从这里进入
                 {
+                    // 测试: cad窗口启动了但是没有完全初始化到文档窗口,然后立即点击到vs(或其他进程),在vs上面任何地方键盘输入.
+                    // 用 GetFocusSafe() 则在vs输入到回到了cad.
+                    // 用 GetForegroundWindowSafe() 则输入到了vs(或其他进程),才是对的!
+                    var focusW = WindowsAPI.GetForegroundWindowSafe();
+                    if (focusW == IntPtr.Zero || !WindowsAPI.IsWindow(focusW))
                     {
-                        var focusW = WindowsAPI.GetForegroundWindowSafe();
-                        if (focusW == IntPtr.Zero || !WindowsAPI.IsWindow(focusW))
-                        {
-                            DebugEx.Printl("[IMEHook] 获取前台窗口失败或窗口无效");
-                            return false;
-                        }
-
-                        StringBuilder lpClassName2 = new(byte.MaxValue);
-                        if (!WindowsAPI.GetClassNameSafe(focusW, lpClassName2, checked(lpClassName2.Capacity + 1)))
-                        {
-                            DebugEx.Printl("[IMEHook] GetClassNameSafe(前台窗口) 失败");
-                            return false;
-                        }
-                        left = lpClassName2.ToString().ToLower();
-                        // cad08启动时候会滚动某些信息,此时鼠标狂点入到vs代码编辑器中,然后等一段时间cad完成,vs就会无法输入了.
-                        // 会被拦截到了这个"afx"处理,所有的输入都跑cad了,需要加入如下代码进行处理:
-                        // 狂点鼠标进入vs是 hwndwrapper
-                        // 狂点鼠标进入qq是 txguifoundation
-                        // Debugx.Printl($"afx...{left}...{DateTime.Now}");
-                        if (!left.StartsWith("afx"))
-                        {
-                            DebugEx.Printl($"afx...拦截...{DateTime.Now}");
-                            return false;
-                        }
+                        DebugEx.Printl($"[IMEHook] 焦点窗口失败或窗口无效");
+                        return false;
                     }
+
+                    StringBuilder lpClassName2 = new(byte.MaxValue);
+                    if (!WindowsAPI.GetClassNameSafe(focusW, lpClassName2, checked(lpClassName2.Capacity + 1)))
+                    {
+                        DebugEx.Printl("[IMEHook] GetClassNameSafe(前台窗口) 失败");
+                        return false;
+                    }
+                    left = lpClassName2.ToString().ToLower();
+                    // acad08启动时候会滚动某些信息,此时鼠标狂点入到vs代码编辑器中,然后等一段时间cad完成,vs就会无法输入了.
+                    // 会被拦截到了这个"afx"处理,所有的输入都跑cad了,需要加入如下代码进行处理:
+                    // 狂点鼠标进入vs是 hwndwrapper
+                    // 狂点鼠标进入qq是 txguifoundation
+                    // Debugx.Printl($"afx...{left}...{DateTime.Now}");
+                    if (!left.StartsWith("afx"))
+                    {
+                        DebugEx.Printl($"afx...拦截...{DateTime.Now}");
+                        return false;
+                    }
+
                     if (!WindowsAPI.PostMessageSafe(focus, WM_KEYDOWN, new IntPtr(wParam), new IntPtr(0x10001)))
                     {
                         DebugEx.Printl("[IMEHook] PostMessageSafe(WM_KEYDOWN) 失败");
@@ -602,7 +598,6 @@ public class IMEControl
                     var dm = Acap.DocumentManager;
                     if (dm == null || dm.Count == 0)
                         return false;
-
                     var doc = dm.MdiActiveDocument;
                     if (doc == null || doc.IsDisposed)
                         return false;
@@ -642,25 +637,68 @@ public class IMEControl
                wParam != WM_KEYDOWN;
     }
 
+
+
+    static bool GetWinFocus(string msg)
+    {
+        // 1,焦点窗口,是否存在且有效
+        // 文本栏,可输入的窗口
+        IntPtr hWndFocus = WindowsAPI.GetFocusSafe();
+        if (hWndFocus == IntPtr.Zero || !WindowsAPI.IsWindow(hWndFocus))
+        {
+            DebugEx.Printl($"[{msg}] GetFocusSafe:{hWndFocus}");
+            return false;
+        }
+
+        // 2,前台窗口,是否属于当前活动的前台进程,
+        // 主进程窗口,在cad是容器,无法输入的.
+        IntPtr hWndForeground = WindowsAPI.GetForegroundWindowSafe();
+        if (hWndForeground == IntPtr.Zero || !WindowsAPI.IsWindow(hWndFocus))
+        {
+            DebugEx.Printl($"[{msg}] GetForegroundWindowSafe:{hWndForeground}");
+            return false;
+        }
+
+        // 3,共同祖先
+        // a,前台窗口用来判断用户是否已切换程序,
+        // 在调试期间没有等cad主窗口初始化完成,就切换到其它进程窗口就会发生,
+        // 此时焦点窗口依然是cad,但是前台窗口已经切换到vs.
+        // b,在对话框等子窗口,但与主程序状态不一致.
+        // c,僵尸句柄要预防性处理.
+        IntPtr hFocusRoot = WindowsAPI.GetAncestor(hWndFocus, WindowsAPI.Constants.GA_ROOT);
+        IntPtr hForeRoot = WindowsAPI.GetAncestor(hWndForeground, WindowsAPI.Constants.GA_ROOT);
+        if (hFocusRoot == IntPtr.Zero || hFocusRoot != hForeRoot)
+        {
+            // 测试方式:在acad绘图区空选一次,切换到其他进程窗口,例如QQ窗口进行输入.
+            // GetFocusSafe() 在 acad08_32位_会获取0,而 GetForegroundWindowSafe() 则有值
+            // 触发了0值退出
+            DebugEx.Printl($"[{msg}] 焦点窗口祖先!=当前前台祖先, focus1:{hFocusRoot} focus2:{hForeRoot}");
+            return false;
+        }
+
+        // 下面的不需要判断也行,去专用位置判断
+
+        // 4,检查输入上下文（对 TSF/IME 框架）
+        // 检查的是焦点窗口
+        //IntPtr hIMC = WindowsAPI.ImmGetContext(hWndFocus);
+        //if (hIMC == IntPtr.Zero)
+        //    return false;
+
+        //WindowsAPI.GetWindowThreadProcessId(focus, out uint lpdwProcessId);
+        //if (lpdwProcessId != _process.Id)
+        //    return false;
+
+        return true;
+    }
+
     static bool Mk2(int nCode, int wParam, IntPtr lParam)
     {
         try
         {
-            IntPtr focus;
-            if (Marshal.SizeOf(typeof(IntPtr)) == 4)
-                focus = WindowsAPI.GetFocusSafe(); // acad08_32位_这里会获取0,拥有键盘输入焦点的窗口
-            else
-                focus = WindowsAPI.GetForegroundWindowSafe();
-
-            if (focus == IntPtr.Zero || !WindowsAPI.IsWindow(focus))
+            if (!GetWinFocus(nameof(Mk2)))
             {
-                DebugEx.Printl("[Mk2] 获取焦点窗口失败或窗口无效");
                 return false;
             }
-
-            WindowsAPI.GetWindowThreadProcessId(focus, out uint lpdwProcessId);
-            if (lpdwProcessId != _process.Id)
-                return false;
 
             WindowsAPI.KeyboardHookStruct? key = null;
             if (Control.ModifierKeys == Keys.None)

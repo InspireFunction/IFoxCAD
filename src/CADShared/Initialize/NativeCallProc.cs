@@ -689,6 +689,55 @@ public static class AcadIdleManager
 #endif
     }
 
+
+    /// <summary>
+    /// 执行一次的空闲事件处理程序,但是根据状态判断是否退出.
+    /// </summary>
+    /// <param name="action">要执行的操作</param>
+    public static void OnIdleOnce(Action<CtrlState> action)
+    {
+        if (action == null)
+            throw new ArgumentNullException(nameof(action));
+
+        CtrlState ctrlState = new();
+        ctrlState.Reset();
+#if ac2008
+        // 使用局部变量来保存事件处理程序，以便在lambda中引用自身进行取消订阅
+        EventHandler? handler = null;
+        handler = (s, e) => {
+            // 执行用户操作
+            action(ctrlState);
+            // 用户选择跳过状态,就不结束,
+            // 下次执行时候可能根据环境而改变
+            if (!ctrlState.IsContinue)
+            {
+                OnIdle -= handler;
+                return;
+            }
+            // 又再次初始化,相当于来回拨动开关,积极终止循环
+            ctrlState.Reset();
+        };
+        OnIdle += handler;
+#else
+        // 高版本使用 Application.Idle 事件
+        EventHandler? handler = null;
+        handler = (s, e) => {
+            // 执行用户操作
+            action(ctrlState);
+            // 用户选择跳过状态,就不结束,
+            // 下次执行时候可能根据环境而改变
+            if (!ctrlState.IsContinue)
+            {
+                OnIdle -= handler;
+                return;
+            }
+            // 又再次初始化,相当于来回拨动开关,积极终止循环
+            ctrlState.Reset();
+        };
+        Acap.Idle += handler;
+#endif
+    }
+
     /// <summary>
     /// 添加仅执行一次的空闲事件处理程序（带发送者和事件参数）
     /// 在下一个空闲事件触发时执行指定操作，然后自动取消订阅

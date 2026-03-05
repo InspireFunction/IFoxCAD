@@ -64,6 +64,7 @@ public class CtrlState
     public bool IsNone => _flag == (int)CtrlStateType.None;
     public bool IsExceptional => State.HasFlag(CtrlStateType.Exceptional);
     public bool IsError => State.HasFlag(CtrlStateType.Error);
+
     public bool IsInit => State.HasFlag(CtrlStateType.Init);
     public bool IsRun => State.HasFlag(CtrlStateType.Running);
     public bool IsBreak => State.HasFlag(CtrlStateType.Break);

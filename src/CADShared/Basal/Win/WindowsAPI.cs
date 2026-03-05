@@ -371,7 +371,16 @@ public partial class WindowsAPI
         return foregroundProcessId == mainProcessId && foregroundWindow != MainWindowHandle;
     }
 
+    public enum Constants : uint
+    {
+        GA_PARENT = 1,
+        GA_ROOT = 2,
+        GA_ROOTOWNER = 3,
+        GA_ENABLEDPOPUP = 4,
+    }
 
+    [DllImport("user32.dll", ExactSpelling = true)]
+    public static extern IntPtr GetAncestor(IntPtr hWnd, Constants gaFlags);
 
 
 #if true20221030
@@ -513,20 +522,6 @@ public partial class WindowsAPI
     [DllImport("user32.dll", SetLastError = true)]
     public static extern IntPtr GetForegroundWindow();
 
-    /// <summary>
-    /// 获取当前前台窗口（带错误检查）
-    /// 没有键盘焦点(比如弹出了模态对话框),它依然返回主窗口句柄.
-    /// </summary>
-    /// <returns>前台窗口句柄，失败返回IntPtr.Zero</returns>
-    public static IntPtr GetForegroundWindowSafe()
-    {
-        var result = GetForegroundWindow();
-        if (result == IntPtr.Zero)
-        {
-            CheckWin32Error(nameof(GetForegroundWindow), result);
-        }
-        return result;
-    }
     /// <summary>
     /// 将一个消息的组成部分合成一个消息并放入对应线程消息队列的方法
     /// </summary>
@@ -763,9 +758,21 @@ public partial class WindowsAPI
     {
         var result = GetFocus();
         if (result == IntPtr.Zero)
-        {
             CheckWin32Error(nameof(GetFocus), result);
-        }
+        return result;
+    }
+
+
+    /// <summary>
+    /// 获取当前前台窗口（带错误检查）
+    /// 没有键盘焦点(比如弹出了模态对话框),它依然返回主窗口句柄.
+    /// </summary>
+    /// <returns>前台窗口句柄，失败返回IntPtr.Zero</returns>
+    public static IntPtr GetForegroundWindowSafe()
+    {
+        var result = GetForegroundWindow();
+        if (result == IntPtr.Zero)
+            CheckWin32Error(nameof(GetForegroundWindow), result);
         return result;
     }
 
