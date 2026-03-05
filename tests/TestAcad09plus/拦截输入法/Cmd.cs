@@ -128,10 +128,8 @@ public class Cmd
             }
 
             // Sequence.ProcessLast 是进程关闭前回收,
-            // 不能处理任何关于面板的类,它们已经释放,但是没有标记.
-            // 万一你需要改为其他释放层级呢?
-            var dm = Acap.DocumentManager;
-            if (dm.Count != 0)
+            // 已经释放cad
+            if (!Acap.IsQuiescent)
             {
                 // 移除文档反应器
                 DocReactor.RemoveReactor();

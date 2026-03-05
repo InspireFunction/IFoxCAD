@@ -104,6 +104,9 @@ public class Copyclip
 #endif
         if (cmd != null)
         {
+            // 已经释放cad
+            if (Acap.IsQuiescent)
+                return;
             var dm = Acap.DocumentManager;
             if (dm.Count == 0)
                 return;
@@ -206,6 +209,9 @@ public class Copyclip
             if (!_rwLock.IsWriteLockHeld)
                 _rwLock.EnterWriteLock(); // 进入写入锁
 
+            // 已经释放cad
+            if (Acap.IsQuiescent)
+                return;
             var dm = Acap.DocumentManager;
             if (dm.Count == 0)
                 return;
@@ -381,6 +387,8 @@ public class Copyclip
             if (!_rwLock.IsWriteLockHeld)
                 _rwLock.EnterWriteLock(); // 进入写入锁
 
+            if (Acap.IsQuiescent)
+                return;
             var dm = Acap.DocumentManager;
             if (dm.Count == 0)
                 return;

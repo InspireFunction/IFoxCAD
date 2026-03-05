@@ -397,6 +397,9 @@ public class AutoReflection(AutoRegConfig autoRegConfig, string? assName = null)
 
             // 释放缓存,类析构会在此之后.
             TypeCache.Clear();
+
+            // 停止空闲事件管理器
+            AcadIdleManager.Shutdown();
         }
         catch (System.Exception e)
         {

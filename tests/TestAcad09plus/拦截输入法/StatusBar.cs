@@ -51,7 +51,8 @@ public class StatusBar
             return;
 
         // 进程关闭前释放,不能判断 Panes 这种界面类了.
-        if (Acap.DocumentManager.Count == 0)
+        // 已经释放cad
+        if (Acap.IsQuiescent)
         {
             _pane = null;
             return;

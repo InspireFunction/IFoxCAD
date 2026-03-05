@@ -502,11 +502,6 @@ public static class AcadIdleManager
     public static int IdleInterval { get; set; } = 100;
 
     /// <summary>
-    /// AutoCAD主窗口句柄
-    /// </summary>
-    public static IntPtr MainWindowHandle { get; private set; }
-
-    /// <summary>
     /// 空闲事件
     /// </summary>
     public static event EventHandler? OnIdle
@@ -568,14 +563,12 @@ public static class AcadIdleManager
 
             try
             {
-                MainWindowHandle = Acap.MainWindow.Handle;
-                if (MainWindowHandle == IntPtr.Zero)
-                {
+                var acadWin = Acap.MainWindow.Handle;
+                if (acadWin == IntPtr.Zero)
                     return;
-                }
 
                 // 创建窗口过程拦截器
-                _windowProc = new AcadWindowProc(MainWindowHandle);
+                _windowProc = new AcadWindowProc(acadWin);
 
                 // 创建虚拟控件用于线程同步
                 _dummyControl = new Control();
@@ -588,20 +581,33 @@ public static class AcadIdleManager
                     {
                         // 检查主窗口句柄是否仍然有效，确保仍在AutoCAD环境中
                         // 并且检查当前没有模态窗口阻塞
-                        if (MainWindowHandle != IntPtr.Zero && WindowsAPI.IsWindow(MainWindowHandle) && !WindowsAPI.IsModalWindowActive(MainWindowHandle))
-                        {
-                            _dummyControl.BeginInvoke(new Action(() => {
-                                _windowProc?.DoIdle();
-                            }));
-                        }
+                        var acadWin = Acap.MainWindow.Handle;
+                        if (acadWin == IntPtr.Zero)
+                            return;
+                        if (!WindowsAPI.IsWindow(acadWin))
+                            return;
+                        if (!WindowsAPI.IsWindowEnabled(acadWin))
+                            return;
+                        // 检查当前没有模态窗口阻塞
+                        if (WindowsAPI.IsModalWindowActive(acadWin))
+                            return;
+                        _dummyControl.BeginInvoke(() => {
+                            _windowProc?.DoIdle();
+                        });
                     }
                     else
                     {
-                        // 在主线程上也需要检查主窗口有效性
-                        if (MainWindowHandle != IntPtr.Zero && WindowsAPI.IsWindow(MainWindowHandle) && !WindowsAPI.IsModalWindowActive(MainWindowHandle))
-                        {
-                            _windowProc?.DoIdle();
-                        }
+                        var acadWin = Acap.MainWindow.Handle;
+                        if (acadWin == IntPtr.Zero)
+                            return;
+                        if (!WindowsAPI.IsWindow(acadWin))
+                            return;
+                        if (!WindowsAPI.IsWindowEnabled(acadWin))
+                            return;
+                        // 检查当前没有模态窗口阻塞
+                        if (WindowsAPI.IsModalWindowActive(acadWin))
+                            return;
+                        _windowProc?.DoIdle();
                     }
                 };
                 _idleTimer.Start();
@@ -630,24 +636,17 @@ public static class AcadIdleManager
                 _idleTimer = null;
             }
 
-            if (_dummyControl != null)
+            if (_dummyControl != null && _dummyControl.InvokeRequired)
             {
-                if (_dummyControl.InvokeRequired)
-                {
-                    // 检查主窗口句柄是否仍然有效，确保仍在AutoCAD环境中
-                    if (MainWindowHandle != IntPtr.Zero && WindowsAPI.IsWindow(MainWindowHandle))
-                    {
-                        _dummyControl.Invoke(new Action(() => {
-                            _dummyControl.Dispose();
-                        }));
-                    }
-                }
-                else
-                {
+                _dummyControl.Invoke(() => {
                     _dummyControl.Dispose();
-                }
-                _dummyControl = null;
+                });
             }
+            else
+            {
+                _dummyControl?.Dispose();
+            }
+            _dummyControl = null;
 
             if (_windowProc != null)
             {

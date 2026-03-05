@@ -30,14 +30,7 @@ public class IMEControl
         _process = Process.GetCurrentProcess();
         WindowsAPI.CheckLowLevelHooksTimeout();
 
-        AcadIdleManager.OnIdleOnce(ctrlState => {
-            if (!WindowsAPI.IsWindowEnabled(Acap.MainWindow.Handle))
-            {
-                DebugEx.Printl($"[IMEControl] cad主窗口未启用");
-                ctrlState.Continue();
-                return;
-            }
-
+        AcadIdleManager.OnIdleOnce(() => {
             // 命令反应器
             var dm = Acap.DocumentManager;
             if (dm.Count != 0)
@@ -422,6 +415,9 @@ public class IMEControl
             if (!GetWinFocus(nameof(ExceptCmds_AutoEn2Cn_Task)))
                 return false;
 
+            // 已经释放cad
+            if (Acap.IsQuiescent)
+                return false;
             var dm = Acap.DocumentManager;
             if (dm == null || dm.Count == 0)
                 return false;
@@ -595,6 +591,9 @@ public class IMEControl
                         return false;
                     }
 
+                    // 已经释放cad
+                    if (Acap.IsQuiescent)
+                        return false;
                     var dm = Acap.DocumentManager;
                     if (dm == null || dm.Count == 0)
                         return false;
