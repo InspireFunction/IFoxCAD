@@ -1,20 +1,41 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-    <PropertyGroup>
-        <OutputType>Exe</OutputType>
-        <TargetFramework>net35</TargetFramework>
+  <PropertyGroup>
+    <TargetFrameworks>NET48</TargetFrameworks>
+    <!--<TargetFrameworks>NET35;NET48</TargetFrameworks>-->
+    <LangVersion>preview</LangVersion>
+    <Nullable>enable</Nullable>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+    <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+  </PropertyGroup>
 
-        <LangVersion>preview</LangVersion>
-        <Nullable>enable</Nullable>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
+    <OutputType>Exe</OutputType>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+  </PropertyGroup>
 
-        <UseWPF>true</UseWPF>
-        <UseWindowsForms>true</UseWindowsForms>
-        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-        <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
-    </PropertyGroup>
+  <PropertyGroup Condition="'$(TargetFramework)' == 'NET48'">
+    <OutputType>Library</OutputType>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
 
-    <ItemGroup>
-        <Compile Include="..\..\src\CADShared\Basal\CLS\Volatile.cs" Link="Volatile.cs" />
-    </ItemGroup>
+  <ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="xunit" Version="2.6.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.4">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+    <PackageReference Include="coverlet.collector" Version="6.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\src\CADShared\Basal\CLS\*.cs" Link="CLS\%(Filename)%(Extension)" />
+  </ItemGroup>
 
 </Project>

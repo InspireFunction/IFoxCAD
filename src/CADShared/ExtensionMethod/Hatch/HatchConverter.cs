@@ -66,30 +66,39 @@ public class HatchConverter
     #endregion
 
     #region 构造
-    /// <summary>
-    /// 填充边界转换器
-    /// </summary>
-    /// <param name="hatch">需要转化的Hatch对象</param>
-    public HatchConverter(Hatch hatch)
+    HatchConverter(Hatch hatch, ReadOnlyCollection<ObjectId>? boundaryIds)
     {
         _oldHatch = hatch;
+        BoundaryIds = boundaryIds;
+    }
 
-        // 如果是关联的,将已有的边界id加入
-        if (_oldHatch.Associative)
+    /// <summary>
+    /// 创建填充边界转换器
+    /// </summary>
+    /// <param name="hatch">需要转化的Hatch对象</param>
+    /// <returns>填充边界转换器实例</returns>
+    /// <exception cref="ArgumentException">关联的填充边界被删除后没有清理反应器</exception>
+    public static HatchConverter Create(Hatch hatch)
+    {
+        ReadOnlyCollection<ObjectId>? boundaryIds = null;
+
+        if (hatch.Associative)
         {
-            // 填充边界反应器
-            using var assIds = _oldHatch.GetAssociatedObjectIds();
-            if (assIds == null)
-                return;
-            BoundaryIds = assIds.ToList().Where(id => id.IsOk()).ToList().AsReadOnly();
-            if (BoundaryIds.Count == 0)
+            using var assIds = hatch.GetAssociatedObjectIds();
+            if (assIds != null)
             {
-                throw new ArgumentException(
-                    "关联的填充边界被删除后没有清理反应器,请调用:" +
-                    "\n hatch.RemoveAssociatedObjectIds()" +
-                    "\n hatch.Associative = false");
+                boundaryIds = assIds.ToList().Where(id => id.IsOk()).ToList().AsReadOnly();
+                if (boundaryIds.Count == 0)
+                {
+                    throw new ArgumentException(
+                        "关联的填充边界被删除后没有清理反应器,请调用:" +
+                        "\n hatch.RemoveAssociatedObjectIds()" +
+                        "\n hatch.Associative = false");
+                }
             }
         }
+
+        return new HatchConverter(hatch, boundaryIds);
     }
 
     /// <summary>

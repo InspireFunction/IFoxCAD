@@ -225,7 +225,7 @@ internal static class EntityBoundingInfo
             var extTmp = new Extents3d();
 
             var tr = DBTrans.GetTop(hatch.Database);
-            var hc = new HatchConverter(hatch);
+            var hc = HatchConverter.Create(hatch);
             hc.GetBoundarysData();
             hc.CreateBoundary();
             var ids = hc.BoundaryNewlyIds;

@@ -26,7 +26,7 @@ class SimpleTest
         try
         {
             Console.WriteLine("正在读取PE文件...");
-            var peInfo = new PeInfo(acadexePath);
+            var peInfo = PeInfo.Create(acadexePath);
 
             if (!peInfo.OpenFile)
             {

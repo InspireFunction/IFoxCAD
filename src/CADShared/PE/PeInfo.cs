@@ -50,31 +50,29 @@ public class PeInfo
     #endregion
 
     #region 构造
+    PeInfo(string fullName, byte[] peFileByte)
+    {
+        FullName = fullName;
+        _PEFileByte = peFileByte;
+        LoadFile();
+        OpenFile = true;
+    }
+
     /// <summary>
-    /// 构造函数
+    /// 创建PE信息对象
     /// </summary>
-    /// <param name="fullName"></param>
-    /// <exception cref="ArgumentException"></exception>
-    public PeInfo(string fullName)
+    /// <param name="fullName">PE文件完整路径</param>
+    /// <returns>PE信息对象实例</returns>
+    /// <exception cref="ArgumentNullException">fullName为空</exception>
+    /// <exception cref="Exception">文件读取失败</exception>
+    public static PeInfo Create(string fullName)
     {
         if (StringHelper.IsNullOrWhiteSpace(fullName))
             throw new ArgumentNullException(nameof(fullName));
 
-        FullName = fullName;
-        FileStream? file = null;
-        OpenFile = false;
-        try
-        {
-            // 文件流
-            _PEFileByte = File.ReadAllBytes(fullName);
-            LoadFile();
-            OpenFile = true;
-        }
-        catch (Exception) { throw; }
-        finally
-        {
-            file?.Close();
-        }
+        var peFileByte = File.ReadAllBytes(fullName);
+        var peInfo = new PeInfo(fullName, peFileByte);
+        return peInfo;
     }
     #endregion
 

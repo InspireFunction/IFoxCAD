@@ -98,7 +98,7 @@ public static class VersionTool
     {
         int year = index + 2000;
         if (year < 2000) return -1;
-        if (year > 2000 + AcadVers.Length) return -1;
+        if (year >= 2000 + AcadVers.Length) return -1;
         return year;
     }
     // 和二分法一样,

@@ -61,16 +61,34 @@ public class Timer
     long _startTime, _stopTime;
     readonly long _freq;
 
-    /// <summary>
-    /// 初始化 <see cref="Timer"/> 类的新实例。
-    /// </summary>
-    public Timer()
+    Timer(long freq)
     {
         _startTime = 0;
         _stopTime = 0;
+        _freq = freq;
+    }
 
-        if (!QueryPerformanceFrequency(out _freq))
+    /// <summary>
+    /// 创建计时器实例
+    /// </summary>
+    /// <returns>计时器实例,若系统不支持高性能计数器则返回null</returns>
+    public static Timer? Create()
+    {
+        if (!QueryPerformanceFrequency(out var freq))
+            return null;
+        return new Timer(freq);
+    }
+
+    /// <summary>
+    /// 创建计时器实例
+    /// </summary>
+    /// <returns>计时器实例</returns>
+    /// <exception cref="Win32Exception">系统不支持高性能计数器</exception>
+    public static Timer CreateOrThrow()
+    {
+        if (!QueryPerformanceFrequency(out var freq))
             throw new Win32Exception("不支持高性能计数器");
+        return new Timer(freq);
     }
 
     /// <summary>
@@ -118,7 +136,7 @@ public class Timer
     public static double RunTime(Action action,
         TimeEnum timeEnum = TimeEnum.Millisecond)
     {
-        var nanoSecond = new Timer();
+        var nanoSecond = CreateOrThrow();
         nanoSecond.Start();
         action();
         nanoSecond.Stop();

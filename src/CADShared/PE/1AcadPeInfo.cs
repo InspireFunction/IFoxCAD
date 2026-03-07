@@ -66,7 +66,7 @@ public class AcadPeInfo
                 var processModule = Process.GetCurrentProcess().MainModule;
                 if (processModule == null) return _PeForAcadExe;
                 var file = processModule.FileName;
-                _PeForAcadExe = new PeInfo(file);
+                _PeForAcadExe = PeInfo.Create(file);
             }
             return _PeForAcadExe;
         }
@@ -86,7 +86,7 @@ public class AcadPeInfo
                 var file = Process.GetCurrentProcess().MainModule!.FileName;
                 var dll = Path.GetDirectoryName(file) + "\\accore.dll";
                 if (File.Exists(dll))// 08没有,高版本分离的
-                    _PeForAccoreDll = new PeInfo(dll);
+                    _PeForAccoreDll = PeInfo.Create(dll);
             }
             return _PeForAccoreDll;
         }
@@ -106,7 +106,7 @@ public class AcadPeInfo
                 var file = Process.GetCurrentProcess().MainModule!.FileName;
                 var dll = Path.GetDirectoryName(file) + $"\\acdb{Acaop.Version.Major}.dll";
                 if (File.Exists(dll))
-                    _PeForAcdbDll = new PeInfo(dll);
+                    _PeForAcdbDll = PeInfo.Create(dll);
             }
             return _PeForAcdbDll;
         }

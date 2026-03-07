@@ -24,7 +24,7 @@ public static partial class EntityAdd
         AttachmentPoint justify = AttachmentPoint.BaseLeft,
         Point3d? justifyPoint = null)
     {
-        var TextInfo = new TextInfo(
+        var textInfo = TextInfo.Create(
             textContents,
             position,
             justify,
@@ -32,7 +32,7 @@ public static partial class EntityAdd
             textStyleId,
             textHigh,
             db);
-        return TextInfo.AddDBTextToEntity();
+        return textInfo.AddDBTextToEntity();
     }
 
     /// <summary>
@@ -52,7 +52,7 @@ public static partial class EntityAdd
         ObjectId? textStyleId = null,
         AttachmentPoint justify = AttachmentPoint.BaseLeft)
     {
-        var TextInfo = new TextInfo(
+        var textInfo = TextInfo.Create(
             textContents,
             position,
             justify,
@@ -60,6 +60,6 @@ public static partial class EntityAdd
             textStyleId,
             textHigh,
             db);
-        return TextInfo.AddMTextToEntity();
+        return textInfo.AddMTextToEntity();
     }
 }

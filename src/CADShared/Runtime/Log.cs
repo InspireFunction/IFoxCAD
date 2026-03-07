@@ -346,9 +346,9 @@ public static class LogHelper
 
         try
         {
-            _logWriteLock.EnterWriteLock();// 写模式锁定 读写锁
+            _logWriteLock.EnterWriteLock();
 
-            var logtxt = new LogTxt(ex, message);
+            var logtxt = LogTxt.Create(ex, message);
             // var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
             var logtxtJson = logtxt?.ToString();
             if (logtxtJson == null)
@@ -430,20 +430,8 @@ public class LogTxt
     /// </summary>
     public LogTxt() { }
 
-    /// <summary>
-    /// 使用异常和消息初始化日志
-    /// </summary>
-    /// <param name="ex">异常对象</param>
-    /// <param name="message">消息</param>
-    public LogTxt(Exception? ex, string? message) : this()
+    LogTxt(Exception? ex, string? message)
     {
-        if (ex == null && message == null)
-            throw new ArgumentNullException(nameof(ex));
-
-        // 以不同语言显示日期
-        // DateTime.Now.ToString("f", new System.Globalization.CultureInfo("es-ES"))
-        // DateTime.Now.ToString("f", new System.Globalization.CultureInfo("zh-cn"))
-        // 为了最小信息熵,所以用这样的格式,并且我喜欢补0
         当前时间 = DateTime.Now.ToString("yy-MM-dd hh:mm:ss");
 
         if (ex != null)
@@ -458,10 +446,25 @@ public class LogTxt
     }
 
     /// <summary>
+    /// 创建日志对象
+    /// </summary>
+    /// <param name="ex">异常对象</param>
+    /// <param name="message">消息</param>
+    /// <returns>日志对象实例</returns>
+    /// <exception cref="ArgumentNullException">ex和message同时为null</exception>
+    public static LogTxt Create(Exception? ex, string? message)
+    {
+        if (ex == null && message == null)
+            throw new ArgumentNullException(nameof(ex));
+
+        return new LogTxt(ex, message);
+    }
+
+    /// <summary>
     /// 将日志对象转换为字符串表示形式
     /// </summary>
     /// <returns>日志对象的字符串表示</returns>
-    public override string? ToString()
+    public override string ToString()
     {
         var sb = new StringBuilder();
         sb.Append('{');
@@ -531,7 +534,7 @@ public static class Log
         {
             _logWriteLock.EnterWriteLock();// 写模式锁定 读写锁
 
-            var logtxt = new LogTxt(ex, remarks);
+            var logtxt = LogTxt.Create(ex, remarks);
             // var logtxtJson = Newtonsoft.Json.JsonConvert.SerializeObject(logtxt, Formatting.Indented);
             var logtxtJson = logtxt.ToString();
 

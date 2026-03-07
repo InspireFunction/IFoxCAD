@@ -18,8 +18,25 @@ public class TextInfo
     readonly double TextHeight;
     readonly ObjectId? TextStyleId;
 
+    TextInfo(string? contents,
+        Point3d position,
+        AttachmentPoint justify,
+        Point3d? alignmentPoint,
+        ObjectId? textStyleId,
+        double textHeight,
+        Database? database)
+    {
+        Contents = contents;
+        Position = position;
+        TextJustify = justify;
+        AlignmentPoint = alignmentPoint;
+        TextHeight = textHeight;
+        TextStyleId = textStyleId;
+        Database = database;
+    }
+
     /// <summary>
-    /// 文字信息类
+    /// 创建文字信息对象
     /// </summary>
     /// <param name="contents">内容</param>
     /// <param name="position">基点</param>
@@ -28,7 +45,9 @@ public class TextInfo
     /// <param name="textStyleId">文字样式id</param>
     /// <param name="textHeight">文字高度</param>
     /// <param name="database">数据库</param>
-    public TextInfo(string? contents,
+    /// <returns>文字信息对象实例</returns>
+    /// <exception cref="ArgumentNullException">对齐方式不是左对齐时,对齐点为null</exception>
+    public static TextInfo Create(string? contents,
         Point3d position,
         AttachmentPoint justify,
         Point3d? justifyPoint = null,
@@ -36,17 +55,10 @@ public class TextInfo
         double textHeight = 2.5,
         Database? database = null)
     {
-        Contents = contents;
-        Position = position;
-        TextJustify = justify;
-
-        if (justifyPoint is null && TextJustify != AttachmentPoint.BaseLeft)
+        if (justifyPoint is null && justify != AttachmentPoint.BaseLeft)
             throw new ArgumentNullException(nameof(justifyPoint));
 
-        AlignmentPoint = justifyPoint;
-        TextHeight = textHeight;
-        TextStyleId = textStyleId;
-        Database = database;
+        return new TextInfo(contents, position, justify, justifyPoint, textStyleId, textHeight, database);
     }
 
     /// <summary>

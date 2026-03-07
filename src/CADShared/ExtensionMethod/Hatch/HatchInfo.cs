@@ -61,43 +61,57 @@ public class HatchInfo
         _boundaryIds = [];
     }
 
+    HatchInfo(bool boundaryAssociative, Point2d hatchOrigin, double hatchScale, double hatchAngle) : this()
+    {
+        _hatch.PatternScale = hatchScale;
+        _angle = hatchAngle;
+        _boundaryAssociative = boundaryAssociative;
+        _hatch.Origin = hatchOrigin;
+    }
+
     /// <summary>
-    /// 图案填充
+    /// 创建图案填充对象
     /// </summary>
     /// <param name="boundaryAssociative">关联边界</param>
     /// <param name="hatchOrigin">填充原点</param>
     /// <param name="hatchScale">比例</param>
     /// <param name="hatchAngle">角度</param>
-    public HatchInfo(bool boundaryAssociative = true,
+    /// <returns>图案填充对象实例</returns>
+    /// <exception cref="ArgumentException">填充比例小于等于0</exception>
+    public static HatchInfo Create(bool boundaryAssociative = true,
                      Point2d? hatchOrigin = null,
                      double hatchScale = 1,
-                     double hatchAngle = 0) : this()
+                     double hatchAngle = 0)
     {
         if (hatchScale <= 0)
             throw new ArgumentException("填充比例不允许小于等于0");
 
-        _hatch.PatternScale = hatchScale;// 填充比例
-        _angle = hatchAngle;// 填充角度
-        _boundaryAssociative = boundaryAssociative;
-
         hatchOrigin ??= Point2d.Origin;
-        _hatch.Origin = hatchOrigin.Value; // 填充原点
+        return new HatchInfo(boundaryAssociative, hatchOrigin.Value, hatchScale, hatchAngle);
     }
 
     /// <summary>
-    /// 图案填充
+    /// 创建图案填充对象
     /// </summary>
     /// <param name="boundaryIds">边界</param>
     /// <param name="boundaryAssociative">关联边界</param>
     /// <param name="hatchOrigin">填充原点</param>
     /// <param name="hatchScale">比例</param>
     /// <param name="hatchAngle">角度</param>
-    public HatchInfo(IEnumerable<ObjectId> boundaryIds,
+    /// <returns>图案填充对象实例</returns>
+    /// <exception cref="ArgumentException">填充比例小于等于0</exception>
+    public static HatchInfo Create(IEnumerable<ObjectId> boundaryIds,
                      bool boundaryAssociative = true,
                      Point2d? hatchOrigin = null,
                      double hatchScale = 1,
                      double hatchAngle = 0)
-        : this(boundaryAssociative, hatchOrigin, hatchScale, hatchAngle)
+    {
+        var hatchInfo = Create(boundaryAssociative, hatchOrigin, hatchScale, hatchAngle);
+        hatchInfo.AddRange(boundaryIds);
+        return hatchInfo;
+    }
+
+    void AddRange(IEnumerable<ObjectId> boundaryIds)
     {
         _boundaryIds.AddRange(boundaryIds);
     }

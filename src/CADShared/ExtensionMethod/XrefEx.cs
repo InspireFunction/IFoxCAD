@@ -465,39 +465,51 @@ public class XrefPath
     #endregion
 
     #region 构造
+    XrefPath(string currentDatabasePath, bool isFromExternalReference, 
+             string? pathSave, string? pathDescribe)
+    {
+        CurrentDatabasePath = currentDatabasePath;
+        IsFromExternalReference = isFromExternalReference;
+        PathSave = pathSave;
+        PathDescribe = pathDescribe;
+    }
+
     /// <summary>
-    /// 获取外部参照的路径
+    /// 创建外部参照路径对象
     /// </summary>
     /// <param name="brf">外部参照图元</param>
     /// <param name="tr">事务</param>
-    /// <returns>是否外部参照</returns>
-    public XrefPath(BlockReference brf, DBTrans tr)
+    /// <returns>外部参照路径对象实例</returns>
+    /// <exception cref="ArgumentNullException">brf为null</exception>
+    public static XrefPath Create(BlockReference brf, DBTrans tr)
     {
         if (brf == null)
             throw new ArgumentNullException(nameof(brf));
 
-        CurrentDatabasePath = Path.GetDirectoryName(tr.Database.Filename);
+        var currentDatabasePath = Path.GetDirectoryName(tr.Database.Filename);
 
-        using var btRec = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord);// 块表记录
-        IsFromExternalReference = btRec.IsFromExternalReference;
-        if (!IsFromExternalReference)
-            return;
+        using var btRec = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord);
+        var isFromExternalReference = btRec.IsFromExternalReference;
 
-        // 相对路径==".\\AA.dwg"
-        // 无路径=="AA.dwg"
-        PathSave = btRec.PathName;
-
-        if ((!string.IsNullOrEmpty(PathSave) && PathSave[0] == '.') || File.Exists(PathSave))
+        if (!isFromExternalReference)
         {
-            // 相对路径||绝对路径
-            PathDescribe = PathSave;
+            return new XrefPath(currentDatabasePath, false, null, null);
+        }
+
+        var pathSave = btRec.PathName;
+        string? pathDescribe;
+
+        if ((!string.IsNullOrEmpty(pathSave) && pathSave[0] == '.') || File.Exists(pathSave))
+        {
+            pathDescribe = pathSave;
         }
         else
         {
-            // 无路径
             var db = btRec.GetXrefDatabase(true);
-            PathDescribe = db.Filename;
+            pathDescribe = db.Filename;
         }
+
+        return new XrefPath(currentDatabasePath, true, pathSave, pathDescribe);
     }
     #endregion
 
