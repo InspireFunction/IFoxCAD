@@ -5,12 +5,11 @@
         <PlatformTarget>x86</PlatformTarget>
         <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
     </PropertyGroup>
-    
+
     <PropertyGroup>
         <PackageId>IFox.CAD.ACAD</PackageId>
         <Title>IFox.CAD.ACAD</Title>
         <Product>IFox.CAD.ACAD</Product>
-        <NoWarn>CS8012;CS1685</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
@@ -21,7 +20,9 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x86'">
         <DebugType>none</DebugType>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-        <DocumentationFile>bin\Release\IFoxCAD.AutoCad.xml</DocumentationFile>
+    </PropertyGroup>
+    <PropertyGroup>
+        <DocumentationFile>bin\$(Configuration)\IFoxCAD.Acad08.xml</DocumentationFile>
     </PropertyGroup>
 
     <PropertyGroup Condition=" '$(Configuration)' == 'Debug' ">
@@ -34,6 +35,17 @@
     <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
         <PackageReference Include="JJBox.Acad2008" Version="1.0.0" ExcludeAssets="runtime" />
         <!--<PackageReference Include="Autocad.NetApi" Version="17.2.0"  ExcludeAssets="runtime"/>-->
+    </ItemGroup>
+
+    <!-- IFoxFunKit 源文件链接 -->
+    <ItemGroup>
+        <Compile Include="..\FunKit\IFoxFunKit\*.cs" Link="IFoxFunKit\*.cs" />
+        <Analyzer Include="..\bin\$(Configuration)\netstandard2.0\IFoxFunKit.Analyzers.dll" />
+    </ItemGroup>
+
+    <!--确保分析器项目先编译-->
+    <ItemGroup>
+        <ProjectReference Include="..\FunKit\IFoxFunKit.Analyzers\IFoxFunKit.Analyzers.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" />
     </ItemGroup>
 
     <ItemGroup>
@@ -56,4 +68,6 @@
     <ItemGroup>
         <Compile Include="..\IFoxCAD.AutoCad\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
     </ItemGroup>
+
+
 </Project>

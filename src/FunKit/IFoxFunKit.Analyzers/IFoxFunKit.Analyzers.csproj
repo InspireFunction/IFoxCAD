@@ -1,0 +1,65 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+        <GenerateDocumentationFile>false</GenerateDocumentationFile>
+        <IncludeBuildOutput>false</IncludeBuildOutput>
+        <DevelopmentDependency>true</DevelopmentDependency>
+        <GenerateAnalyzerReleaseTrackingFile>true</GenerateAnalyzerReleaseTrackingFile>
+        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <PackageId>IFoxFunKit.Analyzers</PackageId>
+        <Title>IFoxFunKit.Analyzers</Title>
+        <Product>IFoxFunKit.Analyzers</Product>
+        <Company>InspireFunction</Company>
+        <Authors>liuqihong</Authors>
+        <Copyright>InspireFunction</Copyright>
+        <Description>强制处理Option&lt;T&gt;和Result&lt;T&gt;返回值的Roslyn分析器。</Description>
+        <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+        <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
+        <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
+        <RepositoryType>git</RepositoryType>
+        <PackageTags>IFoxFunKit;Functional;Option;Result;Analyzer;Roslyn</PackageTags>
+        <PackageReadmeFile>readme.md</PackageReadmeFile>
+        <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
+        <DebugType>portable</DebugType>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+        <DebugType>none</DebugType>
+        <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    </PropertyGroup>
+
+    <!-- 分析器打包配置 -->
+    <ItemGroup>
+        <None Include="$(OutputPath)\IFoxFunKit.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <None Include="..\LICENSE">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+        <None Include="..\readme.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+        <AdditionalFiles Include="AnalyzerReleases.Shipped.md" Pack="true" PackagePath="\" />
+        <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <!-- Roslyn 分析器依赖 -->
+    <ItemGroup>
+        <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
+        <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
+    </ItemGroup>
+
+</Project>

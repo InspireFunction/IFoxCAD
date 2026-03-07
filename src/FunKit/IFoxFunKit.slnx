@@ -1,0 +1,6 @@
+<Solution>
+  <Project Path="IFoxFunKit\IFoxFunKit.csproj" Type="Classic"/>
+  <Project Path="IFoxFunKit.Analyzers\IFoxFunKit.Analyzers.csproj" />
+  <Project Path="IFoxFunKit.UnitTest\IFoxFunKit.UnitTest.csproj" Type="Classic" />
+  <Project Path="IFoxFunKit.TestNet35Analyzers\IFoxFunKit.TestNet35Analyzers.csproj" />
+</Solution>

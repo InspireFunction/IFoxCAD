@@ -49,6 +49,11 @@
         <Reference Include="Microsoft.CSharp" />
     </ItemGroup>
 
+    <!-- IFoxFunKit 源文件链接 -->
+    <ItemGroup>
+        <Compile Include="..\FunKit\IFoxFunKit\*.cs" Link="IFoxFunKit\*.cs" />
+        <Analyzer Include="..\bin\$(Configuration)\netstandard2.0\IFoxFunKit.Analyzers.dll" />
+    </ItemGroup>
 
     <ItemGroup>
         <None Include="..\..\LICENSE">
@@ -67,4 +72,5 @@
     </ItemGroup>-->
 
     <Import Project="..\CADShared\CADShared.projitems" Label="Shared" />
+
 </Project>

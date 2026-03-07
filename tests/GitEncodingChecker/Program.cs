@@ -551,6 +551,7 @@ static class Program
         Console.WriteLine($"正在检查 {stagedFiles.Count} 个暂存文件...");
         int encodingFixedCount = 0;
         int lineEndingFixedCount = 0;
+        int blankLineFixedCount = 0;
 
         foreach (var file in stagedFiles)
         {
@@ -576,12 +577,23 @@ static class Program
                 needsFix = true;
             }
 
+            // 检查是否有只包含空白字符的行
+            bool hasBlankLines = HasBlankLines(fullPath);
+            if (hasBlankLines)
+            {
+                needsFix = true;
+            }
+
             if (needsFix)
             {
                 try
                 {
                     var content = File.ReadAllText(fullPath);
                     content = content.Replace("\r\n", "\n").Replace("\r", "\n");
+
+                    // 去除只包含空白字符的行（整行都是空格/制表符）
+                    content = RemoveBlankLines(content);
+
                     if (targetEol == "CRLF")
                     {
                         content = content.Replace("\n", "\r\n");
@@ -600,6 +612,11 @@ static class Program
                         Console.WriteLine($"    行尾: {lineEnding} -> {targetEol}");
                         lineEndingFixedCount++;
                     }
+                    if (hasBlankLines)
+                    {
+                        Console.WriteLine($"    空白行: 已去除只包含空格/制表符的行");
+                        blankLineFixedCount++;
+                    }
                     Console.ResetColor();
                 }
                 catch (Exception ex)
@@ -611,13 +628,14 @@ static class Program
             }
         }
 
-        if (encodingFixedCount > 0 || lineEndingFixedCount > 0)
+        if (encodingFixedCount > 0 || lineEndingFixedCount > 0 || blankLineFixedCount > 0)
         {
             Console.WriteLine();
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine($"共修复 {encodingFixedCount + lineEndingFixedCount} 个问题:");
+            Console.WriteLine($"共修复 {encodingFixedCount + lineEndingFixedCount + blankLineFixedCount} 个问题:");
             if (encodingFixedCount > 0) Console.WriteLine($"  - 编码修复: {encodingFixedCount} 个文件");
             if (lineEndingFixedCount > 0) Console.WriteLine($"  - 行尾修复: {lineEndingFixedCount} 个文件");
+            if (blankLineFixedCount > 0) Console.WriteLine($"  - 空白行修复: {blankLineFixedCount} 个文件");
             Console.ResetColor();
             Console.WriteLine("请重新执行: git add . && git commit");
         }
@@ -1058,6 +1076,55 @@ static class Program
         {
             return "Error";
         }
+    }
+
+    /// <summary>
+    /// 检查文件是否包含只包含空白字符的行（整行都是空格/制表符）
+    /// </summary>
+    static bool HasBlankLines(string filePath)
+    {
+        try
+        {
+            var lines = File.ReadAllLines(filePath);
+            foreach (var line in lines)
+            {
+                // 如果一行有内容但全是空白字符（空格、制表符等）
+                if (line.Length > 0 && string.IsNullOrWhiteSpace(line))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// 去除只包含空白字符的行，保留换行符结构
+    /// </summary>
+    static string RemoveBlankLines(string content)
+    {
+        var lines = content.Split('\n');
+        var result = new List<string>();
+
+        foreach (var line in lines)
+        {
+            // 如果一行有内容但全是空白字符，则替换为空字符串（保留换行）
+            if (line.Length > 0 && string.IsNullOrWhiteSpace(line))
+            {
+                result.Add(string.Empty);
+            }
+            else
+            {
+                // 保留原始行（包括真正的空行和有内容的行）
+                result.Add(line);
+            }
+        }
+
+        return string.Join("\n", result);
     }
 
     static Dictionary<string, string?> ParseGitattributesEolMap(string repoRoot)

@@ -3,6 +3,7 @@
     <PropertyGroup>
         <TargetFrameworks>NET48</TargetFrameworks>
         <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+        <PlatformTarget>x64</PlatformTarget>
     </PropertyGroup>
 
     <!--nuget package-->
@@ -20,7 +21,9 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
         <DebugType>none</DebugType>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-        <DocumentationFile>bin\Release\IFoxCAD.ZwCad.xml</DocumentationFile>
+    </PropertyGroup>
+    <PropertyGroup>
+        <DocumentationFile>bin\$(Configuration)\IFoxCAD.ZwCad.xml</DocumentationFile>
     </PropertyGroup>
 
     <PropertyGroup>

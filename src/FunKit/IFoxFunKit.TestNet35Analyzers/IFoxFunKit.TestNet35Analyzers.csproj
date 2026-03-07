@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net35</TargetFramework>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>        
+        <OutputType>Exe</OutputType>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <IsPackable>false</IsPackable>        
+        <NoWarn>CS1591;CS8618;CS8625;CS8601;CS8603</NoWarn>
+    </PropertyGroup>
+
+    <!--添加语法分析器-->
+    <ItemGroup>
+        <Analyzer Include="..\..\bin\$(Configuration)\netstandard2.0\IFoxFunKit.Analyzers.dll" />
+    </ItemGroup>
+
+    <!--确保分析器项目先编译-->
+    <ItemGroup>
+        <ProjectReference Include="..\IFoxFunKit.Analyzers\IFoxFunKit.Analyzers.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Compile Include="..\IFoxFunKit\Option.cs" Link="Option.cs" />
+      <Compile Include="..\IFoxFunKit\OptionExtensions.cs" Link="OptionExtensions.cs" />
+      <Compile Include="..\IFoxFunKit\Result.cs" Link="Result.cs" />
+      <Compile Include="..\IFoxFunKit\SkipMustHandleCheckAttribute.cs" Link="SkipMustHandleCheckAttribute.cs" />
+    </ItemGroup>
+</Project>

@@ -5,6 +5,12 @@
   <Folder Name="/src/">
     <File Path="src/Directory.Build.props" />
     <Project Path="src/CADShared/CADShared.shproj" />
+
+  <Project Path="src/FunKit/IFoxFunKit/IFoxFunKit.csproj" />
+  <Project Path="src/FunKit/IFoxFunKit.Analyzers/IFoxFunKit.Analyzers.csproj" />
+  <Project Path="src/FunKit/IFoxFunKit.UnitTest/IFoxFunKit.UnitTest.csproj" />
+  <Project Path="src/FunKit/IFoxFunKit.TestNet35Analyzers/IFoxFunKit.TestNet35Analyzers.csproj" />
+
     <Project Path="src/IFoxCAD.Acad08/IFoxCAD.Acad08.csproj" />
     <Project Path="src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj" />
     <Project Path="src/IFoxCAD.Gcad/IFoxCAD.Gcad.csproj" />
