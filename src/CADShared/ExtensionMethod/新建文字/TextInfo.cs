@@ -56,7 +56,7 @@ public class TextInfo
         Database? database = null)
     {
         if (justifyPoint is null && justify != AttachmentPoint.BaseLeft)
-            throw new ArgumentNullException(nameof(justifyPoint));
+            throw new System.ArgumentNullException(nameof(justifyPoint));
 
         return new TextInfo(contents, position, justify, justifyPoint, textStyleId, textHeight, database);
     }
@@ -67,7 +67,7 @@ public class TextInfo
     public DBText AddDBTextToEntity()
     {
         if (string.IsNullOrEmpty(Contents))
-            throw new ArgumentNullException(nameof(Contents) + "创建文字无内容");
+            throw new System.ArgumentNullException(nameof(Contents) + "创建文字无内容");
 
         var acText = new DBText();
         acText.SetDatabaseDefaults();
@@ -101,7 +101,7 @@ public class TextInfo
     public MText AddMTextToEntity()
     {
         if (string.IsNullOrEmpty(Contents))
-            throw new ArgumentNullException(nameof(Contents) + "创建文字无内容");
+            throw new System.ArgumentNullException(nameof(Contents) + "创建文字无内容");
 
         var mText = new MText();
         mText.SetDatabaseDefaults();

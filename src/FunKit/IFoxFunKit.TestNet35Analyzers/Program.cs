@@ -2,6 +2,7 @@
 
 using System;
 using IFoxFunKit;
+using IFoxCAD.Basal;
 
 namespace IFoxFunKit.TestNet35Analyzers;
 
@@ -10,7 +11,31 @@ class Program
     static void Main(string[] args)
     {
         Console.WriteLine("测试 .NET 3.5 项目中的分析器 - 错误示例");
+        TestThrowIfNullSuppressor();
     }
+
+    // ==================== 测试 ThrowIfNull 抑制器 ====================
+
+    /// <summary>
+    /// 测试：ThrowIfNullSuppressor 应该抑制 CS8602 警告
+    /// </summary>
+    static void TestThrowIfNullSuppressor()
+    {
+        string? maybeNull = GetNullableString();
+
+        // 调用 ThrowIfNull 后，抑制器应该抑制后续对 maybeNull 的 CS8602 警告
+        ArgumentNullEx.ThrowIfNull(maybeNull);
+
+        // 如果抑制器工作正常，这里不应该有 CS8602 警告
+        Console.WriteLine(maybeNull.Length);
+    }
+
+    static string? GetNullableString()
+    {
+        return "test";
+    }
+
+    // ==================== 原有测试代码 ====================
 
     static Option<int> Divide(int a, int b)
     {

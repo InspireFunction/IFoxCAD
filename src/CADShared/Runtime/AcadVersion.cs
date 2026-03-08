@@ -53,8 +53,7 @@ public static class AcadVersion
     /// <returns>cad版本号对象</returns>
     public static CadVersion? FromApp(object app)
     {
-        if (app == null)
-            throw new ArgumentNullException(nameof(app));
+        ArgumentNullException.ThrowIfNull(app);
 
         string acver = app.GetType()
                         .InvokeMember(

@@ -254,7 +254,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     {
         var a = this[name];
         if (!a.IsOk())
-            throw new ArgumentNullException("对象不存在:" + name);
+            throw new System.ArgumentNullException("对象不存在:" + name);
         return GetRecord(a, openMode, openErased, openLockedLayer);
     }
 
@@ -302,8 +302,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
     /// <returns>对象id</returns>
     public ObjectId GetRecordFrom(SymbolTable<TTable, TRecord> table, string name, bool over)
     {
-        if (table is null)
-            throw new ArgumentNullException(nameof(table), "对象为null");
+        ArgumentNullException.ThrowIfNull(table);
 
         ObjectId rid = this[name];
         bool has = rid != ObjectId.Null;
@@ -396,8 +395,7 @@ public class SymbolTable<TTable, TRecord> : IEnumerable<ObjectId>
                         bool openErased = false,
                         bool openLockedLayer = false)
     {
-        if (task == null)
-            throw new ArgumentNullException(nameof(task));
+        ArgumentNullException.ThrowIfNull(task);
 
         CtrlState state = new();/*这种方式比Action改Func更友好*/
         int i = 0;

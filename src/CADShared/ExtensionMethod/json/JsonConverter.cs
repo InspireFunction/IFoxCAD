@@ -32,8 +32,7 @@ public class ObjectIdConverter : MyJsonConverter
     /// </summary>
     public override object Deserialize(IDictionary<string, object> dictionary, Type type, MyJson serializer)
     {
-        if (dictionary == null)
-            throw new ArgumentNullException(nameof(dictionary));
+        ArgumentNullException.ThrowIfNull(dictionary);
 
         if (type != typeof(ObjectId))
             return null!;

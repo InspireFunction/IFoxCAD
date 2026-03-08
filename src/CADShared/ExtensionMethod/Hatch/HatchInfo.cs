@@ -284,8 +284,7 @@ public class HatchInfo
                                 BlockTableRecord btrOfAddEntitySpace,
                                 HatchLoopTypes hatchLoopTypes = HatchLoopTypes.Default)
     {
-        if (pts == null)
-            throw new ArgumentNullException(nameof(pts));
+        ArgumentNullException.ThrowIfNull(pts);
 
         pts.End2End();
 #if NET35

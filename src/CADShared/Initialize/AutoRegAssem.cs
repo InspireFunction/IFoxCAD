@@ -1,6 +1,4 @@
-#if !NET8_0_OR_GREATER
-using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
-#endif
+
 
 namespace IFoxCAD.Cad;
 
@@ -39,10 +37,10 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// </summary>
     /// <param name="assem">程序集</param>
     /// <returns>路径对象</returns>
-    public static DirectoryInfo? GetDirectory(Assembly? assem)
+    public static DirectoryInfo GetDirectory(Assembly assem)
     {
         ArgumentNullException.ThrowIfNull(assem);
-        return new FileInfo(assem!.Location).Directory;
+        return new FileInfo(assem.Location).Directory;
     }
 
     #endregion

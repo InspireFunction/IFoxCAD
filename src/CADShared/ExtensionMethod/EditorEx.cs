@@ -154,8 +154,8 @@ public static class EditorEx
         Dictionary<string, Action<object, SelectionTextInputEventArgs>> acMap,
         string? defaultKey = null)
     {
-        if (pso == null) throw new ArgumentNullException(nameof(pso));
-        if (acMap == null) throw new ArgumentNullException(nameof(acMap));
+        ArgumentNullException.ThrowIfNull(pso);
+        ArgumentNullException.ThrowIfNull(acMap);
         if (acMap.Count == 0) return;
 
         // 创建处理后的新字典，避免在遍历时修改
@@ -1153,7 +1153,7 @@ public static class EditorEx
         bool wmfSetDel = false)
     {
         if (StringHelper.IsNullOrWhiteSpace(saveFile))
-            throw new ArgumentNullException(nameof(saveFile));
+            throw new System.ArgumentNullException(nameof(saveFile));
         if (File.Exists(saveFile))
             throw new FileFormatException("文件重复:" + saveFile);
 

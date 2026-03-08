@@ -27,7 +27,7 @@ public sealed class DBTrans : IDisposable
     public static Transaction? GetTopTransaction(Database db)
     {
         var tr = db?.TransactionManager.TopTransaction;
-        return tr is null ? throw new ArgumentNullException(nameof(DBTrans), $"此数据库{db}没有原生事务") : tr;
+        return tr is null ? throw new System.ArgumentNullException(nameof(DBTrans), $"此数据库{db}没有原生事务") : tr;
     }
 
     /// <summary>
@@ -45,11 +45,11 @@ public sealed class DBTrans : IDisposable
         // 要WorkingDatabase=后台db,并且提交事务前恢复原本.
         db ??= HostApplicationServices.WorkingDatabase;
         if (db is null)
-            throw new ArgumentNullException(nameof(DBTrans), $"工作数据库为空,后台调用需先设置或调用Task函数");
+            throw new System.ArgumentNullException(nameof(DBTrans), $"工作数据库为空,后台调用需先设置或调用Task函数");
         if (_dBTrans.Count == 0)
-            throw new ArgumentNullException(nameof(DBTrans), $"调用前必须创建事务栈");
+            throw new System.ArgumentNullException(nameof(DBTrans), $"调用前必须创建事务栈");
         if (!_dBTrans.TryGetValue(db, out var trStack))
-            throw new ArgumentNullException(nameof(DBTrans), $"此数据库{db}没有加入事务栈");
+            throw new System.ArgumentNullException(nameof(DBTrans), $"此数据库{db}没有加入事务栈");
         return trStack.Peek();
     }
 
@@ -99,8 +99,7 @@ public sealed class DBTrans : IDisposable
     /// </summary>
     public static void SetWorking(Database db)
     {
-        if (db is null)
-            throw new ArgumentNullException(nameof(db));
+        ArgumentNullException.ThrowIfNull(db);
         HostApplicationServices.WorkingDatabase = db;
     }
 
@@ -286,7 +285,7 @@ public sealed class DBTrans : IDisposable
     /// <param name="commit">是否提交</param>
     public void StartOpenCloseTransaction(Action<Transaction> action, bool commit = true)
     {
-        if (action is null) throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
         var tm = _database.TransactionManager;
 #if NET35
         // 打开不撤销标记
@@ -860,7 +859,7 @@ public sealed class DBTrans : IDisposable
     /// <param name="echo">回声,可以选择就是可以排除</param>
     public DBTrans Task(Action action, Echo echo = Echo.All)
     {
-        if (action is null) throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
         if (CheckDatabaseError(_database, echo.HasFlag(Echo.FatalErrors)))
         {
             return this;

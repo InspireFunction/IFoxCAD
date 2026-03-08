@@ -28,6 +28,7 @@
     <Compile Include="..\..\src\CADShared\Basal\DataStructures\SortedSet\*.cs" Link="DataStructures\SortedSet\%(Filename)%(Extension)" />
     <Compile Include="..\..\src\CADShared\Basal\Cache\*.cs" Link="Cache\%(Filename)%(Extension)" />
     <Compile Include="..\..\src\CADShared\Basal\General\*.cs" Link="General\%(Filename)%(Extension)" />
+    <Compile Include="..\..\src\CADShared\Basal\Nullable\*.cs" Link="Nullable\%(Filename)%(Extension)" />
     <Compile Include="..\..\src\CADShared\ExtensionMethod\CollectionForEachEx.cs" Link="CollectionForEachEx.cs" />
   </ItemGroup>
 

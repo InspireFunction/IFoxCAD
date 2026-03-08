@@ -23,8 +23,7 @@ public static class CurveEx
     /// <returns>打断后曲线的集合</returns>
     public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<double> pars)
     {
-        if (pars is null)
-            throw new ArgumentNullException(nameof(pars));
+        ArgumentNullException.ThrowIfNull(pars);
 
         return
             curve
@@ -46,8 +45,7 @@ public static class CurveEx
     /// <returns>打断后曲线的集合</returns>
     public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<double> pars, bool isOrder = false)
     {
-        if (pars is null)
-            throw new ArgumentNullException(nameof(pars));
+        ArgumentNullException.ThrowIfNull(pars);
         if (isOrder)
             pars = pars.OrderBy(x => x);
 
@@ -65,8 +63,7 @@ public static class CurveEx
     /// <returns>打断后曲线的集合</returns>
     public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<Point3d> points)
     {
-        if (points is null)
-            throw new ArgumentNullException(nameof(points));
+        ArgumentNullException.ThrowIfNull(points);
 
         using var pts = new Point3dCollection(points.ToArray());
         return curve.GetSplitCurves(pts).Cast<Curve>();
@@ -86,8 +83,7 @@ public static class CurveEx
     /// <returns>打断后曲线的集合</returns>
     public static IEnumerable<Curve> GetSplitCurves(this Curve curve, IEnumerable<Point3d> points, bool isOrder = false)
     {
-        if (points is null)
-            throw new ArgumentNullException(nameof(points));
+        ArgumentNullException.ThrowIfNull(points);
 
         if (isOrder)
             points = points.OrderBy(point => {
@@ -106,8 +102,7 @@ public static class CurveEx
     /// <returns>所有的闭合环的曲线集合</returns>
     public static IEnumerable<Curve> GetAllCycle(this IEnumerable<Curve> curves)
     {
-        if (curves is null)
-            throw new ArgumentNullException(nameof(curves));
+        ArgumentNullException.ThrowIfNull(curves);
 
         // 新建图
         var graph = new Graph();
@@ -145,8 +140,7 @@ public static class CurveEx
     /// <returns>打断后的曲线列表</returns>
     public static List<Curve> BreakCurve(this List<Curve> curves)
     {
-        if (curves is null)
-            throw new ArgumentNullException(nameof(curves));
+        ArgumentNullException.ThrowIfNull(curves);
 
         var geCurves = new List<CompositeCurve3d>(); // 存储曲线转换后的复合曲线
         var paramss = new List<List<double>>();      // 存储每个曲线的交点参数值

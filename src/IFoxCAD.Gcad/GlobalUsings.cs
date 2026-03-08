@@ -76,3 +76,7 @@ global using System.Diagnostics;
 // global using System.Windows.Data;
 global using System.Net;
 global using System.Diagnostics.CodeAnalysis;
+
+#if !NET8_0_OR_GREATER
+global using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
+#endif

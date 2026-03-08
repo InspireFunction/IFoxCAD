@@ -51,4 +51,10 @@
     </ItemGroup>
 
     <Import Project="..\CADShared\CADShared.projitems" Label="Shared" />
+
+    <!--确保分析器项目先编译，并引用分析器DLL-->
+    <ItemGroup>
+        <ProjectReference Include="..\FunKit\IFoxFunKit.Analyzers\IFoxFunKit.Analyzers.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" />
+        <Analyzer Include="..\bin\$(Configuration)\netstandard2.0\IFoxFunKit.Analyzers.dll" />
+    </ItemGroup>
 </Project>

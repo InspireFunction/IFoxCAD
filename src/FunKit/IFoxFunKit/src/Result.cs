@@ -29,7 +29,7 @@ public readonly struct Result<TOk, TErr> : IEquatable<Result<TOk, TErr>>
     public static Result<TOk, TErr> Ok(TOk value)
     {
         if (value is null)
-            throw new ArgumentNullException(nameof(value), "Ok值不能为null");
+            throw new System.ArgumentNullException(nameof(value), "Ok值不能为null");
         return new Result<TOk, TErr>(value, default, true);
     }
 
@@ -39,7 +39,7 @@ public readonly struct Result<TOk, TErr> : IEquatable<Result<TOk, TErr>>
     public static Result<TOk, TErr> Err(TErr error)
     {
         if (error is null)
-            throw new ArgumentNullException(nameof(error), "Err值不能为null");
+            throw new System.ArgumentNullException(nameof(error), "Err值不能为null");
         return new Result<TOk, TErr>(default, error, false);
     }
 

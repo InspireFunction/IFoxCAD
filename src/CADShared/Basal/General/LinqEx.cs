@@ -20,7 +20,7 @@ public static class LinqEx
     {
         using var itr = source.GetEnumerator();
         if (!itr.MoveNext())
-            throw new ArgumentNullException(nameof(source), "对象为 null");
+            throw new System.ArgumentNullException(nameof(source), "对象为 null");
 
         var value = itr.Current;
         var key = func(value);
@@ -49,7 +49,7 @@ public static class LinqEx
     {
         using var itr = source.GetEnumerator();
         if (!itr.MoveNext())
-            throw new ArgumentNullException(nameof(source), "对象为 null");
+            throw new System.ArgumentNullException(nameof(source), "对象为 null");
 
         var value = itr.Current;
         var key = func(value);
@@ -76,7 +76,7 @@ public static class LinqEx
     {
         using var itr = source.GetEnumerator();
         if (!itr.MoveNext())
-            throw new ArgumentNullException(nameof(source), "对象为 null");
+            throw new System.ArgumentNullException(nameof(source), "对象为 null");
 
         var value = itr.Current;
 
@@ -106,7 +106,7 @@ public static class LinqEx
     {
         using var itr = source.GetEnumerator();
         if (!itr.MoveNext())
-            throw new ArgumentNullException(nameof(source), "对象为 null");
+            throw new System.ArgumentNullException(nameof(source), "对象为 null");
 
         var value = itr.Current;
         var key = func(value);
@@ -135,7 +135,7 @@ public static class LinqEx
     {
         using var itr = source.GetEnumerator();
         if (!itr.MoveNext())
-            throw new ArgumentNullException(nameof(source), "对象为 null");
+            throw new System.ArgumentNullException(nameof(source), "对象为 null");
 
         var value = itr.Current;
         var key = func(value);
@@ -161,7 +161,7 @@ public static class LinqEx
     {
         using var itr = source.GetEnumerator();
         if (!itr.MoveNext())
-            throw new ArgumentNullException(nameof(source), "对象为 null");
+            throw new System.ArgumentNullException(nameof(source), "对象为 null");
 
         var value = itr.Current;
 
@@ -190,7 +190,7 @@ public static class LinqEx
     {
         using var itr = source.GetEnumerator();
         if (!itr.MoveNext())
-            throw new ArgumentNullException(nameof(source), "对象为 null");
+            throw new System.ArgumentNullException(nameof(source), "对象为 null");
 
         var values = new TValue[2];
         values[0] = values[1] = itr.Current;
@@ -226,7 +226,7 @@ public static class LinqEx
     {
         using var itr = source.GetEnumerator();
         if (!itr.MoveNext())
-            throw new ArgumentNullException(nameof(source), "对象为 null");
+            throw new System.ArgumentNullException(nameof(source), "对象为 null");
 
         var values = new TValue[2];
         values[0] = values[1] = itr.Current;
@@ -254,7 +254,7 @@ public static class LinqEx
     {
         using var itr = source.GetEnumerator();
         if (!itr.MoveNext())
-            throw new ArgumentNullException(nameof(source), "对象为 null");
+            throw new System.ArgumentNullException(nameof(source), "对象为 null");
 
         var keys = new TKey[2];
         keys[0] = keys[1] = func(itr.Current);
@@ -288,7 +288,7 @@ public static class LinqEx
         }
 
         #region IComparer<T> 成员
-        
+
         public int Compare(T? x, T? y)
         {
             if (x is not null && y is not null)

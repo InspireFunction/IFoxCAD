@@ -26,7 +26,7 @@ public static class SymbolTableRecordEx
     public static void DeepCloneEx(this BlockTableRecord btr, ObjectIdCollection objIds, IdMapping maoOut)
     {
         if (objIds is null || objIds.Count == 0)
-            throw new ArgumentNullException(nameof(objIds));
+            throw new System.ArgumentNullException(nameof(objIds));
 
         var db = objIds[0].Database;
         using (btr.ForWrite())
@@ -204,7 +204,7 @@ public static class SymbolTableRecordEx
         var circle = EntityEx.CreateCircle(p0, p1, p2);
         // return circle is not null ? btr.AddEnt(circle, action, trans) : throw new ArgumentNullException(nameof(circle), "对象为 null");
         if (circle is null)
-            throw new ArgumentNullException(nameof(circle), "对象为 null");
+            throw new System.ArgumentNullException(nameof(circle), "对象为 null");
 
         return btr.AddEnt(circle, action, trans);
     }
@@ -513,8 +513,7 @@ public static class SymbolTableRecordEx
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, CtrlState, int> task)
         where TRecord : SymbolTableRecord, IEnumerable
     {
-        if (task == null)
-            throw new ArgumentNullException(nameof(task));
+        ArgumentNullException.ThrowIfNull(task);
 
         int i = 0;
         CtrlState state = new();/*这种方式比Action改Func更友好*/

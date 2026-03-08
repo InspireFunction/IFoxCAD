@@ -25,4 +25,11 @@
     <ItemGroup>
         <Compile Include="..\IFoxFunKit\src\**\*.cs" Link="IFoxFunKit\src\%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
+
+    <!-- 引入 ArgumentNullEx 用于测试 -->
+    <ItemGroup>
+        <Compile Include="..\..\CADShared\Basal\Nullable\CodeAnalysis.cs" Link="CADShared\CodeAnalysis.cs" />
+        <Compile Include="..\..\CADShared\Basal\Nullable\CallerArgumentExpressionAttribute.cs" Link="CADShared\CallerArgumentExpressionAttribute.cs" />
+        <Compile Include="..\..\CADShared\Basal\Nullable\ArgumentNullEx.cs" Link="CADShared\ArgumentNullEx.cs" />
+    </ItemGroup>
 </Project>

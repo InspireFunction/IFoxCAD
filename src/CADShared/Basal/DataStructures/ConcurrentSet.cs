@@ -157,7 +157,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <param name="arrayIndex">The zero-based index in the array at which copying begins.</param>
     public void CopyTo(T[] array, int arrayIndex)
     {
-        if (array == null) throw new ArgumentNullException(nameof(array));
+        if (array == null) throw new System.ArgumentNullException(nameof(array));
         if (arrayIndex < 0) throw new ArgumentOutOfRangeException(nameof(arrayIndex));
 
         try
@@ -221,7 +221,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <param name="other">The collection to compute the intersection with.</param>
     public void IntersectWith(IEnumerable<T> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         var otherSet = new HashSet<T>(other);
         var itemsToRemove = new List<T>();
@@ -248,7 +248,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <param name="other">The collection to compare to the current set.</param>
     public void UnionWith(IEnumerable<T> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         foreach (T item in other)
         {
@@ -263,7 +263,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <returns>true if the current set is a proper subset of other; otherwise, false.</returns>
     public bool IsProperSubsetOf(IEnumerable<T> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         var otherSet = new HashSet<T>(other);
 
@@ -285,7 +285,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <returns>true if the current set is a proper superset of other; otherwise, false.</returns>
     public bool IsProperSupersetOf(IEnumerable<T> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         // If other has more elements than this, it can't be a subset
         var otherEnum = other.GetEnumerator();
@@ -316,7 +316,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <returns>true if the current set is a subset of other; otherwise, false.</returns>
     public bool IsSubsetOf(IEnumerable<T> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         var otherSet = new HashSet<T>(other);
 
@@ -336,7 +336,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <returns>true if the current set is a superset of other; otherwise, false.</returns>
     public bool IsSupersetOf(IEnumerable<T> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         foreach (T item in other)
         {
@@ -354,7 +354,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <returns>true if the current set and other share at least one common element; otherwise, false.</returns>
     public bool Overlaps(IEnumerable<T> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         foreach (T item in other)
         {
@@ -372,7 +372,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <returns>true if the current set is equal to other; otherwise, false.</returns>
     public bool SetEquals(IEnumerable<T> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         var otherSet = new HashSet<T>(other);
 
@@ -396,7 +396,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <param name="other">The collection to compare to the current set.</param>
     public void SymmetricExceptWith(IEnumerable<T> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         foreach (T item in other)
         {
@@ -417,7 +417,7 @@ public class ConcurrentSet<T> : ICollection<T>, IEnumerable<T>, IEnumerable
     /// <param name="other">The collection to compare to the current set.</param>
     public void ExceptWith(IEnumerable<T> other)
     {
-        if (other == null) throw new ArgumentNullException(nameof(other));
+        ArgumentNullException.ThrowIfNull(other);
 
         foreach (T item in other)
         {

@@ -26,7 +26,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     public static Option<T> Some(T value)
     {
         if (value is null)
-            throw new ArgumentNullException(nameof(value), "Some不能包含null值，请使用None表示无值");
+            throw new System.ArgumentNullException(nameof(value), "Some不能包含null值，请使用None表示无值");
         return new Option<T>(value, true);
     }
 

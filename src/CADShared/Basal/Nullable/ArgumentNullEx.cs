@@ -1,5 +1,9 @@
 
 #if !NET8_0_OR_GREATER
+using System.Runtime.CompilerServices;
+using System;
+using System.Diagnostics.CodeAnalysis;
+
 namespace IFoxCAD.Basal;
 
 /// <summary>
@@ -23,6 +27,7 @@ public static class ArgumentNullEx
     }
 
     [DoesNotReturn]
-    private static void Throw(string? paramName) => throw new ArgumentNullException(paramName);
+    private static void Throw(string? paramName) =>
+        throw new System.ArgumentNullException(paramName);
 }
 #endif

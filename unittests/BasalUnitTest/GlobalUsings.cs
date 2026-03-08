@@ -15,3 +15,7 @@ global using System.Threading;
 global using IFoxCAD.Basal;
 global using IFoxCAD.Cad;
 global using Xunit;
+
+#if !NET8_0_OR_GREATER
+global using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
+#endif

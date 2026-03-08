@@ -11,7 +11,7 @@ public static class ProgressMeterUtils
     public static void SetApplicationStatusBarProgressMeter(string str, int mixPos, int maxPos)
     {
 #if NET35
-        throw new ArgumentNullException("SetApplicationStatusBarProgressMeter 不支持");
+        throw new System.ArgumentNullException("SetApplicationStatusBarProgressMeter 不支持");
 #elif acad
         Utils.SetApplicationStatusBarProgressMeter(str, mixPos, maxPos);
 #elif zcad
@@ -25,7 +25,7 @@ public static class ProgressMeterUtils
     public static void SetApplicationStatusBarProgressMeter(int nPos)
     {
 #if NET35
-        throw new ArgumentNullException("SetApplicationStatusBarProgressMeter 不支持");
+        throw new System.ArgumentNullException("SetApplicationStatusBarProgressMeter 不支持");
 #elif acad
         Utils.SetApplicationStatusBarProgressMeter(nPos);
 #elif zcad
@@ -39,7 +39,7 @@ public static class ProgressMeterUtils
     public static void RestoreApplicationStatusBar()
     {
 #if NET35
-        throw new ArgumentNullException("RestoreApplicationStatusBar 不支持");
+        throw new System.ArgumentNullException("RestoreApplicationStatusBar 不支持");
 #elif acad
         Utils.RestoreApplicationStatusBar();
 #elif zcad

@@ -1,11 +1,3 @@
-using System;
-using System.Reflection;
-
-#if !NET8_0_OR_GREATER
-using System.Runtime.Serialization;
-using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
-#endif
-
 namespace IFoxCAD.Cad;
 
 /// <summary>

@@ -1,5 +1,3 @@
-using ArgumentNullException = System.ArgumentNullException;
-
 namespace IFoxCAD.Cad;
 
 /// <summary>
@@ -20,8 +18,7 @@ public static class MTextEx
     public static MText CreateMText(Point3d position, string text, double height, Database? database = null,
         Action<MText>? action = null)
     {
-        if (string.IsNullOrEmpty(text))
-            throw new ArgumentNullException(nameof(text), "创建文字无内容");
+        ArgumentNullException.ThrowIfNull(text);
 
         var db = database ?? DBTrans.Top.Database;
         using var _ = new SwitchDatabase(db);
@@ -65,8 +62,7 @@ public static class MTextEx
     public static string GetUnFormatString(this MText mt)
     {
         List<string> strs = [];
-        mt.ExplodeFragments(strs, (f, o) =>
-        {
+        mt.ExplodeFragments(strs, (f, o) => {
             o.Add(f.Text);
             return MTextFragmentCallbackStatus.Continue;
         });

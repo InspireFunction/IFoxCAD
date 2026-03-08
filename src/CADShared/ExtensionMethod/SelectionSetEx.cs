@@ -79,8 +79,7 @@ public static class SelectionSetEx
                                                  bool openErased = false,
                                                  bool openLockedLayer = false) where T : Entity
     {
-        if (ss is null)
-            throw new ArgumentNullException(nameof(ss));
+        ArgumentNullException.ThrowIfNull(ss);
 
         trans ??= DBTrans.Top;
         return ss.GetObjectIds()
@@ -134,8 +133,7 @@ public static class SelectionSetEx
                                  bool openErased = false,
                                  bool openLockedLayer = false) where T : Entity
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullException.ThrowIfNull(action);
 
         trans ??= DBTrans.Top;
 

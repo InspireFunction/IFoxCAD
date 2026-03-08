@@ -1,8 +1,3 @@
-#if !NET8_0_OR_GREATER
-using System.Diagnostics;
-using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
-#endif
-
 namespace IFoxCAD.Cad;
 
 /// <summary>

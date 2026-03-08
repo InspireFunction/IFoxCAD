@@ -454,18 +454,18 @@ public class XrefPath
     /// 绝对路径
     /// </summary>
     public string? PathComplete => _PathComplete ??=
-           PathConverter(CurrentDatabasePath, PathDescribe, PathConverterModes.Complete);
+           PathDescribe is null ? null : PathConverter(CurrentDatabasePath, PathDescribe, PathConverterModes.Complete);
 
     string? _PathRelative;
     /// <summary>
     /// 相对路径
     /// </summary>
     public string? PathRelative => _PathRelative ??=
-           PathConverter(CurrentDatabasePath, PathComplete, PathConverterModes.Relative);
+           PathComplete is null ? null : PathConverter(CurrentDatabasePath, PathComplete, PathConverterModes.Relative);
     #endregion
 
     #region 构造
-    XrefPath(string currentDatabasePath, bool isFromExternalReference, 
+    XrefPath(string currentDatabasePath, bool isFromExternalReference,
              string? pathSave, string? pathDescribe)
     {
         CurrentDatabasePath = currentDatabasePath;
@@ -483,10 +483,9 @@ public class XrefPath
     /// <exception cref="ArgumentNullException">brf为null</exception>
     public static XrefPath Create(BlockReference brf, DBTrans tr)
     {
-        if (brf == null)
-            throw new ArgumentNullException(nameof(brf));
+        ArgumentNullException.ThrowIfNull(brf);
 
-        var currentDatabasePath = Path.GetDirectoryName(tr.Database.Filename);
+        var currentDatabasePath = Path.GetDirectoryName(tr.Database.Filename) ?? string.Empty;
 
         using var btRec = (BlockTableRecord)tr.GetObject(brf.BlockTableRecord);
         var isFromExternalReference = btRec.IsFromExternalReference;
@@ -522,25 +521,17 @@ public class XrefPath
     /// <param name="fileRelations">相对路径或者绝对路径</param>
     /// <param name="converterModes">依照枚举返回对应的字符串</param>
     /// <returns></returns>
-    public static string? PathConverter(string? directory, string? fileRelations, PathConverterModes converterModes)
+    public static string? PathConverter(string directory, string? fileRelations, PathConverterModes converterModes)
     {
-        if (directory == null)
-            throw new ArgumentNullException(nameof(directory));
-        if (fileRelations == null)
-            throw new ArgumentNullException(nameof(fileRelations));
-
-        string? result = null;
-        switch (converterModes)
+        ArgumentNullException.ThrowIfNull(directory);
+        if (fileRelations is null)
+            return null;
+        string? result = converterModes switch
         {
-            case PathConverterModes.Relative:
-            result = GetRelativePath(directory, fileRelations);
-            break;
-            case PathConverterModes.Complete:
-            result = GetCompletePath(directory, fileRelations);
-            break;
-            default:
-            break;
-        }
+            PathConverterModes.Relative => GetRelativePath(directory, fileRelations),
+            PathConverterModes.Complete => GetCompletePath(directory, fileRelations),
+            _ => throw new ArgumentOutOfRangeException(nameof(converterModes)),
+        };
         return result;
     }
 

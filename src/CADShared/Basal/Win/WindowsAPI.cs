@@ -225,8 +225,7 @@ public partial class WindowsAPI
     /// <exception cref="ArgumentNullException"></exception>
     public static bool GlobalLockTask(IntPtr data, Action<IntPtr> task)
     {
-        if (task == null)
-            throw new ArgumentNullException(nameof(task));
+        ArgumentNullException.ThrowIfNull(task);
         if (data == IntPtr.Zero)
             return false;
 
@@ -732,8 +731,8 @@ public partial class WindowsAPI
         /// <returns>初始化后的GuiThreadInfo结构体</returns>
         public static GuiThreadInfo Create(uint windowThreadProcessId)
         {
-            if (windowThreadProcessId == 0)
-                throw new ArgumentNullException(nameof(windowThreadProcessId));
+        if (windowThreadProcessId == 0)
+            throw new System.ArgumentNullException(nameof(windowThreadProcessId));
 
             GuiThreadInfo gti = new();
             gti.cbSize = Marshal.SizeOf(gti);
