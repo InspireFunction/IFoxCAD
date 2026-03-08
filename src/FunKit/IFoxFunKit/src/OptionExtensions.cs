@@ -16,6 +16,7 @@ public static class OptionExtensions
     /// <param name="some">处理Some分支的函数</param>
     /// <param name="none">处理None分支的函数</param>
     /// <returns>匹配结果</returns>
+    [MustHandleMember(MustHandleMemberKind.Match)]
     public static TResult Match<T, TResult>(
         this Option<T> option,
         Func<T, TResult> some,
@@ -27,6 +28,7 @@ public static class OptionExtensions
     /// <summary>
     /// 匹配Option的所有分支（无返回值版本）
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.Match)]
     public static void Match<T>(
         this Option<T> option,
         Action<T> some,
@@ -90,6 +92,7 @@ public static class ResultExtensions
     /// <param name="ok">处理Ok分支的函数</param>
     /// <param name="err">处理Err分支的函数</param>
     /// <returns>匹配结果</returns>
+    [MustHandleMember(MustHandleMemberKind.Match)]
     public static TResult Match<TOk, TErr, TResult>(
         this Result<TOk, TErr> result,
         Func<TOk, TResult> ok,
@@ -101,6 +104,7 @@ public static class ResultExtensions
     /// <summary>
     /// 匹配Result的所有分支（无返回值版本）
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.Match)]
     public static void Match<TOk, TErr>(
         this Result<TOk, TErr> result,
         Action<TOk> ok,

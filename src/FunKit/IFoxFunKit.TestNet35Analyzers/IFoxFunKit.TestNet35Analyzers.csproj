@@ -20,10 +20,9 @@
         <ProjectReference Include="..\IFoxFunKit.Analyzers\IFoxFunKit.Analyzers.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" />
     </ItemGroup>
 
+
+    <!-- 文件链接：引入Option和Result类型定义，用于反射读取MustHandleMember特性 -->
     <ItemGroup>
-      <Compile Include="..\IFoxFunKit\Option.cs" Link="Option.cs" />
-      <Compile Include="..\IFoxFunKit\OptionExtensions.cs" Link="OptionExtensions.cs" />
-      <Compile Include="..\IFoxFunKit\Result.cs" Link="Result.cs" />
-      <Compile Include="..\IFoxFunKit\SkipMustHandleCheckAttribute.cs" Link="SkipMustHandleCheckAttribute.cs" />
+        <Compile Include="..\IFoxFunKit\src\**\*.cs" Link="IFoxFunKit\src\%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
 </Project>

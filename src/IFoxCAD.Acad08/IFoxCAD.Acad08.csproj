@@ -4,6 +4,7 @@
         <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
         <PlatformTarget>x86</PlatformTarget>
         <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+        <BuildInParallel>false</BuildInParallel>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -37,15 +38,15 @@
         <!--<PackageReference Include="Autocad.NetApi" Version="17.2.0"  ExcludeAssets="runtime"/>-->
     </ItemGroup>
 
-    <!-- IFoxFunKit 源文件链接 -->
-    <ItemGroup>
-        <Compile Include="..\FunKit\IFoxFunKit\*.cs" Link="IFoxFunKit\*.cs" />
-        <Analyzer Include="..\bin\$(Configuration)\netstandard2.0\IFoxFunKit.Analyzers.dll" />
-    </ItemGroup>
 
-    <!--确保分析器项目先编译-->
+    <!-- 文件链接：引入Option和Result类型定义，用于反射读取MustHandleMember特性 -->
+    <ItemGroup>
+        <Compile Include="..\FunKit\IFoxFunKit\src\**\*.cs" Link="IFoxFunKit\src\%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+    <!--确保分析器项目先编译，并引用分析器DLL-->
     <ItemGroup>
         <ProjectReference Include="..\FunKit\IFoxFunKit.Analyzers\IFoxFunKit.Analyzers.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" />
+        <Analyzer Include="..\bin\$(Configuration)\netstandard2.0\IFoxFunKit.Analyzers.dll" />
     </ItemGroup>
 
     <ItemGroup>

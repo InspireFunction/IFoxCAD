@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -14,21 +15,9 @@ namespace IFoxFunKit.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class MustHandleResultAnalyzer : DiagnosticAnalyzer
 {
-    public const string DiagnosticId = "IFOX001";
-    public const string Category = "Design";
+    public const string DiagnosticId = DiagnosticMessages.ErrorCodes.MustHandleResult;
 
-    private static readonly LocalizableString Title = "必须处理Option或Result的返回值";
-    private static readonly LocalizableString MessageFormat = "返回值类型 '{0}' 必须被处理：使用Match、Switch表达式，或检查IsSome/IsOk/IsErr属性";
-    private static readonly LocalizableString Description = "Option<T>和Result<T>的返回值必须被显式处理所有分支，不能忽略.";
-
-    private static readonly DiagnosticDescriptor Rule = new(
-        DiagnosticId,
-        Title,
-        MessageFormat,
-        Category,
-        DiagnosticSeverity.Error,
-        isEnabledByDefault: true,
-        description: Description);
+    private static readonly DiagnosticDescriptor Rule = DiagnosticMessages.GetDescriptor(DiagnosticId);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
@@ -134,6 +123,8 @@ public class MustHandleResultAnalyzer : DiagnosticAnalyzer
         }
     }
 
+
+
     /// <summary>
     /// 检查表达式是否是Option或Result类型
     /// </summary>
@@ -147,8 +138,8 @@ public class MustHandleResultAnalyzer : DiagnosticAnalyzer
         var typeName = type.ToDisplayString();
 
         // 检查是否是Option<T>或Result<T>或Result<T, TErr>
-        return typeName.StartsWith("IFoxFunKit.Option<") ||
-               typeName.StartsWith("IFoxFunKit.Result<");
+        return typeName.StartsWith(MustHandleMeta.OptionTypeFullName + "<") ||
+               typeName.StartsWith(MustHandleMeta.ResultTypeFullName + "<");
     }
 
     /// <summary>
@@ -310,16 +301,12 @@ public class MustHandleResultAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// 检查是否是有效的成员访问（如IsSome, IsNone, IsOk, IsErr等）
+    /// 检查是否是有效的成员访问（通过反射动态获取标记了MustHandleMember特性的成员）
     /// </summary>
     private static bool IsValidMemberAccess(string memberName)
     {
-        return memberName is "IsSome" or "IsNone" or "IsOk" or "IsErr" or
-               "Value" or "OkValue" or "ErrValue" or
-               "UnwrapOr" or "UnwrapOrElse" or "Expect" or "ExpectErr" or
-               "Map" or "MapErr" or "Bind" or "Filter" or
-               "OkToOption" or "ErrToOption" or "OkOr" or "OkOrElse" or
-               "TryGetValue" or "TryGetOk" or "TryGetErr";
+        // 使用反射动态获取的成员名称集合进行检查
+        return MustHandleMeta.ValidMemberNames.Contains(memberName);
     }
 
     /// <summary>
@@ -330,7 +317,7 @@ public class MustHandleResultAnalyzer : DiagnosticAnalyzer
         if (invocation.Expression is MemberAccessExpressionSyntax memberAccess)
         {
             var methodName = memberAccess.Name.Identifier.Text;
-            return methodName == "Match";
+            return methodName == MustHandleMeta.MatchMethodName;
         }
         return false;
     }
@@ -382,8 +369,8 @@ public class MustHandleResultAnalyzer : DiagnosticAnalyzer
             var memberAccess = (MemberAccessExpressionSyntax)expression;
             var memberName = memberAccess.Name.Identifier.Text;
 
-            // 检查是否是IsSome/IsNone/IsOk/IsErr
-            if (memberName is "IsSome" or "IsNone" or "IsOk" or "IsErr")
+            // 检查是否是状态检查成员（通过反射动态获取StatusCheck类型的成员）
+            if (MustHandleMeta.StatusCheckMemberNames.Contains(memberName))
             {
                 // 检查访问的对象是否是目标表达式
                 if (IsSameExpression(memberAccess.Expression, targetExpr))
@@ -420,6 +407,9 @@ public class MustHandleResultAnalyzer : DiagnosticAnalyzer
         return expr1.ToString() == expr2.ToString();
     }
 
+    // 使用nameof()获取特性名称
+    private static readonly string SkipMustHandleCheckAttributeName = nameof(SkipMustHandleCheckAttribute).Replace("Attribute", "");
+
     /// <summary>
     /// 检查当前代码是否标记了 SkipMustHandleCheck 特性
     /// </summary>
@@ -430,7 +420,7 @@ public class MustHandleResultAnalyzer : DiagnosticAnalyzer
             .OfType<MethodDeclarationSyntax>()
             .FirstOrDefault();
 
-        if (methodDecl != null && HasAttribute(context, methodDecl.AttributeLists, "SkipMustHandleCheck"))
+        if (methodDecl != null && HasAttribute(context, methodDecl.AttributeLists, SkipMustHandleCheckAttributeName))
         {
             return true;
         }
@@ -440,7 +430,7 @@ public class MustHandleResultAnalyzer : DiagnosticAnalyzer
             .OfType<PropertyDeclarationSyntax>()
             .FirstOrDefault();
 
-        if (propertyDecl != null && HasAttribute(context, propertyDecl.AttributeLists, "SkipMustHandleCheck"))
+        if (propertyDecl != null && HasAttribute(context, propertyDecl.AttributeLists, SkipMustHandleCheckAttributeName))
         {
             return true;
         }
@@ -450,7 +440,7 @@ public class MustHandleResultAnalyzer : DiagnosticAnalyzer
             .OfType<TypeDeclarationSyntax>()
             .FirstOrDefault();
 
-        if (typeDecl != null && HasAttribute(context, typeDecl.AttributeLists, "SkipMustHandleCheck"))
+        if (typeDecl != null && HasAttribute(context, typeDecl.AttributeLists, SkipMustHandleCheckAttributeName))
         {
             return true;
         }
@@ -468,7 +458,7 @@ public class MustHandleResultAnalyzer : DiagnosticAnalyzer
             foreach (var attr in attrList.Attributes)
             {
                 var attrName = attr.Name.ToString();
-                if (attrName == attributeName || 
+                if (attrName == attributeName ||
                     attrName == attributeName + "Attribute" ||
                     attrName.EndsWith("." + attributeName) ||
                     attrName.EndsWith("." + attributeName + "Attribute"))

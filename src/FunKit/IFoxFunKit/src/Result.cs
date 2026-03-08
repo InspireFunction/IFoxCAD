@@ -46,29 +46,35 @@ public readonly struct Result<TOk, TErr> : IEquatable<Result<TOk, TErr>>
     /// <summary>
     /// 是否成功
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.StatusCheck)]
     public bool IsOk => _isOk;
 
     /// <summary>
     /// 是否失败
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.StatusCheck)]
     public bool IsErr => !_isOk;
 
     /// <summary>
     /// 获取成功值，如果失败则抛出异常
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.ValueAccess)]
     public TOk OkValue => _isOk ? _okValue! : throw new InvalidOperationException("Result不包含成功值");
 
     /// <summary>
     /// 获取错误值，如果成功则抛出异常
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.ValueAccess)]
     public TErr ErrValue => !_isOk ? _errValue! : throw new InvalidOperationException("Result不包含错误值");
 
     /// <summary>
     /// 尝试获取成功值
     /// </summary>
 #if NET5_0_OR_GREATER || NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+    [MustHandleMember(MustHandleMemberKind.TryGet)]
     public bool TryGetOk([MaybeNullWhen(false)] out TOk value)
 #else
+    [MustHandleMember(MustHandleMemberKind.TryGet)]
     public bool TryGetOk(out TOk? value)
 #endif
     {
@@ -80,8 +86,10 @@ public readonly struct Result<TOk, TErr> : IEquatable<Result<TOk, TErr>>
     /// 尝试获取错误值
     /// </summary>
 #if NET5_0_OR_GREATER || NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+    [MustHandleMember(MustHandleMemberKind.TryGet)]
     public bool TryGetErr([MaybeNullWhen(false)] out TErr error)
 #else
+    [MustHandleMember(MustHandleMemberKind.TryGet)]
     public bool TryGetErr(out TErr? error)
 #endif
     {
@@ -92,6 +100,7 @@ public readonly struct Result<TOk, TErr> : IEquatable<Result<TOk, TErr>>
     /// <summary>
     /// 映射成功值
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.Transform)]
     public Result<TResult, TErr> Map<TResult>(Func<TOk, TResult> mapper)
     {
         return _isOk ? Result<TResult, TErr>.Ok(mapper(_okValue!)) : Result<TResult, TErr>.Err(_errValue!);
@@ -100,6 +109,7 @@ public readonly struct Result<TOk, TErr> : IEquatable<Result<TOk, TErr>>
     /// <summary>
     /// 映射错误值
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.Transform)]
     public Result<TOk, TResult> MapErr<TResult>(Func<TErr, TResult> mapper)
     {
         return _isOk ? Result<TOk, TResult>.Ok(_okValue!) : Result<TOk, TResult>.Err(mapper(_errValue!));
@@ -108,6 +118,7 @@ public readonly struct Result<TOk, TErr> : IEquatable<Result<TOk, TErr>>
     /// <summary>
     /// 绑定操作（扁平映射）
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.Transform)]
     public Result<TResult, TErr> Bind<TResult>(Func<TOk, Result<TResult, TErr>> binder)
     {
         return _isOk ? binder(_okValue!) : Result<TResult, TErr>.Err(_errValue!);
@@ -116,6 +127,7 @@ public readonly struct Result<TOk, TErr> : IEquatable<Result<TOk, TErr>>
     /// <summary>
     /// 提供默认值
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.DefaultValue)]
     public TOk UnwrapOr(TOk defaultValue)
     {
         return _isOk ? _okValue! : defaultValue;
@@ -124,6 +136,7 @@ public readonly struct Result<TOk, TErr> : IEquatable<Result<TOk, TErr>>
     /// <summary>
     /// 通过工厂函数提供默认值
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.DefaultValue)]
     public TOk UnwrapOrElse(Func<TErr, TOk> factory)
     {
         return _isOk ? _okValue! : factory(_errValue!);
@@ -374,6 +387,7 @@ public readonly struct Result<T> : IEquatable<Result<T>>
 /// <summary>
 /// Result辅助类
 /// </summary>
+[SkipMustHandleCheck]
 public static class Result
 {
     /// <summary>

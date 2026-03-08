@@ -7,3 +7,4 @@
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
 IFOX001 | Design | Error | 必须处理Option或Result的返回值
+IFOX002 | Design | Error | 访问值之前必须先检查状态

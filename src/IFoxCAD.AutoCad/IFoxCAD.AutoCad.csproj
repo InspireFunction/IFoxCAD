@@ -4,6 +4,7 @@
         <!--2009也是net35-->
         <TargetFrameworks>NET40;NET45</TargetFrameworks>
         <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+        <BuildInParallel>false</BuildInParallel>
     </PropertyGroup>
 
     <PropertyGroup>
@@ -49,9 +50,13 @@
         <Reference Include="Microsoft.CSharp" />
     </ItemGroup>
 
-    <!-- IFoxFunKit 源文件链接 -->
+    <!-- 文件链接：引入Option和Result类型定义，用于反射读取MustHandleMember特性 -->
     <ItemGroup>
-        <Compile Include="..\FunKit\IFoxFunKit\*.cs" Link="IFoxFunKit\*.cs" />
+        <Compile Include="..\FunKit\IFoxFunKit\src\**\*.cs" Link="IFoxFunKit\src\%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+    <!--确保分析器项目先编译，并引用分析器DLL-->
+    <ItemGroup>
+        <ProjectReference Include="..\FunKit\IFoxFunKit.Analyzers\IFoxFunKit.Analyzers.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" />
         <Analyzer Include="..\bin\$(Configuration)\netstandard2.0\IFoxFunKit.Analyzers.dll" />
     </ItemGroup>
 

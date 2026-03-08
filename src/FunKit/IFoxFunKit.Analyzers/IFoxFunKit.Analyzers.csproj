@@ -34,11 +34,13 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
         <DebugType>portable</DebugType>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <NoWarn>RS2003</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
         <DebugType>none</DebugType>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+        <NoWarn>RS2003</NoWarn>
     </PropertyGroup>
 
     <!-- 分析器打包配置 -->
@@ -60,6 +62,11 @@
     <ItemGroup>
         <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" PrivateAssets="all" />
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
+    </ItemGroup>
+
+    <!-- 文件链接：引入Option和Result类型定义，用于反射读取MustHandleMember特性 -->
+    <ItemGroup>
+       <Compile Include="..\IFoxFunKit\src\**\*.cs" Link="IFoxFunKit\src\%(RecursiveDir)%(Filename)%(Extension)" />
     </ItemGroup>
 
 </Project>

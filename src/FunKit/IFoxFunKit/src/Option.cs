@@ -38,24 +38,29 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// 是否有值
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.StatusCheck)]
     public bool IsSome => _isSome;
 
     /// <summary>
     /// 是否无值
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.StatusCheck)]
     public bool IsNone => !_isSome;
 
     /// <summary>
-    /// 获取值，如果无值则抛出异常
+    /// 获取值，如果无值则运行时抛出异常
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.ValueAccess)]
     public T Value => _isSome ? _value! : throw new InvalidOperationException("Option不包含值");
 
     /// <summary>
     /// 尝试获取值
     /// </summary>
 #if NET5_0_OR_GREATER || NETCOREAPP3_0_OR_GREATER || NETSTANDARD2_1_OR_GREATER
+    [MustHandleMember(MustHandleMemberKind.TryGet)]
     public bool TryGetValue([MaybeNullWhen(false)] out T value)
 #else
+    [MustHandleMember(MustHandleMemberKind.TryGet)]
     public bool TryGetValue(out T value)
 #endif
     {
@@ -67,6 +72,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// 映射操作
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.Transform)]
     public Option<TResult> Map<TResult>(Func<T, TResult> mapper)
     {
         return _isSome ? Option<TResult>.Some(mapper(_value!)) : Option<TResult>.None;
@@ -75,6 +81,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// 绑定操作（扁平映射）
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.Transform)]
     public Option<TResult> Bind<TResult>(Func<T, Option<TResult>> binder)
     {
         return _isSome ? binder(_value!) : Option<TResult>.None;
@@ -83,6 +90,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// 提供默认值
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.DefaultValue)]
     public T UnwrapOr(T defaultValue)
     {
         return _isSome ? _value! : defaultValue;
@@ -91,6 +99,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// 通过工厂函数提供默认值
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.DefaultValue)]
     public T UnwrapOrElse(Func<T> factory)
     {
         return _isSome ? _value! : factory();
@@ -99,6 +108,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// 过滤操作
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.Transform)]
     public Option<T> Filter(Func<T, bool> predicate)
     {
         return _isSome && predicate(_value!) ? this : None;
@@ -107,6 +117,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// 转换为Result
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.General)]
     public Result<T, TError> OkOr<TError>(TError error)
     {
         return _isSome ? Result<T, TError>.Ok(_value!) : Result<T, TError>.Err(error);
@@ -115,6 +126,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
     /// <summary>
     /// 通过工厂函数转换为Result
     /// </summary>
+    [MustHandleMember(MustHandleMemberKind.General)]
     public Result<T, TError> OkOrElse<TError>(Func<TError> errorFactory)
     {
         return _isSome ? Result<T, TError>.Ok(_value!) : Result<T, TError>.Err(errorFactory());
@@ -183,6 +195,7 @@ public readonly struct Option<T> : IEquatable<Option<T>>
 /// <summary>
 /// Option辅助类
 /// </summary>
+[SkipMustHandleCheck]
 public static class Option
 {
     /// <summary>
