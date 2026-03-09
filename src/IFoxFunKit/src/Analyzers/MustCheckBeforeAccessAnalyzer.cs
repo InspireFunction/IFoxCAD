@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace IFoxFunKit.Analyzers;
+namespace IFoxFunKit;
 
 /// <summary>
 /// 检查在访问 Value/OkValue/ErrValue 之前是否检查了对应的状态属性
@@ -14,10 +14,16 @@ namespace IFoxFunKit.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class MustCheckBeforeAccessAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>
+    /// 诊断器ID
+    /// </summary>
     public const string DiagnosticId = DiagnosticMessages.ErrorCodes.MustCheckBeforeAccess;
 
     private static readonly DiagnosticDescriptor Rule = DiagnosticMessages.GetDescriptor(DiagnosticId);
 
+    /// <summary>
+    /// 支持的诊断描述符集合
+    /// </summary>
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
     // 值访问成员与状态检查成员的映射关系
@@ -30,6 +36,10 @@ public class MustCheckBeforeAccessAnalyzer : DiagnosticAnalyzer
             [nameof(Result<object, object>.ErrValue)] = new[] { nameof(Result<object, object>.IsErr), nameof(Result<object, object>.IsOk) }
         }.ToImmutableDictionary();
 
+    /// <summary>
+    /// 初始化分析器
+    /// </summary>
+    /// <param name="context">分析上下文</param>
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
@@ -78,7 +88,7 @@ public class MustCheckBeforeAccessAnalyzer : DiagnosticAnalyzer
     }
 
     /// <summary>
-    /// 检查表达式是否是 Option<T> 或 Result<T> 类型
+    /// 检查表达式是否是 Option&lt;T&gt; 或 Result&lt;T&gt; 类型
     /// </summary>
     private static bool IsOptionOrResultType(SyntaxNodeAnalysisContext context, ExpressionSyntax expression)
     {

@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace IFoxFunKit.Analyzers;
+namespace IFoxFunKit;
 
 /// <summary>
 /// 诊断抑制器：抑制 ArgumentNullEx.ThrowIfNull 调用后的 CS8602 警告
@@ -24,9 +24,17 @@ public class ThrowIfNullSuppressor : DiagnosticSuppressor
         suppressedDiagnosticId: "CS8602",  // 解引用可能出现空引用
         justification: "变量已通过 ArgumentNullEx.ThrowIfNull 验证为非 null");
 
+
+    /// <summary>
+    /// 支持的抑制描述符集合
+    /// </summary>
     public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions =>
         ImmutableArray.Create(CS8602Suppression);
 
+    /// <summary>
+    /// 查找并抑制后续对该变量的 CS8602 警告
+    /// </summary>
+    /// <param name="context">抑制分析上下文</param>
     public override void ReportSuppressions(SuppressionAnalysisContext context)
     {
         // 遍历所有编译单元

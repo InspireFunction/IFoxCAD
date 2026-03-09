@@ -5,6 +5,16 @@
         <PackageReleaseNotes>暂时屏蔽浩辰的打包，保留浩辰的项目</PackageReleaseNotes>
     </PropertyGroup>
 
+    <!-- 定义根路径 -->
+    <PropertyGroup>
+        <!-- 获取项目文件的目录 -->
+        <ProjectDir>$(MSBuildProjectDirectory)\</ProjectDir>
+        <!-- 计算到根目录的路径 (src目录的上级) -->
+        <RepoRoot>$([System.IO.Path]::GetFullPath('$(ProjectDir)..\..\'))</RepoRoot>
+        <!-- 统一的输出目录 -->
+        <OutputPath>$(RepoRoot)bin\$(Configuration)\</OutputPath>
+    </PropertyGroup>
+
     <PropertyGroup>
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
@@ -17,7 +27,6 @@
         <RootNamespace>IFoxCAD.CAD</RootNamespace>
         <UseWindowsForms>true</UseWindowsForms>
         <UseWpf>true</UseWpf>
-        <OutputPath>..\..\bin\$(Configuration)\</OutputPath>
     </PropertyGroup>
 
     <PropertyGroup><!--nuget包信息-->

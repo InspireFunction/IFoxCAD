@@ -2,7 +2,7 @@ using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 
-namespace IFoxFunKit.Analyzers;
+namespace IFoxFunKit;
 
 /// <summary>
 /// 诊断消息的统一管理类

@@ -32,6 +32,10 @@
         <DefineConstants>$(Configuration);gcad</DefineConstants>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
+    </PropertyGroup>
+
     <ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
         <PackageReference Include="GrxCAD.Net.2022" Version="1.0.0"  ExcludeAssets="runtime" />
         <Reference Include="Microsoft.CSharp" />
@@ -39,11 +43,11 @@
 
 
     <ItemGroup>
-        <None Include="..\..\LICENSE">
+        <None Include="$(RepoRoot)LICENSE">
             <Pack>True</Pack>
             <PackagePath>\</PackagePath>
         </None>
-        <None Include="..\..\readme.md">
+        <None Include="$(RepoRoot)readme.md">
             <Pack>True</Pack>
             <PackagePath>\</PackagePath>
         </None>
@@ -54,11 +58,16 @@
       <PackageReference Include="IndexRange" Version="1.0.2" />
     </ItemGroup>-->
 
-    <Import Project="..\CADShared\CADShared.projitems" Label="Shared" />
+    <Import Project="$(RepoRoot)src\CADShared\CADShared.projitems" Label="Shared" />
 
-    <!--确保分析器项目先编译，并引用分析器DLL-->
+    <!-- 直接引用IFoxFunKit分析器（DLL中的类型已由CADShared提供） -->
     <ItemGroup>
-        <ProjectReference Include="..\FunKit\IFoxFunKit.Analyzers\IFoxFunKit.Analyzers.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" />
-        <Analyzer Include="..\bin\$(Configuration)\netstandard2.0\IFoxFunKit.Analyzers.dll" />
+        <Analyzer Include="$(RepoRoot)bin\$(Configuration)\netstandard2.0\IFoxFunKit.dll" />
     </ItemGroup>
+
+    <!-- 确保 IFoxFunKit 先编译 -->
+    <Target Name="BuildIFoxFunKitFirst" BeforeTargets="BeforeBuild">
+        <MSBuild Projects="$(RepoRoot)src\IFoxFunKit\IFoxFunKit.csproj"
+                 Properties="Configuration=$(Configuration);TargetFramework=netstandard2.0" />
+    </Target>
 </Project>

@@ -7,6 +7,7 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+    <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,7 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\src\CADShared\ExtensionMethod\json\MyJson.cs" Link="MyJson.cs" />
+    <Compile Include="$(RepoRoot)src\CADShared\ExtensionMethod\json\MyJson.cs" Link="MyJson.cs" />
   </ItemGroup>
 
 </Project>

@@ -9,6 +9,7 @@
     <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <RepoRoot>$(MSBuildThisFileDirectory)..\..\..\</RepoRoot>
   </PropertyGroup>
 
   <ItemGroup>
@@ -27,11 +28,11 @@
   <ItemGroup>
     <Compile Include="GlobalUsings.cs" />
     <Compile Include="CppMangledNameParserTests.cs" />
-    <Compile Include="..\..\..\src\CADShared\PE\PeInfo.cs" Link="PE\PeInfo.cs" />
-    <Compile Include="..\..\..\src\CADShared\PE\StringHelper.cs" Link="PE\StringHelper.cs" />
-    <Compile Include="..\..\..\src\CADShared\PE\CppMangledNameParser.cs" Link="PE\CppMangledNameParser.cs" />
-    <Compile Include="..\..\..\src\CADShared\PE\CppToCSharpMapper.cs" Link="PE\CppToCSharpMapper.cs" />
-    <Compile Include="..\..\..\src\CADShared\PE\DllImportGenerator.cs" Link="PE\DllImportGenerator.cs" />
+    <Compile Include="$(RepoRoot)src\CADShared\PE\PeInfo.cs" Link="PE\PeInfo.cs" />
+    <Compile Include="$(RepoRoot)src\CADShared\PE\StringHelper.cs" Link="PE\StringHelper.cs" />
+    <Compile Include="$(RepoRoot)src\CADShared\PE\CppMangledNameParser.cs" Link="PE\CppMangledNameParser.cs" />
+    <Compile Include="$(RepoRoot)src\CADShared\PE\CppToCSharpMapper.cs" Link="PE\CppToCSharpMapper.cs" />
+    <Compile Include="$(RepoRoot)src\CADShared\PE\DllImportGenerator.cs" Link="PE\DllImportGenerator.cs" />
   </ItemGroup>
 
 </Project>

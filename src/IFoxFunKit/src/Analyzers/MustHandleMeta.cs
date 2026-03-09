@@ -4,7 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Reflection;
 
-namespace IFoxFunKit.Analyzers;
+namespace IFoxFunKit;
 
 /// <summary>
 /// 反射辅助类，

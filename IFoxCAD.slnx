@@ -5,12 +5,7 @@
   <Folder Name="/src/">
     <File Path="src/Directory.Build.props" />
     <Project Path="src/CADShared/CADShared.shproj" />
-
-  <Project Path="src/FunKit/IFoxFunKit/IFoxFunKit.csproj" />
-  <Project Path="src/FunKit/IFoxFunKit.Analyzers/IFoxFunKit.Analyzers.csproj" />
-  <Project Path="src/FunKit/IFoxFunKit.UnitTest/IFoxFunKit.UnitTest.csproj" />
-  <Project Path="src/FunKit/IFoxFunKit.TestNet35Analyzers/IFoxFunKit.TestNet35Analyzers.csproj" />
-
+    <Project Path="src/IFoxFunKit/IFoxFunKit.csproj" />
     <Project Path="src/IFoxCAD.Acad08/IFoxCAD.Acad08.csproj" />
     <Project Path="src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj" />
     <Project Path="src/IFoxCAD.Gcad/IFoxCAD.Gcad.csproj" />
@@ -30,6 +25,10 @@
     <Project Path="unittests/CadVersionUnitTest/CadVersionUnitTest.csproj" />
     <Project Path="unittests/MyJsonUnitTest/MyJsonUnitTest.csproj" />
     <Project Path="unittests/NET35VolatileUnitTest/NET35VolatileUnitTest.csproj" />
+  </Folder>
+  <Folder Name="/unittests/IFoxFunKit/">
+    <Project Path="unittests/IFoxFunKit/IFoxFunKitUnitTest/IFoxFunKit.UnitTest.csproj" />
+    <Project Path="unittests/IFoxFunKit/Net35TestAnalyzers/IFoxFunKit.Net35TestAnalyzers.csproj" />
   </Folder>
   <Folder Name="/unittests/PE/">
     <Project Path="unittests/PE/DllImportGeneratorTest/DllImportGeneratorTest.csproj" />

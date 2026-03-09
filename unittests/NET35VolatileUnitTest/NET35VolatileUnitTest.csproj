@@ -7,6 +7,7 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
+    <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
@@ -35,7 +36,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\src\CADShared\Basal\CLS\*.cs" Link="CLS\%(Filename)%(Extension)" />
+    <Compile Include="$(RepoRoot)src\CADShared\Basal\CLS\*.cs" Link="CLS\%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

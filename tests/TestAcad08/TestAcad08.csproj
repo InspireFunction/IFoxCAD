@@ -21,23 +21,27 @@
         <cad08>C:\Program Files (x86)\AutoCAD 2008\</cad08>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
+    </PropertyGroup>
+
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
         <DefineConstants>$(Configuration);acad;ac2008;ac2009</DefineConstants>
     </PropertyGroup>
 
     <ItemGroup>
-        <!--<ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />-->
-        <ProjectReference Include="..\..\src\IFoxCAD.Acad08\IFoxCAD.Acad08.csproj" />
+        <!--<ProjectReference Include="$(RepoRoot)src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />-->
+        <ProjectReference Include="$(RepoRoot)src\IFoxCAD.Acad08\IFoxCAD.Acad08.csproj" />
     </ItemGroup>
 
-    <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
+    <Import Project="$(RepoRoot)tests\TestShared\TestShared.projitems" Label="Shared" />
 
     <ItemGroup>
-        <Compile Include="..\TestAcad09plus\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
+        <Compile Include="$(RepoRoot)tests\TestAcad09plus\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
     </ItemGroup>
 
     <ItemGroup>
-        <Compile Include="..\TestAcad09plus\拦截输入法\**\*.cs" Exclude="..\TestAcad09plus\拦截输入法\**\*xaml*.cs">
+        <Compile Include="$(RepoRoot)tests\TestAcad09plus\拦截输入法\**\*.cs" Exclude="$(RepoRoot)tests\TestAcad09plus\拦截输入法\**\*xaml*.cs">
             <Link>拦截输入法\%(RecursiveDir)%(FileName)%(Extension)</Link>
         </Compile>
     </ItemGroup>

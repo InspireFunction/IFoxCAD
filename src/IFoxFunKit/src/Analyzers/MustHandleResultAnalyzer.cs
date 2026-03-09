@@ -6,7 +6,7 @@ using System;
 using System.Collections.Immutable;
 using System.Linq;
 
-namespace IFoxFunKit.Analyzers;
+namespace IFoxFunKit;
 
 /// <summary>
 /// 强制处理Option和Result返回值的分析器
@@ -15,12 +15,22 @@ namespace IFoxFunKit.Analyzers;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class MustHandleResultAnalyzer : DiagnosticAnalyzer
 {
+    /// <summary>
+    /// 诊断器ID
+    /// </summary>
     public const string DiagnosticId = DiagnosticMessages.ErrorCodes.MustHandleResult;
 
     private static readonly DiagnosticDescriptor Rule = DiagnosticMessages.GetDescriptor(DiagnosticId);
 
+    /// <summary>
+    /// 支持的诊断描述符集合
+    /// </summary>
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
 
+    /// <summary>
+    /// 初始化分析器
+    /// </summary>
+    /// <param name="context">分析上下文</param>
     public override void Initialize(AnalysisContext context)
     {
         context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);

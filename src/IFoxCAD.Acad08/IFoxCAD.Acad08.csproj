@@ -8,9 +8,9 @@
     </PropertyGroup>
 
     <PropertyGroup>
-        <PackageId>IFox.CAD.ACAD</PackageId>
-        <Title>IFox.CAD.ACAD</Title>
-        <Product>IFox.CAD.ACAD</Product>
+        <PackageId>IFox.CAD.ACAD2008</PackageId>
+        <Title>IFox.CAD.ACAD2008</Title>
+        <Product>IFox.CAD.ACAD2008</Product>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x86'">
@@ -32,6 +32,9 @@
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
         <DefineConstants>$(Configuration);acad;ac2008;ac2009</DefineConstants>
     </PropertyGroup>
+    <PropertyGroup>
+        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
+    </PropertyGroup>
 
     <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
         <PackageReference Include="JJBox.Acad2008" Version="1.0.0" ExcludeAssets="runtime" />
@@ -39,22 +42,23 @@
     </ItemGroup>
 
 
-    <!-- 文件链接：引入Option和Result类型定义，用于反射读取MustHandleMember特性 -->
+    <!-- 直接引用IFoxFunKit分析器（DLL中的类型已由CADShared提供） -->
     <ItemGroup>
-        <Compile Include="..\FunKit\IFoxFunKit\src\**\*.cs" Link="IFoxFunKit\src\%(RecursiveDir)%(Filename)%(Extension)" />
-    </ItemGroup>
-    <!--确保分析器项目先编译，并引用分析器DLL-->
-    <ItemGroup>
-        <ProjectReference Include="..\FunKit\IFoxFunKit.Analyzers\IFoxFunKit.Analyzers.csproj" ReferenceOutputAssembly="false" SkipGetTargetFrameworkProperties="true" SetTargetFramework="TargetFramework=netstandard2.0" />
-        <Analyzer Include="..\bin\$(Configuration)\netstandard2.0\IFoxFunKit.Analyzers.dll" />
+        <Analyzer Include="$(RepoRoot)bin\$(Configuration)\netstandard2.0\IFoxFunKit.dll" />
     </ItemGroup>
 
+    <!-- 确保 IFoxFunKit 先编译 -->
+    <Target Name="BuildIFoxFunKitFirst" BeforeTargets="BeforeBuild">
+        <MSBuild Projects="$(RepoRoot)src\IFoxFunKit\IFoxFunKit.csproj"
+                 Properties="Configuration=$(Configuration);TargetFramework=netstandard2.0" />
+    </Target>
+
     <ItemGroup>
-        <None Include="..\..\LICENSE">
+        <None Include="$(RepoRoot)LICENSE">
             <Pack>True</Pack>
             <PackagePath>\</PackagePath>
         </None>
-        <None Include="..\..\readme.md">
+        <None Include="$(RepoRoot)readme.md">
             <Pack>True</Pack>
             <PackagePath>\</PackagePath>
         </None>
@@ -64,10 +68,10 @@
       <PackageReference Include="IndexRange" Version="1.0.2" />
     </ItemGroup>-->
 
-    <Import Project="..\CADShared\CADShared.projitems" Label="Shared" />
+    <Import Project="$(RepoRoot)src\CADShared\CADShared.projitems" Label="Shared" />
 
     <ItemGroup>
-        <Compile Include="..\IFoxCAD.AutoCad\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
+        <Compile Include="$(RepoRoot)src\IFoxCAD.AutoCad\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
     </ItemGroup>
 
 

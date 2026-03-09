@@ -2,6 +2,7 @@
 #pragma warning disable CS1572 // XML注释中有不存在的参数
 #pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
 
+using IFoxCAD.Basal;
 
 namespace IFoxCAD.Cad;
 

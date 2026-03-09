@@ -5,7 +5,6 @@
 
         <!--如果编译时候有大量的WPF错误,就隐藏NET35先,然后编译,然后打开,再编译-->
         <!--<TargetFrameworks>NET35;NET40;NET45</TargetFrameworks>-->
-
         <TargetFrameworks>NET40;NET45</TargetFrameworks>
         <UseWPF>true</UseWPF>
         <UseWindowsForms>true</UseWindowsForms>
@@ -24,10 +23,14 @@
         <DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
     </PropertyGroup>
 
+    <PropertyGroup>
+        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
+    </PropertyGroup>
+
     <ItemGroup>
-        <!--<ProjectReference Include="..\..\src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />-->
-        <ProjectReference Include="..\..\src\IFoxCAD.AutoCad\IFoxCAD.AutoCad.csproj" />
-        <ProjectReference Include="..\IFoxCAD.WPF\IFoxCAD.WPF.csproj" />
+        <!--<ProjectReference Include="$(RepoRoot)src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />-->
+        <ProjectReference Include="$(RepoRoot)src\IFoxCAD.AutoCad\IFoxCAD.AutoCad.csproj" />
+        <ProjectReference Include="$(RepoRoot)tests\IFoxCAD.WPF\IFoxCAD.WPF.csproj" />
     </ItemGroup>
 
     <ItemGroup>
@@ -42,6 +45,6 @@
         </Page>
     </ItemGroup>
 
-    <Import Project="..\TestShared\TestShared.projitems" Label="Shared" />
+    <Import Project="$(RepoRoot)tests\TestShared\TestShared.projitems" Label="Shared" />
 
 </Project>

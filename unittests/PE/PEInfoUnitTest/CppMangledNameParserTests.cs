@@ -13,9 +13,10 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser(mangled);
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal(expected, info.AccessModifier);
+        Assert.False(string.IsNullOrEmpty(description), $"测试用例描述不应为空: {description}");
     }
     #endregion
 
@@ -32,9 +33,10 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser(mangled);
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal(expected, info.CallingConvention);
+        Assert.False(string.IsNullOrEmpty(description), $"测试用例描述不应为空: {description}");
     }
     #endregion
 
@@ -58,9 +60,10 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser(mangled);
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal(expected, info.ReturnType.TypeCode);
+        Assert.False(string.IsNullOrEmpty(description), $"测试用例描述不应为空: {description}");
     }
     #endregion
 
@@ -70,7 +73,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("??0AcEdJig@@QAE@XZ");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Empty(info.Parameters);
     }
@@ -80,7 +83,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("??0AcGePoint3d@@QAE@NN@Z");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal(2, info.Parameters.Count);
         Assert.Equal(CppTypeCode.Double, info.Parameters[0].TypeCode);
@@ -92,7 +95,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("?foo@@YAHHH@Z");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal(2, info.Parameters.Count);
         Assert.Equal(CppTypeCode.Int, info.Parameters[0].TypeCode);
@@ -104,7 +107,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("??0AcDbObject@@QAE@ABV0@@Z");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Single(info.Parameters);
         Assert.True(info.Parameters[0].IsReference);
@@ -118,7 +121,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("??0AcEdJig@@QAE@XZ");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal(".ctor", info.Name);
         Assert.Equal("AcEdJig", info.ClassName);
@@ -134,7 +137,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("??1AcEdJig@@UAE@XZ");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal(".dtor", info.Name);
         Assert.Equal("AcEdJig", info.ClassName);
@@ -153,7 +156,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser(mangled);
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.True(info.IsDataSymbol);
         Assert.Equal(DataSymbolType.Vftable, info.DataSymbolType);
@@ -168,7 +171,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("??_8SomeClass@@6B@");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.True(info.IsDataSymbol);
         Assert.Equal(DataSymbolType.Vbtable, info.DataSymbolType);
@@ -191,7 +194,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser(mangled);
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal(expectedName, info.Name);
     }
@@ -203,7 +206,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("?acquireAngle@AcEdJig@@QAE?AW4DragStatus@1@AAN@Z");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal("acquireAngle", info.Name);
         Assert.Equal("AcEdJig", info.ClassName);
@@ -214,7 +217,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("?gpDesc@AcEdJig@@2PAVAcRxClass@@A");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal("gpDesc", info.Name);
         Assert.Equal("AcEdJig", info.ClassName);
@@ -227,7 +230,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("");
         var info = parser.Parse();
-        
+
         Assert.Null(info);
     }
 
@@ -236,7 +239,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser(null!);
         var info = parser.Parse();
-        
+
         Assert.Null(info);
     }
 
@@ -245,7 +248,7 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("simpleFunc");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal("simpleFunc", info.Name);
         Assert.Equal(CppCallingConvention.Cdecl, info.CallingConvention);
@@ -261,12 +264,12 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser(mangled);
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.True(info.IsConstructor);
         Assert.Equal(expectedClassName, info.ClassName);
         Assert.Equal(expectedParamCount, info.Parameters.Count);
-        
+
         if (info.Parameters.Count > 0)
         {
             var firstParam = info.Parameters[0];
@@ -280,13 +283,13 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("??0CMetaFile@@QAE@AAUtagFORMATETC@@@Z");
         var cppInfo = parser.Parse();
-        
+
         Assert.NotNull(cppInfo);
         Assert.Single(cppInfo.Parameters);
-        
+
         var cppParam = cppInfo.Parameters[0];
         var csType = CppToCSharpMapper.MapToCSharp(cppParam);
-        
+
         Assert.NotEqual("void", csType);
         Assert.Equal("IntPtr", csType);
     }
@@ -296,11 +299,11 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("??0CMetaFile@@QAE@AAUtagFORMATETC@@@Z");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.True(info.IsConstructor);
         Assert.Equal("CMetaFile", info.ClassName);
-        
+
         Assert.Single(info.Parameters);
         var param = info.Parameters[0];
         Assert.Equal(CppTypeCode.Class, param.TypeCode);
@@ -319,12 +322,13 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser(mangled);
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal(expectedName, info.Name);
         Assert.Equal(expectedClassName, info.ClassName);
         Assert.True(info.IsDataSymbol, "静态数据成员应该被标记为DataSymbol");
         Assert.Equal(DataSymbolType.UnknownData, info.DataSymbolType);
+        Assert.True(Enum.IsDefined(typeof(AccessModifier), expectedAccess), $"expectedAccess 应该是有效的 AccessModifier 值: {expectedAccess}");
     }
 
     [Fact]
@@ -332,10 +336,10 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("?m_tcUserShellFolders@CProxyInet@@0PB_WB");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.True(info.IsDataSymbol, "静态数据成员应该被标记为DataSymbol");
-        
+
         Assert.Empty(info.Parameters);
     }
 
@@ -344,12 +348,12 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("?m_tcUserShellFolders@CProxyInet@@0PB_WB");
         var cppInfo = parser.Parse();
-        
+
         Assert.NotNull(cppInfo);
-        
+
         var csInfo = CppToCSharpMapper.MapFunction(cppInfo);
         Assert.NotNull(csInfo);
-        
+
         Assert.True(csInfo.IsDataSymbol);
         Assert.Empty(csInfo.Parameters);
         Assert.Equal("IntPtr", csInfo.ReturnType);
@@ -360,10 +364,10 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("?m_tcUserShellFolders@CProxyInet@@0PB_WB");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.True(info.IsDataSymbol);
-        
+
         Assert.True(info.ReturnType.IsPointer);
         Assert.True(info.ReturnType.IsConst);
         Assert.Equal(CppTypeCode.WChar, info.ReturnType.TypeCode);
@@ -378,7 +382,7 @@ public class CppMangledNameParserTests
         var mangled = $"?s_data@Test@@{accessCode}HA";
         var parser = new CppMangledNameParser(mangled);
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.True(info.IsDataSymbol);
         Assert.Equal(expectedAccess, info.AccessModifier);
@@ -389,17 +393,17 @@ public class CppMangledNameParserTests
     {
         var parser = new CppMangledNameParser("?gpDesc@AcGzRotate@@2PAVAcRxClass@@A");
         var info = parser.Parse();
-        
+
         Assert.NotNull(info);
         Assert.Equal("gpDesc", info.Name);
         Assert.Equal("AcGzRotate", info.ClassName);
         Assert.True(info.IsDataSymbol, "静态数据成员应该被标记为DataSymbol");
         Assert.Equal(AccessModifier.Public, info.AccessModifier);
-        
+
         Assert.True(info.ReturnType.IsPointer);
         Assert.Equal(CppTypeCode.Class, info.ReturnType.TypeCode);
         Assert.Equal("AcRxClass", info.ReturnType.ClassName);
-        
+
         var csInfo = CppToCSharpMapper.MapFunction(info);
         Assert.NotNull(csInfo);
         Assert.True(csInfo.IsDataSymbol);

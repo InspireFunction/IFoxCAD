@@ -22,7 +22,7 @@
         <RepositoryType>git</RepositoryType>
         <PackageReleaseNotes>开启可空类型.</PackageReleaseNotes>
     </PropertyGroup>
-    
+
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
         <DefineConstants>$(Configuration);acad;ac2009</DefineConstants>
     </PropertyGroup>
@@ -30,9 +30,13 @@
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET40'">
         <DefineConstants>$(Configuration);acad;ac2013</DefineConstants>
     </PropertyGroup>
-    
+
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET45'">
         <DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
+    </PropertyGroup>
+
+    <PropertyGroup>
+        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
     </PropertyGroup>
 
     <!-- 条件包引用 -->
@@ -42,7 +46,7 @@
     </ItemGroup>
 
     <ItemGroup>
-        <None Include="..\..\LICENSE">
+        <None Include="$(RepoRoot)LICENSE">
             <Pack>True</Pack>
             <PackagePath></PackagePath>
         </None>

@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>net35</TargetFramework>
+        <LangVersion>preview</LangVersion>
+        <Nullable>enable</Nullable>        
+        <OutputType>Exe</OutputType>
+        <EnableNETAnalyzers>true</EnableNETAnalyzers>
+        <AnalysisLevel>latest</AnalysisLevel>
+        <IsPackable>false</IsPackable>        
+        <NoWarn>CS1591;CS8618;CS8625;CS8601;CS8603</NoWarn>
+        <RepoRoot>$(MSBuildThisFileDirectory)..\..\..\</RepoRoot>
+    </PropertyGroup>
+
+    <!-- 直接引用IFoxFunKit分析器（DLL中的类型已由CADShared提供） -->
+    <ItemGroup>
+        <Analyzer Include="$(RepoRoot)bin\$(Configuration)\netstandard2.0\IFoxFunKit.dll" />
+    </ItemGroup>
+
+    <!-- 确保 IFoxFunKit 先编译 -->
+    <Target Name="BuildIFoxFunKitFirst" BeforeTargets="BeforeBuild">
+        <MSBuild Projects="$(RepoRoot)src\IFoxFunKit\IFoxFunKit.csproj" Properties="Configuration=$(Configuration);TargetFramework=netstandard2.0" />
+    </Target>
+
+    <!--其他工程不可以引入分析器的nuget包,但是可以引入dll,因为项目配置和vs识别是不一样的-->
+    <!--分析器代码和Option代码是分开的-->
+    <!-- 引用 CADShared Basal Option 文件夹中的代码 -->
+    <ItemGroup>
+        <Compile Include="$(RepoRoot)src\CADShared\Basal\Option\*.cs" Link="CADShared\Basal\Option\%(Filename)%(Extension)" />
+        <Compile Include="$(RepoRoot)src\CADShared\Basal\Nullable\*.cs" Link="CADShared\Basal\Nullable\%(Filename)%(Extension)" />
+    </ItemGroup>
+
+</Project>

@@ -1,32 +1,35 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netstandard2.0</TargetFramework>
+        <TargetFrameworks>netstandard2.0</TargetFrameworks>
         <LangVersion>preview</LangVersion>
         <Nullable>enable</Nullable>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <EnableNETAnalyzers>true</EnableNETAnalyzers>
         <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+        <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+        <GenerateDocumentationFile>True</GenerateDocumentationFile>
+        <UseWindowsForms>false</UseWindowsForms>
+        <UseWpf>false</UseWpf>
+        <!-- 分析器相关配置 -->
         <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
-        <GenerateDocumentationFile>false</GenerateDocumentationFile>
-        <IncludeBuildOutput>false</IncludeBuildOutput>
-        <DevelopmentDependency>true</DevelopmentDependency>
         <GenerateAnalyzerReleaseTrackingFile>true</GenerateAnalyzerReleaseTrackingFile>
-        <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+
+        <BuildInParallel>false</BuildInParallel>
     </PropertyGroup>
 
     <PropertyGroup>
-        <PackageId>IFoxFunKit.Analyzers</PackageId>
-        <Title>IFoxFunKit.Analyzers</Title>
-        <Product>IFoxFunKit.Analyzers</Product>
+        <PackageId>IFoxFunKit</PackageId>
+        <Title>IFoxFunKit</Title>
+        <Product>IFoxFunKit</Product>
         <Company>InspireFunction</Company>
         <Authors>liuqihong</Authors>
         <Copyright>InspireFunction</Copyright>
-        <Description>强制处理Option&lt;T&gt;和Result&lt;T&gt;返回值的Roslyn分析器。</Description>
+        <Description>函数式编程类型库，提供Option&lt;T&gt;和Result&lt;T&gt;类型，包含强制处理返回值的Roslyn分析器。</Description>
         <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
         <PackageProjectUrl>https://gitee.com/inspirefunction/ifoxcad</PackageProjectUrl>
         <RepositoryUrl>https://gitee.com/inspirefunction/ifoxcad.git</RepositoryUrl>
         <RepositoryType>git</RepositoryType>
-        <PackageTags>IFoxFunKit;Functional;Option;Result;Analyzer;Roslyn</PackageTags>
+        <PackageTags>IFoxFunKit;Option;Result;Rust;FSharp;Analyzer;Roslyn</PackageTags>
         <PackageReadmeFile>readme.md</PackageReadmeFile>
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
     </PropertyGroup>
@@ -34,7 +37,7 @@
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
         <DebugType>portable</DebugType>
         <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
-        <NoWarn>RS2003</NoWarn>
+        <NoWarn>CS1591;RS2003</NoWarn>
     </PropertyGroup>
 
     <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -43,19 +46,24 @@
         <NoWarn>RS2003</NoWarn>
     </PropertyGroup>
 
-    <!-- 分析器打包配置 -->
+    <PropertyGroup>
+        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
+    </PropertyGroup>
+
     <ItemGroup>
-        <None Include="$(OutputPath)\IFoxFunKit.Analyzers.dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
-        <None Include="..\LICENSE">
+        <None Include="$(RepoRoot)LICENSE">
             <Pack>True</Pack>
             <PackagePath>\</PackagePath>
         </None>
-        <None Include="..\readme.md">
+        <None Include="$(RepoRoot)readme.md">
             <Pack>True</Pack>
             <PackagePath>\</PackagePath>
         </None>
-        <AdditionalFiles Include="AnalyzerReleases.Shipped.md" Pack="true" PackagePath="\" />
-        <AdditionalFiles Include="AnalyzerReleases.Unshipped.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <!-- netstandard2.0需要额外的兼容性包 -->
+    <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
+        <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />
     </ItemGroup>
 
     <!-- Roslyn 分析器依赖 -->
@@ -64,9 +72,18 @@
         <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" Version="3.3.4" PrivateAssets="all" />
     </ItemGroup>
 
-    <!-- 文件链接：引入Option和Result类型定义，用于反射读取MustHandleMember特性 -->
+    <!-- 分析器打包配置：将分析器DLL打包到analyzers目录 -->
     <ItemGroup>
-       <Compile Include="..\IFoxFunKit\src\**\*.cs" Link="IFoxFunKit\src\%(RecursiveDir)%(Filename)%(Extension)" />
+        <None Include="$(TargetPath)" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+        <AdditionalFiles Include="src\Analyzers\AnalyzerReleases.Shipped.md" Pack="true" PackagePath="\" />
+        <AdditionalFiles Include="src\Analyzers\AnalyzerReleases.Unshipped.md" Pack="true" PackagePath="\" />
+    </ItemGroup>
+
+    <!--其他工程不可以引入分析器的nuget包,但是可以引入dll,因为项目配置和vs识别是不一样的-->
+    <!--分析器代码和Option代码是分开的-->
+    <!-- 引用 CADShared Basal Option 文件夹中的代码 -->
+    <ItemGroup>
+        <Compile Include="$(RepoRoot)src\CADShared\Basal\Option\*.cs"  Link="CADShared\Basal\Option\%(Filename)%(Extension)" />
     </ItemGroup>
 
 </Project>
