@@ -46,10 +46,6 @@
         <NoWarn>RS2003</NoWarn>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
-    </PropertyGroup>
-
     <ItemGroup>
         <None Include="$(RepoRoot)LICENSE">
             <Pack>True</Pack>

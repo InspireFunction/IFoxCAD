@@ -32,10 +32,6 @@
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
         <DefineConstants>$(Configuration);acad;ac2008;ac2009</DefineConstants>
     </PropertyGroup>
-    <PropertyGroup>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
-    </PropertyGroup>
-
     <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
         <PackageReference Include="JJBox.Acad2008" Version="1.0.0" ExcludeAssets="runtime" />
         <!--<PackageReference Include="Autocad.NetApi" Version="17.2.0"  ExcludeAssets="runtime"/>-->

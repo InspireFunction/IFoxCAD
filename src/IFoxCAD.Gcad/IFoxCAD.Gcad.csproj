@@ -32,10 +32,6 @@
         <DefineConstants>$(Configuration);gcad</DefineConstants>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
-    </PropertyGroup>
-
     <ItemGroup Condition="'$(TargetFramework)' == 'NET48'">
         <PackageReference Include="GrxCAD.Net.2022" Version="1.0.0"  ExcludeAssets="runtime" />
         <Reference Include="Microsoft.CSharp" />

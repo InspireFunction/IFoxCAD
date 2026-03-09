@@ -13,6 +13,8 @@
         <RepoRoot>$([System.IO.Path]::GetFullPath('$(ProjectDir)..\..\'))</RepoRoot>
         <!-- 统一的输出目录 -->
         <OutputPath>$(RepoRoot)bin\$(Configuration)\</OutputPath>
+        <!-- NuGet包输出路径 -->
+        <PackageOutputPath>$(RepoRoot)bin\$(Configuration)\</PackageOutputPath>
     </PropertyGroup>
 
     <PropertyGroup>

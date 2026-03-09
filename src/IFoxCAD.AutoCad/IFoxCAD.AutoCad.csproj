@@ -37,10 +37,6 @@
         <DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
-    </PropertyGroup>
-
     <ItemGroup Condition="'$(TargetFramework)' == 'NET35'">
         <PackageReference Include="Autocad.NetApi" Version="17.2.0" ExcludeAssets="runtime" />
     </ItemGroup>

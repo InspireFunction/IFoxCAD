@@ -30,10 +30,6 @@
         <DefineConstants>$(Configuration);zcad;z2025</DefineConstants>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
-    </PropertyGroup>
-
     <ItemGroup>
         <None Include="$(RepoRoot)LICENSE">
             <Pack>True</Pack>
