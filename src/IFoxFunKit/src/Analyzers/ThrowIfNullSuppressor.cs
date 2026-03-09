@@ -24,12 +24,17 @@ public class ThrowIfNullSuppressor : DiagnosticSuppressor
         suppressedDiagnosticId: "CS8602",  // 解引用可能出现空引用
         justification: "变量已通过 ArgumentNullEx.ThrowIfNull 验证为非 null");
 
+    private static readonly SuppressionDescriptor CS8604Suppression = new SuppressionDescriptor(
+        id: "IFOXSUP002",
+        suppressedDiagnosticId: "CS8604",  // 可能传入 null 引用实参
+        justification: "变量已通过 ArgumentNullEx.ThrowIfNull 验证为非 null");
+
 
     /// <summary>
     /// 支持的抑制描述符集合
     /// </summary>
     public override ImmutableArray<SuppressionDescriptor> SupportedSuppressions =>
-        ImmutableArray.Create(CS8602Suppression);
+        ImmutableArray.Create(CS8602Suppression, CS8604Suppression);
 
     /// <summary>
     /// 查找并抑制后续对该变量的 CS8602 警告
@@ -132,8 +137,8 @@ public class ThrowIfNullSuppressor : DiagnosticSuppressor
 
         foreach (var diagnostic in diagnostics)
         {
-            // 只处理 CS8602 警告
-            if (diagnostic.Id != "CS8602")
+            // 只处理 CS8602 和 CS8604 警告
+            if (diagnostic.Id != "CS8602" && diagnostic.Id != "CS8604")
                 continue;
 
             // 检查诊断位置是否在 ThrowIfNull 调用之后
@@ -152,8 +157,9 @@ public class ThrowIfNullSuppressor : DiagnosticSuppressor
             // 检查诊断是否涉及被检查的变量
             if (IsDiagnosticForVariable(semanticModel, diagnosticNode, checkedVariable))
             {
-                // 报告抑制
-                var suppression = Suppression.Create(CS8602Suppression, diagnostic);
+                // 根据诊断类型选择抑制描述符
+                var suppressionDescriptor = diagnostic.Id == "CS8602" ? CS8602Suppression : CS8604Suppression;
+                var suppression = Suppression.Create(suppressionDescriptor, diagnostic);
                 context.ReportSuppression(suppression);
             }
         }

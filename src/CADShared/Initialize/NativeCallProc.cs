@@ -678,7 +678,7 @@ public static class AcadIdleManager
         };
         OnIdle += handler;
 #else
-        // 高版本使用 Application.Idle 事件
+        // 高版本使用 Acap.Idle 事件
         EventHandler? handler = null;
         handler = (s, e) => {
             Acap.Idle -= handler;
@@ -718,7 +718,7 @@ public static class AcadIdleManager
         };
         OnIdle += handler;
 #else
-        // 高版本使用 Application.Idle 事件
+        // 高版本使用 Acap.Idle 事件
         EventHandler? handler = null;
         handler = (s, e) => {
             // 执行用户操作
@@ -758,7 +758,7 @@ public static class AcadIdleManager
         };
         OnIdle += wrapper;
 #else
-        // 高版本使用 Application.Idle 事件
+        // 高版本使用 Acap.Idle 事件
         EventHandler? wrapper = null;
         wrapper = (s, e) => {
             Acap.Idle -= wrapper;
