@@ -73,7 +73,7 @@ public class ThrowIfNullSuppressor : DiagnosticSuppressor
     }
 
     /// <summary>
-    /// 检查是否是 ArgumentNullEx.ThrowIfNull 调用
+    /// 检查是否是 ThrowIfNull 调用
     /// </summary>
     private static bool IsThrowIfNullInvocation(SemanticModel semanticModel, InvocationExpressionSyntax invocation)
     {
@@ -81,9 +81,9 @@ public class ThrowIfNullSuppressor : DiagnosticSuppressor
         if (methodSymbol == null)
             return false;
 
-        // 检查方法名和类型
-        return methodSymbol.Name == "ThrowIfNull" &&
-               methodSymbol.ContainingType?.ToDisplayString() == "IFoxCAD.Basal.ArgumentNullEx";
+        // 只检查方法名，不限制命名空间，使其更通用
+        // 适用于 ArgumentNullEx.ThrowIfNull、ArgumentNullException.ThrowIfNull 等
+        return methodSymbol.Name == "ThrowIfNull";
     }
 
     /// <summary>

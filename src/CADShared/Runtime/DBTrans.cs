@@ -99,7 +99,7 @@ public sealed class DBTrans : IDisposable
     /// </summary>
     public static void SetWorking(Database db)
     {
-        ArgumentNullException.ThrowIfNull(db);
+        ArgumentNullEx.ThrowIfNull(db);
         HostApplicationServices.WorkingDatabase = db;
     }
 
@@ -285,7 +285,7 @@ public sealed class DBTrans : IDisposable
     /// <param name="commit">是否提交</param>
     public void StartOpenCloseTransaction(Action<Transaction> action, bool commit = true)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullEx.ThrowIfNull(action);
         var tm = _database.TransactionManager;
 #if NET35
         // 打开不撤销标记
@@ -859,7 +859,7 @@ public sealed class DBTrans : IDisposable
     /// <param name="echo">回声,可以选择就是可以排除</param>
     public DBTrans Task(Action action, Echo echo = Echo.All)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullEx.ThrowIfNull(action);
         if (CheckDatabaseError(_database, echo.HasFlag(Echo.FatalErrors)))
         {
             return this;

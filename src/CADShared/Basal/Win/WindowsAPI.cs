@@ -225,7 +225,7 @@ public partial class WindowsAPI
     /// <exception cref="ArgumentNullException"></exception>
     public static bool GlobalLockTask(IntPtr data, Action<IntPtr> task)
     {
-        ArgumentNullException.ThrowIfNull(task);
+        ArgumentNullEx.ThrowIfNull(task);
         if (data == IntPtr.Zero)
             return false;
 

@@ -6,9 +6,7 @@
         <Nullable>enable</Nullable>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
-    </PropertyGroup>
+
 
     <ItemGroup>
       <Compile Include="$(RepoRoot)src\CADShared\ExtensionMethod\json\MyJson.cs" Link="src\MyJson.cs" />

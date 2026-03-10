@@ -12,8 +12,6 @@
 
         <ImplicitUsings>disable</ImplicitUsings>
         <PlatformTarget>x86</PlatformTarget>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\..\</RepoRoot>
-
     </PropertyGroup>
 
     <ItemGroup>

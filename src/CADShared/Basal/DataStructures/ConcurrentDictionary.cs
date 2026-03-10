@@ -142,8 +142,8 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
         int concurrencyLevel, IEnumerable<KeyValuePair<TKey, TValue>> collection, IEqualityComparer<TKey> comparer)
         : this(concurrencyLevel, DEFAULT_CAPACITY, comparer)
     {
-        ArgumentNullException.ThrowIfNull(collection);
-        ArgumentNullException.ThrowIfNull(comparer);
+        ArgumentNullEx.ThrowIfNull(collection);
+        ArgumentNullEx.ThrowIfNull(comparer);
 
         InitializeFromCollection(collection);
     }
@@ -190,7 +190,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
         {
             throw new ArgumentOutOfRangeException(nameof(capacity), "Capacity must not be negative");
         }
-        ArgumentNullException.ThrowIfNull(comparer);
+        ArgumentNullEx.ThrowIfNull(comparer);
 
         // The capacity should be at least as large as the concurrency level. Otherwise, we would have locks that don't guard
         // any buckets.
@@ -227,7 +227,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// contains too many elements.</exception>
     public bool TryAdd(TKey key, TValue value)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(key);
         TValue dummy;
         return TryAddInternal(key, value, false, true, out dummy);
     }
@@ -244,7 +244,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// (Nothing in Visual Basic).</exception>
     public bool ContainsKey(TKey key)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(key);
 
         TValue throwAwayValue;
         return TryGetValue(key, out throwAwayValue);
@@ -264,7 +264,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// (Nothing in Visual Basic).</exception>
     public bool TryRemove(TKey key, out TValue value)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(key);
 
         return TryRemoveInternal(key, out value, false, default(TValue));
     }
@@ -354,7 +354,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// (Nothing in Visual Basic).</exception>
     public bool TryGetValue(TKey key, out TValue value)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(key);
 
         int bucketNo, lockNoUnused;
 
@@ -398,7 +398,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// reference.</exception>
     public bool TryUpdate(TKey key, TValue newValue, TValue comparisonValue)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(key);
 
         int hashcode = m_comparer.GetHashCode(key);
         IEqualityComparer<TValue> valueComparer = EqualityComparer<TValue>.Default;
@@ -503,7 +503,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// <paramref name="array"/>.</exception>
     void ICollection<KeyValuePair<TKey, TValue>>.CopyTo(KeyValuePair<TKey, TValue>[] array, int index)
     {
-        ArgumentNullException.ThrowIfNull(array);
+        ArgumentNullEx.ThrowIfNull(array);
         if (index < 0) throw new ArgumentOutOfRangeException(nameof(index), "Index must be non-negative");
 
         int locksAcquired = 0;
@@ -779,7 +779,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
         }
         set
         {
-            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullEx.ThrowIfNull(key);
             TValue dummy;
             TryAddInternal(key, value, true, true, out dummy);
         }
@@ -842,8 +842,8 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// if the key was not in the dictionary.</returns>
     public TValue GetOrAdd(TKey key, Func<TKey, TValue> valueFactory)
     {
-        ArgumentNullException.ThrowIfNull(key);
-        ArgumentNullException.ThrowIfNull(valueFactory);
+        ArgumentNullEx.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(valueFactory);
 
         TValue resultingValue;
         if (TryGetValue(key, out resultingValue))
@@ -868,7 +868,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// key is already in the dictionary, or the new value if the key was not in the dictionary.</returns>
     public TValue GetOrAdd(TKey key, TValue value)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(key);
 
         TValue resultingValue;
         TryAddInternal(key, value, false, true, out resultingValue);
@@ -896,9 +896,9 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// absent) or the result of updateValueFactory (if the key was present).</returns>
     public TValue AddOrUpdate(TKey key, Func<TKey, TValue> addValueFactory, Func<TKey, TValue, TValue> updateValueFactory)
     {
-        ArgumentNullException.ThrowIfNull(key);
-        ArgumentNullException.ThrowIfNull(addValueFactory);
-        ArgumentNullException.ThrowIfNull(updateValueFactory);
+        ArgumentNullEx.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(addValueFactory);
+        ArgumentNullEx.ThrowIfNull(updateValueFactory);
 
         TValue newValue, resultingValue;
         while (true)
@@ -943,8 +943,8 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// absent) or the result of updateValueFactory (if the key was present).</returns>
     public TValue AddOrUpdate(TKey key, TValue addValue, Func<TKey, TValue, TValue> updateValueFactory)
     {
-        ArgumentNullException.ThrowIfNull(key);
-        ArgumentNullException.ThrowIfNull(updateValueFactory);
+        ArgumentNullEx.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(updateValueFactory);
         TValue newValue, resultingValue;
         while (true)
         {
@@ -1167,7 +1167,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// </exception>
     void IDictionary.Add(object key, object value)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(key);
         if (!(key is TKey)) throw new ArgumentException("TypeOfKeyIncorrect", nameof(key));
 
         TValue typedValue;
@@ -1195,7 +1195,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// (Nothing in Visual Basic).</exception>
     bool IDictionary.Contains(object key)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(key);
 
         return (key is TKey) && ((ConcurrentDictionary<TKey, TValue>)this).ContainsKey((TKey)key);
     }
@@ -1255,7 +1255,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// (Nothing in Visual Basic).</exception>
     void IDictionary.Remove(object key)
     {
-        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullEx.ThrowIfNull(key);
 
         TValue throwAwayValue;
         if (key is TKey)
@@ -1297,7 +1297,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     {
         get
         {
-            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullEx.ThrowIfNull(key);
 
             TValue? value;
             if (key is TKey && this.TryGetValue((TKey)key, out value))
@@ -1309,7 +1309,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
         }
         set
         {
-            ArgumentNullException.ThrowIfNull(key);
+            ArgumentNullEx.ThrowIfNull(key);
 
             if (!(key is TKey)) throw new ArgumentException("TypeOfKeyIncorrect", nameof(key));
             if (!(value is TValue)) throw new ArgumentException("TypeOfValueIncorrect", nameof(value));
@@ -1342,7 +1342,7 @@ public class ConcurrentDictionary<TKey, TValue> : IDictionary<TKey, TValue>, IDi
     /// <paramref name="array"/>.</exception>
     void ICollection.CopyTo(Array array, int index)
     {
-        ArgumentNullException.ThrowIfNull(array);
+        ArgumentNullEx.ThrowIfNull(array);
         if (index < 0) throw new ArgumentOutOfRangeException(nameof(index), "Index must be non-negative");
 
         int locksAcquired = 0;

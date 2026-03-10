@@ -35,9 +35,7 @@
         <DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
-    </PropertyGroup>
+
 
     <!-- 条件包引用 -->
     <ItemGroup>

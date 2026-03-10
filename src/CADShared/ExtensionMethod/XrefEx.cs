@@ -483,7 +483,7 @@ public class XrefPath
     /// <exception cref="ArgumentNullException">brf为null</exception>
     public static XrefPath Create(BlockReference brf, DBTrans tr)
     {
-        ArgumentNullException.ThrowIfNull(brf);
+        ArgumentNullEx.ThrowIfNull(brf);
 
         var currentDatabasePath = Path.GetDirectoryName(tr.Database.Filename) ?? string.Empty;
 
@@ -523,7 +523,7 @@ public class XrefPath
     /// <returns></returns>
     public static string? PathConverter(string directory, string? fileRelations, PathConverterModes converterModes)
     {
-        ArgumentNullException.ThrowIfNull(directory);
+        ArgumentNullEx.ThrowIfNull(directory);
         if (fileRelations is null)
             return null;
         string? result = converterModes switch

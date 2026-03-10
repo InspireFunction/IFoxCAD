@@ -1,4 +1,7 @@
 <Project>
+    <!-- 导入父目录的 Directory.Build.props -->
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))" />
+
     <!--版本号和提示-->
     <PropertyGroup>
         <Version>0.9.9.1</Version>

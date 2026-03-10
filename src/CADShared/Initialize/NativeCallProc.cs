@@ -5,6 +5,7 @@ namespace IFoxCAD.Basal;
 using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+using static IFoxCAD.Cad.OpFilter;
 #if NET40_OR_GREATER
 using System.Runtime.ExceptionServices;
 using System.Security;
@@ -664,8 +665,7 @@ public static class AcadIdleManager
     /// <param name="action">要执行的操作</param>
     public static void OnIdleOnce(Action action)
     {
-        if (action == null)
-            throw new ArgumentNullException(nameof(action));
+        ArgumentNullEx.ThrowIfNull(action);
 
 #if ac2008
         // 使用局部变量来保存事件处理程序，以便在lambda中引用自身进行取消订阅

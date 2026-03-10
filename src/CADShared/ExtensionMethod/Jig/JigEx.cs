@@ -343,11 +343,11 @@ public class JigEx : DrawJig, IDisposable
     public void SetSpaceIsKeyword()
     {
         var opt = _options;
-        ArgumentNullException.ThrowIfNull(opt);
+        ArgumentNullEx.ThrowIfNull(opt);
 
-        if ((opt.UserInputControls & UserInputControls.NullResponseAccepted) == UserInputControls.NullResponseAccepted)
+        if (opt.UserInputControls.HasFlag(UserInputControls.NullResponseAccepted))
             opt.UserInputControls ^= UserInputControls.NullResponseAccepted; // 输入了鼠标右键,结束jig
-        if ((opt.UserInputControls & UserInputControls.AnyBlankTerminatesInput) == UserInputControls.AnyBlankTerminatesInput)
+        if (opt.UserInputControls.HasFlag(UserInputControls.AnyBlankTerminatesInput))
             opt.UserInputControls ^= UserInputControls.AnyBlankTerminatesInput; // 空格或回车,结束jig
     }
     #endregion

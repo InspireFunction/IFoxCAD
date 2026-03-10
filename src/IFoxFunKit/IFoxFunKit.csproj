@@ -74,12 +74,4 @@
         <AdditionalFiles Include="src\Analyzers\AnalyzerReleases.Shipped.md" Pack="true" PackagePath="\" />
         <AdditionalFiles Include="src\Analyzers\AnalyzerReleases.Unshipped.md" Pack="true" PackagePath="\" />
     </ItemGroup>
-
-    <!--其他工程不可以引入分析器的nuget包,但是可以引入dll,因为项目配置和vs识别是不一样的-->
-    <!--分析器代码和Option代码是分开的-->
-    <!-- 引用 CADShared Basal Option 文件夹中的代码 -->
-    <ItemGroup>
-        <Compile Include="$(RepoRoot)src\CADShared\Basal\Option\*.cs"  Link="CADShared\Basal\Option\%(Filename)%(Extension)" />
-    </ItemGroup>
-
 </Project>

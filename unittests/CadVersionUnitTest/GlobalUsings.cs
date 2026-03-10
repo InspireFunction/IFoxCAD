@@ -17,6 +17,4 @@ global using Xunit;
 
 global using Acap = Autodesk.AutoCAD.ApplicationServices.Application;
 
-#if !NET8_0_OR_GREATER
-global using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
-#endif
+global using IFoxFunKit;

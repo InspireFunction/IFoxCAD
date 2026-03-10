@@ -9,7 +9,6 @@
     <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
-    <RepoRoot>$(MSBuildThisFileDirectory)..\..\..\</RepoRoot>
   </PropertyGroup>
 
   <ItemGroup>

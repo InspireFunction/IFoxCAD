@@ -7,7 +7,6 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
-    <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
   </PropertyGroup>
 
   <ItemGroup>
@@ -29,7 +28,7 @@
     <Compile Include="$(RepoRoot)src\CADShared\Basal\DataStructures\SortedSet\*.cs" Link="DataStructures\SortedSet\%(Filename)%(Extension)" />
     <Compile Include="$(RepoRoot)src\CADShared\Basal\Cache\*.cs" Link="Cache\%(Filename)%(Extension)" />
     <Compile Include="$(RepoRoot)src\CADShared\Basal\General\*.cs" Link="General\%(Filename)%(Extension)" />
-    <Compile Include="$(RepoRoot)src\CADShared\Basal\Nullable\*.cs" Link="Nullable\%(Filename)%(Extension)" />
+
     <Compile Include="$(RepoRoot)src\CADShared\ExtensionMethod\CollectionForEachEx.cs" Link="CollectionForEachEx.cs" />
   </ItemGroup>
 

@@ -21,9 +21,7 @@
         <cad08>C:\Program Files (x86)\AutoCAD 2008\</cad08>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
-    </PropertyGroup>
+
 
     <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">
         <DefineConstants>$(Configuration);acad;ac2008;ac2009</DefineConstants>

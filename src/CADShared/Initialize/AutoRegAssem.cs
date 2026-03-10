@@ -39,7 +39,7 @@ public abstract class AutoRegAssem : IExtensionApplication
     /// <returns>路径对象</returns>
     public static DirectoryInfo GetDirectory(Assembly assem)
     {
-        ArgumentNullException.ThrowIfNull(assem);
+        ArgumentNullEx.ThrowIfNull(assem);
         return new FileInfo(assem.Location).Directory;
     }
 

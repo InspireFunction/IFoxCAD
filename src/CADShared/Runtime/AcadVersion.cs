@@ -2,7 +2,7 @@
 #pragma warning disable CS1572 // XML注释中有不存在的参数
 #pragma warning disable CS1573 // 参数在XML注释中没有匹配的参数标记
 
-using IFoxCAD.Basal;
+using IFoxFunKit;
 
 namespace IFoxCAD.Cad;
 
@@ -54,7 +54,7 @@ public static class AcadVersion
     /// <returns>cad版本号对象</returns>
     public static CadVersion? FromApp(object app)
     {
-        ArgumentNullException.ThrowIfNull(app);
+        ArgumentNullEx.ThrowIfNull(app);
 
         string acver = app.GetType()
                         .InvokeMember(

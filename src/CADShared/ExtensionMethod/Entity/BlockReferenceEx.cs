@@ -199,12 +199,12 @@ public static class BlockReferenceEx
     /// <returns>名字</returns>
     public static string GetBlockName(this BlockReference blk)
     {
-        ArgumentNullException.ThrowIfNull(blk);
+        ArgumentNullEx.ThrowIfNull(blk);
         if (blk.IsDynamicBlock)
         {
             var btrId = blk.DynamicBlockTableRecord;
             var tr = btrId.Database.TransactionManager.TopTransaction;
-            ArgumentNullException.ThrowIfNull(tr);
+            ArgumentNullEx.ThrowIfNull(tr);
             var btr = (BlockTableRecord)tr.GetObject(btrId);
             return btr.Name;
         }
@@ -258,7 +258,7 @@ public static class BlockReferenceEx
     [DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullEx.ThrowIfNull(action);
         var tr = DBTrans.GetTopTransaction(brf.Database);
         if (tr is null)
         {
@@ -279,7 +279,7 @@ public static class BlockReferenceEx
     [DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId, CtrlState> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullEx.ThrowIfNull(action);
         var tr = DBTrans.GetTopTransaction(brf.Database);
         if (tr is null)
         {
@@ -300,7 +300,7 @@ public static class BlockReferenceEx
     [DebuggerStepThrough]
     public static void ForEach(this BlockReference brf, Action<ObjectId, CtrlState, int> action)
     {
-        ArgumentNullException.ThrowIfNull(action);
+        ArgumentNullEx.ThrowIfNull(action);
         var tr = DBTrans.GetTopTransaction(brf.Database);
         if (tr is null)
         {

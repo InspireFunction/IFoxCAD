@@ -13,7 +13,7 @@ internal static class MethodInfoHelper
     /// <returns>方法执行结果</returns>
     public static object? Invoke(this MethodInfo methodInfo, ref object? instance)
     {
-        ArgumentNullException.ThrowIfNull(methodInfo);
+        ArgumentNullEx.ThrowIfNull(methodInfo);
 
         object? result = null;
         if (methodInfo.IsStatic)

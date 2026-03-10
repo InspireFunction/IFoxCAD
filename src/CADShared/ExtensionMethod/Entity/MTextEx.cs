@@ -18,7 +18,7 @@ public static class MTextEx
     public static MText CreateMText(Point3d position, string text, double height, Database? database = null,
         Action<MText>? action = null)
     {
-        ArgumentNullException.ThrowIfNull(text);
+        ArgumentNullEx.ThrowIfNull(text);
 
         var db = database ?? DBTrans.Top.Database;
         using var _ = new SwitchDatabase(db);

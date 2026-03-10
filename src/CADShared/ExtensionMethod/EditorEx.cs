@@ -154,8 +154,8 @@ public static class EditorEx
         Dictionary<string, Action<object, SelectionTextInputEventArgs>> acMap,
         string? defaultKey = null)
     {
-        ArgumentNullException.ThrowIfNull(pso);
-        ArgumentNullException.ThrowIfNull(acMap);
+        ArgumentNullEx.ThrowIfNull(pso);
+        ArgumentNullEx.ThrowIfNull(acMap);
         if (acMap.Count == 0) return;
 
         // 创建处理后的新字典，避免在遍历时修改

@@ -23,9 +23,7 @@
         <DefineConstants>$(Configuration);acad;ac2015</DefineConstants>
     </PropertyGroup>
 
-    <PropertyGroup>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
-    </PropertyGroup>
+
 
     <ItemGroup>
         <!--<ProjectReference Include="$(RepoRoot)src\IFoxCAD.LoadForm\IFoxCAD.LoadEx.csproj" />-->

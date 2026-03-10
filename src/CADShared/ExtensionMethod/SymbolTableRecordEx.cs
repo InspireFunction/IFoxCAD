@@ -513,7 +513,7 @@ public static class SymbolTableRecordEx
     public static void ForEach<TRecord>(this TRecord record, Action<ObjectId, CtrlState, int> task)
         where TRecord : SymbolTableRecord, IEnumerable
     {
-        ArgumentNullException.ThrowIfNull(task);
+        ArgumentNullEx.ThrowIfNull(task);
 
         int i = 0;
         CtrlState state = new();/*这种方式比Action改Func更友好*/

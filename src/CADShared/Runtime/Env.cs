@@ -775,7 +775,7 @@ public static class Env
     /// <returns>返回现有变量词典,然后下次就可以利用它进行设置回来了</returns>
     public static Dictionary<string, string> SaveCadVar(Dictionary<string, string> args)
     {
-        ArgumentNullException.ThrowIfNull(args);
+        ArgumentNullEx.ThrowIfNull(args);
 
         var dict = new Dictionary<string, string>();
         foreach (var item in args)

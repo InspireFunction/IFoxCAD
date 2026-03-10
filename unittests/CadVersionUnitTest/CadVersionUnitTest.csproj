@@ -7,7 +7,6 @@
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
-    <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
   </PropertyGroup>
 
   <ItemGroup>
@@ -26,7 +25,6 @@
   <ItemGroup>
     <Compile Include="$(RepoRoot)src\CADShared\Runtime\CadVersion.cs" Link="CADShared\Runtime\CadVersion.cs" />
     <Compile Include="$(RepoRoot)src\CADShared\Runtime\AcadVersion.cs" Link="CADShared\Runtime\AcadVersion.cs" />
-    <Compile Include="$(RepoRoot)src\CADShared\Basal\Nullable\*.cs" Link="CADShared\Basal\Nullable\%(Filename)%(Extension)" />
   </ItemGroup>
 
 </Project>

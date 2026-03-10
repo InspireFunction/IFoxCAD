@@ -59,6 +59,4 @@ global using System.Net;
 global using System.Diagnostics.CodeAnalysis;
 global using IFoxCAD.Basal;
 
-#if !NET8_0_OR_GREATER
-global using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
-#endif
+global using IFoxFunKit;

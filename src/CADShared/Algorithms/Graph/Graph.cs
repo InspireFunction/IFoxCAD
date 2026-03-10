@@ -89,7 +89,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// <param name="curve"></param>
     public void AddEdge(Curve3d curve)
     {
-        ArgumentNullException.ThrowIfNull(curve);
+        ArgumentNullEx.ThrowIfNull(curve);
 
         var start = AddVertex(curve.StartPoint);
         var end = AddVertex(curve.EndPoint);
@@ -150,7 +150,7 @@ public sealed class Graph : IGraph, IEnumerable<IGraphVertex>
     /// <param name="curve">曲线</param>
     public void RemoveEdge(Curve3d curve)
     {
-        ArgumentNullException.ThrowIfNull(curve);
+        ArgumentNullEx.ThrowIfNull(curve);
 
         RemoveVertex(curve.StartPoint);
         RemoveVertex(curve.EndPoint);

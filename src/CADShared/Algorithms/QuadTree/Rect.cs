@@ -413,7 +413,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     {
         //if (ptList == null)
         //    throw new ArgumentNullException(nameof(ptList));
-        ArgumentNullException.ThrowIfNull(ptList);
+        ArgumentNullEx.ThrowIfNull(ptList);
         var pts = ptList.ToList();
         /*
          *  消重,不这里设置,否则这不是一个正确的单元测试
@@ -468,7 +468,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     {
         //if (ptList == null)
         //    throw new ArgumentNullException(nameof(ptList));
-        ArgumentNullException.ThrowIfNull(ptList);
+        ArgumentNullEx.ThrowIfNull(ptList);
         var pts = ptList.ToList();
         if (pts.Count == 5)
         {
@@ -519,7 +519,7 @@ public class Rect : IEquatable<Rect>, IComparable<Rect>
     {
         //if (pts == null)
         //    throw new ArgumentNullException(nameof(pts));
-        ArgumentNullException.ThrowIfNull(pts1);
+        ArgumentNullEx.ThrowIfNull(pts1);
         if (!IsRectAngle(pts1))
             return false;
 

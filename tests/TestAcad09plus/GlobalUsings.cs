@@ -49,7 +49,9 @@ global using System.Diagnostics;
 
 /// ifoxcad
 global using IFoxCAD.Cad;
-global using IFoxCAD.Basal;
+global using IFoxFunKit;
 #if !ac2008
 global using IFoxCAD.WPF;
 #endif
+
+global using IFoxCAD.Basal;

@@ -7,7 +7,6 @@
         <IsPackable>false</IsPackable>
         <IsTestProject>true</IsTestProject>
         <NoWarn>CS1591;CS8618;CS8625;CS8601;CS8603</NoWarn>
-        <RepoRoot>$(MSBuildThisFileDirectory)..\..\..\</RepoRoot>
     </PropertyGroup>
 
 

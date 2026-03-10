@@ -2,7 +2,7 @@
 using System.Runtime.CompilerServices;
 using System;
 
-namespace IFoxCAD.Basal;
+namespace IFoxFunKit;
 
 
 using System;

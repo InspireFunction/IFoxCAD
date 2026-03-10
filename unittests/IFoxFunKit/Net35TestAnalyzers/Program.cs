@@ -1,8 +1,7 @@
-//#define SHOW_ERRORS
+#define SHOW_ERRORS
 
 using System;
 using IFoxFunKit;
-using IFoxCAD.Basal;
 
 namespace IFoxFunKit.TestNet35Analyzers;
 

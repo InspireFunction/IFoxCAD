@@ -1,0 +1,54 @@
+<Project>
+  <!-- 
+    全局 Directory.Build.props
+    位置: 解决方案根目录 (IFoxCAD.slnx 旁边)
+    作用: 所有子项目自动继承此配置
+  -->
+
+  <!-- 定义根路径 -->
+  <PropertyGroup>
+    <RepoRoot>$(MSBuildThisFileDirectory)</RepoRoot>
+  </PropertyGroup>
+
+  <!-- 
+    自动引用 IFoxFunKit 分析器
+    分析器 DLL 路径: bin/$(Configuration)/analyzers/dotnet/cs/IFoxFunKit.dll
+  -->
+  <ItemGroup>
+    <!-- 引用全局分析器（如果存在） -->
+    <Analyzer Include="$(RepoRoot)bin\$(Configuration)\analyzers\dotnet\cs\IFoxFunKit.dll" 
+              Condition="Exists('$(RepoRoot)bin\$(Configuration)\analyzers\dotnet\cs\IFoxFunKit.dll')" />
+
+    <!-- 引用项目本地分析器（约定目录） -->
+    <Analyzer Include="$(MSBuildProjectDirectory)\analyzers\dotnet\cs\*.dll" 
+              Condition="Exists('$(MSBuildProjectDirectory)\analyzers\dotnet\cs')" />
+  </ItemGroup>
+
+  <!-- 
+    确保 IFoxFunKit 在编译其他项目之前已经生成
+    这样分析器 DLL 一定存在
+  -->
+  <Target Name="EnsureIFoxFunKitBuilt" BeforeTargets="BeforeBuild" 
+          Condition="!$(MSBuildProjectName.Contains('IFoxFunKit'))">
+    <MSBuild Projects="$(RepoRoot)src\IFoxFunKit\IFoxFunKit.csproj" 
+             Properties="Configuration=$(Configuration);TargetFramework=netstandard2.0"
+             Condition="Exists('$(RepoRoot)src\IFoxFunKit\IFoxFunKit.csproj')" />
+  </Target>
+
+  <!--
+    通用代码引用：Option<T> 和 Nullable 扩展
+    这些代码现在都位于 IFoxFunKit 项目
+    排除 IFoxFunKit 项目本身，避免重复包含
+    排除 tests 目录下的项目（它们通过项目引用已获得这些类型）
+    注意字符串包含tests会获取unittests,我们需要精确匹配.
+  -->
+  <ItemGroup Condition="!$(MSBuildProjectName.Contains('IFoxFunKit')) AND !$(MSBuildProjectDirectory.Contains('\tests\'))">
+    <Compile Include="$(RepoRoot)src\IFoxFunKit\src\Option\*.cs"
+             Link="Option\%(Filename)%(Extension)"
+             Condition="Exists('$(RepoRoot)src\IFoxFunKit\src\Option')" />
+    <Compile Include="$(RepoRoot)src\IFoxFunKit\src\Nullable\*.cs"
+             Link="Nullable\%(Filename)%(Extension)"
+             Condition="Exists('$(RepoRoot)src\IFoxFunKit\src\Nullable')" />
+  </ItemGroup>
+
+</Project>

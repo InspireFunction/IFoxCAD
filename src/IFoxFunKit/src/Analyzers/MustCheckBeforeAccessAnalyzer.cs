@@ -28,6 +28,7 @@ public class MustCheckBeforeAccessAnalyzer : DiagnosticAnalyzer
 
     // 值访问成员与状态检查成员的映射关系
     // 使用 nameof 确保编译时检查，避免硬编码字符串的错误
+    // 注意：分析器现在会识别 nameof() 表达式中的成员访问，不会触发 IFOX002
     private static readonly ImmutableDictionary<string, string[]> ValueAccessToStatusChecks =
         new System.Collections.Generic.Dictionary<string, string[]>
         {
@@ -56,6 +57,10 @@ public class MustCheckBeforeAccessAnalyzer : DiagnosticAnalyzer
 
         // 检查是否是值访问成员
         if (!MustHandleMeta.ValueAccessMemberNames.Contains(memberName))
+            return;
+
+        // 检查是否在 nameof() 表达式中 - nameof 中的成员访问是元数据引用，不是实际访问
+        if (IsInNameOfExpression(memberAccess))
             return;
 
         // 检查是否标记了跳过特性
@@ -260,80 +265,80 @@ public class MustCheckBeforeAccessAnalyzer : DiagnosticAnalyzer
         switch (expression.Kind())
         {
             case SyntaxKind.SimpleMemberAccessExpression:
-                var memberAccess = (MemberAccessExpressionSyntax)expression;
-                var memberName = memberAccess.Name.Identifier.Text;
+            var memberAccess = (MemberAccessExpressionSyntax)expression;
+            var memberName = memberAccess.Name.Identifier.Text;
 
-                // 检查是否是目标变量的状态检查
-                if (statusChecks.Contains(memberName) && IsSameExpression(memberAccess.Expression, targetExpression))
-                {
-                    return !lookForNegation;
-                }
-                break;
+            // 检查是否是目标变量的状态检查
+            if (statusChecks.Contains(memberName) && IsSameExpression(memberAccess.Expression, targetExpression))
+            {
+                return !lookForNegation;
+            }
+            break;
 
             case SyntaxKind.LogicalNotExpression:
-                var notExpr = (PrefixUnaryExpressionSyntax)expression;
-                // 对于反向检查，查找 !opt.IsSome 这样的模式
-                if (lookForNegation)
+            var notExpr = (PrefixUnaryExpressionSyntax)expression;
+            // 对于反向检查，查找 !opt.IsSome 这样的模式
+            if (lookForNegation)
+            {
+                return ContainsStatusCheckInternal(notExpr.Operand, targetExpression, statusChecks, false);
+            }
+            else
+            {
+                // 检查是否是对其他状态的否定（如 !opt.IsNone 等价于 opt.IsSome）
+                var operand = notExpr.Operand as MemberAccessExpressionSyntax;
+                if (operand != null)
                 {
-                    return ContainsStatusCheckInternal(notExpr.Operand, targetExpression, statusChecks, false);
-                }
-                else
-                {
-                    // 检查是否是对其他状态的否定（如 !opt.IsNone 等价于 opt.IsSome）
-                    var operand = notExpr.Operand as MemberAccessExpressionSyntax;
-                    if (operand != null)
+                    var negatedMember = operand.Name.Identifier.Text;
+                    // IsSome 和 IsNone 是互斥的，IsOk 和 IsErr 是互斥的
+                    // 使用 nameof 确保编译时检查
+                    var oppositeMap = new System.Collections.Generic.Dictionary<string, string>
                     {
-                        var negatedMember = operand.Name.Identifier.Text;
-                        // IsSome 和 IsNone 是互斥的，IsOk 和 IsErr 是互斥的
-                        // 使用 nameof 确保编译时检查
-                        var oppositeMap = new System.Collections.Generic.Dictionary<string, string>
-                        {
-                            [nameof(Option<object>.IsNone)] = nameof(Option<object>.IsSome),
-                            [nameof(Option<object>.IsSome)] = nameof(Option<object>.IsNone),
-                            [nameof(Result<object, object>.IsErr)] = nameof(Result<object, object>.IsOk),
-                            [nameof(Result<object, object>.IsOk)] = nameof(Result<object, object>.IsErr)
-                        };
+                        [nameof(Option<object>.IsNone)] = nameof(Option<object>.IsSome),
+                        [nameof(Option<object>.IsSome)] = nameof(Option<object>.IsNone),
+                        [nameof(Result<object, object>.IsErr)] = nameof(Result<object, object>.IsOk),
+                        [nameof(Result<object, object>.IsOk)] = nameof(Result<object, object>.IsErr)
+                    };
 
-                        if (oppositeMap.TryGetValue(negatedMember, out var opposite) &&
-                            statusChecks.Contains(opposite) &&
-                            IsSameExpression(operand.Expression, targetExpression))
-                        {
-                            return !lookForNegation;
-                        }
+                    if (oppositeMap.TryGetValue(negatedMember, out var opposite) &&
+                        statusChecks.Contains(opposite) &&
+                        IsSameExpression(operand.Expression, targetExpression))
+                    {
+                        return !lookForNegation;
                     }
                 }
-                break;
+            }
+            break;
 
             case SyntaxKind.LogicalAndExpression:
             case SyntaxKind.LogicalOrExpression:
-                var binaryExpr = (BinaryExpressionSyntax)expression;
-                return ContainsStatusCheckInternal(binaryExpr.Left, targetExpression, statusChecks, lookForNegation) ||
-                       ContainsStatusCheckInternal(binaryExpr.Right, targetExpression, statusChecks, lookForNegation);
+            var binaryExpr = (BinaryExpressionSyntax)expression;
+            return ContainsStatusCheckInternal(binaryExpr.Left, targetExpression, statusChecks, lookForNegation) ||
+                   ContainsStatusCheckInternal(binaryExpr.Right, targetExpression, statusChecks, lookForNegation);
 
             case SyntaxKind.ParenthesizedExpression:
-                var parenExpr = (ParenthesizedExpressionSyntax)expression;
-                return ContainsStatusCheckInternal(parenExpr.Expression, targetExpression, statusChecks, lookForNegation);
+            var parenExpr = (ParenthesizedExpressionSyntax)expression;
+            return ContainsStatusCheckInternal(parenExpr.Expression, targetExpression, statusChecks, lookForNegation);
 
             case SyntaxKind.EqualsExpression:
             case SyntaxKind.NotEqualsExpression:
-                var equalityExpr = (BinaryExpressionSyntax)expression;
-                // 处理 opt.IsSome == true 或 opt.IsSome == false 的情况
-                var leftMemberAccess = equalityExpr.Left as MemberAccessExpressionSyntax;
-                var rightLiteral = equalityExpr.Right as LiteralExpressionSyntax;
+            var equalityExpr = (BinaryExpressionSyntax)expression;
+            // 处理 opt.IsSome == true 或 opt.IsSome == false 的情况
+            var leftMemberAccess = equalityExpr.Left as MemberAccessExpressionSyntax;
+            var rightLiteral = equalityExpr.Right as LiteralExpressionSyntax;
 
-                if (leftMemberAccess != null && rightLiteral != null)
+            if (leftMemberAccess != null && rightLiteral != null)
+            {
+                var checkedMemberName = leftMemberAccess.Name.Identifier.Text;
+                var isTrue = rightLiteral.Token.Value is true;
+                var isEquals = expression.Kind() == SyntaxKind.EqualsExpression;
+
+                if (statusChecks.Contains(checkedMemberName) && IsSameExpression(leftMemberAccess.Expression, targetExpression))
                 {
-                    var checkedMemberName = leftMemberAccess.Name.Identifier.Text;
-                    var isTrue = rightLiteral.Token.Value is true;
-                    var isEquals = expression.Kind() == SyntaxKind.EqualsExpression;
-
-                    if (statusChecks.Contains(checkedMemberName) && IsSameExpression(leftMemberAccess.Expression, targetExpression))
-                    {
-                        var conditionMet = isEquals == isTrue;
-                        return lookForNegation ? !conditionMet : conditionMet;
-                    }
+                    var conditionMet = isEquals == isTrue;
+                    return lookForNegation ? !conditionMet : conditionMet;
                 }
-                break;
+            }
+            break;
         }
 
         return false;
@@ -415,6 +420,45 @@ public class MustCheckBeforeAccessAnalyzer : DiagnosticAnalyzer
                 }
             }
         }
+        return false;
+    }
+
+    /// <summary>
+    /// 检查成员访问表达式是否在 nameof() 表达式中
+    /// nameof 中的成员访问是元数据引用，不是实际值访问，不应该触发检查
+    /// </summary>
+    private static bool IsInNameOfExpression(MemberAccessExpressionSyntax memberAccess)
+    {
+        // 向上遍历语法树，检查是否是 nameof 表达式的参数
+        var currentNode = memberAccess.Parent;
+
+        while (currentNode != null)
+        {
+            // 检查是否是 nameof 表达式的参数
+            // nameof 的语法树结构：InvocationExpressionSyntax -> ArgumentList -> Argument -> Expression
+            if (currentNode is ArgumentSyntax)
+            {
+                // 检查祖父节点是否是 nameof 调用
+                var argumentList = currentNode.Parent as ArgumentListSyntax;
+                var invocation = argumentList?.Parent as InvocationExpressionSyntax;
+
+                if (invocation?.Expression is IdentifierNameSyntax identifier &&
+                    identifier.Identifier.Text == "nameof")
+                {
+                    return true;
+                }
+            }
+
+            // 如果在其他表达式中（如赋值、方法调用等），继续向上检查
+            // 但如果遇到语句边界，停止检查
+            if (currentNode is StatementSyntax)
+            {
+                break;
+            }
+
+            currentNode = currentNode.Parent;
+        }
+
         return false;
     }
 }

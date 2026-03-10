@@ -234,8 +234,7 @@ public class WindowBorderDrawer : IDisposable
             // 启动定时刷新定时器（每100ms刷新一次，确保边框始终显示）
             _refreshTimer = new System.Windows.Forms.Timer();
             _refreshTimer.Interval = 100;
-            _refreshTimer.Tick += (s, e) =>
-            {
+            _refreshTimer.Tick += (s, e) => {
                 if (_isActive && _docHwnd != IntPtr.Zero)
                 {
                     DrawBorder();
@@ -332,9 +331,9 @@ public class WindowBorderDrawer : IDisposable
             // 窗口重绘 - 必须处理，否则边框会被擦除
             case WM_PAINT:
             case WM_ERASEBKGND:
-                needRedraw = true;
-                Debug.WriteLine($"[WindowBorderDrawer] [{source}] 收到消息 {GetMessageName(msg)}，需要重绘");
-                break;
+            needRedraw = true;
+            Debug.WriteLine($"[WindowBorderDrawer] [{source}] 收到消息 {GetMessageName(msg)}，需要重绘");
+            break;
 
             // 窗口大小/位置变化
             case WM_SIZE:
@@ -344,26 +343,26 @@ public class WindowBorderDrawer : IDisposable
             case WM_NCPAINT:
             case WM_EXITSIZEMOVE:
             case WM_MDIACTIVATE:
-                needRedraw = true;
-                Debug.WriteLine($"[WindowBorderDrawer] [{source}] 收到消息 {GetMessageName(msg)}，需要重绘");
-                break;
+            needRedraw = true;
+            Debug.WriteLine($"[WindowBorderDrawer] [{source}] 收到消息 {GetMessageName(msg)}，需要重绘");
+            break;
 
             // 系统命令（最大化/最小化/还原）
             case WM_SYSCOMMAND:
-                uint cmd = (uint)message.WParam.ToInt32() & 0xFFF0;
-                if (cmd == SC_MAXIMIZE || cmd == SC_MINIMIZE || cmd == SC_RESTORE)
-                {
-                    needRedraw = true;
-                    Debug.WriteLine($"[WindowBorderDrawer] [{source}] 收到系统命令 {cmd:X}，需要重绘");
-                }
-                break;
+            uint cmd = (uint)message.WParam.ToInt32() & 0xFFF0;
+            if (cmd == SC_MAXIMIZE || cmd == SC_MINIMIZE || cmd == SC_RESTORE)
+            {
+                needRedraw = true;
+                Debug.WriteLine($"[WindowBorderDrawer] [{source}] 收到系统命令 {cmd:X}，需要重绘");
+            }
+            break;
 
             // 显示/激活变化
             case WM_SHOWWINDOW:
             case WM_ACTIVATE:
-                needRedraw = true;
-                Debug.WriteLine($"[WindowBorderDrawer] [{source}] 收到消息 {GetMessageName(msg)}，需要重绘");
-                break;
+            needRedraw = true;
+            Debug.WriteLine($"[WindowBorderDrawer] [{source}] 收到消息 {GetMessageName(msg)}，需要重绘");
+            break;
         }
 
         if (needRedraw)
@@ -409,8 +408,7 @@ public class WindowBorderDrawer : IDisposable
         // 使用延迟执行确保窗口布局已完成
         var timer = new System.Windows.Forms.Timer();
         timer.Interval = 10; // 10ms 延迟
-        timer.Tick += (s, e) =>
-        {
+        timer.Tick += (s, e) => {
             timer.Stop();
             timer.Dispose();
             DrawBorder();

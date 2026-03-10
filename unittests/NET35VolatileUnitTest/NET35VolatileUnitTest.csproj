@@ -7,7 +7,6 @@
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
     <SatelliteResourceLanguages>zh-Hans</SatelliteResourceLanguages>
-    <RepoRoot>$(MSBuildThisFileDirectory)..\..\</RepoRoot>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'NET35'">

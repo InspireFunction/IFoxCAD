@@ -1,5 +1,5 @@
 #if a2024
-using ArgumentNullException = IFoxCAD.Basal.ArgumentNullEx;
+using ArgumentNullException = IFoxFunKit.ArgumentNullEx;
 #endif
 
 namespace IFoxCAD.Cad;
