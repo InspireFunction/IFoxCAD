@@ -12,29 +12,36 @@
 
   <!-- 
     自动引用 IFoxFunKit 分析器
-    分析器 DLL 路径: bin/$(Configuration)/netstandard2.0/IFoxFunKit.dll
+
+    【问题总结】
+    1. 原方案使用文件路径引用分析器：<Analyzer Include=".../IFoxFunKit.dll" Condition="Exists(...)"/>
+       问题：Condition 在编译开始时检查，如果 IFoxFunKit 还没编译，分析器不会被引用
+       导致 CS8602 警告没有被抑制，在 Debug 模式下（TreatWarningsAsErrors=True）变成错误
+
+    2. 原方案使用 EnsureIFoxFunKitBuilt Target 强制编译 IFoxFunKit
+       问题：与解决方案中的项目依赖配置冲突，导致 IFoxFunKit 被编译两次
+
+    【解决方案】
+    使用 ProjectReference 方式引用分析器项目：
+    - ReferenceOutputAssembly=false：不引用输出程序集，避免类型冲突
+    - OutputItemType=Analyzer：将输出作为分析器加载
+    - SetTargetFramework=TargetFramework=netstandard2.0：解决跨目标框架引用问题
+
     排除 IFoxFunKit 项目本身，避免循环引用
   -->
   <ItemGroup Condition="!$(MSBuildProjectName.Contains('IFoxFunKit'))">
-    <!-- 引用全局分析器 -->
-    <Analyzer Include="$(RepoRoot)bin\$(Configuration)\netstandard2.0\IFoxFunKit.dll" 
-              Condition="Exists('$(RepoRoot)bin\$(Configuration)\netstandard2.0\IFoxFunKit.dll')" />
+    <!-- 使用 ProjectReference 引用分析器项目，确保正确的编译顺序 -->
+    <!-- 通过 SetTargetFramework 指定 netstandard2.0，避免跨目标框架引用问题 -->
+    <ProjectReference Include="$(RepoRoot)src\IFoxFunKit\IFoxFunKit.csproj">
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+      <OutputItemType>Analyzer</OutputItemType>
+      <SetTargetFramework>TargetFramework=netstandard2.0</SetTargetFramework>
+    </ProjectReference>
 
     <!-- 引用项目本地分析器（约定目录） -->
     <Analyzer Include="$(MSBuildProjectDirectory)\analyzers\dotnet\cs\*.dll" 
               Condition="Exists('$(MSBuildProjectDirectory)\analyzers\dotnet\cs')" />
   </ItemGroup>
-
-  <!-- 
-    确保 IFoxFunKit 在编译其他项目之前已经生成
-    这样分析器 DLL 一定存在
-  -->
-  <Target Name="EnsureIFoxFunKitBuilt" BeforeTargets="BeforeBuild" 
-          Condition="!$(MSBuildProjectName.Contains('IFoxFunKit'))">
-    <MSBuild Projects="$(RepoRoot)src\IFoxFunKit\IFoxFunKit.csproj" 
-             Properties="Configuration=$(Configuration);TargetFramework=netstandard2.0"
-             Condition="Exists('$(RepoRoot)src\IFoxFunKit\IFoxFunKit.csproj')" />
-  </Target>
 
   <!--
     通用代码引用：Option<T> 和 Nullable 扩展

@@ -2,6 +2,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 
@@ -10,23 +11,40 @@ namespace IFoxFunKit;
 /// <summary>
 /// 诊断抑制器：抑制 ArgumentNullEx.ThrowIfNull 调用后的 CS8602 警告
 /// 
-/// 原理：
+/// 【原理】
 /// DiagnosticSuppressor 可以抑制编译器或其他分析器生成的诊断。
 /// 当检测到 ArgumentNullEx.ThrowIfNull(variable) 调用后，
 /// 抑制该变量在后续代码中的 CS8602（解引用可能出现空引用）警告。
+/// 
+/// 【关键修复记录】
+/// 问题：原本使用 semanticModel.GetDiagnostics() 获取诊断，但抑制器不生效
+/// 原因：DiagnosticSuppressor 必须使用 context.ReportedDiagnostics 获取编译器已报告的诊断实例
+///       使用 semanticModel.GetDiagnostics() 会创建新的诊断实例，而不是编译器实际报告的那些
+/// 修复：改为使用 context.ReportedDiagnostics，并添加 SourceTree 检查确保诊断来自当前语法树
+/// 
+/// 【使用方式】
+/// 此分析器通过 Directory.Build.props 自动引用到所有项目（除 IFoxFunKit 本身外）
+/// 需要在 IFoxCAD.slnx 中配置项目依赖关系，确保 IFoxFunKit 先编译
 /// </summary>
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 public class ThrowIfNullSuppressor : DiagnosticSuppressor
 {
-    // 定义要抑制的诊断 ID
+    // 定义要抑制的诊断 ID 集合，使用 HashSet 提高查找效率
+    private static readonly HashSet<string> SuppressibleDiagnosticIds = new HashSet<string>
+    {
+        "CS8602",  // 解引用可能出现空引用
+        "CS8604"   // 可能传入 null 引用实参
+    };
+
+    // 定义要抑制的诊断描述符
     private static readonly SuppressionDescriptor CS8602Suppression = new SuppressionDescriptor(
         id: "IFOXSUP001",
-        suppressedDiagnosticId: "CS8602",  // 解引用可能出现空引用
+        suppressedDiagnosticId: "CS8602",
         justification: "变量已通过 ArgumentNullEx.ThrowIfNull 验证为非 null");
 
     private static readonly SuppressionDescriptor CS8604Suppression = new SuppressionDescriptor(
         id: "IFOXSUP002",
-        suppressedDiagnosticId: "CS8604",  // 可能传入 null 引用实参
+        suppressedDiagnosticId: "CS8604",
         justification: "变量已通过 ArgumentNullEx.ThrowIfNull 验证为非 null");
 
 
@@ -132,13 +150,22 @@ public class ThrowIfNullSuppressor : DiagnosticSuppressor
         if (parent == null)
             return;
 
-        // 获取该语法树中所有的诊断
-        var diagnostics = semanticModel.GetDiagnostics();
-
-        foreach (var diagnostic in diagnostics)
+        // 使用 context.ReportedDiagnostics 获取编译器已经报告的诊断
+        // 原因：DiagnosticSuppressor 的工作流程是：
+        // 1. 编译器首先分析代码并生成诊断（如 CS8602）
+        // 2. 然后调用 DiagnosticSuppressor 的 ReportSuppressions 方法
+        // 3. context.ReportedDiagnostics 包含的就是这些已生成的诊断实例
+        // 4. 只有抑制这些已报告的诊断实例才能生效
+        // 注意：不能使用 semanticModel.GetDiagnostics()，因为那会创建新的诊断实例，
+        //       而不是编译器实际报告的那些实例
+        foreach (var diagnostic in context.ReportedDiagnostics)
         {
-            // 只处理 CS8602 和 CS8604 警告
-            if (diagnostic.Id != "CS8602" && diagnostic.Id != "CS8604")
+            // 使用 HashSet 快速判断是否需要处理的诊断 ID
+            if (!SuppressibleDiagnosticIds.Contains(diagnostic.Id))
+                continue;
+
+            // 检查诊断是否来自当前语法树
+            if (diagnostic.Location.SourceTree != tree)
                 continue;
 
             // 检查诊断位置是否在 ThrowIfNull 调用之后
