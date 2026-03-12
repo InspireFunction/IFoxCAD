@@ -4,7 +4,6 @@
   </Folder>
   <Folder Name="/src/">
     <File Path="src/Directory.Build.props" />
-    <Project Path="src/CADShared/CADShared.shproj" />
     <Project Path="src/IFoxFunKit/IFoxFunKit.csproj" />
     <Project Path="src/IFoxCAD.Acad08/IFoxCAD.Acad08.csproj" />
     <Project Path="src/IFoxCAD.AutoCad/IFoxCAD.AutoCad.csproj" />
@@ -12,13 +11,13 @@
     <Project Path="src/IFoxCAD.ZwCad/IFoxCAD.ZwCad.csproj" />
   </Folder>
   <Folder Name="/tests/">
+    <File Path="tests/Directory.Build.props" />
     <Project Path="tests/GitEncodingChecker/EncodingChecker.csproj" />
     <Project Path="tests/IFoxCAD.LoadForm/IFoxCAD.LoadEx.csproj" />
     <Project Path="tests/IFoxCAD.WPF/IFoxCAD.WPF.csproj" />
     <Project Path="tests/MCP.Server/MCP.Server.csproj" />
     <Project Path="tests/TestAcad08/TestAcad08.csproj" />
     <Project Path="tests/TestAcad09plus/TestAcad09plus.csproj" />
-    <Project Path="tests/TestShared/TestShared.shproj" />
   </Folder>
   <Folder Name="/unittests/">
     <Project Path="unittests/BasalUnitTest/BasalUnitTest.csproj" />

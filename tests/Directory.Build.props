@@ -1,0 +1,11 @@
+<Project>
+    <!-- 导入父目录的 Directory.Build.props -->
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))" />
+
+    <!-- 只有 TestAcad08 和 TestAcad09plus 引用 TestShared -->
+    <ItemGroup Condition="$(MSBuildProjectName) == 'TestAcad08' OR $(MSBuildProjectName) == 'TestAcad09plus'">
+        <Compile Include="$(RepoRoot)tests\TestShared\**\*.cs"
+                 Link="TestShared\%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+
+</Project>

@@ -46,17 +46,6 @@
         <NoWarn>RS2003</NoWarn>
     </PropertyGroup>
 
-    <ItemGroup>
-        <None Include="$(RepoRoot)LICENSE">
-            <Pack>True</Pack>
-            <PackagePath>\</PackagePath>
-        </None>
-        <None Include="$(RepoRoot)readme.md">
-            <Pack>True</Pack>
-            <PackagePath>\</PackagePath>
-        </None>
-    </ItemGroup>
-
     <!-- netstandard2.0需要额外的兼容性包 -->
     <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
         <PackageReference Include="Microsoft.Bcl.HashCode" Version="1.1.1" />

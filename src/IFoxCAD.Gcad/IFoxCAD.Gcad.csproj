@@ -37,29 +37,9 @@
         <Reference Include="Microsoft.CSharp" />
     </ItemGroup>
 
-
-    <ItemGroup>
-        <None Include="$(RepoRoot)LICENSE">
-            <Pack>True</Pack>
-            <PackagePath>\</PackagePath>
-        </None>
-        <None Include="$(RepoRoot)readme.md">
-            <Pack>True</Pack>
-            <PackagePath>\</PackagePath>
-        </None>
-    </ItemGroup>
-
-
     <!--<ItemGroup>
       <PackageReference Include="IndexRange" Version="1.0.2" />
     </ItemGroup>-->
-
-    <Import Project="$(RepoRoot)src\CADShared\CADShared.projitems" Label="Shared" />
-
-    <!-- 直接引用IFoxFunKit分析器（DLL中的类型已由CADShared提供） -->
-    <ItemGroup>
-        <Analyzer Include="$(RepoRoot)bin\$(Configuration)\netstandard2.0\IFoxFunKit.dll" />
-    </ItemGroup>
 
     <!-- 确保 IFoxFunKit 先编译 -->
     <Target Name="BuildIFoxFunKitFirst" BeforeTargets="BeforeBuild">

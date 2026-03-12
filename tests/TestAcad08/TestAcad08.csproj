@@ -32,8 +32,6 @@
         <ProjectReference Include="$(RepoRoot)src\IFoxCAD.Acad08\IFoxCAD.Acad08.csproj" />
     </ItemGroup>
 
-    <Import Project="$(RepoRoot)tests\TestShared\TestShared.projitems" Label="Shared" />
-
     <ItemGroup>
         <Compile Include="$(RepoRoot)tests\TestAcad09plus\GlobalUsings.cs" Link="\%(FileName)%(Extension)" />
     </ItemGroup>

@@ -48,4 +48,21 @@
         <PackageLicenseFile>LICENSE</PackageLicenseFile>
     </PropertyGroup>
 
+    <!-- 自动引用 CADShared 共享代码 (排除 IFoxFunKit 项目) -->
+    <ItemGroup Condition="!$(MSBuildProjectName.Contains('IFoxFunKit'))">
+        <Compile Include="$(RepoRoot)src\CADShared\**\*.cs"
+                 Link="CADShared\%(RecursiveDir)%(Filename)%(Extension)" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <None Include="$(RepoRoot)LICENSE">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+        <None Include="$(RepoRoot)readme.md">
+            <Pack>True</Pack>
+            <PackagePath>\</PackagePath>
+        </None>
+    </ItemGroup>
+
 </Project>

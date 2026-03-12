@@ -43,6 +43,4 @@
         </Page>
     </ItemGroup>
 
-    <Import Project="$(RepoRoot)tests\TestShared\TestShared.projitems" Label="Shared" />
-
 </Project>

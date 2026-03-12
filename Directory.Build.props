@@ -12,12 +12,13 @@
 
   <!-- 
     自动引用 IFoxFunKit 分析器
-    分析器 DLL 路径: bin/$(Configuration)/analyzers/dotnet/cs/IFoxFunKit.dll
+    分析器 DLL 路径: bin/$(Configuration)/netstandard2.0/IFoxFunKit.dll
+    排除 IFoxFunKit 项目本身，避免循环引用
   -->
-  <ItemGroup>
-    <!-- 引用全局分析器（如果存在） -->
-    <Analyzer Include="$(RepoRoot)bin\$(Configuration)\analyzers\dotnet\cs\IFoxFunKit.dll" 
-              Condition="Exists('$(RepoRoot)bin\$(Configuration)\analyzers\dotnet\cs\IFoxFunKit.dll')" />
+  <ItemGroup Condition="!$(MSBuildProjectName.Contains('IFoxFunKit'))">
+    <!-- 引用全局分析器 -->
+    <Analyzer Include="$(RepoRoot)bin\$(Configuration)\netstandard2.0\IFoxFunKit.dll" 
+              Condition="Exists('$(RepoRoot)bin\$(Configuration)\netstandard2.0\IFoxFunKit.dll')" />
 
     <!-- 引用项目本地分析器（约定目录） -->
     <Analyzer Include="$(MSBuildProjectDirectory)\analyzers\dotnet\cs\*.dll" 
