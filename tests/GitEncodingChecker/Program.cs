@@ -49,6 +49,10 @@ static class Program
         ".sh", ".bash", ".ps1", ".psm1", ".bat", ".cmd"
     };
 
+    static readonly string[] RequireBomExtensions = new[] {
+        ".ps1", ".psm1"
+    };
+
     static Dictionary<string, string?> ExtensionEolMap = new(StringComparer.OrdinalIgnoreCase);
 
     static string? _repoRootCache;
@@ -232,6 +236,7 @@ static class Program
                     : $"!\"{exeRelativePath}\" {commandName}";
 
                 // 使用 ArgumentList 避免引号转义问题
+                // 注意：不使用 --global，让别名只注册在当前项目中
                 var psi = new ProcessStartInfo
                 {
                     FileName = "git",
@@ -241,7 +246,6 @@ static class Program
                     CreateNoWindow = true
                 };
                 psi.ArgumentList.Add("config");
-                psi.ArgumentList.Add("--global");
                 psi.ArgumentList.Add($"alias.{gitAliasName}");
                 psi.ArgumentList.Add(aliasValue);
 
@@ -262,11 +266,12 @@ static class Program
             var defaultEol = GetDefaultLineEnding(repoRoot);
             var eolValue = defaultEol.ToLowerInvariant();
 
-            RunGitCommand("config", "--global", "core.autocrlf", "false");
-            RunGitCommand("config", "--global", "core.eol", eolValue);
-            RunGitCommand("config", "--global", "i18n.commitencoding", "utf-8");
-            RunGitCommand("config", "--global", "i18n.logoutputencoding", "utf-8");
-            RunGitCommand("config", "--global", "core.quotepath", "false");
+            // 注意：不使用 --global，让配置只应用于当前项目
+            RunGitCommand("config", "core.autocrlf", "false");
+            RunGitCommand("config", "core.eol", eolValue);
+            RunGitCommand("config", "i18n.commitencoding", "utf-8");
+            RunGitCommand("config", "i18n.logoutputencoding", "utf-8");
+            RunGitCommand("config", "core.quotepath", "false");
 
             Console.WriteLine();
             Console.WriteLine("✓ Git 编码配置已设置为 UTF-8:");
@@ -302,7 +307,8 @@ static class Program
                     "--convert-commit" => "ecc",
                     _ => $"ec-{aliasName}"
                 };
-                RunGitCommand("config", "--global", "--unset", $"alias.{gitAliasName}");
+                // 注意：不使用 --global，只卸载当前项目的别名
+                RunGitCommand("config", "--unset", $"alias.{gitAliasName}");
             }
 
             Console.ForegroundColor = ConsoleColor.Green;
@@ -338,10 +344,11 @@ static class Program
                 };
 
                 // 使用 RunGitCommandWithOutput 来捕获输出，忽略错误
+                // 注意：不使用 --global，只清理当前项目的别名
                 var psi = new ProcessStartInfo
                 {
                     FileName = "git",
-                    Arguments = $"config --global --unset-all alias.{gitAliasName}",
+                    Arguments = $"config --unset-all alias.{gitAliasName}",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,
@@ -561,6 +568,12 @@ static class Program
             var ext = Path.GetExtension(file).ToLowerInvariant();
             if (!IsTextExtension(ext)) continue;
 
+            bool isRequireBomExt = RequireBomExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
+            if (isRequireBomExt)
+            {
+                continue;
+            }
+
             bool needsFix = false;
             var encoding = GetFileEncoding(fullPath);
             var lineEnding = GetLineEndingType(fullPath);
@@ -681,6 +694,12 @@ static class Program
 
             var ext = Path.GetExtension(file).ToLowerInvariant();
             if (!IsTextExtension(ext))
+            {
+                continue;
+            }
+
+            bool isRequireBomExt = RequireBomExtensions.Contains(ext, StringComparer.OrdinalIgnoreCase);
+            if (isRequireBomExt)
             {
                 continue;
             }
@@ -828,10 +847,11 @@ static class Program
                     "--convert-commit" => "ecc",
                     _ => $"ec-{aliasName}"
                 };
+                // 注意：不使用 --global，只检查当前项目的别名
                 var psi = new ProcessStartInfo
                 {
                     FileName = "git",
-                    Arguments = $"config --global alias.{gitAliasName}",
+                    Arguments = $"config alias.{gitAliasName}",
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
                     UseShellExecute = false,

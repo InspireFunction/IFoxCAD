@@ -2,12 +2,15 @@
 # 检查文件编码的 Git pre-commit hook
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-EXE_PATH="$SCRIPT_DIR/EncodingChecker.exe"
 
-if [ -f "$EXE_PATH" ]; then
-    "$EXE_PATH"
+# 将 Unix 路径转换为 Windows 路径
+EXE_PATH=$(cygpath -w "$SCRIPT_DIR/EncodingChecker.exe")
+
+if [ -f "$SCRIPT_DIR/EncodingChecker.exe" ]; then
+    # 使用 cmd 调用，避免 MSYS 的路径转换问题
+    MSYS_NO_PATHCONV=1 cmd /c "$EXE_PATH"
 else
-    echo "错误: 找不到 $EXE_PATH"
+    echo "错误: 找不到 $SCRIPT_DIR/EncodingChecker.exe"
     echo "请确保 EncodingChecker.exe 位于 .git/hooks/ 目录下"
     exit 1
 fi
