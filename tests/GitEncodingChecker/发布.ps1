@@ -9,9 +9,31 @@ $OutputEncoding = [System.Text.Encoding]::UTF8
 
 Write-Host "开始发布 EncodingChecker..." -ForegroundColor Cyan
 
-# 发布项目（单文件模式，嵌入dll到exe中）
-Write-Host "正在编译发布（单文件模式）..." -ForegroundColor Yellow
-dotnet publish EncodingChecker.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true /p:EnableCompressionInSingleFile=true
+# 让用户选择编译模式
+Write-Host "`n请选择编译模式：" -ForegroundColor Cyan
+Write-Host "  1. AOT 原生编译 (推荐) - 文件小 (~2.6MB)，启动快，无运行时依赖" -ForegroundColor Green
+Write-Host "  2. 单文件模式 - 包含运行时 (~60MB)，兼容性更好" -ForegroundColor Yellow
+
+$choice = Read-Host "`n请输入选项 (1 或 2，默认 1)"
+
+# 根据选择执行不同的发布命令
+switch ($choice) {
+    "2" {
+        Write-Host "`n正在编译发布（单文件模式）..." -ForegroundColor Yellow
+        dotnet publish EncodingChecker.csproj -c Release -r win-x64 --self-contained true `
+            /p:PublishSingleFile=true `
+            /p:IncludeNativeLibrariesForSelfExtract=true `
+            /p:EnableCompressionInSingleFile=true `
+            /p:PublishAot=false
+        $mode = "单文件模式"
+    }
+    default {
+        Write-Host "`n正在编译发布（AOT原生编译模式）..." -ForegroundColor Yellow
+        dotnet publish EncodingChecker.csproj -c Release
+        $mode = "AOT原生编译模式"
+    }
+}
+
 if ($LASTEXITCODE -ne 0) {
     Write-Error "发布失败！"
     exit 1
@@ -40,7 +62,8 @@ $destHook = Join-Path $hooksDir "pre-commit"
 
 if (Test-Path $sourceExe) {
     Copy-Item -Path $sourceExe -Destination $destExe -Force
-    Write-Host "已复制: $sourceExe -> $destExe" -ForegroundColor Green
+    $fileSize = (Get-Item $destExe).Length / 1MB
+    Write-Host "已复制: $sourceExe -> $destExe ($([math]::Round($fileSize, 2)) MB)" -ForegroundColor Green
 } else {
     Write-Error "源文件不存在: $sourceExe"
     exit 1
@@ -53,4 +76,4 @@ if (Test-Path $sourceHook) {
     Write-Warning "pre-commit 文件不存在，跳过复制"
 }
 
-Write-Host "`n✅ 发布完成！已安装到: $hooksDir" -ForegroundColor Green
+Write-Host "`n✅ 发布完成！模式: $mode，已安装到: $hooksDir" -ForegroundColor Green

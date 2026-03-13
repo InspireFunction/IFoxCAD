@@ -8,7 +8,7 @@
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
     <SelfContained>true</SelfContained>
-    <EnablePublishAOT>true</EnablePublishAOT>
+    <PublishAot>true</PublishAot>
     <RuntimeIdentifier>win-x64</RuntimeIdentifier>
     <OptimizationPreference>size</OptimizationPreference>
   </PropertyGroup>
