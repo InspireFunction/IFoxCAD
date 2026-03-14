@@ -10,19 +10,47 @@
 
 ## 安装
 
+### 项目级别安装（默认）
+
+仅在当前 Git 仓库生效：
+
 ```powershell
 pwsh -File 发布.ps1
 ```
 
+### 全局安装（本机所有仓库生效）
+
+运行发布脚本后，选择全局安装选项，或手动执行：
+
+```bash
+git ec-global        # 或 EncodingChecker.exe --install-global
+```
+
+全局安装会将：
+- exe 文件复制到 `%USERPROFILE%\.git-hooks\`
+- Git 别名注册为全局配置（`--global`）
+- 编码配置设置为全局默认
+
 ## 使用
 
 ```bash
-git commit -m "xxx"          # 自动检查编码
+git commit -m "xxx"          # 自动检查编码（通过 pre-commit hook）
 git ec                       # 手动检查编码
 git ec-fix                   # 修复编码问题
 git ecc -m "msg"             # 修复编码并提交
 git ec-commit -m "msg"       # 跳过检查强制提交
 ```
+
+## 配置层级说明
+
+| 配置项 | 项目级别 | 全局级别 |
+|--------|----------|----------|
+| Git 别名 | `git ec` 等 | `git ec` 等（相同命令） |
+| 编码检查 | 仅当前仓库 | 本机所有仓库 |
+| exe 位置 | `.git/hooks/` | `%USERPROFILE%/.git-hooks/` |
+| 配置命令 | `git config` | `git config --global` |
+
+**优先级**：项目级别配置优先于全局配置。如果某个仓库有项目级别的安装，则使用项目级别的配置；否则使用全局配置。
 
 ## 已知问题
 

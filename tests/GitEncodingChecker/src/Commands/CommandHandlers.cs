@@ -1,0 +1,582 @@
+using System.Diagnostics;
+
+/// <summary>
+/// 所有命令处理方法的集合
+/// 用 [GitCommand] 特性标记的方法会自动注册
+/// </summary>
+public static class CommandHandlers
+{
+    #region 核心检查命令
+
+    [GitCommand("--check", "检查暂存区文件编码", GitAlias = "ec")]
+    public static int CheckEncoding()
+    {
+        if (!GitPathResolver.ValidateGitAvailable())
+        {
+            GitPathResolver.ShowGitNotFoundHelp();
+            return 1;
+        }
+
+        var repoRoot = GetRepoRoot();
+        if (string.IsNullOrEmpty(repoRoot))
+        {
+            Console.WriteLine("❌ 无法确定 Git 仓库根目录");
+            return 1;
+        }
+
+        var files = GetStagedFiles();
+        if (files.Count == 0)
+        {
+            Console.WriteLine("ℹ️  没有暂存的文件需要检查");
+            return 0;
+        }
+
+        Console.WriteLine($"🔍 正在检查 {files.Count} 个暂存文件 (使用并行处理)...\n");
+
+        var textExtensions = GetTextExtensions();
+
+        // 使用 PLINQ 并行处理文件检测 - 简单链式编程
+        var results = files
+            .AsParallel()                           // 启用并行
+            .WithDegreeOfParallelism(Environment.ProcessorCount)  // 使用所有CPU核心
+            .Select(file =>
+            {
+                var fullPath = Path.Combine(repoRoot, file);
+                if (!File.Exists(fullPath))
+                    return (File: file, Skip: true, SkipReason: "文件不存在", HasError: false,
+                            Encoding: "", LineEnding: "", HasBlank: false, EncodingOk: true, LineEndingOk: true);
+
+                var ext = Path.GetExtension(file).ToLowerInvariant();
+                if (!textExtensions.Contains(ext))
+                    return (File: file, Skip: true, SkipReason: "非文本文件", HasError: false,
+                            Encoding: "", LineEnding: "", HasBlank: false, EncodingOk: true, LineEndingOk: true);
+
+                if (ext == ".ps1" || ext == ".psm1")
+                    return (File: file, Skip: true, SkipReason: "PowerShell 脚本", HasError: false,
+                            Encoding: "", LineEnding: "", HasBlank: false, EncodingOk: true, LineEndingOk: true);
+
+                // 执行检测
+                var encoding = EncodingChecker.DetectEncoding(fullPath);
+                var lineEnding = EncodingChecker.DetectLineEnding(fullPath);
+                var hasBlank = EncodingChecker.HasBlankLines(fullPath);
+
+                bool encodingOk = encoding == "UTF-8" || encoding == "ASCII";
+                bool lineEndingOk = lineEnding != "Mixed";
+                bool isOk = encodingOk && lineEndingOk && !hasBlank;
+
+                return (File: file, Skip: false, SkipReason: "", HasError: !isOk,
+                        Encoding: encoding, LineEnding: lineEnding, HasBlank: hasBlank,
+                        EncodingOk: encodingOk, LineEndingOk: lineEndingOk);
+            })
+            .AsSequential()  // 恢复顺序以便按原始顺序输出
+            .ToList();
+
+        // 输出结果
+        bool hasError = false;
+        foreach (var result in results)
+        {
+            if (result.Skip)
+            {
+                Console.WriteLine($"  ⏭️  跳过: {result.File} ({result.SkipReason})");
+                continue;
+            }
+
+            if (result.HasError)
+            {
+                hasError = true;
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"  ✗ {result.File}");
+                Console.ResetColor();
+
+                if (!result.EncodingOk)
+                    Console.WriteLine($"      编码: {result.Encoding} (应为 UTF-8 无 BOM)");
+                if (!result.LineEndingOk)
+                    Console.WriteLine($"      行尾: {result.LineEnding} (混合换行符)");
+                if (result.HasBlank)
+                    Console.WriteLine($"      空白: 包含空白行");
+            }
+            else
+            {
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine($"  ✓ {result.File}");
+                Console.ResetColor();
+            }
+        }
+
+        Console.WriteLine();
+        if (hasError)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine("❌ 编码检查未通过！");
+            Console.ResetColor();
+            Console.WriteLine();
+            Console.WriteLine("💡 修复方法:");
+            Console.WriteLine("  git ec-fix     # 自动修复编码问题");
+            Console.WriteLine("  git ecc -m \"msg\"  # 修复并提交");
+            return 1;
+        }
+        else
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("✓ 所有文件编码检查通过！");
+            Console.ResetColor();
+            return 0;
+        }
+    }
+
+    [GitCommand("--fix", "修复暂存区文件编码", GitAlias = "ec-fix")]
+    public static int FixEncoding()
+    {
+        var repoRoot = GetRepoRoot();
+        if (string.IsNullOrEmpty(repoRoot))
+        {
+            Console.WriteLine("❌ 无法确定 Git 仓库根目录");
+            return 1;
+        }
+
+        var files = GetStagedFiles();
+        if (files.Count == 0)
+        {
+            Console.WriteLine("ℹ️  没有暂存的文件需要修复");
+            return 0;
+        }
+
+        Console.WriteLine($"🔧 正在检查 {files.Count} 个暂存文件...\n");
+
+        int fixedCount = 0;
+        var textExtensions = GetTextExtensions();
+
+        foreach (var file in files)
+        {
+            var fullPath = Path.Combine(repoRoot, file);
+            if (!File.Exists(fullPath)) continue;
+
+            var ext = Path.GetExtension(file).ToLowerInvariant();
+            if (!textExtensions.Contains(ext)) continue;
+            if (ext == ".ps1" || ext == ".psm1") continue;
+
+            // 修复编码
+            if (EncodingChecker.FixEncoding(fullPath, out var encMsg))
+            {
+                Console.WriteLine($"  ✓ {file}: {encMsg}");
+                fixedCount++;
+            }
+
+            // 修复行尾
+            var targetEol = GetTargetLineEnding(repoRoot, file);
+            if (EncodingChecker.FixLineEnding(fullPath, targetEol, out var eolMsg))
+            {
+                Console.WriteLine($"  ✓ {file}: {eolMsg}");
+                fixedCount++;
+            }
+
+            // 移除空白行
+            if (EncodingChecker.RemoveBlankLines(fullPath, out var blankMsg))
+            {
+                Console.WriteLine($"  ✓ {file}: {blankMsg}");
+                fixedCount++;
+            }
+        }
+
+        Console.WriteLine();
+        if (fixedCount > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"✓ 已修复 {fixedCount} 处问题");
+            Console.ResetColor();
+            Console.WriteLine();
+            Console.WriteLine("💡 请重新暂存修复后的文件:");
+            Console.WriteLine("  git add .");
+        }
+        else
+        {
+            Console.WriteLine("ℹ️  没有需要修复的文件");
+        }
+
+        return 0;
+    }
+
+    #endregion
+
+    #region 安装命令
+
+    [GitCommand("--install", "安装 Git 命令别名（交互式，支持 --force 非交互模式，--target project|global|both 指定目标）", GitAlias = "ec-install")]
+    public static int Install(string[]? args = null)
+    {
+        var force = args?.Contains("--force") ?? false;
+        var target = GetTargetFromArgs(args);
+
+        if (force && target != null)
+        {
+            // 强制模式 + 指定目标
+            switch (target)
+            {
+                case "project":
+                    InstallManager.InstallProjectLevel(force: true);
+                    break;
+                case "global":
+                    InstallManager.InstallGlobalLevel(force: true);
+                    break;
+                case "both":
+                    InstallManager.InstallProjectLevel(force: true);
+                    InstallManager.InstallGlobalLevel(force: true);
+                    break;
+            }
+        }
+        else if (force)
+        {
+            // 强制模式：默认安装项目级别
+            InstallManager.InstallProjectLevel(force: true);
+        }
+        else
+        {
+            InstallManager.InteractiveInstall();
+        }
+        return 0;
+    }
+
+    /// <summary>
+    /// 从参数中提取 --target 的值
+    /// </summary>
+    private static string? GetTargetFromArgs(string[]? args)
+    {
+        if (args == null) return null;
+        for (int i = 0; i < args.Length - 1; i++)
+        {
+            if (args[i] == "--target" && i + 1 < args.Length)
+            {
+                return args[i + 1].ToLowerInvariant();
+            }
+        }
+        return null;
+    }
+
+    [GitCommand("--uninstall", "卸载 Git 命令别名（支持 --target project|global|both 指定目标）", GitAlias = "ec-uninstall")]
+    public static int Uninstall(string[]? args = null)
+    {
+        var target = GetTargetFromArgs(args);
+
+        if (target != null)
+        {
+            // 指定了目标，直接执行
+            switch (target)
+            {
+                case "project":
+                    InstallManager.UninstallProjectLevel();
+                    return 0;
+                case "global":
+                    InstallManager.UninstallGlobalLevel();
+                    return 0;
+                case "both":
+                    InstallManager.UninstallProjectLevel();
+                    InstallManager.UninstallGlobalLevel();
+                    return 0;
+                default:
+                    Console.WriteLine($"❌ 无效的目标: {target}");
+                    return 1;
+            }
+        }
+
+        // 交互式模式
+        Console.WriteLine();
+        Console.WriteLine("请选择要卸载的级别：");
+        Console.WriteLine("  [1] 项目级别");
+        Console.WriteLine("  [2] 全局级别");
+        Console.WriteLine("  [3] 两者都卸载");
+        Console.WriteLine("  [Q] 取消");
+        Console.WriteLine();
+
+        while (true)
+        {
+            Console.Write("请输入选项: ");
+            var choice = Console.ReadLine()?.Trim().ToUpperInvariant();
+
+            switch (choice)
+            {
+                case "1":
+                    InstallManager.UninstallProjectLevel();
+                    return 0;
+                case "2":
+                    InstallManager.UninstallGlobalLevel();
+                    return 0;
+                case "3":
+                    InstallManager.UninstallProjectLevel();
+                    InstallManager.UninstallGlobalLevel();
+                    return 0;
+                case "Q":
+                    return 0;
+                default:
+                    Console.WriteLine("❌ 无效选项");
+                    break;
+            }
+        }
+    }
+
+    [GitCommand("--install-global", "全局安装（本机所有仓库生效，支持 --force 非交互模式）", GitAlias = "ec-global")]
+    public static int InstallGlobal(string[]? args = null)
+    {
+        var force = args?.Contains("--force") ?? false;
+        InstallManager.InstallGlobalLevel(force: force);
+        return 0;
+    }
+
+    [GitCommand("--uninstall-global", "卸载全局安装", GitAlias = "ec-uninstall-global")]
+    public static int UninstallGlobal()
+    {
+        InstallManager.UninstallGlobalLevel();
+        return 0;
+    }
+
+    [GitCommand("--clean", "全面清理（项目和全局）", GitAlias = "ec-clean")]
+    public static int Clean()
+    {
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("⚠️  这将删除所有 EncodingChecker 的安装和配置！");
+        Console.ResetColor();
+        Console.WriteLine();
+        Console.Write("确定要继续吗？(y/N): ");
+
+        var confirm = Console.ReadLine()?.Trim().ToLowerInvariant();
+        if (confirm == "y" || confirm == "yes")
+        {
+            InstallManager.CleanAll();
+        }
+        else
+        {
+            Console.WriteLine("已取消清理。");
+        }
+
+        return 0;
+    }
+
+    #endregion
+
+    #region 提交辅助命令
+
+    [GitCommand("--convert-commit", "修复编码并提交", GitAlias = "ecc")]
+    public static int ConvertAndCommit(string[] args)
+    {
+        // 获取提交信息
+        if (args.Length == 0 || !args.Contains("-m"))
+        {
+            var lastMsg = GetLastCommitMessage();
+            if (!string.IsNullOrEmpty(lastMsg))
+            {
+                Console.WriteLine($"使用提交信息: \"{lastMsg}\"\n");
+                args = new[] { "-m", lastMsg };
+            }
+            else
+            {
+                Console.Write("请输入提交信息: ");
+                var input = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(input))
+                {
+                    Console.WriteLine("❌ 提交信息不能为空");
+                    return 1;
+                }
+                args = new[] { "-m", input.Trim() };
+            }
+        }
+
+        // 步骤1: 修复编码
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("步骤 1/2: 修复文件编码...");
+        Console.WriteLine("===========================================");
+        Console.ResetColor();
+        FixEncoding();
+
+        // 步骤2: 重新暂存并提交
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("步骤 2/2: 提交...");
+        Console.WriteLine("===========================================");
+        Console.ResetColor();
+
+        GitCommandRunner.Run("add", ".");
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = GitPathResolver.GetGitPath(),
+            UseShellExecute = false
+        };
+        psi.ArgumentList.Add("commit");
+        foreach (var arg in args) psi.ArgumentList.Add(arg);
+
+        using var proc = Process.Start(psi);
+        proc?.WaitForExit();
+        return proc?.ExitCode ?? 0;
+    }
+
+    [GitCommand("--commit", "跳过检查强制提交", GitAlias = "ec-commit")]
+    public static int SkipCheckCommit(string[] args)
+    {
+        if (args.Length == 0 || !args.Contains("-m"))
+        {
+            Console.WriteLine("❌ 用法: git ec-commit -m \"提交信息\"");
+            return 1;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine("⚠️  跳过编码检查，强制提交...");
+        Console.ResetColor();
+
+        var psi = new ProcessStartInfo
+        {
+            FileName = GitPathResolver.GetGitPath(),
+            UseShellExecute = false
+        };
+        psi.ArgumentList.Add("commit");
+        psi.ArgumentList.Add("--no-verify");
+        foreach (var arg in args) psi.ArgumentList.Add(arg);
+
+        using var proc = Process.Start(psi);
+        proc?.WaitForExit();
+        return proc?.ExitCode ?? 0;
+    }
+
+    #endregion
+
+    #region 帮助命令
+
+    [GitCommand("--help", "显示帮助信息", GitAlias = "ec-help")]
+    public static int ShowHelp()
+    {
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("╔══════════════════════════════════════════════════════════════╗");
+        Console.WriteLine("║           EncodingChecker - Git 编码检查工具                 ║");
+        Console.WriteLine("╚══════════════════════════════════════════════════════════════╝");
+        Console.ResetColor();
+        Console.WriteLine();
+
+        Console.WriteLine("📋 可用命令:\n");
+
+        var commands = new (string cmd, string alias, string desc)[]
+        {
+            ("--check", "git ec", "检查暂存区文件编码"),
+            ("--fix", "git ec-fix", "修复编码问题"),
+            ("--convert-commit", "git ecc", "修复编码并提交"),
+            ("--commit", "git ec-commit", "跳过检查强制提交"),
+            ("", "", ""),
+            ("--install", "git ec-install", "交互式安装"),
+            ("--install-global", "git ec-global", "全局安装"),
+            ("--uninstall", "git ec-uninstall", "卸载"),
+            ("--uninstall-global", "git ec-uninstall-global", "卸载全局安装"),
+            ("", "", ""),
+            ("--help", "git ec-help", "显示帮助"),
+        };
+
+        foreach (var (cmd, alias, desc) in commands)
+        {
+            if (string.IsNullOrEmpty(cmd))
+            {
+                Console.WriteLine();
+                continue;
+            }
+
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($"  {alias,-20}");
+            Console.ResetColor();
+            Console.WriteLine(desc);
+        }
+
+        Console.WriteLine();
+        Console.WriteLine("💡 示例:\n");
+        Console.WriteLine("  git add .");
+        Console.WriteLine("  git ec                    # 检查编码");
+        Console.WriteLine("  git ec-fix                # 修复问题");
+        Console.WriteLine("  git add .");
+        Console.WriteLine("  git commit -m \"feat: xxx\" # 提交");
+        Console.WriteLine();
+
+        return 0;
+    }
+
+    #endregion
+
+    #region 私有辅助方法
+
+    private static string GetRepoRoot()
+    {
+        try
+        {
+            return GitCommandRunner.RunWithOutput("rev-parse", "--show-toplevel").Trim();
+        }
+        catch
+        {
+            return "";
+        }
+    }
+
+    private static List<string> GetStagedFiles()
+    {
+        return GitCommandRunner.RunWithLines("diff", "--cached", "--name-only", "--diff-filter=ACM").ToList();
+    }
+
+    private static string? GetLastCommitMessage()
+    {
+        try
+        {
+            var repoRoot = GetRepoRoot();
+            if (string.IsNullOrEmpty(repoRoot)) return null;
+
+            var path = Path.Combine(repoRoot, ".git", "COMMIT_EDITMSG");
+            if (!File.Exists(path)) return null;
+
+            var content = File.ReadAllText(path);
+            var lines = content.Split('\n')
+                .Where(l => !l.TrimStart().StartsWith("#") && !string.IsNullOrWhiteSpace(l))
+                .ToList();
+
+            return lines.Count > 0 ? string.Join("\n", lines).Trim() : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private static HashSet<string> GetTextExtensions()
+    {
+        return new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            ".cs", ".slnx", ".csproj", ".json", ".xml", ".config",
+            ".props", ".targets", ".md", ".txt", ".yaml", ".yml",
+            ".toml", ".ini", ".cfg", ".conf", ".html", ".htm",
+            ".css", ".js", ".ts", ".jsx", ".tsx", ".py", ".rb",
+            ".go", ".rs", ".java", ".c", ".cpp", ".h", ".hpp",
+            ".sh", ".bash", ".bat", ".cmd"
+        };
+    }
+
+    private static string GetTargetLineEnding(string repoRoot, string filePath)
+    {
+        // 简化版：从 .editorconfig 读取
+        try
+        {
+            var configPath = Path.Combine(repoRoot, ".editorconfig");
+            if (File.Exists(configPath))
+            {
+                var lines = File.ReadAllLines(configPath);
+                foreach (var line in lines)
+                {
+                    if (line.TrimStart().StartsWith("end_of_line"))
+                    {
+                        var parts = line.Split('=');
+                        if (parts.Length == 2)
+                        {
+                            var eol = parts[1].Trim().ToUpperInvariant();
+                            return eol == "CRLF" ? "CRLF" : "LF";
+                        }
+                    }
+                }
+            }
+        }
+        catch { }
+
+        return "LF";
+    }
+
+    #endregion
+}
