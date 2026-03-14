@@ -124,7 +124,7 @@ catch (Autodesk.AutoCAD.Runtime.Exception ex)
 3. **生成代码**
    - 按照CAD规范编写代码
    - 添加详细的XML文档注释
-   
+
 4. **编译验证**
    - 编译并导出新的函数表
    - 如有编译错误,参考 `skills\编译问题技能`
@@ -153,7 +153,7 @@ AutoCAD API **不是线程安全的**,以下操作**严禁使用并行处理**:
    {
        entity.Color = Color.Red; // 危险!可能导致崩溃
    });
-   
+
    // ✅ 正确:使用单线程循环
    foreach (var entity in entities)
    {
@@ -169,7 +169,7 @@ AutoCAD API **不是线程安全的**,以下操作**严禁使用并行处理**:
        using var tr = db.TransactionManager.StartTransaction();
        // ... 危险操作
    });
-   
+
    // ✅ 正确:单线程处理
    using var tr = db.TransactionManager.StartTransaction();
    foreach (var id in ids)
@@ -318,7 +318,7 @@ public void ProcessLargeDataset(IEnumerable<EntityData> dataList)
     Debug.WriteLine("[ProcessLargeDataset] 开始处理大数据集");
     const int batchSize = 1000;
     var batches = dataList.Chunk(batchSize);
-    
+
     int batchIndex = 0;
     foreach (var batch in batches)
     {
@@ -339,9 +339,9 @@ public void OptimizedOperation()
 {
     var sw = Stopwatch.StartNew();
     Debug.WriteLine("[OptimizedOperation] 开始执行");
-    
+
     // ... 操作
-    
+
     sw.Stop();
     Debug.WriteLine($"[OptimizedOperation] 执行完成,耗时: {sw.ElapsedMilliseconds}ms");
 }
@@ -355,9 +355,9 @@ public void MemoryIntensiveOperation()
 {
     long beforeMemory = GC.GetTotalMemory(false);
     Debug.WriteLine($"[MemoryIntensiveOperation] 操作前内存: {beforeMemory / 1024 / 1024}MB");
-    
+
     // ... 操作
-    
+
     long afterMemory = GC.GetTotalMemory(true);
     Debug.WriteLine($"[MemoryIntensiveOperation] 操作后内存: {afterMemory / 1024 / 1024}MB, " +
         $"增加: {(afterMemory - beforeMemory) / 1024 / 1024}MB");

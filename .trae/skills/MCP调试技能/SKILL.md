@@ -73,10 +73,10 @@ while (true)
 {
     int bytesRead = await _pipeClient.ReadAsync(buffer, 0, buffer.Length);
     if (bytesRead <= 0) break;
-    
+
     var chunk = Encoding.UTF8.GetString(buffer, 0, bytesRead);
     responseBuilder.Append(chunk);
-    
+
     if (chunk.Contains('\n'))
         break;
 }

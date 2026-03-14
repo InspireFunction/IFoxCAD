@@ -228,3 +228,10 @@ git commit -m "feat: 添加图层管理功能"
 
 使用PowerShell脚本，保持原编码（如：UTF8无BOM）
 参考 `.trae\rules\replace.ps1`
+
+> ⚠️ **警告**：使用PowerShell进行文件内容替换时，**务必阅读** `.trae\skills\PowerShell文件操作技能\SKILL.md`
+> 
+> **关键要点**：
+> - 不要使用 `Set-Content -NoNewline` 处理多行文件（会破坏换行符）
+> - 注意文件编码（UTF-8无BOM）
+> - 优先使用 `SearchReplace` 工具或 `replace.ps1` 脚本

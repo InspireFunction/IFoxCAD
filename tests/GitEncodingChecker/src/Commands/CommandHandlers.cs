@@ -31,7 +31,7 @@ public static class CommandHandlers
             return 0;
         }
 
-        Console.WriteLine($"🔍 正在检查 {files.Count} 个暂存文件 (使用并行处理)...\n");
+        Console.WriteLine($"🔍 正在检查 {files.Count} 个暂存文件...\n");
 
         var textExtensions = GetTextExtensions();
 
@@ -71,36 +71,78 @@ public static class CommandHandlers
             .AsSequential()  // 恢复顺序以便按原始顺序输出
             .ToList();
 
-        // 输出结果
+        // 分类收集结果（线程安全已在ToList后）
+        var passedFiles = new List<string>();
+        var skippedFiles = new List<(string File, string Reason)>();
+        var errorFiles = new List<(string File, string Encoding, string LineEnding, bool HasBlank, bool EncodingOk, bool LineEndingOk)>();
+
         bool hasError = false;
         foreach (var result in results)
         {
             if (result.Skip)
             {
-                Console.WriteLine($"  ⏭️  跳过: {result.File} ({result.SkipReason})");
-                continue;
+                skippedFiles.Add((result.File, result.SkipReason));
             }
-
-            if (result.HasError)
+            else if (result.HasError)
             {
                 hasError = true;
-                Console.ForegroundColor = ConsoleColor.Red;
-                Console.WriteLine($"  ✗ {result.File}");
-                Console.ResetColor();
-
-                if (!result.EncodingOk)
-                    Console.WriteLine($"      编码: {result.Encoding} (应为 UTF-8 无 BOM)");
-                if (!result.LineEndingOk)
-                    Console.WriteLine($"      行尾: {result.LineEnding} (混合换行符)");
-                if (result.HasBlank)
-                    Console.WriteLine($"      空白: 包含空白行");
+                errorFiles.Add((result.File, result.Encoding, result.LineEnding, result.HasBlank, result.EncodingOk, result.LineEndingOk));
             }
             else
             {
+                passedFiles.Add(result.File);
+            }
+        }
+
+        // 按类别输出结果
+        // 1. 通过检测的文件
+        if (passedFiles.Count > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine($"  ✓ 通过检测 ({passedFiles.Count}个):");
+            Console.ResetColor();
+            foreach (var file in passedFiles)
+            {
                 Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine($"  ✓ {result.File}");
+                Console.WriteLine($"    {file}");
                 Console.ResetColor();
             }
+            Console.WriteLine();
+        }
+
+        // 2. 跳过检测的文件
+        if (skippedFiles.Count > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine($"  ⏭️  跳过检测 ({skippedFiles.Count}个):");
+            Console.ResetColor();
+            foreach (var (file, reason) in skippedFiles)
+            {
+                Console.WriteLine($"    {file} ({reason})");
+            }
+            Console.WriteLine();
+        }
+
+        // 3. 检测失败的文件
+        if (errorFiles.Count > 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Red;
+            Console.WriteLine($"  ✗ 检测失败 ({errorFiles.Count}个):");
+            Console.ResetColor();
+            foreach (var (file, encoding, lineEnding, hasBlankFile, encodingOk, lineEndingOk) in errorFiles)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine($"    {file}");
+                Console.ResetColor();
+
+                if (!encodingOk)
+                    Console.WriteLine($"        编码: {encoding} (应为 UTF-8 无 BOM)");
+                if (!lineEndingOk)
+                    Console.WriteLine($"        行尾: {lineEnding} (混合换行符)");
+                if (hasBlankFile)
+                    Console.WriteLine($"        空白: 包含空白行");
+            }
+            Console.WriteLine();
         }
 
         Console.WriteLine();

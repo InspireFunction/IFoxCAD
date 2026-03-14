@@ -1,4 +1,4 @@
-﻿---
+---
 trigger: always_on
 ---
 
