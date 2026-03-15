@@ -125,11 +125,19 @@ function Show-Menu {
     foreach ($key in $validOptions) {
         Write-Host "  $key. $($Options[$key])"
     }
-    $choice = Read-Host "`n请输入选项 ($($validOptions -join ', ')，默认 $Default)"
-    if ($validOptions -contains $choice) {
-        return $choice
+
+    while ($true) {
+        $choice = Read-Host "`n请输入选项 ($($validOptions -join ', ')，默认 $Default)"
+        # 如果用户直接回车，使用默认值
+        if ([string]::IsNullOrWhiteSpace($choice)) {
+            return $Default
+        }
+        # 验证输入是否有效
+        if ($validOptions -contains $choice) {
+            return $choice
+        }
+        Write-Host "无效选项 '$choice'，请输入有效的选项: $($validOptions -join ', ')" -ForegroundColor Red
     }
-    return $Default
 }
 
 function Wait-EscOrEnter {
@@ -635,34 +643,6 @@ function Install-Project {
 
     Write-Log "发布完成！模式: $Mode，已安装到: $hooksDir" "SUCCESS"
 
-    # 自动模式下跳过全局配置询问
-    if ($script:IsAutoMode) {
-        Write-Log "自动模式：跳过全局配置询问" "INFO"
-        return $destExe
-    }
-
-    # 询问是否同时安装全局配置
-    $globalChoice = Show-Menu `
-        -Title "是否同时安装全局配置（本机所有 Git 仓库生效）？" `
-        -Options @{
-            "1" = "是 - 安装全局别名和编码配置"
-            "2" = "否 - 仅保持项目级别安装（默认）"
-        } `
-        -Default "2"
-
-    if ($globalChoice -eq "1") {
-        Write-Log "正在安装全局配置..." "INFO"
-        & $destExe --install-global
-        if ($LASTEXITCODE -eq 0) {
-            Write-Log "全局配置安装完成！" "SUCCESS"
-        } else {
-            Write-Log "全局配置安装可能出现问题" "WARN"
-        }
-    } else {
-        Write-Log "跳过全局配置安装。如需稍后安装，请运行:" "INFO"
-        Write-Log "  git ec-global  或  .git/hooks/EncodingChecker.exe --install-global" "INFO"
-    }
-
     return $destExe
 }
 
@@ -744,16 +724,16 @@ function Main {
 
     # 发布安装模式
     $installOptions = @{
-        "1" = "当前项目 (.git/hooks) - 仅当前 Git 仓库生效"
-        "2" = "系统全局 - 安装到用户目录，所有 Git 仓库生效"
+        "1" = "系统全局 - 安装到用户目录，所有 Git 仓库生效"
+        "2" = "当前项目 (.git/hooks) - 仅当前 Git 仓库生效"
     }
 
     # 使用命令行参数或显示菜单
     if ($Target -eq "global") {
-        $installTarget = "2"
+        $installTarget = "1"
         Write-Log "命令行指定: 安装到系统全局" "INFO"
     } elseif ($Target -eq "project") {
-        $installTarget = "1"
+        $installTarget = "2"
         Write-Log "命令行指定: 安装到当前项目" "INFO"
     } else {
         $installTarget = Show-Menu `
@@ -810,7 +790,7 @@ function Main {
     }
 
     # 安装
-    if ($installTarget -eq "2") {
+    if ($installTarget -eq "1") {
         $destExe = Install-Global -SourceExe $sourceExe -SourceHook $sourceHook -Mode $mode
     } else {
         $destExe = Install-Project -SourceExe $sourceExe -SourceHook $sourceHook -Mode $mode

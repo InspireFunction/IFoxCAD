@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Reflection;
 
 /// <summary>
 /// 所有命令处理方法的集合
@@ -8,7 +9,7 @@ public static class CommandHandlers
 {
     #region 核心检查命令
 
-    [GitCommand("--check", "检查暂存区文件编码", GitAlias = "ec")]
+    [GitCommand("--check", "检查暂存区文件编码", GitAlias = "ec-check")]
     public static int CheckEncoding()
     {
         if (!GitPathResolver.ValidateGitAvailable())
@@ -393,11 +394,11 @@ public static class CommandHandlers
 
     #region 提交辅助命令
 
-    [GitCommand("--convert-commit", "修复编码并提交", GitAlias = "ecc")]
+    [GitCommand("--convert-commit", "修复编码并提交", GitAlias = "ec-m")]
     public static int ConvertAndCommit(string[] args)
     {
-        // 获取提交信息
-        if (args.Length == 0 || !args.Contains("-m"))
+        // 格式: git ec-m "msg"
+        if (args.Length == 0)
         {
             var lastMsg = GetLastCommitMessage();
             if (!string.IsNullOrEmpty(lastMsg))
@@ -416,6 +417,11 @@ public static class CommandHandlers
                 }
                 args = new[] { "-m", input.Trim() };
             }
+        }
+        // 将参数转换为 -m 格式供 git commit 使用
+        else
+        {
+            args = new[] { "-m", args[0] };
         }
 
         // 步骤1: 修复编码
@@ -440,6 +446,7 @@ public static class CommandHandlers
             UseShellExecute = false
         };
         psi.ArgumentList.Add("commit");
+        psi.ArgumentList.Add("--no-verify"); // 跳过 pre-commit hook，避免循环调用
         foreach (var arg in args) psi.ArgumentList.Add(arg);
 
         using var proc = Process.Start(psi);
@@ -447,14 +454,17 @@ public static class CommandHandlers
         return proc?.ExitCode ?? 0;
     }
 
-    [GitCommand("--commit", "跳过检查强制提交", GitAlias = "ec-commit")]
+    [GitCommand("--commit", "跳过检查强制提交", GitAlias = "ec-force")]
     public static int SkipCheckCommit(string[] args)
     {
-        if (args.Length == 0 || !args.Contains("-m"))
+        // 格式: git ec-force "msg"
+        if (args.Length == 0)
         {
-            Console.WriteLine("❌ 用法: git ec-commit -m \"提交信息\"");
+            Console.WriteLine("❌ 用法: git ec-force \"提交信息\"");
             return 1;
         }
+        // 将参数转换为 -m 格式供 git commit 使用
+        args = new[] { "-m", args[0] };
 
         Console.ForegroundColor = ConsoleColor.Yellow;
         Console.WriteLine("⚠️  跳过编码检查，强制提交...");
@@ -476,6 +486,120 @@ public static class CommandHandlers
 
     #endregion
 
+    #region 诊断命令
+
+    [GitCommand("--check-local-aliases", "检查本地 Git 别名配置", GitAlias = "ec-check-local")]
+    public static int CheckLocalAliases()
+    {
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("🔍 检查本地 Git 别名配置...");
+        Console.ResetColor();
+        Console.WriteLine();
+
+        var repoRoot = InstallManager.GetRepoRoot();
+        if (string.IsNullOrEmpty(repoRoot))
+        {
+            Console.WriteLine("❌ 当前目录不在 Git 仓库内");
+            return 1;
+        }
+
+        Console.WriteLine($"仓库路径: {repoRoot}");
+        Console.WriteLine();
+
+        var localAliases = InstallManager.CheckLocalAliases();
+
+        if (localAliases.Count == 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("✓ 未发现本地 Git 别名");
+            Console.ResetColor();
+            return 0;
+        }
+
+        Console.ForegroundColor = ConsoleColor.Yellow;
+        Console.WriteLine($"⚠️  发现 {localAliases.Count} 个本地 Git 别名:");
+        Console.WriteLine();
+
+        foreach (var alias in localAliases)
+        {
+            try
+            {
+                var value = GitCommandRunner.RunWithOutput("config", "--local", $"alias.{alias}");
+                Console.WriteLine($"  git {alias}");
+                Console.WriteLine($"     → {value}");
+                Console.WriteLine();
+            }
+            catch
+            {
+                Console.WriteLine($"  git {alias}");
+                Console.WriteLine($"     → (无法读取配置)");
+                Console.WriteLine();
+            }
+        }
+
+        Console.ResetColor();
+        Console.WriteLine("💡 提示: 本地别名会覆盖全局别名，可能导致路径错误。");
+        Console.WriteLine("   如需清理，请运行: git ec-uninstall --target project");
+        Console.WriteLine();
+
+        return 0;
+    }
+
+    [GitCommand("--clean-local-aliases", "清理本地 Git 别名", GitAlias = "ec-clean-local")]
+    public static int CleanLocalAliases()
+    {
+        Console.WriteLine();
+        Console.ForegroundColor = ConsoleColor.Cyan;
+        Console.WriteLine("🧹 清理本地 Git 别名...");
+        Console.ResetColor();
+        Console.WriteLine();
+
+        var repoRoot = InstallManager.GetRepoRoot();
+        if (string.IsNullOrEmpty(repoRoot))
+        {
+            Console.WriteLine("❌ 当前目录不在 Git 仓库内");
+            return 1;
+        }
+
+        var localAliases = InstallManager.CheckLocalAliases();
+
+        if (localAliases.Count == 0)
+        {
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("✓ 没有需要清理的本地别名");
+            Console.ResetColor();
+            return 0;
+        }
+
+        Console.WriteLine($"将清理以下 {localAliases.Count} 个本地别名:");
+        foreach (var alias in localAliases)
+        {
+            Console.WriteLine($"  - git {alias}");
+        }
+        Console.WriteLine();
+
+        Console.Write("确认清理? (y/N): ");
+        var confirm = Console.ReadLine()?.Trim().ToLowerInvariant();
+
+        if (confirm == "y" || confirm == "yes")
+        {
+            InstallManager.UnregisterGitAliases(isGlobal: false);
+            Console.WriteLine();
+            Console.ForegroundColor = ConsoleColor.Green;
+            Console.WriteLine("✓ 本地别名已清理");
+            Console.ResetColor();
+        }
+        else
+        {
+            Console.WriteLine("已取消清理。");
+        }
+
+        return 0;
+    }
+
+    #endregion
+
     #region 帮助命令
 
     [GitCommand("--help", "显示帮助信息", GitAlias = "ec-help")]
@@ -491,46 +615,88 @@ public static class CommandHandlers
 
         Console.WriteLine("📋 可用命令:\n");
 
-        var commands = new (string cmd, string alias, string desc)[]
-        {
-            ("--check", "git ec", "检查暂存区文件编码"),
-            ("--fix", "git ec-fix", "修复编码问题"),
-            ("--convert-commit", "git ecc", "修复编码并提交"),
-            ("--commit", "git ec-commit", "跳过检查强制提交"),
-            ("", "", ""),
-            ("--install", "git ec-install", "交互式安装"),
-            ("--install-global", "git ec-global", "全局安装"),
-            ("--uninstall", "git ec-uninstall", "卸载"),
-            ("--uninstall-global", "git ec-uninstall-global", "卸载全局安装"),
-            ("", "", ""),
-            ("--help", "git ec-help", "显示帮助"),
-        };
-
-        foreach (var (cmd, alias, desc) in commands)
-        {
-            if (string.IsNullOrEmpty(cmd))
+        // 动态从 GitCommandAttribute 获取命令信息
+        var commands = typeof(CommandHandlers)
+            .GetMethods(BindingFlags.Public | BindingFlags.Static)
+            .Select(m => new { Method = m, Attr = m.GetCustomAttribute<GitCommandAttribute>() })
+            .Where(x => x.Attr is not null)
+            .Select(x => new
             {
-                Console.WriteLine();
-                continue;
-            }
+                Cmd = x.Attr!.Name,
+                Alias = x.Attr!.GitAlias != null ? $"git {x.Attr.GitAlias}" : x.Attr.Name,
+                Desc = x.Attr!.Description,
+                Order = GetCommandOrder(x.Attr.Name)
+            })
+            .OrderBy(x => x.Order)
+            .ThenBy(x => x.Cmd)
+            .ToList();
 
+        // 按类别分组显示
+        var coreCommands = commands.Where(c =>
+            c.Cmd is "--check" or "--fix" or "--convert-commit" or "--commit").ToList();
+        var installCommands = commands.Where(c =>
+            c.Cmd is "--install" or "--install-global" or "--uninstall" or "--uninstall-global").ToList();
+        var otherCommands = commands.Where(c =>
+            c.Cmd == "--help").ToList();
+
+        // 显示核心命令
+        foreach (var cmd in coreCommands)
+        {
             Console.ForegroundColor = ConsoleColor.Yellow;
-            Console.Write($"  {alias,-20}");
+            Console.Write($"  {cmd.Alias,-20}");
             Console.ResetColor();
-            Console.WriteLine(desc);
+            Console.WriteLine(cmd.Desc);
+        }
+
+        Console.WriteLine();
+
+        // 显示安装命令
+        foreach (var cmd in installCommands)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($"  {cmd.Alias,-20}");
+            Console.ResetColor();
+            Console.WriteLine(cmd.Desc);
+        }
+
+        Console.WriteLine();
+
+        // 显示其他命令
+        foreach (var cmd in otherCommands)
+        {
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.Write($"  {cmd.Alias,-20}");
+            Console.ResetColor();
+            Console.WriteLine(cmd.Desc);
         }
 
         Console.WriteLine();
         Console.WriteLine("💡 示例:\n");
         Console.WriteLine("  git add .");
-        Console.WriteLine("  git ec                    # 检查编码");
+        Console.WriteLine("  git ec-check              # 检查编码");
         Console.WriteLine("  git ec-fix                # 修复问题");
         Console.WriteLine("  git add .");
-        Console.WriteLine("  git commit -m \"feat: xxx\" # 提交");
+        Console.WriteLine("  git ec-m \"feat: xxx\"     # 修复并提交");
         Console.WriteLine();
 
         return 0;
     }
+
+    /// <summary>
+    /// 获取命令显示顺序
+    /// </summary>
+    private static int GetCommandOrder(string cmd) => cmd switch
+    {
+        "--check" => 1,
+        "--fix" => 2,
+        "--convert-commit" => 3,
+        "--commit" => 4,
+        "--install" => 10,
+        "--install-global" => 11,
+        "--uninstall" => 12,
+        "--uninstall-global" => 13,
+        _ => 99
+    };
 
     #endregion
 

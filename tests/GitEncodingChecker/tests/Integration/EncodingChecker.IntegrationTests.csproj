@@ -18,12 +18,9 @@
     </PackageReference>
   </ItemGroup>
 
-  <!-- 引用主项目的源文件（不包括 Program.cs） -->
+  <!-- 引用主项目 -->
   <ItemGroup>
-    <Compile Include="..\src\Commands\*.cs" />
-    <Compile Include="..\src\Core\*.cs" />
-    <Compile Include="..\src\Install\*.cs" />
-    <Compile Include="..\src\Encoding\*.cs" />
+    <ProjectReference Include="..\..\core\EncodingChecker.csproj" />
   </ItemGroup>
 
 </Project>

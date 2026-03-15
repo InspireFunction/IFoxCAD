@@ -148,7 +148,7 @@ public static class AppConfig
     public static class FixHints
     {
         public const string FixCommand = "git ec-fix     # 自动修复编码问题";
-        public const string CommitCommand = "git ecc -m \"msg\"  # 修复并提交";
+        public const string CommitCommand = "git ec-m \"msg\"     # 修复并提交";
     }
 
     #endregion

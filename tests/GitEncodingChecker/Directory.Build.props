@@ -1,0 +1,16 @@
+<Project>
+    <!-- 导入父目录的 Directory.Build.props -->
+    <Import Project="$([MSBuild]::GetPathOfFileAbove('Directory.Build.props', '$(MSBuildThisFileDirectory)..'))" />
+
+    <!-- 定义 GitEncodingChecker 项目的根目录 -->
+    <PropertyGroup>
+        <GitEncodingCheckerRoot>$(MSBuildThisFileDirectory)</GitEncodingCheckerRoot>
+        <GitEncodingCheckerSrc>$(GitEncodingCheckerRoot)core\src\</GitEncodingCheckerSrc>
+    </PropertyGroup>
+
+    <!-- 
+        注意：单元测试项目通过 ProjectReference 引用 core 项目，
+        不需要直接编译源文件。这样可以避免类型重复定义的问题。
+    -->
+
+</Project>

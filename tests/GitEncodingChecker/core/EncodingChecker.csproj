@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+    <LangVersion>preview</LangVersion>
+  </PropertyGroup>
+
+  <!-- Debug 配置：非自包含，便于测试 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <SelfContained>false</SelfContained>
+    <PublishAot>false</PublishAot>
+  </PropertyGroup>
+
+  <!-- Release 配置：默认非自包含，便于测试 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(PublishAot)' != 'true'">
+    <SelfContained>false</SelfContained>
+    <PublishAot>false</PublishAot>
+  </PropertyGroup>
+
+  <!-- Release + PublishAOT：AOT 编译和自包含发布 -->
+  <PropertyGroup Condition="'$(Configuration)' == 'Release' And '$(PublishAot)' == 'true'">
+    <SelfContained>true</SelfContained>
+    <RuntimeIdentifier>win-x64</RuntimeIdentifier>
+    <OptimizationPreference>size</OptimizationPreference>
+    <!-- 保留反射所需的元数据,里面用了反射git命令 -->
+    <TrimMode>partial</TrimMode>
+    <SuppressTrimAnalysisWarnings>false</SuppressTrimAnalysisWarnings>
+  </PropertyGroup>
+
+  <!-- AOT 兼容性：保留反射元数据 -->
+  <ItemGroup>
+    <TrimmerRootAssembly Include="EncodingChecker" />
+  </ItemGroup>
+
+  <!-- 排除测试文件 -->
+  <ItemGroup>
+    <Compile Remove="tests\**" />
+  </ItemGroup>
+
+</Project>
