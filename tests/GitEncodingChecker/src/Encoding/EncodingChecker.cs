@@ -5,7 +5,6 @@ using System.Text;
 /// </summary>
 public static class EncodingChecker
 {
-    private static readonly byte[] Utf8Bom = new byte[] { 0xEF, 0xBB, 0xBF };
 
     /// <summary>
     /// 检测文件编码
@@ -15,27 +14,27 @@ public static class EncodingChecker
         try
         {
             var bytes = File.ReadAllBytes(filePath);
-            if (bytes.Length == 0) return "Empty";
+            if (bytes.Length == 0) return AppConfig.EncodingNames.Empty;
 
             // 检查 BOM
-            if (bytes.Length >= 3 && bytes[0] == Utf8Bom[0] && bytes[1] == Utf8Bom[1] && bytes[2] == Utf8Bom[2])
-                return "UTF8-BOM";
+            if (bytes.Length >= 3 && bytes[0] == AppConfig.Utf8Bom[0] && bytes[1] == AppConfig.Utf8Bom[1] && bytes[2] == AppConfig.Utf8Bom[2])
+                return AppConfig.EncodingNames.Utf8Bom;
 
             if (bytes.Length >= 2 && bytes[0] == 0xFF && bytes[1] == 0xFE)
-                return "UTF16-LE";
+                return AppConfig.EncodingNames.Utf16Le;
 
             if (bytes.Length >= 2 && bytes[0] == 0xFE && bytes[1] == 0xFF)
-                return "UTF16-BE";
+                return AppConfig.EncodingNames.Utf16Be;
 
             // 检查是否全是 ASCII
             bool isAscii = bytes.All(b => b < 128);
-            if (isAscii) return "ASCII";
+            if (isAscii) return AppConfig.EncodingNames.Ascii;
 
             // 尝试 UTF-8 解码
             try
             {
                 Encoding.UTF8.GetString(bytes);
-                return "UTF-8";
+                return AppConfig.EncodingNames.Utf8;
             }
             catch { }
 
@@ -44,7 +43,7 @@ public static class EncodingChecker
         }
         catch
         {
-            return "Error";
+            return AppConfig.EncodingNames.Error;
         }
     }
 
@@ -81,14 +80,14 @@ public static class EncodingChecker
                 }
             }
 
-            if (hasCrlf && hasLf) return "Mixed";
-            if (hasCrlf) return "CRLF";
-            if (hasLf) return "LF";
-            return "None";
+            if (hasCrlf && hasLf) return AppConfig.LineEndingNames.Mixed;
+            if (hasCrlf) return AppConfig.LineEndingNames.Crlf;
+            if (hasLf) return AppConfig.LineEndingNames.Lf;
+            return AppConfig.LineEndingNames.None;
         }
         catch
         {
-            return "Error";
+            return AppConfig.LineEndingNames.Error;
         }
     }
 
@@ -127,21 +126,21 @@ public static class EncodingChecker
 
             switch (encoding)
             {
-                case "UTF8-BOM":
+                case AppConfig.EncodingNames.Utf8Bom:
                     // 去掉 BOM
                     content = Encoding.UTF8.GetString(bytes, 3, bytes.Length - 3);
                     break;
 
-                case "UTF16-LE":
+                case AppConfig.EncodingNames.Utf16Le:
                     content = Encoding.Unicode.GetString(bytes);
                     break;
 
-                case "UTF16-BE":
+                case AppConfig.EncodingNames.Utf16Be:
                     content = Encoding.BigEndianUnicode.GetString(bytes);
                     break;
 
-                case "UTF-8":
-                case "ASCII":
+                case AppConfig.EncodingNames.Utf8:
+                case AppConfig.EncodingNames.Ascii:
                     message = "无需修复";
                     return false;
 
@@ -173,7 +172,7 @@ public static class EncodingChecker
             var content = File.ReadAllText(filePath);
             var currentEol = DetectLineEnding(filePath);
 
-            if (currentEol == targetEol || currentEol == "None")
+            if (currentEol == targetEol || currentEol == AppConfig.LineEndingNames.None)
             {
                 message = "行尾无需修复";
                 return false;
@@ -182,7 +181,7 @@ public static class EncodingChecker
             // 统一换行符
             content = content.Replace("\r\n", "\n").Replace("\r", "\n");
 
-            if (targetEol == "CRLF")
+            if (targetEol == AppConfig.LineEndingNames.Crlf)
             {
                 content = content.Replace("\n", "\r\n");
             }

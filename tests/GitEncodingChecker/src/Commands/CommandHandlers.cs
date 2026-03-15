@@ -33,8 +33,6 @@ public static class CommandHandlers
 
         Console.WriteLine($"🔍 正在检查 {files.Count} 个暂存文件...\n");
 
-        var textExtensions = GetTextExtensions();
-
         // 使用 PLINQ 并行处理文件检测 - 简单链式编程
         var results = files
             .AsParallel()                           // 启用并行
@@ -47,12 +45,12 @@ public static class CommandHandlers
                             Encoding: "", LineEnding: "", HasBlank: false, EncodingOk: true, LineEndingOk: true);
 
                 var ext = Path.GetExtension(file).ToLowerInvariant();
-                if (!textExtensions.Contains(ext))
+                if (!AppConfig.TextExtensions.Contains(ext))
                     return (File: file, Skip: true, SkipReason: "非文本文件", HasError: false,
                             Encoding: "", LineEnding: "", HasBlank: false, EncodingOk: true, LineEndingOk: true);
 
-                if (ext == ".ps1" || ext == ".psm1")
-                    return (File: file, Skip: true, SkipReason: "PowerShell 脚本", HasError: false,
+                if (AppConfig.SkipExtensions.Contains(ext))
+                    return (File: file, Skip: true, SkipReason: AppConfig.SkipReasonPowerShell, HasError: false,
                             Encoding: "", LineEnding: "", HasBlank: false, EncodingOk: true, LineEndingOk: true);
 
                 // 执行检测
@@ -149,18 +147,18 @@ public static class CommandHandlers
         if (hasError)
         {
             Console.ForegroundColor = ConsoleColor.Red;
-            Console.WriteLine("❌ 编码检查未通过！");
+            Console.WriteLine(AppConfig.MessageCheckFailed);
             Console.ResetColor();
             Console.WriteLine();
             Console.WriteLine("💡 修复方法:");
-            Console.WriteLine("  git ec-fix     # 自动修复编码问题");
-            Console.WriteLine("  git ecc -m \"msg\"  # 修复并提交");
+            Console.WriteLine($"  {AppConfig.FixHints.FixCommand}");
+            Console.WriteLine($"  {AppConfig.FixHints.CommitCommand}");
             return 1;
         }
         else
         {
             Console.ForegroundColor = ConsoleColor.Green;
-            Console.WriteLine("✓ 所有文件编码检查通过！");
+            Console.WriteLine(AppConfig.MessageCheckPassed);
             Console.ResetColor();
             return 0;
         }
@@ -186,7 +184,6 @@ public static class CommandHandlers
         Console.WriteLine($"🔧 正在检查 {files.Count} 个暂存文件...\n");
 
         int fixedCount = 0;
-        var textExtensions = GetTextExtensions();
 
         foreach (var file in files)
         {
@@ -194,8 +191,8 @@ public static class CommandHandlers
             if (!File.Exists(fullPath)) continue;
 
             var ext = Path.GetExtension(file).ToLowerInvariant();
-            if (!textExtensions.Contains(ext)) continue;
-            if (ext == ".ps1" || ext == ".psm1") continue;
+            if (!AppConfig.TextExtensions.Contains(ext)) continue;
+            if (AppConfig.SkipExtensions.Contains(ext)) continue;
 
             // 修复编码
             if (EncodingChecker.FixEncoding(fullPath, out var encMsg))
@@ -579,37 +576,26 @@ public static class CommandHandlers
         }
     }
 
-    private static HashSet<string> GetTextExtensions()
-    {
-        return new HashSet<string>(StringComparer.OrdinalIgnoreCase)
-        {
-            ".cs", ".slnx", ".csproj", ".json", ".xml", ".config",
-            ".props", ".targets", ".md", ".txt", ".yaml", ".yml",
-            ".toml", ".ini", ".cfg", ".conf", ".html", ".htm",
-            ".css", ".js", ".ts", ".jsx", ".tsx", ".py", ".rb",
-            ".go", ".rs", ".java", ".c", ".cpp", ".h", ".hpp",
-            ".sh", ".bash", ".bat", ".cmd"
-        };
-    }
+
 
     private static string GetTargetLineEnding(string repoRoot, string filePath)
     {
         // 简化版：从 .editorconfig 读取
         try
         {
-            var configPath = Path.Combine(repoRoot, ".editorconfig");
+            var configPath = Path.Combine(repoRoot, AppConfig.EditorConfigFileName);
             if (File.Exists(configPath))
             {
                 var lines = File.ReadAllLines(configPath);
                 foreach (var line in lines)
                 {
-                    if (line.TrimStart().StartsWith("end_of_line"))
+                    if (line.TrimStart().StartsWith(AppConfig.EditorConfigEndOfLineKey))
                     {
                         var parts = line.Split('=');
                         if (parts.Length == 2)
                         {
                             var eol = parts[1].Trim().ToUpperInvariant();
-                            return eol == "CRLF" ? "CRLF" : "LF";
+                            return eol == AppConfig.LineEndingNames.Crlf ? AppConfig.LineEndingNames.Crlf : AppConfig.LineEndingNames.Lf;
                         }
                     }
                 }
@@ -617,7 +603,7 @@ public static class CommandHandlers
         }
         catch { }
 
-        return "LF";
+        return AppConfig.DefaultLineEnding;
     }
 
     #endregion

@@ -9,34 +9,6 @@ public static class GitPathResolver
     private static string? _cachedPath;
 
     /// <summary>
-    /// 常见的 Git 安装位置，按优先级排序
-    /// </summary>
-    private static readonly string[] CommonGitPaths = new[]
-    {
-        // 标准安装路径（64位）
-        @"C:\Program Files\Git\bin\git.exe",
-        @"C:\Program Files\Git\cmd\git.exe",
-
-        // 标准安装路径（32位）
-        @"C:\Program Files (x86)\Git\bin\git.exe",
-        @"C:\Program Files (x86)\Git\cmd\git.exe",
-
-        // 用户级安装（通过官网安装程序选择"仅为我安装"）
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), @"Programs\Git\bin\git.exe"),
-
-        // 便携版常见位置
-        @"C:\git\bin\git.exe",
-        @"C:\tools\git\bin\git.exe",
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"git\bin\git.exe"),
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"tools\git\bin\git.exe"),
-
-        // 包管理器安装路径
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @"scoop\shims\git.exe"),
-        @"C:\ProgramData\chocolatey\bin\git.exe",
-        Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.UserProfile), @".cargo\bin\git.exe"),
-    };
-
-    /// <summary>
     /// 获取 Git 可执行文件路径
     /// 查找顺序：环境变量 -> PATH -> 常见路径 -> where 命令
     /// </summary>
@@ -46,7 +18,7 @@ public static class GitPathResolver
             return _cachedPath;
 
         // 1. 检查环境变量（给用户最高控制权）
-        var envPath = Environment.GetEnvironmentVariable("GIT_PATH");
+        var envPath = Environment.GetEnvironmentVariable(AppConfig.GitPathEnvironmentVariable);
         if (!string.IsNullOrEmpty(envPath) && File.Exists(envPath))
         {
             _cachedPath = envPath;
@@ -61,7 +33,7 @@ public static class GitPathResolver
         }
 
         // 3. 扫描常见安装路径
-        foreach (var candidate in CommonGitPaths)
+        foreach (var candidate in AppConfig.CommonGitPaths)
         {
             if (File.Exists(candidate))
             {
@@ -79,7 +51,7 @@ public static class GitPathResolver
 
         // 5. 实在找不到，回退到 "git" 让系统尝试
         // 使用时如果失败会显示友好的错误提示
-        _cachedPath = "git";
+        _cachedPath = AppConfig.GitExecutableName;
         return _cachedPath;
     }
 

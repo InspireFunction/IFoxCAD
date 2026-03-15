@@ -292,17 +292,112 @@ function Invoke-Build {
     switch ($BuildMode) {
         "single" {
             Write-Log "正在编译发布（单文件模式）..." "INFO"
-            dotnet publish EncodingChecker.csproj -c Release -r win-x64 --self-contained true `
-                /p:PublishSingleFile=true `
-                /p:IncludeNativeLibrariesForSelfExtract=true `
-                /p:EnableCompressionInSingleFile=true `
-                /p:PublishAot=false
-            return "单文件模式"
+            try {
+                $psi = New-Object System.Diagnostics.ProcessStartInfo
+                $psi.FileName = "dotnet"
+                $psi.Arguments = "publish EncodingChecker.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true /p:IncludeNativeLibrariesForSelfExtract=true /p:EnableCompressionInSingleFile=true /p:PublishAot=false"
+                $psi.UseShellExecute = $false
+                $psi.RedirectStandardOutput = $true
+                $psi.RedirectStandardError = $true
+                $psi.CreateNoWindow = $true
+                
+                $process = New-Object System.Diagnostics.Process
+                $process.StartInfo = $psi
+                $process.Start() | Out-Null
+                
+                $stdout = $process.StandardOutput.ReadToEnd()
+                $stderr = $process.StandardError.ReadToEnd()
+                $process.WaitForExit()
+                
+                $exitCode = $process.ExitCode
+                
+                # 输出编译日志
+                if ($stdout) { Write-Log $stdout }
+                if ($stderr) { Write-Log $stderr "WARN" }
+                
+                if ($exitCode -ne 0) {
+                    $errorType = Get-BuildErrorType -ExitCode $exitCode
+                    Write-Log "编译失败！[$errorType] 退出代码: $exitCode" "ERROR"
+                }
+                return @{ Mode = "单文件模式"; ExitCode = $exitCode; ErrorType = $errorType }
+            }
+            catch {
+                Write-Log "编译异常！[$($_.Exception.GetType().FullName)] $($_.Exception.Message)" "ERROR"
+                return @{ Mode = "单文件模式"; ExitCode = -1; ErrorType = $_.Exception.GetType().Name }
+            }
         }
         default {
             Write-Log "正在编译发布（AOT原生编译模式）..." "INFO"
-            dotnet publish EncodingChecker.csproj -c Release
-            return "AOT原生编译模式"
+            try {
+                $psi = New-Object System.Diagnostics.ProcessStartInfo
+                $psi.FileName = "dotnet"
+                $psi.Arguments = "publish EncodingChecker.csproj -c Release -r win-x64 --self-contained true /p:PublishAot=true"
+                $psi.UseShellExecute = $false
+                $psi.RedirectStandardOutput = $true
+                $psi.RedirectStandardError = $true
+                $psi.CreateNoWindow = $true
+                
+                $process = New-Object System.Diagnostics.Process
+                $process.StartInfo = $psi
+                $process.Start() | Out-Null
+                
+                $stdout = $process.StandardOutput.ReadToEnd()
+                $stderr = $process.StandardError.ReadToEnd()
+                $process.WaitForExit()
+                
+                $exitCode = $process.ExitCode
+                
+                # 输出编译日志
+                if ($stdout) { Write-Log $stdout }
+                if ($stderr) { Write-Log $stderr "WARN" }
+                
+                if ($exitCode -ne 0) {
+                    $errorType = Get-BuildErrorType -ExitCode $exitCode
+                    Write-Log "编译失败！[$errorType] 退出代码: $exitCode" "ERROR"
+                }
+                return @{ Mode = "AOT原生编译模式"; ExitCode = $exitCode; ErrorType = $errorType }
+            }
+            catch {
+                Write-Log "编译异常！[$($_.Exception.GetType().FullName)] $($_.Exception.Message)" "ERROR"
+                return @{ Mode = "AOT原生编译模式"; ExitCode = -1; ErrorType = $_.Exception.GetType().Name }
+            }
+        }
+    }
+}
+
+# ============================================
+# 编译错误类型解析函数
+# ============================================
+
+function Get-BuildErrorType {
+    param([int]$ExitCode)
+    
+    switch ($ExitCode) {
+        1 { return "NETSDK1207(目标框架不支持AOT)" }
+        2 { return "MSBuild错误" }
+        3 { return "编译器错误(CSC)" }
+        4 { return "还原失败" }
+        5 { return "发布失败" }
+        6 { return "打包失败" }
+        7 { return "测试失败" }
+        8 { return "工具恢复失败" }
+        9 { return "项目加载失败" }
+        10 { return "解决方案文件错误" }
+        11 { return "SDK解析错误" }
+        12 { return "运行时标识符错误" }
+        13 { return "框架引用错误" }
+        14 { return "包引用错误" }
+        15 { return "工具执行错误" }
+        16 { return "自包含发布错误" }
+        17 { return "单文件发布错误" }
+        18 { return "AOT发布错误" }
+        19 { return "ReadyToRun错误" }
+        20 { return "剪裁错误" }
+        default { 
+            if ($ExitCode -lt 0) {
+                return "进程异常终止"
+            }
+            return "未知错误(请查阅文档)" 
         }
     }
 }
@@ -687,10 +782,22 @@ function Main {
     }
 
     # 编译
-    $mode = Invoke-Build -BuildMode $(if ($buildMode -eq "2") { "single" } else { "aot" })
+    $buildResult = Invoke-Build -BuildMode $(if ($buildMode -eq "2") { "single" } else { "aot" })
+    $mode = $buildResult.Mode
 
-    if ($LASTEXITCODE -ne 0) {
-        Write-Log "发布失败！" "ERROR"
+    if ($buildResult.ExitCode -ne 0) {
+        $errorType = if ($buildResult.ErrorType) { $buildResult.ErrorType } else { "未知错误" }
+        Write-Log "========================================" "ERROR"
+        Write-Log "编译失败！" "ERROR"
+        Write-Log "错误类型: $errorType" "ERROR"
+        Write-Log "退出代码: $($buildResult.ExitCode)" "ERROR"
+        Write-Log "========================================" "ERROR"
+        Write-Log "" "ERROR"
+        Write-Log "常见错误及解决方案:" "INFO"
+        Write-Log "  [NETSDK1207] 目标框架不支持AOT - 请安装.NET 8 SDK或改用单文件模式" "INFO"
+        Write-Log "  [MSBuild错误] 检查项目文件语法和引用" "INFO"
+        Write-Log "  [还原失败] 运行 'dotnet restore' 手动还原包" "INFO"
+        Write-Log "" "INFO"
         return  # 返回主循环
     }
 

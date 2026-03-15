@@ -29,7 +29,7 @@
 
     排除 IFoxFunKit 项目本身，避免循环引用
   -->
-  <ItemGroup Condition="!$(MSBuildProjectName.Contains('IFoxFunKit'))">
+  <ItemGroup Condition="!$(MSBuildProjectName.Contains('IFoxFunKit')) AND '$(MSBuildProjectName)' != 'EncodingChecker'">
     <!-- 使用 ProjectReference 引用分析器项目，确保正确的编译顺序 -->
     <!-- 通过 SetTargetFramework 指定 netstandard2.0，避免跨目标框架引用问题 -->
     <ProjectReference Include="$(RepoRoot)src\IFoxFunKit\IFoxFunKit.csproj">
@@ -50,7 +50,7 @@
     排除 tests 目录下的项目（它们通过项目引用已获得这些类型）
     注意字符串包含tests会获取unittests,我们需要精确匹配.
   -->
-  <ItemGroup Condition="!$(MSBuildProjectName.Contains('IFoxFunKit')) AND !$(MSBuildProjectDirectory.Contains('\tests\'))">
+  <ItemGroup Condition="!$(MSBuildProjectName.Contains('IFoxFunKit')) AND !$(MSBuildProjectDirectory.Contains('\tests\')) AND '$(MSBuildProjectName)' != 'EncodingChecker'">
     <Compile Include="$(RepoRoot)src\IFoxFunKit\src\Option\*.cs"
              Link="Option\%(Filename)%(Extension)"
              Condition="Exists('$(RepoRoot)src\IFoxFunKit\src\Option')" />
