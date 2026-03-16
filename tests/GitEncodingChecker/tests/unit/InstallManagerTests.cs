@@ -140,7 +140,7 @@ public class InstallManagerTests : IDisposable
         var aliasNames = aliases.Select(a => a.alias).ToList();
         Assert.Contains("ec-check", aliasNames);
         Assert.Contains("ec-fix", aliasNames);
-        Assert.Contains("ec-m", aliasNames);
+        Assert.Contains("ecc", aliasNames);
         Assert.Contains("ec-force", aliasNames);
         Assert.Contains("ec-install", aliasNames);
         Assert.Contains("ec-uninstall", aliasNames);
@@ -652,7 +652,7 @@ public class InstallManagerTests : IDisposable
     public void CheckLocalAliases_ShouldHandleSpecialCharactersInAliasName()
     {
         // Arrange - 创建带特殊字符的别名
-        RunGitCommand("config", "alias.ec-m", "!\"echo m\"");
+        RunGitCommand("config", "alias.ecc", "!\"echo m\"");
         RunGitCommand("config", "alias.ec-check", "!\"echo check\"");
 
         // Act
@@ -660,11 +660,11 @@ public class InstallManagerTests : IDisposable
 
         // Assert
         Assert.NotNull(aliases);
-        Assert.Contains("ec-m", aliases);
+        Assert.Contains("ecc", aliases);
         Assert.Contains("ec-check", aliases);
 
         // Cleanup
-        RunGitCommand("config", "--unset", "alias.ec-m");
+        RunGitCommand("config", "--unset", "alias.ecc");
         RunGitCommand("config", "--unset", "alias.ec-check");
     }
 

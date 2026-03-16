@@ -4,7 +4,7 @@
 // 使用示例:
 //   git ec-check        # 检查编码
 //   git ec-fix          # 修复编码
-//   git ec-m -m "msg"  # 修复并提交
+//   git ecc "msg"      # 修复并提交
 //   git ec-install      # 交互式安装
 
 using System.Reflection;

@@ -242,7 +242,7 @@ public class IntegrationTests : IDisposable
 
         // 从 CommandTable 获取别名列表，确保与代码一致
         var aliasList = CommandTable.GetAliasList()
-            .Where(a => a.Alias is "ec-check" or "ec-fix" or "ec-m" or "ec-force")
+            .Where(a => a.Alias is "ec-check" or "ec-fix" or "ecc" or "ec-force")
             .ToList();
 
         foreach (var (command, alias, _) in aliasList)
@@ -259,7 +259,7 @@ public class IntegrationTests : IDisposable
     private void ValidateCommandsExist()
     {
         // 使用别名从 CommandTable 获取实际命令名，避免硬编码
-        var requiredAliases = new[] { "ec-check", "ec-fix", "ec-m", "ec-force" };
+        var requiredAliases = new[] { "ec-check", "ec-fix", "ecc", "ec-force" };
 
         foreach (var alias in requiredAliases)
         {
@@ -489,7 +489,7 @@ public class IntegrationTests : IDisposable
 
     #endregion
 
-    #region 场景8: 用户工作流 - ec-m 完整流程
+    #region 场景8: 用户工作流 - ecc 完整流程
 
     [Fact]
     public void Scenario8_EcCommit_ShouldFixAndCommit()
@@ -499,15 +499,15 @@ public class IntegrationTests : IDisposable
         CreateTestFile("commit.txt", bomContent);
         RunGitCommand("add", "commit.txt");
 
-        // Act: 使用 ec-m 修复并提交
-        // 注意：ec-m 会交互式询问提交信息，这里直接调用底层命令
+        // Act: 使用 ecc 修复并提交
+        // 注意：ecc 会交互式询问提交信息，这里直接调用底层命令
         RunExeCommand("--fix");
         RunGitCommand("add", "commit.txt");
-        RunGitCommand("commit", "-m", "test: ec-m workflow");
+        RunGitCommand("commit", "-m", "test: ecc workflow");
 
         // Assert: 提交成功
         var log = RunGitCommandWithOutput("log", "--oneline");
-        Assert.Contains("test: ec-m workflow", log);
+        Assert.Contains("test: ecc workflow", log);
 
         // Assert: 文件已被修复
         var bytes = File.ReadAllBytes(Path.Combine(_testRepoDir, "commit.txt"));

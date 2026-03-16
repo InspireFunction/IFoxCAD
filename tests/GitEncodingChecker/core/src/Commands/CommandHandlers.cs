@@ -394,10 +394,10 @@ public static class CommandHandlers
 
     #region 提交辅助命令
 
-    [GitCommand("--convert-commit", "修复编码并提交", GitAlias = "ec-m")]
+    [GitCommand("--convert-commit", "修复编码并提交", GitAlias = "ecc")]
     public static int ConvertAndCommit(string[] args)
     {
-        // 格式: git ec-m "msg"
+        // 格式: git ecc "msg"
         if (args.Length == 0)
         {
             var lastMsg = GetLastCommitMessage();
@@ -676,7 +676,7 @@ public static class CommandHandlers
         Console.WriteLine("  git ec-check              # 检查编码");
         Console.WriteLine("  git ec-fix                # 修复问题");
         Console.WriteLine("  git add .");
-        Console.WriteLine("  git ec-m \"feat: xxx\"     # 修复并提交");
+        Console.WriteLine("  git ecc \"feat: xxx\"      # 修复并提交");
         Console.WriteLine();
 
         return 0;

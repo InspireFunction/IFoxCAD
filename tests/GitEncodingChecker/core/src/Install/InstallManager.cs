@@ -82,7 +82,7 @@ public static class InstallManager
         Console.ResetColor();
         Console.WriteLine("      • git ec-check - 检查编码");
         Console.WriteLine("      • git ec-fix - 修复编码");
-        Console.WriteLine("      • git ec-m \"msg\" - 修复并提交");
+        Console.WriteLine("      • git ecc \"msg\" - 修复并提交");
         Console.WriteLine();
 
         Console.WriteLine("  [Q] 取消安装");
